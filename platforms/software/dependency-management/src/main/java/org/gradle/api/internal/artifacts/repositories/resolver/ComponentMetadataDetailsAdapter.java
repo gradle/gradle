@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
-import org.apache.groovy.util.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
@@ -138,8 +137,12 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
 
     private void addPlatformDependencyToAllVariants(ModuleComponentIdentifier platformId) {
         allVariants(v -> v.withDependencies(dependencies -> {
-            dependencies.add(Maps.of("group", platformId.getGroup(), "name", platformId.getModule(), "version", platformId.getVersion()),
-                platformDependency -> platformDependency.attributes(attributes -> attributes.attribute(Category.CATEGORY_ATTRIBUTE, platformSupport.getRegularPlatformCategory())));
+            String dependencyNotation = platformId.getGroup() + ":" + platformId.getModule() + ":" + platformId.getVersion();
+            dependencies.add(dependencyNotation, platformDependency ->
+                platformDependency.attributes(attributes ->
+                    attributes.attribute(Category.CATEGORY_ATTRIBUTE, platformSupport.getRegularPlatformCategory())
+                )
+            );
         }));
     }
 

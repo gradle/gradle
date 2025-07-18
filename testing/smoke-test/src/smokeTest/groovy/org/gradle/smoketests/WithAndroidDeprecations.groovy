@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import groovy.transform.SelfType
 import groovy.transform.TupleConstructor
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 
@@ -69,6 +70,50 @@ trait WithAndroidDeprecations {
                 message
             )
         }
+    }
+
+    void expectMultiStringNotationDeprecationIf(String agpVersion, boolean condition) {
+        if (condition) {
+            expectMultiStringNotationDeprecation(agpVersion)
+        }
+    }
+
+    void expectMultiStringNotationDeprecation(String agpVersion) {
+        String lintVersion = null
+        String aapt2Version = null
+        if (agpVersion == "8.11.0") {
+            lintVersion = "31.11.0"
+            aapt2Version = "8.11.0-12782657"
+        } else if (agpVersion == "8.12.0-alpha08") {
+            lintVersion = "31.12.0-alpha08"
+            aapt2Version = "8.12.0-alpha08-13700139"
+        } else if (agpVersion == "8.12.0-dev") {
+            lintVersion = "31.12.0-dev"
+            aapt2Version = "8.12.0-dev-13700139"
+        }
+
+        String platform
+        if (OperatingSystem.current().isWindows()) {
+            platform = "windows"
+        } else if (OperatingSystem.current().isLinux()) {
+            platform = "linux"
+        } else if (OperatingSystem.current().isMacOsX()) {
+            platform = "osx"
+        } else {
+            throw new UnsupportedOperationException("Unsupported operating system: ${OperatingSystem.current().name}")
+        }
+
+        if (lintVersion != null && aapt2Version != null) { // We don't test deprecations on older AGP versions.
+            // See https://cs.android.com/android-studio/platform/tools/base/+/mirror-goog-studio-main:build-system/gradle-core/src/main/java/com/android/build/gradle/internal/lint/AndroidLintInputs.kt;l=2849?q=AndroidLintInputs
+            runner.expectLegacyDeprecationWarning(
+                "Declaring dependencies using multi-string notation has been deprecated. This will fail with an error in Gradle 10. Please use single-string notation instead: \"com.android.tools.lint:lint-gradle:$lintVersion\". Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#dependency_multi_string_notation"
+            )
+            // See https://cs.android.com/android-studio/platform/tools/base/+/mirror-goog-studio-main:build-system/gradle-core/src/main/java/com/android/build/gradle/internal/res/Aapt2FromMaven.kt;l=138?q=Aapt2FromMaven
+            runner.expectLegacyDeprecationWarning(
+                "Declaring dependencies using multi-string notation has been deprecated. This will fail with an error in Gradle 10. Please use single-string notation instead: \"com.android.tools.build:aapt2:$aapt2Version:$platform\". Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#dependency_multi_string_notation"
+            )
+        }
+
     }
 
 }

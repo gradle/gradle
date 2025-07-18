@@ -41,6 +41,136 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Deprecations
 
+[[dependency_multi_string_notation]]
+==== Deprecated multi-string dependency notation
+
+In an effort to simplify and standardize the Gradle API, the multi-string dependency notation has been deprecated and will no longer be permitted in Gradle 10.
+Gradle will primarily accept dependency declarations in the form of a single string, with each dependency coordinate separated by a colon.
+
+Below are examples of the deprecated multi-string notation:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    implementation(group = "org", name = "foo", version = "1.0")
+    implementation(group = "org", name = "foo", version = "1.0", configuration = "conf")
+    implementation(group = "org", name = "foo", version = "1.0", classifier = "classifier")
+    implementation(group = "org", name = "foo", version = "1.0", ext = "ext")
+}
+
+testing.suites.named<JvmTestSuite>("test") {
+    dependencies {
+        implementation(module(group = "org", name = "foo", version = "1.0"))
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+dependencies {
+    implementation(group: 'org', name: 'foo', version: '1.0')
+    implementation(group: 'org', name: 'foo', version: '1.0', configuration: 'conf')
+    implementation(group: 'org', name: 'foo', version: '1.0', classifier: 'classifier')
+    implementation(group: 'org', name: 'foo', version: '1.0', ext: 'ext')
+}
+
+testing.suites.test {
+    dependencies {
+        implementation(module(group: 'org', name: 'foo', version: '1.0'))
+    }
+}
+----
+=====
+====
+
+These declarations should be replaced with the single-string notation:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    implementation("org:foo:1.0")
+    implementation("org:foo:1.0") {
+        targetConfiguration = "conf"
+    }
+    implementation("org:foo:1.0:classifier")
+    implementation("org:foo:1.0@ext")
+}
+
+testing.suites.named<JvmTestSuite>("test") {
+    dependencies {
+        implementation("org:foo:1.0")
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+dependencies {
+    implementation("org:foo:1.0")
+    implementation("org:foo:1.0") {
+        targetConfiguration = "conf"
+    }
+    implementation("org:foo:1.0:classifier")
+    implementation("org:foo:1.0@ext")
+}
+
+testing.suites.test {
+    dependencies {
+        implementation("org:foo:1.0")
+    }
+}
+----
+=====
+====
+
+In some cases, a complete single-string notation may not be known up front.
+Instead of concatenating the coordinates into a new string, it is possible to use a link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyFactory.html[`DependencyFactory`] to create `Dependency` instances directly from the individual components:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+val group = "org"
+val artifactId = "foo"
+val version = "1.0"
+
+configurations.dependencyScope("implementation") {
+    dependencies.add(project.dependencyFactory.create(group, artifactId, version))
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+def group = "org"
+def artifactId = "foo"
+def version = "1.0"
+
+configurations.dependencyScope("implementation") {
+    dependencies.add(project.dependencyFactory.create(group, artifactId, version))
+}
+----
+=====
+====
+
 [[archives-configuration]]
 ==== Deprecation of the `archives` configuration
 The `archives` configuration added by the `base` plugin has been deprecated and will be removed in Gradle 10.0.0.

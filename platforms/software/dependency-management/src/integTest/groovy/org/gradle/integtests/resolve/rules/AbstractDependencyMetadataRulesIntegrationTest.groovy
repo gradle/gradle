@@ -56,26 +56,17 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
                     }
                 }
             }
-        """
-
-        if (useMaven() || publishedModulesHaveAttributes) {
-            buildFile << """
-                dependencies {
-                    $variantToTest group: 'org.test', name: 'moduleA', version: '1.0'
-                }
-            """
-        } else {
-            buildFile << """
-                dependencies {
-                    $variantToTest("org.test:moduleA:1.0") {
+            dependencies {
+                $variantToTest("org.test:moduleA:1.0") {
+                    if (${!publishedModulesHaveAttributes && useIvy()}) {
                         targetConfiguration = "$variantToTest"
                     }
                 }
-            """
-        }
+            }
+        """
     }
 
-    def "#thing can be added using #notation notation"() {
+    def "#thing can be added"() {
         when:
         buildFile << """
             class ModifyRule implements ComponentMetadataRule {
@@ -125,11 +116,9 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         where:
-        thing                    | notation | declaration
-        "dependency constraints" | "string" | "'org.test:moduleB:1.0'"
-        "dependency constraints" | "map"    | "group: 'org.test', name: 'moduleB', version: '1.0'"
-        "dependencies"           | "string" | "'org.test:moduleB:1.0'"
-        "dependencies"           | "map"    | "group: 'org.test', name: 'moduleB', version: '1.0'"
+        thing                    | declaration
+        "dependency constraints" | "'org.test:moduleB:1.0'"
+        "dependencies"           | "'org.test:moduleB:1.0'"
     }
 
     def "#thing can be added to a new variant"() {

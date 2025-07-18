@@ -17,7 +17,7 @@ package org.gradle.integtests.fixtures.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ArtifactResolutionExpectationSpec
-import org.gradle.test.fixtures.GradleMetadataAwarePublishingSpec
+import org.gradle.test.fixtures.DependencyDeclarationFixture
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.SingleArtifactResolutionResultSpec
 import org.gradle.test.fixtures.maven.MavenFileModule
@@ -27,7 +27,8 @@ import org.gradle.test.fixtures.maven.MavenModule
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
-abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec implements GradleMetadataAwarePublishingSpec {
+abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec implements DependencyDeclarationFixture {
+    boolean requiresExternalDependencies
 
     protected static MavenJavaModule javaLibrary(MavenFileModule mavenFileModule, List<String> features = [MavenJavaModule.MAIN_FEATURE], boolean withDocumentation = false) {
         return new MavenJavaModule(mavenFileModule, features, withDocumentation)
@@ -45,7 +46,16 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
         expectationSpec()
 
         expectation.validate()
+    }
 
+    private String convertDependencyNotation(dependencyNotation) {
+        if (dependencyNotation instanceof CharSequence) {
+            return dependencyNotation
+        }
+        if (dependencyNotation instanceof MavenModule) {
+            return asDependencyNotation(dependencyNotation.groupId, dependencyNotation.artifactId, dependencyNotation.version)
+        }
+        throw new UnsupportedOperationException("Unsupported dependency notation: ${dependencyNotation}")
     }
 
     void resolveApiArtifacts(MavenModule module, @DelegatesTo(value = MavenArtifactResolutionExpectation, strategy = Closure.DELEGATE_FIRST) Closure<?> expectationSpec) {
@@ -67,49 +77,39 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
     def doResolveArtifacts(ResolveParams params) {
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
-        def attributes = params.variant == null ?
-            "" :
+
+        String artifacts = params.additionalArtifacts.collect {
+            def tokens = it.ivyTokens
             """
-    attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.${params.variant}))
-    }
-"""
-        String extraArtifacts = ""
-        if (params.additionalArtifacts) {
-            String artifacts = params.additionalArtifacts.collect {
-                def tokens = it.ivyTokens
-                """
-                    artifact {
-                        name = '${sq(tokens.artifact)}'
-                        classifier = '${sq(tokens.classifier)}'
-                        type = '${sq(tokens.type)}'
-                    }"""
-            }.join('\n')
-            extraArtifacts = """
-                {
-                    transitive = false
-                    $artifacts
+                artifact {
+                    name = '${sq(tokens.artifact)}'
+                    classifier = '${sq(tokens.classifier)}'
+                    type = '${sq(tokens.type)}'
                 }
             """
-        }
+        }.join('\n')
 
         String dependencyNotation = params.dependency
-        if (params.classifier) {
-            dependencyNotation = "${dependencyNotation}, classifier: '${sq(params.classifier)}'"
-        }
-        if (params.ext) {
-            dependencyNotation = "${dependencyNotation}, ext: '${sq(params.ext)}'"
-        }
 
         def externalRepo = requiresExternalDependencies?mavenCentralRepositoryDefinition():''
         def optional = params.optionalFeatureCapabilities.collect {
-            "resolve($dependencyNotation) { capabilities { requireCapability('$it') } }"
+            """
+                resolve($dependencyNotation) {
+                    capabilities {
+                        requireCapability('$it')
+                    }
+                }
+            """
         }.join('\n')
         buildFile.text = """
             apply plugin: 'java-base' // to get the standard Java library derivation strategy
             configurations {
                 resolve {
-                    ${attributes}
+                    if (${params.variant != null}) {
+                        attributes {
+                            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.${params.variant}))
+                        }
+                    }
                 }
             }
             repositories {
@@ -124,8 +124,21 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
             }
 
             dependencies {
-               resolve($dependencyNotation) $extraArtifacts
-               $optional
+                resolve($dependencyNotation) {
+                    $artifacts
+                    transitive = ${params.additionalArtifacts.isEmpty()}
+                    if (${params.classifier != null || params.ext != null}) {
+                        artifact {
+                            if (${params.classifier != null}) {
+                                classifier = '${sq(params.classifier ?: "")}'
+                            }
+                            if (${params.ext != null}) {
+                                type = '${sq(params.ext ?: "")}'
+                            }
+                        }
+                    }
+                }
+                $optional
             }
 
             task resolveArtifacts(type: Sync) {
@@ -148,7 +161,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
     static class ResolveParams {
         MavenModule module
         String dependency
-        List<? extends ModuleArtifact> additionalArtifacts
+        List<? extends ModuleArtifact> additionalArtifacts = []
 
         String classifier
         String ext

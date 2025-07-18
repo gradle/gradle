@@ -33,6 +33,7 @@ import spock.lang.Issue
 class DependencyHandlerExtensionsTest {
 
     @Test
+    @Suppress("DEPRECATION")
     fun `given group, name, version, configuration, classifier and ext, 'create' extension will build corresponding map`() {
 
         val expectedModuleMap = mapOf(
