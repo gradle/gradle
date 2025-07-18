@@ -25,7 +25,7 @@ import java.io.File;
 
 import static org.gradle.initialization.DefaultProjectDescriptor.BUILD_SCRIPT_BASENAME;
 
-@ServiceScope({Scope.BuildSession.class, Scope.Build.class})
+@ServiceScope(Scope.Build.class)
 public class BuildLayout extends SettingsLocation {
     private final ScriptFileResolver scriptFileResolver;
 
