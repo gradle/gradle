@@ -18,7 +18,7 @@
 The table below provides a complete list of documented Gradle Best Practices.
 
 ****
-There are currently *23 Best Practices*.
+There are currently *24 Best Practices*.
 ****
 
 Use this as a quick reference to track newly added recommendations, check adoption status, or explore areas for improving your build:
