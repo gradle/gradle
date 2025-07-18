@@ -88,3 +88,8 @@ tasks.named("assemble") {
 ----
 
 === Potential breaking changes
+
+==== Removed incubating method `ObjectFactory#dependencyCollector()`
+
+The incubating `ObjectFactory#dependencyCollector()` method has been removed.
+DependencyCollectors can still be instantiated within Gradle <<properties_providers.adoc#managed_types, managed types>>.
