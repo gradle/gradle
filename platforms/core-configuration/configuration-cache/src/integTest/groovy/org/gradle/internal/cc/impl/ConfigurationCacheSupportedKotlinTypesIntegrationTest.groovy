@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.spockframework.lang.Wildcard
 
 class ConfigurationCacheSupportedKotlinTypesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -23,9 +24,7 @@ class ConfigurationCacheSupportedKotlinTypesIntegrationTest extends AbstractConf
     def "restores task fields whose value is instance of #type"() {
         buildKotlinFile """
             buildscript {
-                repositories {
-                    mavenCentral()
-                }
+                ${mavenCentralRepository(GradleDsl.KOTLIN)}
                 dependencies {
                     if(${dependency !instanceof Wildcard}) {
                         classpath("$dependency")
@@ -37,23 +36,22 @@ class ConfigurationCacheSupportedKotlinTypesIntegrationTest extends AbstractConf
 
             abstract class FooTask : DefaultTask() {
                 @get:Internal
-                val bean : Bean
+                abstract val bean : Property<Bean>
                 @get:Internal
-                val field : $type
-
-                init {
-                    bean = Bean($reference)
-                    field = $reference
-                }
+                abstract val field : Property<$type>
 
                 @TaskAction
                 fun foo() {
-                    println("this.field = \$field")
-                    println("bean.field = \${bean.field}")
+                    println("this.field = \${field.get()}")
+                    println("bean.field = \${bean.get().field}")
                 }
             }
 
-            tasks.register("foo", FooTask::class)
+            tasks.register("foo", FooTask::class) {
+                bean = provider { Bean($reference) }
+                field = provider { $reference }
+            }
+
         """
 
         when:
