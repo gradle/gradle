@@ -101,24 +101,29 @@ include::{snippetsPath}/bestPractices/useBuildCache-do/tests/useBuildCache-do.se
 [[use_configuration_cache]]
 == Use the Configuration Cache
 
-Use the Configuration Cache to significantly improves build performance by caching the result of the configuration phase and reusing it in subsequent builds.
+Use the Configuration Cache to significantly improve build performance by caching the result of the configuration phase and reusing it in subsequent builds.
 
 === Explanation
 
 The Configuration Cache works by saving the result of the configuration phase.
 On the next build, if nothing relevant has changed, Gradle skips configuration entirely and loads the cached task graph from disk, jumping straight to task execution.
 
-This can dramatically reduce build time, especially in large builds, as long as your build scripts and plugins are compatible (i.e., no dynamic or undeclared inputs).
+This can dramatically reduce build time for large builds, but it’s just as valuable for smaller builds where configuration overhead can dominate short iterations.
+Faster feedback helps developers stay focused, without waiting on redundant configuration work.
 
 It’s important to understand how this differs from the Build Cache.
 The Build Cache stores the outputs of task execution, while the Configuration Cache stores the configured task graph before execution begins.
 These are independent mechanisms that solve different problems, but they are designed to work together for optimal performance.
 
+NOTE: The Configuration Cache is the preferred way to execute Gradle builds, but it is not enabled by default.
+Many existing builds and plugins are not yet fully compatible, and adopting it may involve refactoring of build logic.
+Enabling it by default could lead to unexpected build failures, so Gradle uses an opt-in adoption model to allow teams to verify compatibility and adopt configuration caching incrementally and safely.
+
 === Example
 
 ==== Don't Do This
 
-Configuration caching is disabled by default:
+Configuration Caching is not enabled by default:
 
 ====
 include::sample[dir="snippets/bestPractices/useConfigurationCache-avoid/kotlin",files="gradle.properties[]"]
@@ -132,17 +137,14 @@ To enable the Configuration Cache, add the following to your `gradle.properties`
 include::sample[dir="snippets/bestPractices/useConfigurationCache-do/kotlin",files="gradle.properties[]"]
 ====
 
-When you build your project for the first time, Gradle populates the cache with the outputs of tasks like compilation.
-
-Even if you run `./gradlew clean` to delete the build directory, Gradle can reuse cached outputs in subsequent builds.
+When you build your project for the first time, Gradle stores the outcome of the configuration phase, including the task graph, in the Configuration Cache.
 
 ----
-> ./gradlew clean
-:clean
-BUILD SUCCESSFUL
+> ./gradlew compileJava
+include::{snippetsPath}/bestPractices/useConfigurationCache-do/tests/useConfigurationCache-do.firstRun.out[]
 ----
 
-On subsequent builds, instead of executing the `:compileJava` task again, the outputs of the task will be loaded from the Build Cache:
+On subsequent builds, instead of reconfiguring tasks like `:compileJava`, Gradle loads the task graph from the Configuration Cache and proceeds directly to execution.
 
 ----
 > ./gradlew compileJava
