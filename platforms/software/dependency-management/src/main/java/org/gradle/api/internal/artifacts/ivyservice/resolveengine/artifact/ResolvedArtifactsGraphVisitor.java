@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
@@ -65,8 +66,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
 
     @Override
     public void visitEdges(DependencyGraphNode node) {
-        boolean hasTransitiveIncomingEdge = visitNonFileEdges(node);
-
+        boolean hasTransitiveIncomingEdge = hasTransitiveIncomingEdge(node);
         if (node.isRoot() || hasTransitiveIncomingEdge) {
             // Since file dependencies are not modeled as actual edges, we need to verify
             // there are edges to this node that would follow this file dependency.
@@ -75,30 +75,13 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
                 artifactResults.visitArtifacts(node, fileDependency, id, new FileDependencyArtifactSet(fileDependency, artifactTypeRegistry, calculatedValueContainerFactory));
             }
         }
-    }
-
-    /**
-     * Visit all the non-file edges for the given node.
-     *
-     * @return true if there is a transitive incoming edge.
-     */
-    private boolean visitNonFileEdges(DependencyGraphNode node) {
-        boolean hasTransitiveIncomingEdge = false;
 
         int implicitArtifactSetId = -1;
         ArtifactSet implicitArtifactSet = null;
 
-        for (DependencyGraphEdge edge : node.getIncomingEdges()) {
-            hasTransitiveIncomingEdge |= edge.isTransitive();
-
-            if (edge.contributesArtifacts()) {
-                if (maybeVisitAdhocEdge(node, edge)) {
-                    // The artifacts for this node were modified by the dependency.
-                    // Do not use the implicit artifact set.
-                    continue;
-                }
-
-                // Since the dependency does not modify the artifacts, we can use the same
+        for (DependencyGraphEdge edge : Lists.reverse(node.getIncomingEdges())) {
+            if (edge.contributesArtifacts() && !maybeVisitAdhocEdge(node, edge)) {
+                // The dependency does not modify the artifacts, we can use the same
                 // artifact set as other dependencies that do not modify the artifacts. We call
                 // this the implicit artifact set.
                 if (implicitArtifactSet == null) {
@@ -110,8 +93,17 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
                 artifactResults.visitArtifacts(edge.getFrom(), node, implicitArtifactSetId, implicitArtifactSet);
             }
         }
+    }
 
-        return hasTransitiveIncomingEdge;
+    /**
+     * Return true if there is a transitive incoming edge for the given node.
+     */
+    private static boolean hasTransitiveIncomingEdge(DependencyGraphNode node) {
+        boolean result = false;
+        for (DependencyGraphEdge edge : node.getIncomingEdges()) {
+            result |= edge.isTransitive();
+        }
+        return result;
     }
 
     /**
