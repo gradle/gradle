@@ -17,16 +17,17 @@ package org.gradle.architecture.test;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.lang.conditions.ArchConditions;
-import com.tngtech.archunit.lang.conditions.ArchPredicates;
-import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import org.gradle.api.model.ManagedType;
 
 import java.util.Set;
+
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.be;
+import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 /**
  * Ensures we keep track of all {@link ManagedType manged types} that can be instantiated by Gradle.
@@ -64,13 +65,13 @@ public class SupportedManagedTypesTest {
     };
 
     @ArchTest
-    public static final ArchRule annotated_managed_types_are_known = ArchRuleDefinition.classes()
-        .that(ArchPredicates.are(CanBeAnnotated.Predicates.annotatedWith(ManagedType.class)))
-        .should(ArchConditions.be(A_KNOWN_MANAGED_TYPE));
+    public static final ArchRule annotated_managed_types_are_known = classes()
+        .that(are(annotatedWith(ManagedType.class)))
+        .should(be(A_KNOWN_MANAGED_TYPE));
 
     @ArchTest
-    public static final ArchRule known_managed_types_are_annotated = ArchRuleDefinition.classes()
-        .that(ArchPredicates.are(A_KNOWN_MANAGED_TYPE))
-        .should(ArchConditions.be(CanBeAnnotated.Predicates.annotatedWith(ManagedType.class)));
+    public static final ArchRule known_managed_types_are_annotated = classes()
+        .that(are(A_KNOWN_MANAGED_TYPE))
+        .should(be(annotatedWith(ManagedType.class)));
 
 }
