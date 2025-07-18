@@ -33,6 +33,7 @@ import org.gradle.configurationcache.withModelStoreOperation
 import org.gradle.configurationcache.withWorkGraphLoadOperation
 import org.gradle.configurationcache.withWorkGraphStoreOperation
 import org.gradle.initialization.GradlePropertiesController
+import org.gradle.initialization.layout.BuildTreeLocations
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
@@ -81,6 +82,7 @@ import java.util.UUID
 
 @Suppress("LongParameterList", "LargeClass")
 class DefaultConfigurationCache internal constructor(
+    private val buildTreeLocations: BuildTreeLocations,
     private val startParameter: ConfigurationCacheStartParameter,
     private val cacheKey: ConfigurationCacheKey,
     private val problems: ConfigurationCacheProblems,
@@ -851,7 +853,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun loadGradleProperties() {
-        gradlePropertiesController.loadGradlePropertiesFrom(startParameter.settingsDirectory, true)
+        gradlePropertiesController.loadGradlePropertiesFrom(buildTreeLocations.rootBuildLayout.settingsDir, true)
     }
 
     private

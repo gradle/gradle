@@ -20,28 +20,29 @@ import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParamet
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.service.scopes.Scope.BuildTree
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.util.internal.GFileUtils
 import java.io.File
 import java.util.EnumSet
 import javax.inject.Inject
 
 
 @ServiceScope(BuildTree::class)
+internal
 class DefaultIgnoredConfigurationInputs(
     ignoredPathsString: String?,
     isCaseSensitive: Boolean,
-    private val rootDirectory: File
+    private val relativePaths: ConfigurationCacheRelativePaths,
 ) : IgnoredConfigurationInputs {
 
     @Inject
     @Suppress("unused") // used in DI
     constructor(
         configurationCacheStartParameter: ConfigurationCacheStartParameter,
-        fileSystem: FileSystem
+        fileSystem: FileSystem,
+        relativePaths: ConfigurationCacheRelativePaths,
     ) : this(
         ignoredPathsString = configurationCacheStartParameter.ignoredFileSystemCheckInputs,
         isCaseSensitive = fileSystem.isCaseSensitive,
-        rootDirectory = configurationCacheStartParameter.rootDirectory
+        relativePaths
     )
 
     private
@@ -75,7 +76,7 @@ class DefaultIgnoredConfigurationInputs(
 
     private
     fun maybeRelativize(file: File): File =
-        if (!file.isAbsolute) file else File(GFileUtils.relativePathOf(file, rootDirectory))
+        if (!file.isAbsolute) file else File(relativePaths.relativize(file))
 
     private
     fun wildcardsToRegexPatternString(pathWithWildcards: String): String {
