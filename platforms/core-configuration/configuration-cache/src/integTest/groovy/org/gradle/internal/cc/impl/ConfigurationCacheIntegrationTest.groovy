@@ -99,6 +99,33 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCache.assertStateLoaded()
     }
 
+    def "problems are reported and fail the build when in read-only mode"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+
+        buildFile """
+            tasks.register("broken") {
+                doLast {
+                    println("project = " + project)
+                }
+            }
+        """
+
+        when:
+        configurationCacheFails 'broken', ENABLE_READ_ONLY_CACHE, "-i"
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+        outputContains("Configuration cache entry discarded as cache is in read-only mode.")
+
+        // ensure report is produced
+        problems.assertResultHtmlReportHasProblems(failure) {
+            withProblem("Execution failed for task ':broken'.")
+        }
+        failure.assertHasDescription("Execution failed for task ':broken'.")
+        failure.assertHasCause("Invocation of 'Task.project' by task ':broken' at execution time is unsupported with the configuration cache.")
+        failure.assertHasFailures(1)
+    }
 
     def "configuration cache for Help plugin task '#task' on empty project"() {
         given:
