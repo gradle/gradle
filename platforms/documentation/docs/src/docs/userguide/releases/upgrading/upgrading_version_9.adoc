@@ -137,6 +137,40 @@ testing.suites.test {
 =====
 ====
 
+In some cases, a complete single-string notation may not be known up front.
+Instead of concatenating the coordinates into a new string, it is possible to use a link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyFactory.html[`DependencyFactory`] to create `Dependency` instances directly from the individual components:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+val group = "org"
+val artifactId = "foo"
+val version = "1.0"
+
+configurations.dependencyScope("implementation") {
+    dependencies.add(project.dependencyFactory.create(group, artifactId, version))
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+def group = "org"
+def artifactId = "foo"
+def version = "1.0"
+
+configurations.dependencyScope("implementation") {
+    dependencies.add(project.dependencyFactory.create(group, artifactId, version))
+}
+----
+=====
+====
+
 [[archives-configuration]]
 ==== Deprecation of the `archives` configuration
 The `archives` configuration added by the `base` plugin has been deprecated and will be removed in Gradle 10.0.0.
