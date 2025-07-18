@@ -1283,9 +1283,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     @Inject
-    protected abstract ObjectFactory getObjectFactory();
-
-    @Inject
     protected abstract PropertyFactory getPropertyFactory();
 
     @Inject
