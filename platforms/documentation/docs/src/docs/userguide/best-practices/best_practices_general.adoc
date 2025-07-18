@@ -142,6 +142,82 @@ include::sample[dir="snippets/bestPractices/usePluginsBlock-do/groovy",files="bu
 
 `<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
 
+[[dont_assume_plugin_order]]
+== Don’t Assume your Plugin is Applied after Another
+
+Plugins in Gradle can be applied in any order.
+If your plugin depends on another plugin, don’t assume it has already been applied, plugin application order is not guaranteed.
+
+=== Explanation
+
+You can specify the order of plugin application by applying them sequentially within your build.gradle file
+
+[source,groovy]
+----
+// Apply plugin A first
+apply plugin: 'pluginA'
+
+// Then apply plugin B, which might depend on configurations from plugin A
+apply plugin: 'pluginB'
+----
+
+If "My plugin only works if another plugin is present":
+Tell users to apply that plugin
+
+[source,groovy]
+----
+if (!project.pluginManager.hasPlugin(requiredPlugin)) {
+    // Warn users
+}
+----
+
+If "My plugin works differently if another plugin is present":
+Use withPlugin() to conditionally configure behavior based on the presence of that plugin.
+
+[source,groovy]
+----
+pluginManager.withPlugin('ivy-publish') {
+    // Configure 'ivy-publish' after it's applied
+}
+----
+
+=== Example
+
+==== Don't Do This
+
+Use afterEvaluate wisely?
+Don't apply plugins in your own plugin
+
+[source,kotlin]
+----
+class MyPlugin : Plugin<Project> {
+    override fun apply(project: Project) {
+        project.pluginManager.apply("java-library") // Explicit dependency
+    }
+}
+----
+
+==== Do This Instead
+
+Use pluginManager.withPlugin() to safely react when another plugin is added
+
+[source,kotlin]
+----
+// Correct way to react to another plugin
+project.pluginManager.withPlugin("java") {
+    // Code that configures behavior when the Java plugin is present
+}
+----
+
+
+=== References
+
+- <<plugins.adoc#sec:using_plugins,Using Plugins>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
+
 [[do_not_use_internal_apis]]
 == Do Not Use Internal APIs
 
@@ -194,9 +270,8 @@ include::sample[dir="snippets/bestPractices/avoidInternal-do/groovy",files="buil
 
 <<tags_reference.adoc#tag:upgrades,`#upgrades`>>
 
-
 [[use_the_gradle_properties_file]]
-== Set build flags in `gradle.properties`
+== Set Build Flags in `gradle.properties`
 
 Set Gradle build property flags in the `gradle.properties` file.
 
