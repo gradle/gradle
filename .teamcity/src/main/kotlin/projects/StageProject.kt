@@ -178,7 +178,7 @@ class StageProject(
         docsTestTriggers.forEach(this::buildType)
 
         if (stage.stageName == StageName.READY_FOR_RELEASE) {
-            listOf(Os.LINUX, Os.WINDOWS, Os.MACOS).forEach {
+            listOf(Os.LINUX, Os.WINDOWS).forEach {
                 val flakyTestQuarantineProject = FlakyTestQuarantineProject(model, stage, it)
                 val flakyTestQuarantineProjectTrigger = FlakyTestQuarantineTrigger(model, flakyTestQuarantineProject)
                 subProject(flakyTestQuarantineProject)
