@@ -81,6 +81,14 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
+jvmCompile {
+    compilations {
+        named("main") {
+            targetJvmVersion = 17
+        }
+    }
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
