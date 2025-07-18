@@ -121,6 +121,14 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
+jvmCompile {
+    compilations {
+        named("main") {
+            targetJvmVersion = 17
+        }
+    }
+}
+
 packageCycles {
     excludePatterns.add("org/gradle/internal/cc/**")
 }
