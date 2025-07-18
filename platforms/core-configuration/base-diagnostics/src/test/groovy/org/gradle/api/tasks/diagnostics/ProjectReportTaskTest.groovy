@@ -42,7 +42,7 @@ class ProjectReportTaskTest extends AbstractProjectBuilderSpec {
         task.generateReportFor(model.project, model)
 
         then:
-        output.value == TextUtil.normaliseFileSeparators("""Location: ${project.projectDir.absolutePath}
+        TextUtil.normaliseFileSeparators(output.value) == TextUtil.normaliseFileSeparators("""Location: ${project.projectDir.absolutePath}
 Description: this is the root project
 
 Project hierarchy:
@@ -71,7 +71,7 @@ For example, try running gradle :child1:tasks
         task.generateReportFor(model.project, model)
 
         then:
-        output.value == TextUtil.normaliseFileSeparators("""Location: ${project.projectDir.absolutePath}
+        TextUtil.normaliseFileSeparators(output.value) == TextUtil.normaliseFileSeparators("""Location: ${project.projectDir.absolutePath}
 Description: this is the root project
 
 Project hierarchy:
@@ -92,7 +92,7 @@ For example, try running gradle :tasks
         task.generateReportFor(model.project, model)
 
         then:
-        output.value == TextUtil.normaliseFileSeparators("""Location: ${project.project("child1").projectDir.absolutePath}
+        TextUtil.normaliseFileSeparators(output.value) == TextUtil.normaliseFileSeparators("""Location: ${project.project("child1").projectDir.absolutePath}
 
 Project hierarchy:
 
