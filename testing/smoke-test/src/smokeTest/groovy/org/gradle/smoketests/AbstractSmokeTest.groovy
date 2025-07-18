@@ -48,7 +48,7 @@ abstract class AbstractSmokeTest extends Specification {
     static class TestedVersions {
         /**
          * May also need to update
-         * @see BuildScanPluginSmokeTest
+         * @see DevelocityPluginSmokeTest
          */
 
         // https://plugins.gradle.org/plugin/biz.aQute.bnd
@@ -73,7 +73,7 @@ abstract class AbstractSmokeTest extends Specification {
         static nebulaResolutionRules = "11.5.0"
 
         // https://plugins.gradle.org/plugin/com.gradleup.shadow
-        static shadow = "8.3.6"
+        static shadow = "8.3.7"
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/tags
         static asciidoctor = "4.0.4"

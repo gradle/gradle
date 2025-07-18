@@ -302,13 +302,13 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         i.enumProperty == TestEnum.DEF
 
         when:
-        i.enumProperty "abc"
+        i.enumProperty = "abc"
 
         then:
         i.enumProperty == TestEnum.ABC
 
         when:
-        i.enumProperty "foo"
+        i.enumProperty = "foo"
 
         then:
         thrown IllegalArgumentException
@@ -384,7 +384,7 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         def i = create(NonExtensibleObject)
 
         when:
-        i.testEnum "ABC"
+        i.testEnum = "ABC"
 
         then:
         i.testEnum == TestEnum.ABC

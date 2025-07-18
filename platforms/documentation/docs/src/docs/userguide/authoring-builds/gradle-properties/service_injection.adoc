@@ -48,6 +48,7 @@ The following services are available for injection in project plugins, extension
 2. <<workerexecutor,`WorkerExecutor`>> - Allows a task to run work in parallel.
 3. <<toolingmodelbuilderregistry,`ToolingModelBuilderRegistry`>> - Allows a plugin to registers a Gradle tooling API model.
 4. <<testeventreporterfactory,`TestEventReporterFactory`>> - Allows a plugin to access Gradle's test events and its corresponding API.
+5. <<dependencyfactory,`DependencyFactory`>> - Allows a plugin to create dependencies in a type-safe way.
 
 === Additional services in settings
 
@@ -55,6 +56,7 @@ The following services are available for injection in settings plugins, extensio
 
 1. <<buildlayout,`BuildLayout`>> - Provides access to important locations for a Gradle build.
 2. <<toolingmodelbuilderregistry,`ToolingModelBuilderRegistry`>> - Allows a plugin to registers a Gradle tooling API model.
+3. <<dependencyfactory,`DependencyFactory`>> - Allows a plugin to create dependencies in a type-safe way.
 
 [[objectfactory]]
 == `ObjectFactory`
@@ -301,14 +303,25 @@ link:{javadocPath}/org/gradle/api/tasks/testing/TestEventReporterFactory.html[`T
 
 You can learn more at <<test_reporting_api.adoc#test_reporting_api,Test Reporting API>>.
 
-== Constructor injection
+[[dependencyfactory]]
+== `DependencyFactory`
 
-There are 2 ways that an object can receive the services that it needs. The first option is to add the service as a parameter of the class constructor.
-The constructor must be annotated with the `javax.inject.Inject` annotation.
+link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyFactory.html[`DependencyFactory`] is a service that provides methods for creating dependencies in a type-safe way.
+
+You can learn more in the <<implementing_gradle_plugins_binary.adoc#sec:differences_with_top_level_dependencies,Implementing Binary Plugins guide>>.
+
+[[service_injection_patterns]]
+== Service injection patterns
+
+There are two ways that services can be provided to an object.
+
+=== Constructor injection
+A service can be injected into the constructor of the class. The constructor must be public and annotated with the `javax.inject.Inject` annotation.
+
 Gradle uses the declared type of each constructor parameter to determine the services that the object requires.
 The order of the constructor parameters and their names are not significant and can be whatever you like.
 
-Here is an example that shows a task type that receives an `ObjectFactory` via its constructor:
+Here is an example that shows a task type that receives an `WorkerExecutor` via its constructor:
 
 ====
 [source.multi-language-sample,java]
@@ -319,17 +332,17 @@ include::{snippetsPath}/plugins/constructorServiceInjection/groovy/buildSrc/src/
 ====
 
 [[property_injection]]
-== Property injection
+=== Property injection
+A service can be injected by adding a property getter method annotated with the `javax.inject.Inject` annotation to the class.
 
-Alternatively, a service can be injected by adding a property getter method annotated with the `javax.inject.Inject` annotation to the class.
-This can be useful, for example, when you cannot change the constructor of the class due to backwards compatibility constraints.
-This pattern also allows Gradle to defer creation of the service until the getter method is called, rather than when the instance is created. This can help with performance.
-Gradle uses the declared return type of the getter method to determine the service to make available. The name of the property is not significant and can be whatever you like.
+Gradle defers the creation of the service until the getter method is called. This can be more performant than constructor injection.
 
-The property getter method must be `public` or `protected`. The method can be `abstract` or, in cases where this isn't possible, can have a dummy method body.
-The method body is discarded.
+The property getter method must be `public` or `protected`. Gradle uses the declared return type of the getter method to determine the service to make available.
 
-Here is an example that shows a task type that receives a two services via property getter methods:
+The method should be `abstract` or, in cases where this isn't possible, should have a dummy method body.
+The method body is discarded. The name of the property is not significant and can be whatever you like.
+
+Here is an example that shows a task type that receives two services via property getter methods:
 
 ====
 [source.multi-language-sample,java]

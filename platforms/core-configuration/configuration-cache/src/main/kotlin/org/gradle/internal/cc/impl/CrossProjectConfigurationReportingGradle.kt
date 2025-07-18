@@ -342,6 +342,9 @@ class CrossProjectConfigurationReportingGradle private constructor(
         delegate.setIncludedBuilds(includedBuilds)
     }
 
+    override fun getBuildPath(): String =
+        delegate.buildPath
+
     override fun getIdentityPath(): Path =
         delegate.identityPath
 

@@ -7,12 +7,6 @@
 ## 4. List individual owners last.
 ##
 
-# bt-unassigned-maintainers must be the first owner
-# All directories that are not explicitly listed below are considered
-# unassigned. This means that the ownership may be unknown, lost or
-# mixed across several groups.
-* @gradle/bt-unassigned-maintainers
-
 # Build infrastructure
 .teamcity/                                  @gradle/bt-developer-productivity
 .github/                                    @gradle/bt-developer-productivity @gradle/bt-product-operations # This might need to be more finegrained in the future
@@ -22,7 +16,6 @@
 /build.gradle*                              @gradle/bt-developer-productivity
 /settings.gradle*                           @gradle/bt-developer-productivity
 gradle/shared-with-buildSrc/                @gradle/bt-developer-productivity
-platforms/build-infrastructure/             @gradle/bt-developer-productivity
 packaging/internal-build-reports/           @gradle/bt-developer-productivity
 testing/distributions-basics/               @gradle/bt-developer-productivity
 testing/distributions-core/                 @gradle/bt-developer-productivity
@@ -30,14 +23,39 @@ testing/internal-architecture-testing/      @gradle/bt-developer-productivity
 testing/internal-integ-testing/             @gradle/bt-developer-productivity
 testing/internal-performance-testing/       @gradle/bt-developer-productivity
 testing/internal-testing/                   @gradle/bt-developer-productivity
+testing/precondition-tester                 @gradle/bt-developer-productivity
 
 # Release coordination
 packaging/core-platform/                @gradle/bt-product-operations
 packaging/distributions-dependencies/   @gradle/bt-product-operations
 packaging/distributions-full/           @gradle/bt-product-operations
-testing/performance/                    @gradle/bt-product-operations
+packaging/public-api                    @gradle/bt-product-operations
+testing/performance/                    @gradle/bt-developer-productivity
 testing/smoke-test/                     @gradle/bt-product-operations
-testing/soak/                           @gradle/bt-product-operations
+testing/soak/                           @gradle/bt-developer-productivity
+testing/distributions-integ-tests       @gradle/bt-developer-productivity
+testing/public-api-tests                @gradle/bt-developer-productivity
+testing/integ-test/
+version.txt
+released-versions.json
+
+# Dev setup
+.idea                                   @gradle/bt-developer-productivity
+.editorconfig                           @gradle/bt-developer-productivity
+.gitignore                              @gradle/bt-developer-productivity
+.gitattributes                          @gradle/bt-developer-productivity
+gradle/                                 @gradle/bt-developer-productivity
+gradle/wrapper                          # @gradle/bt-developer-productivity no need for coderewiews for wrapper
+gradlew                                 @gradle/bt-developer-productivity
+gradlew.bat                             @gradle/bt-developer-productivity
+gradle.properties                       @gradle/bt-developer-productivity
+gradle/detekt.yml                       @gradle/bt-developer-productivity
+.mailmap
+images/
+.github/ISSUE_TEMPLATE                  @gradle/bt-product-operations
+LICENSE                                 @gradle/bt-product-operations
+*.md                                    @gradle/bt-product-operations @gradle/bt-docs-reviewers
+contributing/                           @gradle/bt-product-operations @gradle/bt-docs-reviewers
 
 # Cross-cutting architecture checks and decisions
 .github/CODEOWNERS                          @gradle/bt-architecture-council
@@ -45,59 +63,60 @@ architecture/                               @gradle/bt-architecture-council
 testing/architecture-test                   @gradle/bt-architecture-council
 
 # These files change frequently, and changes to them don't need to automatically alert the architecture council
-testing/architecture-test/src/changes/accepted-changes/accepted-public-api-changes.json     @gradle/bt-unassigned-maintainers
-testing/architecture-test/src/changes/archunit-store/internal-api-nullability.txt           @gradle/bt-unassigned-maintainers
+testing/architecture-test/src/changes/accepted-changes/accepted-public-api-changes.json
+testing/architecture-test/src/changes/archunit-store/internal-api-nullability.txt
 
 # Core automation platform (core/configuration)
-platforms/core-configuration/               @gradle/bt-configuration
-testing/smoke-ide-test/                     @gradle/bt-configuration
+platforms/core-configuration/               @gradle/bt-cortex
+testing/smoke-ide-test/                     @gradle/bt-cortex
+subprojects/composite-builds                @gradle/bt-cortex
 
 # Core automation platform (Kotlin DSL)
-build-logic/kotlin-dsl/                                     @gradle/bt-kotlin-dsl-maintainers
-build-logic/kotlin-dsl-shared-runtime/                      @gradle/bt-kotlin-dsl-maintainers
-platforms/core-configuration/kotlin-dsl/                    @gradle/bt-kotlin-dsl-maintainers
-platforms/core-configuration/kotlin-dsl-integ-tests/        @gradle/bt-kotlin-dsl-maintainers
-platforms/core-configuration/kotlin-dsl-plugins/            @gradle/bt-kotlin-dsl-maintainers
-platforms/core-configuration/kotlin-dsl-provider-plugins/   @gradle/bt-kotlin-dsl-maintainers
-platforms/core-configuration/kotlin-dsl-tooling-builders/   @gradle/bt-kotlin-dsl-maintainers
-platforms/core-configuration/kotlin-dsl-tooling-models/     @gradle/bt-kotlin-dsl-maintainers
+build-logic/kotlin-dsl/                                     @gradle/bt-tide
+build-logic/kotlin-dsl-shared-runtime/                      @gradle/bt-tide
+platforms/core-configuration/kotlin-dsl/                    @gradle/bt-tide
+platforms/core-configuration/kotlin-dsl-integ-tests/        @gradle/bt-tide
+platforms/core-configuration/kotlin-dsl-plugins/            @gradle/bt-tide
+platforms/core-configuration/kotlin-dsl-provider-plugins/   @gradle/bt-tide
+platforms/core-configuration/kotlin-dsl-tooling-builders/   @gradle/bt-tide
+platforms/core-configuration/kotlin-dsl-tooling-models/     @gradle/bt-tide
 
 # Core automation platform (Declarative DSL)
-platforms/core-configuration/declarative-dsl-api/                   @gradle/bt-declarative-dsl
-platforms/core-configuration/declarative-dsl-core/                  @gradle/bt-declarative-dsl
-platforms/core-configuration/declarative-dsl-evaluator/             @gradle/bt-declarative-dsl
-platforms/core-configuration/declarative-dsl-provider/              @gradle/bt-declarative-dsl
-platforms/core-configuration/declarative-dsl-tooling-builders/      @gradle/bt-declarative-dsl
-platforms/core-configuration/declarative-dsl-tooling-models/        @gradle/bt-declarative-dsl
-platforms/core-configuration/declarative-dsl-internal-utils/        @gradle/bt-declarative-dsl
+platforms/core-configuration/declarative-dsl-api/                   @gradle/bt-declarative-gradle-project
+platforms/core-configuration/declarative-dsl-core/                  @gradle/bt-declarative-gradle-project
+platforms/core-configuration/declarative-dsl-evaluator/             @gradle/bt-declarative-gradle-project
+platforms/core-configuration/declarative-dsl-provider/              @gradle/bt-declarative-gradle-project
+platforms/core-configuration/declarative-dsl-tooling-builders/      @gradle/bt-declarative-gradle-project
+platforms/core-configuration/declarative-dsl-tooling-models/        @gradle/bt-declarative-gradle-project
+platforms/core-configuration/declarative-dsl-internal-utils/        @gradle/bt-declarative-gradle-project
 
 # Core automation platform (core/runtime)
-platforms/core-runtime/                                     @gradle/bt-core-runtime-maintainers
-platforms/core-runtime/build-operations/                    @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/dv-integrations-team
-platforms/core-runtime/functional/                          @gradle/bt-core-runtime-maintainers @gradle/bt-execution @bamboo
-platforms/core-runtime/files/                               @gradle/bt-core-runtime-maintainers @gradle/bt-execution @gradle/dv-integrations-team
-platforms/core-runtime/service-*/                           @gradle/bt-core-runtime-maintainers @alllex
+platforms/core-runtime/                                     @gradle/bt-cortex
+platforms/core-runtime/build-operations/                    @gradle/bt-cortex @gradle/dv-integrations-team
+platforms/core-runtime/files/                               @gradle/bt-cortex @gradle/dv-integrations-team
 
 # Core automation platform (core/execution)
-platforms/core-execution/                                   @gradle/bt-execution
-platforms/core-execution/build-cache/                       @gradle/bt-execution @gradle/dv-integrations-team
-platforms/core-execution/build-cache-base/                  @gradle/bt-execution @gradle/dv-integrations-team
-platforms/core-execution/build-cache-http/                  @gradle/bt-execution @gradle/dv-integrations-team
-platforms/core-execution/build-cache-packaging/             @gradle/bt-execution @gradle/dv-integrations-team
-platforms/core-execution/build-cache-spi/                   @gradle/bt-execution @gradle/dv-integrations-team
-platforms/core-execution/hashing/                           @gradle/bt-execution @gradle/dv-integrations-team
-platforms/core-execution/snapshots/                         @gradle/bt-execution @gradle/dv-integrations-team
+platforms/core-execution/                                   @gradle/bt-cortex
+platforms/core-execution/build-cache/                       @gradle/bt-cortex @gradle/dv-integrations-team
+platforms/core-execution/build-cache-base/                  @gradle/bt-cortex @gradle/dv-integrations-team
+platforms/core-execution/build-cache-http/                  @gradle/bt-cortex @gradle/dv-integrations-team
+platforms/core-execution/build-cache-packaging/             @gradle/bt-cortex @gradle/dv-integrations-team
+platforms/core-execution/build-cache-spi/                   @gradle/bt-cortex @gradle/dv-integrations-team
+platforms/core-execution/hashing/                           @gradle/bt-cortex @gradle/dv-integrations-team
+platforms/core-execution/snapshots/                         @gradle/bt-cortex @gradle/dv-integrations-team
+
+# Other core modules
+subprojects/core                                            # @gradle/bt-cortex to be eventually moved to other core modules
+subprojects/core-api                                        # @gradle/bt-cortex to be eventually moved to other core modules
 
 # Develocity integration
 platforms/enterprise/                                   @gradle/bt-build-scan
 platforms/enterprise/enterprise/                        @gradle/bt-build-scan @gradle/dv-testing-team
 platforms/enterprise/enterprise-logging/                @gradle/bt-build-scan @gradle/dv-testing-team
-platforms/enterprise/enterprise-operations/             @gradle/bt-build-scan
-platforms/enterprise/enterprise-plugin-performance/     @gradle/bt-build-scan
 
 # JVM platform
-build-logic/java-api-extractor              @gradle/bt-jvm
-platforms/jvm/                              @gradle/bt-jvm
+platforms/jvm/                                      @gradle/bt-jvm
+platforms/core-configuration/java-api-extractor     @gradle/bt-jvm
 
 # JVM testing services also shared by GE testing plugins
 platforms/jvm/testing-junit-platform/       @gradle/bt-jvm @gradle/dv-testing-team
@@ -108,41 +127,37 @@ platforms/jvm/testing-jvm-infrastructure/   @gradle/bt-jvm @gradle/dv-testing-te
 platforms/software/                         @gradle/bt-jvm
 
 # Extensibility
-platforms/extensibility/        @gradle/bt-extensibility-maintainers
+platforms/extensibility/          @gradle/bt-tide
+subprojects/build-events          @gradle/bt-tide
 
 # Native
-platforms/native/                   @gradle/bt-native-maintainers
+platforms/native/                 @gradle/bt-jvm
 
-# IDE Experience team
-platforms/ide/                    @gradle/bt-ide-experience
+# IDE Experience
+platforms/ide/                    @gradle/bt-tide
 # Eventually be moved to the core platform.
 # Currently heavily developed by the bt-ide-experience team.
-platforms/ide/problems/           @gradle/bt-ide-experience
-platforms/ide/ide-native/         @gradle/bt-ide-experience @gradle/bt-native-maintainers
+platforms/ide/problems/           @gradle/bt-tide
+platforms/ide/ide-native/         @gradle/bt-tide @gradle/bt-jvm
 
 # Documentation
-platforms/documentation/docs/src/docs/                                                        @gradle/bt-docs-reviewers
-platforms/documentation/docs/src/samples/                                                     @gradle/bt-docs-reviewers
-platforms/documentation/docs/src/docs-asciidoctor-extensions-base/                            @gradle/bt-docs-reviewers
-platforms/documentation/docs/src/docs-asciidoctor-extensions/                                 @gradle/bt-docs-reviewers
-platforms/documentation/samples/                                                       	      @gradle/bt-docs-reviewers
+platforms/documentation/          @gradle/bt-docs-reviewers
 
-platforms/documentation/docs/src/snippets/kotlinDsl/                                                @gradle/bt-docs-reviewers @gradle/bt-kotlin-dsl-maintainers
-platforms/documentation/docs/src/docs/userguide/api/kotlin_dsl.adoc                                 @gradle/bt-docs-reviewers @gradle/bt-kotlin-dsl-maintainers
-platforms/documentation/docs/src/docs/userguide/migration/migrating_from_groovy_to_kotlin_dsl.adoc  @gradle/bt-docs-reviewers @gradle/bt-kotlin-dsl-maintainers
+platforms/documentation/docs/src/snippets/kotlinDsl/                                                        @gradle/bt-docs-reviewers @gradle/bt-tide
+platforms/documentation/docs/src/docs/userguide/reference/apis/kotlin_dsl.adoc                              @gradle/bt-docs-reviewers @gradle/bt-tide
+platforms/documentation/docs/src/docs/userguide/releases/migrating/migrating_from_groovy_to_kotlin_dsl.adoc @gradle/bt-docs-reviewers @gradle/bt-tide
 
-platforms/documentation/docs/src/docs/userguide/core-plugins/base_plugin.adoc                 @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/core-plugins/build_dashboard_plugin.adoc      @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/core-plugins/build_init_plugin.adoc           @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/core-plugins/checkstyle_plugin.adoc           @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/core-plugins/codenarc_plugin.adoc             @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/core-plugins/distribution_plugin.adoc         @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/core-plugins/ear_plugin.adoc                  @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/core-plugins/jacoco_plugin.adoc               @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/core-plugins/java_gradle_plugin.adoc          @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/core-plugins/pmd_plugin.adoc                  @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/core-plugins/war_plugin.adoc                  @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/dep-man/                                      @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/jvm/                                          @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/reference/directory_layout.adoc               @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/troubleshooting/version_catalog_problems.adoc @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/reference/core-plugins/base_plugin.adoc                 @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/reference/core-plugins/build_dashboard_plugin.adoc      @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/reference/core-plugins/build_init_plugin.adoc           @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/reference/core-plugins/checkstyle_plugin.adoc           @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/reference/core-plugins/codenarc_plugin.adoc             @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/reference/core-plugins/distribution_plugin.adoc         @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/reference/core-plugins/ear_plugin.adoc                  @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/reference/core-plugins/jacoco_plugin.adoc               @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/reference/core-plugins/java_gradle_plugin.adoc          @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/reference/core-plugins/pmd_plugin.adoc                  @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/reference/core-plugins/war_plugin.adoc                  @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/dep-man/                                                @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/platforms/jvm/                                          @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/running-builds/directory_layout.adoc                    @gradle/bt-docs-reviewers @gradle/bt-jvm

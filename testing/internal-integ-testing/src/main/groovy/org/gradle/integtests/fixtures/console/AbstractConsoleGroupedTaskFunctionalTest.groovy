@@ -50,7 +50,7 @@ abstract class AbstractConsoleGroupedTaskFunctionalTest extends AbstractIntegrat
 
     boolean shouldCheckDeprecations() {
         // Deprecation checks are disabled when using styled text
-        return consoleType == ConsoleOutput.Plain || (consoleType == ConsoleOutput.Auto && consoleAttachment == ConsoleAttachment.NOT_ATTACHED)
+        return consoleType == ConsoleOutput.Plain || consoleType == ConsoleOutput.Colored || (consoleType == ConsoleOutput.Auto && consoleAttachment == ConsoleAttachment.NOT_ATTACHED)
     }
 
     abstract ConsoleOutput getConsoleType()

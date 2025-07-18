@@ -88,7 +88,6 @@ packageCycles {
     excludePatterns.add("org/gradle/nativeplatform/toolchain/internal/**")
 }
 
-integTest.usesJavadocCodeSnippets = true
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

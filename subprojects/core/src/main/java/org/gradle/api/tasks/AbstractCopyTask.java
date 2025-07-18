@@ -238,7 +238,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    public AbstractCopyTask from(Object... sourcePaths) {
+    public AbstractCopyTask from(@Nullable Object... sourcePaths) {
         getMainSpec().from(sourcePaths);
         return this;
     }

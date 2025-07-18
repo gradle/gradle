@@ -19,6 +19,7 @@ package org.gradle.internal.build;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
 import org.gradle.execution.plan.Node;
+import org.gradle.execution.plan.TaskNode;
 
 /**
  * A node in a build's work graph that can be referenced by the work graph of another build.
@@ -34,4 +35,6 @@ public interface ExportedTaskNode {
     void onComplete(Runnable action);
 
     String healthDiagnostics();
+
+    TaskNode getTaskNode();
 }

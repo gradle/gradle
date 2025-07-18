@@ -65,7 +65,7 @@ public abstract class AntlrPlugin implements Plugin<Project> {
         JavaPluginHelper.getJavaComponent(project).getMainFeature().getApiConfiguration().extendsFrom(antlrConfiguration);
 
         // Wire the antlr configuration into all antlr tasks
-        project.getTasks().withType(AntlrTask.class).configureEach(antlrTask -> antlrTask.antlrClasspath.convention(antlrConfiguration));
+        project.getTasks().withType(AntlrTask.class).configureEach(antlrTask -> antlrTask.getConventionMapping().map("antlrClasspath", () -> project.getConfigurations().getByName(ANTLR_CONFIGURATION_NAME)));
 
         project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().all(
             new Action<SourceSet>() {

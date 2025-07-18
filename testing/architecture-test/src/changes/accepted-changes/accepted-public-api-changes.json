@@ -1,3 +1,28 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.invocation.Gradle",
+            "member": "Method org.gradle.api.invocation.Gradle.getBuildPath()",
+            "acceptation": "No need to incubate",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.TaskReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.TaskReportTask.getProjectStateRegistry()",
+            "acceptation": "Remove getter for internal service",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.TestResult",
+            "member": "Method org.gradle.api.tasks.testing.TestResult.getAssumptionFailure()",
+            "acceptation": "Was always nullable, this is correctly reflecting the state of the code",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        }
+    ]
 }

@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolver
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMetadataFileSource;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -69,7 +70,7 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
     @Override
     public LocallyAvailableExternalResource getMetaDataArtifact(ModuleComponentSelector selector, VersionSelector acceptor, ArtifactType artifactType) {
         BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
-        mainResolvers.getComponentIdResolver().resolve(selector, DefaultComponentOverrideMetadata.EMPTY, acceptor, null, idResolveResult);
+        mainResolvers.getComponentIdResolver().resolve(selector, DefaultComponentOverrideMetadata.EMPTY, acceptor, null, idResolveResult, ImmutableAttributes.EMPTY);
         return getMetaDataArtifact((ModuleComponentIdentifier) idResolveResult.getId(), artifactType);
     }
 

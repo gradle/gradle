@@ -317,7 +317,7 @@ class SelectorStateResolverTest extends Specification {
      */
     class TestDependencyToComponentIdResolver implements DependencyToComponentIdResolver {
         @Override
-        void resolve(ComponentSelector selector, ComponentOverrideMetadata overrideMetadata, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result) {
+        void resolve(ComponentSelector selector, ComponentOverrideMetadata overrideMetadata, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result, ImmutableAttributes consumerAttributes) {
             if (!acceptor.isDynamic()) {
                 def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(moduleId.group, moduleId.name), acceptor.selector)
                 resolvedOrRejected(id, rejector, result)

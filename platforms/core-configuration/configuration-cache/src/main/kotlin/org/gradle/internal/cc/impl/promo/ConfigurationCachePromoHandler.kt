@@ -16,33 +16,95 @@
 
 package org.gradle.internal.cc.impl.promo
 
+import org.gradle.BuildResult
 import org.gradle.api.Task
+import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.RootBuildLifecycleListener
+import org.gradle.internal.Factory
+import org.gradle.internal.InternalBuildAdapter
+import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.cc.impl.DefaultConfigurationCacheDegradationController
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 
 /**
  * This class handles configuration cache promo message at the end of the build.
+ * <p>
+ * The promo is shown unless:
+ * <ul>
+ *     <li>An incompatible API is used at configuration time (in other words, if a CC problem would be emitted by it).</li>
+ *     <li>A {@code noCompatibleWithConfigurationCache} task is present in the main task graph.</li>
+ *     <li>Graceful degradation is requested.</li>
+ *     <li>Build fails.</li>
+ * </ul>
  *
  * Instances of this class are thread-safe.
  */
 @ServiceScope(Scope.BuildTree::class)
-class ConfigurationCachePromoHandler(
+internal class ConfigurationCachePromoHandler(
+    private val buildRegistry: BuildStateRegistry,
+    private val degradationController: DefaultConfigurationCacheDegradationController,
     private val documentationRegistry: DocumentationRegistry
 ) : RootBuildLifecycleListener, ProblemsListener {
-    @Volatile
-    private var hasProblems = false
+    private val problems = object {
+        @Volatile
+        private var _seenProblems = false // if ever, only goes false -> true
 
-    override fun afterStart() = Unit
+        fun arePresent(): Boolean = _seenProblems
+
+        fun addIfNeeded(hasNewProblem: Boolean) {
+            if (hasNewProblem) {
+                _seenProblems = true
+            }
+        }
+    }
+
+    override fun afterStart() {
+        // We can't reach out to the task graph when the build is finished.
+        // We cannot collect the state of the tasks in the whenReady callback to avoid racing with user-specified ones, which may modify the compatibility state.
+        // We cannot listen for the task execution either, because incompatible tasks may not run (e.g. they may have onlyIf {false}).
+        // Note that skipping tasks with "-x" excludes them from the graph, so we still nudge. CC behaves similarly.
+        val rootBuildGradle = buildRegistry.rootBuild.mutableModel
+        rootBuildGradle.taskGraph.addExecutionListener(this::onRootBuildTaskGraphIsAboutToExecute)
+
+        rootBuildGradle.addBuildListener(object : InternalBuildAdapter() {
+            override fun buildFinished(result: BuildResult) {
+                problems.addIfNeeded(result.failure != null)
+            }
+        })
+    }
+
+    private fun onRootBuildTaskGraphIsAboutToExecute(graph: TaskExecutionGraph) {
+        if (!problems.arePresent()) {
+            // Collecting degradation reasons may be somewhat expensive, let's skip it if the build is already incompatible.
+            // We can only collect the reasons before the start of the execution phase. CC does that too.
+
+            val hasDegradationReasons = DeprecationLogger.whileDisabled(
+            // Collecting degradation reasons uses Task.project call internally, which is deprecated at execution time.
+            // We disable deprecations for the computation until we'll have a proper build lifecycle callback.
+                Factory {
+                    degradationController.degradationDecision.shouldDegrade
+                }
+            ) ?: false
+            problems.addIfNeeded(hasDegradationReasons)
+        }
+
+        // Checking task graph for compatibility may be even more expensive, so do it only after collecting the degradation reasons.
+        if (!problems.arePresent()) {
+            problems.addIfNeeded(graph.hasIncompatibleTasks())
+        }
+    }
 
     override fun beforeComplete() {
-        if (hasProblems) {
+        if (problems.arePresent()) {
             return
         }
 
@@ -52,11 +114,11 @@ class ConfigurationCachePromoHandler(
     }
 
     override fun onProblem(problem: PropertyProblem) {
-        hasProblems = true
+        problems.addIfNeeded(true)
     }
 
     override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
-        hasProblems = true
+        problems.addIfNeeded(true)
     }
 
     override fun forIncompatibleTask(trace: PropertyTrace, reason: String): ProblemsListener = this
@@ -64,4 +126,6 @@ class ConfigurationCachePromoHandler(
     override fun forTask(task: Task): ProblemsListener = this
 
     override fun onExecutionTimeProblem(problem: PropertyProblem) = onProblem(problem)
+
+    private fun TaskExecutionGraph.hasIncompatibleTasks() = allTasks.any { !(it as TaskInternal).isCompatibleWithConfigurationCache }
 }

@@ -367,6 +367,10 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
             problemsWithStackTraceCount = 1
         }
 
+        // The interrupting problem cause must not be repeated in the aggregated CC build failure
+        // TODO: introduce a structured failure assert instead of checking all error output: https://github.com/gradle/gradle/issues/33985
+        failure.error.count("Configuration cache state could not be cached: field `prop` of task `:broken` of type `BrokenTaskType`: error writing value of type 'BrokenSerializable'") == 1
+
         when:
         configurationCacheFails WARN_PROBLEMS_CLI_OPT, 'problems', 'broken'
 

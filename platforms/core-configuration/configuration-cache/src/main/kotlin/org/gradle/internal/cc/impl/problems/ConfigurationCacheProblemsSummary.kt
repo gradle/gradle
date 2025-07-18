@@ -65,6 +65,12 @@ class ConfigurationCacheProblemsSummary(
     private
     var suppressedSilentlyProblemCount: Int = 0
 
+    private
+    var incompatibleTasksCount: Int = 0
+
+    private
+    var incompatibleFeatureCount: Int = 0
+
     /**
      * Unique problem causes observed among all reported problems.
      *
@@ -94,7 +100,9 @@ class ConfigurationCacheProblemsSummary(
             ImmutableMap.copyOf(problemCauses),
             ImmutableList.copyOf(originalProblemExceptions),
             overflowed,
-            maxCollectedProblems
+            maxCollectedProblems,
+            incompatibleTasksCount,
+            incompatibleFeatureCount
         )
     }
 
@@ -119,11 +127,23 @@ class ConfigurationCacheProblemsSummary(
             }
             if (severity != ProblemSeverity.SuppressedSilently) {
                 val isNewCause = recordProblemCause(problem, severity)
-                if (isNewCause) {
+                if (isNewCause && severity != ProblemSeverity.Interrupting) {
                     collectOriginalException(problem)
                 }
             }
             return true
+        }
+    }
+
+    fun onIncompatibleTask() {
+        lock.withLock {
+            incompatibleTasksCount += 1
+        }
+    }
+
+    fun onIncompatibleFeature() {
+        lock.withLock {
+            incompatibleFeatureCount += 1
         }
     }
 
@@ -178,7 +198,18 @@ class Summary(
     val overflowed: Boolean,
 
     private
-    val maxCollectedProblems: Int
+    val maxCollectedProblems: Int,
+
+    /**
+     * Total number of tasks in the current work graph that are not CC-compatible.
+     */
+    private
+    val incompatibleTasksCount: Int,
+    /**
+     * Total number of features that are not CC-compatible.
+     */
+    private
+    val incompatibleFeatureCount: Int
 ) {
     val reportableProblemCount: Int
         get() = totalProblemCount - suppressedSilentlyProblemCount
@@ -208,11 +239,13 @@ class Summary(
                     appendLine("plus ${reportableProblemCauseCount - MAX_CONSOLE_PROBLEMS} more problems. Please see the report for details.")
                 }
             }
+            val hasIncompatibleTasks = incompatibleTasksCount > 0
+            val hasIncompatibleFeatures = incompatibleFeatureCount > 0
             htmlReportFile?.let {
                 appendLine()
-                if (!hasReportableProblems) {
-                    // Some tests parse this line.
-                    append("Some tasks in this build are not compatible with the configuration cache.")
+                if ((hasIncompatibleTasks || hasIncompatibleFeatures) && !hasReportableProblems) {
+                    // Some tests parse this line, you may need to change them if you change the message.
+                    append("Some tasks or features in this build are not compatible with the configuration cache.")
                     appendLine()
                 }
                 append(buildSummaryReportLink(it))

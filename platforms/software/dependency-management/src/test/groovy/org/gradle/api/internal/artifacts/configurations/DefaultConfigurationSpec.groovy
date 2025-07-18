@@ -115,7 +115,6 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         configuration.name == "name"
-        configuration.visible
         configuration.extendsFrom.empty
         configuration.transitive
         configuration.description == null
@@ -142,12 +141,10 @@ class DefaultConfigurationSpec extends Specification {
 
         when:
         configuration.setDescription("description")
-        configuration.setVisible(false)
         configuration.setTransitive(false)
 
         then:
         configuration.description == "description"
-        !configuration.visible
         !configuration.transitive
     }
 
@@ -621,6 +618,8 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     void "deprecations are passed to copies when corresponding role is #baseRole"() {
+        TestUtil.initDeprecationLogger("conf configuration emits a deprecation warning")
+
         ConfigurationRole role = new DefaultConfigurationRole("test", baseRole.consumable, baseRole.resolvable, baseRole.declarable, baseRole.consumptionDeprecated, baseRole.resolutionDeprecated, baseRole.declarationAgainstDeprecated)
         def configuration = prepareConfigurationForCopyTest(conf("conf", ":", ":", role))
         def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
@@ -649,7 +648,7 @@ class DefaultConfigurationSpec extends Specification {
             ConfigurationRoles.ALL,
             ConfigurationRoles.RESOLVABLE,
             ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
-        ] + ConfigurationRolesForMigration.ALL
+        ] + ConfigurationRolesForMigration.ALL - ConfigurationRolesForMigration.CONSUMABLE_TO_RETIRED
     }
 
     void "fails to copy non-resolvable configuration (#role)"() {
@@ -781,7 +780,6 @@ This method is only meant to be called on configurations which allow the (non-de
 
     private void checkCopiedConfiguration(Configuration original, Configuration copy, def resolutionStrategyInCopy, int copyCount = 1) {
         assert copy.name == original.name + "Copy${copyCount > 1 ? copyCount : ''}"
-        assert copy.visible == original.visible
         assert copy.transitive == original.transitive
         assert copy.description == original.description
         assert copy.allArtifacts as Set == original.allArtifacts as Set
@@ -1237,11 +1235,6 @@ This method is only meant to be called on configurations which allow the (non-de
 
         when:
         configuration.setTransitive(true)
-        then:
-        thrown(InvalidUserCodeException)
-
-        when:
-        configuration.setVisible(false)
         then:
         thrown(InvalidUserCodeException)
 

@@ -21,10 +21,29 @@ import org.gradle.api.internal.ConfigurationCacheDegradationController
 import javax.inject.Inject
 
 class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+    public static final String CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER = "Some tasks or features in this build are not compatible with the configuration cache."
+    public static final String CONFIGURATION_CACHE_DISABLED_REASON = "Configuration cache disabled because incompatible"
+
+    def "a compatible build does not print degradation reasons"() {
+        buildFile """
+            System.getenv("HOME")  // Add a configuration input to force report to be generated
+            tasks.register("compatible") {
+                doLast {
+                    println("Hello")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("compatible", "-D${LOG_REPORT_LINK_AS_WARNING}=true")
+
+        then:
+        assertNoConfigurationCacheDegradation()
+    }
 
     def configurationCache = newConfigurationCacheFixture()
 
-    def "a task can require CC degradation"() {
+    def "a task can require CC degradation#mode"() {
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("a", DegradingTask) { task ->
@@ -36,7 +55,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         """
 
         when:
-        configurationCacheRun "a"
+        configurationCacheRun("a", *args)
 
         then:
         configurationCache.assertNoConfigurationCache()
@@ -52,6 +71,11 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         and:
         outputContains("Project path is :")
         assertConfigurationCacheDegradation()
+
+        where:
+        mode               | args
+        ""                 | []
+        " with IP enabled" | ["-Dorg.gradle.unsafe.isolated-projects=true"]
     }
 
     def "a task can require CC degradation for multiple reasons"() {
@@ -100,6 +124,36 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         args                                                          | expectedOutputs                                               | degradationReason
         ["-DaccessTaskProject=true"]                                  | ["Task's project accessed!"]                                  | "Project access."
         ["-DaccessTaskProject=true", "-DaccessTaskDependencies=true"] | ["Task's project accessed!", "Task's dependencies accessed!"] | "Project access, TaskDependencies access."
+    }
+
+    def "features may cause CC degradation"() {
+        settingsFile """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:sourceModule") {
+                        from(GitVersionControlSpec) {
+                            url = "some-repo"
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("help")
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+
+        and:
+        problems.assertResultConsoleSummaryHasNoProblems(result)
+        problems.assertResultHtmlReportHasProblems(result) {
+            totalProblemsCount = 1
+            withProblem("Feature 'source dependencies' is incompatible with the configuration cache.")
+        }
+
+        and:
+        assertConfigurationCacheDegradation()
     }
 
     def "CC problems in warning mode are not hidden by CC degradation"() {
@@ -516,12 +570,16 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     private void assertConfigurationCacheDegradation(boolean hasOtherProblems = false) {
-        def reportLinkPreamble = "Some tasks in this build are not compatible with the configuration cache."
         if (hasOtherProblems) {
-            outputDoesNotContain(reportLinkPreamble)
+            outputDoesNotContain(CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER)
         } else {
-            outputContains(reportLinkPreamble)
+            outputContains(CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER)
         }
-        postBuildOutputContains("Configuration cache disabled because incompatible task")
+        postBuildOutputContains(CONFIGURATION_CACHE_DISABLED_REASON)
+    }
+
+    private void assertNoConfigurationCacheDegradation() {
+        outputDoesNotContain(CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER)
+        postBuildOutputDoesNotContain(CONFIGURATION_CACHE_DISABLED_REASON)
     }
 }

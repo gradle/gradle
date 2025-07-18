@@ -25,8 +25,18 @@ class ReportingScript {
             import org.gradle.api.problems.Severity
 
             abstract class ProblemReportingTask extends DefaultTask {
+
+                private final Problems problems;
+
                 @Inject
-                protected abstract Problems getProblems();
+                public ProblemReportingTask(Problems problems) {
+                    this.problems = problems;
+                }
+
+                @Internal
+                protected Problems getProblems() {
+                    return problems;
+                }
 
                 @TaskAction
                 void run() {

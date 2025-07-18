@@ -17,6 +17,7 @@
 package org.gradle.tooling.provider.model;
 
 import org.gradle.api.Project;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link ToolingModelBuilder} which can be parameterized by the client.
@@ -89,7 +90,8 @@ public interface ParameterizedToolingModelBuilder<T> extends ToolingModelBuilder
      * @param modelName The model name, usually the same as the name of the Java interface used by the client.
      * @param parameter The parameter received from the client.
      * @param project The project to create the model for.
-     * @return The model.
+     * @return The model, or null if not available.
      */
+    @Nullable
     Object buildAll(String modelName, T parameter, Project project);
 }

@@ -27,7 +27,14 @@ import java.nio.charset.Charset
 
 import static org.gradle.process.internal.JvmOptions.FILE_ENCODING_KEY
 import static org.gradle.process.internal.JvmOptions.JAVA_IO_TMPDIR_KEY
+import static org.gradle.process.internal.JvmOptions.JAVA_SECURITY_PROPERTIES_KEY
 import static org.gradle.process.internal.JvmOptions.JMX_REMOTE_KEY
+import static org.gradle.process.internal.JvmOptions.SSL_KEYSTOREPASSWORD_KEY
+import static org.gradle.process.internal.JvmOptions.SSL_KEYSTORETYPE_KEY
+import static org.gradle.process.internal.JvmOptions.SSL_KEYSTORE_KEY
+import static org.gradle.process.internal.JvmOptions.SSL_TRUSTPASSWORD_KEY
+import static org.gradle.process.internal.JvmOptions.SSL_TRUSTSTORETYPE_KEY
+import static org.gradle.process.internal.JvmOptions.SSL_TRUSTSTORE_KEY
 import static org.gradle.process.internal.JvmOptions.USER_COUNTRY_KEY
 import static org.gradle.process.internal.JvmOptions.USER_LANGUAGE_KEY
 import static org.gradle.process.internal.JvmOptions.USER_VARIANT_KEY
@@ -172,19 +179,20 @@ class JvmOptionsTest extends Specification {
         opts.immutableSystemProperties.containsKey(propKey)
 
         where:
-        propDescr                 | propKey                  | propAsArg
-        "file encoding"           | FILE_ENCODING_KEY        | "-D${FILE_ENCODING_KEY}=UTF-8"
-        "user variant"            | USER_VARIANT_KEY         | "-D${USER_VARIANT_KEY}"
-        "user language"           | USER_LANGUAGE_KEY        | "-D${USER_LANGUAGE_KEY}=en"
-        "user country"            | USER_COUNTRY_KEY         | "-D${USER_COUNTRY_KEY}=US"
-        "jmx remote"              | JMX_REMOTE_KEY           | "-D${JMX_REMOTE_KEY}"
-        "temp directory"          | JAVA_IO_TMPDIR_KEY       | "-D${JAVA_IO_TMPDIR_KEY}=/some/tmp/folder"
-        "ssl keystore path"       | JvmOptions.SSL_KEYSTORE_KEY         | "-D${JvmOptions.SSL_KEYSTORE_KEY}=/keystore/path"
-        "ssl keystore password"   | JvmOptions.SSL_KEYSTOREPASSWORD_KEY | "-D${JvmOptions.SSL_KEYSTOREPASSWORD_KEY}=secret"
-        "ssl keystore type"       | JvmOptions.SSL_KEYSTORETYPE_KEY     | "-D${JvmOptions.SSL_KEYSTORETYPE_KEY}=jks"
-        "ssl truststore path"     | JvmOptions.SSL_TRUSTSTORE_KEY       | "-D${JvmOptions.SSL_TRUSTSTORE_KEY}=truststore/path"
-        "ssl truststore password" | JvmOptions.SSL_TRUSTPASSWORD_KEY    | "-D${JvmOptions.SSL_TRUSTPASSWORD_KEY}=secret"
-        "ssl truststore type"     | JvmOptions.SSL_TRUSTSTORETYPE_KEY   | "-D${JvmOptions.SSL_TRUSTSTORETYPE_KEY}=jks"
+        propDescr                 | propKey                         | propAsArg
+        "file encoding"           | FILE_ENCODING_KEY               | "-D${FILE_ENCODING_KEY}=UTF-8"
+        "user variant"            | USER_VARIANT_KEY                | "-D${USER_VARIANT_KEY}"
+        "user language"           | USER_LANGUAGE_KEY               | "-D${USER_LANGUAGE_KEY}=en"
+        "user country"            | USER_COUNTRY_KEY                | "-D${USER_COUNTRY_KEY}=US"
+        "jmx remote"              | JMX_REMOTE_KEY                  | "-D${JMX_REMOTE_KEY}"
+        "temp directory"          | JAVA_IO_TMPDIR_KEY              | "-D${JAVA_IO_TMPDIR_KEY}=/some/tmp/folder"
+        "security properties"     | JAVA_SECURITY_PROPERTIES_KEY    | "-D${JAVA_SECURITY_PROPERTIES_KEY}=/some/tmp/security.properties"
+        "ssl keystore path"       | SSL_KEYSTORE_KEY                | "-D${SSL_KEYSTORE_KEY}=/keystore/path"
+        "ssl keystore password"   | SSL_KEYSTOREPASSWORD_KEY        | "-D${SSL_KEYSTOREPASSWORD_KEY}=secret"
+        "ssl keystore type"       | SSL_KEYSTORETYPE_KEY            | "-D${SSL_KEYSTORETYPE_KEY}=jks"
+        "ssl truststore path"     | SSL_TRUSTSTORE_KEY              | "-D${SSL_TRUSTSTORE_KEY}=truststore/path"
+        "ssl truststore password" | SSL_TRUSTPASSWORD_KEY           | "-D${SSL_TRUSTPASSWORD_KEY}=secret"
+        "ssl truststore type"     | SSL_TRUSTSTORETYPE_KEY          | "-D${SSL_TRUSTSTORETYPE_KEY}=jks"
     }
 
     def "#propDescr can be set as systemproperty"() {
@@ -194,17 +202,18 @@ class JvmOptionsTest extends Specification {
         then:
         opts.allJvmArgs.contains("-D${propKey}=${propValue}".toString());
         where:
-        propDescr                 | propKey                  | propValue
-        "file encoding"           | FILE_ENCODING_KEY        | "ISO-8859-1"
-        "user country"            | USER_COUNTRY_KEY         | "en"
-        "user language"           | USER_LANGUAGE_KEY        | "US"
-        "temp directory"          | JAVA_IO_TMPDIR_KEY       | "/some/tmp/folder"
-        "ssl keystore path"       | JvmOptions.SSL_KEYSTORE_KEY         | "/keystore/path"
-        "ssl keystore password"   | JvmOptions.SSL_KEYSTOREPASSWORD_KEY | "secret"
-        "ssl keystore type"       | JvmOptions.SSL_KEYSTORETYPE_KEY     | "jks"
-        "ssl truststore path"     | JvmOptions.SSL_TRUSTSTORE_KEY       | "truststore/path"
-        "ssl truststore password" | JvmOptions.SSL_TRUSTPASSWORD_KEY    | "secret"
-        "ssl truststore type"     | JvmOptions.SSL_TRUSTSTORETYPE_KEY   | "jks"
+        propDescr                 | propKey                         | propValue
+        "file encoding"           | FILE_ENCODING_KEY               | "ISO-8859-1"
+        "user country"            | USER_COUNTRY_KEY                | "en"
+        "user language"           | USER_LANGUAGE_KEY               | "US"
+        "temp directory"          | JAVA_IO_TMPDIR_KEY              | "/some/tmp/folder"
+        "security properties"     | JAVA_SECURITY_PROPERTIES_KEY    | "/some/folder/security.properties"
+        "ssl keystore path"       | SSL_KEYSTORE_KEY                | "/keystore/path"
+        "ssl keystore password"   | SSL_KEYSTOREPASSWORD_KEY        | "secret"
+        "ssl keystore type"       | SSL_KEYSTORETYPE_KEY            | "jks"
+        "ssl truststore path"     | SSL_TRUSTSTORE_KEY              | "truststore/path"
+        "ssl truststore password" | SSL_TRUSTPASSWORD_KEY           | "secret"
+        "ssl truststore type"     | SSL_TRUSTSTORETYPE_KEY          | "jks"
     }
 
     def "can enter debug mode"() {

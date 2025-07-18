@@ -84,6 +84,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private List<File> initScripts = new ArrayList<>();
     private boolean dryRun;
     private boolean rerunTasks;
+    private boolean taskGraph;
     private boolean profile;
     private boolean continueOnFailure;
     private boolean offline;
@@ -231,6 +232,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.initScripts = new ArrayList<>(initScripts);
         p.includedBuilds = new ArrayList<>(includedBuilds);
         p.dryRun = dryRun;
+        p.taskGraph = taskGraph;
         p.projectCacheDir = projectCacheDir;
         return p;
     }
@@ -611,6 +613,26 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
+     * Specifies whether the task graph should be printed.
+     *
+     * @since 9.1.0
+     */
+    @Incubating
+    public boolean isTaskGraph() {
+        return taskGraph;
+    }
+
+    /**
+     * Specifies whether the task graph should be printed.
+     *
+     * @since 9.1.0
+     */
+    @Incubating
+    public void setTaskGraph(boolean taskGraph) {
+        this.taskGraph = taskGraph;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -705,6 +727,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + ", initScripts=" + initScripts
             + ", dryRun=" + dryRun
             + ", rerunTasks=" + rerunTasks
+            + ", taskGraph=" + taskGraph
             + ", profile=" + profile
             + ", continueOnFailure=" + continueOnFailure
             + ", offline=" + offline

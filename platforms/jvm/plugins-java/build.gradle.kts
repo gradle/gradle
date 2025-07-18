@@ -16,6 +16,7 @@ dependencies {
     implementation(projects.core)
     implementation(projects.ivy)
     implementation(projects.languageJvm)
+    implementation(projects.logging)
     implementation(projects.maven)
     implementation(projects.modelCore)
     implementation(projects.platformBase)
@@ -33,6 +34,8 @@ dependencies {
     runtimeOnly(libs.groovy)
 
     testImplementation(testFixtures(projects.core))
+
+    integTestImplementation(projects.javadoc)
 
     integTestImplementation(testFixtures(projects.messaging))
     integTestImplementation(testFixtures(projects.enterpriseOperations))

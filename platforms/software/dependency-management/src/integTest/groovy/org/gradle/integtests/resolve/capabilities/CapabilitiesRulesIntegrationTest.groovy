@@ -71,9 +71,9 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
             variant = 'default'
         }
         failure.assertHasCause("""Module 'cglib:cglib-nodep' has been rejected:
-   Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib:3.2.5($variant)]""")
+   Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by ['cglib:cglib:3.2.5' ($variant)]""")
         failure.assertHasCause("""Module 'cglib:cglib' has been rejected:
-   Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib-nodep:3.2.5($variant)]""")
+   Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by ['cglib:cglib-nodep:3.2.5' ($variant)]""")
     }
 
     def "implicit capability conflict is detected if implicit capability is discovered late"() {
@@ -130,9 +130,9 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
             variant = 'default'
         }
         failure.assertHasCause("""Module 'cglib:cglib-nodep' has been rejected:
-   Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib:3.2.5($variant)]""")
+   Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by ['cglib:cglib:3.2.5' ($variant)]""")
         failure.assertHasCause("""Module 'cglib:cglib' has been rejected:
-   Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib-nodep:3.2.5($variant)]""")
+   Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by ['cglib:cglib-nodep:3.2.5' ($variant)]""")
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
@@ -286,7 +286,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
 
         then:
         failure.assertHasCause("""Module 'org:test' has been rejected:
-   Cannot select module with conflict on capability 'org:capability:1.0' also provided by [:test:unspecified(conf)]""")
+   Cannot select module with conflict on capability 'org:capability:1.0' also provided by ['root project :' (conf)]""")
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="true")

@@ -97,14 +97,6 @@ You can also enable this behavior by using the `--test-dry-run` command-line opt
 
 See link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] for details on all the available configuration options.
 
---
-The test process can exit unexpectedly if configured incorrectly. For instance, if the Java executable does not exist or an invalid JVM argument is provided, the test process will fail to start. Similarly, if a test makes programmatic changes to the test process, this can also cause unexpected failures.
-
-For example, issues may occur if a `{javaApi}/java/lang/SecurityManager.html[SecurityManager]` is modified in a test because
-Gradle's internal messaging depends on reflection and socket communication, which may be disrupted if the permissions on the security manager change. In this particular case, you should restore the original `SecurityManager` after the test so that the
-gradle test worker process can continue to function.
---
-
 [[test_filtering]]
 == Test filtering
 
@@ -558,6 +550,55 @@ Again, we're accessing a source set to get the relevant information, i.e. where 
 Users commonly want to run integration tests after the unit tests, because they are often slower to run and you want the build to fail early on the unit tests rather than later on the integration tests. That's why the above example adds a `shouldRunAfter()` declaration. This is preferred over `mustRunAfter()` so that Gradle has more flexibility in executing the build in parallel.
 
 For information on how to determine code coverage for tests in additional source sets, see the <<jacoco_plugin#jacoco_plugin,JaCoCo Plugin>> and the <<jacoco_report_aggregation_plugin#jacoco_report_aggregation_plugin, JaCoCo Report Aggregation Plugin>> chapters.
+
+[[sec:java_testing_troubleshooting]]
+== Troubleshooting common problems
+
+=== Tests are not detected or executed
+
+If no tests are detected, Gradle will skip the `Test` task entirely.
+
+This can occur for several reasons:
+
+ * No test sources exist. This is expected behavior for empty test suites.
+ * Test sources exist but are not compiled. This may happen if:
+ ** The source files are located in the wrong directory.
+ ** The source set is not configured correctly.
+ * No test classes are configured on the `Test` task. By default, only the built-in `Test` task is automatically configured to use the test source set.
+   If you're using a custom `Test` task, you must manually configure both `testClassesDirs` and `classpath`.
+
+Prior to Gradle 9.0.0, all `Test` tasks were <<upgrading_version_8#test_task_default_classpath,implicitly configured>> to use the `test` source set.
+
+=== Test process fails to start or stay running
+
+The test process may fail to start if configured incorrectly.
+For instance, if the Java executable does not exist or an invalid JVM argument is provided, the test process will fail to start.
+
+Similarly, if a test requires changes to the environment that are not compatible with Gradle's test worker process, the test process may fail to start.
+For example, tests that rely on modifying the link:{javaApi}/java/lang/SecurityManager.html[`SecurityManager`] may interfere with Gradle's internal messaging communication between the build and test worker.
+
+=== Test process starts but test dependencies are missing
+
+Once the test process starts, it may fail to find its required dependencies if they are missing from the test runtime classpath.
+
+Test dependencies need to be declared on the appropriate configuration.
+The <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>> plugin automatically configures all necessary dependencies, but if you are manually configuring a `Test` task, you need to ensure that all required dependencies are declared on the appropriate configuration.
+
+For JUnit4-based tests, you need to declare a dependency on a single JUnit 4.x library.
+For TestNG-based tests, you need to declare a dependency on a single TestNG library.
+For JUnit Jupiter-based tests, you need to declare dependencies on the JUnit Jupiter and JUnit platform libraries.
+
+Prior to Gradle 9.0.0, Gradle <<upgrading_version_8#test_framework_implementation_dependencies,leaked internal dependencies>> into the test runtime classpath which may have masked missing dependencies.
+
+=== Test process fails with unusual exit code
+
+The test process can exit with an unusual exit code (non-zero).
+
+This can be caused by a variety of issues, such as:
+
+ * A test calls `System.exit()` directly.
+ * Too many processes are running which causes the OS to kill the test process.
+ * The test process runs out of memory.
 
 [[sec:java_testing_modular]]
 == Testing Java Modules

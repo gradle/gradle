@@ -56,11 +56,6 @@ packageCycles {
     excludePatterns.add("org/gradle/plugins/signing/**")
 }
 
-tasks {
-    integTest {
-        usesJavadocCodeSnippets = true
-    }
-}
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

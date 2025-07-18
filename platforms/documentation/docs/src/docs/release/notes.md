@@ -14,7 +14,7 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 
 This release features [1](), [2](), ... [n](), and more.
 
-<!-- 
+<!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
@@ -35,7 +35,7 @@ Switch your build to use Gradle @version@ by updating the [wrapper](userguide/gr
 
 See the [Gradle 9.x upgrade guide](userguide/upgrading_version_9.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
+For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 ## New features and usability improvements
 
@@ -60,8 +60,8 @@ Example:
 > PROVIDE a screenshot or snippet illustrating the new feature, if applicable
 > LINK to the full documentation for more details
 
-To embed videos, use the macros below. 
-You can extract the URL from YouTube by clicking the "Share" button. 
+To embed videos, use the macros below.
+You can extract the URL from YouTube by clicking the "Share" button.
 For Wistia, contact Gradle's Video Team.
 @youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
 @wistia(Summary,a5izazvgit)@
@@ -73,6 +73,27 @@ For Wistia, contact Gradle's Video Team.
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+
+<a name="cli"></a>
+### CLI improvement
+
+#### Off-screen lines reported in rich console
+
+This release adds a status line to the `rich` console that reports the number of in-progress events not currently visible on screen.
+
+```console
+> (2 lines not showing)
+```
+
+This occurs when there are more ongoing events than the console has lines available to display them.
+
+![this recording](release-notes-assets/off-screen-lines.gif)
+
+#### Plain console with colors
+
+This release adds a new value for the `--console` command line option called `colored`, which enables color output for the console while omitting rich features such as progress bars.
+
+![this recording](release-notes-assets/colored-console.gif)
 
 <a name="build-authoring"></a>
 ### Build authoring improvements
@@ -107,10 +128,50 @@ assert(bar.getAttribute(color) == "orange") // `color` gets overwritten again
 assert(bar.getAttribute(shape) == "square") // `shape` remains the same
 ```
 
+#### Accessors for `compileOnly` plugin dependencies in precompiled Kotlin scripts
+
+Previously, it was not possible to use a plugin coming from a `compileOnly` dependency in a [precompiled Kotlin script](userguide/implementing_gradle_plugins_precompiled.html).
+Now it is supported, and [​type-safe accessors​]​(​userguide/kotlin_dsl.html#type-safe-accessors​) for plugins from such dependencies are available in the precompiled Kotlin scripts.
+
+As an example, the following `buildSrc/build.gradle.kts` build script declares a `compileOnly` dependency to a third party plugin: 
+```kotlin
+plugins {
+    `kotlin-dsl`
+}
+dependencies {
+    compileOnly("com.android.tools.build:gradle:x.y.z")
+}
+```
+And a convention precompiled Kotlin script in `buildSrc/src/main/kotlin/my-convention-plugin.gradle.kts` applies it, and can now use type-safe accessors to configure the third party plugin:
+```kotlin
+plugins {
+    id("com.android.application")
+}
+android {
+    // The accessor to the `android` extension registered by the Android plugin is available
+}
+```
+
+#### Introduce `Gradle#getBuildPath`
+
+This release introduces a new API on the [Gradle](javadoc/org/gradle/api/invocation/Gradle.html) type that returns the path of the build represented by the `Gradle` instance, relative to the root of the build tree.
+For the root build, this will return `:`.
+For included builds, this will return the path of the included build relative to the root build.
+
+This is the same path returned by `BuildIdentifier#getBuildPath`, but it is now available directly on the `Gradle` instance.
+This enables build authors to obtain the path of a build, similar to how they can already obtain the path of a project.
+
+The following example demonstrates how to determine the path of the build which owns a given project:
+
+```kotlin
+val project: Project = getProjectInstance()
+val buildPath: String = project.gradle.buildPath
+```
+
 ### Configuration Improvements
 
 #### Simpler target package configuration for Antlr 4
-The AntlrTask class now supports explicitly setting the target package for generated code when using Antlr 4.  
+The AntlrTask class now supports explicitly setting the target package for generated code when using Antlr 4.
 Previously, setting the "-package" argument also required setting the output directory in order to generate classes into the proper package-specific directory structure.
 This release introduces a `packageName` property that allows you to set the target package without needing to also set the output directory properly.
 Setting this property will set the "-package" argument for the Antlr tool, and will also set the generated class directory to match the package.
@@ -127,17 +188,69 @@ tasks.named("generateGrammarSource").configure {
 ```
 
 #### Antlr generated sources are automatically tracked
-In previous versions of Gradle, the Antlr-generated sources were added to a java source set for compilation, but if the generated sources directory was changed, this change was not reflected in the source set.  
+In previous versions of Gradle, the Antlr-generated sources were added to a java source set for compilation, but if the generated sources directory was changed, this change was not reflected in the source set.
 This required manually updating the source set to include the new generated sources directory any time it was changed.
 In this release, the generated sources directory is automatically tracked and updates the source set accordingly.
 A task dependency is also created between the source generation task and the source set, ensuring that tasks that consume the source set as an input will automatically create a task dependency on the source generation task.
 
+#### Specify the Repository in MavenPublication.distributionManagement
+
+For a Maven publication, it is now possible to specify the repository used for distribution in the published POM file.
+
+For example, to specify the GitHub Packages repository in the POM file, use this code: 
+```kotlin
+plugins {
+  id("maven-publish")
+}
+
+publications.withType<MavenPublication>().configureEach {
+  pom {
+    distributionManagement {
+      repository {
+        id = "github"
+        name = "GitHub OWNER Apache Maven Packages"
+        url = "https://maven.pkg.github.com/OWNER/REPOSITORY"
+      }
+    }
+  }
+}
+```
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
 
 -->
+
+### Task graph diagnostic
+
+A new task dependency graph is available to visualize the dependencies between tasks without executing them.
+You can enable it using the `--task-graph` option on the command line. For example:
+```
+./gradlew root r2 --task-graph
+```
+This prints a visual representation of the task graph for the specified tasks:
+```
+Tasks graph for: root r2
++--- :root (org.gradle.api.DefaultTask)
+|    \--- :middle (org.gradle.api.DefaultTask)
+|         +--- :leaf1 (org.gradle.api.DefaultTask)
+|         \--- :leaf2 (org.gradle.api.DefaultTask, disabled)
+\--- :root2 (org.gradle.api.DefaultTask)
+    +--- :leaf1 (org.gradle.api.DefaultTask) (*)
+    |--- other build task :included:fromIncluded (org.gradle.api.DefaultTask)
+    \--- :leaf4 (org.gradle.api.DefaultTask, finalizer)
+         \--- :leaf3 (org.gradle.api.DefaultTask)
+         
+(*) - details omitted (listed previously)
+```
+
+This feature provides a quick overview of the task graph, helping users understand the dependencies between tasks without running them.
+You can iterate by diving into a subgraph by adjusting an invocation.
+
+This feature is incubating and may change in future releases.
+Additionally, it shares a known [issue](https://github.com/gradle/gradle/issues/2517) with `--dry-run`:
+Tasks from included builds may still be executed.
 
 ## Promoted features
 
@@ -146,9 +259,7 @@ See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecy
 
 The following are the features that have been promoted in this Gradle release.
 
-<!--
-### Example promoted
--->
+* [`getDependencyFactory()`](javadoc/org/gradle/api/Project.html) in `Project`
 
 ## Fixed issues
 

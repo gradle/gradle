@@ -18,6 +18,7 @@ package org.gradle.api.file;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Specifies sources for a file copy.
@@ -29,7 +30,7 @@ public interface CopySourceSpec {
      *
      * @param sourcePaths Paths to source files for the copy
      */
-    CopySourceSpec from(Object... sourcePaths);
+    CopySourceSpec from(@Nullable Object... sourcePaths);
 
     /**
      * Specifies the source files or directories for a copy and creates a child {@code CopySourceSpec}. The given source

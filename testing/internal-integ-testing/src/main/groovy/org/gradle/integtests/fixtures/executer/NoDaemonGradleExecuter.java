@@ -130,7 +130,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     }
 
     @Override
-    protected List<String> getImplicitBuildJvmArgs() {
+    public List<String> getImplicitBuildJvmArgs() {
         List<String> buildJvmOptions = super.getImplicitBuildJvmArgs();
         if (!isUseDaemon() && !isSingleUseDaemonRequested()) {
             JavaVersion version = getJavaVersionFromJavaHome();

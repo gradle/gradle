@@ -17,8 +17,8 @@
 package org.gradle.internal.cc.impl.isolated;
 
 import org.gradle.api.Action;
-import org.gradle.internal.cc.impl.fixtures.SomeToolingModel;
-import org.gradle.internal.cc.impl.fixtures.SomeToolingModelParameter;
+import org.gradle.integtests.tooling.fixture.SomeToolingModel;
+import org.gradle.integtests.tooling.fixture.SomeToolingModelParameter;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.model.gradle.BasicGradleProject;

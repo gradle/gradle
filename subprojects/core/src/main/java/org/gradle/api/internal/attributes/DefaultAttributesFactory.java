@@ -190,7 +190,8 @@ public final class DefaultAttributesFactory implements AttributesFactory {
                 Object currentAttribute = entry.get();
                 Object existingAttribute = attributes1.getAttribute(attribute);
                 if (!currentAttribute.equals(existingAttribute)) {
-                    throw new AttributeMergingException(attribute, existingAttribute, currentAttribute, buildSameNameDifferentTypeErrorMsg(attribute, attributes2.findAttribute(attribute.getName())));
+                    String message = "An attribute named '" + attribute.getName() + "' of type '" + attribute.getType().getName() + "' already exists in this container";
+                    throw new AttributeMergingException(attribute, existingAttribute, currentAttribute, message);
                 }
             }
             if (attributes1 instanceof DefaultImmutableAttributesContainer) {

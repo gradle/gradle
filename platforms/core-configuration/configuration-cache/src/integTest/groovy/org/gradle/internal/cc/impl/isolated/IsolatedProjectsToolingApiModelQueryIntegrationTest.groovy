@@ -16,7 +16,7 @@
 
 package org.gradle.internal.cc.impl.isolated
 
-import org.gradle.internal.cc.impl.fixtures.SomeToolingModel
+import org.gradle.integtests.tooling.fixture.SomeToolingModel
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.util.internal.ToBeImplemented

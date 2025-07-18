@@ -34,6 +34,7 @@ dependencies {
     implementation(projects.dependencyManagement)
     implementation(projects.fileCollections)
     implementation(projects.fileOperations)
+    implementation(projects.logging)
     implementation(projects.languageJava)
     implementation(projects.modelCore)
     implementation(projects.platformBase)

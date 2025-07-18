@@ -65,14 +65,12 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
         def configuration = project.configurations.getByName(EarPlugin.DEPLOY_CONFIGURATION_NAME)
 
         then:
-        !configuration.visible
         !configuration.transitive
 
         when:
         configuration = project.configurations.getByName(EarPlugin.EARLIB_CONFIGURATION_NAME)
 
         then:
-        !configuration.visible
         configuration.transitive
     }
 
@@ -115,6 +113,8 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
     }
 
     def "depends on earlib config"() {
+        TestUtil.initDeprecationLogger("because archives configuration is deprecated")
+
         when:
         project.pluginManager.apply(EarPlugin)
 
@@ -242,6 +242,8 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
     }
 
     def "supports renaming lib dir"() {
+        TestUtil.initDeprecationLogger("because archives configuration is deprecated")
+
         given:
         def childProject = TestUtil.createChildProject(project, 'child')
         childProject.file("src/main/resources").mkdirs()

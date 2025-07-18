@@ -215,7 +215,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
      *
      * @param ruleSetFiles the rule set files to be added
      */
-    public void ruleSetFiles(Object... ruleSetFiles) {
+    public void ruleSetFiles(@Nullable Object... ruleSetFiles) {
         this.ruleSetFiles.from(ruleSetFiles);
     }
 

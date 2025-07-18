@@ -25,6 +25,7 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.initialization.definition.DefaultInjectedPluginDependency;
 import org.gradle.internal.Actions;
@@ -85,7 +86,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     }
 
     @Override
-    public void resolve(ComponentSelector selector, ComponentOverrideMetadata overrideMetadata, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result) {
+    public void resolve(ComponentSelector selector, ComponentOverrideMetadata overrideMetadata, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result, ImmutableAttributes consumerAttributes) {
         if (selector instanceof ModuleComponentSelector) {
             final ModuleComponentSelector depSelector = (ModuleComponentSelector) selector;
             VersionControlSpec spec = vcsResolver.locateVcsFor(depSelector);

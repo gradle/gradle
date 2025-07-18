@@ -26,6 +26,7 @@ import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.net.URI;
@@ -126,7 +127,7 @@ public interface Script {
      * @param paths The paths to the files. May be empty.
      * @return The file collection. Never returns null.
      */
-    ConfigurableFileCollection files(Object... paths);
+    ConfigurableFileCollection files(@Nullable Object... paths);
 
     /**
      * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The file collection is configured
@@ -302,7 +303,7 @@ public interface Script {
      * @param paths Any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
      * @return true if anything got deleted, false otherwise
      */
-    boolean delete(Object... paths);
+    boolean delete(@Nullable Object... paths);
 
     /**
      * Returns the {@link org.gradle.api.logging.LoggingManager} which can be used to receive logging and to control the
