@@ -45,7 +45,7 @@ class ProcessFixture {
         }
 
         if (!(OperatingSystem.current().unix || OperatingSystem.current().windows)) {
-            throw new RuntimeException("This implementation does not know how to forcefully kill a process on os: " + OperatingSystem.current())
+            throw new RuntimeException("This implementation does not know how to forcefully kill a process on os: " + OperatingSystem.current() + " and Java version: " + JavaVersion.current())
         }
         execute(killArgs(pid, killTree), killScript(pid, killTree))
     }
@@ -101,15 +101,28 @@ class ProcessFixture {
         return new String[0]
     }
 
-    // Only supported on *nix platforms
-    String[] getProcessInfo(String[] pids) {
+    static String[] getProcessInfo(String[] pids) {
         if (pids == null || pids.size() == 0) {
             throw new RuntimeException("Unable to get process info because provided pids are null or empty!")
         }
+
+        if (JavaVersion.current().isJava9Compatible()) {
+            return getProcessInfoJava9(pids)
+        }
+
         if (!(OperatingSystem.current().unix)) {
             throw new RuntimeException("This implementation does not know how to get process info on os: " + OperatingSystem.current() + " and Java version: " + JavaVersion.current())
         }
         return bash("ps -o pid,ppid,args -p ${pids.join(' -p ')}").split("\\n")
+    }
+
+    private static String[] getProcessInfoJava9(String[] pids) {
+        def processHandles = pids.collect { pid ->
+            getProcessHandle(pid as Long)
+        }
+        return ["PID PPID ARGS"] as String[] + processHandles.collect {
+            "${it.pid()} ${it.parent().map { it.pid() }.orElse(0)} ${it.info().commandLine().orElse("")}" as String
+        }.toArray(new String[0])
     }
 
     boolean isAlive() {
@@ -143,11 +156,11 @@ class ProcessFixture {
         }
     }
 
-    private String bash(String commands) {
+    private static String bash(String commands) {
         return execute(["bash"] as Object[], new ByteArrayInputStream(commands.getBytes()))
     }
 
-    private String execute(Object[] commandLine, InputStream input) {
+    private static String execute(Object[] commandLine, InputStream input) {
         def output = new ByteArrayOutputStream()
         def e = TestFiles.execHandleFactory().newExecHandleBuilder()
                 .commandLine(commandLine)
@@ -181,6 +194,10 @@ class ProcessFixture {
     }
 
     private def getProcessHandle() {
+        return getProcessHandle(pid)
+    }
+
+    private static def getProcessHandle(Long pid) {
         if (!JavaVersion.current().isJava9Compatible()) {
             throw new RuntimeException("Java 9 or later is required to get process handle.")
         }
