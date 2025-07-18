@@ -523,7 +523,9 @@ This will prevent Gradle from creating empty projects for each element of the pa
 
 NOTE: Always use an identical _logical_ project **name** and _physical_ project **location** to avoid confusion.  Don't include a project named `:search` and locate it at `features/ui/default-search-toolbar`, as this will lead to confusion about the location of the project.  Instead, locate this project at `features/ui/search`.
 
-Avoid unnecessarily deep directory structures - for builds containing only a few projects, it is better to keep the structure flat by locating all projects at the root of the build and avoid the need to explicitly set `projectDir` at all.
+You should avoid unnecessarily deep directory structures.
+For builds containing only a few projects, it’s usually better to keep the structure flat by placing all projects at the root of the build.
+This eliminates the need to explicitly set `projectDir`.
 Within the context of a particular build, it should always be obvious from the pathless project name where that project is located.
 If you find yourself facing ambiguity about project locations, consider simplifying the directory layout by flattening the structure.
 
