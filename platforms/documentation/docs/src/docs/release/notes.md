@@ -237,7 +237,7 @@ Tasks graph for: root r2
 |         +--- :leaf1 (org.gradle.api.DefaultTask)
 |         \--- :leaf2 (org.gradle.api.DefaultTask, disabled)
 \--- :root2 (org.gradle.api.DefaultTask)
-    +--- :leaf1 (org.gradle.api.DefaultTask) (*)
+    +--- :leaf1 (*)
     |--- other build task :included:fromIncluded (org.gradle.api.DefaultTask)
     \--- :leaf4 (org.gradle.api.DefaultTask, finalizer)
          \--- :leaf3 (org.gradle.api.DefaultTask)
