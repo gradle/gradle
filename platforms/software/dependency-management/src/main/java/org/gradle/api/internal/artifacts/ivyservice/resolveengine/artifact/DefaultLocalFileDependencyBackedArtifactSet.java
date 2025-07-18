@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
@@ -35,6 +36,7 @@ public class DefaultLocalFileDependencyBackedArtifactSet extends LocalFileDepend
 
     public DefaultLocalFileDependencyBackedArtifactSet(
         LocalFileDependencyMetadata dependencyMetadata,
+        VariantIdentifier sourceVariantId,
         Spec<? super ComponentIdentifier> componentFilter,
         ArtifactVariantSelector variantSelector,
         ImmutableArtifactTypeRegistry artifactTypeRegistry,
@@ -45,6 +47,7 @@ public class DefaultLocalFileDependencyBackedArtifactSet extends LocalFileDepend
     ) {
         super(
             dependencyMetadata,
+            sourceVariantId,
             componentFilter,
             variantSelector,
             artifactTypeRegistry,

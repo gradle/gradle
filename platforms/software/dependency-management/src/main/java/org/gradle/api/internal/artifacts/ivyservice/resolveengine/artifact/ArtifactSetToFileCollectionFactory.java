@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
@@ -78,6 +79,7 @@ public class ArtifactSetToFileCollectionFactory {
 
     public ResolvedArtifactSet asResolvedArtifactSet(
         ComponentArtifactIdentifier id,
+        VariantIdentifier sourceVariantId,
         ImmutableAttributes variantAttributes,
         ImmutableCapabilities capabilities,
         DisplayName variantDisplayName,
@@ -95,7 +97,7 @@ public class ArtifactSetToFileCollectionFactory {
                     @Override
                     public void visit(ArtifactVisitor visitor) {
                         if (visitor.prepareForVisit(FileCollectionInternal.OTHER) == FileCollectionStructureVisitor.VisitType.Visit) {
-                            visitor.visitArtifact(variantDisplayName, variantAttributes, capabilities, new ResolvableArtifact() {
+                            visitor.visitArtifact(variantDisplayName, sourceVariantId, variantAttributes, capabilities, new ResolvableArtifact() {
                                 @Override
                                 public ComponentArtifactIdentifier getId() {
                                     return id;

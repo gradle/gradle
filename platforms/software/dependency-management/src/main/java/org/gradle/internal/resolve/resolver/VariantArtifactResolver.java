@@ -17,6 +17,7 @@
 package org.gradle.internal.resolve.resolver;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
@@ -27,11 +28,11 @@ public interface VariantArtifactResolver {
     /**
      * Creates an adhoc resolved variant which resolves the provided artifacts of the component.
      */
-    ResolvedVariant resolveAdhocVariant(ComponentArtifactResolveMetadata component, ImmutableList<? extends ComponentArtifactMetadata> artifacts);
+    ResolvedVariant resolveAdhocVariant(ComponentArtifactResolveMetadata component, VariantIdentifier sourceVariantId, ImmutableList<? extends ComponentArtifactMetadata> artifacts);
 
     /**
      * Resolve the artifacts described by the given variant artifact metadata, owned by the given component.
      */
-    ResolvedVariant resolveVariantArtifactSet(ComponentArtifactResolveMetadata component, VariantResolveMetadata variantArtifacts);
+    ResolvedVariant resolveVariantArtifactSet(ComponentArtifactResolveMetadata component, VariantIdentifier sourceVariantId, VariantResolveMetadata variantArtifacts);
 
 }

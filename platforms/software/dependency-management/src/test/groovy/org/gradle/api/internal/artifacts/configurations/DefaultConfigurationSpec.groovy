@@ -45,6 +45,7 @@ import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.ResolverResults
+import org.gradle.internal.component.model.VariantIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
@@ -1575,11 +1576,12 @@ This method is only meant to be called on configurations which allow the (non-de
     }
 
     private SelectedArtifactSet selectedArtifacts(Set<File> files = []) {
+        VariantIdentifier sourceVariantId = Mock()
         return new SelectedArtifactSet() {
             @Override
             void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
                 files.each { file ->
-                    visitor.visitArtifact(Describables.of(file.getName()), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, resolvableArtifact(file))
+                    visitor.visitArtifact(Describables.of(file.getName()), sourceVariantId, ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, resolvableArtifact(file))
                 }
                 visitor.endVisitCollection(null)
             }
