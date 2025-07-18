@@ -133,7 +133,7 @@ assert(bar.getAttribute(shape) == "square") // `shape` remains the same
 Previously, it was not possible to use a plugin coming from a `compileOnly` dependency in a [precompiled Kotlin script](userguide/implementing_gradle_plugins_precompiled.html).
 Now it is supported, and [​type-safe accessors​]​(​userguide/kotlin_dsl.html#type-safe-accessors​) for plugins from such dependencies are available in the precompiled Kotlin scripts.
 
-As an example, the following `buildSrc/build.gradle.kts` build script declares a `compileOnly` dependency to a third party plugin: 
+As an example, the following `buildSrc/build.gradle.kts` build script declares a `compileOnly` dependency to a third party plugin:
 ```kotlin
 plugins {
     `kotlin-dsl`
@@ -197,7 +197,7 @@ A task dependency is also created between the source generation task and the sou
 
 For a Maven publication, it is now possible to specify the repository used for distribution in the published POM file.
 
-For example, to specify the GitHub Packages repository in the POM file, use this code: 
+For example, to specify the GitHub Packages repository in the POM file, use this code:
 ```kotlin
 plugins {
   id("maven-publish")
@@ -215,6 +215,47 @@ publications.withType<MavenPublication>().configureEach {
   }
 }
 ```
+
+### Error and warning reporting improvements
+
+#### Improved error message for Version Constraint Conflicts
+
+In previous versions of Gradle when a version constraint conflict occurred the error message was extremely verbose and included extraneous information.
+It also was formatted in a way that was difficult to comprehend, especially when constraints involved in the conflict were added by transitive dependencies.
+
+```
+> Could not resolve org:foo:3.2.
+  Required by:
+      root project 'test'
+   > Cannot find a version of 'org:foo' that satisfies the version constraints:
+        Dependency path: 'root project :' (conf) --> 'org:bar:2.0' (runtime) --> 'org:foo:3.1'
+        Constraint path: 'root project :' (conf) --> 'org:platform:1.1' (platform) --> 'org:foo:{strictly 3.1.1; reject 3.1 & 3.2}'
+        Constraint path: 'root project :' (conf) --> 'org:foo:3.2'
+        Constraint path: 'root project :' (conf) --> 'org:baz:3.0' (runtime) --> 'org:foo:3.3'
+        Constraint path: 'root project :' (conf) --> 'org:other:3.0' (runtime) --> 'org:foo:3.3'
+```
+
+The new message focuses attention on the conflicting versions required by the constraints involved in the conflict.
+
+```
+> Could not resolve org:foo.
+  Required by:
+      root project 'mec0k'
+   > Component is the target of multiple version constraints with conflicting requirements:
+     3.1.1 - directly in 'org:platform:1.1' (platform)
+     3.2
+     3.3 - transitively via 'org:baz:3.0' (runtime) (1 other path to this version)
+```
+
+This makes it clearer by:
+- Immediately stating that there is a conflict in version constraints for a component, and not merely a failure to _find_ a suitable candidate in the searched repositories when resolving dependencies
+- Clearly showing each constrained version involved in the conflict
+- Showing where the conflicting constraints are declared (either the project doing resolution, its direct dependencies, its transitive dependencies, or dependency locking) _without_ showing the complete dependency paths, which can be long and hard to read and are available in the dependency insight report
+- Showing how many paths to each constraint exist in the dependency graph, but only printing the first one, which is usually sufficient to understand the conflict
+
+It also avoids showing non-strict dependency declarations, like the first line in the old version, which are irrelevant to understanding the conflict.
+
+A suggestion message at the end of the build will also provide the exact syntax for running `dependencyInsight` on the failing configuration, to further investigate it by viewing comprehensive dependency resolution information.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
