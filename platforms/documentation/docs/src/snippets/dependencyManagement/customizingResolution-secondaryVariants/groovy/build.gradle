@@ -1,10 +1,10 @@
 // tag::lib[]
 plugins {
-    id 'java-library'
+    id("java-library")
 }
 
-group = 'com.gradle'
-version = '1.2.3'
+group = "com.gradle"
+version = "1.2.3"
 // end::lib[]
 
 // tag::add[]
@@ -19,8 +19,8 @@ configurations.apiElements.outgoing.variants.create("customApiElement") {
 
 // tag::custom[]
 // Define custom attributes for variant identification
-def fooAttribute = Attribute.of("FooAttribute", String)
-def fooVariantAttribute = Attribute.of("FooVariantAttribute", String)
+def fooAttribute = Attribute.of("com.example.foo", String)
+def fooVariantAttribute = Attribute.of("com.example.fooVariant", String)
 
 // Create a consumable configuration named 'fooFiles'
 // This configuration serves as the container for outgoing variants

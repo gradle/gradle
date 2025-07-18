@@ -21,8 +21,8 @@ val apiElementVariant: ConfigurationVariant by configurations.apiElements.get().
 
 // tag::custom[]
 // Define custom attributes for variant identification
-val fooAttribute = Attribute.of("FooAttribute", String::class.java)
-val fooVariantAttribute = Attribute.of("FooVariantAttribute", String::class.java)
+val fooAttribute = Attribute.of("com.example.foo", String::class.java)
+val fooVariantAttribute = Attribute.of("com.example.fooVariant", String::class.java)
 
 // Create a consumable configuration named 'fooFiles'
 // This configuration serves as the container for outgoing variants
