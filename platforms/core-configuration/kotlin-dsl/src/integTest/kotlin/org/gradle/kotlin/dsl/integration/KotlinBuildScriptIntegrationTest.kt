@@ -1,19 +1,18 @@
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.api.JavaVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.clickableUrlFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
-
 import org.gradle.test.fixtures.file.LeaksFileHandles
-
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-
+import org.hamcrest.Matchers.greaterThanOrEqualTo
+import org.junit.Assume.assumeThat
 import org.junit.Test
 import spock.lang.Issue
-
 import java.io.StringWriter
 
 
@@ -402,5 +401,32 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
         build("help").apply {
             assertOutputContains("w: ${clickableUrlFor(script)}:4:13: 'fun deprecatedFunction(): Unit' is deprecated. BECAUSE")
         }
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/16147")
+    fun `can use javax xml APIs from the current jre`() {
+        // evaluateExpression() was introduced in JDK 9
+        // the Gradle API JAR contains old versions of javax.xml
+        // this asserts that scripts can use recent javax.xml APIs
+        withBuildScript(
+            """
+            val doc = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
+            javax.xml.xpath.XPathFactory.newInstance().newXPath().evaluateExpression("/project/component", doc)
+            """
+        )
+        build("help")
+    }
+
+    @Test
+    fun `can use new jdk api`() {
+        // SequencedCollection was introduced in JDK 21
+        assumeThat(JavaVersion.current(), greaterThanOrEqualTo(JavaVersion.VERSION_21))
+        withBuildScript(
+            """
+            val col = listOf(1, 2, 3) as java.util.SequencedCollection<Int>
+            """
+        )
+        build("help")
     }
 }
