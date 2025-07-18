@@ -512,7 +512,7 @@ Unused projects - even if empty - can surprise maintainers, clutter reports, and
 They also introduce unintended side effects.
 If you use `allprojects { ... }` or `subprojects { ... }`, plugins and configuration blocks will apply to every project, including the empty ones. 
 This can degrade build performance.
-It can also be awkward to invoke tasks on nested projects, as you will have to use the full path to the project, like `gradle :subs:features:search:build`, instead of the shorter `gradle :search:build`.
+Additionally, invoking tasks on deeply nested projects requires using the full project path, such as `gradle :subs:features:search:build`, instead of the shorter `gradle :search:build`.
 
 To avoid these negatives when using a hierarchical project structure, you can provide a non-hierarchical name when including the project and be sure to explicitly set the link:{kotlinDslPath}/gradle/org.gradle.api/-project/get-project-dir.html[Project.projectDir] property of any projects included in nested directories:
 ```
