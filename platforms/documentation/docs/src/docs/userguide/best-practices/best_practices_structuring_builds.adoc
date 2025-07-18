@@ -508,7 +508,7 @@ However, without further configuration, Gradle will create empty projects for ea
 In the example above, Gradle will create a project named `:subs`, a project named `:subs:features`, and a project named `:subs:features:search`.
 This behavior is usually not intended, as you likely only want to include the `search` project itself.
 
-Unused projects - even if empty - can surprise maintainers, clutter reporting, and make your build harder to understand.
+Unused projects - even if empty - can surprise maintainers, clutter reports, and make your build harder to understand.
 They also introduce unintended side effects.
 If you use `allprojects { ... }` or `subprojects { ... }`, plugins and configuration blocks will apply to every project, including the empty ones. 
 This can degrade build performance.
