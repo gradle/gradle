@@ -498,7 +498,7 @@ When using a hierarchical directory structure to organize your Gradle projects, 
 When you use the link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/include.html[Settings.include()] method to include a project in your Grade settings file, you typically include projects by supplying the directory name like `include("featureA")`.
 This usage assumes that `featureA` is located at the root of your build.
 
-You can also include projects located in deeper subdirectories by specifying the complete path to the project using the `:` charactor as a path separator.
+You can include projects located in nested subdirectories by specifying their full project path by using `:` as a separator between path segments.
 For instance, if project `search` was located in a subdirectory named `features`, itself located in a subdirectory named `subs`, you could call `include(":subs:features:search")` to include it.
 
 Nesting projects under a sensible hierarchical directory structure is a common practice in larger Gradle builds including more than a dozen or so projects.
