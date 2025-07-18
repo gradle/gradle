@@ -19,9 +19,6 @@ package org.gradle.kotlin.dsl.tooling.builders.r91
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel
-import org.gradle.tooling.events.ProgressEvent
-import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.events.lifecycle.BuildPhaseStartEvent
 
 @TargetGradleVersion(">=9.1")
 class KotlinBuildScriptTemplateModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
