@@ -458,7 +458,7 @@ org:foo:1.0 FAILED
    Failures:
       - Could not resolve org:foo:{strictly 1.0}.
           - Component is the target of multiple version constraints with conflicting requirements:
-            1.0 - by Dependency Locking
+            1.0 - from lock file
             1.1
 
 org:foo:{strictly 1.0} -> 1.0 FAILED
