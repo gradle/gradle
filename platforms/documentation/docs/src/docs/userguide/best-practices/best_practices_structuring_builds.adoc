@@ -502,7 +502,7 @@ You can include projects located in nested subdirectories by specifying their fu
 For instance, if project `search` was located in a subdirectory named `features`, itself located in a subdirectory named `subs`, you could call `include(":subs:features:search")` to include it.
 
 Nesting projects in a sensible hierarchical directory structure is common practice in larger Gradle builds with many projects. 
-Such a layout allows you to organize large builds and improve comprehensibility, versus having all your projects live at the root of the build.
+This approach helps organize large builds and improves comprehensibility, compared to placing all projects directly under the build root.
 
 However, without further configuration, Gradle will create empty projects for every element of a hierarchical path.
 In the example above, Gradle will create a project named `:subs`, a project named `:subs:features`, and a project named `:subs:features:search`.
