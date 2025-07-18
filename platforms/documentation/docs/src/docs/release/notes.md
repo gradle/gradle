@@ -282,7 +282,7 @@ Tasks graph for: root r2
     |--- other build task :included:fromIncluded (org.gradle.api.DefaultTask)
     \--- :leaf4 (org.gradle.api.DefaultTask, finalizer)
          \--- :leaf3 (org.gradle.api.DefaultTask)
-         
+
 (*) - details omitted (listed previously)
 ```
 
@@ -292,11 +292,46 @@ You can iterate by diving into a subgraph by adjusting an invocation.
 This feature is incubating and may change in future releases.
 #### Fixed `--dry-run` behavior in composite builds
 
-Gradle now correctly respects `--dry-run` in composite builds, ensuring that tasks are not executed during the execution phase of included builds. 
+Gradle now correctly respects `--dry-run` in composite builds, ensuring that tasks are not executed during the execution phase of included builds.
 
-Note that tasks from some included builds may still be executed during configuration time, as part of their configuration logic. 
+Note that tasks from some included builds may still be executed during configuration time, as part of their configuration logic.
 
 This restores expected behavior and makes `--dry-run` safer for previewing task execution plans across composite builds.
+
+### Project report updated
+
+The [Project Report](userguide/project_report_plugin.html) has been updated to show projects' physical locations in the file system, as well as their logical build paths.
+
+```
+------------------------------------------------------------
+Root project 'avoidEmptyProjects-do'
+------------------------------------------------------------
+
+Location: /usr/jsmith/projects/avoidEmptyProjects-do
+Description: Example project to demonstrate Gradle's project hierarchy and locations
+
+Project hierarchy:
+
+Root project 'avoidEmptyProjects-do'
++--- Project ':app'
+\--- Project ':my-web-module'
+
+Project locations:
+
+project ':app' - /app
+project ':my-web-module' - /subs/web/my-web-module
+
+To see a list of the tasks of a project, run gradle <project-path>:tasks
+For example, try running gradle :app:tasks
+```
+
+This will help authors better understand the structure of hierarchical builds that use non-standard project directories.
+
+<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ADD RELEASE FEATURES ABOVE
+==========================================================
+
+-->
 
 ## Promoted features
 
