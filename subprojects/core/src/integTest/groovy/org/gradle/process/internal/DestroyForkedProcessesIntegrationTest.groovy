@@ -44,8 +44,21 @@ class DestroyForkedProcessesIntegrationTest extends DaemonIntegrationSpec {
                 environment('CLASSPATH', sourceSets.main.output.asPath)
             }
         """
-        expect:
-        assertAllProcessesAreDestroyedOnCancel('javaExec', processStartedToken)
+
+        when:
+        startBuild("javaExec", processStartedToken)
+
+        then:
+        def processes = childrenAndGrandchildrenOfDaemon()
+        processes.size() == 3
+
+        when:
+        cancelBuild("javaExec")
+
+        then:
+        processes.forEach {
+            assert !new ProcessFixture(it as Long).isAlive()
+        }
     }
 
     void forkedProcessesCode(File processStartedToken) {
@@ -73,19 +86,6 @@ class DestroyForkedProcessesIntegrationTest extends DaemonIntegrationSpec {
                 }
             }
         """
-    }
-
-    private void assertAllProcessesAreDestroyedOnCancel(String task, File processStartedToken) {
-        startBuild(task, processStartedToken)
-
-        def processes = childrenAndGrandchildrenOfDaemon()
-        assert processes.size() == 3
-
-        cancelBuild(task)
-
-        processes.forEach {
-            assert !new ProcessFixture(it as Long).isAlive()
-        }
     }
 
     private void startBuild(String task, File processStartedToken) {
