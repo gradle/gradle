@@ -249,8 +249,13 @@ This feature provides a quick overview of the task graph, helping users understa
 You can iterate by diving into a subgraph by adjusting an invocation.
 
 This feature is incubating and may change in future releases.
-Additionally, it shares a known [issue](https://github.com/gradle/gradle/issues/2517) with `--dry-run`:
-Tasks from included builds may still be executed.
+#### Fixed `--dry-run` behavior in composite builds
+
+Gradle now correctly respects `--dry-run` in composite builds, ensuring that tasks are not executed during the execution phase of included builds. 
+
+Note that tasks from some included builds may still be executed during configuration time, as part of their configuration logic. 
+
+This restores expected behavior and makes `--dry-run` safer for previewing task execution plans across composite builds.
 
 ## Promoted features
 
