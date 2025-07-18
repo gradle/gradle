@@ -291,3 +291,63 @@ include::{snippetsPath}/bestPractices/groupTasks-do/tests/groupTasks.good.out[]
 === Tags
 
 `<<tags_reference.adoc#tag:tasks,#tasks>>`
+
+[[dont_resolve_configurations_before_task_execution]]
+== Don't resolve Configurations before Task Execution
+
+Resolving configurations before the task execution phase can lead to incorrect results and slower builds.
+
+=== Explanation
+
+Resolving a configuration - either directly via calling its link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#resolve()[`resolve()`] method or indirectly via accessing its set of artifacts - returns a set of files that does not preserve references to the tasks that produced those files.
+
+Configurations _are_ file collections and can be added to `@InputFiles` properties on other tasks.
+It is important to do this correctly to avoid breaking automatic task dependency wiring between a consumer task and any tasks that are implicitly required to produce the artifacts being consumed.
+For example, if a configuration contains a project dependency, Gradle knows that consumers of the configuration must first run any tasks that produce that project's artifacts.
+
+In addition to correctness concerns, resolving configurations during the configuration phase can slow down the build, even when running unrelated tasks (e.g., `help`) that don't require the resolved dependencies.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually-avoid/kotlin/app",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually-avoid/groovy/app",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *Add project dependency*: The  `:lib` project must be built in order to resolve the runtime classpath successfully.
+<2> *Declare input property as Set of files*: A simple `Set` input doesn't track task dependencies.
+<3> *Dependency artifacts are used to calculate digest*: Artifacts from the already resolved classpath are used to calculate the digest.
+<4> *Resolve runtimeClasspath*: The implicit task dependency on `:library:jar` task is lost here when the configuration is resolved prior to task execution.
+The `lib` project will not be built when the `:app:badClasspathPrinter` task is run, leading to a failure in `calculateDigest` because the `lib.jar` file will not exist.
+
+
+==== Do This Instead
+
+To avoid issues, always defer resolution to the execution phase by using lazy APIs like link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection].
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidResolvingConfigurationsManually-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidResolvingConfigurationsManually-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually-do/kotlin/app",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually-do/groovy/app",files="build.gradle[tags=do-this]"]
+====
+
+<1> *Add project dependency*: This is the same.
+<2> *Declare input files property as ConfigurableFileCollection*: This lazy collection type will track task dependencies.
+<3> *Dependency artifacts are resolved to calculate digest*: The classpath will be resolved at execution time to calculate the digest.
+<4> *Configuration is passed to input property directly*: Using `from` causes the configuration to be lazily wired to the input proeprty.
+The configuration will be resolved when necessary, preserving task dependencies.
+The output reveals that the `lib` project is now built when the `:app:goodClasspathPrinter` task is run because of the implicit task dependency, and the `lib.jar` file is found when calculating the digest.
+
+=== Tags
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`, `<<tags_reference.adoc#tag:configurations,#configurations>>`
