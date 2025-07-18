@@ -53,7 +53,7 @@ includeBuild('another')"""
         run ":projects"
 
         then:
-        outputContains """
+        outputContains(TextUtil.normaliseFileSeparators("""
 Projects:
 
 ------------------------------------------------------------
@@ -79,7 +79,7 @@ project ':p2:p22' - /p2/p22
 Included builds:
 
 \\--- Included build ':another'
-"""
+"""))
     }
 
     def "reports project structure with transitive composite"() {
