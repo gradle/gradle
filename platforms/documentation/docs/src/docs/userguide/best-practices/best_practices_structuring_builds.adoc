@@ -509,7 +509,9 @@ In the example above, Gradle will create a project named `:subs`, a project name
 This behavior is usually not intended, as you likely only want to include the `search` project itself.
 
 Unused projects - even if empty - can surprise maintainers, clutter reporting, and make your build harder to understand.
-If plugins are applied using `allprojects { ... }` or `subprojects { ... }`, they will apply to each of these empty projects, which can also have performance impacts.
+They also introduce unintended side effects.
+If you use `allprojects { ... }` or `subprojects { ... }`, plugins and configuration blocks will apply to every project, including the empty ones. 
+This can degrade build performance.
 It can also be awkward to invoke tasks on nested projects, as you will have to use the full path to the project, like `gradle :subs:features:search:build`, instead of the shorter `gradle :search:build`.
 
 To avoid these negatives when using a hierarchical project structure, you can provide a non-hierarchical name when including the project and be sure to explicitly set the link:{kotlinDslPath}/gradle/org.gradle.api/-project/get-project-dir.html[Project.projectDir] property of any projects included in nested directories:
