@@ -28,14 +28,14 @@ It is available as a `gradlew` or `gradlew.bat` file in the project root directo
 [source,text]
 ----
 root
-├── gradlew     // THE WRAPPER
-├── gradlew.bat // THE WRAPPER
+├── gradlew     // THE WRAPPER FOR Linux / macOS
+├── gradlew.bat // THE WRAPPER FOR Windows
 └── ...
 ----
 
 If your project does not include these files, it is likely *not* a Gradle project—or the wrapper has not been set up yet.
 
-The wrapper is *not* something you download from the internet.
+TIP: The wrapper is *not* something you download from the internet.
 You must generate it by running `gradle wrapper` from a machine with Gradle <<installation.adoc#installation,installed>>.
 
 The wrapper provides the following benefits:
@@ -95,7 +95,7 @@ include::{snippetsPath}/wrapper/simple/tests/wrapperBatchFileExecution.out[]
 ----
 
 [[sec:view_the_wrapper]]
-== Understanding the wrapper files
+== Understanding the Wrapper files
 
 The following files are part of the Gradle Wrapper:
 

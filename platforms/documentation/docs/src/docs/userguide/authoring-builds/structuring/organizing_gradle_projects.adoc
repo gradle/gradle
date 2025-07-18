@@ -179,7 +179,7 @@ include::sample[dir="snippets/multiproject/standardLayouts/kotlin",files="settin
 include::sample[dir="snippets/multiproject/standardLayouts/groovy",files="settings.gradle[tags=hierarchical-layout]"]
 ====
 
-The `include` method takes <<intro_multi_project_builds#sec:project_path,project paths>> as arguments.
+The `include` method takes <<multi_project_builds_intermediate.adoc#sec:project_path,project paths>> as arguments.
 The project path is assumed to be equal to the relative physical file system path.
 For example, a path `services:api` is mapped by default to a folder `./services/api` (relative to the project root `.`).
 

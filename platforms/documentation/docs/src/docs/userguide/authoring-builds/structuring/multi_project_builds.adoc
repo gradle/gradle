@@ -68,7 +68,7 @@ my-project/
 Each subproject can define its own build logic, dependencies, and plugins.
 
 In `settings.gradle(.kts)`, you include subprojects by name using `include()`.
-The `include()` method takes <<intro_multi_project_builds#sec:project_path,project paths>> as arguments:
+The `include()` method takes <<multi_project_builds_intermediate.adoc#sec:project_path,project paths>> as arguments:
 
 [.multi-language-sample]
 =====

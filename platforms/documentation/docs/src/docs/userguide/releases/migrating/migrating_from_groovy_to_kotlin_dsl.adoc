@@ -32,7 +32,7 @@ image::intellij-idea-android-studio.png[IntelliJ IDEA and Android Studio]
 Please also read the <<kotlin_dsl.adoc#kotdsl:kotlin_dsl,Gradle Kotlin DSL Primer>> to learn the specificities, limitations and usage of the Gradle Kotlin DSL.
 
 The rest of the user manual contain build script excerpts that demonstrate both the Groovy DSL and the Kotlin DSL.
-This is the best place where to find how to do this and what with each DSL ; and it covers all Gradle features from <<plugins.adoc#using_plugins,using plugins>> to <<dependency_constraints.adoc#dependency-constraints,customizing the dependency resolution behavior>>.
+This is the best place where to find how to do this and what with each DSL ; and it covers all Gradle features from <<plugins_intermediate.adoc#using_plugins,using plugins>> to <<dependency_constraints.adoc#dependency-constraints,customizing the dependency resolution behavior>>.
 ====
 
 == Before you start migrating
@@ -145,7 +145,7 @@ While staying valid Groovy, it is now unambiguous and close to the Kotlin syntax
 
 It is important to note that while Groovy extra properties can be modified using an object's `ext` property, in Kotlin they are modified using the `extra` property. It is important to look at each object and update the build scripts accordingly.
 
-You can find an example in the <<writing_build_scripts#sec:extra_properties,userguide>>.
+You can find an example in the <<writing_build_scripts_intermediate.adoc#sec:extra_properties,userguide>>.
 
 == Script file naming
 
@@ -168,8 +168,8 @@ On top of that, apply the following conventions for better IDE support:
 
 Just like with the Groovy DSL, there are two ways to apply Gradle plugins:
 
-- <<plugins.adoc#sec:plugins_block,declaratively, using the `plugins {}` block>>,
-- <<plugins.adoc#sec:old_plugin_application,imperatively, using the legacy `apply(..)` functions>>.
+- <<plugins_intermediate.adoc#sec:plugins_block,declaratively, using the `plugins {}` block>>,
+- <<plugins_intermediate.adoc#sec:old_plugin_application,imperatively, using the legacy `apply(..)` functions>>.
 
 Here's an example using the declarative `plugins {}` block:
 
@@ -197,7 +197,7 @@ include::sample[dir="snippets/kotlinDsl/applying-plugins-imperative/groovy",file
 **We strongly recommend that you use the `plugins {}` block in preference to the `apply()` function.**
 
 The declarative nature of the `plugins {}` block enables the Kotlin DSL to provide type-safe accessors to the extensions, configurations and other features contributed by the applied plugins, which makes it easy for IDEs to discover the details of the plugins' models and makes them easy to configure. +
-See the <<plugins.adoc#sec:plugins_block,`plugins {}` block documentation>> in the Gradle user manual for more information.
+See the <<plugins_intermediate.adoc#sec:plugins_block,`plugins {}` block documentation>> in the Gradle user manual for more information.
 ====
 
 [[configuring-plugins]]
@@ -475,7 +475,7 @@ There are two key best practices that make it easier to work within the static c
  * Using the `plugins {}` block
  * Putting local build logic in the build's _buildSrc_ directory
 
-The <<plugins.adoc#sec:plugins_block,`plugins {}` block>> is about keeping your build scripts declarative in order to get the best out of the Kotlin DSL.
+The <<plugins_intermediate.adoc#sec:plugins_block,`plugins {}` block>> is about keeping your build scripts declarative in order to get the best out of the Kotlin DSL.
 
 Utilizing the <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,_buildSrc_ project>> is about organizing your build logic into shared local plugins and conventions that are easily testable and provide good IDE support.
 
@@ -483,7 +483,7 @@ Utilizing the <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,
 
 Depending on your build structure you might be interested in the following user manual chapters:
 
-* The <<writing_build_scripts#writing_build_scripts,Writing Build Scripts>> chapter demonstrates the use of `apply(from = "")` to modularize build scripts.
+* The <<writing_build_scripts_intermediate.adoc#writing_build_scripts,Writing Build Scripts>> chapter demonstrates the use of `apply(from = "")` to modularize build scripts.
 * The <<multi_project_builds#multi_project_builds,Multi-project Builds>> chapter demonstrates various multi-project build structures.
 * The <<custom_plugins#custom_plugins,Developing Custom Gradle Plugins>> and <<kotlin_dsl#kotdsl:kotlin_dsl,Gradle Kotlin DSL Primer>> chapters demonstrate how to develop custom Gradle plugins.
 * The <<composite_builds#composite_builds,Composing builds>> chapter demonstrates how to use Composite Builds.

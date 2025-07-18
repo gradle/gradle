@@ -260,4 +260,4 @@ After building the project, version-specific cache directories in `.gradle/{grad
 They are deleted if they haven't been used for 7 days.
 
 [.text-right]
-**Next Step:** <<build_lifecycle.adoc#build_lifecycle,Learn about the Gradle Build Lifecycle>> >>
+**Next Step:** <<build_lifecycle_intermediate.adoc#build_lifecycle,Learn about the Gradle Build Lifecycle>> >>
