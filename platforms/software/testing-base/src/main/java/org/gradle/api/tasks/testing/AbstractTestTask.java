@@ -52,6 +52,7 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Reporting;
@@ -184,9 +185,9 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
         testListenerSubscriptions = new BroadcastSubscriptions<TestListener>(TestListener.class);
         testOutputListenerSubscriptions = new BroadcastSubscriptions<TestOutputListener>(TestOutputListener.class);
-        binaryResultsDirectory = getProject().getObjects().directoryProperty();
+        binaryResultsDirectory = getObjectFactory().directoryProperty();
 
-        reports = getProject().getObjects().newInstance(DefaultTestTaskReports.class, Describables.quoted("Task", getIdentityPath()));
+        reports = getObjectFactory().newInstance(DefaultTestTaskReports.class, Describables.quoted("Task", getIdentityPath()));
         reports.getJunitXml().getRequired().set(true);
         reports.getHtml().getRequired().set(true);
 
@@ -217,6 +218,9 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     @Inject
     protected abstract FileSystemOperations getFileSystemOperations();
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
 
     /**
      * Creates test executer. For internal use only.
