@@ -19,21 +19,22 @@ package org.gradle.kotlin.dsl.tooling.builders
 import org.gradle.internal.build.BuildState
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
-import org.gradle.tooling.model.kotlin.dsl.KotlinBaseDslScriptModel
+import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslBaseScriptModel
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
 import java.io.File
 import java.io.Serializable
 
 
 internal
-object KotlinBaseDslScriptModelBuilder : BuildScopeModelBuilder {
+object KotlinDslBaseScriptModelBuilder : BuildScopeModelBuilder {
     override fun canBuild(modelName: String): Boolean =
-        modelName == "org.gradle.tooling.model.kotlin.dsl.KotlinBaseDslScriptModel"
+        modelName == "org.gradle.tooling.model.kotlin.dsl.KotlinDslBaseScriptModel"
 
-    override fun create(target: BuildState): KotlinBaseDslScriptModel {
-        val implicitImports = target.getMutableModel().getServices().get(ImplicitImports::class.java)
-        val kotlinScriptClassPathProvider = target.getMutableModel().getServices().get(KotlinScriptClassPathProvider::class.java)
-        return StandardKotlinBaseDslScriptModel(
+    override fun create(target: BuildState): KotlinDslBaseScriptModel {
+        val implicitImports = target.getMutableModel().serviceOf<ImplicitImports>()
+        val kotlinScriptClassPathProvider = target.getMutableModel().serviceOf<KotlinScriptClassPathProvider>()
+        return StandardKotlinDslBaseScriptModel(
             implicitImports = implicitImports.list,
             kotlinDslClassPath = kotlinScriptClassPathProvider.gradleKotlinDsl.asFiles
         )
@@ -42,10 +43,10 @@ object KotlinBaseDslScriptModelBuilder : BuildScopeModelBuilder {
 
 
 internal
-data class StandardKotlinBaseDslScriptModel(
+data class StandardKotlinDslBaseScriptModel(
     private val implicitImports: List<String>,
     private val kotlinDslClassPath: List<File>
-) : KotlinBaseDslScriptModel, Serializable {
+) : KotlinDslBaseScriptModel, Serializable {
 
     override fun getImplicitImports() = implicitImports
 

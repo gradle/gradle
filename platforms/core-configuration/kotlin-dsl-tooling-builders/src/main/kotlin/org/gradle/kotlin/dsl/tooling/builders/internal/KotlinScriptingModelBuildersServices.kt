@@ -20,7 +20,7 @@ import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
-import org.gradle.kotlin.dsl.tooling.builders.KotlinBaseDslScriptModelBuilder
+import org.gradle.kotlin.dsl.tooling.builders.KotlinDslBaseScriptModelBuilder
 import org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction
@@ -37,7 +37,7 @@ class KotlinScriptingModelBuildersServices : AbstractGradleModuleServices() {
             object : BuildScopeToolingModelBuilderRegistryAction {
                 override fun execute(registry: ToolingModelBuilderRegistry) {
                     registry.register(KotlinBuildScriptTemplateModelBuilder)
-                    registry.register(KotlinBaseDslScriptModelBuilder)
+                    registry.register(KotlinDslBaseScriptModelBuilder)
                 }
             }
     }

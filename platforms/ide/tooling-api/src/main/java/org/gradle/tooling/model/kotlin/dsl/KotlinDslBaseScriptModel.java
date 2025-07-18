@@ -29,7 +29,7 @@ import java.util.List;
  * @since 9.1.0
  */
 @Incubating
-public interface KotlinBaseDslScriptModel {
+public interface KotlinDslBaseScriptModel {
 
     /**
      * The implicit imports that are used for all scripts.

@@ -18,18 +18,18 @@ package org.gradle.kotlin.dsl.tooling.builders.r91
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
-import org.gradle.tooling.model.kotlin.dsl.KotlinBaseDslScriptModel
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslBaseScriptModel
 
 @TargetGradleVersion(">=9.1")
-class KotlinBaseDslScriptModelCrossVersionSpec  extends AbstractKotlinScriptModelCrossVersionTest {
+class KotlinDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
-    def "KotlinBaseDslScriptModel is obtained without configuring projects"() {
+    def "KotlinDslBaseScriptModel is obtained without configuring projects"() {
 
         when:
         def listener = new ConfigurationPhaseMonitoringListener()
-        KotlinBaseDslScriptModel model = withConnection { connection ->
+        KotlinDslBaseScriptModel model = withConnection { connection ->
             connection
-                .model(KotlinBaseDslScriptModel)
+                .model(KotlinDslBaseScriptModel)
                 .addProgressListener(listener)
                 .get()
         }
