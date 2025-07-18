@@ -28,12 +28,11 @@ import static org.gradle.util.internal.WrapUtil.toList
 
 class DryRunBuildExecutionActionTest extends Specification {
 
-    def delegate = Mock(BuildWorkExecutor)
     def executionPlan = Mock(FinalizedExecutionPlan)
     def gradle = Mock(GradleInternal)
     def startParameter = Mock(StartParameterInternal)
     def textOutputFactory = new TestStyledTextOutputFactory()
-    def action = new DryRunBuildExecutionAction(textOutputFactory, delegate)
+    def action = new DryRunBuildExecutionAction(textOutputFactory)
 
     def setup() {
         _ * gradle.getStartParameter() >> startParameter
@@ -59,17 +58,5 @@ class DryRunBuildExecutionActionTest extends Specification {
 """
         1 * task1.getIdentityPath() >> Path.path(':task1')
         1 * task2.getIdentityPath() >> Path.path(':task2')
-        0 * delegate.execute(_, _)
-    }
-
-    def "proceeds when dry run is not selected"() {
-        given:
-        startParameter.isDryRun() >> false
-
-        when:
-        action.execute(gradle, executionPlan)
-
-        then:
-        1 * delegate.execute(gradle, executionPlan)
     }
 }

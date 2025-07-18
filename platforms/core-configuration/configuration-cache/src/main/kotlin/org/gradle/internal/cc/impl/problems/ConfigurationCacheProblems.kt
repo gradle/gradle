@@ -222,6 +222,18 @@ class ConfigurationCacheProblems(
         summarizer.onIncompatibleTask()
     }
 
+    private
+    fun reportDegradingFeature(feature: String) {
+        val problem = problemFactory
+            .problem {
+                // for now, we don't expect interesting information from degrading features, so only the feature name is displayed
+                text("Feature '$feature' is incompatible with the configuration cache.")
+            }
+            .build()
+        report.onProblem(problem)
+        summarizer.onIncompatibleFeature()
+    }
+
     override fun onProblem(problem: PropertyProblem) {
         onProblem(problem, ProblemSeverity.Deferred)
     }
@@ -315,6 +327,7 @@ class ConfigurationCacheProblems(
      */
     override fun report(reportDir: File, validationFailures: ProblemConsumer) {
         addNotReportedDegradingTasks()
+        addDegradingFeatures()
         val summary = summarizer.get()
         val hasNoProblemsForConsole = summary.reportableProblemCount == 0
         val outputDirectory = outputDirectoryFor(reportDir)
@@ -342,12 +355,21 @@ class ConfigurationCacheProblems(
         }
     }
 
-    private fun addNotReportedDegradingTasks() {
+    private
+    fun addNotReportedDegradingTasks() {
         degradationDecision.onDegradedTask { task, reasons ->
             val trace = locationForTask(task)
             if (!incompatibleTasks.contains(trace)) {
                 reportIncompatibleTask(trace, reasons.joinToString())
             }
+        }
+    }
+
+    private
+    fun addDegradingFeatures() {
+        degradationDecision.onDegradedFeature { feature, _ ->
+            // TODO:configuration-cache consider collecting location information (trace)
+            reportDegradingFeature(feature)
         }
     }
 
@@ -472,8 +494,10 @@ class ConfigurationCacheProblems(
         }
     }
 
-    private inner class ErrorsAreProblemsProblemsListener(
-        private val problemSeverity: ProblemSeverity
+    private
+    inner class ErrorsAreProblemsProblemsListener(
+        private
+        val problemSeverity: ProblemSeverity
     ) : AbstractProblemsListener() {
 
         override fun onProblem(problem: PropertyProblem) {

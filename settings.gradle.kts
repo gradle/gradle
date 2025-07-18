@@ -29,7 +29,7 @@ buildscript {
 plugins {
     id("gradlebuild.build-environment")
     id("gradlebuild.configuration-cache-compatibility")
-    id("com.gradle.develocity").version("4.0.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
+    id("com.gradle.develocity").version("4.1") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.2")
     id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
 }
@@ -136,6 +136,7 @@ val core = platform("core") {
         subproject("guava-serialization-codecs")
         subproject("input-tracking")
         subproject("isolated-action-services")
+        subproject("java-api-extractor")
         subproject("kotlin-dsl")
         subproject("kotlin-dsl-provider-plugins")
         subproject("kotlin-dsl-tooling-builders")
@@ -231,6 +232,7 @@ val jvm = platform("jvm") {
     subproject("distributions-jvm")
     subproject("ear")
     subproject("jacoco")
+    subproject("javadoc")
     subproject("jvm-services")
     subproject("language-groovy")
     subproject("language-java")

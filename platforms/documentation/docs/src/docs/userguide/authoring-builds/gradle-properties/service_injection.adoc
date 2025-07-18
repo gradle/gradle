@@ -311,15 +311,17 @@ link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyFactory.html[`Dependen
 You can learn more in the <<implementing_gradle_plugins_binary.adoc#sec:differences_with_top_level_dependencies,Implementing Binary Plugins guide>>.
 
 [[service_injection_patterns]]
+== Service injection patterns
 
-== Constructor injection
+There are two ways that services can be provided to an object.
 
-There are 2 ways that an object can receive the services that it needs. The first option is to add the service as a parameter of the class constructor.
-The constructor must be annotated with the `javax.inject.Inject` annotation.
+=== Constructor injection
+A service can be injected into the constructor of the class. The constructor must be public and annotated with the `javax.inject.Inject` annotation.
+
 Gradle uses the declared type of each constructor parameter to determine the services that the object requires.
 The order of the constructor parameters and their names are not significant and can be whatever you like.
 
-Here is an example that shows a task type that receives an `ObjectFactory` via its constructor:
+Here is an example that shows a task type that receives an `WorkerExecutor` via its constructor:
 
 ====
 [source.multi-language-sample,java]
@@ -330,17 +332,17 @@ include::{snippetsPath}/plugins/constructorServiceInjection/groovy/buildSrc/src/
 ====
 
 [[property_injection]]
-== Property injection
+=== Property injection
+A service can be injected by adding a property getter method annotated with the `javax.inject.Inject` annotation to the class.
 
-Alternatively, a service can be injected by adding a property getter method annotated with the `javax.inject.Inject` annotation to the class.
-This can be useful, for example, when you cannot change the constructor of the class due to backwards compatibility constraints.
-This pattern also allows Gradle to defer creation of the service until the getter method is called, rather than when the instance is created. This can help with performance.
-Gradle uses the declared return type of the getter method to determine the service to make available. The name of the property is not significant and can be whatever you like.
+Gradle defers the creation of the service until the getter method is called. This can be more performant than constructor injection.
 
-The property getter method must be `public` or `protected`. The method can be `abstract` or, in cases where this isn't possible, can have a dummy method body.
-The method body is discarded.
+The property getter method must be `public` or `protected`. Gradle uses the declared return type of the getter method to determine the service to make available.
 
-Here is an example that shows a task type that receives a two services via property getter methods:
+The method should be `abstract` or, in cases where this isn't possible, should have a dummy method body.
+The method body is discarded. The name of the property is not significant and can be whatever you like.
+
+Here is an example that shows a task type that receives two services via property getter methods:
 
 ====
 [source.multi-language-sample,java]

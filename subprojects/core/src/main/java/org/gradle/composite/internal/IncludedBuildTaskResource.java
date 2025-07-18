@@ -18,6 +18,7 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.execution.plan.Node;
+import org.gradle.execution.plan.TaskNode;
 
 import java.util.function.Consumer;
 
@@ -55,4 +56,6 @@ public interface IncludedBuildTaskResource {
     State getTaskState();
 
     String healthDiagnostics();
+
+    TaskNode getTaskNode();
 }

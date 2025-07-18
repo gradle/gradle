@@ -134,15 +134,6 @@ packageCycles {
     excludePatterns.add("org/gradle/tooling/**")
 }
 
-tasks.named("toolingApiShadedJar") {
-    // TODO: Remove this workaround once issue is fixed for configuration cache
-    // We don't add tasks that complete at configuration time
-    // to the resulting work graph, and then prune projects that have no tasks in the graph.
-    // This happens to java-api-extractor, since it's built with rest of build-logic.
-    // Could be related to https://github.com/gradle/gradle/issues/24273
-    dependsOn(gradle.includedBuild("build-logic").task(":java-api-extractor:assemble"))
-}
-
 testFilesCleanup.reportOnly = true
 
 apply(from = "buildship.gradle")

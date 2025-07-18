@@ -44,9 +44,9 @@ class DefaultConflictResolutionResult implements ConflictResolutionResult {
     public DefaultConflictResolutionResult(Collection<? extends ModuleIdentifier> participatingModules, Object selected) {
         this.selected = findComponent(selected);
         this.participatingModules = participatingModules.stream().sorted((first, second) -> {
-            if (this.selected.getId().getModule().equals(first)) {
+            if (this.selected.getModule().getId().equals(first)) {
                 return -1;
-            } else if (this.selected.getId().getModule().equals(second)) {
+            } else if (this.selected.getModule().getId().equals(second)) {
                 return 1;
             }
             return 0;
