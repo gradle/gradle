@@ -514,7 +514,7 @@ If you use `allprojects { ... }` or `subprojects { ... }`, plugins and configura
 This can degrade build performance.
 Additionally, invoking tasks on deeply nested projects requires using the full project path, such as `gradle :subs:features:search:build`, instead of the shorter `gradle :search:build`.
 
-To avoid these negatives when using a hierarchical project structure, you can provide a non-hierarchical name when including the project and be sure to explicitly set the link:{kotlinDslPath}/gradle/org.gradle.api/-project/get-project-dir.html[Project.projectDir] property of any projects included in nested directories:
+To avoid these downsides when using a hierarchical project structure, you can provide a flat name when including the project and explicitly set the link:{kotlinDslPath}/gradle/org.gradle.api/-project/get-project-dir.html[Project.projectDir] property for any projects located in nested directories:
 ```
 include(':my-web-module')
 project(':my-web-module').projectDir = file("subs/web/my-web-module")
