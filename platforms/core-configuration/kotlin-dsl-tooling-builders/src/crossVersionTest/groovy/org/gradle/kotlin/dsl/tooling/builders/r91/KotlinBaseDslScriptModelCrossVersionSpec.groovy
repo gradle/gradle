@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,27 +18,29 @@ package org.gradle.kotlin.dsl.tooling.builders.r91
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
-import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel
-import org.gradle.tooling.events.ProgressEvent
-import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.events.lifecycle.BuildPhaseStartEvent
+import org.gradle.tooling.model.kotlin.dsl.KotlinBaseDslScriptModel
 
 @TargetGradleVersion(">=9.1")
-class KotlinBuildScriptTemplateModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
+class KotlinBaseDslScriptModelCrossVersionSpec  extends AbstractKotlinScriptModelCrossVersionTest {
 
-    def "KotlinBuildScriptTemplateModel is obtained without configuring projects"() {
+    def "KotlinBaseDslScriptModel is obtained without configuring projects"() {
 
         when:
         def listener = new ConfigurationPhaseMonitoringListener()
-        KotlinBuildScriptTemplateModel model = withConnection { connection ->
+        KotlinBaseDslScriptModel model = withConnection { connection ->
             connection
-                .model(KotlinBuildScriptTemplateModel)
+                .model(KotlinBaseDslScriptModel)
                 .addProgressListener(listener)
                 .get()
         }
 
         then:
         model != null
+        !model.implicitImports.isEmpty()
+        !model.kotlinDslClassPath.isEmpty()
+        model.kotlinDslClassPath.find { it.name.contains("gradle-api-") && it.name.endsWith(".jar") }
+        model.kotlinDslClassPath.find { it.name.contains("groovy-") && it.name.endsWith(".jar") }
+        model.kotlinDslClassPath.find { it.name.contains("gradle-kotlin-dsl-") && it.name.endsWith(".jar") }
         listener.hasSeenSomeEvents && listener.configPhaseStartEvents.isEmpty()
     }
 }
