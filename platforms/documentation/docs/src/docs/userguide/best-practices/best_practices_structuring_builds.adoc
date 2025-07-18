@@ -506,7 +506,7 @@ This approach helps organize large builds and improves comprehensibility, compar
 
 However, without further configuration, Gradle will create empty projects for each element in the hierarchical path, even if some of those directories do not contain actual builds.
 In the example above, Gradle will create a project named `:subs`, a project named `:subs:features`, and a project named `:subs:features:search`.
-This probably isn't intended, as you likely only want to add a `search` project.
+This behavior is usually not intended, as you likely only want to include the `search` project itself.
 
 Unused projects - even if empty - can surprise maintainers, clutter reporting, and make your build harder to understand.
 If plugins are applied using `allprojects { ... }` or `subprojects { ... }`, they will apply to each of these empty projects, which can also have performance impacts.
