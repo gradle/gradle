@@ -22,7 +22,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
-import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 
 /**
  * Adapts a {@link ResolvedConfigurationBuilder}, which is responsible for assembling the resolved configuration result, to a {@link DependencyGraphVisitor} and
@@ -46,13 +45,13 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyAr
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, int artifactSetId, ArtifactSet artifactSet) {
+    public void visitArtifacts(DependencyGraphNode from, int artifactSetId, ArtifactSet artifactSet) {
         builder.addNodeArtifacts(from, artifactSetId);
     }
 
     @Override
-    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts) {
-        builder.addChild(from, to, artifactSetId);
+    public void visitEdge(DependencyGraphNode from, DependencyGraphNode to) {
+        builder.addChild(from, to);
     }
 
     @Override

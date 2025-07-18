@@ -103,6 +103,8 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
     }
 
+    // TODO: This fails because of the comment in ResolveState.
+    // We need to wait for other changes before we can move on here.
     def "configuration cannot resolve itself"() {
         buildFile << """
             configurations {
