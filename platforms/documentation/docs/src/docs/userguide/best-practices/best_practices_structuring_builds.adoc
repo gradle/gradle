@@ -526,7 +526,7 @@ NOTE: Always use an identical _logical_ project **name** and _physical_ project 
 You should avoid unnecessarily deep directory structures.
 For builds containing only a few projects, it’s usually better to keep the structure flat by placing all projects at the root of the build.
 This eliminates the need to explicitly set `projectDir`.
-Within the context of a particular build, it should always be obvious from the pathless project name where that project is located.
+Within the context of a particular build, the _pathless_ project name should clearly indicate where the project is located.
 If you find yourself facing ambiguity about project locations, consider simplifying the directory layout by flattening the structure.
 
 === Example
