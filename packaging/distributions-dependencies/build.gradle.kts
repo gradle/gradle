@@ -17,9 +17,9 @@ description = "Provides a platform dependency to align all distribution versions
 
 val antVersion = "1.10.15"
 // Don't forget to bump versions in
-// subprojects/base-services/src/main/java/org/gradle/internal/classanalysis/AsmConstants.java
+// platforms/core-runtime/base-asm/src/main/java/org/gradle/model/internal/asm/AsmConstants.java
 // when upgrading ASM.
-val asmVersion = "9.7.1"
+val asmVersion = "9.8"
 val awsS3Version = "1.12.780"
 val bouncycastleVersion = "1.81"
 val hamcrestVersion = "3.0"
