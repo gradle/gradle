@@ -121,7 +121,10 @@ class ProcessFixture {
             getProcessHandle(pid as Long)
         }
         return ["PID PPID ARGS"] as String[] + processHandles.collect {
-            "${it.pid()} ${it.parent().map { it.pid() }.orElse(0)} ${it.info().commandLine().orElse("")}" as String
+            // ProcessHandle.info() can return commandLine, but on Windows we often get no value
+            def command = it.info().command().orElse("<unknown command>")
+            def args = it.info().arguments().orElse([]).join(" ")
+            "${it.pid()} ${it.parent().map { it.pid() }.orElse(0)} ${command} ${args}" as String
         }.toArray(new String[0])
     }
 

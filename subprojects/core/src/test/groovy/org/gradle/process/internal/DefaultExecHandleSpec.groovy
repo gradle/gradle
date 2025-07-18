@@ -22,14 +22,14 @@ import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecResult
 import org.gradle.process.ProcessExecutionException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.UsesNativeServices
 import org.gradle.util.internal.GUtil
+import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Timeout
@@ -147,14 +147,15 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.waitForFinish().exitValue != 0
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
-    void "abort destroys all child processes starting with Java 9"() {
+    void "abort destroys all child processes"() {
         def execHandle = handle().args(args(AppWithChildWithGrandChild.class)).build()
+        // On Windows additional `conhost.exe` processes are spawned as children of java processes
+        def expectedDescendantProcesses = OperatingSystem.current().isWindows() ? 5 : 2
 
         when:
         execHandle.start()
         // wait for child and grand child to start
-        while(childProcessHandles(execHandle).size() != 2) {
+        while(childProcessHandles(execHandle).size() != expectedDescendantProcesses) {
             Thread.sleep(10)
         }
         execHandle.abort()
@@ -480,7 +481,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
             .setTimeout(20000) //sanity timeout
             .setWorkingDir(tmpDir.getTestDirectory())
             .environment('CLASSPATH', mergeClasspath())
-            .environment('JAVA_EXE_PATH', Jvm.current().getJavaExecutable().getAbsolutePath())
+            .environment('JAVA_EXE_PATH', TextUtil.normaliseFileSeparators(Jvm.current().getJavaExecutable().getAbsolutePath()))
     }
 
     private String mergeClasspath() {

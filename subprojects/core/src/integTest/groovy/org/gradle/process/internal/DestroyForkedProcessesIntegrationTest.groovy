@@ -16,23 +16,28 @@
 
 package org.gradle.process.internal
 
-
 import org.gradle.integtests.fixtures.ProcessFixture
 import org.gradle.integtests.fixtures.daemon.DaemonClientFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.util.internal.TextUtil
 
 class DestroyForkedProcessesIntegrationTest extends DaemonIntegrationSpec {
     private DaemonClientFixture client
     private int daemonLogCheckpoint
 
-    @Requires([UnitTestPreconditions.Jdk9OrLater])
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "forked subprocess tree is destroyed on cancellation"() {
         given:
         def processStartedToken = file("processStarted.txt")
         forkedProcessesCode(processStartedToken)
+        def javaPath = TextUtil.normaliseFileSeparators(Jvm.current().javaExecutable.absolutePath)
+        // On Windows additional `conhost.exe` processes are spawned as children of java processes
+        def expectedDescendantProcesses = OperatingSystem.current().isWindows() ? 6 : 3
 
         buildFile << """
             plugins { id 'java' }
@@ -40,7 +45,7 @@ class DestroyForkedProcessesIntegrationTest extends DaemonIntegrationSpec {
             tasks.register('javaExec', JavaExec) {
                 mainClass = 'AppWithChildWithGrandChild'
                 classpath = sourceSets.main.output
-                environment('JAVA_EXE_PATH', org.gradle.internal.jvm.Jvm.current().javaExecutable.absolutePath)
+                environment('JAVA_EXE_PATH', '${javaPath}')
                 environment('CLASSPATH', sourceSets.main.output.asPath)
             }
         """
@@ -50,7 +55,7 @@ class DestroyForkedProcessesIntegrationTest extends DaemonIntegrationSpec {
 
         then:
         def processes = childrenAndGrandchildrenOfDaemon()
-        processes.size() == 3
+        processes.size() == expectedDescendantProcesses
 
         when:
         cancelBuild("javaExec")
@@ -65,7 +70,7 @@ class DestroyForkedProcessesIntegrationTest extends DaemonIntegrationSpec {
         file('src/main/java/Block.java') << """
             public class Block {
                 public static void main(String[] args) throws java.io.IOException, InterruptedException {
-                    new java.io.File("$processStartedToken").createNewFile();
+                    new java.io.File("${TextUtil.normaliseFileSeparators(processStartedToken.absolutePath)}").createNewFile();
                     new java.util.concurrent.CountDownLatch(1).await();
                 }
             }
@@ -104,14 +109,14 @@ class DestroyForkedProcessesIntegrationTest extends DaemonIntegrationSpec {
     }
 
     private void waitForProcess(File processStartedToken) {
-        ConcurrentTestUtil.poll(120, {
+        ConcurrentTestUtil.poll(60, {
             assert processStartedToken.exists()
         })
     }
 
     private void waitForDaemonLog(String output) {
         String daemonLogSinceLastCheckpoint = ''
-        ConcurrentTestUtil.poll(120, {
+        ConcurrentTestUtil.poll(60, {
             daemonLogSinceLastCheckpoint = daemons.daemon.log.substring(daemonLogCheckpoint)
             assert daemonLogSinceLastCheckpoint.contains(output)
         })
