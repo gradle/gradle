@@ -218,3 +218,7 @@ tasks.named("assemble") {
 ----
 
 === Potential breaking changes
+
+==== Upgrade to ASM 9.8
+
+ASM was upgraded from 9.7.1 to https://asm.ow2.io/versions.html[9.8] to ensure earlier compatibility for Java 25.
