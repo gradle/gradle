@@ -53,7 +53,7 @@ includeBuild('another')"""
         run ":projects"
 
         then:
-        outputContains(TextUtil.normaliseFileSeparators("""
+        TextUtil.normaliseFileSeparators(output).contains(TextUtil.normaliseFileSeparators("""
 Projects:
 
 ------------------------------------------------------------
