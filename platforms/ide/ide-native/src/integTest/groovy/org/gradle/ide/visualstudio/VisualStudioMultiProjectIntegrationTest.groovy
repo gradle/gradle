@@ -422,7 +422,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
 
         then:
         resultUnbuildableSolution.size() == 1
-        resultUnbuildableSolution[0].assertTasksExecuted()
+        resultUnbuildableSolution[0].assertNoTasksExecuted()
         resultUnbuildableSolution[0].assertOutputContains('The project "exe" is not selected for building in solution configuration "unbuildable|Win32".')
         resultUnbuildableSolution[0].assertOutputContains('The project "libLib" is not selected for building in solution configuration "unbuildable|Win32".')
         installation('exe/build/install/main/debug').assertNotInstalled()
@@ -434,7 +434,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
                 .fails()
 
         then:
-        resultDebug.assertTasksExecuted()
+        resultDebug.assertNoTasksExecuted()
         resultDebug.assertHasCause("Could not resolve all dependencies for configuration ':exe:nativeRuntimeDebug'.")
         resultDebug.assertHasCause("Could not resolve project :lib.")
         installation('exe/build/install/main/debug').assertNotInstalled()

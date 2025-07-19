@@ -239,7 +239,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
             executer.withTasks("d").withArguments("-x", "c").run().assertTasksExecuted(":d", ":sub:d")
             executer.withTasks("d").withArguments("-x", "sub:c").run().assertTasksExecuted(":a", ":b", ":c", ":d", ":sub:d")
             executer.withTasks("d").withArguments("-x", ":sub:c").run().assertTasksExecuted(":a", ":b", ":c", ":d", ":sub:d")
-            executer.withTasks("d").withArguments("-x", "d").run().assertTasksExecuted()
+            executer.withTasks("d").withArguments("-x", "d").run().assertNoTasksExecuted()
             // Project defaults
             executer.withArguments("-x", "b").run().assertTasksExecuted(":a", ":c", ":d", ":sub:c", ":sub:d")
             // Unknown task

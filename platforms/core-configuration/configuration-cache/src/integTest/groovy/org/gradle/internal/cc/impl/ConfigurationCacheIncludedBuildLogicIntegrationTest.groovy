@@ -124,7 +124,7 @@ class ConfigurationCacheIncludedBuildLogicIntegrationTest extends AbstractConfig
         configurationCacheRun(":build-logic:classes")
 
         then:
-        result.assertTasksExecuted()
+        result.assertNoTasksExecuted()
         fixture.assertStateLoaded()
 
         when:
