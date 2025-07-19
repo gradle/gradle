@@ -17,4 +17,5 @@
 /**
  * Kotlin DSL related tooling models.
  */
+@org.jspecify.annotations.NullMarked
 package org.gradle.tooling.model.kotlin.dsl;
