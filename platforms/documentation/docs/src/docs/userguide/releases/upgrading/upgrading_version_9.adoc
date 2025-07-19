@@ -41,6 +41,15 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Deprecations
 
+[[set-all-jvm-args]]
+==== Deprecation of `JavaForkOptions.setAllJvmArgs()`
+The `JavaForkOptions.setAllJvmArgs()` method has been deprecated and will be removed in Gradle 10.0.0.
+Instead, do one of the following:
+
+* Use `JavaForkOptions.jvmArgs()`
+* Use `JavaForkOptions.setJvmArgs()`
+* Provide a `CommandLineArgumentProvider` to add arguments via `JavaForkOptions.getJvmArgumentProviders()`
+
 [[archives-configuration]]
 ==== Deprecation of the `archives` configuration
 The `archives` configuration added by the `base` plugin has been deprecated and will be removed in Gradle 10.0.0.

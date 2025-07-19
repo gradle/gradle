@@ -70,6 +70,7 @@ class PropertyUpgradeCustomInterceptorCodeGenTest extends InstrumentationCodeGen
              import org.gradle.api.Generated;
 
              @Generated
+             @SuppressWarnings("deprecation")
              public final class \$\$BridgeFor\$\$Task\$\$MaxErrorsAdapter {
                  public static int access_get_getMaxErrors(Task task) {
                      ${getDefaultPropertyUpgradeDeprecation("Task", "maxErrors")}
