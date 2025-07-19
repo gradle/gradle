@@ -16,7 +16,7 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
@@ -134,7 +134,6 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         failureHasCause("Failed to run Gradle Worker Daemon")
     }
 
-    @ToBeFixedForConfigurationCache(because = "non-serializable fails configuration cache store earlier")
     def "produces a sensible error when a parameter can't be serialized to the worker in #isolationMode"() {
         def workAction = fixture.workActionThatCreatesFiles.writeToBuildSrc()
         def alternateExecution = fixture.alternateWorkAction.writeToBuildSrc()
@@ -148,8 +147,11 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
 
             task runInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode
-                foo = new FooWithUnserializableBar()
                 finalizedBy runAgainInWorker
+                doFirst {
+                    // Storing non-serializable foo at configuration time breaks CC serialization
+                    foo = new FooWithUnserializableBar()
+                }
             }
         """.stripIndent()
 
