@@ -88,7 +88,7 @@ public abstract class Sync extends AbstractCopyTask {
 
     @Override
     protected CopySpecInternal createRootSpec() {
-        return getProject().getObjects().newInstance(DestinationRootCopySpec.class, super.createRootSpec());
+        return getObjectFactory().newInstance(DestinationRootCopySpec.class, super.createRootSpec());
     }
 
     @Override
