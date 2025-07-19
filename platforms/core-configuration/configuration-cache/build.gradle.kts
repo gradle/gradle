@@ -29,7 +29,6 @@ dependencies {
     api(projects.graphSerialization)
     api(projects.loggingApi)
     api(projects.messaging)
-    api(projects.native)
     api(projects.pluginUse)
     api(projects.resources)
     api(projects.serviceLookup)
@@ -38,7 +37,6 @@ dependencies {
     api(projects.stdlibJavaExtensions)
 
     api(libs.groovy)
-    api(libs.inject)
     api(libs.kotlinStdlib)
 
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
@@ -63,6 +61,7 @@ dependencies {
     implementation(projects.instrumentationAgentServices)
     implementation(projects.logging)
     implementation(projects.modelCore)
+    implementation(projects.native)
     implementation(projects.persistentCache)
     implementation(projects.problemsApi)
     implementation(projects.scopedPersistentCache)
@@ -72,6 +71,7 @@ dependencies {
     implementation(projects.toolingApi)
 
     implementation(libs.guava)
+    implementation(libs.inject)
     implementation(libs.jspecify)
     implementation(libs.kryo)
     implementation(libs.slf4jApi)

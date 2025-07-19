@@ -60,6 +60,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
     override fun registerBuildTreeServices(registration: ServiceRegistration) {
         registration.run {
             add(BuildNameProvider::class.java)
+            add(ConfigurationCacheRelativePaths::class.java, DefaultConfigurationCacheRelativePaths::class.java)
             add(ConfigurationCacheKey::class.java)
             add(BuildModelControllerServices::class.java, DefaultBuildModelControllerServices::class.java)
             add(BuildToolingModelControllerFactory::class.java, DefaultBuildToolingModelControllerFactory::class.java)
@@ -175,10 +176,11 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
         @Provides
         fun createIgnoredConfigurationInputs(
             configurationCacheStartParameter: ConfigurationCacheStartParameter,
-            fileSystem: FileSystem
+            fileSystem: FileSystem,
+            relativePaths: ConfigurationCacheRelativePaths,
         ): IgnoredConfigurationInputs =
             if (hasIgnoredPaths(configurationCacheStartParameter))
-                DefaultIgnoredConfigurationInputs(configurationCacheStartParameter, fileSystem)
+                DefaultIgnoredConfigurationInputs(configurationCacheStartParameter, fileSystem, relativePaths)
             else object : IgnoredConfigurationInputs {
                 override fun isFileSystemCheckIgnoredFor(file: File): Boolean = false
             }

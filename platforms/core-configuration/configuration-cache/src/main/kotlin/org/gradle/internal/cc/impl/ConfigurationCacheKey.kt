@@ -25,8 +25,6 @@ import org.gradle.internal.hash.Hashing
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.GradleVersion
-import org.gradle.util.internal.GFileUtils.relativePathOf
-import java.io.File
 
 
 @ServiceScope(Scope.BuildTree::class)
@@ -34,7 +32,8 @@ internal
 class ConfigurationCacheKey(
     private val startParameter: ConfigurationCacheStartParameter,
     private val buildActionRequirements: BuildActionModelRequirements,
-    private val encryptionConfiguration: EncryptionConfiguration
+    private val encryptionConfiguration: EncryptionConfiguration,
+    private val relativePaths: ConfigurationCacheRelativePaths,
 ) {
 
     val string: String by unsafeLazy {
@@ -53,11 +52,7 @@ class ConfigurationCacheKey(
     fun Hasher.putCacheKeyComponents() {
         putString(GradleVersion.current().version)
 
-        putAll(
-            startParameter.includedBuilds.map {
-                relativePathOf(it, startParameter.rootDirectory)
-            }
-        )
+        putAll(startParameter.includedBuilds.map(relativePaths::relativize))
 
         buildActionRequirements.appendKeyTo(this)
 
@@ -106,17 +101,10 @@ class ConfigurationCacheKey(
             // the relative directory information must be part of the key.
             val projectDir = startParameter.projectDirectory
             if (projectDir != null) {
-                relativePathOf(
-                    projectDir,
-                    startParameter.rootDirectory
-                ).let { relativeProjectDir ->
-                    putString(relativeProjectDir)
-                }
+                putString(relativePaths.relativize(projectDir))
             } else {
-                relativeChildPathOrNull(
-                    startParameter.currentDirectory,
-                    startParameter.rootDirectory
-                )?.let { relativeSubDir ->
+                val relativeSubDir = relativePaths.relativizeIfChild(startParameter.currentDirectory)
+                if (relativeSubDir != null) {
                     putString(relativeSubDir)
                 }
             }
@@ -128,13 +116,4 @@ class ConfigurationCacheKey(
         putInt(list.size)
         list.forEach(::putString)
     }
-
-    /**
-     * Returns the path of [target] relative to [base] if
-     * [target] is a child of [base] or `null` otherwise.
-     */
-    private
-    fun relativeChildPathOrNull(target: File, base: File): String? =
-        relativePathOf(target, base)
-            .takeIf { !it.startsWith('.') }
 }

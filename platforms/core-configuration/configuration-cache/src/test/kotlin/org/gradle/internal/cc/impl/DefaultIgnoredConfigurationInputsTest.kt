@@ -31,7 +31,7 @@ class DefaultIgnoredConfigurationInputsTest {
 
     private
     fun createFromPaths(paths: List<String>, isCaseSensitive: Boolean = true): DefaultIgnoredConfigurationInputs {
-        return DefaultIgnoredConfigurationInputs(paths.joinToString(";"), isCaseSensitive, rootDir)
+        return DefaultIgnoredConfigurationInputs(paths.joinToString(";"), isCaseSensitive, TestConfigurationCacheRelativePaths(rootDir))
     }
 
     @Test
@@ -39,7 +39,7 @@ class DefaultIgnoredConfigurationInputsTest {
         val instance = createFromPaths(emptyList())
         assertFalse(instance.isFileSystemCheckIgnoredFor(File("")))
 
-        val instanceFromNull = DefaultIgnoredConfigurationInputs(null, true, rootDir)
+        val instanceFromNull = DefaultIgnoredConfigurationInputs(null, true, TestConfigurationCacheRelativePaths(rootDir))
         assertFalse(instanceFromNull.isFileSystemCheckIgnoredFor(File("")))
     }
 

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.cc.impl.fingerprint
 
-import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.cc.impl.ConfigurationCacheRelativePaths
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
@@ -24,7 +24,6 @@ import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.vfs.FileSystemAccess
-import org.gradle.util.internal.GFileUtils
 import java.io.File
 
 
@@ -70,7 +69,7 @@ internal class ConfigurationCacheInputFileChecker(
 
 internal class DefaultConfigurationCacheInputFileCheckerHost(
     private val fileSystemAccess: FileSystemAccess,
-    private val startParameter: ConfigurationCacheStartParameter
+    private val relativePaths: ConfigurationCacheRelativePaths,
 ) : ConfigurationCacheInputFileChecker.Host {
 
     override fun hashCodeOf(file: File): HashCode =
@@ -82,7 +81,7 @@ internal class DefaultConfigurationCacheInputFileCheckerHost(
         }
 
     override fun displayNameOf(fileOrDirectory: File): String =
-        GFileUtils.relativePathOf(fileOrDirectory, startParameter.rootDirectory)
+        relativePaths.relativize(fileOrDirectory)
 
     private fun locationSnapshot(file: File): FileSystemLocationSnapshot =
         fileSystemAccess.read(file.absolutePath)
