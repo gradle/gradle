@@ -42,6 +42,10 @@ import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.serialize.HostServiceProvider
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.service
+import org.gradle.internal.cc.impl.ConfigurationCacheAction.Load
+import org.gradle.internal.cc.impl.ConfigurationCacheAction.Store
+import org.gradle.internal.cc.impl.ConfigurationCacheAction.Update
+import org.gradle.internal.cc.impl.ConfigurationCacheAction.Discard
 import org.gradle.internal.cc.impl.extensions.withMostRecentEntry
 import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
@@ -187,15 +191,17 @@ class DefaultConfigurationCache internal constructor(
         get() = host.service()
 
     override val isLoaded: Boolean
-        get() = cacheAction is ConfigurationCacheAction.Load
+        get() = cacheAction is Load
 
     override fun initializeCacheEntry() {
         val (cacheAction, cacheActionDescription) = determineCacheAction()
         this.cacheAction = cacheAction
         this.entryId = when (cacheAction) {
-            is ConfigurationCacheAction.Load -> cacheAction.entryId
-            is ConfigurationCacheAction.Update -> cacheAction.entryId
-            ConfigurationCacheAction.Store -> UUID.randomUUID().toString()
+            is Load -> cacheAction.entryId
+            is Update -> cacheAction.entryId
+            Store -> UUID.randomUUID().toString()
+            // not expected to end up being used as a cache entry key
+            Discard -> "DISCARD"
         }
         initializeCacheEntrySideEffects(cacheAction)
         problems.action(cacheAction, cacheActionDescription)
@@ -204,20 +210,22 @@ class DefaultConfigurationCache internal constructor(
     private
     fun initializeCacheEntrySideEffects(cacheAction: ConfigurationCacheAction) {
         when (cacheAction) {
-            is ConfigurationCacheAction.Load -> {
+            is Load -> {
                 val entryDetails = readEntryDetails()
                 val sideEffects = buildTreeModelSideEffects.restoreFromCacheEntry(entryDetails.sideEffects)
                 loadedSideEffects += sideEffects
             }
 
-            is ConfigurationCacheAction.Update -> {
+            is Update -> {
                 val invalidProjects = cacheAction.invalidProjects
                 val entryDetails = readEntryDetails()
                 intermediateModels.restoreFromCacheEntry(entryDetails.intermediateModels, invalidProjects)
                 projectMetadata.restoreFromCacheEntry(entryDetails.projectMetadata, invalidProjects)
             }
 
-            ConfigurationCacheAction.Store -> {}
+            Store -> {}
+
+            Discard -> {}
         }
         // TODO:isolated find a way to avoid this late binding
         modelSideEffectExecutor.sideEffectStore = buildTreeModelSideEffects
@@ -245,7 +253,9 @@ class DefaultConfigurationCache internal constructor(
             runWorkThatContributesToCacheEntry {
                 val finalizedGraph = scheduler(graph)
                 val rootBuild = buildStateRegistry.rootBuild
-                degradeGracefullyOr { saveWorkGraph(rootBuild) }
+                if (shouldSaveWorkGraph()) {
+                    saveWorkGraph(rootBuild)
+                }
                 crossConfigurationTimeBarrier()
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
@@ -285,11 +295,7 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun degradeGracefullyOr(action: () -> Unit) {
-        if (!problems.shouldDegradeGracefully()) {
-            action()
-        }
-    }
+    fun shouldSaveWorkGraph() = cacheAction != Discard && !problems.shouldDegradeGracefully()
 
     private
     fun runLoadedSideEffects() {
@@ -321,7 +327,7 @@ class DefaultConfigurationCache internal constructor(
             problems.projectStateStats(projectUsage.reused.size, projectUsage.updated.size)
             cacheEntryRequiresCommit = false
             // Can reuse the cache entry for the rest of this build invocation
-            cacheAction = ConfigurationCacheAction.Load(entryId)
+            cacheAction = Load(entryId)
         }
         try {
             cacheFingerprintController.stop()
@@ -369,11 +375,15 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun determineCacheAction(): Pair<ConfigurationCacheAction, StructuredMessage> = when {
+    fun determineCacheAction(): DescribedAction =
+        determineBasicCacheAction().downgradeIfNeeded()
+
+    private
+    fun determineBasicCacheAction(): DescribedAction = when {
         startParameter.recreateCache -> {
             val description = StructuredMessage.forText("Recreating configuration cache")
             logBootstrapSummary(description)
-            ConfigurationCacheAction.Store to description
+            Store.withDescription(description)
         }
 
         startParameter.isRefreshDependencies -> {
@@ -383,7 +393,7 @@ class DefaultConfigurationCache internal constructor(
                 "--refresh-dependencies"
             )
             logBootstrapSummary(description)
-            ConfigurationCacheAction.Store to description
+            Store.withDescription(description)
         }
 
         startParameter.isWriteDependencyLocks -> {
@@ -393,7 +403,7 @@ class DefaultConfigurationCache internal constructor(
                 "--write-locks"
             )
             logBootstrapSummary(description)
-            ConfigurationCacheAction.Store to description
+            Store.withDescription(description)
         }
 
         startParameter.isUpdateDependencyLocks -> {
@@ -403,7 +413,7 @@ class DefaultConfigurationCache internal constructor(
                 "--update-locks"
             )
             logBootstrapSummary(description)
-            ConfigurationCacheAction.Store to description
+            Store.withDescription(description)
         }
 
         else -> {
@@ -415,7 +425,7 @@ class DefaultConfigurationCache internal constructor(
                         buildActionModelRequirements.configurationCacheKeyDisplayName.displayName
                     )
                     logBootstrapSummary(description)
-                    ConfigurationCacheAction.Store to description
+                    Store.withDescription(description)
                 }
 
                 is CheckedFingerprint.Invalid -> {
@@ -425,7 +435,7 @@ class DefaultConfigurationCache internal constructor(
                         checkedFingerprint.reason.render()
                     )
                     logBootstrapSummary(description)
-                    ConfigurationCacheAction.Store to description
+                    Store.withDescription(description)
                 }
 
                 is CheckedFingerprint.Valid -> {
@@ -433,7 +443,7 @@ class DefaultConfigurationCache internal constructor(
                         null -> {
                             val description = StructuredMessage.forText("Reusing configuration cache.")
                             logBootstrapSummary(description)
-                            ConfigurationCacheAction.Load(checkedFingerprint.entryId) to description
+                            Load(checkedFingerprint.entryId).withDescription(description)
                         }
 
                         else -> {
@@ -443,13 +453,17 @@ class DefaultConfigurationCache internal constructor(
                                 invalid.first.reason.render()
                             )
                             logBootstrapSummary(description)
-                            ConfigurationCacheAction.Update(checkedFingerprint.entryId, invalid) to description
+                            Update(checkedFingerprint.entryId, invalid).withDescription(description)
                         }
                     }
                 }
             }
         }
     }
+
+    private
+    fun DescribedAction.downgradeIfNeeded(): DescribedAction =
+        takeUnless { startParameter.isReadOnlyCache && !this.action.isReadOnly } ?: Discard.withDescription(description)
 
     private
     fun formatBootstrapSummary(message: String, vararg args: Any?) =

@@ -36,6 +36,97 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         !output.contains("Configuration cache is an incubating feature.")
     }
 
+    def "should not create an entry on a cache miss if in read-only mode"() {
+        def configurationCache = newConfigurationCacheFixture()
+
+        given:
+        settingsFile << ""
+
+        when:
+        configurationCacheRun("help", ENABLE_READ_ONLY_CACHE)
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+
+        postBuildOutputContains("Configuration cache entry discarded as cache is in read-only mode.")
+    }
+
+    def "should not create an entry on a cache miss when using #options if in read-only mode"() {
+        def configurationCache = newConfigurationCacheFixture()
+
+        given:
+        settingsFile << ""
+
+        when:
+        configurationCacheRun("help")
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun("help", *options, ENABLE_READ_ONLY_CACHE)
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+
+        postBuildOutputContains("Configuration cache entry discarded as cache is in read-only mode.")
+
+        where:
+        options << [
+            ["--write-locks"],
+            ["--update-locks", "*:*"],
+            ["--refresh-dependencies"],
+            ["-D${ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"]
+        ]
+    }
+
+    def "should load an entry on a cache hit if in read-only mode"() {
+        def configurationCache = newConfigurationCacheFixture()
+
+        given:
+        settingsFile << ""
+
+        when:
+        configurationCacheRun("help")
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun("help", ENABLE_READ_ONLY_CACHE)
+
+        then:
+        configurationCache.assertStateLoaded()
+    }
+
+    def "problems are reported and fail the build when in read-only mode"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+
+        buildFile """
+            tasks.register("broken") {
+                doLast {
+                    println("project = " + project)
+                }
+            }
+        """
+
+        when:
+        configurationCacheFails 'broken', ENABLE_READ_ONLY_CACHE, "-i"
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+        outputContains("Configuration cache entry discarded as cache is in read-only mode.")
+
+        // ensure report is produced
+        problems.assertResultHtmlReportHasProblems(failure) {
+            withProblem("Execution failed for task ':broken'.")
+        }
+        failure.assertHasDescription("Execution failed for task ':broken'.")
+        failure.assertHasCause("Invocation of 'Task.project' by task ':broken' at execution time is unsupported with the configuration cache.")
+        failure.assertHasFailures(1)
+    }
+
     def "configuration cache for Help plugin task '#task' on empty project"() {
         given:
         settingsFile.createFile()
