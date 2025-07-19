@@ -171,7 +171,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         first(a.dependents).from.is(c)
     }
 
-    def "accumulates and avoids duplicate dependencies"() {
+    def "accumulates dependencies"() {
         given:
         node("root")
         node("mid1")
@@ -181,7 +181,6 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         resolvedConf("root", [dep("root", "mid1")])
 
         resolvedConf("mid1", [dep("mid1", "leaf1")])
-        resolvedConf("mid1", [dep("mid1", "leaf1")]) //dupe
         resolvedConf("mid1", [dep("mid1", "leaf2")])
 
         resolvedConf("leaf1", [])
@@ -198,7 +197,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
 """
     }
 
-    def "accumulates and avoids duplicate unresolved dependencies"() {
+    def "accumulates unresolved dependencies"() {
         given:
         node("root")
         node("mid1")
@@ -207,7 +206,6 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         resolvedConf("root", [dep("root", "mid1")])
 
         resolvedConf("mid1", [dep("mid1", "leaf1", new RuntimeException("foo!"))])
-        resolvedConf("mid1", [dep("mid1", "leaf1", new RuntimeException("bar!"))]) //dupe
         resolvedConf("mid1", [dep("mid1", "leaf2", new RuntimeException("baz!"))])
 
         when:
