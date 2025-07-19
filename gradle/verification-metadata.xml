@@ -770,6 +770,11 @@
             <pgp value="E88BF2559874BA889D34357C0555B3BA1CA4ECF9"/>
          </artifact>
       </component>
+      <component group="com.uber.nullaway" name="nullaway" version="0.12.6">
+         <artifact name="nullaway-0.12.6.jar">
+            <pgp value="C9F5BB47FCF51250930BD8E22F73DAE490984549"/>
+         </artifact>
+      </component>
       <component group="com.uwyn" name="jhighlight" version="1.0">
          <artifact name="jhighlight-1.0.jar">
             <sha256 value="ede52343fc4a8f080a1801bb735be1b895a5055d61cef55e2b5c6ac7dd4e5c8c" origin="Verified" reason="Artifact is not signed"/>
@@ -1021,6 +1026,11 @@
             <sha256 value="f1eab035c996e20b081bf3c18bd0e328bb553d465e4be2354d0af4dde070465d" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
+      <component group="net.ltgt.gradle" name="gradle-nullaway-plugin" version="2.2.0">
+         <artifact name="gradle-nullaway-plugin-2.2.0.jar">
+            <sha256 value="7caa4552e349f29dec42e219d136f7029d57e990460c209c9c6d307983556b4d" origin="Verified" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
       <component group="net.openhft" name="zero-allocation-hashing" version="0.10.1">
          <artifact name="zero-allocation-hashing-0.10.1.jar">
             <pgp value="CB3808E03CD602A6DC5B882552931F4B72B4F54C"/>
@@ -1219,6 +1229,11 @@
       <component group="org.brotli" name="dec" version="0.1.2">
          <artifact name="dec-0.1.2.jar">
             <pgp value="3A4D86C56CA99373B6D8953DBE84D764623A3644"/>
+         </artifact>
+      </component>
+      <component group="org.checkerframework" name="dataflow-nullaway" version="3.48.0">
+         <artifact name="dataflow-nullaway-3.48.0.jar">
+            <pgp value="19BEAB2D799C020F17C69126B16698A4ADF4D638"/>
          </artifact>
       </component>
       <component group="org.codehaus.gpars" name="gpars" version="1.2.1">
