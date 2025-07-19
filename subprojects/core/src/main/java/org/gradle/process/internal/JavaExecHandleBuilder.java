@@ -28,6 +28,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -100,6 +101,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
 
     private List<String> getAllJvmArgs(FileCollection realClasspath) {
         List<String> allArgs = new ArrayList<>(javaOptions.getAllJvmArgs());
+
         boolean runAsModule = modularity.getInferModulePath().get() && mainModule.isPresent();
 
         if (runAsModule) {
@@ -109,6 +111,15 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         }
 
         return allArgs;
+    }
+
+    private static List<String> escapeQuotes(List<String> allArgs) {
+        if (OperatingSystem.current().isWindows()) {
+            return allArgs.stream().map(listItem ->
+                listItem.replaceAll("\"", "\\\\\"")).collect(Collectors.toList());
+        } else {
+            return allArgs; // No escaping needed on non-Windows systems
+        }
     }
 
     private void addClassicJavaRunArgs(FileCollection classpath, List<String> allArgs) {
@@ -368,7 +379,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     private List<String> getAllArguments(FileCollection realClasspath) {
         List<String> arguments = new ArrayList<>(getAllJvmArgs(realClasspath));
         arguments.addAll(execHandleBuilder.getAllArguments());
-        return arguments;
+        return escapeQuotes(arguments);
     }
 
     public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
