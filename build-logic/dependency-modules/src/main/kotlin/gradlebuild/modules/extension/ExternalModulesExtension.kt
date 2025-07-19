@@ -165,7 +165,6 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val tomlj = "org.tomlj:tomlj"
     val trove4j = "org.jetbrains.intellij.deps:trove4j"
     val xbeanReflect = "org.apache.xbean:xbean-reflect"
-    val xmlApis = "xml-apis:xml-apis"
 
     // Compile only dependencies (dynamically downloaded if needed)
     val maven3Compat = "org.apache.maven:maven-compat"
@@ -327,7 +326,6 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
         tomlj to License.Apache2,
         trove4j to License.LGPL21,
         xbeanReflect to License.Apache2,
-        xmlApis to License.Apache2,
         zinc to License.Apache2
     )
 }
