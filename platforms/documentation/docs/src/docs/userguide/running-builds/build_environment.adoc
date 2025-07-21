@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[build_environment]]
-= Configuring the Build Environment
+= Build Environment Configuration
 :keywords: properties, system, project, environment, variables, https.protocols, gradle.properties, gradle.user.home, gradle.wrapperPassword, gradle.wrapperUser, org.gradle, gradle, java_home, gradle_opts, java_opts, gradle_libs_repo_override
 
 Configuring the build environment is a powerful way to customize the build process.

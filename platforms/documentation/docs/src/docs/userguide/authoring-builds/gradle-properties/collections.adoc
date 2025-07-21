@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[collection_types]]
-= Understanding Collections
+= Collections
 
 Gradle provides types for maintaining collections of objects, intended to work well to extends Gradle's DSLs and provide useful features such as lazy configuration.
 

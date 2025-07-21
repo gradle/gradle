@@ -14,10 +14,10 @@
 
 [[upgrading_version_9]]
 
-= Upgrading your build from Gradle 9.x to the latest
+= Upgrading within Gradle 9.x.y
 
-This chapter provides the information you need to migrate your Gradle 9.x builds to the latest Gradle release.
-For migrating from Gradle 4.x, 5.x, 6.x, 7.x, or 8.x see the <<upgrading_version_8.adoc#upgrading_version_8, older migration guide>> first.
+This chapter provides the information you need to migrate your Gradle 9.x.y builds to the latest.
+For migrating to Gradle 9.0.0, see the <<upgrading_major_version_9.adoc#upgrading_major_version_9, older migration guide>> first.
 
 We recommend the following steps for all users:
 

@@ -85,11 +85,8 @@ If not, the problem exists when executing one or more requested tasks (Gradle ex
 [[sec:troubleshooting_dependency_resolution]]
 == Debugging dependency resolution
 
-Common dependency resolution issues, such as resolving version conflicts, are covered in <<viewing_debugging_dependencies.adoc#sec:debugging-build-scans,Troubleshooting Dependency Resolution>>.
-
 You can see a dependency tree and see which resolved dependency versions differed from what was requested by clicking the _Dependencies_ view and using the search functionality, specifying the resolution reason.
 
-.Debugging dependency conflicts with Build Scan
 image::troubleshooting-dependency-management-build-scan.png[]
 
 The actual link:https://scans.gradle.com/s/sample/troubleshooting-userguide/dependencies?expandAll&filters=WzFd&toggled=W1swXSxbMF0sWzAsMF0sWzAsMV1d[Build Scan] with filtering criteria is available for exploration.
@@ -120,7 +117,6 @@ Using the Kotlin DSL, you can debug the build scripts themselves.
 
 The following video demonstrates how to debug an example build using IntelliJ IDEA.
 
-.Interactive debugging of a build script
 image::remote-debug-gradle.gif[]
 
 === Adding and changing logging

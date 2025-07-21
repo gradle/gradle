@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[properties_and_providers]]
-= Understanding Properties and Providers
+= Properties and Providers
 :keywords: properties, providers, regularfileproperty, directoryproperty, listproperty, setproperty, mapproperty, configurablefilecollection, configurablefiletree
 
 Gradle provides properties that are important for <<lazy_configuration.adoc#lazy_configuration,lazy configuration>>.
