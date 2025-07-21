@@ -141,6 +141,8 @@ include::{snippetsPath}/initScripts/externalDependency/tests-common/externalInit
 [[sec:init_script_plugins]]
 == Applying plugins
 
+TIP: If you want to learn about tips for Maven Publishing, head over to our link:https://cookbook.gradle.org/integrations/maven-central/repositories/[Cookbook].
+
 Plugins can be applied to init scripts like a Gradle build script or a Gradle settings file.
 
 Using plugins in init scripts:
