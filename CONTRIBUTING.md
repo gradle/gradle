@@ -67,6 +67,8 @@ Gradle uses pull requests for contributions. Fork [gradle/gradle](https://github
     git config user.name 'First Last'
     git config user.email user@example.com
 
+### IntelliJ IDEA
+
 #### Import Gradle into IntelliJ
 
 To import Gradle into IntelliJ:
@@ -79,6 +81,10 @@ NOTE: Due to the project size, the very first import can take a while and Intell
 IntelliJ automatically hides stacktrace elements from the `org.gradle` package, which makes running/debugging tests more difficult. You can disable this behavior by changing IntelliJ Preferences under Editor -> General -> Console. In the "Fold lines that contain" section, remove the `org.gradle` entry.
 
 If you did not have a Adoptium Java 17 SDK installed before importing the project into IntelliJ and after adding Adoptium Java 17 SDK your IntelliJ still uses the wrong SDK version, you might need to invalidate IntelliJ's caches before reloading the project.
+
+#### Install Develocity IntelliJ plugin
+
+Consider installing the [Develocity IntelliJ plugin](https://plugins.jetbrains.com/plugin/27471-develocity), bringing powerful real-time Gradle build analysis directly into your IDE, empowering developers to optimize performance and gain deep insights.
 
 ## Making your change
 
