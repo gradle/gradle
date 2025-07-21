@@ -36,19 +36,26 @@ class ConfigurationCacheSupportedKotlinTypesIntegrationTest extends AbstractConf
 
             abstract class FooTask : DefaultTask() {
                 @get:Internal
-                abstract val bean : Property<Bean>
-                @get:Internal
                 val field : $type = $reference
+                @get:Internal
+                abstract val propField : Property<$type>
+                @get:Internal
+                val bean : Bean = Bean($reference)
+                @get:Internal
+                abstract val propBean : Property<Bean>
 
                 @TaskAction
                 fun foo() {
-                    println("this.field = \$field")
-                    println("bean.field = \${bean.get().field}")
+                    println("field = \$field")
+                    println("propField = \${propField.get()}")
+                    println("bean.field = \${bean.field}")
+                    println("propBean.field = \${propBean.get().field}")
                 }
             }
 
             tasks.register("foo", FooTask::class) {
-                bean = provider { Bean($reference) }
+                propBean = provider { Bean($reference) }
+                propField = provider { $reference }
             }
 
         """
@@ -57,8 +64,10 @@ class ConfigurationCacheSupportedKotlinTypesIntegrationTest extends AbstractConf
         configurationCacheRun "foo"
 
         then:
-        outputContains("this.field = ${output}")
-        outputContains("bean.field = ${output}")
+        outputContains("field = $output")
+        outputContains("propField = $output")
+        outputContains("bean.field = $output")
+        outputContains("propBean.field = $output")
 
         where:
         type                             | _
