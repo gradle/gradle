@@ -30,17 +30,27 @@ import org.gradle.internal.operations.BuildOperationType;
  * @since 7.6
  */
 public final class ResolveTaskMutationsBuildOperationType implements BuildOperationType<ResolveTaskMutationsBuildOperationType.Details, ResolveTaskMutationsBuildOperationType.Result> {
+
     public interface Details {
+
+        /**
+         * The path of the build this task belongs to.
+         */
         String getBuildPath();
 
+        /**
+         * Get the path of this task within the build.
+         */
         String getTaskPath();
 
         /**
          * See {@code org.gradle.api.internal.project.taskfactory.TaskIdentity#uniqueId}.
          */
         long getTaskId();
+
     }
 
     public interface Result {
     }
+
 }
