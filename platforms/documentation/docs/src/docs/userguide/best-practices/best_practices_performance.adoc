@@ -153,7 +153,7 @@ include::{snippetsPath}/bestPractices/useConfigurationCache-do/tests/useConfigur
 
 === References
 
-- <<configuration_cache.adoc#config_cache,Configuration Cache Overview>>
+- <<configuration_cache_enabling.adoc#config_cache:usage:enable,Enabling The Configuration Cache>>
 
 === Tags
 
