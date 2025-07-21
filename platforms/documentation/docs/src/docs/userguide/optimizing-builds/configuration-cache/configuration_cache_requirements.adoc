@@ -176,7 +176,8 @@ The table below lists recommended replacements for commonly used `Project` metho
 | A task input or output property or a script variable to capture the result of using `project.projectDir` to calculate the actual parameter.
 
 | `project.buildDir`
-| `project.buildDir` has been deprecated. You should use `project.layout.buildDirectory`. A task input or output property or a script variable to capture the result of using `project.layout.buildDirectory` to calculate the actual parameter.
+| `project.buildDir` has been deprecated. You should use `project.layout.buildDirectory`.
+Use a task input or output property or a script variable to capture the result of using `project.layout.buildDirectory` to calculate the actual parameter.
 
 | `project.name`
 | A task input or output property or a script variable to capture the result of using `project.name` to calculate the actual parameter.
