@@ -102,12 +102,11 @@ public class TransientConfigurationResultsBuilder {
         });
     }
 
-    public void parentChildMapping(final Long parent, final Long child, final int artifactId) {
+    public void parentChildMapping(final Long parent, final Long child) {
         binaryStore.write(encoder -> {
             encoder.writeByte(EDGE);
             encoder.writeSmallLong(parent);
             encoder.writeSmallLong(child);
-            encoder.writeSmallInt(artifactId);
         });
     }
 
@@ -188,8 +187,6 @@ public class TransientConfigurationResultsBuilder {
                             throw new IllegalStateException(String.format("Unexpected child dependency id %s. Seen ids: %s", childId, allDependencies.keySet()));
                         }
                         parent.addChild(child);
-                        artifacts = artifactResults.getArtifactsWithId(decoder.readSmallInt());
-                        child.addParentSpecificArtifacts(parent, artifacts);
                         break;
                     case NODE_ARTIFACTS:
                         id = decoder.readSmallLong();

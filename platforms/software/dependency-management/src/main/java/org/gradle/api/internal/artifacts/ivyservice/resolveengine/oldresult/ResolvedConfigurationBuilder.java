@@ -22,7 +22,7 @@ public interface ResolvedConfigurationBuilder {
 
     void addFirstLevelDependency(DependencyGraphNode dependency);
 
-    void addChild(DependencyGraphNode parent, DependencyGraphNode child, int artifactsId);
+    void addChild(DependencyGraphNode parent, DependencyGraphNode child);
 
     void addNodeArtifacts(DependencyGraphNode node, int artifactsId);
 

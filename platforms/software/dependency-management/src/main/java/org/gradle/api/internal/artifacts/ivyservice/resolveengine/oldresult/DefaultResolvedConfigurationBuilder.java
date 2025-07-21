@@ -37,8 +37,8 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
     }
 
     @Override
-    public void addChild(DependencyGraphNode parent, DependencyGraphNode child, int artifactsId) {
-        builder.parentChildMapping(parent.getNodeId(), child.getNodeId(), artifactsId);
+    public void addChild(DependencyGraphNode parent, DependencyGraphNode child) {
+        builder.parentChildMapping(parent.getNodeId(), child.getNodeId());
     }
 
     @Override
