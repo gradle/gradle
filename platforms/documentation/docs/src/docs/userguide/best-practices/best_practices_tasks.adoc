@@ -289,8 +289,66 @@ include::{snippetsPath}/bestPractices/groupTasks-do/tests/groupTasks.good.out[]
 - <<writing_tasks.adoc#task_group_and_description,Task Group and Description>>
 
 === Tags
-
 `<<tags_reference.adoc#tag:tasks,#tasks>>`
+
+[[avoid_eager_file_collection_apis]]
+== Avoid using eager APIs on File Collections
+
+When working with Gradle's file collection types, be careful to avoid triggering dependency resolution during the configuration phase.
+
+=== Explanation
+
+Gradle's link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[`Configuration`] and link:{javadocPath}/org/gradle/api/file/FileCollection.html[`FileCollection`] types extend the JDK’s `Collection<File>` interface.
+
+However, calling some available methods from this interface—such as `.size()`, `.isEmpty()`, `getFiles()`, `asPath()`, or `.toList()`—on these Gradle types will implicitly trigger resolution of their dependencies.
+The same is possible using Kotlin stdlib collection extension methods or Groovy GDK collection extensions.
+Converting a `Configuration` to a `Set<File>` also discards any implicit task dependencies it carries.
+
+You should avoid using these methods when configuring your build. 
+Instead, use the methods defined directly on the Gradle interfaces - this is a necessary _first step_ towards preventing eager resolutions.
+Be sure to use <<lazy_configuration.adoc#working_with_files_in_lazy_properties,lazy types and APIs>> that defer resolution to wire task dependencies and inputs correctly.
+Some methods that cause resolution are not obvious.
+Be sure to check the actual behavior when using configurations in an atypical way.
+
+=== Example
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollections-avoid/kotlin/lib",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollections-avoid/groovy/lib",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *`isEmpty()` causes resolution*: Many seemingly harmless Collection API methods like `isEmpty()` cause Gradle to resolve dependencies.
+<2> *Accessing files directly*: Using `getFiles()` to access the files in a `Configuration` will also cause Gradle to resolve the file collection.
+<3> *Adding a file via plus operator*: Using the plus operator will force the `runtimeClasspath` configuration to be resolved implicitly.
+The implementation of `Configuration` doesn't override the plus operator for regular files, therefore it falls back to using the eager API, which causes resolution.
+<4> *Be careful with indirect inputs*: Some built-in tasks, for example subtypes of `AbstractCopyTask` like `Zip`, allow adding inputs indirectly and can have the same problems.
+
+==== Do This Instead
+
+To avoid issues, always defer resolution until the execution phase.
+Use APIs that support lazy evaluation.
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidJdkCollectionApiOnFileCollections-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidJdkCollectionApiOnFileCollections-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollections-do/kotlin/lib",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidJdkCollectionApiOnFileCollections-do/groovy/lib",files="build.gradle[tags=do-this]"]
+====
+
+<1> *Add configurations to Task properties or Specs directly*: This will defer resolution until the task is executed.
+<2> *Add files to Specs separately*: This allows combining files with file collections without triggering implicit resolutions.
+
+=== Tags
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`, `<<tags_reference.adoc#tag:configurations,#configurations>>`
 
 [[dont_resolve_configurations_before_task_execution]]
 == Don't resolve Configurations before Task Execution
