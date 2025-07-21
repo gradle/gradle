@@ -15,27 +15,18 @@
  */
 package gradlebuild.basics
 
-import org.gradle.api.Named
-import org.gradle.api.attributes.Attribute
-
 /**
- * Attribute type for the different types of architecture data.
+ * Attribute values for the different types of architecture data.
+ * Used with [org.gradle.api.attributes.Category].
  */
-interface ArchitectureDataType : Named {
-    companion object {
-        /**
-         * Attribute for architecture data type.
-         */
-        val ATTRIBUTE = Attribute.of("org.gradle.internal.architecture.datatype", ArchitectureDataType::class.java)
+object ArchitectureDataType {
+    /**
+     * JSON containing platforms data. See root settings file for more information.
+     */
+    val PLATFORMS = "platforms"
 
-        /**
-         * JSON containing platforms data. See root settings file for more information.
-         */
-        val PLATFORMS = "platforms"
-
-        /**
-         * JSON containing package-info data. See root settings file for more information.
-         */
-        val PACKAGE_INFO = "package-info"
-    }
+    /**
+     * JSON containing package-info data. See root settings file for more information.
+     */
+    val PACKAGE_INFO = "package-info"
 }

@@ -348,30 +348,26 @@ gradle.rootProject {
     }
     val platformsData = tasks.register("platformsData", GeneratePlatformsDataTask::class) {
         description = "Generates the platforms data"
-        outputFile = layout.projectDirectory.file("build/architecture/platforms.json")
+        outputFile = layout.buildDirectory.file("architecture/platforms.json")
         platforms = provider { architectureElements.filterIsInstance<PlatformBuilder>().map { it.build() } }
     }
     val packageInfoData = tasks.register("packageInfoData", GeneratePackageInfoDataTask::class) {
         description = "Map packages to the list of package-info.java files that apply to them"
-        outputFile = layout.projectDirectory.file("build/architecture/package-info.json")
+        outputFile = layout.buildDirectory.file("architecture/package-info.json")
         packageInfoFiles = provider { GeneratePackageInfoDataTask.findPackageInfoFiles(projectBaseDirs) }
     }
 
     configurations.consumable("platformsData") {
-        outgoing.artifact(platformsData) {
-            builtBy(platformsData)
-        }
+        outgoing.artifact(platformsData)
         attributes {
-            attribute(ArchitectureDataType.ATTRIBUTE, objects.named<ArchitectureDataType>(ArchitectureDataType.PLATFORMS))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(ArchitectureDataType.PLATFORMS))
         }
     }
 
     configurations.consumable("packageInfoData") {
-        outgoing.artifact(packageInfoData) {
-            builtBy(packageInfoData)
-        }
+        outgoing.artifact(packageInfoData)
         attributes {
-            attribute(ArchitectureDataType.ATTRIBUTE, objects.named<ArchitectureDataType>(ArchitectureDataType.PACKAGE_INFO))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(ArchitectureDataType.PACKAGE_INFO))
         }
     }
 }
