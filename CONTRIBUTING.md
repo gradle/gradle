@@ -84,7 +84,8 @@ If you did not have a Adoptium Java 17 SDK installed before importing the projec
 
 #### Install Develocity IntelliJ plugin
 
-Consider installing the [Develocity IntelliJ plugin](https://plugins.jetbrains.com/plugin/27471-develocity), bringing powerful real-time Gradle build analysis directly into your IDE, empowering developers to optimize performance and gain deep insights.
+Consider installing the [Develocity IntelliJ plugin](https://plugins.jetbrains.com/plugin/27471-develocity) to bring real-time Gradle build analysis directly into your IDE. 
+It helps developers optimize performance and gain deeper insights into their builds.
 
 ## Making your change
 
