@@ -49,11 +49,11 @@ public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public void visitArtifact(DisplayName variantName, VariantIdentifier sourceVariantId, ImmutableAttributes variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
+    public void visitArtifact(DisplayName artifactSetName, VariantIdentifier sourceVariantId, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
         try {
             if (seenArtifacts.add(artifact.getId())) {
                 File file = artifact.getFile();
-                this.artifacts.add(new DefaultResolvedArtifactResult(artifact.getId(), attributeDesugaring.desugar(variantAttributes), capabilities, variantName, Artifact.class, file));
+                this.artifacts.add(new DefaultResolvedArtifactResult(artifact.getId(), attributeDesugaring.desugar(attributes), capabilities, artifactSetName, Artifact.class, file));
             }
         } catch (Exception t) {
             failures.add(t);

@@ -46,7 +46,7 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
     }
 
     @Override
-    public void visitArtifact(DisplayName variantName, VariantIdentifier sourceVariantId, ImmutableAttributes variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
+    public void visitArtifact(DisplayName artifactSetName, VariantIdentifier sourceVariantId, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
         this.artifacts.add(artifact.toPublicView());
     }
 

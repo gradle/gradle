@@ -82,7 +82,7 @@ public class ArtifactSetToFileCollectionFactory {
         VariantIdentifier sourceVariantId,
         ImmutableAttributes variantAttributes,
         ImmutableCapabilities capabilities,
-        DisplayName variantDisplayName,
+        DisplayName artifactSetName,
         File file
     ) {
         return new ResolvedArtifactSet() {
@@ -97,7 +97,7 @@ public class ArtifactSetToFileCollectionFactory {
                     @Override
                     public void visit(ArtifactVisitor visitor) {
                         if (visitor.prepareForVisit(FileCollectionInternal.OTHER) == FileCollectionStructureVisitor.VisitType.Visit) {
-                            visitor.visitArtifact(variantDisplayName, sourceVariantId, variantAttributes, capabilities, new ResolvableArtifact() {
+                            visitor.visitArtifact(artifactSetName, sourceVariantId, variantAttributes, capabilities, new ResolvableArtifact() {
                                 @Override
                                 public ComponentArtifactIdentifier getId() {
                                     return id;

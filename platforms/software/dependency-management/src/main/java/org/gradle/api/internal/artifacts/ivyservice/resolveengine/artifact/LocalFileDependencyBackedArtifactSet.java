@@ -191,16 +191,16 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
     private static class SingletonFileResolvedVariant implements ResolvedVariant, ResolvedArtifactSet, Artifacts, ResolvedVariantSet {
         private final ComponentArtifactIdentifier artifactIdentifier;
         private final VariantIdentifier sourceVariantId;
-        private final DisplayName variantName;
+        private final DisplayName artifactSetName;
         private final ImmutableAttributes variantAttributes;
         private final LocalFileDependencyMetadata dependencyMetadata;
         private final ResolvableArtifact artifact;
         private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
-        SingletonFileResolvedVariant(File file, ComponentArtifactIdentifier artifactIdentifier, VariantIdentifier sourceVariantId, DisplayName variantName, ImmutableAttributes variantAttributes, LocalFileDependencyMetadata dependencyMetadata, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+        SingletonFileResolvedVariant(File file, ComponentArtifactIdentifier artifactIdentifier, VariantIdentifier sourceVariantId, DisplayName artifactSetName, ImmutableAttributes variantAttributes, LocalFileDependencyMetadata dependencyMetadata, CalculatedValueContainerFactory calculatedValueContainerFactory) {
             this.artifactIdentifier = artifactIdentifier;
             this.sourceVariantId = sourceVariantId;
-            this.variantName = variantName;
+            this.artifactSetName = artifactSetName;
             this.variantAttributes = variantAttributes;
             this.dependencyMetadata = dependencyMetadata;
             this.calculatedValueContainerFactory = calculatedValueContainerFactory;
@@ -277,7 +277,7 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
 
         @Override
         public void visit(ArtifactVisitor visitor) {
-            visitor.visitArtifact(variantName, sourceVariantId, variantAttributes, ImmutableCapabilities.EMPTY, artifact);
+            visitor.visitArtifact(artifactSetName, sourceVariantId, variantAttributes, ImmutableCapabilities.EMPTY, artifact);
             visitor.endVisitCollection(FileCollectionInternal.OTHER);
         }
 

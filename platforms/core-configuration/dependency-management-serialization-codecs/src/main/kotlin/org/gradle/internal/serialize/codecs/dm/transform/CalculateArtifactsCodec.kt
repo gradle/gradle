@@ -100,9 +100,9 @@ class CalculateArtifactsCodec(
         override fun startFinalization(actions: BuildOperationQueue<RunnableBuildOperation>, requireFiles: Boolean) = Unit
 
         override fun visit(visitor: ArtifactVisitor) {
-            val displayName = Describables.of(ownerId)
+            val artifactSetName = Describables.of(ownerId)
             for (artifact in artifacts) {
-                visitor.visitArtifact(displayName, sourceVariantId, ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, artifact)
+                visitor.visitArtifact(artifactSetName, sourceVariantId, ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, artifact)
             }
         }
 

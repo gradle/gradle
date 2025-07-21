@@ -33,7 +33,7 @@ public class ResolvedFilesCollectingVisitor implements ArtifactVisitor {
     private final Set<Throwable> failures = new LinkedHashSet<>();
 
     @Override
-    public void visitArtifact(DisplayName variantName, VariantIdentifier sourceVariantId, ImmutableAttributes variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
+    public void visitArtifact(DisplayName artifactSetName, VariantIdentifier sourceVariantId, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
         try {
             File file = artifact.getFile();
             this.files.add(file);

@@ -43,7 +43,7 @@ class TransformedArtifactCodec(
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory
 ) : Codec<TransformingAsyncArtifactListener.TransformedArtifact> {
     override suspend fun WriteContext.encode(value: TransformingAsyncArtifactListener.TransformedArtifact) {
-        write(value.variantName)
+        write(value.artifactSetName)
         write(value.sourceVariantId)
         write(value.target)
         writeCollection(value.capabilities.asSet())
@@ -53,7 +53,7 @@ class TransformedArtifactCodec(
     }
 
     override suspend fun ReadContext.decode(): TransformingAsyncArtifactListener.TransformedArtifact {
-        val variantName = readNonNull<DisplayName>()
+        val artifactSetName = readNonNull<DisplayName>()
         val sourceVariantId = readNonNull<VariantIdentifier>()
         val target = readNonNull<ImmutableAttributes>()
         val capabilities: List<Capability> = readList().uncheckedCast()
@@ -62,6 +62,6 @@ class TransformedArtifactCodec(
         val artifactId = ComponentFileArtifactIdentifier(ownerId, file.name)
         val artifact = PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), artifactId, file, TaskDependencyContainer.EMPTY, calculatedValueContainerFactory)
         val steps = readNonNull<List<TransformStepSpec>>().map { BoundTransformStep(it.transformStep, it.recreateDependencies()) }
-        return TransformingAsyncArtifactListener.TransformedArtifact(variantName, sourceVariantId, target, ImmutableCapabilities.of(capabilities), artifact, steps)
+        return TransformingAsyncArtifactListener.TransformedArtifact(artifactSetName, sourceVariantId, target, ImmutableCapabilities.of(capabilities), artifact, steps)
     }
 }
