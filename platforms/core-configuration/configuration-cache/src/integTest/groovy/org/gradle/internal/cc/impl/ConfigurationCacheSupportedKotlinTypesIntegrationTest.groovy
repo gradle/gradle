@@ -38,18 +38,17 @@ class ConfigurationCacheSupportedKotlinTypesIntegrationTest extends AbstractConf
                 @get:Internal
                 abstract val bean : Property<Bean>
                 @get:Internal
-                abstract val field : Property<$type>
+                val field : $type = $reference
 
                 @TaskAction
                 fun foo() {
-                    println("this.field = \${field.get()}")
+                    println("this.field = \$field")
                     println("bean.field = \${bean.get().field}")
                 }
             }
 
             tasks.register("foo", FooTask::class) {
                 bean = provider { Bean($reference) }
-                field = provider { $reference }
             }
 
         """
