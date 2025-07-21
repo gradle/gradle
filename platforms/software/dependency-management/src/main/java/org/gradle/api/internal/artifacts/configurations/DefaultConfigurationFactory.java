@@ -148,8 +148,7 @@ public class DefaultConfigurationFactory {
             this,
             taskDependencyFactory,
             role,
-            problemsService,
-            documentationRegistry
+            problemsService
         );
     }
 

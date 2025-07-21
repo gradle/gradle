@@ -52,7 +52,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet;
@@ -214,7 +213,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private final DefaultConfigurationFactory defaultConfigurationFactory;
     private final InternalProblems problemsService;
-    private final DocumentationRegistry documentationRegistry;
 
     private final Lazy<ResolvableState> resolvableState;
     private final Lazy<ConsumableState> consumableState;
@@ -247,7 +245,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         TaskDependencyFactory taskDependencyFactory,
         ConfigurationRole roleAtCreation,
         InternalProblems problemsService,
-        DocumentationRegistry documentationRegistry,
         boolean lockUsage
     ) {
         super(taskDependencyFactory);
@@ -282,7 +279,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.outgoing = objectFactory.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory);
         this.defaultConfigurationFactory = defaultConfigurationFactory;
         this.problemsService = problemsService;
-        this.documentationRegistry = documentationRegistry;
 
         this.canBeConsumed = roleAtCreation.isConsumable();
         this.canBeResolved = roleAtCreation.isResolvable();
@@ -631,7 +627,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         ResolverResults newState;
         if (!domainObjectContext.getModel().hasMutableState()) {
-            throw new IllegalResolutionException("Resolution of the " + displayName.getDisplayName() + " was attempted without an exclusive lock. This is unsafe and not allowed.", documentationRegistry);
+            throw new IllegalResolutionException("Resolution of the " + displayName.getDisplayName() + " was attempted without an exclusive lock. This is unsafe and not allowed.");
         } else {
             newState = resolveExclusivelyIfRequired();
         }
@@ -1847,7 +1843,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private static final class IllegalResolutionException extends GradleException implements ResolutionProvider {
         private final String resolution;
 
-        public IllegalResolutionException(String message, DocumentationRegistry documentationRegistry) {
+        public IllegalResolutionException(String message) {
             super(message);
             Documentation userGuideLink = Documentation.userManual("viewing_debugging_dependencies.html", "sub:resolving-unsafe-configuration-resolution-errors");
             resolution = "For more information, please refer to " + userGuideLink.getUrl() + " in the Gradle documentation.";
