@@ -42,7 +42,7 @@ public class ArtifactVisitorToResolvedFileVisitorAdapter implements ArtifactVisi
     }
 
     @Override
-    public void visitArtifact(DisplayName variantName, VariantIdentifier sourceVariantId, ImmutableAttributes variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
+    public void visitArtifact(DisplayName artifactSetName, VariantIdentifier sourceVariantId, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
         visitor.visitFile(artifact.getFile());
     }
 

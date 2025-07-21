@@ -64,7 +64,7 @@ class ArtifactCollectionCodec(
             elements.map { element ->
                 when (element) {
                     is Throwable -> artifactSetConverter.asResolvedArtifactSet(element)
-                    is FixedFileArtifactSpec -> artifactSetConverter.asResolvedArtifactSet(element.id, element.sourceVariantId, element.variantAttributes, element.capabilities, element.variantDisplayName, element.file)
+                    is FixedFileArtifactSpec -> artifactSetConverter.asResolvedArtifactSet(element.id, element.sourceVariantId, element.variantAttributes, element.capabilities, element.artifactSetName, element.file)
                     is ResolvedArtifactSet -> element
                     else -> throw IllegalArgumentException("Unexpected element $element in artifact collection")
                 }
@@ -81,7 +81,7 @@ data class FixedFileArtifactSpec(
     val sourceVariantId: VariantIdentifier,
     val variantAttributes: ImmutableAttributes,
     val capabilities: ImmutableCapabilities,
-    val variantDisplayName: DisplayName,
+    val artifactSetName: DisplayName,
     val file: File
 )
 
@@ -113,14 +113,14 @@ class CollectingArtifactVisitor : ArtifactVisitor {
     }
 
     override fun visitArtifact(
-        variantName: DisplayName,
+        artifactSetName: DisplayName,
         sourceVariantId: VariantIdentifier,
-        variantAttributes: ImmutableAttributes,
+        attributes: ImmutableAttributes,
         capabilities: ImmutableCapabilities,
         artifact: ResolvableArtifact
     ) {
         if (artifacts.add(artifact)) {
-            elements.add(FixedFileArtifactSpec(artifact.id, sourceVariantId, variantAttributes, capabilities, variantName, artifact.file))
+            elements.add(FixedFileArtifactSpec(artifact.id, sourceVariantId, attributes, capabilities, artifactSetName, artifact.file))
         }
     }
 

@@ -128,7 +128,7 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
         private @Nullable List<Throwable> failures;
 
         @Override
-        public void visitArtifact(DisplayName variantName, VariantIdentifier sourceVariantId, ImmutableAttributes variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
+        public void visitArtifact(DisplayName artifactSetName, VariantIdentifier sourceVariantId, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
             try {
                 ResolvedArtifact resolvedArtifact = artifact.toPublicView();
 

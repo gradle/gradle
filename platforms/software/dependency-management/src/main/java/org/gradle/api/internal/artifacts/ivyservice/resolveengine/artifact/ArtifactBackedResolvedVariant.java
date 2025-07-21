@@ -122,20 +122,20 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
 
     private static class SingleArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
 
-        private final DisplayName variantName;
+        private final DisplayName artifactSetName;
         private final VariantIdentifier sourceVariantId;
         private final ImmutableAttributes variantAttributes;
         private final ImmutableCapabilities capabilities;
         private final ResolvableArtifact artifact;
 
         SingleArtifactSet(
-            DisplayName variantName,
+            DisplayName artifactSetName,
             VariantIdentifier sourceVariantId,
             ImmutableAttributes variantAttributes,
             ImmutableCapabilities capabilities,
             ResolvableArtifact artifact
         ) {
-            this.variantName = variantName;
+            this.artifactSetName = artifactSetName;
             this.sourceVariantId = sourceVariantId;
             this.variantAttributes = variantAttributes;
             this.capabilities = capabilities;
@@ -165,7 +165,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
             if (visitor.requireArtifactFiles() && !artifact.getFileSource().getValue().isSuccessful()) {
                 visitor.visitFailure(artifact.getFileSource().getValue().getFailure().get());
             } else {
-                visitor.visitArtifact(variantName, sourceVariantId, variantAttributes, capabilities, artifact);
+                visitor.visitArtifact(artifactSetName, sourceVariantId, variantAttributes, capabilities, artifact);
                 visitor.endVisitCollection(FileCollectionInternal.OTHER);
             }
         }

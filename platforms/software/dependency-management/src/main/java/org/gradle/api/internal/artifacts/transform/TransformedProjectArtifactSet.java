@@ -82,13 +82,13 @@ public class TransformedProjectArtifactSet implements TransformedArtifactSet, Fi
 
     @Override
     public void visit(ArtifactVisitor visitor) {
-        DisplayName displayName = Describables.of(targetVariant.getComponentId());
+        DisplayName artifactSetName = Describables.of(targetVariant.getComponentId());
         for (TransformStepNode node : transformedArtifacts) {
             node.executeIfNotAlready();
             Try<TransformStepSubject> transformedSubject = node.getTransformedSubject();
             if (transformedSubject.isSuccessful()) {
                 for (File file : transformedSubject.get().getFiles()) {
-                    visitor.visitArtifact(displayName, sourceVariantId, targetVariant.getAttributes(), targetVariant.getCapabilities(), node.getInputArtifact().transformedTo(file));
+                    visitor.visitArtifact(artifactSetName, sourceVariantId, targetVariant.getAttributes(), targetVariant.getCapabilities(), node.getInputArtifact().transformedTo(file));
                 }
             } else {
                 Throwable failure = transformedSubject.getFailure().get();

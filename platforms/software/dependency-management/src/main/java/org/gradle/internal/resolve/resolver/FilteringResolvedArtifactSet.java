@@ -89,9 +89,9 @@ public final class FilteringResolvedArtifactSet implements ResolvedArtifactSet {
         }
 
         @Override
-        public void visitArtifact(DisplayName variantName, VariantIdentifier sourceVariantId, ImmutableAttributes variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
+        public void visitArtifact(DisplayName artifactSetName, VariantIdentifier sourceVariantId, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
             if (filter.test(artifact)) {
-                visitor.visitArtifact(variantName, sourceVariantId, variantAttributes, capabilities, artifact);
+                visitor.visitArtifact(artifactSetName, sourceVariantId, attributes, capabilities, artifact);
             }
         }
 
