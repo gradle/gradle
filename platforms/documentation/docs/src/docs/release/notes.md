@@ -74,6 +74,20 @@ ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 
+<a name="ear-plugin"></a>
+### Ear Plugin
+
+It is now possible to generate valid deployment descriptors for Jakarta EE 11
+by specifying the corresponding version in the `deploymentDescriptor` instead of having to use a custom descriptor file.
+
+```kotlin
+tasks.ear {
+    deploymentDescriptor {  // custom entries for application.xml:
+        version = "11"
+    }
+}
+```
+
 <a name="cli"></a>
 ### CLI improvement
 
