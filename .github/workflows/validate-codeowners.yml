@@ -18,6 +18,7 @@ jobs:
     steps:
       - name: Get Secrets
         uses: gradle/actions-internal/get-aws-secrets@v1
+        if: (github.event_name != 'pull_request' && github.repository_owner == 'gradle') || github.event.pull_request.head.repo.full_name == github.repository
         with:
           role-to-assume: arn:aws:iam::992382829881:role/GHASecrets_gradle_all
           secret-ids: |
@@ -27,7 +28,6 @@ jobs:
 
       - name: GitHub CODEOWNERS Validator
         uses: mszostok/codeowners-validator@v0.7.4
-        if: github.event.pull_request.head.repo.full_name == github.repository
         with:
           checks: "files,duppatterns,syntax"
           experimental_checks: "notowned,avoid-shadowing"
@@ -36,7 +36,7 @@ jobs:
       # see https://github.com/mszostok/codeowners-validator/issues/224
       - name: GitHub CODEOWNERS Validator
         uses: mszostok/codeowners-validator@v0.7.2
-        if: github.event.pull_request.head.repo.full_name == github.repository
+        if: (github.event_name != 'pull_request' && github.repository_owner == 'gradle') || github.event.pull_request.head.repo.full_name == github.repository
         with:
           checks: "owners"
           github_access_token: "${{ env.ORG_TEAM_GITHUB_ACCESS_TOKEN }}"

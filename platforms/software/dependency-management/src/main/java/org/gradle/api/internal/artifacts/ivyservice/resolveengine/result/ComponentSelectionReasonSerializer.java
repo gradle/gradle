@@ -54,7 +54,7 @@ public class ComponentSelectionReasonSerializer implements Serializer<ComponentS
 
     @Override
     public void write(Encoder encoder, ComponentSelectionReason value) throws IOException {
-        List<ComponentSelectionDescriptor> descriptions = value.getDescriptions();
+        List<? extends ComponentSelectionDescriptor> descriptions = value.getDescriptions();
         encoder.writeSmallInt(descriptions.size());
         for (ComponentSelectionDescriptor description : descriptions) {
             componentSelectionDescriptorSerializer.write(encoder, description);

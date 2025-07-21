@@ -296,9 +296,16 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     File getBuildFile();
 
     /**
-     * <p>Returns the parent project of this project, if any.</p>
+     * Returns the parent project of this project, if any.
+     * <p>
+     * There are two cases where a project will not have a parent:
+     * <ul>
+     *     <li>The project is the root project of the build.</li>
+     *     <li>The project is located in a nested directory (not the root of the build), {@link #getProjectDir()} has been used after
+     *     including the project in order to locate it, and no project has been included that is located in this project's parent directory.</li>
+     * </ul>
      *
-     * @return The parent project, or null if this is the root project.
+     * @return The parent project, or {@code null} if this is the root project or a nested project without a parent.
      */
     @Nullable
     Project getParent();

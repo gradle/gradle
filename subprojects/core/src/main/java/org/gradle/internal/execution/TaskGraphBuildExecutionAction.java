@@ -83,14 +83,16 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
     private static class NodeRenderer implements GraphNodeRenderer<TaskInfo> {
 
         @Override
-        public void renderTo(TaskInfo node, StyledTextOutput output) {
+        public void renderTo(TaskInfo node, StyledTextOutput output, boolean alreadySeen) {
             output
                 .withStyle(StyledTextOutput.Style.Identifier).text(node.getId());
 
-            String description = node.getDescription();
-            if (!description.isEmpty()) {
-                output.text(" ");
-                output.withStyle(StyledTextOutput.Style.Description).text(description);
+            if (!alreadySeen) {
+                String description = node.getDescription();
+                if (!description.isEmpty()) {
+                    output.text(" ");
+                    output.withStyle(StyledTextOutput.Style.Description).text(description);
+                }
             }
         }
     }
