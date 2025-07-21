@@ -249,12 +249,8 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
 
         private void expectInState(State expectedState) {
             if (state != expectedState) {
-                throw unexpectedState();
+                throw new IllegalStateException("Work graph is in an unexpected state: " + state + ", expected: " + expectedState);
             }
-        }
-
-        private IllegalStateException unexpectedState() {
-            return new IllegalStateException("Work graph is in an unexpected state: " + state);
         }
 
         private void assertIsOwner() {

@@ -18,6 +18,7 @@ package org.gradle.internal.execution;
 import com.google.common.collect.Streams;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.Node;
@@ -39,42 +40,59 @@ import java.util.stream.Stream;
  * A {@link BuildWorkExecutor} that does not execute any tasks, but prints the task graph instead.
  */
 public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
+    private final BuildWorkExecutor delegate;
     private final StyledTextOutputFactory textOutputFactory;
+    private final ConfigurationTimeBarrier configurationTimeBarrier;
 
-    public TaskGraphBuildExecutionAction(StyledTextOutputFactory textOutputFactory) {
+    public TaskGraphBuildExecutionAction(
+        BuildWorkExecutor delegate,
+        StyledTextOutputFactory textOutputFactory,
+        ConfigurationTimeBarrier configurationTimeBarrier
+    ) {
+        this.delegate = delegate;
         this.textOutputFactory = textOutputFactory;
+        this.configurationTimeBarrier = configurationTimeBarrier;
     }
 
     @Override
     public ExecutionResult<Void> execute(GradleInternal gradle, FinalizedExecutionPlan plan) {
-        StyledTextOutput output = textOutputFactory.create(TaskGraphBuildExecutionAction.class);
+        if (configurationTimeBarrier.isAtConfigurationTime()) {
+            return delegate.execute(gradle, plan);
+        }
 
-        plan.getContents().getScheduledNodes().visitNodes((nodes, entryNodes) -> {
-            String invocation = gradle
-                .getStartParameter()
-                .getTaskRequests()
-                .stream()
-                .map(TaskExecutionRequest::getArgs)
-                .flatMap(List::stream)
-                .collect(Collectors.joining(" "));
+        // The task sub-graph from an included build will be traversed and printed from the root build as well
+        if (gradle.isRootBuild()) {
+            StyledTextOutput output = textOutputFactory.create(TaskGraphBuildExecutionAction.class);
 
-            DirectedGraphRenderer<TaskInfo> renderer = new DirectedGraphRenderer<>(new NodeRenderer(), new NodesGraph());
-            renderer.renderTo(new RootNode(entryNodes, invocation), output);
-        });
+            plan.getContents().getScheduledNodes().visitNodes((nodes, entryNodes) -> {
+                String invocation = gradle
+                    .getStartParameter()
+                    .getTaskRequests()
+                    .stream()
+                    .map(TaskExecutionRequest::getArgs)
+                    .flatMap(List::stream)
+                    .collect(Collectors.joining(" "));
+
+                DirectedGraphRenderer<TaskInfo> renderer = new DirectedGraphRenderer<>(new NodeRenderer(), new NodesGraph());
+                renderer.renderTo(new RootNode(entryNodes, invocation), output);
+            });
+        }
         return ExecutionResult.succeeded();
     }
 
     private static class NodeRenderer implements GraphNodeRenderer<TaskInfo> {
 
         @Override
-        public void renderTo(TaskInfo node, StyledTextOutput output) {
+        public void renderTo(TaskInfo node, StyledTextOutput output, boolean alreadySeen) {
             output
                 .withStyle(StyledTextOutput.Style.Identifier).text(node.getId());
 
-            String description = node.getDescription();
-            if (!description.isEmpty()) {
-                output.text(" ");
-                output.withStyle(StyledTextOutput.Style.Description).text(description);
+            if (!alreadySeen) {
+                String description = node.getDescription();
+                if (!description.isEmpty()) {
+                    output.text(" ");
+                    output.withStyle(StyledTextOutput.Style.Description).text(description);
+                }
             }
         }
     }
@@ -90,7 +108,7 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
 
     private static Stream<TaskInfo> extractTaskNodes(Collection<Node> collection, DependencyType type) {
         return collection.stream()
-            .filter(node -> node instanceof TaskNode && !(node.isDoNotIncludeInPlan() && !node.isExecuted()))
+            .filter(node -> node instanceof TaskNode && !node.isDoNotIncludeInPlan())
             .map(taskNode -> new DefaultTaskInfo((TaskNode) taskNode, type));
     }
 

@@ -17,8 +17,6 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
-import spock.lang.Issue
 
 class TaskGraphIntegrationTest extends AbstractIntegrationSpec {
 
@@ -35,7 +33,7 @@ Tasks graph for: root
 \\--- :root (org.gradle.api.DefaultTask)
      +--- :leaf1 (org.gradle.api.DefaultTask)
      \\--- :middle (org.gradle.api.DefaultTask)
-          +--- :leaf1 (org.gradle.api.DefaultTask) (*)
+          +--- :leaf1 (*)
           \\--- :leaf2 (org.gradle.api.DefaultTask)
 
 (*) - details omitted (listed previously)
@@ -68,10 +66,10 @@ Tasks graph for: root r2
 +--- :root (org.gradle.api.DefaultTask)
 |    +--- :leaf1 (org.gradle.api.DefaultTask)
 |    \\--- :middle (org.gradle.api.DefaultTask)
-|         +--- :leaf1 (org.gradle.api.DefaultTask) (*)
+|         +--- :leaf1 (*)
 |         \\--- :leaf2 (org.gradle.api.DefaultTask)
 \\--- :root2 (org.gradle.api.DefaultTask)
-     \\--- :leaf2 (org.gradle.api.DefaultTask) (*)
+     \\--- :leaf2 (*)
 
 (*) - details omitted (listed previously)
 """)
@@ -116,7 +114,7 @@ Tasks graph for: root r2
 +--- :root (org.gradle.api.DefaultTask)
 |    +--- :leaf1 (org.gradle.api.DefaultTask)
 |    \\--- :middle (org.gradle.api.DefaultTask)
-|         +--- :leaf1 (org.gradle.api.DefaultTask) (*)
+|         +--- :leaf1 (*)
 |         \\--- :leaf2 (org.gradle.api.DefaultTask)
 \\--- :root2 (org.gradle.api.DefaultTask)
      \\--- other build task :included:fromIncluded (org.gradle.api.DefaultTask)
@@ -125,14 +123,16 @@ Tasks graph for: root r2
 
 (*) - details omitted (listed previously)
 """)
-        // see https://github.com/gradle/gradle/issues/2517
-        outputContains("I'm a task called included leaf1")
+        outputDoesNotContain("I'm a task called included leaf1")
     }
 
     def "shows the subgraph of a task included from included build for qualified task invocation"() {
         given:
         settingsFile """
             includeBuild "included"
+        """
+        settingsFile 'included/settings.gradle', """
+            rootProject.name = "included"
         """
         buildFile 'included/build.gradle', """
             def leaf1 = tasks.register("leaf1"){
@@ -174,18 +174,39 @@ Tasks graph for: :included:fromIncluded
      +--- :included:leaf2 (org.gradle.api.DefaultTask)
      +--- :included:middle (org.gradle.api.DefaultTask)
      |    +--- :included:leaf1 (org.gradle.api.DefaultTask)
-     |    \\--- :included:leaf2 (org.gradle.api.DefaultTask) (*)
+     |    \\--- :included:leaf2 (*)
      \\--- :included:leaf3 (org.gradle.api.DefaultTask, finalizer)
 
 (*) - details omitted (listed previously)
 """)
-        // see https://github.com/gradle/gradle/issues/2517
-        outputContains("I'm a task called included leaf1")
+        outputDoesNotContain("I'm a task called included leaf1")
+
+        and: "shows the task graph for included build tasks if invoked in it's directory"
+
+        when:
+        executer
+            .inDirectory(file("included"))
+
+        succeeds("fromIncluded", "--task-graph")
+
+        then:
+        outputContains("""
+Tasks graph for: fromIncluded
+\\--- :fromIncluded (org.gradle.api.DefaultTask)
+     +--- :leaf2 (org.gradle.api.DefaultTask)
+     +--- :middle (org.gradle.api.DefaultTask)
+     |    +--- :leaf1 (org.gradle.api.DefaultTask)
+     |    \\--- :leaf2 (*)
+     \\--- :leaf3 (org.gradle.api.DefaultTask, finalizer)
+
+(*) - details omitted (listed previously)
+""")
     }
 
     def "does not show graph for buildSrc tasks"() {
         given:
         buildFile 'buildSrc/build.gradle', ""
+        buildFile 'buildSrc/settings.gradle', ""
         buildFile sampleGraph
 
         when:
@@ -197,13 +218,59 @@ Tasks graph for: root
 \\--- :root (org.gradle.api.DefaultTask)
      +--- :leaf1 (org.gradle.api.DefaultTask)
      \\--- :middle (org.gradle.api.DefaultTask)
-          +--- :leaf1 (org.gradle.api.DefaultTask) (*)
+          +--- :leaf1 (*)
           \\--- :leaf2 (org.gradle.api.DefaultTask)
 
 (*) - details omitted (listed previously)
 """)
         executed(":buildSrc:jar")
         outputDoesNotContain("--- :buildSrc:jar")
+
+        and: "does not show the task graph for buildSrc tasks if invoked directly because jar is magic"
+
+        when:
+        executer
+            .inDirectory(file("buildSrc"))
+
+        fails("jar", "--task-graph")
+
+        then:
+        result.assertHasErrorOutput("""Task 'jar' not found in root project 'buildSrc'.""")
+
+        and: "shows the task graph for buildSrc tasks if invoked directly when java plugin is explicit"
+
+        when:
+        buildFile 'buildSrc/build.gradle', """
+            plugins {
+                id "java-library"
+            }
+            def buildSrcTask = tasks.register("buildSorcerer") {
+                doLast {
+                    println("I'm a buildSorcerer task!")
+                }
+            }
+            tasks.named("compileJava") {
+                dependsOn(buildSrcTask)
+            }
+        """
+        executer
+                .inDirectory(file("buildSrc"))
+
+        succeeds("jar", "--task-graph")
+
+        then:
+        outputContains("""
+Tasks graph for: jar
+\\--- :jar (org.gradle.api.tasks.bundling.Jar)
+     +--- :classes (org.gradle.api.DefaultTask)
+     |    +--- :compileJava (org.gradle.api.tasks.compile.JavaCompile)
+     |    |    \\--- :buildSorcerer (org.gradle.api.DefaultTask)
+     |    \\--- :processResources (org.gradle.language.jvm.tasks.ProcessResources)
+     \\--- :compileJava (*)
+
+(*) - details omitted (listed previously)
+""")
+        outputDoesNotContain("I'm a buildSorcerer task!")
     }
 
     def "does not show graph for tasks from early included builds"() {
@@ -212,6 +279,7 @@ Tasks graph for: root
             file('build.gradle') << """
                 plugins { id 'groovy-gradle-plugin' }
             """
+            file('settings.gradle') << ""
             file('src/main/groovy/my-plugin.gradle') << """
                 println 'In script plugin'
             """
@@ -247,7 +315,7 @@ Tasks graph for: root
 \\--- :root (org.gradle.api.DefaultTask)
      +--- :leaf1 (org.gradle.api.DefaultTask)
      \\--- :middle (org.gradle.api.DefaultTask)
-          +--- :leaf1 (org.gradle.api.DefaultTask) (*)
+          +--- :leaf1 (*)
           \\--- :leaf2 (org.gradle.api.DefaultTask)
 
 (*) - details omitted (listed previously)
@@ -255,6 +323,38 @@ Tasks graph for: root
         outputContains("In script plugin")
         executed(":included:jar")
         outputDoesNotContain("--- :included:jar")
+
+        and: "shows the task graph for early included build tasks if invoked in it's directory"
+
+        when:
+        executer
+            .inDirectory(file("included"))
+
+        succeeds("jar", "--task-graph")
+
+        then:
+        outputContains("""
+Tasks graph for: jar
+\\--- :jar (org.gradle.api.tasks.bundling.Jar)
+     +--- :classes (org.gradle.api.DefaultTask)
+     |    +--- :compileGroovy (org.gradle.api.tasks.compile.GroovyCompile)
+     |    |    \\--- :compileJava (org.gradle.api.tasks.compile.JavaCompile)
+     |    |         \\--- :generatePluginAdapters (org.gradle.plugin.devel.internal.precompiled.GeneratePluginAdaptersTask)
+     |    |              \\--- :extractPluginRequests (org.gradle.plugin.devel.internal.precompiled.ExtractPluginRequestsTask)
+     |    +--- :compileGroovyPlugins (org.gradle.plugin.devel.internal.precompiled.CompileGroovyScriptPluginsTask)
+     |    |    +--- :compileGroovy (*)
+     |    |    \\--- :compileJava (*)
+     |    +--- :compileJava (*)
+     |    +--- :extractPluginRequests (*)
+     |    \\--- :processResources (org.gradle.language.jvm.tasks.ProcessResources)
+     |         \\--- :pluginDescriptors (org.gradle.plugin.devel.tasks.GeneratePluginDescriptors)
+     +--- :compileGroovy (*)
+     +--- :compileGroovyPlugins (*)
+     +--- :compileJava (*)
+     \\--- :extractPluginRequests (*)
+
+(*) - details omitted (listed previously)
+""")
     }
 
     def "shows simple graph of tasks with task removed"() {
@@ -296,7 +396,7 @@ Tasks graph for: root
 \\--- :root (org.gradle.api.DefaultTask)
      +--- :leaf1 (org.gradle.api.DefaultTask)
      \\--- :middle (org.gradle.api.DefaultTask, disabled)
-          +--- :leaf1 (org.gradle.api.DefaultTask) (*)
+          +--- :leaf1 (*)
           \\--- :leaf2 (org.gradle.api.DefaultTask)
 
 (*) - details omitted (listed previously)
@@ -336,7 +436,7 @@ Tasks graph for: root root2
 |         +--- :leaf1 (org.gradle.api.DefaultTask)
 |         \\--- :leaf2 (org.gradle.api.DefaultTask)
 \\--- :root2 (org.gradle.api.DefaultTask)
-     \\--- :leaf1 (org.gradle.api.DefaultTask) (*)
+     \\--- :leaf1 (*)
 
 (*) - details omitted (listed previously)
 """)
@@ -374,7 +474,7 @@ Tasks graph for: root root2
 |         +--- :leaf1 (org.gradle.api.DefaultTask)
 |         \\--- :leaf2 (org.gradle.api.DefaultTask)
 \\--- :root2 (org.gradle.api.DefaultTask)
-     +--- :leaf1 (org.gradle.api.DefaultTask) (*)
+     +--- :leaf1 (*)
      \\--- :leaf4 (org.gradle.api.DefaultTask, finalizer)
           \\--- :leaf3 (org.gradle.api.DefaultTask)
 
@@ -401,7 +501,7 @@ Tasks graph for: clean root
 \\--- :root (org.gradle.api.DefaultTask)
      +--- :leaf1 (org.gradle.api.DefaultTask)
      \\--- :middle (org.gradle.api.DefaultTask)
-          +--- :leaf1 (org.gradle.api.DefaultTask) (*)
+          +--- :leaf1 (*)
           \\--- :leaf2 (org.gradle.api.DefaultTask)
 
 (*) - details omitted (listed previously)
@@ -587,8 +687,6 @@ Tasks graph for: b1 b2
         outputDoesNotContain(":t")
     }
 
-    @Ignore
-    @Issue("https://github.com/gradle/gradle/issues/2517")
     def "does not mix the output with included build"() {
         given:
         def taskCount = 500
@@ -677,13 +775,130 @@ Tasks graph for: root
      |         \\--- :lib:libleaf1 (org.gradle.api.DefaultTask)
      +--- :app:leaf1 (org.gradle.api.DefaultTask)
      \\--- :app:middle (org.gradle.api.DefaultTask)
-          +--- :app:leaf1 (org.gradle.api.DefaultTask) (*)
+          +--- :app:leaf1 (*)
           \\--- :app:leaf2 (org.gradle.api.DefaultTask)
 
 (*) - details omitted (listed previously)
 """)
 
         outputDoesNotContain("I'm a task called")
+    }
+
+    def "can execute logic from included builds if it's required for configuration"() {
+        given:
+        settingsFile """
+            pluginManagement {
+                includeBuild 'build-logic-settings'
+            }
+
+            plugins {
+                id 'org.test.plugin.SettingsPlugin'
+            }
+
+            includeBuild 'build-logic-commons'
+            includeBuild "build-logic"
+        """
+        settingsFile "build-logic-settings/settings.gradle", """
+            println("I'm a build logic settings file")
+        """
+        buildFile "build-logic-settings/build.gradle", """
+            plugins {
+                id 'java-gradle-plugin'
+            }
+
+            gradlePlugin {
+                plugins {
+                    myPlugin {
+                        id = "org.test.plugin.SettingsPlugin"
+                        implementationClass = "org.test.SettingsPlugin"
+                    }
+                }
+            }
+
+            println "I'm settings plugin"
+            tasks.register("settingsTask") {
+                doLast {
+                    println "I'm settings task"
+                }
+            }
+            tasks.named("compileJava") {
+                dependsOn "settingsTask"
+            }
+        """
+        file("build-logic-settings/src/main/java/org/test/SettingsPlugin.java") << """
+            package org.test;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.initialization.Settings;
+
+            public class SettingsPlugin implements Plugin<Settings> {
+                public void apply(Settings settings) {
+                    System.out.println("I'm SettingsPlugin");
+                }
+            }
+        """
+        settingsFile "build-logic-commons/settings.gradle", """
+            includeBuild('../build-logic-settings')
+            include("basics")
+        """
+        buildFile "build-logic-commons/build.gradle", """
+            plugins {
+                id "base"
+            }
+            tasks.register("commonsTask") {
+                dependsOn(":basics:commonsTask")
+            }
+        """
+        buildFile "build-logic-commons/basics/build.gradle", """
+            plugins {
+                id 'java'
+                id 'groovy-gradle-plugin'
+            }
+            tasks.register("commonsTask") {
+                doLast {
+                    println "I'm commons task"
+                }
+            }
+            tasks.named("compileJava") {
+                dependsOn "commonsTask"
+            }
+        """
+        file('build-logic-commons/basics/src/main/groovy/dummy.plugin.gradle') << ""
+        settingsFile "build-logic/settings.gradle", """
+            pluginManagement {
+                includeBuild '../build-logic-commons'
+            }
+        """
+        buildFile "build-logic/build.gradle", """
+            plugins {
+                id "base"
+                id 'dummy.plugin'
+            }
+        """
+        buildFile """
+            tasks.register("root") {
+                dependsOn(gradle.includedBuild("build-logic-commons").task(":commonsTask"))
+                dependsOn(gradle.includedBuild("build-logic").task(":check"))
+                doLast {
+                    println "I'm root task"
+                }
+            }
+        """
+
+        when:
+        succeeds("root", "--task-graph")
+
+        then:
+        outputContains("""
+Tasks graph for: root
+\\--- :root (org.gradle.api.DefaultTask)
+     +--- other build task :build-logic:check (org.gradle.api.DefaultTask)
+     \\--- other build task :build-logic-commons:commonsTask (org.gradle.api.DefaultTask)
+""")
+        executedAndNotSkipped(
+            ":build-logic-settings:settingsTask",
+            ":build-logic-commons:basics:commonsTask", ":build-logic-commons:basics:jar"
+        )
     }
 
     private def sampleGraph = buildScriptSnippet """

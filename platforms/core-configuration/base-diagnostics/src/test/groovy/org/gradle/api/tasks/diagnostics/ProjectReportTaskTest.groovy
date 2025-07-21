@@ -19,6 +19,7 @@ import org.gradle.api.Project
 import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.TextUtil
 
 class ProjectReportTaskTest extends AbstractProjectBuilderSpec {
     ProjectReportTask task
@@ -41,14 +42,25 @@ class ProjectReportTaskTest extends AbstractProjectBuilderSpec {
         task.generateReportFor(model.project, model)
 
         then:
-        output.value == '''Root project 'test-project' - this is the root project
+        TextUtil.normaliseFileSeparators(output.value) == TextUtil.normaliseFileSeparators("""Location: ${project.projectDir.absolutePath}
+Description: this is the root project
+
+Project hierarchy:
+
+Root project 'test-project\'
 +--- Project ':child1' - this is a subproject
-|    \\--- Project ':child1:child1'
-\\--- Project ':child2'
+|    \\--- Project ':child1:child1\'
+\\--- Project ':child2\'
+
+Project locations:
+
+project ':child1' - /child1
+project ':child1:child1' - /child1/child1
+project ':child2' - /child2
 
 To see a list of the tasks of a project, run gradle <project-path>:tasks
 For example, try running gradle :child1:tasks
-'''
+""")
     }
 
     def rendersReportForRootProjectWithNoChildren() {
@@ -59,12 +71,17 @@ For example, try running gradle :child1:tasks
         task.generateReportFor(model.project, model)
 
         then:
-        output.value == '''Root project 'test-project' - this is the root project
+        TextUtil.normaliseFileSeparators(output.value) == TextUtil.normaliseFileSeparators("""Location: ${project.projectDir.absolutePath}
+Description: this is the root project
+
+Project hierarchy:
+
+Root project 'test-project'
 No sub-projects
 
 To see a list of the tasks of a project, run gradle <project-path>:tasks
 For example, try running gradle :tasks
-'''
+""")
     }
 
     def rendersReportForNonRootProjectWithNoChildren() {
@@ -75,13 +92,21 @@ For example, try running gradle :tasks
         task.generateReportFor(model.project, model)
 
         then:
-        output.value == '''Project ':child1'
+        TextUtil.normaliseFileSeparators(output.value) == TextUtil.normaliseFileSeparators("""Location: ${project.project("child1").projectDir.absolutePath}
+
+Project hierarchy:
+
+Project ':child1'
 No sub-projects
+
+Project locations:
+
+project ':child1' - /child1
 
 To see a list of the tasks of a project, run gradle <project-path>:tasks
 For example, try running gradle :child1:tasks
 
 To see a list of all the projects in this build, run gradle :projects
-'''
+""")
     }
 }

@@ -26,6 +26,7 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginTargetType;
+import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.cache.GlobalCacheLocations;
@@ -95,15 +96,17 @@ public class GradleScopeServices implements ServiceRegistrationProvider {
     BuildWorkExecutor createBuildExecuter(
         GradleInternal gradle,
         StyledTextOutputFactory textOutputFactory,
-        BuildOperationRunner buildOperationRunner
+        BuildOperationRunner buildOperationRunner,
+        ConfigurationTimeBarrier configurationTimeBarrier
     ) {
+        BuildWorkExecutor delegate = new SelectedTaskExecutionAction();
         BuildWorkExecutor executor;
         if (gradle.getStartParameter().isDryRun()) {
-            executor = new DryRunBuildExecutionAction(textOutputFactory);
+            executor = new DryRunBuildExecutionAction(delegate, textOutputFactory, configurationTimeBarrier);
         } else if (gradle.getStartParameter().isTaskGraph()) {
-            executor = new TaskGraphBuildExecutionAction(textOutputFactory);
+            executor = new TaskGraphBuildExecutionAction(delegate, textOutputFactory, configurationTimeBarrier);
         } else {
-            executor = new SelectedTaskExecutionAction();
+            executor = delegate;
         }
         return new BuildOperationFiringBuildWorkerExecutor(executor, buildOperationRunner);
     }
