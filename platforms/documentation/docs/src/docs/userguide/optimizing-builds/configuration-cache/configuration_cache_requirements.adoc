@@ -176,7 +176,8 @@ The table below lists recommended replacements for commonly used `Project` metho
 | A task input or output property or a script variable to capture the result of using `project.projectDir` to calculate the actual parameter.
 
 | `project.buildDir`
-| A task input or output property or a script variable to capture the result of using `project.buildDir` to calculate the actual parameter.
+| `project.buildDir` has been deprecated. You should use `project.layout.buildDirectory`.
+Use a task input or output property or a script variable to capture the result of using `project.layout.buildDirectory` to calculate the actual parameter.
 
 | `project.name`
 | A task input or output property or a script variable to capture the result of using `project.name` to calculate the actual parameter.
@@ -328,11 +329,17 @@ Recommended Alternatives:
 [[config_cache:requirements:external_processes]]
 == Running External Processes
 
-Plugin and build scripts should avoid running external processes at configuration time.
+TIP: Plugin and build scripts should avoid running external processes at configuration time.
 
-In general, it is preferred to run external processes in tasks with properly declared inputs and outputs to avoid unnecessary work when the task is `UP-TO-DATE`.
-However, if needed, you should only use the configuration-cache-compatible APIs described below instead of Java and Groovy standard APIs, or Gradle-provided methods `Project.exec`, `Project.javaexec`, `ExecOperations.exec`, and `ExecOperations.javaexec`.
-The flexibility of these methods prevents Gradle from determining how the calls impact the build configuration, making it difficult to ensure that the Configuration Cache entry can be safely reused.
+You should avoid using these APIs for running processes during configuration:
+
+- *Java/Kotlin*: `ProcessBuilder`, `Runtime.exec(...)`, etc...
+- *Groovy*: `*.execute()`, etc...
+- *Gradle*: `ExecOperations.exec`, `ExecOperations.javaexec`, etc...
+
+The flexibility of these methods prevent Gradle from determining how the calls impact the build configuration, making it difficult to ensure that the Configuration Cache entry can be safely reused.
+
+However, if running processes is required at configuration time, you can use the configuration-cache-compatible APIs detailed below.
 
 For simpler cases, when grabbing the output of the process is enough,
 link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:exec(org.gradle.api.Action)[`providers.exec()`] and
