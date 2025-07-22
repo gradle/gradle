@@ -380,7 +380,7 @@ A secondary variant:
 * Is published automatically unless explicitly skipped.
 * May be selected during dependency resolution or by `ArtifactView` if the requested attributes match.
 
-Secondary variants are typically used to expose *precomputed transforms* of the main artifact like `.class` files extracted from a JAR, or the `resources` directory.
+Secondary variants are typically used to expose *precomputed transforms* of the main artifact like `.class` files or the `resources` directory.
 
 WARNING: Secondary variants are sometimes referred to in tooling or logs, but this term is being deprecated in favor of more precise concepts like *artifact sets* or *precomputed transforms*.
 
@@ -401,7 +401,8 @@ include::{snippetsPath}/dependencyManagement/customizingResolution-secondaryVari
 
 As shown in the output, in addition to its main artifact (`some-library-1.2.3.jar`), `apiElements` also exposes a **secondary variant** named `classes`, which provides the compiled class files as a `java-classes-directory`.
 
-This `classes` secondary variant does not influence which component is selected during graph resolution, but it gives Gradle more flexibility during artifact selection — for example, enabling consumers to use unjarred class files for faster access in IDEs or incremental compilation.
+The `classes` secondary variant (which does not contribute dependencies during graph resolution so it does not influence graph resolution) provides Gradle with additional flexibility during artifact selection.
+For example, enabling consumers to use unjarred class files for faster access in IDEs or incremental compilation.
 
 Let's create a secondary variant of our Java library:
 
