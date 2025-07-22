@@ -20,9 +20,20 @@ import org.gradle.exemplar.executor.ExecutionMetadata
 import org.gradle.exemplar.test.normalizer.OutputNormalizer
 
 class EmptyLineRemovalOutputNormalizer implements OutputNormalizer {
+    private static final List<String> SAMPLES_IGNORING_EMPTY_LINE = [
+        "useCacheabilityAnnotations",
+        "avoidInternal",
+        "multiproject-basic-multiproject_groovy_test",
+        "multiproject-basic-multiproject_kotlin_test",
+        "multiproject_kotlin_listProjects",
+        "multiproject_groovy_listProjects",
+        "maven-migration-multi-module_kotlin_project",
+        "maven-migration-multi-module_groovy_projects"
+    ]
+
     @Override
     String normalize(String commandOutput, ExecutionMetadata executionMetadata) {
-        if (executionMetadata.tempSampleProjectDir.name.contains('useCacheabilityAnnotations')) {
+        if (SAMPLES_IGNORING_EMPTY_LINE.any { executionMetadata.tempSampleProjectDir.name.contains(it) }) {
             return commandOutput.readLines()
                 .collect { it.trim() }
                 .findAll { !it.isEmpty() }
