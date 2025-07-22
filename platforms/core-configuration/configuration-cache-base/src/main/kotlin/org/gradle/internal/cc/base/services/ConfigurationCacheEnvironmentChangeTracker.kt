@@ -31,38 +31,40 @@ import java.util.concurrent.ConcurrentHashMap
  * and the list of the operations can be retrieved as the CachedEnvironmentState object. This mode is intended for the
  * builds with the configuration phase. The second mode applies the restored state to the environment and doesn't
  * track anything. This mode is used when the configuration is restored from the configuration cache.
- * Mode selection happens upon the first use of the class. Calling an operation that isn't supported in the current
+ * Mode selection happens upon the first use of the class. Calling an operation not supported in the current
  * mode results in the IllegalStateException.
  */
-
 @ServiceScope(Scope.BuildTree::class)
 class ConfigurationCacheEnvironmentChangeTracker(private val problemFactory: ProblemFactory) : EnvironmentChangeTracker {
     private
     val mode = ModeHolder()
 
     override fun systemPropertyChanged(key: Any, value: Any?, consumer: String?) =
-        mode.toTrackingMode().systemPropertyChanged(key, value, consumer)
+        trackingMode().systemPropertyChanged(key, value, consumer)
 
     override fun systemPropertyLoaded(key: Any, value: Any?, oldValue: Any?) {
-        mode.toTrackingMode().systemPropertyLoaded(key, value, oldValue)
+        trackingMode().systemPropertyLoaded(key, value, oldValue)
     }
 
     override fun systemPropertyOverridden(key: Any) =
-        mode.toTrackingMode().systemPropertyOverridden(key)
+        trackingMode().systemPropertyOverridden(key)
 
-    fun isSystemPropertyMutated(key: String) = mode.toTrackingMode().isSystemPropertyMutated(key)
+    fun isSystemPropertyMutated(key: String) = trackingMode().isSystemPropertyMutated(key)
 
-    fun isSystemPropertyLoaded(key: String) = mode.toTrackingMode().isSystemPropertyLoaded(key)
+    fun isSystemPropertyLoaded(key: String) = trackingMode().isSystemPropertyLoaded(key)
 
-    fun getLoadedPropertyOldValue(key: String) = mode.toTrackingMode().getLoadedPropertyOldValue(key)
+    fun getLoadedPropertyOldValue(key: String) = trackingMode().getLoadedPropertyOldValue(key)
 
     fun loadFrom(storedState: CachedEnvironmentState) = mode.toRestoringMode().loadFrom(storedState)
 
-    fun getCachedState() = mode.toTrackingMode().getCachedState()
+    fun getCachedState() = trackingMode().getCachedState()
 
-    fun systemPropertyRemoved(key: Any) = mode.toTrackingMode().systemPropertyRemoved(key)
+    fun systemPropertyRemoved(key: Any) = trackingMode().systemPropertyRemoved(key)
 
-    fun systemPropertiesCleared() = mode.toTrackingMode().systemPropertiesCleared()
+    fun systemPropertiesCleared() = trackingMode().systemPropertiesCleared()
+
+    private
+    fun trackingMode(): Tracking = mode.toTrackingMode()
 
     private
     inner class ModeHolder {
@@ -115,9 +117,9 @@ class ConfigurationCacheEnvironmentChangeTracker(private val problemFactory: Pro
         }
 
         override fun toRestoring(): Restoring {
-            // Restoration must consider properties that was overridden after store.
-            // When property was loaded and stored then loaded value will be presented for execution time after restore.
-            // This is a wrong behavior if property was overridden. Execution time must see overridden value instead of restored one.
+            // Restoration must consider properties overridden after store.
+            // When the property was loaded and stored, then the loaded value will be presented for execution time after restore.
+            // This is wrong behavior if property was overridden. Execution time must see overridden value instead of restored one.
             // Overridden properties keys are passed to be excluded from the restoration process.
             return Restoring(mutatedSystemProperties.filterValues { it is SystemPropertyOverride }.keys)
         }
@@ -211,7 +213,11 @@ class ConfigurationCacheEnvironmentChangeTracker(private val problemFactory: Pro
         }
     }
 
-    class CachedEnvironmentState(val cleared: Boolean, val updates: List<SystemPropertySet>, val removals: List<SystemPropertyRemove>)
+    class CachedEnvironmentState(
+        val cleared: Boolean,
+        val updates: List<SystemPropertySet>,
+        val removals: List<SystemPropertyRemove>
+    )
 
     sealed class SystemPropertyChange
 
@@ -227,7 +233,7 @@ class ConfigurationCacheEnvironmentChangeTracker(private val problemFactory: Pro
 
     /**
      * This is a placeholder for system properties that were set but then removed. Having this in the map marks
-     * the property as mutated for the rest of the configuration phase but doesn't store the key in cache.
+     * the property as mutated for the rest of the configuration phase but doesn't store the key in the cache.
      */
     object SystemPropertyIgnored : SystemPropertyChange()
 }
