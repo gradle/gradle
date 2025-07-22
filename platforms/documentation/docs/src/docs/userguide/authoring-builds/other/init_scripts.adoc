@@ -141,6 +141,9 @@ include::{snippetsPath}/initScripts/externalDependency/tests-common/externalInit
 [[sec:init_script_plugins]]
 == Applying plugins
 
+TIP: This section provides a basic sample about using init scripts.
+If you want to learn about Maven Central mirroring and caching in real scenarios, head over to our link:https://cookbook.gradle.org/integrations/maven-central/repositories/[Gradle Cookbook].
+
 Plugins can be applied to init scripts like a Gradle build script or a Gradle settings file.
 
 Using plugins in init scripts:
