@@ -43,6 +43,7 @@ import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.instantiation.managed.DefaultManagedObjectRegistry;
 import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -70,7 +71,7 @@ public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     ManagedObjectRegistry createManagedObjectRegistry() {
-        return new ManagedObjectRegistry(null);
+        return new DefaultManagedObjectRegistry(null);
     }
 
     @Provides

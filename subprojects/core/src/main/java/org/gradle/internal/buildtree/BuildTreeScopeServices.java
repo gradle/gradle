@@ -73,6 +73,7 @@ import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instantiation.managed.DefaultManagedObjectRegistry;
 import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
 import org.gradle.internal.instrumentation.reporting.DefaultMethodInterceptionReportCollector;
 import org.gradle.internal.instrumentation.reporting.ErrorReportingMethodInterceptionReportCollector;
@@ -130,7 +131,7 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     ManagedObjectRegistry decorateManagedObjectRegistry(ManagedObjectRegistry parent) {
-        return new ManagedObjectRegistry(parent);
+        return new DefaultManagedObjectRegistry(parent);
     }
 
     @Provides
