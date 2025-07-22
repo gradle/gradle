@@ -21,6 +21,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
@@ -28,7 +29,6 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.gradle.work.DisableCachingByDefault
 import java.util.regex.Pattern
 import javax.inject.Inject
 
@@ -39,13 +39,13 @@ import javax.inject.Inject
  * For example, we have two classes ABC.java and XYZ.groovy that include `class='autoTested'`,
  * there will be two files generated: `ABCAutoTestedSamplesTest.groovy` and `XYZAutoTestedSamplesTest.groovy`
  */
-@DisableCachingByDefault(because = "The output is OS and path-sensitive") // FIXME: the output is not relocatable
+@CacheableTask
 abstract class GenerateAutoTestedSamplesTestTask @Inject constructor(@Internal val fileOperations: FileOperations) : DefaultTask() {
     private
     val sampleStart = Pattern.compile("""<pre class=['"]autoTested(.*?)['"].*?>""")
 
     @get:InputFiles
-    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:PathSensitive(PathSensitivity.ABSOLUTE)
     abstract val mainSources: ConfigurableFileCollection
 
     @get:Input
