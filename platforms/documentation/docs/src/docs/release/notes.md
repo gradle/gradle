@@ -89,7 +89,7 @@ tasks.ear {
 ```
 
 <a name="cli"></a>
-### CLI improvement
+### CLI improvements
 
 #### Off-screen lines reported in rich console
 
@@ -189,7 +189,7 @@ The appropriate test framework variant will be inferred automatically based on t
 For more information, refer to the [Kotlin Gradle Configuration documentation](https://kotlinlang.org/docs/gradle-configure-project.html#set-dependencies-on-test-libraries) or
 the `[kotlin-test](https://kotlinlang.org/api/core/kotlin-test/)` api documentation.
 
-### Configuration Improvements
+### Configuration improvements
 
 #### Simpler target package configuration for Antlr 4
 The AntlrTask class now supports explicitly setting the target package for generated code when using Antlr 4.
@@ -347,6 +347,17 @@ For example, try running gradle :app:tasks
 ```
 
 This will help authors better understand the structure of hierarchical builds that use non-standard project directories.
+
+<a name="config-cache"></a>
+### Configuration cache improvements
+
+Gradle's [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of the configuration phase. Gradle uses the configuration cache to skip the configuration phase entirely when nothing that affects the build configuration has changed.
+
+#### Encryption honors the JVM's default keystore type
+
+Previously, Gradle always used the PKCS12 keystore type for its encryption keystore (currently used only by the Configuration Cache), regardless of the JVM's default.
+Starting with this release, Gradle will honor the JVM’s default keystore type, provided it supports storing symmetric keys.
+If the default keystore type is a known format that only supports asymmetric keys, Gradle will fall back to `PKCS12`.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
