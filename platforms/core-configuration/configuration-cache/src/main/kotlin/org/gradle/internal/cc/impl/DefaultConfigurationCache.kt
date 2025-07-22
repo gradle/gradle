@@ -851,7 +851,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun loadGradleProperties() {
-        gradlePropertiesController.loadGradlePropertiesFrom(startParameter.settingsDirectory, true)
+        gradlePropertiesController.loadGradlePropertiesFrom(startParameter.buildTreeRootDirectory, true)
     }
 
     private

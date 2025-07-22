@@ -131,10 +131,7 @@ class ConfigurationCacheStartParameter internal constructor(
     val currentDirectory: File
         get() = startParameter.currentDir
 
-    val settingsDirectory: File
-        get() = buildTreeLocations.buildTreeRootDirectory
-
-    val rootDirectory: File
+    val buildTreeRootDirectory: File
         get() = buildTreeLocations.buildTreeRootDirectory
 
     val isOffline
