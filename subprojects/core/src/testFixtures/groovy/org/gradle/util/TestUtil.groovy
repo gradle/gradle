@@ -65,6 +65,7 @@ import org.gradle.internal.hash.Hashing
 import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
+import org.gradle.internal.instantiation.managed.DefaultManagedObjectRegistry
 import org.gradle.internal.instantiation.managed.ManagedObjectRegistry
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.InMemoryCacheFactory
@@ -199,7 +200,7 @@ class TestUtil {
             it.addProvider(new ServiceRegistrationProvider() {
                 @Provides
                 ManagedObjectRegistry createManagedObjectRegistry() {
-                    new ManagedObjectRegistry(null)
+                    new DefaultManagedObjectRegistry(null)
                 }
 
                 @Provides

@@ -47,6 +47,7 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instantiation.managed.DefaultManagedObjectRegistry;
 import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
@@ -77,7 +78,7 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
 
     @Provides
     ManagedObjectRegistry decorateManagedObjectRegistry(ManagedObjectRegistry parent) {
-        return new ManagedObjectRegistry(parent);
+        return new DefaultManagedObjectRegistry(parent);
     }
 
     @Provides
