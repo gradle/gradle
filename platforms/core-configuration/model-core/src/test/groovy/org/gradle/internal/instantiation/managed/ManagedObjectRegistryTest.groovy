@@ -233,7 +233,7 @@ class ManagedObjectRegistryTest extends Specification {
         def parentRegistry = registryOf {
             it.add(ManyProvidingImplementation)
         }
-        def registry = new DefaultManagedObjectRegistry(parentRegistry)
+        def registry = parentRegistry.createChild()
 
         when:
         Thing thing = registry.newInstance(Thing)
@@ -502,7 +502,7 @@ class ManagedObjectRegistryTest extends Specification {
             it.addProvider(new ServiceRegistrationProvider() {
                 @Provides
                 ManagedObjectRegistry createManagedObjectRegistry() {
-                    return new DefaultManagedObjectRegistry(null)
+                    return new DefaultManagedObjectRegistry()
                 }
             })
             action.registerServices(it)

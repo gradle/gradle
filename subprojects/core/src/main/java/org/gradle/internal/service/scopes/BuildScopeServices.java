@@ -189,7 +189,6 @@ import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.instantiation.managed.DefaultManagedObjectRegistry;
 import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
@@ -271,7 +270,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     ManagedObjectRegistry decorateManagedObjectRegistry(ManagedObjectRegistry parent) {
-        return new DefaultManagedObjectRegistry(parent);
+        return parent.createChild();
     }
 
     @Provides

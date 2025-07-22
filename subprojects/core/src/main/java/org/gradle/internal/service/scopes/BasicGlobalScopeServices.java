@@ -71,7 +71,7 @@ public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     ManagedObjectRegistry createManagedObjectRegistry() {
-        return new DefaultManagedObjectRegistry(null);
+        return new DefaultManagedObjectRegistry();
     }
 
     @Provides
