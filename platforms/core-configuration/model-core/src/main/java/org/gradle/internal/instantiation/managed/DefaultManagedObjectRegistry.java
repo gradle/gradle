@@ -25,6 +25,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,19 +44,24 @@ import java.util.stream.Stream;
 public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
 
     private final @Nullable ManagedObjectRegistry parent;
+    private final ReflectionCache reflectionCache;
     private final ConcurrentMap<Class<?>, MethodHandle> factoryByPublicType = new ConcurrentHashMap<>();
 
     public DefaultManagedObjectRegistry() {
-        this(null);
+        this(null, new ReflectionCache());
     }
 
-    private DefaultManagedObjectRegistry(@Nullable ManagedObjectRegistry parent) {
+    private DefaultManagedObjectRegistry(
+        @Nullable ManagedObjectRegistry parent,
+        ReflectionCache reflectionCache
+    ) {
         this.parent = parent;
+        this.reflectionCache = reflectionCache;
     }
 
     @Override
     public ManagedObjectRegistry createChild() {
-        return new DefaultManagedObjectRegistry(this);
+        return new DefaultManagedObjectRegistry(this, reflectionCache);
     }
 
     @Override
@@ -74,19 +80,14 @@ public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
         assert annotation == ManagedObjectProvider.class;
 
         Object instance = registration.getInstance();
-        Class<?> instanceClass = instance.getClass();
 
-        MethodHandles.Lookup lookup = MethodHandles.lookup();
         for (Class<?> declaredType : registration.getDeclaredTypes()) {
             if (declaredType.isAnnotationPresent(ManagedObjectProvider.class)) {
                 boolean registeredCreator = false;
                 for (Method declaredMethod : declaredType.getMethods()) {
                     Class<?> publicType = findCreatorAnnotation(declaredMethod);
                     if (publicType != null) {
-                        Method instanceMethod = getMethodInInstance(declaredMethod, instanceClass);
-                        MethodHandle handle = bindMethodHandle(instanceMethod, lookup, instance);
-
-                        validateFactoryMethod(instanceMethod, handle);
+                        MethodHandle handle = getHandleForInstance(declaredMethod, instance);
                         registerFactory(publicType, handle);
 
                         registeredCreator = true;
@@ -121,27 +122,23 @@ public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
         return declaredMethod.getReturnType();
     }
 
-    private static Method getMethodInInstance(Method method, Class<?> instanceClass) {
-        try {
-            return instanceClass.getMethod(method.getName(), method.getParameterTypes());
-        } catch (NoSuchMethodException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
+    /**
+     * Get a {@link MethodHandle} which when invoked will execute the given method on the given instance.
+     */
+    private MethodHandle getHandleForInstance(Method declaredMethod, Object instance) {
+        Method instanceMethod = reflectionCache.getMethod(
+            instance.getClass(),
+            declaredMethod.getName(),
+            declaredMethod.getParameterTypes()
+        );
 
-    private static MethodHandle bindMethodHandle(Method method, MethodHandles.Lookup lookup, Object instance) {
-        MethodHandle handle;
-        try {
-             handle = lookup.unreflect(method);
-        } catch (IllegalAccessException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+        if (Modifier.isStatic(instanceMethod.getModifiers())) {
+            throw new IllegalArgumentException("Method " + instanceMethod + " annotated with @ManagedObjectCreator must not be static.");
         }
 
-        if (Modifier.isStatic(method.getModifiers())) {
-            throw new IllegalArgumentException("Method " + method + " annotated with @ManagedObjectCreator must not be static.");
-        }
-
-        return handle.bindTo(instance);
+        MethodHandle handle = reflectionCache.unreflect(instanceMethod).bindTo(instance);
+        validateFactoryMethod(instanceMethod, handle);
+        return handle;
     }
 
     private static void validateFactoryMethod(Method method, MethodHandle handle) {
@@ -240,6 +237,115 @@ public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
         }
 
         return null;
+    }
+
+    /**
+     * A cache shared by all registries in a hierarchy, to avoid recomputing expensive reflection
+     * operations on the same types.
+     * <p>
+     * Since we create a managed object registry for each service scope instance, we very often
+     * need to unreflect the same methods multiple times (e.g. multiple project service registry
+     * instances all offer the same managed types).
+     */
+    private static class ReflectionCache {
+
+        private static final MethodHandles.Lookup LOOKUP = MethodHandles.publicLookup();
+
+        private final ConcurrentMap<Method, MethodHandle> unreflectionCache = new ConcurrentHashMap<>();
+        private final ConcurrentMap<GetMethodKey, Method> findMethodCache = new ConcurrentHashMap<>();
+
+        /**
+         * Unreflect the given method, caching the result.
+         *
+         * @throws IllegalArgumentException if the method is not public or its declaring class is not public.
+         */
+        public MethodHandle unreflect(Method method) {
+            MethodHandle handle = unreflectionCache.get(method);
+            if (handle != null) {
+                return handle;
+            }
+
+            if (!Modifier.isPublic(method.getModifiers())) {
+                throw new IllegalArgumentException("Method " + method + " is not public.");
+            } else if (!Modifier.isPublic(method.getDeclaringClass().getModifiers())) {
+                throw new IllegalArgumentException("Declaring class '" + method.getDeclaringClass().getName() + "' of method " + method + " is not public.");
+            }
+
+            return unreflectionCache.computeIfAbsent(method, m -> {
+                try {
+                    return LOOKUP.unreflect(m);
+                } catch (IllegalAccessException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            });
+        }
+
+        /**
+         * Get the method in the given class with the given signature.
+         *
+         * @throws RuntimeException if the method cannot be found.
+         */
+        public Method getMethod(Class<?> targetClass, String methodName, Class<?>[] parameterTypes) {
+            GetMethodKey key = new GetMethodKey(targetClass, methodName, parameterTypes);
+            Method method = findMethodCache.get(key);
+            if (method != null) {
+                return method;
+            }
+
+            return findMethodCache.computeIfAbsent(key, k -> {
+                try {
+                    return targetClass.getMethod(k.methodName, k.parameterTypes);
+                } catch (NoSuchMethodException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            });
+        }
+
+        private static final class GetMethodKey {
+
+            private final Class<?> targetClass;
+            private final String methodName;
+            private final Class<?>[] parameterTypes;
+
+            private final int hashCode;
+
+            public GetMethodKey(Class<?> targetClass, String methodName, Class<?>[] parameterTypes) {
+                this.targetClass = targetClass;
+                this.methodName = methodName;
+                this.parameterTypes = parameterTypes;
+                this.hashCode = computeHashCode(targetClass, methodName, parameterTypes);
+            }
+
+            @Override
+            public boolean equals(Object o) {
+                if (o == null || getClass() != o.getClass()) {
+                    return false;
+                }
+
+                GetMethodKey that = (GetMethodKey) o;
+                return targetClass.equals(that.targetClass) &&
+                    methodName.equals(that.methodName) &&
+                    Arrays.equals(parameterTypes, that.parameterTypes);
+            }
+
+            @Override
+            public int hashCode() {
+                return hashCode;
+            }
+
+            private static int computeHashCode(
+                Class<?> declaringClass,
+                String methodName,
+                Class<?>[] parameterTypes
+            ) {
+                int result = declaringClass.hashCode();
+                result = 31 * result + methodName.hashCode();
+                result = 31 * result + Arrays.hashCode(parameterTypes);
+                return result;
+            }
+
+        }
+
     }
 
 }
