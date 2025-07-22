@@ -145,34 +145,66 @@ include::sample[dir="snippets/bestPractices/usePluginsBlock-do/groovy",files="bu
 [[dont_assume_plugin_order]]
 == Don’t Assume your Plugin is Applied after Another
 
-Plugins in Gradle can be applied in any order.
-If your plugin depends on another plugin, don’t assume it has already been applied, plugin application order is not guaranteed.
+Gradle does not guarantee the order in which plugins are applied, especially across multiple build scripts, projects, convention plugins, or included builds.
+
+As a result, you should never write build logic or plugins that depend on a specific plugin order.
 
 === Explanation
 
-You can specify the order of plugin application by applying them sequentially within your build.gradle file
+==== Build Engineers
+
+In a single `build.gradle(.kts)` file, plugins appear to be applied sequentially:
 
 [source,groovy]
+.build.gradle
 ----
-// Apply plugin A first
 apply plugin: 'pluginA'
-
-// Then apply plugin B, which might depend on configurations from plugin A
 apply plugin: 'pluginB'
 ----
 
-If "My plugin only works if another plugin is present":
-Tell users to apply that plugin
+However, in multi-project builds, with multiple `build.gradle(.kts)` files or convention plugin, plugin application becomes non-deterministic.
+Gradle executes configuration in parallel when possible, and the exact order of plugin execution may vary between runs:
+
+[source,groovy]
+.convention-build.gradle
+----
+apply plugin: 'pluginC'
+apply plugin: 'pluginD'
+----
+
+You cannot assume whether `pluginA`, `pluginB`, `pluginC`, or `pluginD` will be applied first.
+
+Writing build logic that assumes plugin ordering can lead to:
+
+- *Fragile builds* that break when project structure changes.
+- *Brittle plugins* that work locally but fail in CI or in composite builds.
+- *Undetectable bugs* when plugins behave inconsistently due to race conditions.
+
+Even techniques like `allprojects {}`, `subprojects {}`, or `afterEvaluate {}` do not reliably control plugin order across all cases.
+
+Always avoid writing build logic that assumes ordering between different projects, included builds, or applied scripts—that order is not guaranteed.
+
+==== Plugin Developers
+
+When developing plugins, there are two things to keep in mind.
+
+If your plugin requires another plugin to function, do not assume it’s already been applied.
+
+Instead, either:
+
+- *Apply it yourself*, or
+- *Fail fast with a clear error* or warning if it’s missing.
 
 [source,groovy]
 ----
 if (!project.pluginManager.hasPlugin(requiredPlugin)) {
     // Warn users
 }
+
+project.pluginManager.apply('com.example.required-plugin')
 ----
 
-If "My plugin works differently if another plugin is present":
-Use withPlugin() to conditionally configure behavior based on the presence of that plugin.
+If your plugin can work with or without another plugin, and the behavior changes when the other plugin is present, use `withPlugin()`:
 
 [source,groovy]
 ----
@@ -180,6 +212,8 @@ pluginManager.withPlugin('ivy-publish') {
     // Configure 'ivy-publish' after it's applied
 }
 ----
+
+This is safe and defers configuration until the target plugin is applied, regardless of order.
 
 === Example
 
