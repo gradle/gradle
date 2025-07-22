@@ -18,6 +18,6 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.PublishArtifactSet;
 
-interface PublishArtifactSetProvider {
+public interface PublishArtifactSetProvider {
     PublishArtifactSet getPublishArtifactSet();
 }

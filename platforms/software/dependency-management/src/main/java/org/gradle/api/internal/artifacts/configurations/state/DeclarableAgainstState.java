@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations.state;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyConstraint;
@@ -30,6 +31,8 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.ImmutableActionSet;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
+
 public final class DeclarableAgainstState {
     public ImmutableActionSet<DependencySet> defaultDependencyActions = ImmutableActionSet.empty();
 
@@ -41,6 +44,8 @@ public final class DeclarableAgainstState {
 
     public @Nullable DefaultDependencySet allDependencies;
     public @Nullable DefaultDependencyConstraintSet allDependencyConstraints;
+
+    public List<String> declarationAlternatives = ImmutableList.of();
 
     public DeclarableAgainstState(ConfigurationInternal configuration, Action<String> ownDependenciesMutationValidator, DisplayName displayName, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         this.ownDependencies = (DefaultDomainObjectSet<Dependency>) domainObjectCollectionFactory.newDomainObjectSet(Dependency.class);

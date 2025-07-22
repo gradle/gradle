@@ -16,22 +16,29 @@
 
 package org.gradle.api.internal.artifacts.configurations.state;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.resolver.ResolutionAccess;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.Factory;
 import org.gradle.internal.ImmutableActionSet;
+import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
 import java.util.Optional;
 
 public final class ResolvableState {
+    public Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     public ConfigurationResolver resolver;
     public ImmutableActionSet<DependencySet> withDependencyActions = ImmutableActionSet.empty();
     public @Nullable FileCollectionInternal intrinsicFiles;
@@ -39,16 +46,25 @@ public final class ResolvableState {
     public @Nullable ConfigurationInternal consistentResolutionSource;
     public @Nullable String consistentResolutionReason;
     public final CalculatedModelValue<Optional<ResolverResults>> currentResolveState;
-    public Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     public @Nullable ResolutionStrategyInternal resolutionStrategy;
+    public final UserCodeApplicationContext userCodeApplicationContext;
+    public List<String> resolutionAlternatives = ImmutableList.of();
+    public final DefaultConfiguration.ConfigurationResolvableDependencies resolvableDependencies;
+    public ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
 
-    public ResolvableState(DomainObjectContext domainObjectContext,
-                           ConfigurationResolver resolver,
+    public ResolvableState(ConfigurationFactoriesBundle sharedFactories,
                            Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-                           ResolutionAccess resolutionAccess) {
+                           DomainObjectContext domainObjectContext,
+                           ConfigurationResolver resolver,
+                           UserCodeApplicationContext userCodeApplicationContext,
+                           ResolutionAccess resolutionAccess,
+                           ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners) {
         this.resolver = resolver;
+        this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.resolutionAccess = resolutionAccess;
         this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(Optional.empty());
-        this.resolutionStrategyFactory = resolutionStrategyFactory;
+        this.userCodeApplicationContext = userCodeApplicationContext;
+        this.resolvableDependencies = sharedFactories.objectFactory.newInstance(DefaultConfiguration.ConfigurationResolvableDependencies.class, this);
+        this.dependencyResolutionListeners = dependencyResolutionListeners;
     }
 }

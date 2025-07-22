@@ -61,6 +61,7 @@ import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.configurations.state.ConfigurationFactoriesBundle;
 import org.gradle.api.internal.artifacts.configurations.state.ConsumableState;
 import org.gradle.api.internal.artifacts.configurations.state.DeclarableAgainstState;
 import org.gradle.api.internal.artifacts.configurations.state.ResolvableState;
@@ -152,19 +153,15 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  */
 @SuppressWarnings("rawtypes")
 public abstract class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator, ResettableConfiguration {
-    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final ConfigurationFactoriesBundle sharedFactories;
+
     private final ProjectStateRegistry projectStateRegistry;
+
     private @Nullable CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private @Nullable CompositeDomainObjectSet<DependencyConstraint> inheritedDependencyConstraints;
-    private final DefaultPublishArtifactSet artifacts;
-    private final DefaultDomainObjectSet<PublishArtifact> ownArtifacts;
     private @Nullable CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
-    private @Nullable DefaultPublishArtifactSet allArtifacts;
-    private final ConfigurationResolvableDependencies resolvableDependencies;
-    private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
+
     private final BuildOperationRunner buildOperationRunner;
-    private final ObjectFactory objectFactory;
-    private final FileCollectionFactory fileCollectionFactory;
     private final ResolveExceptionMapper exceptionMapper;
     private final AttributeDesugaring attributeDesugaring;
 
@@ -173,7 +170,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private final String name;
     private final boolean isDetached;
-    private final DefaultConfigurationPublications outgoing;
 
     private boolean visible = true;
     private boolean transitive = true;
@@ -199,19 +195,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private final FreezableAttributeContainer configurationAttributes;
     private final DomainObjectContext domainObjectContext;
-    private final AttributesFactory attributesFactory;
 
     private final DisplayName displayName;
-    private final UserCodeApplicationContext userCodeApplicationContext;
-    private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
-    private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
     private final AtomicInteger copyCount = new AtomicInteger();
 
-    private List<String> declarationAlternatives = ImmutableList.of();
-    private List<String> resolutionAlternatives = ImmutableList.of();
-
-    private final DefaultConfigurationFactory defaultConfigurationFactory;
     private final InternalProblems problemsService;
 
     private final Lazy<ResolvableState> resolvableState;
@@ -248,20 +236,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         boolean lockUsage
     ) {
         super(taskDependencyFactory);
-        this.userCodeApplicationContext = userCodeApplicationContext;
-        this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
         this.projectStateRegistry = projectStateRegistry;
-        this.domainObjectCollectionFactory = domainObjectCollectionFactory;
-        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.identityPath = domainObjectContext.identityPath(name);
         this.projectPath = domainObjectContext.projectPath(name);
         this.name = name;
         this.isDetached = isDetached;
-        this.fileCollectionFactory = fileCollectionFactory;
-        this.dependencyResolutionListeners = dependencyResolutionListeners;
         this.buildOperationRunner = buildOperationRunner;
-        this.objectFactory = objectFactory;
-        this.attributesFactory = attributesFactory;
         this.domainObjectContext = domainObjectContext;
         this.exceptionMapper = exceptionMapper;
         this.attributeDesugaring = attributeDesugaring;
@@ -269,15 +249,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.displayName = Describables.memoize(new ConfigurationDescription(identityPath));
         this.configurationAttributes = new FreezableAttributeContainer(attributesFactory.mutable(), this.displayName);
 
-        this.resolvableDependencies = objectFactory.newInstance(ConfigurationResolvableDependencies.class, this);
-
-        this.ownArtifacts = (DefaultDomainObjectSet<PublishArtifact>) domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class);
-        this.ownArtifacts.beforeCollectionChanges(validateMutationType(this, MutationType.ARTIFACTS));
-
-        this.artifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "artifacts"), ownArtifacts, fileCollectionFactory, taskDependencyFactory);
-
-        this.outgoing = objectFactory.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory);
-        this.defaultConfigurationFactory = defaultConfigurationFactory;
         this.problemsService = problemsService;
 
         this.canBeConsumed = roleAtCreation.isConsumable();
@@ -289,8 +260,20 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.usageCanBeMutated = !lockUsage;
         this.roleAtCreation = roleAtCreation;
 
-        this.resolvableState = Lazy.locking().of(() -> new ResolvableState(domainObjectContext, resolver, resolutionStrategyFactory, new DefaultConfiguration.ConfigurationResolutionAccess()));
-        this.consumableState = Lazy.locking().of(() -> new ConsumableState());
+        this.sharedFactories = new ConfigurationFactoriesBundle(
+            calculatedValueContainerFactory,
+            objectFactory,
+            fileCollectionFactory,
+            taskDependencyFactory,
+            attributesFactory,
+            domainObjectCollectionFactory,
+            defaultConfigurationFactory,
+            artifactNotationParser,
+            capabilityNotationParser,
+            collectionCallbackActionDecorator
+        );
+        this.resolvableState = Lazy.locking().of(() -> new ResolvableState(sharedFactories, resolutionStrategyFactory, domainObjectContext, resolver, userCodeApplicationContext, new DefaultConfiguration.ConfigurationResolutionAccess(), dependencyResolutionListeners));
+        this.consumableState = Lazy.locking().of(() -> new ConsumableState(sharedFactories, displayName, (DefaultDomainObjectSet<PublishArtifact>) domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class), validateMutationType(this, MutationValidator.MutationType.ARTIFACTS), configurationAttributes, new AllArtifactsProvider()));
         this.declarableAgainstState = Lazy.locking().of(() -> new DeclarableAgainstState(this, validateMutationType(this, MutationValidator.MutationType.DEPENDENCIES), displayName, domainObjectCollectionFactory));
     }
 
@@ -464,7 +447,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         // mutated in this callback, which is why we don't use MutationType.DEPENDENCIES here
         validateMutation(MutationType.BASIC_STATE);
 
-        getDeclarableAgainstState().defaultDependencyActions = getDeclarableAgainstState().defaultDependencyActions.add(collectionCallbackActionDecorator.decorate(dependencies -> {
+        getDeclarableAgainstState().defaultDependencyActions = getDeclarableAgainstState().defaultDependencyActions.add(sharedFactories.collectionCallbackActionDecorator.decorate(dependencies -> {
             if (dependencies.isEmpty()) {
                 action.execute(dependencies);
             }
@@ -478,7 +461,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         // mutated in this callback, which is why we don't use MutationType.DEPENDENCIES here
         validateMutation(MutationType.BASIC_STATE);
 
-        getResolvableState().withDependencyActions = getResolvableState().withDependencyActions.add(collectionCallbackActionDecorator.decorate(action));
+        getResolvableState().withDependencyActions = getResolvableState().withDependencyActions.add(sharedFactories.collectionCallbackActionDecorator.decorate(action));
         return this;
     }
 
@@ -586,10 +569,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return new DefaultResolutionOutputs(
                 this,
                 taskDependencyFactory,
-                calculatedValueContainerFactory,
-                attributesFactory,
+                sharedFactories.calculatedValueContainerFactory,
+                sharedFactories.attributesFactory,
                 attributeDesugaring,
-                objectFactory
+                sharedFactories.objectFactory
             );
         }
     }
@@ -653,7 +636,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             @Override
             public ResolverResults call(BuildOperationContext context) {
                 runDependencyActions();
-                dependencyResolutionListeners.getSource().beforeResolve(getIncoming());
+                getResolvableState().dependencyResolutionListeners.getSource().beforeResolve(getIncoming());
 
                 ResolverResults results;
                 try {
@@ -665,10 +648,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 // Make the new state visible in case a dependency resolution listener queries the result, which requires the new state
                 getResolvableState().currentResolveState.set(Optional.of(results));
 
-                dependencyResolutionListeners.getSource().afterResolve(getIncoming());
+                getResolvableState().dependencyResolutionListeners.getSource().afterResolve(getIncoming());
 
                 // Discard State
-                dependencyResolutionListeners.removeAll();
+                getResolvableState().dependencyResolutionListeners.removeAll();
                 if (getResolvableState().resolutionStrategy != null) {
                     getResolvableState().resolutionStrategy.maybeDiscardStateRequiredForGraphResolution();
                 }
@@ -686,7 +669,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 context.setResult(new ResolveConfigurationResolutionBuildOperationResult(
                     resolutionResult.getRootSource(),
                     resolutionResult.getRequestedAttributes(),
-                    attributesFactory
+                    sharedFactories.attributesFactory
                 ));
             }
 
@@ -800,7 +783,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return getResolvableState().currentResolveState.update(initial -> {
             if (!initial.isPresent()) {
 
-                CalculatedValue<ResolverResults> futureCompleteResults = calculatedValueContainerFactory.create(Describables.of("Full results for", getName()), context -> {
+                CalculatedValue<ResolverResults> futureCompleteResults = sharedFactories.calculatedValueContainerFactory.create(Describables.of("Full results for", getName()), context -> {
                     Optional<ResolverResults> currentState = getResolvableState().currentResolveState.get();
                     if (!isFullyResolved(currentState)) {
                         // Do not validate that the current thread holds the project lock.
@@ -856,7 +839,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         if (getDeclarableAgainstState().allDependencies != null) {
             return;
         }
-        inheritedDependencies = domainObjectCollectionFactory.newDomainObjectSet(Dependency.class, getDeclarableAgainstState().ownDependencies);
+        inheritedDependencies = sharedFactories.domainObjectCollectionFactory.newDomainObjectSet(Dependency.class, getDeclarableAgainstState().ownDependencies);
         for (Configuration configuration : this.extendsFrom) {
             inheritedDependencies.addCollection(configuration.getAllDependencies());
         }
@@ -880,7 +863,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         if (getDeclarableAgainstState().allDependencyConstraints != null) {
             return;
         }
-        inheritedDependencyConstraints = domainObjectCollectionFactory.newDomainObjectSet(DependencyConstraint.class, getDeclarableAgainstState().ownDependencyConstraints);
+        inheritedDependencyConstraints = sharedFactories.domainObjectCollectionFactory.newDomainObjectSet(DependencyConstraint.class, getDeclarableAgainstState().ownDependencyConstraints);
         for (Configuration configuration : this.extendsFrom) {
             inheritedDependencyConstraints.addCollection(configuration.getAllDependencyConstraints());
         }
@@ -889,45 +872,45 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public PublishArtifactSet getArtifacts() {
-        return artifacts;
+        return getConsumableState().artifacts;
     }
 
     @Override
     public PublishArtifactSet getAllArtifacts() {
         initAllArtifacts();
-        return allArtifacts;
+        return getConsumableState().allArtifacts;
     }
 
     private synchronized void initAllArtifacts() {
-        if (allArtifacts != null) {
+        if (getConsumableState().allArtifacts != null) {
             return;
         }
         DisplayName displayName = Describables.of(this.displayName, "all artifacts");
 
         if (isObserved() && extendsFrom.isEmpty()) {
             // No further mutation is allowed and there's no parent: the artifact set corresponds to this configuration own artifacts
-            this.allArtifacts = new DefaultPublishArtifactSet(displayName, ownArtifacts, fileCollectionFactory, taskDependencyFactory);
+            this.getConsumableState().allArtifacts = new DefaultPublishArtifactSet(displayName, getConsumableState().ownArtifacts, sharedFactories.fileCollectionFactory, taskDependencyFactory);
             return;
         }
 
         if (!isObserved()) {
             // If the configuration can still be mutated, we need to create a composite
-            inheritedArtifacts = domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class, ownArtifacts);
+            inheritedArtifacts = sharedFactories.domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class, getConsumableState().ownArtifacts);
         }
         for (Configuration configuration : this.extendsFrom) {
             PublishArtifactSet allArtifacts = configuration.getAllArtifacts();
             if (inheritedArtifacts != null || !allArtifacts.isEmpty()) {
                 if (inheritedArtifacts == null) {
                     // This configuration cannot be mutated, but some parent configurations provide artifacts
-                    inheritedArtifacts = domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class, ownArtifacts);
+                    inheritedArtifacts = sharedFactories.domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class, getConsumableState().ownArtifacts);
                 }
                 inheritedArtifacts.addCollection(allArtifacts);
             }
         }
         if (inheritedArtifacts != null) {
-            this.allArtifacts = new DefaultPublishArtifactSet(displayName, inheritedArtifacts, fileCollectionFactory, taskDependencyFactory);
+            this.getConsumableState().allArtifacts = new DefaultPublishArtifactSet(displayName, inheritedArtifacts, sharedFactories.fileCollectionFactory, taskDependencyFactory);
         } else {
-            this.allArtifacts = new DefaultPublishArtifactSet(displayName, ownArtifacts, fileCollectionFactory, taskDependencyFactory);
+            this.getConsumableState().allArtifacts = new DefaultPublishArtifactSet(displayName, getConsumableState().ownArtifacts, sharedFactories.fileCollectionFactory, taskDependencyFactory);
         }
     }
 
@@ -980,17 +963,17 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public ResolvableDependencies getIncoming() {
-        return resolvableDependencies;
+        return getResolvableState().resolvableDependencies;
     }
 
     @Override
     public ConfigurationPublications getOutgoing() {
-        return outgoing;
+        return getConsumableState().outgoing;
     }
 
     @Override
     public void collectVariants(VariantVisitor visitor) {
-        outgoing.collectVariants(visitor);
+        getConsumableState().outgoing.collectVariants(visitor);
     }
 
     @Override
@@ -1016,7 +999,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 conf.observedState = InternalState.OBSERVED;
 
                 conf.configurationAttributes.freeze();
-                conf.outgoing.preventFromFurtherMutation(conf.observationReason);
+                conf.getConsumableState().outgoing.preventFromFurtherMutation(conf.observationReason);
                 conf.preventUsageMutation();
             }
         });
@@ -1060,7 +1043,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public void outgoing(Action<? super ConfigurationPublications> action) {
-        action.execute(outgoing);
+        action.execute(getConsumableState().outgoing);
     }
 
     /**
@@ -1122,10 +1105,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         copiedConfiguration.getDeclarableAgainstState().defaultDependencyActions = getDeclarableAgainstState().defaultDependencyActions;
         copiedConfiguration.getResolvableState().withDependencyActions = getResolvableState().withDependencyActions;
-        copiedConfiguration.dependencyResolutionListeners = dependencyResolutionListeners.copy();
+        copiedConfiguration.getResolvableState().dependencyResolutionListeners = getResolvableState().dependencyResolutionListeners.copy();
 
-        copiedConfiguration.declarationAlternatives = declarationAlternatives;
-        copiedConfiguration.resolutionAlternatives = resolutionAlternatives;
+        copiedConfiguration.getDeclarableAgainstState().declarationAlternatives = getDeclarableAgainstState().declarationAlternatives;
+        copiedConfiguration.getResolvableState().resolutionAlternatives = getResolvableState().resolutionAlternatives;
 
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 
@@ -1160,7 +1143,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @SuppressWarnings("deprecation")
         ConfigurationRole role = ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE;
-        return defaultConfigurationFactory.create(
+        return sharedFactories.defaultConfigurationFactory.create(
             newName,
             true,
             getResolvableState().resolver,
@@ -1560,23 +1543,23 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @VisibleForTesting
     ListenerBroadcast<DependencyResolutionListener> getDependencyResolutionListeners() {
-        return dependencyResolutionListeners;
+        return getResolvableState().dependencyResolutionListeners;
     }
 
     @Override
     public List<String> getDeclarationAlternatives() {
-        return declarationAlternatives;
+        return getDeclarableAgainstState().declarationAlternatives;
     }
 
     @Override
     public List<String> getResolutionAlternatives() {
-        return resolutionAlternatives;
+        return getResolvableState().resolutionAlternatives;
     }
 
     @Override
     public void addDeclarationAlternatives(String... alternativesForDeclaring) {
-        this.declarationAlternatives = ImmutableList.<String>builder()
-            .addAll(declarationAlternatives)
+        this.getDeclarableAgainstState().declarationAlternatives = ImmutableList.<String>builder()
+            .addAll(getDeclarableAgainstState().declarationAlternatives)
             .addAll(Arrays.asList(alternativesForDeclaring))
             .build();
     }
@@ -1589,8 +1572,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      */
     @Override
     public void addResolutionAlternatives(String... alternativesForResolving) {
-        this.resolutionAlternatives = ImmutableList.<String>builder()
-            .addAll(resolutionAlternatives)
+        this.getResolvableState().resolutionAlternatives = ImmutableList.<String>builder()
+            .addAll(getResolvableState().resolutionAlternatives)
             .addAll(Arrays.asList(alternativesForResolving))
             .build();
     }
@@ -1683,7 +1666,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public void beforeResolve(Action<? super ResolvableDependencies> action) {
-            configuration.dependencyResolutionListeners.add("beforeResolve", configuration.userCodeApplicationContext.reapplyCurrentLater(action));
+            configuration.getResolvableState().dependencyResolutionListeners.add("beforeResolve", configuration.getResolvableState().userCodeApplicationContext.reapplyCurrentLater(action));
         }
 
         @Override
@@ -1693,7 +1676,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public void afterResolve(Action<? super ResolvableDependencies> action) {
-            configuration.dependencyResolutionListeners.add("afterResolve", configuration.userCodeApplicationContext.reapplyCurrentLater(action));
+            configuration.getResolvableState().dependencyResolutionListeners.add("afterResolve", configuration.getResolvableState().userCodeApplicationContext.reapplyCurrentLater(action));
         }
 
         @Override
