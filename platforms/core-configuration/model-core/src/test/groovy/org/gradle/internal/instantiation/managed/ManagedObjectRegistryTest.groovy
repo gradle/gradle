@@ -497,6 +497,72 @@ class ManagedObjectRegistryTest extends Specification {
         registry.newInstance(Parent) == null
     }
 
+    @ManagedObjectProvider
+    private static class PrivateProvider {
+
+        PrivateProvider() {}
+
+        @ManagedObjectCreator
+        Thing createThing() {
+            return new Thing()
+        }
+
+    }
+
+    def "fails to create registry with private provider"() {
+        when:
+        registryOf {
+            it.add(PrivateProvider)
+        }
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Could not create service of type ManagedObjectRegistryTest\$PrivateProvider."
+        e.cause.message == 'class org.gradle.internal.service.DefaultServiceRegistry$ConstructorService cannot access a member of class org.gradle.internal.instantiation.managed.ManagedObjectRegistryTest$PrivateProvider with modifiers "public"'
+    }
+
+
+    @ManagedObjectProvider
+    static class PrivateCreator {
+
+        @ManagedObjectCreator
+        private Thing createThing() {
+            return new Thing()
+        }
+
+    }
+
+    def "fails to create registry with private creator"() {
+        when:
+        registryOf {
+            it.add(PrivateCreator)
+        }
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Service class org.gradle.internal.instantiation.managed.ManagedObjectRegistryTest\$PrivateCreator annotated with @ManagedObjectProvider must have at least one method annotated with @ManagedObjectCreator."
+    }
+
+    @ManagedObjectProvider
+    static class ProtectedCreator {
+
+        @ManagedObjectCreator
+        protected Thing createThing() {
+            return new Thing()
+        }
+
+    }
+    def "fails to create registry with protected creator"() {
+        when:
+        registryOf {
+            it.add(ProtectedCreator)
+        }
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Service class org.gradle.internal.instantiation.managed.ManagedObjectRegistryTest\$ProtectedCreator annotated with @ManagedObjectProvider must have at least one method annotated with @ManagedObjectCreator."
+    }
+
     private static ManagedObjectRegistry registryOf(ServiceRegistrationAction action) {
         def services = ServiceRegistryBuilder.builder().provider {
             it.addProvider(new ServiceRegistrationProvider() {
