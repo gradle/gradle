@@ -51,4 +51,13 @@ public interface ManagedObjectRegistry extends AnnotatedServiceLifecycleHandler 
     @Nullable
     <T> T newInstance(Class<T> type, Class<?> arg1, Class<?> arg2);
 
+    /**
+     * Create a new {@link ManagedObjectRegistry} that deleegates to this registry
+     * when a type is not found in this registry.
+     * <p>
+     * This new child registry may be registered in a child service scope than the parent,
+     * allowing it to instantiate managed types that are not available in the parent scope.
+     */
+    ManagedObjectRegistry createChild();
+
 }

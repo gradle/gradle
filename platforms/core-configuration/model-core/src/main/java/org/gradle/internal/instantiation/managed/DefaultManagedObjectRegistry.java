@@ -45,8 +45,17 @@ public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
     private final @Nullable ManagedObjectRegistry parent;
     private final ConcurrentMap<Class<?>, MethodHandle> factoryByPublicType = new ConcurrentHashMap<>();
 
-    public DefaultManagedObjectRegistry(@Nullable ManagedObjectRegistry parent) {
+    public DefaultManagedObjectRegistry() {
+        this(null);
+    }
+
+    private DefaultManagedObjectRegistry(@Nullable ManagedObjectRegistry parent) {
         this.parent = parent;
+    }
+
+    @Override
+    public ManagedObjectRegistry createChild() {
+        return new DefaultManagedObjectRegistry(this);
     }
 
     @Override

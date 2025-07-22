@@ -200,7 +200,7 @@ class TestUtil {
             it.addProvider(new ServiceRegistrationProvider() {
                 @Provides
                 ManagedObjectRegistry createManagedObjectRegistry() {
-                    new DefaultManagedObjectRegistry(null)
+                    new DefaultManagedObjectRegistry()
                 }
 
                 @Provides
