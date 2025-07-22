@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
@@ -71,7 +70,6 @@ public class DefaultConfigurationFactory {
     private final CalculatedValueFactory calculatedValueFactory;
     private final TaskDependencyFactory taskDependencyFactory;
     private final InternalProblems problemsService;
-    private final DocumentationRegistry documentationRegistry;
 
     @Inject
     public DefaultConfigurationFactory(
@@ -90,8 +88,7 @@ public class DefaultConfigurationFactory {
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueFactory calculatedValueFactory,
         TaskDependencyFactory taskDependencyFactory,
-        InternalProblems problemsService,
-        DocumentationRegistry documentationRegistry
+        InternalProblems problemsService
     ) {
         this.objectFactory = objectFactory;
         this.listenerManager = listenerManager;
@@ -110,7 +107,6 @@ public class DefaultConfigurationFactory {
         this.calculatedValueFactory = calculatedValueFactory;
         this.taskDependencyFactory = taskDependencyFactory;
         this.problemsService = problemsService;
-        this.documentationRegistry = documentationRegistry;
     }
 
     /**
@@ -183,8 +179,7 @@ public class DefaultConfigurationFactory {
             calculatedValueFactory,
             this,
             taskDependencyFactory,
-            problemsService,
-            documentationRegistry
+            problemsService
         );
     }
 
@@ -219,8 +214,7 @@ public class DefaultConfigurationFactory {
             calculatedValueFactory,
             this,
             taskDependencyFactory,
-            problemsService,
-            documentationRegistry
+            problemsService
         );
     }
 
@@ -255,8 +249,7 @@ public class DefaultConfigurationFactory {
             calculatedValueFactory,
             this,
             taskDependencyFactory,
-            problemsService,
-            documentationRegistry
+            problemsService
         );
     }
 

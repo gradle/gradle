@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Optional;
 
 public final class ResolvableState {
+    public final ConfigurationFactoriesBundle sharedFactories;
     public Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     public ConfigurationResolver resolver;
     public ImmutableActionSet<DependencySet> withDependencyActions = ImmutableActionSet.empty();
@@ -58,13 +59,15 @@ public final class ResolvableState {
                            ConfigurationResolver resolver,
                            UserCodeApplicationContext userCodeApplicationContext,
                            ResolutionAccess resolutionAccess,
-                           ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners) {
+                           ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
+                           DefaultConfiguration.ConfigurationResolvableDependencies resolvableDependencies) {
+        this.sharedFactories = sharedFactories;
         this.resolver = resolver;
         this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.resolutionAccess = resolutionAccess;
         this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(Optional.empty());
         this.userCodeApplicationContext = userCodeApplicationContext;
-        this.resolvableDependencies = sharedFactories.objectFactory.newInstance(DefaultConfiguration.ConfigurationResolvableDependencies.class, this);
+        this.resolvableDependencies = resolvableDependencies;
         this.dependencyResolutionListeners = dependencyResolutionListeners;
     }
 }

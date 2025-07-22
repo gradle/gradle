@@ -272,7 +272,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             capabilityNotationParser,
             collectionCallbackActionDecorator
         );
-        this.resolvableState = Lazy.locking().of(() -> new ResolvableState(sharedFactories, resolutionStrategyFactory, domainObjectContext, resolver, userCodeApplicationContext, new DefaultConfiguration.ConfigurationResolutionAccess(), dependencyResolutionListeners));
+        this.resolvableState = Lazy.locking().of(() -> new ResolvableState(sharedFactories, resolutionStrategyFactory, domainObjectContext, resolver, userCodeApplicationContext, new DefaultConfiguration.ConfigurationResolutionAccess(), dependencyResolutionListeners, sharedFactories.objectFactory.newInstance(ConfigurationResolvableDependencies.class, this)));
         this.consumableState = Lazy.locking().of(() -> new ConsumableState(sharedFactories, displayName, (DefaultDomainObjectSet<PublishArtifact>) domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class), validateMutationType(this, MutationValidator.MutationType.ARTIFACTS), configurationAttributes, new AllArtifactsProvider()));
         this.declarableAgainstState = Lazy.locking().of(() -> new DeclarableAgainstState(this, validateMutationType(this, MutationValidator.MutationType.DEPENDENCIES), displayName, domainObjectCollectionFactory));
     }
