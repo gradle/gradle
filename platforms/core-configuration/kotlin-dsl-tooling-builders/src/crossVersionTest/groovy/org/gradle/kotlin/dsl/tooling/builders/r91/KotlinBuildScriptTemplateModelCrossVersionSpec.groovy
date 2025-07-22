@@ -19,14 +19,11 @@ package org.gradle.kotlin.dsl.tooling.builders.r91
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel
-import org.gradle.tooling.events.ProgressEvent
-import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.events.lifecycle.BuildPhaseStartEvent
 
 @TargetGradleVersion(">=9.1")
 class KotlinBuildScriptTemplateModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
-    def "model is obtained without configuring projects"() {
+    def "KotlinBuildScriptTemplateModel is obtained without configuring projects"() {
 
         when:
         def listener = new ConfigurationPhaseMonitoringListener()
@@ -40,22 +37,5 @@ class KotlinBuildScriptTemplateModelCrossVersionSpec extends AbstractKotlinScrip
         then:
         model != null
         listener.hasSeenSomeEvents && listener.configPhaseStartEvents.isEmpty()
-    }
-
-    private static final class ConfigurationPhaseMonitoringListener implements ProgressListener {
-
-        boolean hasSeenSomeEvents = false
-        final List<ProgressEvent> configPhaseStartEvents = new ArrayList<>()
-
-        @Override
-        void statusChanged(ProgressEvent event) {
-            hasSeenSomeEvents = true
-            if (event instanceof BuildPhaseStartEvent) {
-                BuildPhaseStartEvent buildPhaseStartEvent = (BuildPhaseStartEvent) event
-                if (buildPhaseStartEvent.descriptor.buildPhase.startsWith("CONFIGURE")) {
-                    configPhaseStartEvents.add(event)
-                }
-            }
-        }
     }
 }

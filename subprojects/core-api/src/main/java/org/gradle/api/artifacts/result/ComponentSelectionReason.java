@@ -80,5 +80,5 @@ public interface ComponentSelectionReason {
      *
      * @since 4.6
      */
-    List<ComponentSelectionDescriptor> getDescriptions();
+    List<? extends ComponentSelectionDescriptor> getDescriptions();
 }

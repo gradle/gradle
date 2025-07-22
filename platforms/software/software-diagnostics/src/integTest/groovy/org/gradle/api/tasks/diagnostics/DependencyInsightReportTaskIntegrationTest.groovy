@@ -457,10 +457,9 @@ org:foo:1.0 FAILED
       - By constraint: Dependency version enforced by Dependency Locking
    Failures:
       - Could not resolve org:foo:{strictly 1.0}.
-          - Cannot find a version of 'org:foo' that satisfies the version constraints:
-               Dependency path: 'root project :' (lockedConf) --> 'org:foo:1.+'
-               Constraint path: 'root project :' (lockedConf) --> 'org:foo:1.1'
-               Constraint path: 'root project :' (lockedConf) --> 'org:foo:{strictly 1.0}' because of the following reason: Dependency version enforced by Dependency Locking
+          - Component is the target of multiple version constraints with conflicting requirements:
+            1.0 - from lock file
+            1.1
 
 org:foo:{strictly 1.0} -> 1.0 FAILED
 \\--- lockedConf

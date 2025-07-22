@@ -66,20 +66,17 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
 
     public static final String MODEL_TASK = DiagnosticsTaskNames.MODEL_TASK;
 
+
     @Override
     public void apply(final Project project) {
-        final TaskContainer tasks = project.getTasks();
-
-        // static classes are used for the actions to avoid implicitly dragging project/tasks into the model registry
+        TaskContainer tasks = project.getTasks();
         String projectName = project.toString();
+
+        // Static classes are used for the configure actions here to avoid implicitly dragging project/tasks into the model registry
         tasks.register(ProjectInternal.HELP_TASK, Help.class, new HelpAction());
         tasks.register(ProjectInternal.PROJECTS_TASK, ProjectReportTask.class, new ProjectReportTaskAction(projectName));
         tasks.register(ProjectInternal.TASKS_TASK, TaskReportTask.class, new TaskReportTaskAction(projectName, getChildProjectsForInternalUse(project).isEmpty()));
         tasks.register(PROPERTIES_TASK, PropertyReportTask.class, new PropertyReportTaskAction(projectName));
-
-        tasks.withType(TaskReportTask.class).configureEach(task -> {
-            task.getShowTypes().convention(false);
-        });
     }
 
     private static class HelpAction implements Action<Help> {
@@ -126,6 +123,7 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
             task.setDescription(description);
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
+            task.getShowTypes().convention(false);
         }
     }
 

@@ -152,7 +152,7 @@ class DefaultBuildController implements BuildController {
             List<Set<TaskInternal>> cycles = graphWalker.findCycles();
             Set<TaskInternal> cycle = cycles.get(0);
 
-            DirectedGraphRenderer<TaskInternal> graphRenderer = new DirectedGraphRenderer<>((node, output) -> output.withStyle(StyledTextOutput.Style.Identifier).text(node.getIdentityPath()), (node, values, connectedNodes) -> visitDependenciesOf(node, dep -> {
+            DirectedGraphRenderer<TaskInternal> graphRenderer = new DirectedGraphRenderer<>((node, output, alreadySeen) -> output.withStyle(StyledTextOutput.Style.Identifier).text(node.getIdentityPath()), (node, values, connectedNodes) -> visitDependenciesOf(node, dep -> {
                 if (cycle.contains(dep)) {
                     connectedNodes.add(dep);
                 }
