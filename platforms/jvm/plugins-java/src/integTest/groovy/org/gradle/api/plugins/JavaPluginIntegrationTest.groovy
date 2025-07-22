@@ -24,6 +24,107 @@ import spock.lang.Issue
 
 class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport, ConfigurationUsageChangingFixture {
 
+    @Issue("https://github.com/gradle/gradle/issues/34349")
+    def "rewiring output of source set and compile tasks sort of works"() {
+        file("src/main/java/com/example/Example.java") << """
+            package com.example;
+
+            public class Example {
+                public static void main(String[] args) {
+                    System.out.println("Hello, World!");
+                }
+            }
+        """
+        file("src/main/java/com/example/Filtered.java") << """
+            package com.example;
+
+            public class Filtered {
+            }
+        """
+        file("src/test/java/com/example/ExampleTest.java").java """
+            package com.example;
+
+            import org.junit.jupiter.api.Test;
+            import static org.junit.jupiter.api.Assertions.assertTrue;
+
+            public class ExampleTest {
+                @Test
+                public void testMain() {
+                    try {
+                        Class.forName("com.example.Filtered");
+                        assert false; // should not get here
+                    } catch (ClassNotFoundException e) {
+                        // This class should not be on the classpath
+                        assertTrue(e.getMessage().contains("com.example.Filtered"));
+                        return;
+                    }
+                }
+            }
+        """
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            ${mavenCentralRepository()}
+            testing {
+                suites {
+                    test {
+                        useJUnitJupiter()
+                    }
+                }
+            }
+            /*
+            change the compileJava output dir to an intermediate directory
+            use that intermediate directory as input directory for my custom task
+            use the original output directory (main/classes) as the output directory of my custom task
+            finalize compileJava by calling my custom task
+            */
+            abstract class CustomTask extends DefaultTask {
+                @InputFiles
+                abstract ConfigurableFileCollection getClasses()
+
+                @OutputDirectory
+                abstract DirectoryProperty getDestinationDirectory()
+
+                @Inject
+                abstract FileSystemOperations getFileOperations()
+
+                @TaskAction
+                void copy() {
+                    fileOperations.sync {
+                        from(classes)
+                        exclude("**/Filtered.class")
+                        into(destinationDirectory)
+                    }
+                }
+            }
+            tasks.register("copyIt", CustomTask) {
+                classes.from(tasks.named("compileJava"))
+                destinationDirectory.convention(sourceSets.main.java.destinationDirectory)
+            }
+            tasks.named("compileJava") {
+                destinationDirectory = layout.buildDirectory.dir("other-place")
+                finalizedBy(copyIt)
+            }
+            tasks.named("classes") {
+                dependsOn("copyIt")
+            }
+
+            tasks.named("test") {
+                // Use JUnit Platform for unit tests.
+                useJUnitPlatform()
+
+                doLast {
+                    if (!classpath.contains(sourceSets.main.java.destinationDirectory.get().asFile)) {
+                        throw new GradleException("Test classpath is not set correctly: " + classpath.asPath)
+                    }
+                }
+            }
+        """
+        expect:
+        succeeds("test")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/23932")
     def "does not eagerly resolve compile tasks"() {
         buildFile << """
