@@ -40,7 +40,6 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.vfs.FileSystemAccess;
-import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -120,13 +119,11 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         if (OperatingSystem.current().isWindows()) {
             return workspace.withGlobalScopedLock(uniqueId, () ->
                 loadImmutableWorkspaceIfExists(work, workspace)
-                    .orElseGet(() -> executeInTemporaryWorkspace(work, context, workspace, null))
+                    .orElseGet(() -> executeInWorkspace(work, context, workspace.getImmutableLocation()))
             );
         } else {
             return loadImmutableWorkspaceIfExists(work, workspace)
-                .orElseGet(() -> executeInTemporaryWorkspace(work, context, workspace, (result, temporaryWorkspace) ->
-                    moveTemporaryWorkspaceToImmutableLocation(workspace,
-                        new WorkspaceMoveHandler(work, workspace, temporaryWorkspace, result))));
+                .orElseGet(() -> executeInTemporaryWorkspace(work, context, workspace));
         }
     }
 
@@ -185,39 +182,42 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             immutableLocation);
     }
 
-    private WorkspaceResult executeInTemporaryWorkspace(
-        UnitOfWork work,
-        C context,
-        ImmutableWorkspace workspace,
-        @Nullable TemporaryWorkspaceExecutionResultTransformer resultTransformer
-    ) {
+    private WorkspaceResult executeInWorkspace(UnitOfWork work, C context, File workspace) {
+        WorkspaceContext workspaceContext = new WorkspaceContext(context, workspace, null, true);
+
+        // We don't need to invalidate the temporary workspace, as there is surely nothing there yet,
+        // but we still want to record that this build is writing to the given location, so that
+        // file system watching won't care about it
+        fileSystemAccess.invalidate(ImmutableList.of(workspace.getAbsolutePath()));
+
+        // There is no previous execution in the immutable case
+        PreviousExecutionContext previousExecutionContext = new PreviousExecutionContext(workspaceContext, null);
+        CachingResult delegateResult = delegate.execute(work, previousExecutionContext);
+
+        if (delegateResult.getExecution().isSuccessful()) {
+            // Store workspace metadata
+            // TODO Capture in the type system the fact that we always have an after-execution output state here
+            @SuppressWarnings("OptionalGetWithoutIsPresent")
+            ExecutionOutputState executionOutputState = delegateResult.getAfterExecutionOutputState().get();
+            ImmutableListMultimap<String, HashCode> outputHashes = calculateOutputHashes(executionOutputState.getOutputFilesProducedByWork());
+            ImmutableWorkspaceMetadata metadata = new ImmutableWorkspaceMetadata(executionOutputState.getOriginMetadata(), outputHashes);
+            workspaceMetadataStore.storeWorkspaceMetadata(workspace, metadata);
+
+            return new WorkspaceResult(delegateResult, workspace);
+        } else {
+            // TODO Do not capture a null workspace in case of a failure
+            return new WorkspaceResult(delegateResult, null);
+        }
+    }
+
+    private WorkspaceResult executeInTemporaryWorkspace(UnitOfWork work, C context, ImmutableWorkspace workspace) {
         return workspace.withTemporaryWorkspace(temporaryWorkspace -> {
-            WorkspaceContext workspaceContext = new WorkspaceContext(context, temporaryWorkspace, null, true);
-
-            // We don't need to invalidate the temporary workspace, as there is surely nothing there yet,
-            // but we still want to record that this build is writing to the given location, so that
-            // file system watching won't care about it
-            fileSystemAccess.invalidate(ImmutableList.of(temporaryWorkspace.getAbsolutePath()));
-
-            // There is no previous execution in the immutable case
-            PreviousExecutionContext previousExecutionContext = new PreviousExecutionContext(workspaceContext, null);
-            CachingResult delegateResult = delegate.execute(work, previousExecutionContext);
-
-            if (delegateResult.getExecution().isSuccessful()) {
-                // Store workspace metadata
-                // TODO Capture in the type system the fact that we always have an after-execution output state here
-                @SuppressWarnings("OptionalGetWithoutIsPresent")
-                ExecutionOutputState executionOutputState = delegateResult.getAfterExecutionOutputState().get();
-                ImmutableListMultimap<String, HashCode> outputHashes = calculateOutputHashes(executionOutputState.getOutputFilesProducedByWork());
-                ImmutableWorkspaceMetadata metadata = new ImmutableWorkspaceMetadata(executionOutputState.getOriginMetadata(), outputHashes);
-                workspaceMetadataStore.storeWorkspaceMetadata(temporaryWorkspace, metadata);
-
-                return resultTransformer == null
-                    ? new WorkspaceResult(delegateResult, temporaryWorkspace)
-                    : resultTransformer.transformTemporaryWorkspaceExecutionResult(delegateResult, temporaryWorkspace);
+            WorkspaceResult result = executeInWorkspace(work, context, temporaryWorkspace);
+            if (result.getExecution().isSuccessful()) {
+                return moveTemporaryWorkspaceToImmutableLocation(workspace,
+                    new WorkspaceMoveHandler(work, workspace, temporaryWorkspace, result));
             } else {
-                // TODO Do not capture a null workspace in case of a failure
-                return new WorkspaceResult(delegateResult, null);
+                return result;
             }
         });
     }
@@ -248,12 +248,6 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
                 return result;
             });
         });
-    }
-
-    @FunctionalInterface
-    private interface TemporaryWorkspaceExecutionResultTransformer {
-
-        WorkspaceResult transformTemporaryWorkspaceExecutionResult(CachingResult result, File temporaryWorkspace);
     }
 
     private class WorkspaceMoveHandler {
