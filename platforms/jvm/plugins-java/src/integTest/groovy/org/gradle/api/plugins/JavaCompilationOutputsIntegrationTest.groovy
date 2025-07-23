@@ -105,9 +105,9 @@ class JavaCompilationOutputsIntegrationTest extends AbstractIntegrationSpec {
             tasks.named("test") {
                 // Use JUnit Platform for unit tests.
                 useJUnitPlatform()
-
+                def expectedDir = sourceSets.main.java.destinationDirectory
                 doLast {
-                    if (!classpath.contains(sourceSets.main.java.destinationDirectory.get().asFile)) {
+                    if (!classpath.contains(expectedDir.get().asFile)) {
                         throw new GradleException("Test classpath is not set correctly: " + classpath.asPath)
                     }
                 }
