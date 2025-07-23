@@ -43,6 +43,59 @@ NOTE: Do not rely on the default encoding of the underlying JVM or operating sys
 
 `<<tags_reference.adoc#tag:properties,#properties>>`, `<<tags_reference.adoc#tag:caching,#caching>>`
 
+[[use_build_cache]]
+== Use the Build Cache
+
+Use the Build Cache to save time by reusing outputs produced by previous builds.
+
+=== Explanation
+
+The Build Cache avoids re-executing tasks when their inputs haven't changed by reusing outputs from previous builds.
+
+This prevents redundant work.
+If the inputs are the same, the outputs will be too, resulting in faster, more efficient builds.
+
+Build caching is disabled by default:
+
+====
+include::sample[dir="snippets/bestPractices/useBuildCache-avoid/kotlin",files="gradle.properties[]"]
+====
+
+==== Do This Instead
+
+To enable the Build Cache, add the following to your `gradle.properties` file:
+
+====
+include::sample[dir="snippets/bestPractices/useBuildCache-do/kotlin",files="gradle.properties[]"]
+====
+
+When you build your project for the first time, Gradle populates the cache with the outputs of tasks like compilation.
+
+Even if you run `./gradlew clean` to delete the build directory, Gradle can reuse cached outputs in subsequent builds.
+
+----
+> ./gradlew clean
+:clean
+
+BUILD SUCCESSFUL
+----
+
+On subsequent builds, instead of executing the `:compileJava` task again, the outputs of the task will be loaded from the Build Cache:
+
+----
+> ./gradlew compileJava
+
+include::{snippetsPath}/bestPractices/useBuildCache-do/tests/useBuildCache-do.secondRun.out[]
+----
+
+=== References
+
+- <<build_cache.adoc#sec:build_cache_intro,Build Cache Overview>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:properties,#properties>>`, `<<tags_reference.adoc#tag:caching,#caching>>`
+
 [[avoid_computations_in_configuration_phase]]
 == Avoid Expensive Computations in Configuration Phase
 
@@ -67,6 +120,7 @@ include::sample[dir="snippets/bestPractices/avoidComputationInConfigurationPhase
 ====
 
 <1> Performing heavy computation during configuration phase.
+
 ==== Do This Instead
 
 ++++
@@ -88,8 +142,8 @@ include::sample[dir="snippets/bestPractices/avoidComputationInConfigurationPhase
 
 === References
 
-- <<lazy_configuration.adoc#lazy_configuration,lazy configuration>>.
-- <<build_lifecycle.adoc#build_lifecycle,Build Lifecycle>> >>
+- <<lazy_configuration.adoc#lazy_configuration,lazy configuration>>
+- <<build_lifecycle.adoc#build_lifecycle,Build Lifecycle>>
 
 === Tags
 

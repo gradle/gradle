@@ -82,7 +82,8 @@ In the example above, there are two *attributes* of importance for the *variants
 Note that the *metadata* of `org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1` showcases many more *attributes* to describe its *variants* such as `org.gradle.libraryelements` or `org.gradle.category`.
 However, Gradle may use any number of them during dependency resolution as some *attributes* are more relevant than others:
 
-```json
+[source,json]
+----
 "variants": [
 ...
   {
@@ -105,7 +106,7 @@ However, Gradle may use any number of them during dependency resolution as some 
   },
 ...
 ]
-```
+----
 
 There are two _types_ of *attributes* Gradle uses to match the available *variants* to the one required for the build:
 
@@ -366,6 +367,76 @@ Gradle knows the _consumer_ requires a Java 7-compatible library, but the _produ
 If the _consumer_ requested `org.gradle.jvm.version=15`, Gradle could choose either the Java 8 or Java 11 *variant*.
 Gradle would then select the highest compatible version—Java 11.
 
+[[sec:secondary-variants]]
+== Secondary Variants (Secondary Artifact Sets)
+
+**Secondary variants** are *additional sets of artifacts* that a variant can expose, which do **not** participate in graph resolution.
+Instead, they are considered *only during artifact selection*.
+
+A secondary variant:
+
+* Is an additional artifact set exposed by a configuration.
+* Has its own attributes and artifacts.
+* Is published automatically unless explicitly skipped.
+* May be selected during dependency resolution or by `ArtifactView` if the requested attributes match.
+
+Secondary variants are typically used to expose *precomputed transforms* of the main artifact like `.class` files or the `resources` directory.
+
+WARNING: Secondary variants are sometimes referred to in tooling or logs, but this term is being deprecated in favor of more precise concepts like *artifact sets* or *precomputed transforms*.
+
+The simplest scenario is a typical Java library
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-secondaryVariants/kotlin", files="build.gradle.kts[tags=lib]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-secondaryVariants/groovy", files="build.gradle[tags=lib]"]
+====
+
+The `apiElements` variant represents the public API of a library and is used during dependency resolution when a consuming project requests `java-api` usage:
+
+----
+> ./gradlew outgoingVariants -q
+
+include::{snippetsPath}/dependencyManagement/customizingResolution-secondaryVariants/tests/secondaryVariants.out[]
+----
+
+As shown in the output, in addition to its main artifact (`some-library-1.2.3.jar`), `apiElements` also exposes a **secondary variant** named `classes`, which provides the compiled class files as a `java-classes-directory`.
+
+The `classes` secondary variant (which does not contribute dependencies during graph resolution so it does not influence graph resolution) provides Gradle with additional flexibility during artifact selection.
+For example, enabling consumers to use unjarred class files for faster access in IDEs or incremental compilation.
+
+Let's create a secondary variant of our Java library:
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-secondaryVariants/kotlin", files="build.gradle.kts[tags=add]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-secondaryVariants/groovy", files="build.gradle[tags=add]"]
+====
+
+And we can see our new secondary variant is created for `apiElements`:
+
+----
+> ./gradlew outgoingVariants -q
+
+include::{snippetsPath}/dependencyManagement/customizingResolution-secondaryVariants/tests/secondaryVariantsAdded.out[]
+----
+
+To create a completely new variant for our library, we must also create a new configuration.
+
+The code below defines a custom consumable configuration `fooFiles` with two **secondary variants**, `fooFilesVariant1` and `fooFilesVariant2`, each distinguished by a unique combination of custom attributes.
+The base configuration sets `FooAttribute = main`, which is inherited by `fooFilesVariant1`, while `fooFilesVariant2` overrides it to `secondary`.
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-secondaryVariants/kotlin", files="build.gradle.kts[tags=custom]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-secondaryVariants/groovy", files="build.gradle[tags=custom]"]
+====
+
+The output reflects this structure, showing `fooFiles` as the primary variant and both secondary variants with their corresponding `FooAttribute` and `FooVariantAttribute` values, which Gradle uses during **artifact selection** to match a consumer's requested attributes:
+
+----
+> ./gradlew outgoingVariants -q
+
+include::{snippetsPath}/dependencyManagement/customizingResolution-secondaryVariants/tests/secondaryVariantsNew.out[]
+----
+
 [[sec:variant-visual]]
 == Visualizing Variant Information
 
@@ -486,8 +557,8 @@ From this you can see the two main *variants* that are exposed by a java library
 Notice that the main difference is on the `org.gradle.usage` *attribute*, with values `java-api` and `java-runtime`.
 As they indicate, this is where the difference is made between what needs to be on the _compile_ classpath of _consumers_, versus what's needed on the _runtime_ classpath.
 
-It also shows _secondary_ *variants*, which are exclusive to Gradle projects and not published.
-For example, the secondary *variant* `classes` from `apiElements` is what allows Gradle to skip the JAR creation when compiling against a <<java_library_plugin.adoc#sec:java_library_classes_usage,`java-library` project>>.
+It also shows *secondary variants*.
+For example, the *secondary variant* `classes` from `apiElements` is what allows Gradle to skip the JAR creation when compiling against a <<java_library_plugin.adoc#sec:java_library_classes_usage,`java-library` project>>.
 
 ==== Information about invalid consumable configurations
 

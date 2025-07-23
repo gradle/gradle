@@ -73,7 +73,6 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
 
         expect:
         config != null
-        !config.visible
         config.transitive
         config.description == 'The PMD libraries to be used for this project.'
     }

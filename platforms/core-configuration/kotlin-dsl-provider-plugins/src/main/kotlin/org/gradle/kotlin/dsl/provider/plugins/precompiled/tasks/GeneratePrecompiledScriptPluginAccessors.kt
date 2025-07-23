@@ -113,15 +113,15 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     @get:InputFiles
     @get:Classpath
-    val runtimeClassPathFiles: FileCollection
-        get() = runtimeClassPathArtifactCollection.get().artifactFiles
+    val accessorsGenerationClassPathFiles: FileCollection
+        get() = accessorsGenerationClassPathArtifactCollection.get().artifactFiles
 
     /**
-     * Tracked via [runtimeClassPathFiles].
+     * Tracked via [accessorsGenerationClassPathFiles].
      */
     @get:Internal
     internal
-    abstract val runtimeClassPathArtifactCollection: Property<ArtifactCollection>
+    abstract val accessorsGenerationClassPathArtifactCollection: Property<ArtifactCollection>
 
     @get:OutputDirectory
     abstract val metadataOutputDir: DirectoryProperty
@@ -437,7 +437,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         configurations: ConfigurationContainer,
         fileCollectionFactory: FileCollectionFactory
     ): Configuration {
-        val dependencies = runtimeClassPathArtifactCollection.get().artifacts.map {
+        val dependencies = accessorsGenerationClassPathArtifactCollection.get().artifacts.map {
             when (val componentIdentifier = it.id.componentIdentifier) {
                 is OpaqueComponentIdentifier -> DefaultFileCollectionDependency(
                     componentIdentifier,

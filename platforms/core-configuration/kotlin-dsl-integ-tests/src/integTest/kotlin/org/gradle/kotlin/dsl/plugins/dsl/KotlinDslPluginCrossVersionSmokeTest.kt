@@ -25,7 +25,8 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import java.io.File
-
+import org.junit.experimental.categories.Category
+import org.gradle.test.fixtures.Flaky
 
 /**
  * Assert that the cross-version protocol between `:kotlin-dsl-plugins` and `:kotlin-dsl-provider-plugins` is not broken.
@@ -45,6 +46,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
 
     @Test
     @Requires(NotEmbeddedExecutor::class)
+    @Category(Flaky::class) // https://github.com/gradle/gradle-private/issues/4752
     fun `can run with oldest supported version of kotlin-dsl plugin`() {
 
         withDefaultSettingsIn("buildSrc")

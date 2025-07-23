@@ -231,7 +231,6 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def implementation = project.configurations.customImplementation
-        !implementation.visible
         implementation.extendsFrom == [] as Set
         implementation.description == "Implementation only dependencies for source set 'custom'."
         !implementation.canBeConsumed
@@ -240,7 +239,6 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         and:
         def runtimeOnly = project.configurations.customRuntimeOnly
         runtimeOnly.transitive
-        !runtimeOnly.visible
         !runtimeOnly.canBeConsumed
         !runtimeOnly.canBeResolved
         runtimeOnly.extendsFrom == [] as Set
@@ -249,7 +247,6 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         and:
         def runtimeClasspath = project.configurations.customRuntimeClasspath
         runtimeClasspath.transitive
-        !runtimeClasspath.visible
         !runtimeClasspath.canBeConsumed
         runtimeClasspath.canBeResolved
         runtimeClasspath.extendsFrom == [runtimeOnly, implementation] as Set
@@ -258,14 +255,12 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         and:
         def compileOnly = project.configurations.customCompileOnly
         compileOnly.transitive
-        !compileOnly.visible
         compileOnly.extendsFrom == [] as Set
         compileOnly.description == "Compile only dependencies for source set 'custom'."
 
         and:
         def compileClasspath = project.configurations.customCompileClasspath
         compileClasspath.transitive
-        !compileClasspath.visible
         compileClasspath.extendsFrom == [compileOnly, implementation] as Set
         compileClasspath.description == "Compile classpath for source set 'custom'."
 

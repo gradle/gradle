@@ -251,7 +251,6 @@ fun Project.configureIde(testType: TestType) {
 
 private
 fun Project.bucket(name: String, description: String) = configurations.create(name) {
-    isVisible = false
     isCanBeResolved = false
     isCanBeConsumed = false
     this.description = description
@@ -267,7 +266,6 @@ fun Project.resolver(name: String, libraryElements: String, extends: Configurati
     }
     isCanBeResolved = true
     isCanBeConsumed = false
-    isVisible = false
     if (extends != null) {
         extendsFrom(extends)
     }
@@ -280,7 +278,6 @@ fun Project.localRepositoryResolver(name: String, extends: Configuration? = null
     }
     isCanBeResolved = true
     isCanBeConsumed = false
-    isVisible = false
     if (extends != null) {
         extendsFrom(extends)
     }

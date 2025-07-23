@@ -231,7 +231,7 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
     private void onCircularDependencies(final State state, final Deque<NativeBinarySpecInternal> stack, NativeBinarySpecInternal target) {
         GraphNodeRenderer<NativeBinarySpecInternal> nodeRenderer = new GraphNodeRenderer<NativeBinarySpecInternal>() {
             @Override
-            public void renderTo(NativeBinarySpecInternal node, StyledTextOutput output) {
+            public void renderTo(NativeBinarySpecInternal node, StyledTextOutput output, boolean alreadySeen) {
                 String name = DependentComponentsUtils.getBuildScopedTerseName(node.getId());
                 output.withStyle(StyledTextOutput.Style.Identifier).text(name);
             }

@@ -122,6 +122,10 @@ class ConfigurationCacheProblems(
     private
     lateinit var cacheActionDescription: StructuredMessage
 
+    private
+    val degradationDecision: DefaultConfigurationCacheDegradationController.DegradationDecision
+        get() = degradationController.degradationDecision
+
     val shouldDiscardEntry: Boolean
         get() {
             if (cacheAction is ConfigurationCacheAction.Load) {
@@ -184,14 +188,14 @@ class ConfigurationCacheProblems(
     }
 
     override fun forTask(task: Task): ProblemsListener {
-        val degradationReasons = getDegradationDecision().degradationReasonForTask(task)
+        val degradationReasons = degradationDecision.degradationReasonForTask(task)
         return if (!degradationReasons.isNullOrEmpty()) {
             onIncompatibleTask(locationForTask(task), degradationReasons.joinToString())
             ErrorsAreProblemsProblemsListener(ProblemSeverity.SuppressedSilently)
         } else this
     }
 
-    fun shouldDegradeGracefully(): Boolean = getDegradationDecision().shouldDegrade
+    fun shouldDegradeGracefully(): Boolean = degradationDecision.shouldDegrade
 
     private
     fun onIncompatibleTask(trace: PropertyTrace, reason: String) {
@@ -216,6 +220,18 @@ class ConfigurationCacheProblems(
             .documentationSection(DocumentationSection.TaskOptOut).build()
         report.onIncompatibleTask(problem)
         summarizer.onIncompatibleTask()
+    }
+
+    private
+    fun reportDegradingFeature(feature: String) {
+        val problem = problemFactory
+            .problem {
+                // for now, we don't expect interesting information from degrading features, so only the feature name is displayed
+                text("Feature '$feature' is incompatible with the configuration cache.")
+            }
+            .build()
+        report.onProblem(problem)
+        summarizer.onIncompatibleFeature()
     }
 
     override fun onProblem(problem: PropertyProblem) {
@@ -311,12 +327,13 @@ class ConfigurationCacheProblems(
      */
     override fun report(reportDir: File, validationFailures: ProblemConsumer) {
         addNotReportedDegradingTasks()
+        addDegradingFeatures()
         val summary = summarizer.get()
         val hasNoProblemsForConsole = summary.reportableProblemCount == 0
         val outputDirectory = outputDirectoryFor(reportDir)
         val details = detailsFor(summary)
         val htmlReportFile = report.writeReportFileTo(outputDirectory, ProblemReportDetailsJsonSource(details))
-        val areTaskDegradationReasonsPresent = getDegradationDecision().degradedTaskCount > 0
+        val areTaskDegradationReasonsPresent = degradationDecision.degradedTaskCount > 0
         if (htmlReportFile == null) {
             // there was nothing to report (no problems, no build configuration inputs)
             require(summary.totalProblemCount == 0)
@@ -338,12 +355,21 @@ class ConfigurationCacheProblems(
         }
     }
 
-    private fun addNotReportedDegradingTasks() {
-        getDegradationDecision().onDegradedTask { task, reasons ->
+    private
+    fun addNotReportedDegradingTasks() {
+        degradationDecision.onDegradedTask { task, reasons ->
             val trace = locationForTask(task)
             if (!incompatibleTasks.contains(trace)) {
                 reportIncompatibleTask(trace, reasons.joinToString())
             }
+        }
+    }
+
+    private
+    fun addDegradingFeatures() {
+        degradationDecision.onDegradedFeature { feature, _ ->
+            // TODO:configuration-cache consider collecting location information (trace)
+            reportDegradingFeature(feature)
         }
     }
 
@@ -407,14 +433,11 @@ class ConfigurationCacheProblems(
 
     private
     fun degradationSummary(): String {
-        val degradingTaskCount = getDegradationDecision().degradedTaskCount
         val degradingFeatures = buildList {
-            getDegradationDecision().onDegradedFeature { feature, _ -> add(feature) }
+            degradationDecision.onDegradedFeature { feature, _ -> add(feature) }
         }
-        return DegradationSummary(degradingFeatures, degradingTaskCount).render()
+        return DegradationSummary(degradingFeatures, degradationDecision.degradedTaskCount).render()
     }
-
-    private fun getDegradationDecision() = degradationController.degradationDecision
 
     @VisibleForTesting
     internal
@@ -471,8 +494,10 @@ class ConfigurationCacheProblems(
         }
     }
 
-    private inner class ErrorsAreProblemsProblemsListener(
-        private val problemSeverity: ProblemSeverity
+    private
+    inner class ErrorsAreProblemsProblemsListener(
+        private
+        val problemSeverity: ProblemSeverity
     ) : AbstractProblemsListener() {
 
         override fun onProblem(problem: PropertyProblem) {

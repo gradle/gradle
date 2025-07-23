@@ -74,14 +74,42 @@ ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 
-<a name="build-authoring"></a>
+<a name="ear-plugin"></a>
+### Ear Plugin
+
+It is now possible to generate valid deployment descriptors for Jakarta EE 11
+by specifying the corresponding version in the `deploymentDescriptor` instead of having to use a custom descriptor file.
+
+```kotlin
+tasks.ear {
+    deploymentDescriptor {  // custom entries for application.xml:
+        version = "11"
+    }
+}
+```
+
+<a name="cli"></a>
 ### CLI improvement
+
+#### Off-screen lines reported in rich console
+
+This release adds a status line to the `rich` console that reports the number of in-progress events not currently visible on screen.
+
+```console
+> (2 lines not showing)
+```
+
+This occurs when there are more ongoing events than the console has lines available to display them.
+
+![this recording](release-notes-assets/off-screen-lines.gif)
 
 #### Plain console with colors
 
 This release adds a new value for the `--console` command line option called `colored`, which enables color output for the console while omitting rich features such as progress bars.
 
+![this recording](release-notes-assets/colored-console.gif)
 
+<a name="build-authoring"></a>
 ### Build authoring improvements
 
 #### Introduce `AttributeContainer#addAllLater`
@@ -114,6 +142,46 @@ assert(bar.getAttribute(color) == "orange") // `color` gets overwritten again
 assert(bar.getAttribute(shape) == "square") // `shape` remains the same
 ```
 
+#### Accessors for `compileOnly` plugin dependencies in precompiled Kotlin scripts
+
+Previously, it was not possible to use a plugin coming from a `compileOnly` dependency in a [precompiled Kotlin script](userguide/implementing_gradle_plugins_precompiled.html).
+Now it is supported, and [​type-safe accessors​]​(​userguide/kotlin_dsl.html#type-safe-accessors​) for plugins from such dependencies are available in the precompiled Kotlin scripts.
+
+As an example, the following `buildSrc/build.gradle.kts` build script declares a `compileOnly` dependency to a third party plugin:
+```kotlin
+plugins {
+    `kotlin-dsl`
+}
+dependencies {
+    compileOnly("com.android.tools.build:gradle:x.y.z")
+}
+```
+And a convention precompiled Kotlin script in `buildSrc/src/main/kotlin/my-convention-plugin.gradle.kts` applies it, and can now use type-safe accessors to configure the third party plugin:
+```kotlin
+plugins {
+    id("com.android.application")
+}
+android {
+    // The accessor to the `android` extension registered by the Android plugin is available
+}
+```
+
+#### Introduce `Gradle#getBuildPath`
+
+This release introduces a new API on the [Gradle](javadoc/org/gradle/api/invocation/Gradle.html) type that returns the path of the build represented by the `Gradle` instance, relative to the root of the build tree.
+For the root build, this will return `:`.
+For included builds, this will return the path of the included build relative to the root build.
+
+This is the same path returned by `BuildIdentifier#getBuildPath`, but it is now available directly on the `Gradle` instance.
+This enables build authors to obtain the path of a build, similar to how they can already obtain the path of a project.
+
+The following example demonstrates how to determine the path of the build which owns a given project:
+
+```kotlin
+val project: Project = getProjectInstance()
+val buildPath: String = project.gradle.buildPath
+```
+
 ### Configuration Improvements
 
 #### Simpler target package configuration for Antlr 4
@@ -143,7 +211,7 @@ A task dependency is also created between the source generation task and the sou
 
 For a Maven publication, it is now possible to specify the repository used for distribution in the published POM file.
 
-For example, to specify the GitHub Packages repository in the POM file, use this code: 
+For example, to specify the GitHub Packages repository in the POM file, use this code:
 ```kotlin
 plugins {
   id("maven-publish")
@@ -161,6 +229,117 @@ publications.withType<MavenPublication>().configureEach {
   }
 }
 ```
+
+### Error and warning reporting improvements
+
+#### Improved error message for Version Constraint Conflicts
+
+In previous versions of Gradle when a version constraint conflict occurred the error message was extremely verbose and included extraneous information.
+It also was formatted in a way that was difficult to comprehend, especially when constraints involved in the conflict were added by transitive dependencies.
+
+```
+> Could not resolve org:foo:3.2.
+  Required by:
+      root project 'test'
+   > Cannot find a version of 'org:foo' that satisfies the version constraints:
+        Dependency path: 'root project :' (conf) --> 'org:bar:2.0' (runtime) --> 'org:foo:3.1'
+        Constraint path: 'root project :' (conf) --> 'org:platform:1.1' (platform) --> 'org:foo:{strictly 3.1.1; reject 3.1 & 3.2}'
+        Constraint path: 'root project :' (conf) --> 'org:foo:3.2'
+        Constraint path: 'root project :' (conf) --> 'org:baz:3.0' (runtime) --> 'org:foo:3.3'
+        Constraint path: 'root project :' (conf) --> 'org:other:3.0' (runtime) --> 'org:foo:3.3'
+```
+
+The new message focuses attention on the conflicting versions required by the constraints involved in the conflict.
+
+```
+> Could not resolve org:foo.
+  Required by:
+      root project 'mec0k'
+   > Component is the target of multiple version constraints with conflicting requirements:
+     3.1.1 - directly in 'org:platform:1.1' (platform)
+     3.2
+     3.3 - transitively via 'org:baz:3.0' (runtime) (1 other path to this version)
+```
+
+This makes it clearer by:
+- Immediately stating that there is a conflict in version constraints for a component, and not merely a failure to _find_ a suitable candidate in the searched repositories when resolving dependencies
+- Clearly showing each constrained version involved in the conflict
+- Showing where the conflicting constraints are declared (either the project doing resolution, its direct dependencies, its transitive dependencies, or dependency locking) _without_ showing the complete dependency paths, which can be long and hard to read and are available in the dependency insight report
+- Showing how many paths to each constraint exist in the dependency graph, but only printing the first one, which is usually sufficient to understand the conflict
+
+It also avoids showing non-strict dependency declarations, like the first line in the old version, which are irrelevant to understanding the conflict.
+
+A suggestion message at the end of the build will also provide the exact syntax for running `dependencyInsight` on the failing configuration, to further investigate it by viewing comprehensive dependency resolution information.
+
+<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ADD RELEASE FEATURES ABOVE
+==========================================================
+
+-->
+
+### Task graph diagnostic
+
+A new task dependency graph is available to visualize the dependencies between tasks without executing them.
+You can enable it using the `--task-graph` option on the command line. For example:
+```
+./gradlew root r2 --task-graph
+```
+This prints a visual representation of the task graph for the specified tasks:
+```
+Tasks graph for: root r2
++--- :root (org.gradle.api.DefaultTask)
+|    \--- :middle (org.gradle.api.DefaultTask)
+|         +--- :leaf1 (org.gradle.api.DefaultTask)
+|         \--- :leaf2 (org.gradle.api.DefaultTask, disabled)
+\--- :root2 (org.gradle.api.DefaultTask)
+    +--- :leaf1 (*)
+    |--- other build task :included:fromIncluded (org.gradle.api.DefaultTask)
+    \--- :leaf4 (org.gradle.api.DefaultTask, finalizer)
+         \--- :leaf3 (org.gradle.api.DefaultTask)
+
+(*) - details omitted (listed previously)
+```
+
+This feature provides a quick overview of the task graph, helping users understand the dependencies between tasks without running them.
+You can iterate by diving into a subgraph by adjusting an invocation.
+
+This feature is incubating and may change in future releases.
+#### Fixed `--dry-run` behavior in composite builds
+
+Gradle now correctly respects `--dry-run` in composite builds, ensuring that tasks are not executed during the execution phase of included builds.
+
+Note that tasks from some included builds may still be executed during configuration time, as part of their configuration logic.
+
+This restores expected behavior and makes `--dry-run` safer for previewing task execution plans across composite builds.
+
+### Project report updated
+
+The [Project Report](userguide/project_report_plugin.html) has been updated to show projects' physical locations in the file system, as well as their logical build paths.
+
+```
+------------------------------------------------------------
+Root project 'avoidEmptyProjects-do'
+------------------------------------------------------------
+
+Location: /usr/jsmith/projects/avoidEmptyProjects-do
+Description: Example project to demonstrate Gradle's project hierarchy and locations
+
+Project hierarchy:
+
+Root project 'avoidEmptyProjects-do'
++--- Project ':app'
+\--- Project ':my-web-module'
+
+Project locations:
+
+project ':app' - /app
+project ':my-web-module' - /subs/web/my-web-module
+
+To see a list of the tasks of a project, run gradle <project-path>:tasks
+For example, try running gradle :app:tasks
+```
+
+This will help authors better understand the structure of hierarchical builds that use non-standard project directories.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

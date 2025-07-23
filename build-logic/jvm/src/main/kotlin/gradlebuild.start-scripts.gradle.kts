@@ -38,7 +38,6 @@ val startScripts = tasks.register<GradleStartScriptGenerator>("startScripts") {
 
 configurations {
     create("gradleScriptsElements") {
-        isVisible = false
         isCanBeResolved = false
         isCanBeConsumed = true
         attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named("start-scripts"))

@@ -60,4 +60,31 @@ tasks.named("assemble") {
 }
 ----
 
+[[deprecate-visible-property]]
+==== The `Configuration.visible` property is now deprecated
+Prior to Gradle 9.0, any configuration with `isVisible()` returning `true` would have its artifacts built automatically when the `assemble` task was executed.
+This implicit behavior was removed in 9.0.0, and the `Configuration.visible` property no longer has any meaningful effect.
+This property is now deprecated and will be removed in Gradle 10.0.0.
+Any usage of `visible` can be removed.
+If you want the artifacts of a configuration to be built as part of the `assemble` task, add an explicit task dependency on `assemble` instead:
+
+.build.gradle.kts
+[source,kotlin]
+----
+val specialJar = tasks.register<Jar>("specialJar") {
+    archiveBaseName.set("special")
+    from("build/special")
+}
+
+configurations {
+    consumable("special") {
+        outgoing.artifact(specialJar)
+    }
+}
+
+tasks.named("assemble") {
+    dependsOn(specialJar)
+}
+----
+
 === Potential breaking changes

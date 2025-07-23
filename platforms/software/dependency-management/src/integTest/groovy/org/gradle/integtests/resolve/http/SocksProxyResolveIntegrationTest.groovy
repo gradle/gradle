@@ -16,56 +16,81 @@
 
 package org.gradle.integtests.resolve.http
 
-import org.bbottema.javasocksproxyserver.TestRecordingSocksServer
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.SocksProxyServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Socks proxy for localhost breaks unrelated connections")
 class SocksProxyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule
     SocksProxyServer proxyServer = new SocksProxyServer()
+    @Rule
+    TestResources resources = new TestResources(temporaryFolder)
+    TestKeyStore keyStore
+    def projectA
 
     def setup() {
+        keyStore = TestKeyStore.init(resources.dir)
+        keyStore.enableSslWithServerCert(server)
+
+        def repo = mavenHttpRepo("repo")
+        projectA = repo.module('test', 'projectA', '1.2').publish()
         buildFile << """
 repositories {
-    ${mavenCentralRepository()}
+    maven {
+        url = "${repo.uri}"
+    }
 }
 configurations { compile }
-dependencies { compile 'log4j:log4j:1.2.17' }
+dependencies { compile 'test:projectA:1.2' }
 task listJars {
-    doLast {
-        assert configurations.compile.collect { it.name } == ['log4j-1.2.17.jar']
+    doFirst {
+        println System.getProperty('socksProxyHost')
+        println System.getProperty('socksProxyPort')
     }
+    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
 }
 """
+        proxyServer.start()
+        proxyServer.configureProxy(executer)
+        keyStore.configureServerAndClientCerts(executer)
     }
 
-    @ToBeFixedForConfigurationCache
-    def "uses configured SOCKS proxy to access remote repository"() {
-        proxyServer.configureProxy(executer)
+    def "gives a proper error message when SOCKS proxy is not available"() {
+        proxyServer.stop()
+
         when:
         fails('listJars')
-        then:
-        failure.assertHasCause("Could not resolve log4j:log4j:1.2.17.")
-        failure.assertThatCause(CoreMatchers.containsString("Can't connect to SOCKS proxy:Connection refused"))
 
+        then:
+        failure.assertHasCause("Could not resolve test:projectA:1.2.")
+        failure.assertThatCause(CoreMatchers.containsString("Can't connect to SOCKS proxy:Connection refused"))
+    }
+
+    def "uses configured SOCKS proxy to access remote repository"() {
         when:
-        def recordingServer = new TestRecordingSocksServer()
-        proxyServer.start(recordingServer)
-        proxyServer.configureProxy(executer)
-        fails('listJars') // Don't have to succeed here, just record the attempt in the fake proxy and verify it
+        projectA.pom.expectGet()
+        projectA.artifact.expectGet()
+        succeeds('listJars')
+
         then:
         result.assertTaskExecuted(":listJars")
-        recordingServer.madeAnyConnection()
+        proxyServer.hadConnections()
+    }
+
+    def "gives a proper error message when SOCKS proxy is not available with refresh dependencies"() {
+        proxyServer.stop()
 
         when:
-        proxyServer.stop()
-        proxyServer.configureProxy(executer)
         fails('listJars', '--refresh-dependencies')
+
         then:
-        failure.assertHasCause("Could not resolve log4j:log4j:1.2.17.")
+        failure.assertHasCause("Could not resolve test:projectA:1.2.")
         failure.assertThatCause(CoreMatchers.containsString("Can't connect to SOCKS proxy:Connection refused"))
     }
 }
