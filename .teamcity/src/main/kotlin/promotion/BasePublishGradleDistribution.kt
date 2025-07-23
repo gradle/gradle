@@ -51,18 +51,18 @@ abstract class BasePublishGradleDistribution(
             }
         }
 
-        if (this@BasePublishGradleDistribution.prepTask != null) {
-            steps {
-                buildStep(
-                    this@BasePublishGradleDistribution.extraParameters,
-                    this@BasePublishGradleDistribution.gitUserName,
-                    this@BasePublishGradleDistribution.gitUserEmail,
-                    this@BasePublishGradleDistribution.triggerName,
-                    this@BasePublishGradleDistribution.prepTask,
-                    "checkNeedToPromote",
-                )
-            }
-        }
+//        if (this@BasePublishGradleDistribution.prepTask != null) {
+//            steps {
+//                buildStep(
+//                    this@BasePublishGradleDistribution.extraParameters,
+//                    this@BasePublishGradleDistribution.gitUserName,
+//                    this@BasePublishGradleDistribution.gitUserEmail,
+//                    this@BasePublishGradleDistribution.triggerName,
+//                    this@BasePublishGradleDistribution.prepTask,
+//                    "checkNeedToPromote",
+//                )
+//            }
+//        }
     }
 }
 

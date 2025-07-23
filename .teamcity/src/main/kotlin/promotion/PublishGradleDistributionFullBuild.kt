@@ -16,6 +16,8 @@
 
 package promotion
 
+import jetbrains.buildServer.configs.kotlin.buildSteps.script
+
 abstract class PublishGradleDistributionFullBuild(
     // The branch to be promoted
     promotedBranch: String,
@@ -28,18 +30,20 @@ abstract class PublishGradleDistributionFullBuild(
 ) : BasePublishGradleDistribution(promotedBranch, prepTask, triggerName, gitUserName, gitUserEmail, extraParameters) {
     init {
         steps {
-            if (prepTask != null) {
-                buildStep(extraParameters, gitUserName, gitUserEmail, triggerName, prepTask, "uploadAll")
-                buildStep(extraParameters, gitUserName, gitUserEmail, triggerName, prepTask, promoteTask)
-            } else {
-                buildStep(
-                    listOf(extraParameters, "-PpromotedBranch=$promotedBranch").joinToString(separator = " "),
-                    gitUserName,
-                    gitUserEmail,
-                    triggerName,
-                    promoteTask,
-                    "",
-                )
+            script {
+                scriptContent = """
+#!/bin/bash
+
+cat <<EOF > version-info.properties
+buildTimestamp=20250722015451+0000
+commitId=6611489182396aa56ff4524813d1e8070d2e879e
+downloadUrl=https\://services.gradle.org/distributions-snapshots/gradle-9.0.0-20250722015451 0000-all.zip
+hasBeenReleased=true
+isSnapshot=true
+promotedVersion=${if (prepTask == "prepFinalRelease") "9.0.0" else "9.0.0-rc-3"}
+versionBase=9.0.0
+EOF
+                """
             }
         }
     }
