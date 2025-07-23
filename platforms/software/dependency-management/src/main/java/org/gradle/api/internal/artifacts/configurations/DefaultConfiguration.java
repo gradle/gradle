@@ -279,10 +279,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.declarableAgainstState = Lazy.locking().of(() -> new DeclarableAgainstState(this, validateMutationType(this, MutationValidator.MutationType.DEPENDENCIES), displayName, domainObjectCollectionFactory));
     }
 
-    private Map<ConfigurationRole, Map<String, Integer>> configurationStateUsage = new HashMap<>();
+    private final Map<ConfigurationRole, Map<String, Integer>> configurationStateUsage = new HashMap<>();
 
-    private void recordUsage(String methodName) {
-        Map<String, Integer> methodCallsForRole = configurationStateUsage.computeIfAbsent(roleAtCreation, role -> new HashMap<>());
+    private void recordUsage(ConfigurationRole role, String methodName) {
+        Map<String, Integer> methodCallsForRole = configurationStateUsage.computeIfAbsent(role, r -> new HashMap<>());
         methodCallsForRole.merge(methodName, 1, Integer::sum);
     }
 
@@ -297,7 +297,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private ResolvableState getResolvableState(@Nullable String methodName) {
         if (methodName != null) {
-            recordUsage(methodName);
+            recordUsage(ConfigurationRoles.RESOLVABLE, methodName);
         }
         return resolvableState.get();
     }
@@ -308,7 +308,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private ConsumableState getConsumableState(@Nullable String methodName) {
         if (methodName != null) {
-            recordUsage(methodName);
+            recordUsage(ConfigurationRoles.CONSUMABLE, methodName);
         }
         return consumableState.get();
     }
@@ -319,7 +319,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private DeclarableAgainstState getDeclarableAgainstState(@Nullable String methodName) {
         if (methodName != null) {
-            recordUsage(methodName);
+            recordUsage(ConfigurationRoles.DEPENDENCY_SCOPE, methodName);
         }
         return declarableAgainstState.get();
     }

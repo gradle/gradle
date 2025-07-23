@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class ConfigurationUsageService implements BuildService<BuildServiceParameters.None> {
     private final Map<ProjectState, Set<ConfigurationInternal>> configurations = new HashMap<>();
@@ -36,11 +37,12 @@ public abstract class ConfigurationUsageService implements BuildService<BuildSer
         configurations.computeIfAbsent(project.getOwner(), state -> new HashSet<>()).add(configuration);
     }
 
-    public String reportUsage() {
+    public String reportUsage(boolean showAllUsage) {
         if (configurations.isEmpty()) {
             return "No configurations were created in this build.";
         }
 
+        AtomicBoolean wroteSomething = new AtomicBoolean(false);
         StringBuilder result = new StringBuilder();
         configurations.keySet().stream()
             .sorted()
@@ -49,22 +51,46 @@ public abstract class ConfigurationUsageService implements BuildService<BuildSer
                 configurations.get(p).stream()
                     .sorted(Comparator.comparing(ConfigurationInternal::getDisplayName))
                     .forEach(c -> {
-                        result.append(c.getDisplayName()).append(" (").append(c.getRoleAtCreation()).append(")\n");
+                        ConfigurationRole roleAtCreation = c.getRoleAtCreation();
+                        result.append("  ").append(c.getDisplayName()).append(" (").append(roleAtCreation).append(")\n");
                         Map<ConfigurationRole, Map<String, Integer>> usage = c.getConfigurationStateUsage();
                         usage.keySet().stream()
                             .sorted(Comparator.comparing(ConfigurationRole::getName))
                             .forEach(r -> {
-                                result.append("    Role: ").append(r.getName()).append("\n");
-                                Map<String, Integer> details = usage.get(r);
-                                details.keySet().stream()
-                                    .sorted()
-                                    .forEach(method -> {
-                                        result.append("      ").append(method).append(": ").append(details.get(method)).append("\n");
-                                    });
+                                if (showAllUsage || !isAppropriateUsage(r, roleAtCreation)) {
+                                    result.append("    Role: ").append(r.getName()).append("\n");
+                                    Map<String, Integer> details = usage.get(r);
+                                    details.keySet().stream()
+                                        .sorted()
+                                        .forEach(method -> {
+                                            result.append("      ").append(method).append(": ").append(details.get(method)).append("\n");
+                                        });
+                                    wroteSomething.set(true);
+                                }
                             });
                     });
+
+                if (!wroteSomething.get()) {
+                    result.append("No configuration state was accessed incorrectly.\n");
+                }
             });
 
         return result.toString();
+    }
+
+    /**
+     * Checks if the usage of the given role is appropriate based on the role at creation.
+     * <p>
+     * This is used to filter out usages that are not relevant for the role at creation.
+     * <p>
+     * This method uses a {@code contains} check so that `Resolvable Dependency Scope` encompasses both `Resolvable` and `Dependency Scope`
+     * as appropriate usages.
+     *
+     * @param r the role being checked
+     * @param roleAtCreation the role at the time of configuration's creation
+     * @return {@code true} if the usage is appropriate; {@code false} otherwise
+     */
+    private static boolean isAppropriateUsage(ConfigurationRole r, ConfigurationRole roleAtCreation) {
+        return roleAtCreation.getName().contains(r.getName());
     }
 }

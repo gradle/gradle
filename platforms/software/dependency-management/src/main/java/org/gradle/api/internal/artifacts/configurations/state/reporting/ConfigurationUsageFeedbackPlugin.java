@@ -26,18 +26,29 @@ import org.gradle.api.provider.Provider;
 import javax.inject.Inject;
 
 public abstract class ConfigurationUsageFeedbackPlugin implements Plugin<Settings> {
+    public static final String DEFAULT_REPORT_FILE = "configuration-usage-report.txt";
+    public static final String DEFAULT_REPORTS_DIR = "build/reports";
+
     @Inject
     protected abstract FlowScope getFlowScope();
 
     @Override
     public void apply(Settings settings) {
+        ConfigurationUsageFeedbackExtension extension = settings.getExtensions().create("configurationUsageFeedback", ConfigurationUsageFeedbackExtension.class);
+        extension.getShowAllUsage().convention(false);
+        extension.getReportFile().convention(settings.getLayout().getRootDirectory().dir(DEFAULT_REPORTS_DIR).file(DEFAULT_REPORT_FILE));
+
         Provider<ConfigurationUsageService> serviceProvider = settings.getGradle().getSharedServices().registerIfAbsent("configurationUsageService", ConfigurationUsageService.class, spec -> {});
 
         getFlowScope().always(ConfigurationUsageReportingFlowAction.class, spec -> {
             spec.getParameters().getConfigurationUsageService().set(serviceProvider.get());
+            spec.getParameters().getShowAllUsage().set(extension.getShowAllUsage());
+            spec.getParameters().getReportFile().set(extension.getReportFile().getAsFile());
         });
 
+        //noinspection CodeBlock2Expr
         settings.getGradle().allprojects(project -> {
+            //noinspection CodeBlock2Expr
             project.getConfigurations().configureEach(configuration -> {
                 serviceProvider.get().trackConfigurationUsage((ProjectInternal) project, (ConfigurationInternal) configuration);
             });

@@ -22,6 +22,9 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
+import org.gradle.util.internal.GFileUtils;
+
+import java.io.File;
 
 public abstract class ConfigurationUsageReportingFlowAction implements FlowAction<ConfigurationUsageReportingFlowAction.Parameters> {
     private static final Logger logger = Logging.getLogger(ConfigurationUsageReportingFlowAction.class);
@@ -29,10 +32,18 @@ public abstract class ConfigurationUsageReportingFlowAction implements FlowActio
     public interface Parameters extends FlowParameters {
         @Input
         Property<ConfigurationUsageService> getConfigurationUsageService();
+        @Input
+        Property<Boolean> getShowAllUsage();
+        @Input // TODO: not really an input, but we need to use @Input to make it available in the flow, as @OutputFile won't work and RegularFileProperty won't work
+        Property<File> getReportFile();
     }
 
     @Override
     public void execute(ConfigurationUsageReportingFlowAction.Parameters parameters) {
-        logger.lifecycle(parameters.getConfigurationUsageService().get().reportUsage());
+        String result = parameters.getConfigurationUsageService().get().reportUsage(parameters.getShowAllUsage().get());
+        File reportFile = parameters.getReportFile().get();
+        GFileUtils.writeFile(result, reportFile);
+
+        logger.lifecycle("Configuration usage report written to: file:/{}", reportFile.getAbsolutePath());
     }
 }

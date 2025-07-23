@@ -48,7 +48,7 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
         project.idea instanceof IdeaModel
         project.idea.project != null
         project.idea.project.location.get().asFile == project.file("test-project.ipr")
-        project.idea.module.outputFile == project.file("test-project.iml")
+        project.idea.module.getReportFile == project.file("test-project.iml")
     }
 
     def "adds extension to child project"() {
@@ -58,7 +58,7 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
         then:
         childProject.idea instanceof IdeaModel
         childProject.idea.project == null
-        childProject.idea.module.outputFile == childProject.file("child.iml")
+        childProject.idea.module.getReportFile == childProject.file("child.iml")
     }
 
     def "adds 'ideaProject' task to root project"() {

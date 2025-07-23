@@ -43,7 +43,7 @@ class DefaultTaskOutputsTest extends AbstractTaskInputsAndOutputsTest {
         outputs.files.files == files('a')
         outputs.fileProperties*.propertyName == ['$1']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [file("a")]
-        outputs.fileProperties*.outputFile == [file("a")]
+        outputs.fileProperties*.getReportFile == [file("a")]
         outputs.fileProperties*.outputType == [FILE]
     }
 
@@ -54,7 +54,7 @@ class DefaultTaskOutputsTest extends AbstractTaskInputsAndOutputsTest {
         outputs.files.files == files('a')
         outputs.fileProperties*.propertyName == ['prop']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [file("a")]
-        outputs.fileProperties*.outputFile == [file("a")]
+        outputs.fileProperties*.getReportFile == [file("a")]
         outputs.fileProperties*.outputType == [FILE]
     }
 
@@ -65,7 +65,7 @@ class DefaultTaskOutputsTest extends AbstractTaskInputsAndOutputsTest {
         outputs.files.files == files('a')
         outputs.fileProperties*.propertyName == ['$1']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [file("a")]
-        outputs.fileProperties*.outputFile == [file("a")]
+        outputs.fileProperties*.getReportFile == [file("a")]
         outputs.fileProperties*.outputType == [DIRECTORY]
     }
 
@@ -76,7 +76,7 @@ class DefaultTaskOutputsTest extends AbstractTaskInputsAndOutputsTest {
         outputs.files.files == files('a')
         outputs.fileProperties*.propertyName == ['prop']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [file("a")]
-        outputs.fileProperties*.outputFile == [file("a")]
+        outputs.fileProperties*.getReportFile == [file("a")]
         outputs.fileProperties*.outputType == [DIRECTORY]
     }
 
@@ -115,7 +115,7 @@ class DefaultTaskOutputsTest extends AbstractTaskInputsAndOutputsTest {
         outputs.files.files == files('a', "b")
         outputs.fileProperties*.propertyName == ['$1.fileA', '$1.fileB']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [file("a"), file("b")]
-        outputs.fileProperties*.outputFile == [file("a"), file("b")]
+        outputs.fileProperties*.getReportFile == [file("a"), file("b")]
         outputs.fileProperties*.outputType == [FILE, FILE]
     }
 
@@ -126,7 +126,7 @@ class DefaultTaskOutputsTest extends AbstractTaskInputsAndOutputsTest {
         outputs.files.files == files('a', "b")
         outputs.fileProperties*.propertyName == ['prop.fileA', 'prop.fileB']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [file("a"), file("b")]
-        outputs.fileProperties*.outputFile == [file("a"), file("b")]
+        outputs.fileProperties*.getReportFile == [file("a"), file("b")]
         outputs.fileProperties*.outputType == [type, type]
         where:
         name    | type
@@ -141,7 +141,7 @@ class DefaultTaskOutputsTest extends AbstractTaskInputsAndOutputsTest {
         outputs.files.files == files('a', 'b')
         outputs.fileProperties*.propertyName == ['$1.one', '$1.two']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [file("a"), file("b")]
-        outputs.fileProperties*.outputFile == [file("a"), file("b")]
+        outputs.fileProperties*.getReportFile == [file("a"), file("b")]
         outputs.fileProperties*.outputType == [type, type]
         where:
         name    | type
@@ -156,7 +156,7 @@ class DefaultTaskOutputsTest extends AbstractTaskInputsAndOutputsTest {
         outputs.files.files == files('a', "b")
         outputs.fileProperties*.propertyName == ['prop.one', 'prop.two']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [file("a"), file("b")]
-        outputs.fileProperties*.outputFile == [file("a"), file("b")]
+        outputs.fileProperties*.getReportFile == [file("a"), file("b")]
         outputs.fileProperties*.outputType == [type, type]
         where:
         name    | type
