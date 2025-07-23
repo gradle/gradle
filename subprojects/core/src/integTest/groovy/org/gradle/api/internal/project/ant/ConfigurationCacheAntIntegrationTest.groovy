@@ -14,18 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl
+package org.gradle.api.internal.project.ant
 
 import groovy.xml.MarkupBuilder
-import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
-class ConfigurationCacheAntIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+@Requires(value = IntegTestPreconditions.NotConfigCached, reason = "handles CC explicitly")
+class ConfigurationCacheAntIntegrationTest extends AbstractIntegrationSpec {
 
     File antBuildFile
-    ConfigurationCacheBuildOperationsFixture configurationCache
+    def configurationCache = newConfigurationCacheFixture()
+
+    @Override
+    void setupExecuter() {
+        super.setupExecuter()
+        executer.withConfigurationCacheEnabled()
+    }
 
     def setup() {
-        configurationCache = newConfigurationCacheFixture()
         antBuildFile = new File(testDirectory, 'build.xml')
         antBuildFile.withWriter { Writer writer ->
             def xml = new MarkupBuilder(writer)
@@ -44,7 +52,7 @@ class ConfigurationCacheAntIntegrationTest extends AbstractConfigurationCacheInt
         """
 
         when:
-        configurationCacheRun('test-build')
+        run('test-build')
 
         then:
         outputContains("[ant:echo] Basedir is: " + testDirectory.getAbsolutePath())
@@ -64,7 +72,7 @@ class ConfigurationCacheAntIntegrationTest extends AbstractConfigurationCacheInt
         """
 
         when:
-        configurationCacheRun('test-build')
+        run('test-build')
 
         then:
         outputContains("[ant:echo] Hello from Ant!")
