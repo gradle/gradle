@@ -119,6 +119,11 @@ class ConfigurationCacheStartParameter internal constructor(
     val recreateCache: Boolean
         get() = startParameter.isConfigurationCacheRecreateCache
 
+    /**
+     * Whether we should skip creating an entry in case of a cache miss.
+     */
+    val isReadOnlyCache = options.getInternalFlag("org.gradle.configuration-cache.internal.read-only", false)
+
     val isIntegrityCheckEnabled: Boolean
         get() = startParameter.isConfigurationCacheIntegrityCheckEnabled
 
