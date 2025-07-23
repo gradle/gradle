@@ -12,8 +12,8 @@ set -e
 # Environment variables:
 #   DEFAULT_BRANCH  - The default branch to create the pull request on (e.g. "master"/"release")
 #   GITHUB_TOKEN    - GitHub bot token
-#   TRIGGERED_BY    - Optional. If it's "Release - Final", version will be from version-info-final-release.properties
-#                     If it's "Release - Release Candidate", version will be from version-info-release-candidate.properties
+#   TRIGGERED_BY    - Optional. If it's "Release - Final", version will be from version-info-final-release/version-info.properties
+#                     If it's "Release - Release Candidate", version will be from version-info-release-candidate/version-info.properties
 
 post() {
     local endpoint="$1"
@@ -33,10 +33,10 @@ main() {
     : "${GITHUB_TOKEN:?GITHUB_TOKEN environment variable is required}"
 
     if [[ "$TRIGGERED_BY" == *"Release - Final"* ]]; then
-        source version-info-final-release.properties
+        source version-info-final-release/version-info.properties
         export WRAPPER_VERSION="$promotedVersion"
     elif [[ "$TRIGGERED_BY" == *"Release - Release Candidate"* ]]; then
-        source version-info-release-candidate.properties
+        source version-info-release-candidate/version-info.properties
         export WRAPPER_VERSION="$promotedVersion"
     fi
 

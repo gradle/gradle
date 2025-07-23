@@ -67,13 +67,13 @@ object UpdateWrapper : BuildType({
         dependency(AbsoluteId("Gradle_${vcsBranch.branchName.toCapitalized()}_$FINAL_RELEASE_BUILD_CONFIGURATION_ID")) {
             artifacts {
                 buildRule = lastSuccessful()
-                artifactRules = "version-info.properties => ./version-info-final-release.properties"
+                artifactRules = "version-info.properties => ./version-info-final-release"
             }
         }
         dependency(AbsoluteId("Gradle_${vcsBranch.branchName.toCapitalized()}_$RELEASE_CANDIDATE_BUILD_CONFIGURATION_ID")) {
             artifacts {
                 buildRule = lastSuccessful()
-                artifactRules = "version-info.properties => ./version-info-release-candidate.properties"
+                artifactRules = "version-info.properties => ./version-info-release-candidate"
             }
         }
     }
