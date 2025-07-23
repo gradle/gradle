@@ -33,7 +33,8 @@ class KotlinDslWorkspaceProvider(
     cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
     fileAccessTimeJournal: FileAccessTimeJournal,
     cacheConfigurations: CacheConfigurationsInternal,
-    cacheCleanupStrategyFactory: CacheCleanupStrategyFactory
+    cacheCleanupStrategyFactory: CacheCleanupStrategyFactory,
+    globalScopedCacheBuilderFactory: GlobalScopedCacheBuilderFactory
 ) : Closeable {
 
     private
@@ -44,7 +45,8 @@ class KotlinDslWorkspaceProvider(
         fileAccessTimeJournal,
         2, // scripts and accessors caches sit below the root directory
         cacheConfigurations,
-        cacheCleanupStrategyFactory
+        cacheCleanupStrategyFactory,
+        globalScopedCacheBuilderFactory
     )
 
     val accessors = subWorkspace("accessors")

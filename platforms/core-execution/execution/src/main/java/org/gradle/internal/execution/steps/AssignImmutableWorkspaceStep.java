@@ -33,12 +33,14 @@ import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ImmutableWorkspace;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.vfs.FileSystemAccess;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,8 +117,17 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         String uniqueId = context.getIdentity().getUniqueId();
         ImmutableWorkspace workspace = workspaceProvider.getWorkspace(uniqueId);
 
-        return loadImmutableWorkspaceIfExists(work, workspace)
-            .orElseGet(() -> executeInTemporaryWorkspace(work, context, workspace));
+        if (OperatingSystem.current().isWindows()) {
+            return workspace.withGlobalScopedLock(uniqueId, () ->
+                loadImmutableWorkspaceIfExists(work, workspace)
+                    .orElseGet(() -> executeInTemporaryWorkspace(work, context, workspace, null))
+            );
+        } else {
+            return loadImmutableWorkspaceIfExists(work, workspace)
+                .orElseGet(() -> executeInTemporaryWorkspace(work, context, workspace, (result, temporaryWorkspace) ->
+                    moveTemporaryWorkspaceToImmutableLocation(workspace,
+                        new WorkspaceMoveHandler(work, workspace, temporaryWorkspace, result))));
+        }
     }
 
     private Optional<WorkspaceResult> loadImmutableWorkspaceIfExists(UnitOfWork work, ImmutableWorkspace workspace) {
@@ -174,7 +185,12 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             immutableLocation);
     }
 
-    private WorkspaceResult executeInTemporaryWorkspace(UnitOfWork work, C context, ImmutableWorkspace workspace) {
+    private WorkspaceResult executeInTemporaryWorkspace(
+        UnitOfWork work,
+        C context,
+        ImmutableWorkspace workspace,
+        @Nullable TemporaryWorkspaceExecutionResultTransformer resultTransformer
+    ) {
         return workspace.withTemporaryWorkspace(temporaryWorkspace -> {
             WorkspaceContext workspaceContext = new WorkspaceContext(context, temporaryWorkspace, null, true);
 
@@ -196,8 +212,9 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
                 ImmutableWorkspaceMetadata metadata = new ImmutableWorkspaceMetadata(executionOutputState.getOriginMetadata(), outputHashes);
                 workspaceMetadataStore.storeWorkspaceMetadata(temporaryWorkspace, metadata);
 
-                return moveTemporaryWorkspaceToImmutableLocation(workspace,
-                    new WorkspaceMoveHandler(work, workspace, temporaryWorkspace, delegateResult));
+                return resultTransformer == null
+                    ? new WorkspaceResult(delegateResult, temporaryWorkspace)
+                    : resultTransformer.transformTemporaryWorkspaceExecutionResult(delegateResult, temporaryWorkspace);
             } else {
                 // TODO Do not capture a null workspace in case of a failure
                 return new WorkspaceResult(delegateResult, null);
@@ -231,6 +248,12 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
                 return result;
             });
         });
+    }
+
+    @FunctionalInterface
+    private interface TemporaryWorkspaceExecutionResultTransformer {
+
+        WorkspaceResult transformTemporaryWorkspaceExecutionResult(CachingResult result, File temporaryWorkspace);
     }
 
     private class WorkspaceMoveHandler {

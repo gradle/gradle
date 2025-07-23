@@ -33,6 +33,7 @@ import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider
 import java.time.Duration
 import java.util.concurrent.CountDownLatch
 import java.util.function.BiFunction
+import java.util.function.Supplier
 
 class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityContext> {
     def workspacesRoot = temporaryFolder.file("workspaces").createDir()
@@ -160,6 +161,11 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
                 <T> T withTemporaryWorkspace(ImmutableWorkspace.TemporaryWorkspaceAction<T> action) {
                     temporaryWorkspace.mkdirs()
                     return action.executeInTemporaryWorkspace(temporaryWorkspace)
+                }
+
+                @Override
+                def <T> T withGlobalScopedLock(String uniqueId, Supplier<T> supplier) {
+                    return supplier.get()
                 }
             }
         }

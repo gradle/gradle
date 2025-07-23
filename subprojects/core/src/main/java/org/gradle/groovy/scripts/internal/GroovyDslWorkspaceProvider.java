@@ -37,7 +37,8 @@ public class GroovyDslWorkspaceProvider implements Closeable {
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         CacheConfigurationsInternal cacheConfigurations,
-        CacheCleanupStrategyFactory cacheCleanupStrategyFactory
+        CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
+        GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory
     ) {
         this.groovyDslWorkspace = CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(
             cacheBuilderFactory
@@ -45,7 +46,8 @@ public class GroovyDslWorkspaceProvider implements Closeable {
                 .withDisplayName("groovy-dsl"),
             fileAccessTimeJournal,
             cacheConfigurations,
-            cacheCleanupStrategyFactory
+            cacheCleanupStrategyFactory,
+            globalScopedCacheBuilderFactory
         );
     }
 
