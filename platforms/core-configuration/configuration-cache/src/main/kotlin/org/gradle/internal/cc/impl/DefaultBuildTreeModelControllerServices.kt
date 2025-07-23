@@ -29,6 +29,7 @@ import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.InternalFlag
+import org.gradle.internal.buildoption.Option
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
@@ -103,19 +104,8 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
     override fun servicesForBuildTree(requirements: BuildActionModelRequirements): BuildTreeModelControllerServices.Supplier {
         val startParameter = requirements.startParameter
 
-        // Isolated projects also implies configuration cache
-        if (startParameter.isolatedProjects.get() && !startParameter.configurationCache.get()) {
-            if (startParameter.configurationCache.isExplicit) {
-                throw GradleException("The configuration cache cannot be disabled when isolated projects is enabled.")
-            }
-        }
-
         val configurationCacheLogLevel = if (startParameter.isConfigurationCacheQuiet) LogLevel.INFO else LogLevel.LIFECYCLE
-        val modelParameters = getBuildModelParameters(
-            requirements,
-            startParameter,
-            configurationCacheLogLevel
-        )
+        val modelParameters = getBuildModelParameters(requirements, startParameter, configurationCacheLogLevel)
 
         if (!startParameter.isConfigurationCacheQuiet) {
             if (modelParameters.isIsolatedProjects) {
@@ -146,6 +136,8 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
         val requiresTasks = requirements.isRunsTasks
         val isolatedProjects = startParameter.isolatedProjects.get()
+        checkIsolatedProjectsCanEnableConfigurationCache(isolatedProjects, startParameter.configurationCache)
+
         val parallelProjectExecution = isolatedProjects || requirements.startParameter.isParallelProjectExecutionEnabled
         val parallelToolingActions = parallelProjectExecution && options.getOption(parallelBuilding).get()
         val invalidateCoupledProjects = isolatedProjects && options.getOption(invalidateCoupledProjects).get()
@@ -204,6 +196,12 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                     modelAsProjectDependency = modelAsProjectDependency
                 )
             }
+        }
+    }
+
+    private fun checkIsolatedProjectsCanEnableConfigurationCache(isolatedProjects: Boolean, configurationCache: Option.Value<Boolean>) {
+        if (isolatedProjects && !configurationCache.get() && configurationCache.isExplicit) {
+            throw GradleException("The configuration cache cannot be disabled when isolated projects is enabled.")
         }
     }
 
