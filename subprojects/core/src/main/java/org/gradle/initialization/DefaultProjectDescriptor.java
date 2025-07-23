@@ -26,6 +26,7 @@ import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.ScriptFileResolver;
+import org.gradle.internal.scripts.ScriptFiles;
 import org.gradle.util.Path;
 import org.gradle.util.internal.NameValidator;
 import org.jspecify.annotations.Nullable;
@@ -38,7 +39,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     public static final String INVALID_NAME_IN_INCLUDE_HINT = "Set the 'rootProject.name' or adjust the 'include' statement (see "
         + new DocumentationRegistry().getDslRefForProperty(Settings.class, "include(java.lang.String[])") + " for more details).";
 
-    public static final String BUILD_SCRIPT_BASENAME = "build";
+    public static final String BUILD_SCRIPT_BASENAME = ScriptFiles.BUILD_SCRIPT_BASENAME;
 
     private String name;
     private boolean nameExplicitlySet; // project name explicitly specified in the build script (as opposed to derived from the containing folder)

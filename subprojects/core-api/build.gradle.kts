@@ -17,6 +17,7 @@ dependencies {
 
     api(projects.stdlibJavaExtensions)
     api(projects.buildCacheSpi)
+    api(projects.buildDiscoveryApi)
     api(projects.loggingApi)
     api(projects.baseServices)
     api(projects.files)

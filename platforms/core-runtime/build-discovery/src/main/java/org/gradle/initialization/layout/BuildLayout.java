@@ -17,13 +17,12 @@ package org.gradle.initialization.layout;
 
 import org.gradle.initialization.SettingsLocation;
 import org.gradle.internal.scripts.ScriptFileResolver;
+import org.gradle.internal.scripts.ScriptFiles;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
-
-import static org.gradle.initialization.DefaultProjectDescriptor.BUILD_SCRIPT_BASENAME;
 
 @ServiceScope(Scope.Build.class)
 public class BuildLayout extends SettingsLocation {
@@ -40,7 +39,7 @@ public class BuildLayout extends SettingsLocation {
      * Was a build definition found?
      */
     public boolean isBuildDefinitionMissing() {
-        return getSettingsFile() != null && !getSettingsFile().exists() && scriptFileResolver.resolveScriptFile(getRootDirectory(), BUILD_SCRIPT_BASENAME) == null;
+        return getSettingsFile() != null && !getSettingsFile().exists() && scriptFileResolver.resolveScriptFile(getRootDirectory(), ScriptFiles.BUILD_SCRIPT_BASENAME) == null;
     }
 
     /**
