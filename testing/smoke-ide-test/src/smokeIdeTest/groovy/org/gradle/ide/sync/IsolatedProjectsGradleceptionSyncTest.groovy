@@ -36,7 +36,6 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
             // In gradle/gradle total problems count depends on amount of subprojects.
             // We want to avoid useless test failures
             ignoreTotalProblemsCount = true
-            withLocatedProblem("Build file 'testing/architecture-test/build.gradle.kts'", "Project ':architecture-test' cannot access 'Project.tasks' functionality on another project ':'")
             withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.extensions' functionality on subprojects via 'allprojects'")
         }
     }
