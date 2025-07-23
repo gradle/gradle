@@ -31,8 +31,8 @@ public class BuildLayoutConfiguration {
 
     public BuildLayoutConfiguration(StartParameter startParameter) {
         currentDir = startParameter.getCurrentDir();
-        searchUpwards = ((StartParameterInternal)startParameter).isSearchUpwards();
-        useEmptySettings = ((StartParameterInternal)startParameter).isUseEmptySettings();
+        searchUpwards = ((StartParameterInternal) startParameter).isSearchUpwards();
+        useEmptySettings = ((StartParameterInternal) startParameter).isUseEmptySettings();
     }
 
     public BuildLayoutConfiguration(BuildLayoutParameters parameters) {

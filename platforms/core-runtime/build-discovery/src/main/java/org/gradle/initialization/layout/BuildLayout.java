@@ -16,8 +16,8 @@
 package org.gradle.initialization.layout;
 
 import org.gradle.initialization.SettingsLocation;
+import org.gradle.internal.initialization.BuildLogicFiles;
 import org.gradle.internal.scripts.ScriptFileResolver;
-import org.gradle.internal.scripts.ScriptFiles;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
@@ -39,7 +39,7 @@ public class BuildLayout extends SettingsLocation {
      * Was a build definition found?
      */
     public boolean isBuildDefinitionMissing() {
-        return getSettingsFile() != null && !getSettingsFile().exists() && scriptFileResolver.resolveScriptFile(getRootDirectory(), ScriptFiles.BUILD_SCRIPT_BASENAME) == null;
+        return getSettingsFile() != null && !getSettingsFile().exists() && scriptFileResolver.resolveScriptFile(getRootDirectory(), BuildLogicFiles.BUILD_FILE_BASENAME) == null;
     }
 
     /**
