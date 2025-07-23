@@ -103,6 +103,7 @@ class ${className} extends AbstractAutoTestedSamplesTest {
     }
 }
 """
+
         )
     }
 }
