@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl
+package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Test
 
 import static org.hamcrest.CoreMatchers.containsString
 
-class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheJavaIntegrationTest extends AbstractIntegrationSpec {
 
-    protected ConfigurationCacheBuildOperationsFixture configurationCache
+    def configurationCache = newConfigurationCacheFixture()
 
-    def setup() {
-        configurationCache = newConfigurationCacheFixture()
+    @Override
+    void setupExecuter() {
+        super.setupExecuter()
+        executer.withConfigurationCacheEnabled()
     }
 
     def "build on Java project with no source"() {
@@ -41,7 +44,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         """
 
         when:
-        configurationCacheRun "build"
+        run "build"
 
         then:
         assertStateStored()
@@ -51,7 +54,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF")
 
         when:
-        configurationCacheRun "build"
+        run "build"
 
         then:
         assertStateLoaded()
@@ -60,14 +63,14 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF")
 
         when:
-        configurationCacheRun "clean"
+        run "clean"
 
         then:
         assertStateStored()
         !file("build").exists()
 
         when:
-        configurationCacheRun "build"
+        run "build"
 
         then:
         assertStateLoaded()
@@ -91,7 +94,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         """
 
         when:
-        configurationCacheRun "build"
+        run "build"
 
         then:
         assertStateStored()
@@ -101,14 +104,14 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF")
 
         when:
-        configurationCacheRun "clean"
+        run "clean"
 
         then:
         assertStateStored()
         !file("build").exists()
 
         when:
-        configurationCacheRun "build"
+        run "build"
 
         then:
         assertStateLoaded()
@@ -122,7 +125,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         buildWithSingleSourceFile()
 
         when:
-        configurationCacheRun "build"
+        run "build"
 
         then:
         assertStateStored()
@@ -133,7 +136,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class")
 
         when:
-        configurationCacheRun "build"
+        run "build"
 
         then:
         assertStateLoaded()
@@ -143,14 +146,14 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class")
 
         when:
-        configurationCacheRun "clean"
+        run "clean"
 
         then:
         assertStateStored()
         !file("build").exists()
 
         when:
-        configurationCacheRun "build"
+        run "build"
 
         then:
         assertStateLoaded()
@@ -160,7 +163,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class")
 
         when:
-        configurationCacheRun "build"
+        run "build"
 
         then:
         assertStateLoaded()
@@ -175,7 +178,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
             public class NewThing { }
         """
-        configurationCacheRun "build"
+        run "build"
 
         then:
         assertStateLoaded()
@@ -193,14 +196,14 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         buildDir.mkdirs()
 
         expect:
-        configurationCacheRun "clean"
+        run "clean"
         assertStateStored()
         result.assertTasksExecuted(":clean")
         !buildDir.exists()
 
         when:
         buildDir.mkdirs()
-        configurationCacheRun "clean"
+        run "clean"
 
         then:
         assertStateLoaded()
@@ -213,7 +216,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         buildWithSourceFilesAndResources()
 
         when:
-        configurationCacheRun "build"
+        run "build"
 
         then:
         assertStateStored()
@@ -224,7 +227,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt", "META-INF/some.Service")
 
         when:
-        configurationCacheRun "build"
+        run "build"
 
         then:
         assertStateLoaded()
@@ -234,14 +237,14 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt", "META-INF/some.Service")
 
         when:
-        configurationCacheRun "clean"
+        run "clean"
 
         then:
         assertStateStored()
         !file("build").exists()
 
         when:
-        configurationCacheRun "build"
+        run "build"
 
         then:
         assertStateLoaded()
@@ -254,7 +257,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         }
 
         when:
-        configurationCacheRun "build"
+        run "build"
 
         then:
         assertStateLoaded()
@@ -268,7 +271,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         when:
         file("src/main/resources/answer.txt").text = "forty-two"
-        configurationCacheRun "build"
+        run "build"
 
         then:
         assertStateLoaded()
@@ -301,7 +304,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         """
 
         when:
-        configurationCacheRun "assemble"
+        run "assemble"
 
         then:
         assertStateStored()
@@ -312,7 +315,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         jarFile.isFile()
 
         when:
-        configurationCacheRun "clean"
+        run "clean"
 
         then:
         assertStateStored()
@@ -320,7 +323,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         file("build").list().toList() == ['reports']
 
         when:
-        configurationCacheRun "assemble"
+        run "assemble"
 
         then:
         assertStateLoaded()
@@ -353,7 +356,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         """
 
         when:
-        configurationCacheRun ":b:assemble"
+        run ":b:assemble"
 
         and:
         file("b/build/classes/java/main/b/B.class").delete()
@@ -361,10 +364,10 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         jarFile.isFile()
 
         and:
-        configurationCacheRun "clean"
+        run "clean"
 
         and:
-        configurationCacheRun ":b:assemble"
+        run ":b:assemble"
 
         then:
         new ZipTestFixture(jarFile).assertContainsFile("b/B.class")
@@ -378,13 +381,13 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         file("src/main/resources/answer.txt") << "42"
 
         when:
-        configurationCacheRun ":processResources"
+        run ":processResources"
 
         and:
         file("build/resources/main/answer.txt").text == "forty-two"
 
         and:
-        configurationCacheRun ":processResources"
+        run ":processResources"
 
         then:
         assertStateLoaded()
@@ -410,7 +413,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         """
 
         when:
-        configurationCacheRun "build"
+        run "build"
 
         then:
         assertStateStored()
@@ -424,7 +427,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         assertTestsExecuted("ThingTest", "ok")
 
         when:
-        configurationCacheRun "build"
+        run "build"
 
         then:
         assertStateLoaded()
@@ -436,14 +439,14 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         assertTestsExecuted("ThingTest", "ok")
 
         when:
-        configurationCacheRun "clean"
+        run "clean"
 
         then:
         assertStateStored()
         !file("build").exists()
 
         when:
-        configurationCacheRun "build"
+        run "build"
 
         then:
         assertStateLoaded()
@@ -470,7 +473,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         """
 
         when:
-        configurationCacheRun "build"
+        run "build"
 
         then:
         assertStateStored()
@@ -481,7 +484,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         jarFile.isFile()
 
         when:
-        configurationCacheRun "build"
+        run "build"
 
         then:
         assertStateLoaded()
@@ -491,7 +494,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         jarFile.isFile()
 
         when:
-        configurationCacheRun "clean"
+        run "clean"
 
         then:
         assertStateStored()
@@ -499,7 +502,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         file("build").list().toList() == ['reports']
 
         when:
-        configurationCacheRun "build"
+        run "build"
 
         then:
         assertStateLoaded()
@@ -530,14 +533,14 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         }
 
         when:
-        configurationCacheRun ":jar", "-Dcreator=creator1"
+        run ":jar", "-Dcreator=creator1"
 
         then:
         assertCreatedBy 'creator1'
         assertStateStored()
 
         when:
-        configurationCacheRun ":jar", "-Dcreator=creator2"
+        run ":jar", "-Dcreator=creator2"
 
         then:
         assertCreatedBy 'creator2'
@@ -545,7 +548,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         when:
         manifestFile.delete()
-        configurationCacheRun ":jar", "-Dcreator=creator3"
+        run ":jar", "-Dcreator=creator3"
 
         then:
         assertCreatedBy 'creator3'
@@ -602,7 +605,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         '''
 
         when:
-        configurationCacheRun ':app:jar'
+        run ':app:jar'
 
         then:
         assertStateStored()
@@ -612,7 +615,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         jarFile.delete()
 
         and:
-        configurationCacheRun ':app:jar'
+        run ':app:jar'
 
         then:
         assertStateLoaded()
@@ -648,5 +651,11 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
     private void assertStateLoaded() {
         configurationCache.assertStateLoaded()
+    }
+
+    protected void assertTestsExecuted(String testClass, String... testNames) {
+        new DefaultTestExecutionResult(testDirectory)
+            .testClass(testClass)
+            .assertTestsExecuted(testNames)
     }
 }

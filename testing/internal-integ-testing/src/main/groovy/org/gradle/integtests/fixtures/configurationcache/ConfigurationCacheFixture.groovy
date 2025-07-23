@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.configurationcache
 
 import org.gradle.configuration.ApplyScriptPluginBuildOperationType
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
@@ -26,6 +27,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 class ConfigurationCacheFixture {
     static final String ISOLATED_PROJECTS_MESSAGE = "Isolated projects is an incubating feature."
     static final String CONFIGURE_ON_DEMAND_MESSAGE = "Configuration on demand is an incubating feature."
+    static final String LENIENT = "--${StartParameterBuildOptions.ConfigurationCacheProblemsOption.LONG_OPTION}=warn"
 
     private final AbstractIntegrationSpec spec
     final BuildOperationsFixture buildOperations

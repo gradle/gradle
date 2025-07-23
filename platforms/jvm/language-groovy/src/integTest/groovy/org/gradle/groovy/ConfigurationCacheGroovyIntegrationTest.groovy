@@ -14,14 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl
+package org.gradle.groovy
 
-class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+
+class ConfigurationCacheGroovyIntegrationTest extends AbstractIntegrationSpec {
+    def configurationCache = newConfigurationCacheFixture()
+
+    @Override
+    void setupExecuter() {
+        super.setupExecuter()
+        executer.withConfigurationCacheEnabled()
+    }
 
     def "build on Groovy project with JUnit tests"() {
-
-        def configurationCache = newConfigurationCacheFixture()
-
         given:
         buildFile << """
             plugins { id 'groovy' }
@@ -54,7 +61,7 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCache
         def testResults = file("build/test-results/test")
 
         when:
-        configurationCacheRun "build"
+        run "build"
 
         then:
         configurationCache.assertStateStored()
@@ -69,10 +76,10 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCache
         assertTestsExecuted("ThingTest", "ok")
 
         when:
-        configurationCacheRun "clean"
+        run "clean"
 
         and:
-        configurationCacheRun "build"
+        run "build"
 
         then:
         configurationCache.assertStateLoaded()
@@ -89,20 +96,19 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCache
 
     def "build on Groovy project without sources nor groovy dependency"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
         buildFile << """
             plugins { id 'groovy' }
         """
 
         when:
-        configurationCacheRun "build"
+        run "build"
 
         then:
         configurationCache.assertStateStored()
 
         when:
-        configurationCacheRun "clean"
-        configurationCacheRun "build"
+        run "clean"
+        run "build"
 
         then:
         configurationCache.assertStateLoaded()
@@ -112,7 +118,6 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCache
 
     def "assemble on Groovy project with sources but no groovy dependency is executed and fails with a reasonable error message"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
         buildFile << """
             plugins { id 'groovy' }
         """
@@ -121,7 +126,7 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCache
         """
 
         when:
-        configurationCacheFails WARN_PROBLEMS_CLI_OPT, "assemble"
+        fails "--configuration-cache-problems=warn", "assemble"
 
         then:
         configurationCache.assertStateStored()
@@ -132,12 +137,18 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCache
         failureCauseContains("Cannot infer Groovy class path because no Groovy Jar was found on class path")
 
         when:
-        configurationCacheFails "assemble"
+        fails "assemble"
 
         then:
         configurationCache.assertStateLoaded()
         result.assertTaskExecuted(":compileGroovy")
         failureDescriptionStartsWith("Execution failed for task ':compileGroovy'.")
         failureCauseContains("Cannot infer Groovy class path because no Groovy Jar was found on class path")
+    }
+
+    protected void assertTestsExecuted(String testClass, String... testNames) {
+        new DefaultTestExecutionResult(testDirectory)
+            .testClass(testClass)
+            .assertTestsExecuted(testNames)
     }
 }
