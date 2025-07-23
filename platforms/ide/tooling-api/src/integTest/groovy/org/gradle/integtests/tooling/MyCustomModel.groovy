@@ -16,17 +16,13 @@
 
 package org.gradle.integtests.tooling
 
-import org.gradle.tooling.model.ProjectIdentifier
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel;
 
 class MyCustomModel implements Serializable {
-    List<ProjectIdentifier> projectIdentifiers;
     List<String> paths;
     Map<File, KotlinDslScriptModel> scriptModels;
 
-    MyCustomModel(Map<File, KotlinDslScriptModel> models, List<ProjectIdentifier> projectIdentifiers,
-                  List<String> paths) {
-        this.projectIdentifiers = projectIdentifiers;
+    MyCustomModel(List<String> paths, Map<File, KotlinDslScriptModel> models) {
         this.paths = paths;
         this.scriptModels = models;
     }

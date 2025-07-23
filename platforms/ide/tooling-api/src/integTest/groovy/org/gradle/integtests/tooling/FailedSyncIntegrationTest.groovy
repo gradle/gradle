@@ -24,20 +24,24 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 
 class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements ToolingApiSpec {
 
-    def "broken settings file - strict mode- build action"() {
+    def setup() {
+        executer.withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
+    }
+
+    def "basic build - broken main settings file"() {
         given:
         settingsKotlinFile << """
             blow up !!!
         """
 
         when:
-        MyCustomModel model = runBuildActionFails(new CustomModelAction())
+        MyCustomModel model = runBuildAction(new CustomModelAction())
 
         then:
-        failureDescriptionContains("Script compilation error")
+        model.paths == [":"]
     }
 
-    def "basic project - broken root build file with build action"() {
+    def "basic build - broken root build file"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -47,14 +51,13 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         """
 
         when:
-        executer.withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
         MyCustomModel model = runBuildAction(new CustomModelAction())
 
         then:
         model.paths == [":"]
     }
 
-    def "basic project w/ included build - broken included build build file - build action"() {
+    def "basic project w/ included build - broken build file in included build"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -70,14 +73,35 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         """
 
         when:
-        executer.withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
         MyCustomModel model = runBuildAction(new CustomModelAction())
 
         then:
         model.paths == [":", ":included"]
     }
 
-    def "basic project w/ included build - broken included build settings file and build script - strict mode - build action"() {
+    def "basic build w/ included build - broken settings file in included build"() {
+        given:
+        settingsKotlinFile << """
+            rootProject.name = "root"
+            includeBuild("included")
+        """
+
+        def included = testDirectory.createDir("included")
+        included.file("settings.gradle.kts") << """
+            boom !!!
+        """
+        included.file("build.gradle.kts") << """
+            // nothing interesting
+        """
+
+        when:
+        MyCustomModel model = runBuildAction(new CustomModelAction())
+
+        then:
+        model.paths == [":", ":included"]
+    }
+
+    def "basic build w/ included build - broken settings and build file in included build"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -93,10 +117,10 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         """
 
         when:
-        MyCustomModel model = runBuildActionFails(new CustomModelAction())
+        MyCustomModel model = runBuildAction(new CustomModelAction())
 
         then:
-        failureDescriptionContains("Script compilation error")
+        model.paths == [":", ":included"]
     }
 
 

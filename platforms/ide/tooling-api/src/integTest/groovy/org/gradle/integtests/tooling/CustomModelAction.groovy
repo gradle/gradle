@@ -25,28 +25,18 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 class CustomModelAction implements BuildAction<MyCustomModel>, Serializable {
 
     @Override
-    public MyCustomModel execute(BuildController controller) {
-        GradleBuild build = controller.getModel(GradleBuild.class);
+    MyCustomModel execute(BuildController controller) {
+        GradleBuild build = controller.getModel(GradleBuild.class)
 
-        KotlinDslScriptsModel buildScriptModel = controller.getModel(KotlinDslScriptsModel.class);
+        KotlinDslScriptsModel buildScriptsModel = controller.getModel(KotlinDslScriptsModel.class)
 
-
-        def paths = build.projects.collect{project ->
+        def projectPaths = build.projects.collect{project ->
             project.buildTreePath
         }
         build.includedBuilds.each {b -> b.projects.each {project ->
-            paths << project.buildTreePath
+            projectPaths << project.buildTreePath
         }}
 
-        def identifier = build.projects.collect{project ->
-            project.projectIdentifier
-        }
-
-        // Build your custom model
-        return new MyCustomModel(
-            buildScriptModel.scriptModels,
-            identifier,
-            paths
-        );
+        return new MyCustomModel(projectPaths, buildScriptsModel.scriptModels)
     }
 }
