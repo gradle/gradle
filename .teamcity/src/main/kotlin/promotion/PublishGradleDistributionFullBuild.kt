@@ -46,5 +46,10 @@ EOF
                 """
             }
         }
+
+        artifactRules =
+            """
+            version-info.properties => ./
+            """.trimIndent()
     }
 }
