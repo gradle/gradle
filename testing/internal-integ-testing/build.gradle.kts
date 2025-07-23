@@ -123,6 +123,7 @@ dependencies {
     implementation(libs.jetty)
     implementation(libs.jettyServlet)
     implementation(libs.littleproxy)
+    implementation(libs.jspecify)
     implementation(libs.mavenResolverSupplier) {
         because("For ApiMavenResolver. Wires together implementation for maven-resolver-api")
     }

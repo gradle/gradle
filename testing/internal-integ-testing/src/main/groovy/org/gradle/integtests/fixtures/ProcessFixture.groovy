@@ -16,12 +16,12 @@
 
 package org.gradle.integtests.fixtures
 
-
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.streams.SafeStreams
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.jspecify.annotations.Nullable
 
 class ProcessFixture {
     final Long pid;
@@ -196,10 +196,12 @@ class ProcessFixture {
         }
     }
 
+    @Nullable
     private def getProcessHandle() {
         return getProcessHandle(pid)
     }
 
+    @Nullable
     private static def getProcessHandle(Long pid) {
         if (!JavaVersion.current().isJava9Compatible()) {
             throw new RuntimeException("Java 9 or later is required to get process handle.")

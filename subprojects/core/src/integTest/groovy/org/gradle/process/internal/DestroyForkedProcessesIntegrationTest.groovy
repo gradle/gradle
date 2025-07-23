@@ -22,15 +22,12 @@ import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 
 class DestroyForkedProcessesIntegrationTest extends DaemonIntegrationSpec {
     private DaemonClientFixture client
     private int daemonLogCheckpoint
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "forked subprocess tree is destroyed on cancellation"() {
         given:
         def processStartedToken = file("processStarted.txt")
@@ -40,7 +37,9 @@ class DestroyForkedProcessesIntegrationTest extends DaemonIntegrationSpec {
         def expectedDescendantProcesses = OperatingSystem.current().isWindows() ? 6 : 3
 
         buildFile << """
-            plugins { id 'java' }
+            plugins {
+                id("java-library")
+            }
 
             tasks.register('javaExec', JavaExec) {
                 mainClass = 'AppWithChildWithGrandChild'
