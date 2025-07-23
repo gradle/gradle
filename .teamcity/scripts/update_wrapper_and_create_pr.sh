@@ -19,11 +19,29 @@ post() {
     local endpoint="$1"
     local data="$2"
     
-    curl -X POST \
+    echo "Making POST request to: $endpoint"
+    echo "Data: $data"
+    
+    local response=$(curl -X POST \
         -H "Authorization: token $GITHUB_TOKEN" \
         -H "Accept: application/vnd.github.v3+json" \
+        -H "Content-Type: application/json" \
         "https://api.github.com/repos/gradle/gradle$endpoint" \
-        -d "$data"
+        -d "$data" \
+        -w "\n%{http_code}")
+    
+    local http_code=$(echo "$response" | tail -n1)
+    local body=$(echo "$response" | head -n -1)
+    
+    echo "HTTP Status: $http_code"
+    echo "Response: $body"
+    
+    if [[ "$http_code" -ge 400 ]]; then
+        echo "Error: HTTP $http_code"
+        return 1
+    fi
+    
+    echo "$body"
 }
 
 main() {
@@ -62,15 +80,30 @@ main() {
         \"base\": \"$DEFAULT_BRANCH\"
     }")
     
-    PR_NUMBER=$(echo "$PR_RESPONSE" | jq -r '.number')
+    echo "PR Response: $PR_RESPONSE"
     
-    if [[ -n "$PR_NUMBER" ]]; then
-        post "/issues/$PR_NUMBER/comments" '{
+    PR_NUMBER=$(echo "$PR_RESPONSE" | jq -r '.number // empty')
+    
+    if [[ -n "$PR_NUMBER" && "$PR_NUMBER" != "null" ]]; then
+        echo "Created PR #$PR_NUMBER"
+        
+        echo "Adding comment to PR #$PR_NUMBER..."
+        if ! post "/issues/$PR_NUMBER/comments" '{
             "body": "@bot-gradle test and merge"
-        }'
-        post "/issues/$PR_NUMBER/labels" '{
+        }'; then
+            echo "Warning: Failed to add comment to PR"
+        fi
+        
+        echo "Adding labels to PR #$PR_NUMBER..."
+        if ! post "/issues/$PR_NUMBER/labels" '{
             "labels": ["@dev-productivity"]
-        }'
+        }'; then
+            echo "Warning: Failed to add labels to PR"
+        fi
+    else
+        echo "Failed to create PR or extract PR number"
+        echo "Response: $PR_RESPONSE"
+        exit 1
     fi
 }
 
