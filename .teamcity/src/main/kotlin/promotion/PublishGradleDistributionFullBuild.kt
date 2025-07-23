@@ -37,7 +37,7 @@ abstract class PublishGradleDistributionFullBuild(
 cat <<EOF > version-info.properties
 buildTimestamp=20250722015451+0000
 commitId=6611489182396aa56ff4524813d1e8070d2e879e
-downloadUrl=https\://services.gradle.org/distributions-snapshots/gradle-9.0.0-20250722015451 0000-all.zip
+downloadUrl=https\://services.gradle.org/distributions-snapshots/gradle-9.0.0-all.zip
 hasBeenReleased=true
 isSnapshot=true
 promotedVersion=${if (prepTask == "prepFinalRelease") "9.0.0" else "9.0.0-rc-3"}
