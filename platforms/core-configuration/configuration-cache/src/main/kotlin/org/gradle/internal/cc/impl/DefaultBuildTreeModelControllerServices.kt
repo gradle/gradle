@@ -22,10 +22,12 @@ import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentCache
 import org.gradle.api.internal.configuration.DefaultBuildFeatures
+import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.logging.LogLevel
 import org.gradle.execution.selection.BuildTaskSelector
 import org.gradle.initialization.EnvironmentChangeTracker
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.initialization.layout.BuildTreeLocations
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.InternalFlag
@@ -77,7 +79,10 @@ import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.internal.IncubationLogger
 
 
-class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices {
+class DefaultBuildTreeModelControllerServices(
+    private val fileLookup: FileLookup,
+    private val buildTreeLocations: BuildTreeLocations,
+) : BuildTreeModelControllerServices {
     companion object {
         private
         val parallelBuilding = InternalFlag("org.gradle.internal.tooling.parallel", true)
@@ -135,7 +140,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
         val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
         val requiresTasks = requirements.isRunsTasks
-        val isolatedProjects = startParameter.isolatedProjects.get()
+        val isolatedProjects = isolatedProjectsRequested(startParameter)
         checkIsolatedProjectsCanEnableConfigurationCache(isolatedProjects, startParameter.configurationCache)
 
         val parallelProjectExecution = isolatedProjects || requirements.startParameter.isParallelProjectExecutionEnabled
@@ -197,6 +202,22 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                 )
             }
         }
+    }
+
+    private fun isolatedProjectsRequested(startParameter: StartParameterInternal): Boolean {
+        return startParameter.isolatedProjects.get() ||
+            !startParameter.isolatedProjects.isExplicit && isolatedProjectsRequestedByPath(startParameter)
+    }
+
+    private fun isolatedProjectsRequestedByPath(startParameter: StartParameterInternal): Boolean {
+        val enablePathsOption = startParameter.isolatedProjectsEnablePaths ?: return false
+        val absoluteFileResolver = fileLookup.fileResolver
+        val pathsSeparator = ';'
+        val paths = enablePathsOption.trim(pathsSeparator).split(pathsSeparator)
+            .map { absoluteFileResolver.resolve(it.trim()) }
+
+        val targetDirectory = buildTreeLocations.buildTreeRootDirectory
+        return paths.any { targetDirectory.startsWith(it) }
     }
 
     private fun checkIsolatedProjectsCanEnableConfigurationCache(isolatedProjects: Boolean, configurationCache: Option.Value<Boolean>) {
