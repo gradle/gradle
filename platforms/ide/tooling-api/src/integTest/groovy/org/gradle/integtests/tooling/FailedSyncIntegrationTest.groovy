@@ -27,7 +27,7 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements ToolingApiSpec {
 
     def setup() {
-        executer.withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
+        executer.withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION) // TODO: we should actually never use the LENIENT mode
     }
 
     def "basic build - broken main settings file"() {
