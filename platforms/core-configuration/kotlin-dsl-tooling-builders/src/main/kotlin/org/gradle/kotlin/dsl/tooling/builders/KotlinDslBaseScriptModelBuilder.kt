@@ -16,7 +16,9 @@
 
 package org.gradle.kotlin.dsl.tooling.builders
 
+import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -28,25 +30,39 @@ import java.io.Serializable
 
 internal
 object KotlinDslBaseScriptModelBuilder : BuildScopeModelBuilder {
+
     override fun canBuild(modelName: String): Boolean =
         modelName == "org.gradle.tooling.model.kotlin.dsl.KotlinDslBaseScriptModel"
 
     override fun create(target: BuildState): KotlinDslBaseScriptModel {
-        val implicitImports = target.getMutableModel().serviceOf<ImplicitImports>()
-        val kotlinScriptClassPathProvider = target.getMutableModel().serviceOf<KotlinScriptClassPathProvider>()
+        val gradle = target.mutableModel
+        val moduleRegistry = gradle.serviceOf<ModuleRegistry>()
+        val implicitImports = gradle.serviceOf<ImplicitImports>()
+        val kotlinScriptClassPathProvider = gradle.serviceOf<KotlinScriptClassPathProvider>()
         return StandardKotlinDslBaseScriptModel(
+            scriptTemplatesClassPath = moduleRegistry.scriptTemplatesClassPath,
             implicitImports = implicitImports.list,
             kotlinDslClassPath = kotlinScriptClassPathProvider.gradleKotlinDsl.asFiles
         )
     }
+
+    private val ModuleRegistry.scriptTemplatesClassPath: List<File>
+        get() = listOf("gradle-core", "gradle-tooling-api")
+            .map { getModule(it) }
+            .flatMap { it.allRequiredModules }
+            .fold(ClassPath.EMPTY) { classPath, module -> classPath + module.classpath }
+            .asFiles
 }
 
 
 internal
 data class StandardKotlinDslBaseScriptModel(
+    private val scriptTemplatesClassPath: List<File>,
     private val implicitImports: List<String>,
     private val kotlinDslClassPath: List<File>
 ) : KotlinDslBaseScriptModel, Serializable {
+
+    override fun getScriptTemplatesClassPath() = scriptTemplatesClassPath
 
     override fun getImplicitImports() = implicitImports
 
