@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl
+package org.gradle.integtests.resolve
 
 import groovy.transform.Canonical
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
@@ -27,15 +27,21 @@ import java.util.concurrent.TimeUnit
 
 import static org.gradle.api.internal.artifacts.verification.DependencyVerificationFixture.getChecksum
 
-class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements TasksWithInputsAndOutputs {
+class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
     @Rule
     HttpServer server = new HttpServer()
     def remoteRepo = new MavenHttpRepository(server, mavenRepo)
+    def configurationCache = newConfigurationCacheFixture()
+
+    @Override
+    void setupExecuter() {
+        super.setupExecuter()
+        executer.withConfigurationCacheEnabled()
+    }
 
     @Override
     def setup() {
-        // So that dependency resolution results from previous tests do not interfere
-        executer.requireOwnGradleUserHomeDir()
+        executer.requireOwnGradleUserHomeDir("So that dependency resolution results from previous tests do not interfere")
     }
 
     @Canonical
@@ -79,35 +85,34 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 inFiles.from(configurations.implementation)
             }
         """
-        def configurationCache = newConfigurationCacheFixture()
 
         remoteRepo.getModuleMetaData("thing", "lib").expectGet()
         v3.pom.expectGet()
         v3.artifact.expectGet()
 
         when:
-        configurationCacheRun("resolve1")
+        run("resolve1")
 
         then:
         configurationCache.assertStateStored()
         outputContains("result = [lib-1.3.jar]")
 
         when:
-        configurationCacheRun("resolve1")
+        run("resolve1")
 
         then:
         configurationCache.assertStateLoaded()
         outputContains("result = [lib-1.3.jar]")
 
         when: // run again with different tasks, to verify behaviour when version list is already cached when configuration cache entry is written
-        configurationCacheRun("resolve2")
+        run("resolve2")
 
         then:
         configurationCache.assertStateStored()
         outputContains("result = [lib-1.3.jar]")
 
         when:
-        configurationCacheRun("resolve2")
+        run("resolve2")
 
         then:
         configurationCache.assertStateLoaded()
@@ -153,21 +158,20 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 inFiles.from(configurations.implementation)
             }
         """
-        def configurationCache = newConfigurationCacheFixture()
 
         remoteRepo.getModuleMetaData("thing", "lib").expectGet()
         v3.pom.expectGet()
         v3.artifact.expectGet()
 
         when:
-        configurationCacheRun("resolve1")
+        run("resolve1")
 
         then:
         configurationCache.assertStateStored()
         outputContains("result = [lib-1.3.jar]")
 
         when: // run again with different tasks, to verify behaviour when version list is already cached when configuration cache entry is written
-        configurationCacheRun("resolve2")
+        run("resolve2")
 
         then:
         configurationCache.assertStateStored()
@@ -176,7 +180,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         when:
         def clockOffset = TimeUnit.MILLISECONDS.convert(4, TimeUnit.HOURS)
         remoteRepo.getModuleMetaData("thing", "lib").expectHead()
-        configurationCacheRun("resolve1", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
+        run("resolve1", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
 
         then:
         configurationCache.assertStateStored()
@@ -184,14 +188,14 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         outputContains("result = [lib-1.3.jar]")
 
         when:
-        configurationCacheRun("resolve1", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
+        run("resolve1", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
 
         then:
         configurationCache.assertStateLoaded()
         outputContains("result = [lib-1.3.jar]")
 
         when:
-        configurationCacheRun("resolve2", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
+        run("resolve2", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
 
         then:
         configurationCache.assertStateStored()
@@ -199,7 +203,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         outputContains("result = [lib-1.3.jar]")
 
         when:
-        configurationCacheRun("resolve2", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
+        run("resolve2", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
 
         then:
         configurationCache.assertStateLoaded()
@@ -270,34 +274,33 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 inFiles.from(configurations.implementation)
             }
         """
-        def configurationCache = newConfigurationCacheFixture()
 
         v3.pom.expectGet()
         v3.artifact.expectGet()
 
         when:
-        configurationCacheRun("resolve1")
+        run("resolve1")
 
         then:
         configurationCache.assertStateStored()
         outputContains("result = [lib-1.3.jar]")
 
         when:
-        configurationCacheRun("resolve1")
+        run("resolve1")
 
         then:
         configurationCache.assertStateLoaded()
         outputContains("result = [lib-1.3.jar]")
 
         when: // run again with different tasks, to verify behaviour when artifact information is cached
-        configurationCacheRun("resolve2")
+        run("resolve2")
 
         then:
         configurationCache.assertStateStored()
         outputContains("result = [lib-1.3.jar]")
 
         when:
-        configurationCacheRun("resolve2")
+        run("resolve2")
 
         then:
         configurationCache.assertStateLoaded()
@@ -333,20 +336,19 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 inFiles.from(configurations.implementation)
             }
         """
-        def configurationCache = newConfigurationCacheFixture()
 
         v3.pom.expectGet()
         v3.artifact.expectGet()
 
         when:
-        configurationCacheRun("resolve1")
+        run("resolve1")
 
         then:
         configurationCache.assertStateStored()
         outputContains("result = [lib-1.3.jar]")
 
         when: // run again with different tasks, to verify behaviour when artifact information is cached
-        configurationCacheRun("resolve2")
+        run("resolve2")
 
         then:
         configurationCache.assertStateStored()
@@ -356,7 +358,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         v3.pom.expectHead()
         v3.artifact.expectHead()
         def clockOffset = TimeUnit.MILLISECONDS.convert(4, TimeUnit.HOURS)
-        configurationCacheRun("resolve1", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
+        run("resolve1", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
 
         then:
         configurationCache.assertStateStored()
@@ -364,7 +366,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         outputContains("result = [lib-1.3.jar]")
 
         when:
-        configurationCacheRun("resolve2", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
+        run("resolve2", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
 
         then:
         configurationCache.assertStateStored()
@@ -393,17 +395,16 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 inFiles.from(configurations.resolve2)
             }
         """
-        def configurationCache = newConfigurationCacheFixture()
 
         when:
-        configurationCacheRun("resolve1", "resolve2")
+        run("resolve1", "resolve2")
 
         then:
         configurationCache.assertStateStored()
         outputContains("result = [lib1-2.1.jar]")
 
         when:
-        configurationCacheRun("resolve1", "resolve2")
+        run("resolve1", "resolve2")
 
         then:
         configurationCache.assertStateLoaded()
@@ -411,7 +412,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
 
         when:
         repo.publishWithDifferentArtifactContent(this)
-        configurationCacheRun("resolve1", "resolve2")
+        run("resolve1", "resolve2")
 
         then:
         // This should be a cache hit
@@ -420,7 +421,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         outputContains("result = [lib1-2.1.jar]")
 
         when:
-        configurationCacheRun("resolve1", "resolve2")
+        run("resolve1", "resolve2")
 
         then:
         configurationCache.assertStateLoaded()
@@ -453,17 +454,16 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 inFiles.from(configurations.resolve2)
             }
         """
-        def configurationCache = newConfigurationCacheFixture()
 
         when:
-        configurationCacheRun("resolve1", "resolve2")
+        run("resolve1", "resolve2")
 
         then:
         configurationCache.assertStateStored()
         outputContains("result = [lib1-2.1.jar]")
 
         when:
-        configurationCacheRun("resolve1", "resolve2")
+        run("resolve1", "resolve2")
 
         then:
         configurationCache.assertStateLoaded()
@@ -471,7 +471,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
 
         when:
         repo.publishWithDifferentDependencies(this)
-        configurationCacheRun("resolve1", "resolve2")
+        run("resolve1", "resolve2")
 
         then:
         configurationCache.assertStateStored()
@@ -479,7 +479,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         outputContains("result = [lib1-2.1.jar, lib2-4.0.jar]")
 
         when:
-        configurationCacheRun("resolve1", "resolve2")
+        run("resolve1", "resolve2")
 
         then:
         configurationCache.assertStateLoaded()
@@ -512,17 +512,16 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 inFiles.from(configurations.resolve2)
             }
         """
-        def configurationCache = newConfigurationCacheFixture()
 
         when:
-        configurationCacheRun("resolve1", "resolve2")
+        run("resolve1", "resolve2")
 
         then:
         configurationCache.assertStateStored()
         outputContains("result = [lib1-2.1.jar]")
 
         when:
-        configurationCacheRun("resolve1", "resolve2")
+        run("resolve1", "resolve2")
 
         then:
         configurationCache.assertStateLoaded()
@@ -530,7 +529,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
 
         when:
         repo.publishNewVersion(this)
-        configurationCacheRun("resolve1", "resolve2")
+        run("resolve1", "resolve2")
 
         then:
         configurationCache.assertStateStored()
@@ -538,7 +537,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         outputContains("result = [lib1-2.5.jar, lib2-4.0.jar]")
 
         when:
-        configurationCacheRun("resolve1", "resolve2")
+        run("resolve1", "resolve2")
 
         then:
         configurationCache.assertStateLoaded()
@@ -572,17 +571,16 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 inFiles.from(configurations.resolve2)
             }
         """
-        def configurationCache = newConfigurationCacheFixture()
 
         when:
-        configurationCacheRun("resolve1", "resolve2")
+        run("resolve1", "resolve2")
 
         then:
         configurationCache.assertStateStored()
         outputContains("result = [lib1-${repo.snapshotVersion}.jar, lib2-4.0.jar]")
 
         when:
-        configurationCacheRun("resolve1", "resolve2")
+        run("resolve1", "resolve2")
 
         then:
         configurationCache.assertStateLoaded()
@@ -590,7 +588,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
 
         when:
         repo.publishNewSnapshot(this)
-        configurationCacheRun("resolve1", "resolve2")
+        run("resolve1", "resolve2")
 
         then:
         configurationCache.assertStateStored()
@@ -598,7 +596,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         outputContains("result = [lib1-${repo.newSnapshotVersion}.jar, lib2-4.1.jar]")
 
         when:
-        configurationCacheRun("resolve1", "resolve2")
+        run("resolve1", "resolve2")
 
         then:
         configurationCache.assertStateLoaded()
@@ -612,16 +610,15 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
 
     def "disables configuration cache when --export-keys is used"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
 
         when:
-        configurationCacheRun("help")
+        run("help")
 
         then:
         configurationCache.assertStateStored()
 
         when:
-        configurationCacheRun("help", "--export-keys")
+        run("help", "--export-keys")
 
         then:
         configurationCache.assertNoConfigurationCache()
@@ -651,22 +648,20 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
             }
         """
 
-        def configurationCache = newConfigurationCacheFixture()
-
         def moduleMetaData = remoteRepo.getModuleMetaData("thing", "lib")
         moduleMetaData.expectGet()
         v3.pom.expectGet()
         v3.artifact.expectGet()
 
         when:
-        configurationCacheRun("resolve1")
+        run("resolve1")
 
         then:
         configurationCache.assertStateStored()
         outputContains("result = [lib-1.3.jar]")
 
         when:
-        configurationCacheRun("resolve1")
+        run("resolve1")
 
         then:
         configurationCache.assertStateLoaded()
@@ -685,7 +680,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         outputContains("result = [lib-1.4.jar]")
 
         when:
-        configurationCacheRun("resolve1")
+        run("resolve1")
 
         then:
         configurationCache.assertStateStored()
@@ -694,7 +689,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         outputContains("result = [lib-1.4.jar]")
 
         when:
-        configurationCacheRun("resolve1")
+        run("resolve1")
 
         then:
         configurationCache.assertStateLoaded()
@@ -702,7 +697,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
 
         when:
         file(lockFile).delete()
-        configurationCacheRun("resolve1")
+        run("resolve1")
 
         then:
         configurationCache.assertStateStored()
@@ -733,22 +728,20 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
             }
         """
 
-        def configurationCache = newConfigurationCacheFixture()
-
         when:
-        configurationCacheRun("resolve1")
+        run("resolve1")
 
         then:
         configurationCache.assertStateStored()
 
         when:
-        configurationCacheRun("resolve1")
+        run("resolve1")
 
         then:
         configurationCache.assertStateLoaded()
 
         when:
-        configurationCacheRun("resolve1", "--write-verification-metadata", "sha256")
+        run("resolve1", "--write-verification-metadata", "sha256")
 
         then:
         def verificationFile = file("gradle/verification-metadata.xml")
@@ -756,21 +749,21 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
 
         // TODO - get a false cache miss here because the content of the metadata file changes during the previous build
         when:
-        configurationCacheRun("resolve1")
+        run("resolve1")
 
         then:
         configurationCache.assertStateStored()
         outputContains("Calculating task graph as configuration cache cannot be reused because file 'gradle/verification-metadata.xml' has changed.".replace('/', File.separator))
 
         when:
-        configurationCacheRun("resolve1")
+        run("resolve1")
 
         then:
         configurationCache.assertStateLoaded()
 
         when:
         verificationFile.replace("<sha256 value=\"$checkSum\"", '<sha256 value="12345"')
-        configurationCacheFails("resolve1")
+        fails("resolve1")
 
         then:
         outputContains("Calculating task graph as configuration cache cannot be reused because file 'gradle/verification-metadata.xml' has changed.".replace('/', File.separator))
@@ -779,20 +772,20 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
 
         when:
         verificationFile.replace('<sha256 value="12345"', "<sha256 value=\"$checkSum\"")
-        configurationCacheRun("resolve1")
+        run("resolve1")
 
         then: // store failures don't invalidate existing cache entries
         configurationCache.assertStateLoaded()
 
         when:
-        configurationCacheRun("resolve1")
+        run("resolve1")
 
         then:
         configurationCache.assertStateLoaded()
 
         when:
         verificationFile.delete()
-        configurationCacheRun("resolve1")
+        run("resolve1")
 
         then:
         outputContains("Calculating task graph as configuration cache cannot be reused because file 'gradle/verification-metadata.xml' has been removed.".replace('/', File.separator))

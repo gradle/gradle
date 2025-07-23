@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl
+package org.gradle.api.publish.ivy
 
 import org.gradle.api.credentials.PasswordCredentials
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ivy.IvyRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
@@ -30,11 +31,19 @@ import static org.gradle.test.fixtures.server.http.HttpServer.SupportedHash.SHA5
 import static org.gradle.util.internal.GFileUtils.deleteDirectory
 import static org.gradle.util.internal.GFileUtils.listFiles
 
-class ConfigurationCacheIvyPublishIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheIvyPublishIntegrationTest extends AbstractIntegrationSpec {
+
+    def configurationCache = newConfigurationCacheFixture()
 
     @Rule
     public final HttpServer server = new HttpServer().tap {
         supportedHashes = EnumSet.of(SHA1, SHA256, SHA512)
+    }
+
+    @Override
+    void setupExecuter() {
+        super.setupExecuter()
+        executer.withConfigurationCacheEnabled()
     }
 
     def setup() {
@@ -81,17 +90,16 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractConfigurationC
     }
 
     def "can execute generateDescriptorFile"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildConfigurationWithIvyRepository(ivyRepo, "ivyRepo","")
 
         when:
-        configurationCacheRun("generateDescriptorFileForIvyPublication")
+        run("generateDescriptorFileForIvyPublication")
 
         then:
         configurationCache.assertStateStored()
 
         when:
-        configurationCacheRun("generateDescriptorFileForIvyPublication")
+        run("generateDescriptorFileForIvyPublication")
 
         then:
         configurationCache.assertStateLoaded()
@@ -102,13 +110,13 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractConfigurationC
         buildConfigurationWithIvyRepository(ivyRepo, "ivyRepo","")
 
         when:
-        configurationCacheRun("generateMetadataFileForIvyPublication")
+        run("generateMetadataFileForIvyPublication")
 
         then:
         configurationCache.assertStateStored()
 
         when:
-        configurationCacheRun("generateMetadataFileForIvyPublication")
+        run("generateMetadataFileForIvyPublication")
 
         then:
         configurationCache.assertStateLoaded()
@@ -126,7 +134,7 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractConfigurationC
 
         when:
         prepareIvyHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
-        configurationCacheRun(*(projectConfig.tasks))
+        run(*(projectConfig.tasks))
         server.resetExpectations()
 
         then:
@@ -140,7 +148,7 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractConfigurationC
         deleteDirectory(ivyRepo.rootDir)
 
         prepareIvyHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
-        configurationCacheRun(*(projectConfig.tasks))
+        run(*(projectConfig.tasks))
         server.resetExpectations()
 
         then:
@@ -163,7 +171,7 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractConfigurationC
 
         when:
         prepareIvyHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
-        configurationCacheRun("publishAllPublicationsToIvyRepoRepository")
+        run("publishAllPublicationsToIvyRepoRepository")
         server.resetExpectations()
 
         then:
@@ -174,7 +182,7 @@ class ConfigurationCacheIvyPublishIntegrationTest extends AbstractConfigurationC
         deleteDirectory(ivyRepo.rootDir)
 
         prepareIvyHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
-        configurationCacheRun("publishAllPublicationsToIvyRepoRepository")
+        run("publishAllPublicationsToIvyRepoRepository")
         server.resetExpectations()
 
         then:
