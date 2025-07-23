@@ -20,6 +20,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.flow.FlowScope;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Provider;
 
 import javax.inject.Inject;
@@ -38,7 +39,7 @@ public abstract class ConfigurationUsageFeedbackPlugin implements Plugin<Setting
 
         settings.getGradle().allprojects(project -> {
             project.getConfigurations().configureEach(configuration -> {
-                serviceProvider.get().trackConfigurationUsage(project, (ConfigurationInternal) configuration);
+                serviceProvider.get().trackConfigurationUsage((ProjectInternal) project, (ConfigurationInternal) configuration);
             });
         });
     }

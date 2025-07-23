@@ -29,6 +29,7 @@ import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 public interface ConfigurationInternal extends DeprecatableConfiguration, Configuration {
@@ -133,6 +134,8 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
      * Returns the role used to create this configuration and set its initial allowed usage.
      */
     ConfigurationRole getRoleAtCreation();
+
+    Map<ConfigurationRole, Map<String, Integer>> getConfigurationStateUsage();
 
     /**
      * Test if the given configuration can either be declared against or extends another

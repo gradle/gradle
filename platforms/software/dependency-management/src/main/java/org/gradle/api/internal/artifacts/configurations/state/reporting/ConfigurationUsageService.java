@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.artifacts.configurations.state.reporting;
 
-import org.gradle.api.Project;
-import org.gradle.api.ProjectState;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -30,8 +32,8 @@ import java.util.Set;
 public abstract class ConfigurationUsageService implements BuildService<BuildServiceParameters.None> {
     private final Map<ProjectState, Set<ConfigurationInternal>> configurations = new HashMap<>();
 
-    public void trackConfigurationUsage(Project project, ConfigurationInternal configuration) {
-        configurations.computeIfAbsent(project.getState(), state -> new HashSet<>()).add(configuration);
+    public void trackConfigurationUsage(ProjectInternal project, ConfigurationInternal configuration) {
+        configurations.computeIfAbsent(project.getOwner(), state -> new HashSet<>()).add(configuration);
     }
 
     public String reportUsage() {
@@ -39,15 +41,30 @@ public abstract class ConfigurationUsageService implements BuildService<BuildSer
             return "No configurations were created in this build.";
         }
 
-        StringBuilder report = new StringBuilder("Configuration Usage Report:\n");
-        for (Map.Entry<ProjectState, Set<ConfigurationInternal>> entry : configurations.entrySet()) {
-            ProjectState state = entry.getKey();
-            Set<ConfigurationInternal> configs = entry.getValue();
-            report.append("Project State: ").append(state).append("\n");
-            for (ConfigurationInternal config : configs) {
-                report.append(" - Configuration: ").append(config.getName()).append("\n");
-            }
-        }
-        return report.toString();
+        StringBuilder result = new StringBuilder();
+        configurations.keySet().stream()
+            .sorted()
+            .forEach(p -> {
+                result.append("Project: ").append(p.getDisplayName()).append("\n");
+                configurations.get(p).stream()
+                    .sorted(Comparator.comparing(ConfigurationInternal::getDisplayName))
+                    .forEach(c -> {
+                        result.append(c.getDisplayName()).append(" (").append(c.getRoleAtCreation()).append(")\n");
+                        Map<ConfigurationRole, Map<String, Integer>> usage = c.getConfigurationStateUsage();
+                        usage.keySet().stream()
+                            .sorted(Comparator.comparing(ConfigurationRole::getName))
+                            .forEach(r -> {
+                                result.append("    Role: ").append(r.getName()).append("\n");
+                                Map<String, Integer> details = usage.get(r);
+                                details.keySet().stream()
+                                    .sorted()
+                                    .forEach(method -> {
+                                        result.append("      ").append(method).append(": ").append(details.get(method)).append("\n");
+                                    });
+                            });
+                    });
+            });
+
+        return result.toString();
     }
 }
