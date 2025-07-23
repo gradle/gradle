@@ -15,8 +15,6 @@
  */
 package org.gradle.initialization.layout;
 
-import org.gradle.StartParameter;
-import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildLayoutParameters;
 
 import java.io.File;
@@ -29,10 +27,10 @@ public class BuildLayoutConfiguration {
     private final boolean searchUpwards;
     private final boolean useEmptySettings;
 
-    public BuildLayoutConfiguration(StartParameter startParameter) {
-        currentDir = startParameter.getCurrentDir();
-        searchUpwards = ((StartParameterInternal) startParameter).isSearchUpwards();
-        useEmptySettings = ((StartParameterInternal) startParameter).isUseEmptySettings();
+    public BuildLayoutConfiguration(File currentDir, boolean searchUpwards, boolean useEmptySettings) {
+        this.currentDir = currentDir;
+        this.searchUpwards = searchUpwards;
+        this.useEmptySettings = useEmptySettings;
     }
 
     public BuildLayoutConfiguration(BuildLayoutParameters parameters) {
