@@ -38,6 +38,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -50,8 +51,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.jar.Attributes;
+import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
 
 import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasCommandLineExceedMaxLength;
 
@@ -428,41 +431,72 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
 
         // Try to shorten command-line if necessary
         if (hasCommandLineExceedMaxLength(getExecutable(), arguments)) {
-            try {
-                LOGGER.info("Command line too long - creating argsfile(s)");
-
-                List<String> effectiveArguments = new ArrayList<>();
-                List<String> argsFileContents = new ArrayList<>(arguments.size());
-
-                for (String arg : arguments) {
-                    if (arg.startsWith("@")) {
-                        if (!argsFileContents.isEmpty()) {
-                            createArgsFile(argsFileContents, effectiveArguments);
-                            argsFileContents.clear();
-                            continue;
-                        }
-                        effectiveArguments.add(arg);
-                        continue;
-                    }
-                    if (arg.contains("\\") || arg.contains("/")) {
-                        // In case of a file path, we need to escape backslashes and spaces
-                        arg = arg.replace("\\", "\\\\");
-                        // Hint from https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html#java-command-line-argument-files, section "java Command-Line Argument Files"
-                        arg = arg.replace(" ", "\" \"");
-                    }
-                    argsFileContents.add(arg);
-                }
-                if (!argsFileContents.isEmpty()) {
-                    createArgsFile(argsFileContents, effectiveArguments);
-                }
-                LOGGER.info("effective arguments {}", effectiveArguments);
-                return effectiveArguments;
-            } catch (IOException e) {
-                LOGGER.info("args file could not be created, Gradle cannot shorten the command line.", e);
+            if (javaModuleDetector == null) {
+                return shortenJava8Arguments(arguments);
+            } else {
+                return shortenJava9Arguments(arguments);
             }
         }
 
         return arguments;
+    }
+
+    private List<String> shortenJava8Arguments(List<String> arguments) {
+        File pathingJarFile;
+        try {
+            pathingJarFile = writePathingJarFile(classpath);
+        } catch (IOException e) {
+            LOGGER.info("Pathing JAR could not be created, Gradle cannot shorten the command line.", e);
+            return arguments;
+        }
+        ConfigurableFileCollection shortenedClasspath = fileCollectionFactory.configurableFiles();
+        shortenedClasspath.from(pathingJarFile);
+        List<String> shortenedArguments = getAllArguments(shortenedClasspath);
+        LOGGER.info("Shortening Java classpath {} with {}", this.classpath.getFiles(), pathingJarFile);
+        return shortenedArguments;
+    }
+
+    private File writePathingJarFile(FileCollection classpath) throws IOException {
+        File pathingJarFile = temporaryFileProvider.createTemporaryFile("gradle-javaexec-classpath", ".jar");
+        try (FileOutputStream fileOutputStream = new FileOutputStream(pathingJarFile);
+             JarOutputStream jarOutputStream = new JarOutputStream(fileOutputStream, toManifest(classpath))) {
+            jarOutputStream.putNextEntry(new ZipEntry("META-INF/"));
+        }
+        return pathingJarFile;
+    }
+
+    private List<String> shortenJava9Arguments(List<String> arguments) {
+        LOGGER.info("Command line too long - creating argsfile(s)");
+        List<String> effectiveArguments = new ArrayList<>();
+        List<String> argsFileContents = new ArrayList<>(arguments.size());
+        try {
+            for (String arg : arguments) {
+                if (arg.startsWith("@")) {
+                    if (!argsFileContents.isEmpty()) {
+                        createArgsFile(argsFileContents, effectiveArguments);
+                        argsFileContents.clear();
+                        continue;
+                    }
+                    effectiveArguments.add(arg);
+                    continue;
+                }
+                if (arg.contains("\\") || arg.contains("/")) {
+                    // In case of a file path, we need to escape backslashes and spaces
+                    arg = arg.replace("\\", "\\\\");
+                    // Hint from https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html#java-command-line-argument-files, section "java Command-Line Argument Files"
+                    arg = arg.replace(" ", "\" \"");
+                }
+                argsFileContents.add(arg);
+            }
+            if (!argsFileContents.isEmpty()) {
+                createArgsFile(argsFileContents, effectiveArguments);
+            }
+        } catch (IOException e) {
+            LOGGER.info("args file could not be created, Gradle cannot shorten the command line.", e);
+            return arguments;
+        }
+        LOGGER.info("effective arguments {}", effectiveArguments);
+        return effectiveArguments;
     }
 
     private void createArgsFile(List<String> argsFileContents, List<String> effectiveArguments) throws IOException {
