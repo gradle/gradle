@@ -415,7 +415,8 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                      *
                      * @see [DependencyHandler.create]
                      * @see [DependencyHandler.add]
-                     */$deprecationBlock
+                     */
+                    @Deprecated("Use single-string notation instead")
                     fun DependencyHandler.`$kotlinIdentifier`(
                         group: String,
                         name: String,

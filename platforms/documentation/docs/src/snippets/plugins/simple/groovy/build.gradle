@@ -7,8 +7,8 @@ buildscript {
         google()
     }
     dependencies { // these are the plugins that can be used in subprojects or in the build file itself
-        classpath group: 'commons-codec', name: 'commons-codec', version: '1.2' // used in the task below
-        classpath 'com.android.tools.build:gradle:4.1.0' // used in subproject
+        classpath("commons-codec:commons-codec:1.2") // used in the task below
+        classpath("com.android.tools.build:gradle:4.1.0") // used in subproject
     }
 }
 // end::code[]
