@@ -40,7 +40,8 @@ main() {
         export WRAPPER_VERSION="$promotedVersion"
     fi
 
-    ./gradlew wrapper --gradle-version=$WRAPPER_VERSION && ./gradlew wrapper
+    ./gradlew wrapper --gradle-version=$WRAPPER_VERSION 
+    ./gradlew wrapper
     git add gradle && git add gradlew && git add gradlew.bat
     
     if git diff --cached --quiet; then
