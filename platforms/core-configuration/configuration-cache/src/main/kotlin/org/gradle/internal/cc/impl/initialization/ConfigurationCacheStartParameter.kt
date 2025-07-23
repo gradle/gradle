@@ -20,7 +20,7 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
-import org.gradle.initialization.layout.BuildLayout
+import org.gradle.initialization.layout.BuildTreeLocations
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.impl.ConfigurationCacheLoggingParameters
@@ -35,7 +35,7 @@ import java.io.File
 
 @ServiceScope(Scope.BuildTree::class)
 class ConfigurationCacheStartParameter internal constructor(
-    private val buildLayout: BuildLayout,
+    private val buildTreeLocations: BuildTreeLocations,
     private val startParameter: StartParameterInternal,
     options: InternalOptions,
     private val modelParameters: BuildModelParameters,
@@ -136,11 +136,8 @@ class ConfigurationCacheStartParameter internal constructor(
     val currentDirectory: File
         get() = startParameter.currentDir
 
-    val settingsDirectory: File
-        get() = buildLayout.settingsDir
-
-    val rootDirectory: File
-        get() = buildLayout.rootDirectory
+    val buildTreeRootDirectory: File
+        get() = buildTreeLocations.buildTreeRootDirectory
 
     val isOffline
         get() = startParameter.isOffline
