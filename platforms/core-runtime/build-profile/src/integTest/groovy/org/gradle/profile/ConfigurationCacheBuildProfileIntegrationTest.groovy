@@ -14,14 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl
+package org.gradle.profile
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
-class ConfigurationCacheBuildProfileIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheBuildProfileIntegrationTest extends AbstractIntegrationSpec {
+
+    @Override
+    void setupExecuter() {
+        super.setupExecuter()
+        executer.withConfigurationCacheEnabled()
+    }
 
     @Issue("https://github.com/gradle/gradle/issues/18386")
     def "can profile a build with cc enabled"() {
@@ -36,7 +43,7 @@ class ConfigurationCacheBuildProfileIntegrationTest extends AbstractConfiguratio
         file("src/main/java/included/Example.java") << ""
 
         when:
-        configurationCacheRun(":help", "--profile")
+        run(":help", "--profile")
 
         then:
         configurationCache.assertStateStored()
@@ -46,7 +53,7 @@ class ConfigurationCacheBuildProfileIntegrationTest extends AbstractConfiguratio
         report.delete()
 
         when:
-        configurationCacheRun(":help", "--profile")
+        run(":help", "--profile")
 
         then:
         configurationCache.assertStateLoaded()
@@ -92,7 +99,7 @@ class ConfigurationCacheBuildProfileIntegrationTest extends AbstractConfiguratio
         """
 
         when:
-        configurationCacheRun(":help", "--profile")
+        run(":help", "--profile")
 
         then:
         configurationCache.assertStateStored()
@@ -102,7 +109,7 @@ class ConfigurationCacheBuildProfileIntegrationTest extends AbstractConfiguratio
         report.delete()
 
         when:
-        configurationCacheRun(":help", "--profile")
+        run(":help", "--profile")
 
         then:
         configurationCache.assertStateLoaded()
