@@ -34,7 +34,6 @@ dependencies {
     implementation(projects.io)
     implementation(projects.baseServicesGroovy)
     implementation(projects.logging)
-    implementation(projects.buildProcessServices)
 
     implementation(libs.commonsLang)
     implementation(libs.jsr305)

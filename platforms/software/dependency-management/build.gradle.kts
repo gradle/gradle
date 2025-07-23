@@ -76,6 +76,7 @@ dependencies {
     api(libs.maven3SettingsBuilder)
     api(libs.slf4jApi)
 
+    implementation(projects.buildDiscovery)
     implementation(projects.fileOperations)
     implementation(projects.time)
     implementation(projects.baseAsm)

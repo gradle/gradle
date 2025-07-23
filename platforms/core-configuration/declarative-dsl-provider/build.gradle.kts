@@ -31,6 +31,7 @@ dependencies {
     api(libs.kotlinStdlib)
     api(libs.inject)
 
+    implementation(projects.buildDiscovery)
     implementation(projects.concurrent)
     implementation(projects.declarativeDslInternalUtils)
     implementation(projects.baseServices)
