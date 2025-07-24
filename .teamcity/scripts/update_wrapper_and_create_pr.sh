@@ -22,22 +22,34 @@ post() {
     echo "Making POST request to: $endpoint"
     echo "Data: $data"
     
+    echo "Executing curl command..."
     local response=$(curl -X POST \
         -H "Authorization: token $GITHUB_TOKEN" \
         -H "Accept: application/vnd.github.v3+json" \
         -H "Content-Type: application/json" \
         "https://api.github.com/repos/gradle/gradle$endpoint" \
         -d "$data" \
-        -w "\n%{http_code}")
+        -w "\n%{http_code}" \
+        2>/dev/null)
+    
+    echo "Raw curl response: $response"
     
     local http_code=$(echo "$response" | tail -n1)
     local body=$(echo "$response" | head -n -1)
+    
+    echo "Extracted HTTP code: $http_code"
+    echo "Extracted body: $body"
     
     echo "HTTP Status: $http_code"
     echo "Response: $body"
     
     if [[ "$http_code" -ge 400 ]]; then
         echo "Error: HTTP $http_code"
+        return 1
+    fi
+    
+    if [[ -z "$body" ]]; then
+        echo "Error: Empty response body"
         return 1
     fi
     
@@ -49,6 +61,12 @@ main() {
 
     : "${DEFAULT_BRANCH:?DEFAULT_BRANCH environment variable is required}"
     : "${GITHUB_TOKEN:?GITHUB_TOKEN environment variable is required}"
+    
+    # Check if jq is available
+    if ! command -v jq &> /dev/null; then
+        echo "Error: jq is required but not installed"
+        exit 1
+    fi
 
     if [[ "$TRIGGERED_BY" == *"Release - Final"* ]]; then
         source version-info-final-release/version-info.properties
@@ -73,16 +91,24 @@ main() {
     git push https://${GITHUB_TOKEN}@github.com/gradle/gradle.git $BRANCH_NAME
     
     PR_TITLE="Update Gradle wrapper to version $WRAPPER_VERSION"
-    PR_RESPONSE=$(post "/pulls" "{
+    echo "Creating pull request..."
+    if ! PR_RESPONSE=$(post "/pulls" "{
         \"title\": \"$PR_TITLE\",
         \"body\": \"$PR_TITLE\",
         \"head\": \"$BRANCH_NAME\",
         \"base\": \"$DEFAULT_BRANCH\"
-    }")
+    }"); then
+        echo "Failed to create pull request"
+        exit 1
+    fi
     
     echo "PR Response: $PR_RESPONSE"
     
-    PR_NUMBER=$(echo "$PR_RESPONSE" | jq -r '.number // empty')
+    if ! PR_NUMBER=$(echo "$PR_RESPONSE" | jq -r '.number // empty'); then
+        echo "Failed to extract PR number from response"
+        echo "Response: $PR_RESPONSE"
+        exit 1
+    fi
     
     if [[ -n "$PR_NUMBER" && "$PR_NUMBER" != "null" ]]; then
         echo "Created PR #$PR_NUMBER"
