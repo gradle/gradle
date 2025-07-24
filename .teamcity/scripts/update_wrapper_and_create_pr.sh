@@ -18,6 +18,8 @@ set -e
 post() {
     local endpoint="$1"
     local data="$2"
+
+    echo "POST $endpoint"
     
     local response=$(curl -X POST \
         -H "Authorization: token $GITHUB_TOKEN" \
