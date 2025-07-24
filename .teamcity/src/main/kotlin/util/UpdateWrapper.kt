@@ -39,7 +39,7 @@ object UpdateWrapper : BuildType({
         )
         param("env.JAVA_HOME", javaHome(BuildToolBuildJvm, Os.LINUX))
         param("env.GITHUB_TOKEN", "%github.bot-gradle.token%")
-        param("env.DEFAULT_BRANCH", "teamcity.build.branch")
+        param("env.DEFAULT_BRANCH", "%teamcity.build.branch%")
         param("env.TRIGGERED_BY", "%teamcity.build.triggeredBy%")
     }
 
