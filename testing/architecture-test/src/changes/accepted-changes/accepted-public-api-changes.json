@@ -65,6 +65,22 @@
             ]
         },
         {
+            "type": "org.gradle.api.DefaultTask",
+            "member": "Method org.gradle.api.DefaultTask.getDescription()",
+            "acceptation": "Fix Task.group and Task.description overloads nullability",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.DefaultTask",
+            "member": "Method org.gradle.api.DefaultTask.getGroup()",
+            "acceptation": "Fix Task.group and Task.description overloads nullability",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
             "type": "org.gradle.api.Project",
             "member": "Method org.gradle.api.Project.exec(groovy.lang.Closure)",
             "acceptation": "Remove deprecated method",
@@ -2054,6 +2070,14 @@
             "acceptation": "remove deprecated method",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.ant.AntTarget",
+            "member": "Method org.gradle.api.tasks.ant.AntTarget.getDescription()",
+            "acceptation": "Fix Task.group and Task.description overloads nullability",
+            "changes": [
+                "From non-null returning to null returning breaking change"
             ]
         },
         {
