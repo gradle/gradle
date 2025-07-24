@@ -33,6 +33,10 @@ post() {
     local http_code=$(echo "$response" | tail -n1)
     local body=$(echo "$response" | head -n -1)
     
+    # Debug: show what we're getting
+    echo "HTTP_CODE: $http_code"
+    echo "BODY: $body"
+    
     if [[ "$http_code" -ge 400 ]]; then
         printf "Error: HTTP %s - %s\n" "$http_code" "$body" >&2
         exit 1
@@ -80,7 +84,12 @@ main() {
 
     echo "PR_RESPONSE: $PR_RESPONSE"
 
-    PR_NUMBER=$(echo "$PR_RESPONSE" | jq -r '.number')
+    PR_NUMBER=$(echo "$PR_RESPONSE" | jq -r '.number' 2>/dev/null)
+    
+    if [[ -z "$PR_NUMBER" || "$PR_NUMBER" == "null" ]]; then
+        echo "Failed to extract PR number from: $PR_RESPONSE"
+        exit 1
+    fi
 
     post "/issues/$PR_NUMBER/comments" '{
         "body": "@bot-gradle test and merge"
