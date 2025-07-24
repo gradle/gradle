@@ -23,6 +23,7 @@ import javax.inject.Inject
 class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     public static final String CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER = "Some tasks or features in this build are not compatible with the configuration cache."
     public static final String CONFIGURATION_CACHE_DISABLED_REASON = "Configuration cache disabled because incompatible"
+    public static final String CONFIGURATION_CACHE_DISCARDED_READ_ONLY_REASON = "Configuration cache entry discarded as cache is in read-only mode."
 
     def "a compatible build does not print degradation reasons"() {
         buildFile """
@@ -452,16 +453,57 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
             tasks.register("foo", DegradingTask) { task ->
                 getDegradationController().requireConfigurationCacheDegradation(task, provider { "Because reasons" })
                 doLast {
-                    println("Hello")
+                    println("Hello from " + project.path)
                 }
             }
         """
+        executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. This will fail with an error in Gradle 10. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
 
         when:
         run ":foo"
 
         then:
         executed ":foo"
+
+        and:
+        assertNoConfigurationCacheDegradation()
+    }
+
+    def "degradation works in read-only mode"() {
+        given:
+        buildFile """
+            ${taskWithInjectedDegradationController()}
+
+            tasks.register("foo", DegradingTask) { task ->
+                getDegradationController().requireConfigurationCacheDegradation(task, provider { "Because reasons" })
+                doLast {
+                    println("Hello from " + project.path)
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun(":foo", ENABLE_READ_ONLY_CACHE)
+
+        then:
+        executed ":foo"
+
+        and:
+        // no problems on the console
+        problems.assertResultConsoleSummaryHasNoProblems(result)
+        // but problems should be in CC report
+        problems.assertResultHtmlReportHasProblems(result) {
+            totalProblemsCount = 1
+            withProblem("Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
+            withIncompatibleTask(":foo", "Because reasons.")
+        }
+
+        and:
+        // expect link to CC report
+        outputContains(CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER)
+        // but disablement reason is not about incompatible tasks, but read-only mode
+        postBuildOutputDoesNotContain(CONFIGURATION_CACHE_DISABLED_REASON)
+        postBuildOutputContains(CONFIGURATION_CACHE_DISCARDED_READ_ONLY_REASON)
     }
 
     def "CC report link is present even when no problems were reported"() {
