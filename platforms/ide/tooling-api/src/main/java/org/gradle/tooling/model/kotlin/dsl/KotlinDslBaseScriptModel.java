@@ -32,6 +32,14 @@ import java.util.List;
 public interface KotlinDslBaseScriptModel {
 
     /**
+     * Classpath required to load Kotlin script template classes.
+     *
+     * @since 9.1.0
+     */
+    @Incubating
+    List<File> getScriptTemplatesClassPath();
+
+    /**
      * The implicit imports that are used for all scripts.
      *
      * @since 9.1.0

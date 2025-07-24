@@ -44,35 +44,32 @@ import java.util.Map;
  *
  * <pre>
  * dependencies {
- *     <i>configurationName</i> <i>dependencyNotation</i>
+ *     <i>configurationName</i>(<i>dependencyNotation</i>)
  * }
  * </pre>
  *
  * <p>Example shows a basic way of declaring dependencies.
  * <pre class='autoTested'>
  * plugins {
- *     id 'java' // so that we can use 'implementation', 'testImplementation' for dependencies
+ *     id("java-library")
  * }
  *
  * dependencies {
- *   //for dependencies found in artifact repositories you can use
- *   //the group:name:version notation
- *   implementation 'commons-lang:commons-lang:2.6'
- *   testImplementation 'org.mockito:mockito:1.9.0-rc1'
+ *     // Declare dependency on module components
+ *     // Coordinates are separated by a single colon -- group:name:version
+ *     implementation("org.apache.commons:commons-lang3:3.17.0")
+ *     testImplementation("org.mockito:mockito-core:5.18.0")
  *
- *   //map-style notation:
- *   implementation group: 'com.google.code.guice', name: 'guice', version: '1.0'
+ *     // Declare dependency on arbitrary files
+ *     implementation(files("hibernate.jar", "libs/spring.jar"))
  *
- *   //declaring arbitrary files as dependencies
- *   implementation files('hibernate.jar', 'libs/spring.jar')
- *
- *   //putting all jars from 'libs' onto compile classpath
- *   implementation fileTree('libs')
+ *     // Declare dependency on all jars from the 'libs' directory
+ *     implementation(fileTree("libs"))
  * }
  * </pre>
  *
  * <h2>Advanced dependency configuration</h2>
- * <p>To do some advanced configuration on a dependency when it is declared, you can additionally pass a configuration closure:</p>
+ * <p>To perform advanced configuration on a dependency when it is declared, you can pass an additional configuration closure:</p>
  *
  * <pre>
  * dependencies {
@@ -83,7 +80,7 @@ import java.util.Map;
  * }
  * </pre>
  *
- * Examples of advanced dependency declaration including:
+ * Examples of advanced dependency declaration include:
  * <ul>
  * <li>Forcing certain dependency version in case of the conflict.</li>
  * <li>Excluding certain dependencies by name, group or both.
@@ -94,31 +91,31 @@ import java.util.Map;
  *
  * <pre class='autoTestedWithDeprecations'>
  * plugins {
- *     id 'java' // so that I can declare 'implementation' dependencies
+ *     id("java-library")
  * }
  *
  * dependencies {
- *   implementation('org.hibernate:hibernate') {
- *     //in case of versions conflict '3.1' version of hibernate wins:
- *     version {
- *       strictly('3.1')
+ *     implementation('org.hibernate:hibernate') {
+ *         // In case of versions conflict '3.1' version of hibernate wins:
+ *         version {
+ *             strictly('3.1')
+ *         }
+ *
+ *         // Excluding a particular transitive dependency:
+ *         exclude module: 'cglib' //by artifact name
+ *         exclude group: 'org.jmock' //by group
+ *         exclude group: 'org.unwanted', module: 'iAmBuggy' //by both name and group
+ *
+ *         // Disabling all transitive dependencies of this dependency
+ *         transitive = false
  *     }
- *
- *     //excluding a particular transitive dependency:
- *     exclude module: 'cglib' //by artifact name
- *     exclude group: 'org.jmock' //by group
- *     exclude group: 'org.unwanted', module: 'iAmBuggy' //by both name and group
- *
- *     //disabling all transitive dependencies of this dependency
- *     transitive = false
- *   }
  * }
  * </pre>
  *
- * More examples of advanced configuration, useful when dependency module has multiple artifacts:
+ * Below are more examples of advanced configuration, which may be useful when a target component has multiple artifacts:
  * <ul>
- *   <li>Declaring dependency to a specific configuration of the module.</li>
- *   <li>Explicit specification of the artifact. See also {@link org.gradle.api.artifacts.ModuleDependency#artifact(groovy.lang.Closure)}.</li>
+ *   <li>Declaring dependency on a specific configuration of the component.</li>
+ *   <li>Declaring explicit artifact requests. See also {@link org.gradle.api.artifacts.ModuleDependency#artifact(groovy.lang.Closure)}.</li>
  * </ul>
  *
  * <pre class='autoTested'>
@@ -127,24 +124,24 @@ import java.util.Map;
  * }
  *
  * dependencies {
- *   // Configuring dependency to specific configuration of the module
- *   // This notation should _only_ be used for Ivy dependencies
- *   implementation("org.someOrg:someModule:1.0") {
- *       targetConfiguration = "someConf"
- *   }
- *
- *   // Configuring dependency on 'someLib' module
- *   implementation(group: 'org.myorg', name: 'someLib', version:'1.0') {
- *     // Explicitly adding the dependency artifact:
- *     // Prefer variant-aware dependency resolution
- *     artifact {
- *       // Useful when some artifact properties unconventional
- *       name = 'someArtifact' // Artifact name different than module name
- *       extension = 'someExt'
- *       type = 'someType'
- *       classifier = 'someClassifier'
+ *     // Configuring dependency to specific configuration of the module
+ *     // This notation should _only_ be used for Ivy dependencies
+ *     implementation("org.someOrg:someModule:1.0") {
+ *         targetConfiguration = "someConf"
  *     }
- *   }
+ *
+ *     // Configuring dependency on 'someLib' module
+ *     implementation("org.myorg:someLib:1.0") {
+ *         // Explicitly adding the dependency artifact:
+ *         // Prefer variant-aware dependency resolution
+ *         artifact {
+ *             // Useful when some artifact properties unconventional
+ *             name = "someArtifact" // Artifact name different than module name
+ *             extension = "someExt"
+ *             type = "someType"
+ *             classifier = "someClassifier"
+ *         }
+ *     }
  * }
  * </pre>
  *
@@ -157,7 +154,7 @@ import java.util.Map;
  * <p>You can also always add instances of
  * {@link org.gradle.api.artifacts.Dependency} directly:</p>
  *
- * <code><i>configurationName</i> &lt;instance&gt;</code>
+ * <code><i>configurationName</i>(&lt;instance&gt;)</code>
  *
  * <p>Dependencies can also be declared with a {@link org.gradle.api.provider.Provider} that provides any of the other supported dependency notations.</p>
  *
@@ -174,64 +171,49 @@ import java.util.Map;
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java' // so that we can use 'implementation', 'testImplementation' for dependencies
+ *     id("java-library")
  * }
  *
  * dependencies {
- *   //for dependencies found in artifact repositories you can use
- *   //the string notation, e.g. group:name:version
- *   implementation 'commons-lang:commons-lang:2.6'
- *   testImplementation 'org.mockito:mockito:1.9.0-rc1'
- *
- *   //map notation:
- *   implementation group: 'com.google.code.guice', name: 'guice', version: '1.0'
+ *     // Declare dependency on module components
+ *     // Coordinates are separated by a single colon -- group:name:version
+ *     implementation("org.apache.commons:commons-lang3:3.17.0")
+ *     testImplementation("org.mockito:mockito-core:5.18.0")
  * }
  * </pre>
  *
  * <h3>Project dependencies</h3>
  *
  * <p>To add a project dependency, you use the following notation:
- * <p><code><i>configurationName</i> project(':some-project')</code>
- *
- * <p>The notation <code>project(':project-a')</code> is similar to the syntax you use
- * when configuring a projectA in a multi-module gradle project.
+ * <p><code><i>configurationName</i>(project(":some-project"))</code>
  *
  * <p>Project dependencies are resolved by treating each consumable configuration in the target
  * project as a variant and performing variant-aware attribute matching against them.
  * However, in order to override this process, an explicit target configuration can be specified:
- * <p><code><i>configurationName</i> project(path: ':project-a', configuration: 'someOtherConfiguration')</code>
+ * <p><code><i>configurationName</i>(project(path: ":project-a", configuration: "someOtherConfiguration"))</code>
  *
  * <p>Project dependencies are represented using a {@link org.gradle.api.artifacts.ProjectDependency}.
  *
  * <h3>File dependencies</h3>
  *
  * <p>You can also add a dependency using a {@link org.gradle.api.file.FileCollection}:</p>
- * <code><i>configurationName</i> files('a file')</code>
+ * <code><i>configurationName</i>(files("a file"))</code>
  *
  * <pre class='autoTested'>
  * plugins {
- *     id 'java' // so that we can use 'implementation', 'testImplementation' for dependencies
+ *     id("java-library")
  * }
  *
  * dependencies {
- *   //declaring arbitrary files as dependencies
- *   implementation files('hibernate.jar', 'libs/spring.jar')
+ *     // Declare dependency on arbitrary files
+ *     implementation(files("hibernate.jar", "libs/spring.jar"))
  *
- *   //putting all jars from 'libs' onto compile classpath
- *   implementation fileTree('libs')
+ *     // Declare dependency on all jars from the 'libs' directory
+ *     implementation(fileTree("libs"))
  * }
  * </pre>
  *
  * <p>File dependencies are represented using a {@link org.gradle.api.artifacts.FileCollectionDependency}.</p>
- *
- * <h3>Dependencies to other configurations</h3>
- *
- * <p>You can add a dependency using a {@link org.gradle.api.artifacts.Configuration}.</p>
- *
- * <p>When the configuration is from the same project as the target configuration, the target configuration is changed
- * to extend from the provided configuration.</p>
- *
- * <p>When the configuration is from a different project, a project dependency is added.</p>
  *
  * <h3>Gradle distribution specific dependencies</h3>
  *
@@ -239,21 +221,19 @@ import java.util.Map;
  * It is particularly useful for Gradle plugin development. Example:</p>
  *
  * <pre class='autoTested'>
- * //Our Gradle plugin is written in groovy
  * plugins {
- *     id 'groovy'
+ *     id("groovy")
  * }
- * // now we can use the 'implementation' configuration for declaring dependencies
  *
  * dependencies {
- *   //we will use the Groovy version that ships with Gradle:
- *   implementation localGroovy()
+ *     // Declare dependency on the Groovy version that ships with Gradle
+ *     implementation(localGroovy())
  *
- *   //our plugin requires Gradle API interfaces and classes to compile:
- *   implementation gradleApi()
+ *     // Declare dependency on the Gradle API interfaces and classes
+ *     implementation(gradleApi())
  *
- *   //we will use the Gradle test-kit to test build logic:
- *   testImplementation gradleTestKit()
+ *     // Declare dependency on the Gradle test-kit to test build logic
+ *     testImplementation(gradleTestKit())
  * }
  * </pre>
  */

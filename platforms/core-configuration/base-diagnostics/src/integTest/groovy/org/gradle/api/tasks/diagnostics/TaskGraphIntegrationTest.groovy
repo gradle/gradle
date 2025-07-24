@@ -16,7 +16,9 @@
 
 package org.gradle.api.tasks.diagnostics
 
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 
 class TaskGraphIntegrationTest extends AbstractIntegrationSpec {
 
@@ -899,6 +901,54 @@ Tasks graph for: root
             ":build-logic-settings:settingsTask",
             ":build-logic-commons:basics:commonsTask", ":build-logic-commons:basics:jar"
         )
+    }
+
+    def "configuration cache is reused"() {
+        given:
+        buildFile """
+            def leaf1 = tasks.register("leaf1")
+            def leaf2 = tasks.register("leaf2") {
+                enabled = false
+            }
+            def leaf3 = tasks.register("leaf3")
+            def leaf4 = tasks.register("leaf4") {
+                dependsOn(leaf3)
+            }
+            def middle = tasks.register("middle") {
+                dependsOn(leaf1, leaf2)
+            }
+            tasks.register("root") {
+                dependsOn(middle)
+            }
+            tasks.register("root2") {
+                dependsOn(leaf1)
+                finalizedBy(leaf4)
+            }
+        """
+        def expectedOutput = """
+Tasks graph for: root r2
++--- :root (org.gradle.api.DefaultTask)
+|    \\--- :middle (org.gradle.api.DefaultTask)
+|         +--- :leaf1 (org.gradle.api.DefaultTask)
+|         \\--- :leaf2 (org.gradle.api.DefaultTask, disabled)
+\\--- :root2 (org.gradle.api.DefaultTask)
+     +--- :leaf1 (*)
+     \\--- :leaf4 (org.gradle.api.DefaultTask, finalizer)
+          \\--- :leaf3 (org.gradle.api.DefaultTask)
+
+(*) - details omitted (listed previously)
+        """
+
+        def configurationCache = new ConfigurationCacheFixture(this)
+        run("root", "r2", "--task-graph", "--${StartParameterBuildOptions.ConfigurationCacheOption.LONG_OPTION}")
+        outputContains(expectedOutput)
+
+        when:
+        run("root", "r2", "--task-graph", "--${StartParameterBuildOptions.ConfigurationCacheOption.LONG_OPTION}")
+
+        then:
+        outputContains(expectedOutput)
+        configurationCache.assertStateLoaded()
     }
 
     private def sampleGraph = buildScriptSnippet """

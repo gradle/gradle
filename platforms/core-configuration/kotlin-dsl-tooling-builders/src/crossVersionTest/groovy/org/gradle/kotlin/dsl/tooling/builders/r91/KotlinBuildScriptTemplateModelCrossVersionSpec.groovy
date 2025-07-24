@@ -19,11 +19,20 @@ package org.gradle.kotlin.dsl.tooling.builders.r91
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel
+import org.gradle.util.GradleVersion
 
 @TargetGradleVersion(">=9.1")
 class KotlinBuildScriptTemplateModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     def "KotlinBuildScriptTemplateModel is obtained without configuring projects"() {
+
+        if (targetVersion.baseVersion >= GradleVersion.version("9.1")) {
+            expectDocumentedDeprecationWarning(
+                "The org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel type has been deprecated. " +
+                    "This will fail with an error in Gradle 10. " +
+                    "Please use the org.gradle.tooling.model.kotlin.dsl.KotlinDslBaseScriptModel type instead."
+            )
+        }
 
         when:
         def listener = new ConfigurationPhaseMonitoringListener()
