@@ -192,9 +192,10 @@ The link:{javadocPath}/org/gradle/process/JavaForkOptions.html#setAllJvmArgs(jav
 
 Instead, use one of the following:
 
-* `JavaForkOptions.jvmArgs()`
-* `JavaForkOptions.setJvmArgs()`
-* Provide a `CommandLineArgumentProvider` to add arguments via `JavaForkOptions.getJvmArgumentProviders()`
+* Use `JavaForkOptions.jvmArgs()`
+* Use `JavaForkOptions.setJvmArgs()`
+* Provide a `CommandLineArgumentProvider` to add arguments via `JavaForkOptions.getJvmArgumentProviders()`. An example can be found in the
+<<incremental_build.adoc#sec:task_input_nested_inputs,Nested inputs>> section of Incremental Build.
 
 [[archives-configuration]]
 ==== Deprecation of the `archives` configuration
