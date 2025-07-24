@@ -709,7 +709,7 @@ link:{javadocPath}/org/gradle/api/artifacts/ConfigurationContainer.html#detached
 
 This behavior has been deprecated and will become an error in Gradle 9.0.
 
-To create extension relationships between configurations, you should change to using non-detached configurations created via the other factory methods present in the project's `link:{javadocPath}/org/gradle/api/artifacts/ConfigurationContainer.html)[ConfigurationContainer]`.
+To create extension relationships between configurations, you should change to using non-detached configurations created via the other factory methods present in the project's `link:{javadocPath}/org/gradle/api/artifacts/ConfigurationContainer.html[ConfigurationContainer]`.
 
 [[deprecated_use_logger]]
 ==== Deprecated customized Gradle logging
@@ -973,7 +973,7 @@ For the following use cases, consider these alternatives when replacing a `befor
 
 In an ongoing effort to simplify the Gradle API, the following methods that support filtering based on declared dependencies have been deprecated:
 
-On link:{javadocPath}/org/gradle/api/artifacts/Configuration.html--[Configuration]:
+On link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[Configuration]:
 
 - `files(Dependency...)`
 - `files(Spec)`
@@ -982,12 +982,12 @@ On link:{javadocPath}/org/gradle/api/artifacts/Configuration.html--[Configuratio
 - `fileCollection(Spec)`
 - `fileCollection(Closure)`
 
-On link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html--[ResolvedConfiguration]:
+On link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html[ResolvedConfiguration]:
 
 - `getFiles(Spec)`
 - `getFirstLevelModuleDependencies(Spec)`
 
-On link:{javadocPath}/org/gradle/api/artifacts/LenientConfiguration.html--[LenientConfiguration]:
+On link:{javadocPath}/org/gradle/api/artifacts/LenientConfiguration.html[LenientConfiguration]:
 
 - `getFirstLevelModuleDependencies(Spec)`
 - `getFiles(Spec)`
@@ -1224,7 +1224,7 @@ Apache SSHD has been updated from 2.0.0 to https://mina.apache.org/sshd-project/
 
 ==== Replacement and upgrade of JSch
 
-http://www.jcraft.com/jsch/[JSch] has been replaced by https://github.com/mwiede/jsch[`com.github.mwiede:jsch`] and updated from 0.1.55 to https://github.com/mwiede/jsch/releases/tag/jsch-0.2.16[0.2.16]
+JSch has been replaced by https://github.com/mwiede/jsch[`com.github.mwiede:jsch`] and updated from 0.1.55 to https://github.com/mwiede/jsch/releases/tag/jsch-0.2.16[0.2.16]
 
 ==== Upgrade to Eclipse JGit 5.13.3
 
@@ -2255,7 +2255,7 @@ Since the previous version was 3.0.15, the https://groovy-lang.org/changelogs/ch
 
 ==== Upgrade to Ant 1.10.13
 
-Ant has been updated to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.10.13.html[Ant 1.10.13].
+Ant has been updated to https://ant.apache.org/index.html[Ant 1.10.13].
 
 Since the previous version was 1.10.11, the https://github.com/apache/ant/blob/rel/1.10.12/WHATSNEW[1.10.12] changes are also included.
 
