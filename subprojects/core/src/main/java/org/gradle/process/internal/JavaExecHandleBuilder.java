@@ -101,7 +101,6 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
 
     private List<String> getAllJvmArgs(FileCollection realClasspath) {
         List<String> allArgs = new ArrayList<>(javaOptions.getAllJvmArgs());
-
         boolean runAsModule = modularity.getInferModulePath().get() && mainModule.isPresent();
 
         if (runAsModule) {
