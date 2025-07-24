@@ -19,11 +19,6 @@ post() {
     local endpoint="$1"
     local data="$2"
     
-    echo "Making POST request to: $endpoint"
-    echo "Data: $data"
-    
-    echo "Executing curl command..."
-    
     local response=$(curl -X POST \
         -H "Authorization: token $GITHUB_TOKEN" \
         -H "Accept: application/vnd.github.v3+json" \
@@ -31,35 +26,15 @@ post() {
         "https://api.github.com/repos/gradle/gradle$endpoint" \
         -d "$data" \
         -w "\n%{http_code}" \
+        -f \
         2>/dev/null)
-    
-    local curl_exit_code=$?
-    echo "Curl exit code: $curl_exit_code"
-    
-    if [[ $curl_exit_code -ne 0 ]]; then
-        echo "Error: Curl failed with exit code $curl_exit_code"
-        return 1
-    fi
-    
-    echo "Raw curl response: $response"
     
     local http_code=$(echo "$response" | tail -n1)
     local body=$(echo "$response" | head -n -1)
     
-    echo "Extracted HTTP code: $http_code"
-    echo "Extracted body: $body"
-    
-    echo "HTTP Status: $http_code"
-    echo "Response: $body"
-    
     if [[ "$http_code" -ge 400 ]]; then
-        echo "Error: HTTP $http_code - $body"
-        return 1
-    fi
-    
-    if [[ -z "$body" ]]; then
-        echo "Error: Empty response body"
-        return 1
+        echo "Error: HTTP $http_code - $body" 
+        exit 1
     fi
     
     echo "$body"
@@ -100,22 +75,14 @@ main() {
     git push https://${GITHUB_TOKEN}@github.com/gradle/gradle.git $BRANCH_NAME
     
     PR_TITLE="Update Gradle wrapper to version $WRAPPER_VERSION"
-    echo "Creating pull request..."
+    
     PR_RESPONSE=$(post "/pulls" "{
         \"title\": \"$PR_TITLE\",
         \"body\": \"$PR_TITLE\",
         \"head\": \"$BRANCH_NAME\",
         \"base\": \"$DEFAULT_BRANCH\"
     }")
-    
-    if [[ $? -ne 0 ]]; then
-        echo "Failed to create pull request"
-        echo "Last error from post function: $?"
-        exit 1
-    fi
-    
-    echo "PR Response: $PR_RESPONSE"
-    
+
     if ! PR_NUMBER=$(echo "$PR_RESPONSE" | jq -r '.number // empty'); then
         echo "Failed to extract PR number from response"
         echo "Response: $PR_RESPONSE"
@@ -125,22 +92,15 @@ main() {
     if [[ -n "$PR_NUMBER" && "$PR_NUMBER" != "null" ]]; then
         echo "Created PR #$PR_NUMBER"
         
-        echo "Adding comment to PR #$PR_NUMBER..."
-        if ! post "/issues/$PR_NUMBER/comments" '{
+        post "/issues/$PR_NUMBER/comments" '{
             "body": "@bot-gradle test and merge"
-        }'; then
-            echo "Warning: Failed to add comment to PR"
-        fi
+        }' || echo "Warning: Failed to add comment to PR"
         
-        echo "Adding labels to PR #$PR_NUMBER..."
-        if ! post "/issues/$PR_NUMBER/labels" '{
+        post "/issues/$PR_NUMBER/labels" '{
             "labels": ["@dev-productivity"]
-        }'; then
-            echo "Warning: Failed to add labels to PR"
-        fi
+        }' || echo "Warning: Failed to add labels to PR"
     else
         echo "Failed to create PR or extract PR number"
-        echo "Response: $PR_RESPONSE"
         exit 1
     fi
 }
