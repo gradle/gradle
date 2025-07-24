@@ -417,9 +417,9 @@ public class DefaultFileLockManager implements FileLockManager {
                     if (lockOutcome.isLockWasAcquired()) {
                         return ExponentialBackoff.Result.successful(lockOutcome);
                     }
-                    if (port != -1) { //we don't like the assumption about the port very much
+                    if (port != FileLockContentionHandler.INVALID_PORT) { //we don't like the assumption about the port very much
                         LockInfo lockInfo = readInformationRegion(backoff);
-                        if (lockInfo.port != -1) {
+                        if (lockInfo.port != FileLockContentionHandler.INVALID_PORT) {
                             if (lockInfo.port != lastLockHolderPort) {
                                 backoff.restartTimer();
                                 lastLockHolderPort = lockInfo.port;

@@ -37,8 +37,7 @@ public class RejectingFileLockContentionHandler implements FileLockContentionHan
 
     @Override
     public int reservePort() {
-        // This is a special value recognized by File
-        return -1;
+        return INVALID_PORT;
     }
 
     @Override
