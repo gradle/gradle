@@ -30,7 +30,7 @@ import java.util.Map;
 
 public class DefaultExtraPropertiesExtension extends GroovyObjectSupport implements ExtraPropertiesExtensionInternal {
 
-    private ImmutableMap<String, String> gradleProperties = ImmutableMap.of();
+    private ImmutableMap<String, Object> gradleProperties = ImmutableMap.of();
 
     @Nullable
     private Map<String, Object> storage = null;
@@ -116,7 +116,7 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
         }
         Map<String, Object> properties = new HashMap<>(storage.size() + gradleProperties.size());
         properties.putAll(storage);
-        for (Map.Entry<String, String> entry : gradleProperties.entrySet()) {
+        for (Map.Entry<String, Object> entry : gradleProperties.entrySet()) {
             if (!storage.containsKey(entry.getKey())) {
                 // TODO:configuration-cache track Gradle property lookup
 //                onGradlePropertyLookup(entry.getKey());
@@ -138,7 +138,7 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
     }
 
     @Override
-    public void setGradleProperties(Map<String, String> properties) {
+    public void setGradleProperties(Map<String, Object> properties) {
         gradleProperties = ImmutableMap.copyOf(properties);
     }
 }

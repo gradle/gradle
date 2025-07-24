@@ -57,10 +57,15 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         Map<String, String> intermediateProjectProperties = loadProjectGradleProperties(project);
         Map<String, String> mergedProjectProperties = gradleProperties.mergeProperties(intermediateProjectProperties);
 
-        ImmutableMap.Builder<String, String> extraProjectPropertiesBuilder = ImmutableMap.builder();
+        ImmutableMap.Builder<String, Object> extraProjectPropertiesBuilder = ImmutableMap.builder();
 
         for (Map.Entry<String, String> entry : mergedProjectProperties.entrySet()) {
-            assignOrCollectProperty(project, extraProjectPropertiesBuilder, entry.getKey(), entry.getValue());
+            String propertyName = entry.getKey();
+            // This is intentional relaxation of the type to support an edge-case of GradleBuild task
+            // that allows passing non-String properties via `startParameter.projectProperties`.
+            // The latter map is typed `Map<String, String>` but due to type erasure, the actual values were never explicitly checked.
+            Object propertyValue = entry.getValue();
+            assignOrCollectProperty(project, extraProjectPropertiesBuilder, propertyName, propertyValue);
         }
 
         installProjectExtraPropertiesDefaults(project, extraProjectPropertiesBuilder.build());
@@ -69,9 +74,9 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
     @SuppressWarnings("deprecation")
     private static void assignOrCollectProperty(
         Project project,
-        ImmutableMap.Builder<String, String> extraProjectProperties,
+        ImmutableMap.Builder<String, Object> extraProjectProperties,
         String propertyName,
-        String propertyValue
+        Object propertyValue
     ) {
         if (propertyName.isEmpty()) {
             // Historically, we filtered out properties with empty names here.
@@ -87,7 +92,11 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
                 project.setGroup(propertyValue);
                 break;
             case "description":
-                project.setDescription(propertyValue);
+                if (propertyValue instanceof String) {
+                    project.setDescription((String) propertyValue);
+                } else {
+                    extraProjectProperties.put(propertyName, propertyValue);
+                }
                 break;
             case "status":
                 project.setStatus(propertyValue);
@@ -107,7 +116,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         return loadedProperties == null ? ImmutableMap.of() : loadedProperties;
     }
 
-    private static void installProjectExtraPropertiesDefaults(Project project, Map<String, String> extraProperties) {
+    private static void installProjectExtraPropertiesDefaults(Project project, Map<String, Object> extraProperties) {
         ExtraPropertiesExtensionInternal extraPropertiesContainer = (ExtraPropertiesExtensionInternal) project.getExtensions().getExtraProperties();
         extraPropertiesContainer.setGradleProperties(extraProperties);
     }
