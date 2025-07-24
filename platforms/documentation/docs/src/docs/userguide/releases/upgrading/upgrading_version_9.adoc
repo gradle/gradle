@@ -44,7 +44,7 @@ The previous step will help you identify potential problems by issuing deprecati
 [[dependency_multi_string_notation]]
 ==== Deprecated multi-string dependency notation
 
-In an effort to simplify and standardize the Gradle API, the multi-string dependency notation has been deprecated and will no longer be permitted in Gradle 10.
+In an effort to simplify and standardize the Gradle API, the multi-string dependency notation used in dependency management has been deprecated and will no longer be permitted in Gradle 10.
 Gradle will primarily accept dependency declarations in the form of a single string, with each dependency coordinate separated by a colon.
 
 Below are examples of the deprecated multi-string notation:
@@ -172,10 +172,12 @@ configurations.dependencyScope("implementation") {
 ====
 
 [[archives-configuration]]
-==== Deprecation of the `archives` configuration
-The `archives` configuration added by the `base` plugin has been deprecated and will be removed in Gradle 10.0.0.
+==== Deprecated `archives` configuration
+
+The `archives` configuration added by the <<base_plugin.adoc#base_plugin,`base` plugin>> has been deprecated and will be removed in Gradle 10.0.0.
 Adding artifacts to the `archives` configuration will now result in a deprecation warning.
-If you want the artifact built when running the `assemble` task, you should add the artifact (or the task that produces it) as a dependency of the `assemble` task directly.
+
+If you want the artifact to be built when running the `assemble` task, add the artifact (or the task that produces it) as a dependency on `assemble`:
 
 .build.gradle.kts
 [source,kotlin]
@@ -191,12 +193,14 @@ tasks.named("assemble") {
 ----
 
 [[deprecate-visible-property]]
-==== The `Configuration.visible` property is now deprecated
-Prior to Gradle 9.0, any configuration with `isVisible()` returning `true` would have its artifacts built automatically when the `assemble` task was executed.
-This implicit behavior was removed in 9.0.0, and the `Configuration.visible` property no longer has any meaningful effect.
-This property is now deprecated and will be removed in Gradle 10.0.0.
-Any usage of `visible` can be removed.
-If you want the artifacts of a configuration to be built as part of the `assemble` task, add an explicit task dependency on `assemble` instead:
+==== Deprecated `Configuration.visible` property
+
+Prior to Gradle 9.0.0, any configuration with `isVisible()` returning `true` would implicitly trigger artifact creation when running the `assemble` task.
+This behavior was removed in Gradle 9.0.0, and the `Configuration.visible` property no longer has any effect.
+The property is now deprecated and will be removed in Gradle 10.0.0.
+You can safely remove any usage of `visible`.
+
+If you want the artifacts of a configuration to be built when running the `assemble` task, add an explicit task dependency on `assemble`:
 
 .build.gradle.kts
 [source,kotlin]

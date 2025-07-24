@@ -47,16 +47,7 @@ However, if you are starting a project from scratch, and you need to install Gra
 
 == DPE University
 
-Want to get up and running with Gradle quickly? Take our free, self-paced Gradle Build Tool courses at DPE University:
-
-++++
-<div class="badge-wrapper">
-    <a class="badge" href="https://dpeuniversity.gradle.com/" target="_blank">
-        <span class="badge-type button--blue">LEARN</span>
-        <span class="badge-text">Take courses on DPE University&nbsp;&nbsp;&nbsp;&gt;</span>
-    </a>
-</div>
-++++
+Want to get up and running with Gradle quickly? Take our free, self-paced Gradle Build Tool courses at link:https://dpeuniversity.gradle.com/[DPE University].
 
 == For Software Engineers and Developers
 
@@ -85,7 +76,7 @@ Build engineers that are ready to configure custom build logic or write their ow
 === 1. Beyond the Basics
 
 [sidebar]
-_Description_: *Learn to configure builds, create tasks, and write plugins.* +
+_Description_: *Learn to configure builds, create tasks, and apply plugins.* +
 _Training level_: **Intermediate** +
 _Reading time_: **35 minutes** +
 <<gradle_directories_intermediate.adoc#gradle_directories,-> Read Intermediate Concepts >>
@@ -93,7 +84,7 @@ _Reading time_: **35 minutes** +
 === 2. Intermediate Tutorial
 
 [sidebar]
-_Description_: *Initialize a Gradle project and create a basic plugin.* +
+_Description_: *Initialize a Gradle project and create a convention plugin.* +
 _Training level_: **Intermediate** +
 _Training time_: **55 minutes** +
 <<part1_gradle_init_project#part1_begin,-> Start the Tutorial >>
