@@ -51,7 +51,7 @@ public abstract class ConfigurationUsageService implements BuildService<BuildSer
         StringBuilder usageStats = new StringBuilder("<html><body>\n");
 
         configurations.keySet().stream()
-            .sorted()
+            .sorted(Comparator.comparing(ProjectState::getName))
             .forEach(p -> {
                 usageStats.append("<h1>Project: ").append(p.getDisplayName()).append("</h1>\n");
                 configurations.get(p).stream()
