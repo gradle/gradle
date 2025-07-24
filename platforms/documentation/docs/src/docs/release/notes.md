@@ -186,6 +186,8 @@ val buildPath: String = project.gradle.buildPath
 In previous versions of Gradle, the [`init` task](userguide/build_init_plugin.html) generated build scripts with the `org.jetbrains.kotlin:kotlin-test-junit5` dependency for kotlin projects.
 The `init` task now generates build scripts with the `org.jetbrains.kotlin:kotlin-test` dependency instead.
 The appropriate test framework variant will be inferred automatically based on the test runner configured.
+For more information, refer to the [Kotlin Gradle Configuration documentation](https://kotlinlang.org/docs/gradle-configure-project.html#set-dependencies-on-test-libraries) or
+the `[kotlin-test](https://kotlinlang.org/api/core/kotlin-test/)` api documentation.
 
 ### Configuration Improvements
 
