@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ex
 
 # Script to update Gradle wrapper and create a pull request
 # 
@@ -26,7 +26,6 @@ post() {
         "https://api.github.com/repos/gradle/gradle$endpoint" \
         -d "$data" \
         -w "\n%{http_code}" \
-        -f \
         2>/dev/null)
     
     local http_code=$(echo "$response" | tail -n1)
@@ -69,7 +68,7 @@ main() {
         exit 0
     fi
     
-    BRANCH_NAME="bot/update-wrapper-$(date +%Y%m%d-%H%M%S)"
+    BRANCH_NAME="devprod/update-wrapper-$(date +%Y%m%d-%H%M%S)"
     git switch -c $BRANCH_NAME
     git commit --signoff --author="bot-gradle <bot-gradle@gradle.com>" -m "Update Gradle wrapper to version $WRAPPER_VERSION"
     git push https://${GITHUB_TOKEN}@github.com/gradle/gradle.git $BRANCH_NAME
