@@ -56,6 +56,6 @@ public abstract class ConfigurationUsageReportingFlowAction implements FlowActio
             GFileUtils.writeFile(locationSummary, locationFile);
         });
 
-        LOGGER.lifecycle("Configuration usage report written to: file:/{}", reportFile.getAbsolutePath());
+        LOGGER.lifecycle("Configuration usage report written to: file://{}", reportFile.getAbsolutePath());
     }
 }

@@ -289,7 +289,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         methodCallsForRole.merge(methodName, 1, Integer::sum);
 
         StackTraceElement[] fullStackTrace = Thread.currentThread().getStackTrace();
-        StackTraceElement[] filteredStackTrace = Arrays.copyOfRange(fullStackTrace, 2, fullStackTrace.length - 1); // skip the first two elements (getStackTrace and recordUsage)
+        StackTraceElement[] filteredStackTrace = Arrays.copyOfRange(fullStackTrace, 3, fullStackTrace.length - 1); // skip the first 3 elements (getStackTrace, recordUsage, getRoleState)
         Multimap<String, StackTraceElement[]> methodCallLocationsForRole = configurationStateUsageLocations.computeIfAbsent(role, r -> HashMultimap.create());
         methodCallLocationsForRole.put(methodName, filteredStackTrace);
     }

@@ -36,7 +36,7 @@ class ConfigurationUsageFeedbackPluginIntegrationTest extends AbstractIntegratio
         def output = getDefaultReportFile()
         output.exists()
         println(output.text)
-        output.text == "No configurations were created in this build."
+        output.text == "<html><body>No configurations were created in this build.</body></html>"
     }
 
     @ToBeImplemented
@@ -107,7 +107,7 @@ class ConfigurationUsageFeedbackPluginIntegrationTest extends AbstractIntegratio
         def output = file(customReportFilePath, ConfigurationUsageFeedbackPlugin.REPORT_FILE_NAME)
         output.exists()
         println(output.text)
-        output.text == "No configurations were created in this build."
+        output.text == "<html><body>No configurations were created in this build.</body></html>"
 
         def defaultOutput = getDefaultReportFile()
         !defaultOutput.exists()
@@ -189,6 +189,10 @@ class ConfigurationUsageFeedbackPluginIntegrationTest extends AbstractIntegratio
         output.exists()
         println(output.text)
         containsReportData(output)
+    }
+
+    def setup() {
+        testDirectoryProvider.suppressCleanup()
     }
 
     private boolean containsReportData(TestFile output) {

@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public abstract class ConfigurationUsageService implements BuildService<BuildServiceParameters.None> {
@@ -43,20 +44,20 @@ public abstract class ConfigurationUsageService implements BuildService<BuildSer
 
     public String reportUsage(boolean showAllUsage) {
         if (configurations.isEmpty()) {
-            return "No configurations were created in this build.";
+            return "<html><body>No configurations were created in this build.</body></html>";
         }
 
         AtomicBoolean wroteSomething = new AtomicBoolean(false);
-        StringBuilder usageStats = new StringBuilder();
+        StringBuilder usageStats = new StringBuilder("<html><body>\n");
 
         configurations.keySet().stream()
             .sorted()
             .forEach(p -> {
-                usageStats.append("Project: ").append(p.getDisplayName()).append("\n");
+                usageStats.append("<h1>Project: ").append(p.getDisplayName()).append("</h1>\n");
                 configurations.get(p).stream()
                     .sorted(Comparator.comparing(ConfigurationInternal::getDisplayName))
                     .forEach(c -> {
-                        extractUsageStats(showAllUsage, c, usageStats, wroteSomething);
+                        extractUsageStats(showAllUsage, p, c, usageStats, wroteSomething);
                     });
 
                 if (!wroteSomething.get()) {
@@ -64,26 +65,30 @@ public abstract class ConfigurationUsageService implements BuildService<BuildSer
                 }
             });
 
-        return usageStats.toString();
+        return usageStats.append("</body></html>").toString();
     }
 
-    private void extractUsageStats(boolean showAllUsage, ConfigurationInternal c, StringBuilder summarizer, AtomicBoolean wroteSomething) {
+    private void extractUsageStats(boolean showAllUsage, ProjectState p, ConfigurationInternal c, StringBuilder summarizer, AtomicBoolean wroteSomething) {
         ConfigurationRole roleAtCreation = c.getRoleAtCreation();
-        summarizer.append("  ").append(c.getDisplayName()).append(" (").append(roleAtCreation).append(")\n");
+        summarizer.append("<h2>").append(c.getDisplayName()).append(" (").append(roleAtCreation).append(")</h2>\n");
 
         Map<ConfigurationRole, Map<String, Integer>> usage = c.getConfigurationStateUsage();
         usage.keySet().stream()
             .sorted(Comparator.comparing(ConfigurationRole::getName))
             .forEach(r -> {
                 if (showAllUsage || isInappropriateUsage(r, roleAtCreation)) {
-                    summarizer.append("    Role: ").append(r.getName()).append("\n");
+                    summarizer.append("<h3>Methods accessing incorrect state for Role: ").append(r.getName()).append("</h3>\n");
                     Map<String, Integer> callCounts = usage.get(r);
                     callCounts.keySet().stream()
                         .sorted()
-                        .forEach(method -> summarizer.append("      ").append(method).append(": ").append(callCounts.get(method)).append("\n"));
+                        .forEach(method -> summarizer.append("<p>").append(toCallStackFileLink(p, c, r, method)).append(": ").append(callCounts.get(method)).append("</p>\n"));
                     wroteSomething.set(true);
                 }
             });
+    }
+
+    private String toCallStackFileLink(ProjectState p, ConfigurationInternal c, ConfigurationRole r, String methodName) {
+        return "<a href=\"" + getReportPath(p, c, r, methodName) + "\">" + methodName + "</a>";
     }
 
     public Map<String, String> reportUsageLocations(boolean showAllUsage) {
@@ -115,9 +120,11 @@ public abstract class ConfigurationUsageService implements BuildService<BuildSer
                     callLocations.keySet().stream()
                         .sorted()
                         .forEach(methodName -> {
-                            String reportPath = p.getName() + "/" + c.getName() + "/" + r.getName() + "/" + methodName + ".html";
-                            StringBuilder methodSummarizer = summarizer.computeIfAbsent(reportPath, k -> new StringBuilder());
-                            methodSummarizer.append("Call locations for ").append(methodName).append(" by ").append(p.getDisplayName()).append(" ").append(c.getDisplayName()).append(" in role ").append(r).append(":\n");
+                            String reportPath = getReportPath(p, c, r, methodName);
+                            StringBuilder methodSummarizer = summarizer.computeIfAbsent(reportPath, k -> new StringBuilder("<html><body>\n"));
+                            methodSummarizer.append("<h1>Call locations for ").append(methodName).append("</h1>").append("<h2>by ").append(p.getDisplayName()).append(" ").append(c.getDisplayName()).append(" in role ").append(r).append("</h2>\n");
+
+                            AtomicInteger count = new AtomicInteger(0);
                             callLocations.get(methodName).stream()
                                 .distinct()
                                 .sorted(Comparator.comparing(elements -> elements[0].toString()))
@@ -125,12 +132,20 @@ public abstract class ConfigurationUsageService implements BuildService<BuildSer
                                     String strackTraceString = Arrays.stream(stackTrace)
                                         .limit(25) // Limit to first 25 elements for brevity
                                         .map(StackTraceElement::toString)
-                                        .collect(Collectors.joining("\n", "\t", ""));
-                                    methodSummarizer.append(strackTraceString).append("\n");
+                                        .map(e -> "\t" + e)
+                                        .collect(Collectors.joining("\n"));
+                                    methodSummarizer.append("<h3>Call ").append(count.incrementAndGet()).append("</h3><p>").append(strackTraceString).append("</p>\n");
+
                                 });
                         });
                 }
             });
+
+        summarizer.values().forEach(s -> s.append("</body></html>"));
+    }
+
+    private String getReportPath(ProjectState p, ConfigurationInternal c, ConfigurationRole r, String methodName) {
+        return p.getName() + "/" + c.getName() + "/" + r.getName() + "/" + methodName + ".html";
     }
 
     /**
