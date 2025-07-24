@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -e
 
 # Script to update Gradle wrapper and create a pull request
 # 
@@ -45,12 +45,6 @@ main() {
     : "${DEFAULT_BRANCH:?DEFAULT_BRANCH environment variable is required}"
     : "${GITHUB_TOKEN:?GITHUB_TOKEN environment variable is required}"
     
-    # Check if jq is available
-    if ! command -v jq &> /dev/null; then
-        echo "Error: jq is required but not installed"
-        exit 1
-    fi
-
     if [[ "$TRIGGERED_BY" == *"Release - Final"* ]]; then
         source version-info-final-release/version-info.properties
         export WRAPPER_VERSION="$promotedVersion"
