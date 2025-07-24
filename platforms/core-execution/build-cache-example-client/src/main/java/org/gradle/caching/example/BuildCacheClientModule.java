@@ -105,7 +105,7 @@ import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.util.function.Supplier;
 
-import static org.gradle.cache.FileLockManager.LockMode.OnDemand;
+import static org.gradle.cache.FileLockManager.LockMode.OnDemandEagerRelease;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 
 @SuppressWarnings("CloseableProvides")
@@ -222,7 +222,7 @@ class BuildCacheClientModule extends AbstractModule {
             return new DefaultCacheBuilder(cacheFactory, buildCacheDir)
                 .withCleanupStrategy(cacheCleanupStrategy)
                 .withDisplayName("Build cache")
-                .withInitialLockMode(OnDemand)
+                .withInitialLockMode(OnDemandEagerRelease)
                 .open();
         }
 
