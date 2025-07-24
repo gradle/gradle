@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -e
 
 # Script to update Gradle wrapper and create a pull request
 # 
@@ -80,11 +80,6 @@ main() {
 
     PR_NUMBER=$(echo "$PR_RESPONSE" | jq -r '.number' 2>/dev/null)
     
-    if [[ -z "$PR_NUMBER" || "$PR_NUMBER" == "null" ]]; then
-        echo "Failed to extract PR number from: $PR_RESPONSE"
-        exit 1
-    fi
-
     post "/issues/$PR_NUMBER/comments" '{
         "body": "@bot-gradle test and merge"
     }' 
