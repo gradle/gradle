@@ -61,4 +61,10 @@ public interface BuildModelParameters {
      * This parameter is only used for benchmarking purposes.
      */
     boolean isModelAsProjectDependency();
+
+    /**
+     * Returns true if the model building is resilient so some failures in model building.
+     * @return true if the model building is resilient, false otherwise
+     */
+    boolean isResilientModelBuilding();
 }
