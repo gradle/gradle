@@ -19,8 +19,6 @@ post() {
     local endpoint="$1"
     local data="$2"
 
-    echo "POST $endpoint"
-    
     local response=$(curl -X POST \
         -H "Authorization: token $GITHUB_TOKEN" \
         -H "Accept: application/vnd.github.v3+json" \
@@ -32,10 +30,6 @@ post() {
     
     local http_code=$(echo "$response" | tail -n1)
     local body=$(echo "$response" | head -n -1)
-    
-    # Debug: show what we're getting
-    echo "HTTP_CODE: $http_code"
-    echo "BODY: $body"
     
     if [[ "$http_code" -ge 400 ]]; then
         printf "Error: HTTP %s - %s\n" "$http_code" "$body" >&2
