@@ -115,7 +115,7 @@ class JavaCompilationOutputsIntegrationTest extends AbstractIntegrationSpec {
         """
     }
     @Issue("https://github.com/gradle/gradle/issues/34349")
-    def "rewiring output of source set and compile tasks sort of works"() {
+    def "rewiring output of source set and compile tasks works using a direct dependency (not recommended)"() {
         buildFile << """
             tasks.named("classes") {
                 dependsOn("copyIt")
