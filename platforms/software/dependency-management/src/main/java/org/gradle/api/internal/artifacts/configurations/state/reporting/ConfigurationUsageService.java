@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.configurations.state.reporting;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Multimap;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -23,17 +25,19 @@ import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 public abstract class ConfigurationUsageService implements BuildService<BuildServiceParameters.None> {
     private final Map<ProjectState, Set<ConfigurationInternal>> configurations = new HashMap<>();
 
-    public void trackConfigurationUsage(ProjectInternal project, ConfigurationInternal configuration) {
+    public void trackConfiguration(ProjectInternal project, ConfigurationInternal configuration) {
         configurations.computeIfAbsent(project.getOwner(), state -> new HashSet<>()).add(configuration);
     }
 
@@ -43,39 +47,90 @@ public abstract class ConfigurationUsageService implements BuildService<BuildSer
         }
 
         AtomicBoolean wroteSomething = new AtomicBoolean(false);
-        StringBuilder result = new StringBuilder();
+        StringBuilder usageStats = new StringBuilder();
+
         configurations.keySet().stream()
             .sorted()
             .forEach(p -> {
-                result.append("Project: ").append(p.getDisplayName()).append("\n");
+                usageStats.append("Project: ").append(p.getDisplayName()).append("\n");
                 configurations.get(p).stream()
                     .sorted(Comparator.comparing(ConfigurationInternal::getDisplayName))
                     .forEach(c -> {
-                        ConfigurationRole roleAtCreation = c.getRoleAtCreation();
-                        result.append("  ").append(c.getDisplayName()).append(" (").append(roleAtCreation).append(")\n");
-                        Map<ConfigurationRole, Map<String, Integer>> usage = c.getConfigurationStateUsage();
-                        usage.keySet().stream()
-                            .sorted(Comparator.comparing(ConfigurationRole::getName))
-                            .forEach(r -> {
-                                if (showAllUsage || !isAppropriateUsage(r, roleAtCreation)) {
-                                    result.append("    Role: ").append(r.getName()).append("\n");
-                                    Map<String, Integer> details = usage.get(r);
-                                    details.keySet().stream()
-                                        .sorted()
-                                        .forEach(method -> {
-                                            result.append("      ").append(method).append(": ").append(details.get(method)).append("\n");
-                                        });
-                                    wroteSomething.set(true);
-                                }
-                            });
+                        extractUsageStats(showAllUsage, c, usageStats, wroteSomething);
                     });
 
                 if (!wroteSomething.get()) {
-                    result.append("No configuration state was accessed incorrectly.\n");
+                    usageStats.append("No configuration state was accessed incorrectly.\n");
                 }
             });
 
-        return result.toString();
+        return usageStats.toString();
+    }
+
+    private void extractUsageStats(boolean showAllUsage, ConfigurationInternal c, StringBuilder summarizer, AtomicBoolean wroteSomething) {
+        ConfigurationRole roleAtCreation = c.getRoleAtCreation();
+        summarizer.append("  ").append(c.getDisplayName()).append(" (").append(roleAtCreation).append(")\n");
+
+        Map<ConfigurationRole, Map<String, Integer>> usage = c.getConfigurationStateUsage();
+        usage.keySet().stream()
+            .sorted(Comparator.comparing(ConfigurationRole::getName))
+            .forEach(r -> {
+                if (showAllUsage || isInappropriateUsage(r, roleAtCreation)) {
+                    summarizer.append("    Role: ").append(r.getName()).append("\n");
+                    Map<String, Integer> callCounts = usage.get(r);
+                    callCounts.keySet().stream()
+                        .sorted()
+                        .forEach(method -> summarizer.append("      ").append(method).append(": ").append(callCounts.get(method)).append("\n"));
+                    wroteSomething.set(true);
+                }
+            });
+    }
+
+    public Map<String, String> reportUsageLocations(boolean showAllUsage) {
+        Map<String, StringBuilder> usageLocations = new HashMap<>();
+
+        configurations.keySet().stream()
+            .sorted()
+            .forEach(p -> {
+                configurations.get(p).stream()
+                    .sorted(Comparator.comparing(ConfigurationInternal::getDisplayName))
+                    .forEach(c -> {
+                        extractUsageLocations(showAllUsage, p, c, usageLocations);
+                    });
+            });
+
+        return usageLocations.entrySet().stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().toString()));
+    }
+
+    private void extractUsageLocations(boolean showAllUsage, ProjectState p, ConfigurationInternal c, Map<String, StringBuilder> summarizer) {
+        ConfigurationRole roleAtCreation = c.getRoleAtCreation();
+
+        ImmutableMap<ConfigurationRole, Multimap<String, StackTraceElement[]>> usageLocations = c.getConfigurationStateUsageLocations();
+        usageLocations.keySet().stream()
+            .sorted(Comparator.comparing(ConfigurationRole::getName))
+            .forEach(r -> {
+                if (showAllUsage || isInappropriateUsage(r, roleAtCreation)) {
+                    Multimap<String, StackTraceElement[]> callLocations = usageLocations.get(r);
+                    callLocations.keySet().stream()
+                        .sorted()
+                        .forEach(methodName -> {
+                            String reportPath = p.getName() + "/" + c.getName() + "/" + r.getName() + "/" + methodName + ".html";
+                            StringBuilder methodSummarizer = summarizer.computeIfAbsent(reportPath, k -> new StringBuilder());
+                            methodSummarizer.append("Call locations for ").append(methodName).append(" by ").append(p.getDisplayName()).append(" ").append(c.getDisplayName()).append(" in role ").append(r).append(":\n");
+                            callLocations.get(methodName).stream()
+                                .distinct()
+                                .sorted(Comparator.comparing(elements -> elements[0].toString()))
+                                .forEach(stackTrace -> {
+                                    String strackTraceString = Arrays.stream(stackTrace)
+                                        .limit(25) // Limit to first 25 elements for brevity
+                                        .map(StackTraceElement::toString)
+                                        .collect(Collectors.joining("\n", "\t", ""));
+                                    methodSummarizer.append(strackTraceString).append("\n");
+                                });
+                        });
+                }
+            });
     }
 
     /**
@@ -88,9 +143,9 @@ public abstract class ConfigurationUsageService implements BuildService<BuildSer
      *
      * @param r the role being checked
      * @param roleAtCreation the role at the time of configuration's creation
-     * @return {@code true} if the usage is appropriate; {@code false} otherwise
+     * @return {@code true} if the usage is inappropriate; {@code false} otherwise
      */
-    private static boolean isAppropriateUsage(ConfigurationRole r, ConfigurationRole roleAtCreation) {
-        return roleAtCreation.getName().contains(r.getName());
+    private static boolean isInappropriateUsage(ConfigurationRole r, ConfigurationRole roleAtCreation) {
+        return !roleAtCreation.getName().contains(r.getName());
     }
 }

@@ -16,6 +16,8 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Multimap;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -135,7 +137,8 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
      */
     ConfigurationRole getRoleAtCreation();
 
-    Map<ConfigurationRole, Map<String, Integer>> getConfigurationStateUsage();
+    ImmutableMap<ConfigurationRole, Map<String, Integer>> getConfigurationStateUsage();
+    ImmutableMap<ConfigurationRole, Multimap<String, StackTraceElement[]>> getConfigurationStateUsageLocations();
 
     /**
      * Test if the given configuration can either be declared against or extends another

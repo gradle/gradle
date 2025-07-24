@@ -25,6 +25,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
+import java.util.Map;
 
 public abstract class ConfigurationUsageReportingFlowAction implements FlowAction<ConfigurationUsageReportingFlowAction.Parameters> {
     private static final Logger LOGGER = Logging.getLogger(ConfigurationUsageReportingFlowAction.class);
@@ -35,14 +36,25 @@ public abstract class ConfigurationUsageReportingFlowAction implements FlowActio
         @Input
         Property<Boolean> getShowAllUsage();
         @Input // TODO: not really an input, but we need to use @Input to make it available in the flow, as @OutputFile won't work and RegularFileProperty won't work
-        Property<File> getReportFile();
+        Property<File> getReportDir();
     }
 
     @Override
     public void execute(ConfigurationUsageReportingFlowAction.Parameters parameters) {
-        String result = parameters.getConfigurationUsageService().get().reportUsage(parameters.getShowAllUsage().get());
-        File reportFile = parameters.getReportFile().get();
-        GFileUtils.writeFile(result, reportFile);
+        ConfigurationUsageService usageService = parameters.getConfigurationUsageService().get();
+        boolean showAllUsage = parameters.getShowAllUsage().get();
+        File reportDir = parameters.getReportDir().get();
+
+        String usageSummary = usageService.reportUsage(showAllUsage);
+        File reportFile = new File(parameters.getReportDir().get(), ConfigurationUsageFeedbackPlugin.REPORT_FILE_NAME);
+        GFileUtils.writeFile(usageSummary, reportFile);
+
+        usageService.reportUsageLocations(showAllUsage);
+        Map<String, String> usageLocationsSummary = usageService.reportUsageLocations(showAllUsage);
+        usageLocationsSummary.forEach((location, locationSummary) -> {
+            File locationFile = new File(reportDir, location);
+            GFileUtils.writeFile(locationSummary, locationFile);
+        });
 
         LOGGER.lifecycle("Configuration usage report written to: file:/{}", reportFile.getAbsolutePath());
     }

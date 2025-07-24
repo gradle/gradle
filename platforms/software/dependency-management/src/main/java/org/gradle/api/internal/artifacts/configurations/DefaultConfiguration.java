@@ -17,8 +17,10 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Multimap;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
@@ -280,15 +282,26 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     private final Map<ConfigurationRole, Map<String, Integer>> configurationStateUsage = new HashMap<>();
+    private final Map<ConfigurationRole, Multimap<String, StackTraceElement[]>> configurationStateUsageLocations = new HashMap<>();
 
     private void recordUsage(ConfigurationRole role, String methodName) {
         Map<String, Integer> methodCallsForRole = configurationStateUsage.computeIfAbsent(role, r -> new HashMap<>());
         methodCallsForRole.merge(methodName, 1, Integer::sum);
+
+        StackTraceElement[] fullStackTrace = Thread.currentThread().getStackTrace();
+        StackTraceElement[] filteredStackTrace = Arrays.copyOfRange(fullStackTrace, 2, fullStackTrace.length - 1); // skip the first two elements (getStackTrace and recordUsage)
+        Multimap<String, StackTraceElement[]> methodCallLocationsForRole = configurationStateUsageLocations.computeIfAbsent(role, r -> HashMultimap.create());
+        methodCallLocationsForRole.put(methodName, filteredStackTrace);
     }
 
     @Override
     public ImmutableMap<ConfigurationRole, Map<String, Integer>> getConfigurationStateUsage() {
         return ImmutableMap.copyOf(configurationStateUsage);
+    }
+
+    @Override
+    public ImmutableMap<ConfigurationRole, Multimap<String, StackTraceElement[]>> getConfigurationStateUsageLocations() {
+        return ImmutableMap.copyOf(configurationStateUsageLocations);
     }
 
     private ResolvableState getResolvableState() {

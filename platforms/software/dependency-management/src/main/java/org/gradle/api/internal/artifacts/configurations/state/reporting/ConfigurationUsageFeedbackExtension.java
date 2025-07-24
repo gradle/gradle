@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.artifacts.configurations.state.reporting;
 
-import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.Property;
 
 public interface ConfigurationUsageFeedbackExtension {
     Property<Boolean> getShowAllUsage();
-    RegularFileProperty getReportFile();
+    DirectoryProperty getReportDir();
 }
