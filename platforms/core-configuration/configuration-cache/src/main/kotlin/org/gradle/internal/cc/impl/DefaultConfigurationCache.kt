@@ -258,7 +258,10 @@ class DefaultConfigurationCache internal constructor(
             isStoreSkipped -> {
                 // build work graph without contributing to a cache entry
                 val finalizedGraph = runAtConfigurationTime {
-                    scheduler(graph)
+                    val result = scheduler(graph)
+                    // force computation of degradation reasons at configuration time as it shouldn't be attempted at execution time
+                    problems.shouldDegradeGracefully()
+                    result
                 }
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
