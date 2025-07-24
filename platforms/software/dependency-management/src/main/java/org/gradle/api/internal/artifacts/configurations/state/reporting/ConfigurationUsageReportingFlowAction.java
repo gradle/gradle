@@ -27,7 +27,7 @@ import org.gradle.util.internal.GFileUtils;
 import java.io.File;
 
 public abstract class ConfigurationUsageReportingFlowAction implements FlowAction<ConfigurationUsageReportingFlowAction.Parameters> {
-    private static final Logger logger = Logging.getLogger(ConfigurationUsageReportingFlowAction.class);
+    private static final Logger LOGGER = Logging.getLogger(ConfigurationUsageReportingFlowAction.class);
 
     public interface Parameters extends FlowParameters {
         @Input
@@ -44,6 +44,6 @@ public abstract class ConfigurationUsageReportingFlowAction implements FlowActio
         File reportFile = parameters.getReportFile().get();
         GFileUtils.writeFile(result, reportFile);
 
-        logger.lifecycle("Configuration usage report written to: file:/{}", reportFile.getAbsolutePath());
+        LOGGER.lifecycle("Configuration usage report written to: file:/{}", reportFile.getAbsolutePath());
     }
 }
