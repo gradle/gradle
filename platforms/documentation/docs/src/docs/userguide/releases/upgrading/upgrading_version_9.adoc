@@ -21,7 +21,7 @@ For migrating to Gradle 9.0.0, see the <<upgrading_major_version_9.adoc#upgradin
 
 We recommend the following steps for all users:
 
-. Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
+. Try running `gradle help --scan` and view the https://docs.gradle.com/develocity/get-started/#identifying_deprecated_gradle_functionality[deprecations view] of the generated Build Scan.
 +
 image::deprecations.png[Deprecations View of a Gradle Build Scan]
 +
