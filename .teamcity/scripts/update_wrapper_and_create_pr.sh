@@ -78,7 +78,7 @@ main() {
 
     echo "PR_RESPONSE: $PR_RESPONSE"
 
-    PR_NUMBER=$(echo "$PR_RESPONSE" | grep -o '"number":[0-9]*' | cut -d':' -f2)
+    PR_NUMBER=$(echo "$PR_RESPONSE" | jq -r '.number')
 
     post "/issues/$PR_NUMBER/comments" '{
         "body": "@bot-gradle test and merge"
