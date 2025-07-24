@@ -24,5 +24,5 @@ import java.util.Map;
  * Internal protocol for the initialization of extra properties.
  */
 public interface ExtraPropertiesExtensionInternal extends ExtraPropertiesExtension {
-    void setGradleProperties(Map<String, Object> properties);
+    void setGradleProperties(Map<String, String> properties);
 }
