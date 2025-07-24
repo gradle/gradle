@@ -109,14 +109,32 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
 
     def "defines project properties from Project class"() {
         given:
-        2 * gradleProperties.mergeProperties([:]) >> [version: '1.0']
+        2 * gradleProperties.mergeProperties([:]) >> [
+            description: 'my project',
+            group: 'my-group',
+            version: '1.0',
+            status: 'my-status',
+            buildDir: 'my-build-dir',
+            foo: 'bar', // unknown properties are ignored
+            "": 'ignored' // empty properties are ignored
+        ]
 
         when:
         loader.load(settings, gradle)
 
         then:
+        1 * rootProject.setDescription('my project')
+        1 * rootProject.setGroup('my-group')
         1 * rootProject.setVersion('1.0')
+        1 * rootProject.setStatus('my-status')
+        1 * rootProject.setBuildDir('my-build-dir')
+
+        1 * childProject.setDescription('my project')
+        1 * childProject.setGroup('my-group')
         1 * childProject.setVersion('1.0')
+        1 * childProject.setStatus('my-status')
+        1 * childProject.setBuildDir('my-build-dir')
+
         0 * rootProperties.set(_, _)
         0 * childProperties.set(_, _)
     }
