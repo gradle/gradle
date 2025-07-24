@@ -32,7 +32,7 @@ post() {
     local body=$(echo "$response" | head -n -1)
     
     if [[ "$http_code" -ge 400 ]]; then
-        echo "Error: HTTP $http_code - $body" 
+        printf "Error: HTTP %s - %s\n" "$http_code" "$body" >&2
         exit 1
     fi
     
