@@ -182,6 +182,11 @@ val project: Project = getProjectInstance()
 val buildPath: String = project.gradle.buildPath
 ```
 
+#### Build initialization now uses the `kotlin-test` dependency for Kotlin projects
+In previous versions of Gradle, the [`init` task](userguide/build_init_plugin.html) generated build scripts with the `org.jetbrains.kotlin:kotlin-test-junit5` dependency for kotlin projects.
+The `init` task now generates build scripts with the `org.jetbrains.kotlin:kotlin-test` dependency instead.
+The appropriate test framework variant will be inferred automatically based on the test runner configured.
+
 ### Configuration Improvements
 
 #### Simpler target package configuration for Antlr 4
