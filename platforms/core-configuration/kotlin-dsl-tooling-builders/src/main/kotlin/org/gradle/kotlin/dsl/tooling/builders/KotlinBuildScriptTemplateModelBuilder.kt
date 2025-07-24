@@ -13,18 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("DEPRECATION")
+
 package org.gradle.kotlin.dsl.tooling.builders
 
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslBaseScriptModel
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
 import java.io.File
 import java.io.Serializable
 
 
+@Deprecated("Will be removed in Gradle 10, use KotlinDslBaseScriptModel instead")
 internal
 object KotlinBuildScriptTemplateModelBuilder : BuildScopeModelBuilder {
 
@@ -43,10 +48,17 @@ object KotlinBuildScriptTemplateModelBuilder : BuildScopeModelBuilder {
                     .fold(ClassPath.EMPTY) { classPath, module -> classPath + module.classpath }
                     .asFiles
             )
+        }.also {
+            DeprecationLogger.deprecateType(KotlinBuildScriptTemplateModel::class.java)
+                .replaceWith(KotlinDslBaseScriptModel::class.java.name)
+                .willBecomeAnErrorInGradle10()
+                .undocumented()
+                .nagUser()
         }
 }
 
 
+@Deprecated("Will be removed in Gradle 10, use KotlinDslBaseScriptModel instead")
 internal
 data class StandardKotlinBuildScriptTemplateModel(
     private val classPath: List<File>

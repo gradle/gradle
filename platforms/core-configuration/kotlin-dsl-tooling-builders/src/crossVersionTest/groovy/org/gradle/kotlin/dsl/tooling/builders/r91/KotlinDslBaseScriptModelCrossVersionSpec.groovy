@@ -36,11 +36,44 @@ class KotlinDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
 
         then:
         model != null
+
+        and: "script templates classpath"
+        loadClassesFrom(
+            model.scriptTemplatesClassPath,
+            // Script templates for IDE support
+            "org.gradle.kotlin.dsl.KotlinGradleScriptTemplate",
+            "org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate",
+            "org.gradle.kotlin.dsl.KotlinProjectScriptTemplate",
+            // Legacy script templates for IDE support
+            "org.gradle.kotlin.dsl.KotlinInitScript",
+            "org.gradle.kotlin.dsl.KotlinSettingsScript",
+            "org.gradle.kotlin.dsl.KotlinBuildScript",
+            // Legacy script dependencies resolver for IDE support
+            "org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver"
+        )
+
+        and: "implicit imports"
         !model.implicitImports.isEmpty()
+
+        and: "base classpath"
         !model.kotlinDslClassPath.isEmpty()
         model.kotlinDslClassPath.find { it.name.contains("gradle-api-") && it.name.endsWith(".jar") }
         model.kotlinDslClassPath.find { it.name.contains("groovy-") && it.name.endsWith(".jar") }
         model.kotlinDslClassPath.find { it.name.contains("gradle-kotlin-dsl-") && it.name.endsWith(".jar") }
+
+        and: "no configuration"
         listener.hasSeenSomeEvents && listener.configPhaseStartEvents.isEmpty()
+    }
+
+    private static void loadClassesFrom(List<File> classPath, String... classNames) {
+        classLoaderFor(classPath).withCloseable { loader ->
+            classNames.each {
+                loader.loadClass(it)
+            }
+        }
+    }
+
+    private static URLClassLoader classLoaderFor(List<File> classPath) {
+        new URLClassLoader(classPath.collect { it.toURI().toURL() } as URL[])
     }
 }
