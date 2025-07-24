@@ -24,6 +24,7 @@ import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
 import org.gradle.cache.internal.locklistener.InetAddressProvider
+import org.gradle.cache.internal.locklistener.RejectingFileLockContentionHandler
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -125,6 +126,27 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
             lock2.close()
             return false
         }
+    }
+
+    def "can create lock without contention handling when using rejecting handler"() {
+        FileLockManager manager = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, new RejectingFileLockContentionHandler())
+        def file = tmpDir.file("lock-file.bin")
+
+        expect:
+        createLock(Exclusive, file, manager, null)
+    }
+
+    def "cannot create lock with contention handling when using rejecting handler"() {
+        FileLockManager manager = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, new RejectingFileLockContentionHandler())
+        def file = tmpDir.file("lock-file.bin")
+
+        when:
+        createLock(Exclusive, file, manager) { FileLockReleasedSignal signal ->
+            signal.trigger()
+        }
+
+        then:
+        thrown(UnsupportedOperationException)
     }
 
     FileLock createLock(FileLockManager.LockMode lockMode, File file, FileLockManager lockManager = manager, Consumer<FileLockReleasedSignal> whenContended = null) {
