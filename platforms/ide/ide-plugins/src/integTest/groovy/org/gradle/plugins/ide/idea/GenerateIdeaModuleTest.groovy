@@ -33,15 +33,15 @@ class GenerateIdeaModuleTest extends AbstractProjectBuilderSpec {
         given:
         applyPluginToProjects()
         assert childProject.idea.module.name == "child"
-        def existingOutputFolder = childProject.ideaModule.getReportFile.parentFile
+        def existingOutputFolder = childProject.ideaModule.outputFile.parentFile
 
         when:
         childProject.idea.module.name = "foo"
 
         then:
         childProject.idea.module.name == "foo"
-        childProject.ideaModule.getReportFile.name == "foo.iml"
-        childProject.ideaModule.getReportFile.parentFile == existingOutputFolder
+        childProject.ideaModule.outputFile.name == "foo.iml"
+        childProject.ideaModule.outputFile.parentFile == existingOutputFolder
     }
 
     private applyPluginToProjects() {

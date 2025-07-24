@@ -38,14 +38,14 @@ class IdeaProjectTest extends AbstractProjectBuilderSpec {
         def location = project.idea.project.location
 
         then:
-        project.idea.project.getReportFile == project.file("test-project.ipr")
-        location.get().asFile == project.idea.project.getReportFile
+        project.idea.project.outputFile == project.file("test-project.ipr")
+        location.get().asFile == project.idea.project.outputFile
 
         when:
         project.idea.project.outputFile = project.file("other.ipr")
 
         then:
-        location.get().asFile == project.idea.project.getReportFile
+        location.get().asFile == project.idea.project.outputFile
     }
 
     def "project bytecode version set to highest module targetCompatibility"() {
