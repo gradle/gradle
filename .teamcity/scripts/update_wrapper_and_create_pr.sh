@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ex
 
 # Script to update Gradle wrapper and create a pull request
 # 
