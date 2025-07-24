@@ -23,9 +23,7 @@ import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.properties.GradleProperties
-import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.internal.GUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -40,8 +38,8 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
     final GradleProperties gradleProperties = Mock()
     final File rootProjectDir = tmpDir.createDir('root')
     final File childProjectDir = tmpDir.createDir('child')
-    final FileResourceListener fileResourceListener = Mock(FileResourceListener)
-    final ProjectPropertySettingBuildLoader loader = new ProjectPropertySettingBuildLoader(gradleProperties, target, fileResourceListener)
+    final Environment environment = Mock(Environment)
+    final ProjectPropertySettingBuildLoader loader = new ProjectPropertySettingBuildLoader(gradleProperties, target, environment)
     final ExtensionContainerInternal rootExtension = Mock()
     final ExtraPropertiesExtensionInternal rootProperties = Mock()
     final ExtensionContainerInternal childExtension = Mock()
@@ -57,8 +55,6 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         _ * childProject.extensions >> childExtension
         _ * rootExtension.extraProperties >> rootProperties
         _ * childExtension.extraProperties >> childProperties
-        1 * fileResourceListener.fileObserved(rootPropertiesFile())
-        1 * fileResourceListener.fileObserved(childPropertiesFile())
     }
 
     def "delegates to build loader"() {
@@ -98,8 +94,8 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
 
     def "loads project properties from gradle.properties file in project dir"() {
         given:
-        GUtil.saveProperties(new Properties([prop: 'rootValue']), rootPropertiesFile())
-        GUtil.saveProperties(new Properties([prop: 'childValue']), childPropertiesFile())
+        _ * environment.propertiesFile(rootPropertiesFile()) >> [prop: 'rootValue']
+        _ * environment.propertiesFile(childPropertiesFile()) >> [prop: 'childValue']
 
         when:
         loader.load(settings, gradle)

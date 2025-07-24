@@ -29,7 +29,7 @@ import java.util.Map;
 public interface GradleProperties {
 
     @Nullable
-    Object find(String propertyName);
+    String find(String propertyName);
 
     /**
      * Merges the loaded properties with the given properties and returns an immutable
@@ -37,7 +37,7 @@ public interface GradleProperties {
      *
      * @param properties read-only properties to be merged with the set of loaded properties.
      */
-    Map<String, Object> mergeProperties(Map<String, Object> properties);
+    Map<String, String> mergeProperties(Map<String, String> properties);
 
-    Map<String, Object> getProperties();
+    Map<String, String> getProperties();
 }

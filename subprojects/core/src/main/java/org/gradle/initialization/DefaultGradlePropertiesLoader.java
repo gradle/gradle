@@ -41,8 +41,8 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     }
 
     private MutableGradleProperties loadProperties(File rootDir) {
-        Map<String, Object> defaultProperties = new HashMap<>();
-        Map<String, Object> overrideProperties = new HashMap<>();
+        Map<String, String> defaultProperties = new HashMap<>();
+        Map<String, String> overrideProperties = new HashMap<>();
 
         addGradlePropertiesFrom(startParameter.getGradleHomeDir(), defaultProperties);
         addGradlePropertiesFrom(rootDir, defaultProperties);
@@ -51,7 +51,7 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         return new DefaultGradleProperties(defaultProperties, overrideProperties);
     }
 
-    private void addGradlePropertiesFrom(File dir, Map<String, Object> target) {
+    private void addGradlePropertiesFrom(File dir, Map<String, String> target) {
         Map<String, String> propertiesFile = environment.propertiesFile(new File(dir, GRADLE_PROPERTIES));
         if (propertiesFile != null) {
             target.putAll(propertiesFile);

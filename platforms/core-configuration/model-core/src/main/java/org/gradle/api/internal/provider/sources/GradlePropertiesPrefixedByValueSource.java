@@ -19,7 +19,6 @@ package org.gradle.api.internal.provider.sources;
 import org.gradle.api.internal.properties.GradleProperties;
 
 import javax.inject.Inject;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -32,13 +31,6 @@ public abstract class GradlePropertiesPrefixedByValueSource extends MapWithPrefi
 
     @Override
     protected Stream<Map.Entry<String, String>> itemsToFilter() {
-        return getGradleProperties().mergeProperties(new HashMap<>()).entrySet().stream()
-            .filter(e -> e.getValue() instanceof String)
-            .map(e -> {
-                Map.Entry<String, ?> untypedEntry = e;
-                @SuppressWarnings("unchecked")
-                Map.Entry<String, String> stringEntry = (Map.Entry<String, String>) untypedEntry;
-                return stringEntry;
-            });
+        return getGradleProperties().getProperties().entrySet().stream();
     }
 }

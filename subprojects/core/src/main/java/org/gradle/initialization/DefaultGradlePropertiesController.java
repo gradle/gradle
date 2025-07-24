@@ -62,17 +62,17 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
         @Nullable
         @Override
-        public Object find(String propertyName) {
+        public String find(String propertyName) {
             return gradleProperties().find(propertyName);
         }
 
         @Override
-        public Map<String, Object> mergeProperties(Map<String, Object> properties) {
+        public Map<String, String> mergeProperties(Map<String, String> properties) {
             return gradleProperties().mergeProperties(properties);
         }
 
         @Override
-        public Map<String, Object> getProperties() {
+        public Map<String, String> getProperties() {
             return gradleProperties().getProperties();
         }
 
@@ -105,7 +105,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
                 systemPropertiesInstaller.setSystemPropertiesFrom(loadedProperties);
             }
 
-            Map<String, Object> projectProperties = projectPropertiesLoader.loadProjectProperties();
+            Map<String, String> projectProperties = projectPropertiesLoader.loadProjectProperties();
             loadedProperties.updateOverrideProperties(projectProperties);
             return new Loaded(loadedProperties, settingsDir);
         }
