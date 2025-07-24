@@ -76,26 +76,17 @@ main() {
         \"base\": \"$DEFAULT_BRANCH\"
     }")
 
-    if ! PR_NUMBER=$(echo "$PR_RESPONSE" | jq -r '.number // empty'); then
-        echo "Failed to extract PR number from response"
-        echo "Response: $PR_RESPONSE"
-        exit 1
-    fi
-    
-    if [[ -n "$PR_NUMBER" && "$PR_NUMBER" != "null" ]]; then
-        echo "Created PR #$PR_NUMBER"
+    echo "PR_RESPONSE: $PR_RESPONSE"
+
+    PR_NUMBER=$(echo "$PR_RESPONSE" | grep -o '"number":[0-9]*' | cut -d':' -f2)
+
+    post "/issues/$PR_NUMBER/comments" '{
+        "body": "@bot-gradle test and merge"
+    }' 
         
-        post "/issues/$PR_NUMBER/comments" '{
-            "body": "@bot-gradle test and merge"
-        }' || echo "Warning: Failed to add comment to PR"
-        
-        post "/issues/$PR_NUMBER/labels" '{
-            "labels": ["@dev-productivity"]
-        }' || echo "Warning: Failed to add labels to PR"
-    else
-        echo "Failed to create PR or extract PR number"
-        exit 1
-    fi
+    post "/issues/$PR_NUMBER/labels" '{
+        "labels": ["@dev-productivity"]
+    }'
 }
 
 main "$@"
