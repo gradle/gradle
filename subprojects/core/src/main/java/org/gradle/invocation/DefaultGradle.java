@@ -247,9 +247,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public void setBaseProjectClassLoaderScope(ClassLoaderScope classLoaderScope) {
-        if (classLoaderScope == null) {
-            throw new IllegalArgumentException("classLoaderScope must not be null");
-        }
         if (baseProjectClassLoaderScope != null) {
             throw new IllegalStateException("baseProjectClassLoaderScope is already set");
         }
