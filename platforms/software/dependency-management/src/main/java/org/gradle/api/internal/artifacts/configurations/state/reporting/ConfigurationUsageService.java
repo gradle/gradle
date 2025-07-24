@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.configurations.state.reporting;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
@@ -95,7 +96,7 @@ public abstract class ConfigurationUsageService implements BuildService<BuildSer
         Map<String, StringBuilder> usageLocations = new HashMap<>();
 
         configurations.keySet().stream()
-            .sorted()
+            .sorted(Comparator.comparing(ProjectState::getName))
             .forEach(p -> {
                 configurations.get(p).stream()
                     .sorted(Comparator.comparing(ConfigurationInternal::getDisplayName))
@@ -104,8 +105,14 @@ public abstract class ConfigurationUsageService implements BuildService<BuildSer
                     });
             });
 
-        return usageLocations.entrySet().stream()
-            .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().toString()));
+        // Keep the max heap low by converting and removing one entry at a time
+        Map<String, String> result = new HashMap<>();
+        Set<String> keys = ImmutableSet.copyOf(usageLocations.keySet());
+        keys.forEach(k -> {
+            StringBuilder v = usageLocations.remove(k);
+            result.put(k, v.toString());
+        });
+        return result;
     }
 
     private void extractUsageLocations(boolean showAllUsage, ProjectState p, ConfigurationInternal c, Map<String, StringBuilder> summarizer) {

@@ -45,17 +45,23 @@ public abstract class ConfigurationUsageReportingFlowAction implements FlowActio
         boolean showAllUsage = parameters.getShowAllUsage().get();
         File reportDir = parameters.getReportDir().get();
 
-        String usageSummary = usageService.reportUsage(showAllUsage);
-        File reportFile = new File(parameters.getReportDir().get(), ConfigurationUsageFeedbackPlugin.REPORT_FILE_NAME);
-        GFileUtils.writeFile(usageSummary, reportFile);
+        writeUsageReport(parameters, usageService, showAllUsage);
+        writeLocationsReports(usageService, showAllUsage, reportDir);
+    }
 
+    private void writeLocationsReports(ConfigurationUsageService usageService, boolean showAllUsage, File reportDir) {
         usageService.reportUsageLocations(showAllUsage);
         Map<String, String> usageLocationsSummary = usageService.reportUsageLocations(showAllUsage);
         usageLocationsSummary.forEach((location, locationSummary) -> {
             File locationFile = new File(reportDir, location);
             GFileUtils.writeFile(locationSummary, locationFile);
         });
+    }
 
+    private void writeUsageReport(Parameters parameters, ConfigurationUsageService usageService, boolean showAllUsage) {
+        String usageSummary = usageService.reportUsage(showAllUsage);
+        File reportFile = new File(parameters.getReportDir().get(), ConfigurationUsageFeedbackPlugin.REPORT_FILE_NAME);
+        GFileUtils.writeFile(usageSummary, reportFile);
         LOGGER.lifecycle("Configuration usage report written to: file://{}", reportFile.getAbsolutePath());
     }
 }
