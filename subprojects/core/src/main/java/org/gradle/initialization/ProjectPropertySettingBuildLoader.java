@@ -22,17 +22,11 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
 import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.internal.Pair;
-import org.gradle.internal.reflect.PropertyMutator;
-import org.jspecify.annotations.Nullable;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
-import static org.gradle.internal.reflect.JavaPropertyReflectionUtil.writeablePropertyIfExists;
 
 public class ProjectPropertySettingBuildLoader implements BuildLoader {
 
@@ -49,97 +43,72 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
     @Override
     public void load(SettingsInternal settings, GradleInternal gradle) {
         buildLoader.load(settings, gradle);
-        Project rootProject = gradle.getRootProject();
-        setProjectProperties(rootProject, new CachingPropertyApplicator(rootProject.getClass()));
+        setProjectProperties(gradle.getRootProject());
     }
 
-    private void setProjectProperties(Project project, CachingPropertyApplicator applicator) {
-        addPropertiesToProject(project, applicator);
+    private void setProjectProperties(Project project) {
+        addPropertiesToProject(project);
         for (Project childProject : getChildProjectsForInternalUse(project)) {
-            setProjectProperties(childProject, applicator);
+            setProjectProperties(childProject);
         }
     }
 
-    private void addPropertiesToProject(Project project, CachingPropertyApplicator applicator) {
-        applicator.beginProjectProperties();
+    private void addPropertiesToProject(Project project) {
+        Map<String, String> intermediateProjectProperties = loadProjectGradleProperties(project);
+        Map<String, String> mergedProjectProperties = gradleProperties.mergeProperties(intermediateProjectProperties);
+
+        ImmutableMap.Builder<String, String> extraProjectPropertiesBuilder = ImmutableMap.builder();
+
+        for (Map.Entry<String, String> entry : mergedProjectProperties.entrySet()) {
+            assignOrCollectProperty(project, extraProjectPropertiesBuilder, entry.getKey(), entry.getValue());
+        }
+
+        installProjectExtraPropertiesDefaults(project, extraProjectPropertiesBuilder.build());
+    }
+
+    @SuppressWarnings("deprecation")
+    private static void assignOrCollectProperty(
+        Project project,
+        ImmutableMap.Builder<String, String> extraProjectProperties,
+        String propertyName,
+        String propertyValue
+    ) {
+        if (propertyName.isEmpty()) {
+            // Historically, we filtered out properties with empty names here.
+            // They could appear in case the properties file has lines containing only '=' or ':'
+            return;
+        }
+
+        switch (propertyName) {
+            case "version":
+                project.setVersion(propertyValue);
+                break;
+            case "group":
+                project.setGroup(propertyValue);
+                break;
+            case "description":
+                project.setDescription(propertyValue);
+                break;
+            case "status":
+                project.setStatus(propertyValue);
+                break;
+            case "buildDir":
+                project.setBuildDir(propertyValue);
+                break;
+            default:
+                extraProjectProperties.put(propertyName, propertyValue);
+                break;
+        }
+    }
+
+    private Map<String, String> loadProjectGradleProperties(Project project) {
         File projectPropertiesFile = new File(project.getProjectDir(), Project.GRADLE_PROPERTIES);
-        Map<String, String> projectProperties = environment.propertiesFile(projectPropertiesFile);
-        if (projectProperties != null) {
-            configurePropertiesOf(project, applicator, projectProperties);
-        } else {
-            configurePropertiesOf(project, applicator, ImmutableMap.of());
-        }
-        ((ExtraPropertiesExtensionInternal) project.getExtensions().getExtraProperties())
-            .setGradleProperties(applicator.endProjectProperties());
+        Map<String, String> loadedProperties = environment.propertiesFile(projectPropertiesFile);
+        return loadedProperties == null ? ImmutableMap.of() : loadedProperties;
     }
 
-    private void configurePropertiesOf(Project project, CachingPropertyApplicator applicator, Map<String, String> properties) {
-        for (Map.Entry<String, String> entry : gradleProperties.mergeProperties(properties).entrySet()) {
-            applicator.configureProperty(project, entry.getKey(), entry.getValue());
-        }
-    }
-
-    /**
-     * Applies the given properties to the project and its subprojects, caching property mutators whenever possible
-     * to avoid too many searches.
-     */
-    private static class CachingPropertyApplicator {
-        private final Class<? extends Project> projectClass;
-        private final Map<Pair<String, ? extends Class<?>>, Optional<PropertyMutator>> mutators = new HashMap<>();
-        private ImmutableMap.Builder<String, String> extraProjectProperties;
-
-        CachingPropertyApplicator(Class<? extends Project> projectClass) {
-            this.projectClass = projectClass;
-        }
-
-        void configureProperty(Project project, String name, String value) {
-            if (isPossibleProperty(name)) {
-                assert project.getClass() == projectClass;
-                PropertyMutator propertyMutator = propertyMutatorFor(name, typeOf(value));
-                if (propertyMutator != null) {
-                    propertyMutator.setValue(project, value);
-                } else {
-                    extraProjectProperties.put(name, value);
-                }
-            }
-        }
-
-        @Nullable
-        private static Class<?> typeOf(@Nullable Object value) {
-            return value == null ? null : value.getClass();
-        }
-
-        @Nullable
-        private PropertyMutator propertyMutatorFor(String propertyName, @Nullable Class<?> valueType) {
-            return mutators.computeIfAbsent(
-                Pair.of(propertyName, valueType),
-                key -> {
-                    assert key.left != null;
-                    return Optional.ofNullable(writeablePropertyIfExists(projectClass, key.left, key.right));
-                }
-            ).orElse(null);
-        }
-
-        /**
-         * In a properties file, entries like '=' or ':' on a single line define a property with an empty string name and value.
-         * We know that no property will have an empty property name.
-         *
-         * @see java.util.Properties#load(java.io.Reader)
-         */
-        private static boolean isPossibleProperty(String name) {
-            return !name.isEmpty();
-        }
-
-        public void beginProjectProperties() {
-            extraProjectProperties = ImmutableMap.builder();
-        }
-
-        public Map<String, String> endProjectProperties() {
-            try {
-                return extraProjectProperties.build();
-            } finally {
-                extraProjectProperties = null;
-            }
-        }
+    private static void installProjectExtraPropertiesDefaults(Project project, Map<String, String> extraProperties) {
+        ExtraPropertiesExtensionInternal extraPropertiesContainer = (ExtraPropertiesExtensionInternal) project.getExtensions().getExtraProperties();
+        extraPropertiesContainer.setGradleProperties(extraProperties);
     }
 }
