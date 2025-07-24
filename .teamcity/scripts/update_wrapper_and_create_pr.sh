@@ -23,6 +23,7 @@ post() {
     echo "Data: $data"
     
     echo "Executing curl command..."
+    
     local response=$(curl -X POST \
         -H "Authorization: token $GITHUB_TOKEN" \
         -H "Accept: application/vnd.github.v3+json" \
@@ -31,6 +32,14 @@ post() {
         -d "$data" \
         -w "\n%{http_code}" \
         2>/dev/null)
+    
+    local curl_exit_code=$?
+    echo "Curl exit code: $curl_exit_code"
+    
+    if [[ $curl_exit_code -ne 0 ]]; then
+        echo "Error: Curl failed with exit code $curl_exit_code"
+        return 1
+    fi
     
     echo "Raw curl response: $response"
     
@@ -44,7 +53,7 @@ post() {
     echo "Response: $body"
     
     if [[ "$http_code" -ge 400 ]]; then
-        echo "Error: HTTP $http_code"
+        echo "Error: HTTP $http_code - $body"
         return 1
     fi
     
@@ -92,13 +101,16 @@ main() {
     
     PR_TITLE="Update Gradle wrapper to version $WRAPPER_VERSION"
     echo "Creating pull request..."
-    if ! PR_RESPONSE=$(post "/pulls" "{
+    PR_RESPONSE=$(post "/pulls" "{
         \"title\": \"$PR_TITLE\",
         \"body\": \"$PR_TITLE\",
         \"head\": \"$BRANCH_NAME\",
         \"base\": \"$DEFAULT_BRANCH\"
-    }"); then
+    }")
+    
+    if [[ $? -ne 0 ]]; then
         echo "Failed to create pull request"
+        echo "Last error from post function: $?"
         exit 1
     fi
     
