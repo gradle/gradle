@@ -92,6 +92,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
                 project.setGroup(propertyValue);
                 break;
             case "description":
+                // TODO: Remove non-String project properties support in Gradle 10 - https://github.com/gradle/gradle/issues/34454
                 if (propertyValue instanceof String) {
                     project.setDescription((String) propertyValue);
                 } else {
