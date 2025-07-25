@@ -65,6 +65,22 @@
             ]
         },
         {
+            "type": "org.gradle.api.DefaultTask",
+            "member": "Method org.gradle.api.DefaultTask.getDescription()",
+            "acceptation": "Fix Task.group and Task.description overloads nullability",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.DefaultTask",
+            "member": "Method org.gradle.api.DefaultTask.getGroup()",
+            "acceptation": "Fix Task.group and Task.description overloads nullability",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
             "type": "org.gradle.api.Project",
             "member": "Method org.gradle.api.Project.exec(groovy.lang.Closure)",
             "acceptation": "Remove deprecated method",
@@ -1731,7 +1747,7 @@
         {
             "type": "org.gradle.api.tasks.AbstractExecTask",
             "member": "Method org.gradle.api.tasks.AbstractExecTask.setArgs(java.lang.Iterable)",
-            "acceptation": "Setting parameter to null doesn\u0027t work",
+            "acceptation": "Setting parameter to null doesn't work",
             "changes": [
                 "Parameter 0 from null accepting to non-null accepting breaking change"
             ]
@@ -1747,7 +1763,7 @@
         {
             "type": "org.gradle.api.tasks.Exec",
             "member": "Method org.gradle.api.tasks.Exec.setArgs(java.lang.Iterable)",
-            "acceptation": "Setting parameter to null doesn\u0027t work",
+            "acceptation": "Setting parameter to null doesn't work",
             "changes": [
                 "Parameter 0 from null accepting to non-null accepting breaking change"
             ]
@@ -1818,6 +1834,14 @@
         },
         {
             "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Method org.gradle.api.tasks.JavaExec.getDefaultCharacterEncoding()",
+            "acceptation": "Fix JavaForkOptions overrides nullability",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.JavaExec",
             "member": "Method org.gradle.api.tasks.JavaExec.getExecActionFactory()",
             "acceptation": "Making all injecting getters abstract",
             "changes": [
@@ -1830,6 +1854,22 @@
             "acceptation": "Making all injecting getters abstract",
             "changes": [
                 "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Method org.gradle.api.tasks.JavaExec.getMaxHeapSize()",
+            "acceptation": "Fix JavaForkOptions overrides nullability",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Method org.gradle.api.tasks.JavaExec.getMinHeapSize()",
+            "acceptation": "Fix JavaForkOptions overrides nullability",
+            "changes": [
+                "From non-null returning to null returning breaking change"
             ]
         },
         {
@@ -2054,6 +2094,14 @@
             "acceptation": "remove deprecated method",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.ant.AntTarget",
+            "member": "Method org.gradle.api.tasks.ant.AntTarget.getDescription()",
+            "acceptation": "Fix Task.group and Task.description overloads nullability",
+            "changes": [
+                "From non-null returning to null returning breaking change"
             ]
         },
         {
@@ -2595,6 +2643,14 @@
         },
         {
             "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getDefaultCharacterEncoding()",
+            "acceptation": "Fix JavaForkOptions overrides nullability",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
             "member": "Method org.gradle.api.tasks.testing.Test.getForkOptionsFactory()",
             "acceptation": "Making all injecting getters abstract",
             "changes": [
@@ -2615,6 +2671,22 @@
             "acceptation": "Making all injecting getters abstract",
             "changes": [
                 "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getMaxHeapSize()",
+            "acceptation": "Fix JavaForkOptions overrides nullability",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getMinHeapSize()",
+            "acceptation": "Fix JavaForkOptions overrides nullability",
+            "changes": [
+                "From non-null returning to null returning breaking change"
             ]
         },
         {
@@ -4413,11 +4485,43 @@
             ]
         },
         {
+            "type": "org.gradle.process.JavaExecSpec",
+            "member": "Method org.gradle.process.JavaExecSpec.setArgs(java.lang.Iterable)",
+            "acceptation": "Fix JavaForkOptions overrides nullability",
+            "changes": [
+                "Parameter 0 from null accepting to non-null accepting breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.process.JavaExecSpec",
+            "member": "Method org.gradle.process.JavaExecSpec.setArgs(java.util.List)",
+            "acceptation": "Fix JavaForkOptions overrides nullability",
+            "changes": [
+                "Parameter 0 from null accepting to non-null accepting breaking change"
+            ]
+        },
+        {
             "type": "org.gradle.process.JavaForkOptions",
             "member": "Method org.gradle.process.JavaForkOptions.getSystemProperties()",
             "acceptation": "Values of returned map can be null",
             "changes": [
                 "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.process.JavaForkOptions",
+            "member": "Method org.gradle.process.JavaForkOptions.setJvmArgs(java.lang.Iterable)",
+            "acceptation": "Fix JavaForkOptions overrides nullability",
+            "changes": [
+                "Parameter 0 from null accepting to non-null accepting breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.process.JavaForkOptions",
+            "member": "Method org.gradle.process.JavaForkOptions.setJvmArgs(java.util.List)",
+            "acceptation": "Fix JavaForkOptions overrides nullability",
+            "changes": [
+                "Parameter 0 from null accepting to non-null accepting breaking change"
             ]
         },
         {
