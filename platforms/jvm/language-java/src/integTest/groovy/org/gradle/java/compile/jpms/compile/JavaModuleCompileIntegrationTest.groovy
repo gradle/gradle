@@ -17,8 +17,6 @@
 package org.gradle.java.compile.jpms.compile
 
 import org.gradle.java.compile.jpms.AbstractJavaModuleCompileIntegrationTest
-import org.gradle.test.precondition.TestPrecondition
-import org.gradle.test.preconditions.UnitTestPreconditions
 
 class JavaModuleCompileIntegrationTest extends AbstractJavaModuleCompileIntegrationTest {
 
@@ -106,7 +104,7 @@ class JavaModuleCompileIntegrationTest extends AbstractJavaModuleCompileIntegrat
         fails ':compileJava'
 
         then:
-        failure.assertHasErrorOutput unnamedModuleReadError('moda', 'moda', 'consumer')
+        failure.assertHasErrorOutput "(package moda is declared in the unnamed module, but module consumer does not read it)"
     }
 
     def "compiles a module depending on a plain Java library when adding access to unnamed module"() {
@@ -187,16 +185,7 @@ class JavaModuleCompileIntegrationTest extends AbstractJavaModuleCompileIntegrat
         fails ':compileJava'
 
         then:
-        failure.assertHasErrorOutput unnamedModuleReadError('moda', 'moda', 'consumer')
-    }
-
-    private static String unnamedModuleReadError(String packageName, String producer, String consumer) {
-        if (TestPrecondition.satisfied(UnitTestPreconditions.Jdk13OrEarlier)) {
-            // bug in JDK < 14 that prints the producer (instead of the consumer) name in the error message
-            "(package $packageName is declared in the unnamed module, but module $producer does not read it)"
-        } else {
-            "(package $packageName is declared in the unnamed module, but module $consumer does not read it)"
-        }
+        failure.assertHasErrorOutput "(package moda is declared in the unnamed module, but module consumer does not read it)"
     }
 
     def "a required module cannot be found if module path inference is turned off"() {
