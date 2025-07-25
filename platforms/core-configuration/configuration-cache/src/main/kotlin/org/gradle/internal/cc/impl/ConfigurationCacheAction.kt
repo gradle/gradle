@@ -32,7 +32,8 @@ internal sealed class ConfigurationCacheAction {
     val isReadOnly: Boolean get() = when (this) {
         Store -> false
         is Update -> false
-        else -> true
+        SkipStore -> true
+        is Load -> true
     }
 
     /**
