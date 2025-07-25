@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.kotlin.dsl.provider.KOTLIN_SCRIPT_COMPILATION_AVOIDANCE_ENABLED_PROPERTY
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import spock.lang.Issue
 
 
 class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceIntegrationTest() {
@@ -60,6 +61,42 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
         require(existing("build-logic/build/libs/build-logic.jar").delete())
 
         configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("bar")
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/34115")
+    fun `avoid buildscript recompilation on problematic non ABI change scenario`() {
+        val className = givenKotlinClassInBuildSrcContains(
+            """
+            fun problemFun() {
+                listOf<String>().forEach { it ->
+                    // do nothing
+                }
+            }
+            
+            fun foo() {
+                System.out.println("foo");
+            }
+            """
+        )
+        withUniqueScript("$className().foo()")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
+
+        givenKotlinClassInBuildSrcContains(
+            """
+            fun problemFun() {
+                listOf<String>().forEach { it ->
+                    // do nothing
+                }
+            }
+                
+            fun foo() {
+                System.out.println("bar");
+                System.out.println("baz");
+            }
+            """
+        )
+        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("bar\nbaz")
     }
 
     @Test
