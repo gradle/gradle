@@ -55,8 +55,6 @@ class DaemonLifecycleSpec extends AbstractDaemonLifecycleSpec {
         stopped()
     }
 
-    //Java 9 and above needs --add-opens to make environment variable mutation work
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
     def "existing foreground idle daemons are used"() {
         when:
         startForegroundDaemon()

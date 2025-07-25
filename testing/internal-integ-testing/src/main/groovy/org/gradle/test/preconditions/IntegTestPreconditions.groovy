@@ -181,9 +181,7 @@ class IntegTestPreconditions {
     static class Java8HomeAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getJdk(
-                JavaVersion.toVersion(8)
-            )
+            return AvailableJavaHomes.getJdk8()
         }
     }
 
@@ -206,81 +204,28 @@ class IntegTestPreconditions {
     static class Java11HomeAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getJdk(
-                JavaVersion.toVersion(11)
-            )
+            return AvailableJavaHomes.getJdk11()
         }
     }
 
     static class Java17HomeAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getJdk(
-                JavaVersion.toVersion(17)
-            )
-        }
-    }
-
-    static class Java18HomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getJdk(
-                JavaVersion.toVersion(18)
-            )
-        }
-    }
-
-    static class Java19HomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getJdk(
-                JavaVersion.toVersion(19)
-            )
-        }
-    }
-
-    static class Java20HomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getJdk(
-                JavaVersion.toVersion(20)
-            )
+            return AvailableJavaHomes.getJdk17()
         }
     }
 
     static class Java21HomeAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getJdk(
-                JavaVersion.toVersion(21)
-            )
-        }
-    }
-
-    static class Java22HomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getJdk(
-                JavaVersion.toVersion(22)
-            )
-        }
-    }
-
-    static class Java23HomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getJdk(
-                JavaVersion.toVersion(23)
-            )
+            return AvailableJavaHomes.getJdk21()
         }
     }
 
     static class Java24HomeAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.getJdk(
-                JavaVersion.toVersion(24)
-            )
+            return AvailableJavaHomes.getJdk24()
         }
     }
 
@@ -324,13 +269,6 @@ class IntegTestPreconditions {
         }
     }
 
-    static final class CanPublishToS3 implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            // The S3 publish tests require the following
-            return TestPrecondition.satisfied(UnitTestPreconditions.Jdk9OrLater) || TestPrecondition.notSatisfied(IsEmbeddedExecutor)
-        }
-    }
 
     static class CanKillProcess implements TestPrecondition {
         @Override

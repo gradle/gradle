@@ -16,10 +16,9 @@
 
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 
-@Requires(UnitTestPreconditions.Jdk9OrLater)
+
+
 class EclipseJavaProjectModulesIntegrationTest extends AbstractEclipseIntegrationSpec {
 
     def "depend on modular project"() {

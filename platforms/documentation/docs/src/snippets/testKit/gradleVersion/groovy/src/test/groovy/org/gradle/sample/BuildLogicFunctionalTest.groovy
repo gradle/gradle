@@ -1,10 +1,13 @@
 package org.gradle.sample
 
-// tag::functional-test-spock-gradle-version[]
 import org.gradle.testkit.runner.GradleRunner
-import static org.gradle.testkit.runner.TaskOutcome.*
-import spock.lang.TempDir
+
+// tag::functional-test-spock-gradle-version[]
+
 import spock.lang.Specification
+import spock.lang.TempDir
+
+import static org.gradle.testkit.runner.TaskOutcome.*
 
 class BuildLogicFunctionalTest extends Specification {
     @TempDir File testProjectDir
@@ -39,7 +42,7 @@ class BuildLogicFunctionalTest extends Specification {
         result.task(":helloWorld").outcome == SUCCESS
 
         where:
-        gradleVersion << ['5.0', '6.0.1']
+        gradleVersion << ['7.3', '8.4']
     }
 }
 // end::functional-test-spock-gradle-version[]

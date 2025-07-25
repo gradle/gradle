@@ -24,8 +24,6 @@ import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.event.ListenerManager
 import org.gradle.process.ExecOperations
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
 import org.slf4j.Logger
@@ -549,7 +547,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         outputContains 'The answer is 42'
     }
 
-    @Requires(UnitTestPreconditions.Jdk14OrLater)
     @Issue("https://github.com/gradle/gradle/issues/26926")
     def "restores task fields whose value is instance of #type java record"() {
         file("buildSrc/src/main/java/SingleField.java") << """

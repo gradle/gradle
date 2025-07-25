@@ -26,7 +26,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
@@ -462,7 +462,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
      * This test covers the case where in Java8 the class name becomes fully qualified in the deprecation message which is
      * somehow caused by invoking javacTask.getElements() in the IncrementalCompileTask of the incremental compiler plugin.
      */
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    
     def "Java deprecation messages with different JDKs"() {
         def jdk = AvailableJavaHomes.getJdk(javaVersion)
 

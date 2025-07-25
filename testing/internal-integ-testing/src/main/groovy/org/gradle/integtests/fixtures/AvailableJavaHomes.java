@@ -86,11 +86,6 @@ public abstract class AvailableJavaHomes {
     private static final GradleDistribution DISTRIBUTION = new UnderDevelopmentGradleDistribution();
 
     @Nullable
-    public static Jvm getJdk7() {
-        return getJdk(JavaVersion.VERSION_1_7);
-    }
-
-    @Nullable
     public static Jvm getJdk8() {
         return getJdk(JavaVersion.VERSION_1_8);
     }
@@ -108,16 +103,6 @@ public abstract class AvailableJavaHomes {
     @Nullable
     public static Jvm getJdk21() {
         return getJdk(JavaVersion.VERSION_21);
-    }
-
-    @Nullable
-    public static Jvm getJdk22() {
-        return getJdk(JavaVersion.VERSION_22);
-    }
-
-    @Nullable
-    public static Jvm getJdk23() {
-        return getJdk(JavaVersion.VERSION_23);
     }
 
     @Nullable
