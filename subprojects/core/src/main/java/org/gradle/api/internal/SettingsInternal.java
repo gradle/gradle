@@ -40,7 +40,7 @@ import java.util.List;
 
 public interface SettingsInternal extends Settings, PluginAwareInternal, FinalizableValue {
 
-    String BUILD_SRC = BuildLogicFiles.BUILD_SRC;
+    String BUILD_SRC = BuildLogicFiles.BUILD_SOURCE_DIRECTORY;
 
     @Override
     StartParameter getStartParameter();

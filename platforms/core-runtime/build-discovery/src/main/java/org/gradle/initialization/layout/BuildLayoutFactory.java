@@ -92,6 +92,6 @@ public class BuildLayoutFactory {
     }
 
     private static boolean isBuildSrc(File dir) {
-        return dir.getName().equals(BuildLogicFiles.BUILD_SRC);
+        return dir.getName().equals(BuildLogicFiles.BUILD_SOURCE_DIRECTORY);
     }
 }

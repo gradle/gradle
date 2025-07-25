@@ -40,6 +40,6 @@ public interface BuildLogicFiles {
     /**
      * Reserved directory name for automatically discovered included-like build with build logic.
      */
-    String BUILD_SRC = "buildSrc";
+    String BUILD_SOURCE_DIRECTORY = "buildSrc";
 
 }
