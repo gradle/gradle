@@ -22,8 +22,6 @@ import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.scala.ScalaCompilationFixture.scalaDependency
 
@@ -96,7 +94,6 @@ class Person {
         "immutable list" | "[].asImmutable()"
     }
 
-    @Requires(UnitTestPreconditions.Jdk11OrLater)
     def "can compile sources using later JDK APIs"() {
         file("src/main/scala/App.scala") << """
             object App {

@@ -16,11 +16,8 @@
 
 package org.gradle.smoketests
 
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.ToBeImplemented
 
-@Requires(UnitTestPreconditions.Jdk11OrLater)
 class PalantirConsistentVersionsPluginSmokeTest extends AbstractSmokeTest {
 
     /*

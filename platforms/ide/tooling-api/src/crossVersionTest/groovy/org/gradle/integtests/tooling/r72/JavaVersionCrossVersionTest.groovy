@@ -42,7 +42,7 @@ class JavaVersionCrossVersionTest extends ToolingApiSpecification {
         """
     }
 
-    @Requires([UnitTestPreconditions.Jdk11OrLater, IntegTestPreconditions.Java8HomeAvailable])
+    @Requires(IntegTestPreconditions.Java8HomeAvailable)
     @TargetGradleVersion("<9.0")
     def "can deserialize failures with post-jigsaw client and pre-jigsaw daemon"() {
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk8.javaHome.absolutePath)

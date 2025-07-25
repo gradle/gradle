@@ -29,7 +29,7 @@ class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
     Sample sample = new Sample(testDirectoryProvider)
 
     @UsesSample('codeQuality/codeQuality')
-    @Requires([UnitTestPreconditions.StableGroovy, UnitTestPreconditions.Jdk11OrLater])
+    @Requires(UnitTestPreconditions.StableGroovy)
     def "can generate reports with #dsl dsl"() {
         TestFile projectDir = sample.dir.file(dsl)
         TestFile buildDir = projectDir.file('build')

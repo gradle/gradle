@@ -16,8 +16,6 @@
 
 package org.gradle.smoketests
 
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -25,7 +23,6 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 class DockerPluginSmokeTest extends AbstractSmokeTest {
 
     // Plugin after 7.0.0 requires Java 11+ to run
-    @Requires(UnitTestPreconditions.Jdk11OrLater)
     @Issue('https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application')
     def 'docker plugin'() {
         given:

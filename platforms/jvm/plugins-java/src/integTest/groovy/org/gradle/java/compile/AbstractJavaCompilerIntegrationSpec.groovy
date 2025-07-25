@@ -236,7 +236,6 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         bytecodeVersion() == TestJavaClassUtil.getClassVersion(lower.javaVersion)
     }
 
-    @Requires(UnitTestPreconditions.Jdk11OrLater)
     def "compile with release flag using #notation notation"() {
         given:
         goodCode()
@@ -266,7 +265,6 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         ]
     }
 
-    @Requires(UnitTestPreconditions.Jdk11OrLater)
     def "compile with release property set"() {
         given:
         goodCode()
@@ -290,7 +288,7 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         bytecodeVersion() == 55
     }
 
-    
+
     def "fails to compile with release property and flag set"() {
         given:
         goodCode()
@@ -310,7 +308,6 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         failureHasCause('Cannot specify --release via `CompileOptions.compilerArgs` when using `CompileOptions.release`.')
     }
 
-    @Requires(UnitTestPreconditions.Jdk11OrLater)
     def "compile with release property and autoTargetJvmDisabled"() {
         given:
         goodCode()
@@ -335,6 +332,7 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         then:
         bytecodeVersion() == 55
     }
+
 
     def "compile with target compatibility"() {
         given:

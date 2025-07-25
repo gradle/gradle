@@ -16,10 +16,6 @@
 
 package org.gradle.smoketests
 
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
-
-@Requires(UnitTestPreconditions.Jdk11OrLater)
 class MicronautPluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     String getBuildScriptConfigurationForValidation() {

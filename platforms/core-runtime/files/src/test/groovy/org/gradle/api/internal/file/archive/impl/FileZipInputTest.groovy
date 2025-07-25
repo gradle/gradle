@@ -19,8 +19,6 @@ package org.gradle.api.internal.file.archive.impl
 import org.gradle.api.JavaVersion
 import org.gradle.internal.file.FileException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -45,7 +43,6 @@ class FileZipInputTest extends Specification implements ZipFileFixture{
         zipInput?.close()
     }
 
-    @Requires(UnitTestPreconditions.Jdk11OrLater)
     def "throws FileException when zip is badly formed"() {
         def file = temporaryFolder.file("badly-formed").createFile()
 
@@ -56,23 +53,6 @@ class FileZipInputTest extends Specification implements ZipFileFixture{
         thrown(FileException)
     }
 
-    // This documents current behaviour, not desired behaviour
-    @Requires(UnitTestPreconditions.Jdk10OrEarlier)
-    def "silently ignores zip that is badly formed"() {
-        def file = temporaryFolder.file("badly-formed").createFile()
-
-        when:
-        def zipInput = FileZipInput.create(file)
-        zipInput.forEach {throw new RuntimeException() }
-
-        then:
-        noExceptionThrown()
-
-        cleanup:
-        zipInput?.close()
-    }
-
-    @Requires(UnitTestPreconditions.Jdk11OrLater)
     def "can read from zip input stream a second time"() {
         def file = makeZip("foo.zip")
         def zipInput = FileZipInput.create(file)
@@ -95,7 +75,6 @@ class FileZipInputTest extends Specification implements ZipFileFixture{
         zipInput?.close()
     }
 
-    @Requires(UnitTestPreconditions.Jdk11OrLater)
     def "can read zip entry content a second time"() {
         def file = makeZip("foo.zip")
         def zipInput = FileZipInput.create(file)

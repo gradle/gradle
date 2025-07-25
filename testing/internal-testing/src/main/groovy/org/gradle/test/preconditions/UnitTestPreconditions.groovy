@@ -112,12 +112,7 @@ class UnitTestPreconditions {
         }
     }
 
-    static final class NotWindowsJavaBefore11 implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return TestPrecondition.notSatisfied(Windows) || TestPrecondition.satisfied(Jdk11OrLater)
-        }
-    }
+    
 
     /**
      * @see <a href="https://github.com/gradle/gradle/issues/1111">Link</a>
@@ -267,12 +262,7 @@ class UnitTestPreconditions {
         }
     }
 
-    static final class Jdk11OrLater implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() >= JavaVersion.VERSION_11
-        }
-    }
+    
 
     static final class Jdk11OrEarlier implements TestPrecondition {
         @Override

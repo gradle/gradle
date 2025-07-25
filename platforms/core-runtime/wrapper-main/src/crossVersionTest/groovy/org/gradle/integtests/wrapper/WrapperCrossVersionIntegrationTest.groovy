@@ -18,14 +18,9 @@ package org.gradle.integtests.wrapper
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 
 @SuppressWarnings("IntegrationTestFixtures")
 class WrapperCrossVersionIntegrationTest extends AbstractWrapperCrossVersionIntegrationTest {
-    @Requires(value = [
-        UnitTestPreconditions.NotWindowsJavaBefore11
-    ], reason = "see https://github.com/gradle/gradle-private/issues/3758")
     void canUseWrapperFromPreviousVersionToRunCurrentVersion() {
         when:
         GradleExecuter executer = prepareWrapperExecuter(previous, current)
@@ -37,7 +32,6 @@ class WrapperCrossVersionIntegrationTest extends AbstractWrapperCrossVersionInte
         cleanupDaemons(executer, current)
     }
 
-    @Requires(value = [UnitTestPreconditions.NotWindowsJavaBefore11], reason = "https://github.com/gradle/gradle-private/issues/3758")
     void canUseWrapperFromCurrentVersionToRunPreviousVersion() {
         when:
         GradleExecuter executer = prepareWrapperExecuter(current, previous).withWarningMode(null)

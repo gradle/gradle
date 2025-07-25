@@ -4242,7 +4242,6 @@ Class <org.gradle.test.preconditions.UnitTestPreconditions$IsKnownWindowsSocketD
 Class <org.gradle.test.preconditions.UnitTestPreconditions$IsNotKnownWindowsSocketDisappearanceIssue> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk10OrEarlier> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk11OrEarlier> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
-Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk11OrLater> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk12OrLater> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk13OrEarlier> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk14OrLater> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
@@ -4257,7 +4256,6 @@ Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk24OrEarlier> is no
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk24OrLater> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk8OrEarlier> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk9OrEarlier> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
-
 Class <org.gradle.test.preconditions.UnitTestPreconditions$JdkOracle> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$KotlinSupportedJdk$__clinit__closure1> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$KotlinSupportedJdk> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
@@ -4277,7 +4275,6 @@ Class <org.gradle.test.preconditions.UnitTestPreconditions$NotMacOs> is not anno
 Class <org.gradle.test.preconditions.UnitTestPreconditions$NotMacOsM1> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$NotStableGroovy> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$NotWindows> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
-Class <org.gradle.test.preconditions.UnitTestPreconditions$NotWindowsJavaBefore11> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$OnRemoteTestDistributionExecutor> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Online> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$SmartTerminalAvailable> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)

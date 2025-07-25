@@ -23,7 +23,6 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.JarUtils
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
@@ -603,7 +602,6 @@ internal property sun.java.command changes.
     }
 
     @Issue("https://github.com/gradle/gradle/issues/25044")
-    @Requires(UnitTestPreconditions.Jdk11OrLater)
     def "plugin can read file within jar"() {
         def testFile = JarUtils.jar(testDir.file("thing.jar")) {
             manifest {}
