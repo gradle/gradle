@@ -457,7 +457,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
                 }
             }
         """
-        executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. This will fail with an error in Gradle 10. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/9.1.0-20250724030000+0000/userguide/upgrading_version_7.html#task_project")
+        executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. This will fail with an error in Gradle 10. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
 
         when:
         run ":foo"
@@ -500,7 +500,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         and:
         // expect link to CC report
-        outputContains(CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_FOOTER)
+        outputContains(CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER)
         // but disablement reason is not about incompatible tasks, but read-only mode
         postBuildOutputDoesNotContain(CONFIGURATION_CACHE_DISABLED_REASON)
         postBuildOutputContains(CONFIGURATION_CACHE_DISCARDED_READ_ONLY_REASON)
