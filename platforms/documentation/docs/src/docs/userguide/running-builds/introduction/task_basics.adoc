@@ -138,7 +138,5 @@ BUILD SUCCESSFUL in 764ms
 
 You don't need to worry about ordering — Gradle figures it out for you.
 
-To learn how to define your own tasks and control how they work, see the <<more_about_tasks.adoc#more_about_tasks,Task development chapter>>.
-
 [.text-right]
 **Next Step:** <<gradle_optimizations.adoc#gradle_optimizations,Learn about Incremental Builds and Build Caching>> >>

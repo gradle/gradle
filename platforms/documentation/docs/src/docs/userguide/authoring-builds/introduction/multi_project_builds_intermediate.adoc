@@ -41,11 +41,6 @@ The directory structure should look as follows:
 [source,text]
 ----
 .
-├── .gradle
-│   └── ⋮
-├── gradle
-│   ├── libs.versions.toml
-│   └── wrapper
 ├── gradlew
 ├── gradlew.bat
 ├── settings.gradle(.kts)   // <1>
@@ -158,11 +153,6 @@ For example, if the project above had common build logic between `sub-project-1`
 [source,text]
 ----
 .
-├── .gradle
-│   └── ⋮
-├── gradle
-│   ├── libs.versions.toml
-│   └── wrapper
 ├── gradlew
 ├── gradlew.bat
 ├── settings.gradle(.kts)
@@ -199,11 +189,6 @@ The plugin is moved to its own build called `build-logic` with its own build scr
 [source,text]
 ----
 .
-├── .gradle
-│   └── ⋮
-├── gradle
-│   ├── libs.versions.toml
-│   └── wrapper
 ├── gradlew
 ├── gradlew.bat
 ├── settings.gradle(.kts)
@@ -255,11 +240,6 @@ For example:
 [source,text]
 ----
 .
-├── .gradle
-│   └── ⋮
-├── gradle
-│   ├── libs.versions.toml
-│   └── wrapper
 ├── gradlew
 ├── gradlew.bat
 ├── settings.gradle(.kts)

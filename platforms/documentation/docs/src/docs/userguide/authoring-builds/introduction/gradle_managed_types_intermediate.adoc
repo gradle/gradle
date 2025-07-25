@@ -19,14 +19,41 @@ Gradle Managed Types are the building blocks for writing modern, efficient, and 
 
 image::gradle-basic-12.png[]
 
-They replace eager properties (like `val file = File(...)`) with lazy, trackable inputs and outputs, enabling:
+When writing build logic, you’ll often reach for standard Groovy or Kotlin types.
+However, Gradle provides its own managed types that are lazy, making them far better suited for build logic.
+
+These types enable:
 
 - Incremental builds
 - Build cache support
 - Configuration cache compatibility
-- Accurate task input/output tracking
+- Accurate tracking of task inputs and outputs
+
+For example, instead of using a `String`, you should use a `Property<String>`:
+
+====
+include::sample[dir="snippets/gradle-types/example/groovy/app",files="build.gradle[tags=demo]"]
+====
+
+[source,bash]
+----
+$ ./gradlew demoTask
+----
+----
+include::{snippetsPath}/gradle-types/example/tests/gradleTypes.out[]
+----
+
+This example showcases that:
+
+- *Eager values* are computed immediately when the script is loaded (configuration phase).
+- *Lazy values* (like `Property` or `Provider`) defer computation until the task is executed (execution phase).
+
+It's always best to ensure Gradle evaluates task logic only during the execution phase to avoid wasting time during configuration.
+Using lazy types and values in Gradle ensures builds are fast, efficient, and compatible with performance features like incremental builds, the Build Cache, and the Configuration Cache.
 
 == Common Managed Types
+
+Here is a list of common Gradle managed types you can use in your build logic:
 
 [cols="~,~,~", options="header"]
 |===
@@ -40,11 +67,8 @@ They replace eager properties (like `val file = File(...)`) with lazy, trackable
 | `Provider<T>`         | Lazily evaluated, read-only value (e.g., task output) | A dependency on task output
 |===
 
-== Eager vs Lazy
-
 Gradle distinguishes between *eager* and *lazy* evaluation to control **when** values are computed and **how** they participate in up-to-date checks, caching, and task wiring.
-
-Writing lazy, declarative build logic is key to unlocking Gradle’s performance features.
+Let's review the differences one more time:
 
 == Eager Evaluation
 
@@ -75,9 +99,11 @@ outputFile.set(layout.buildDirectory.file("output.txt"))    // evaluated later
 
 Here, nothing is resolved immediately—Gradle delays evaluation until it’s actually required.
 
+Let's take a look at an example.
+
 == Example
 
-This task will break the configuration cache due to eager access:
+This task will break the Configuration Cache due to *eager* access:
 
 [source,kotlin]
 ----
@@ -90,7 +116,7 @@ tasks.register("printVersion") {
 }
 ----
 
-The fix: use `Provider` or a `Property<String>`:
+The fix: use a *lazy* `Provider` or a `Property<String>`:
 
 [source,kotlin]
 ----
@@ -103,8 +129,6 @@ tasks.register("printVersion") {
     }
 }
 ----
-
-Consult the <<properties_providers.adoc#properties_and_providers,Gradle Types>> chapter to learn more.
 
 [.text-right]
 **Next Step:** <<dependencies_intermediate.adoc#dependencies_intro,Learn about Declaring and Managing Dependencies>> >>

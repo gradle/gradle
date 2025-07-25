@@ -15,7 +15,7 @@
 [[using_plugins]]
 = Working with Plugins
 
-Much of Gradle's functionality is delivered via plugins, including core plugins distributed with Gradle, third-party plugins, and script plugins defined within builds.
+Much of Gradle's functionality is delivered via plugins, including core plugins distributed with Gradle, third-party plugins, and custom plugins defined within builds.
 
 image::gradle-basic-15.png[]
 
@@ -25,16 +25,7 @@ Plugins introduce new tasks (e.g., `JavaCompile`), domain objects (e.g., `Source
 Plugins in Gradle are essential for automating common build tasks, integrating with external tools or services, and tailoring the build process to meet specific project needs.
 They also serve as the primary mechanism for organizing build logic.
 
-== Benefits of plugins
-
-Writing many tasks and duplicating configuration blocks in build scripts can get messy.
-Plugins offer several advantages over adding logic directly to the build script:
-
-- *Promotes Reusability*: Reduces the need to duplicate similar logic across projects.
-- *Enhances Modularity*: Allows for a more modular and organized build script.
-- *Encapsulates Logic*: Keeps imperative logic separate, enabling more declarative build scripts.
-
-== Plugin distribution
+== Plugin Distribution
 
 You can leverage plugins from Gradle and the Gradle community or create your own.
 
@@ -44,12 +35,9 @@ Plugins are available in three ways:
 2. **Community plugins** - Gradle plugins shared in a remote repository such as Maven or the https://plugins.gradle.org[Gradle Plugin Portal].
 3. **Custom plugins** - Gradle enables users to create plugins using link:{javadocPath}/org/gradle/api/Plugin.html[APIs].
 
-[[sec:binary_plugin_locations]]
-== Applying plugins
+Gradle provides *core plugins* (e.g., `JavaPlugin`, `GroovyPlugin`, `MavenPublishPlugin`, etc.) as part of its distribution, which means they are available with Gradle itself.
 
-Gradle provides the *core plugins* (e.g., `JavaPlugin`, `GroovyPlugin`, `MavenPublishPlugin`, etc.) as part of its distribution, which means they are automatically resolved.
-
-Core plugins are applied in a build script using the plugin name:
+*Core* plugins are applied in a build script using the plugin name:
 
 [source,text]
 ----
@@ -83,7 +71,7 @@ plugins {
 =====
 ====
 
-Non-core plugins must be resolved before they can be applied.
+Non-core (*community* and *custom*) plugins must be resolved (i.e. located) before they can be applied.
 Non-core plugins are identified by a unique ID and a version in the build file:
 
 [source,text]
@@ -118,14 +106,20 @@ plugins {
 =====
 ====
 
-And the location of the plugin must be specified in the settings file:
+And the location of the plugin must be specified in the settings file as needed:
 
 ====
 include::sample[dir="snippets/plugins/simple/kotlin", files="settings.gradle.kts[tags=simple-setting-repositories]"]
 include::sample[dir="snippets/plugins/simple/groovy", files="settings.gradle[tags=simple-setting-repositories]"]
 ====
 
-There are additional considerations for resolving and applying plugins:
+The location of the plugin could also be an included build or `buildSrc` for example.
+
+== Applying Plugins
+
+Over time, Gradle has introduced several ways to apply plugins, depending on their source and the scope in which they are needed (such as whether they apply to a single project or multiple subprojects).
+
+Let's take a look at all the available ways a plugin can be applied:
 
 [%autowidth.stretch]
 |===

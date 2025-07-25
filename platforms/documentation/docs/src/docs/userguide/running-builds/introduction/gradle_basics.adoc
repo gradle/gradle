@@ -92,6 +92,8 @@ Gradle is <<gradle_ides.adoc#gradle_ides,built-in to many IDEs>> including Andro
 
 Gradle can be automatically invoked when you build, clean, or run your app in the IDE.
 
+image::gradle-ide-invocation.gif[]
+
 Consult the manual for the IDE of your choice to learn more about how Gradle can be used and configured.
 
 === On the Command Line
@@ -124,15 +126,7 @@ The wrapper is a script that invokes a declared version of Gradle and is *the re
 $ ./gradlew build
 ----
 
-[source,text]
-----
-$ ./gradlew test
-----
-
-[source,text]
-----
-$ ./gradlew clean build
-----
+image::gradle-terminal-invocation.gif[]
 
 [.text-right]
 **Next Step:** <<gradle_wrapper_basics.adoc#gradle_wrapper_basics,Learn about the Gradle Wrapper>> >>

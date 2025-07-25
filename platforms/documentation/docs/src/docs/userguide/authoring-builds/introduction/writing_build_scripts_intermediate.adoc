@@ -324,32 +324,12 @@ Unlike in build scripts, where `name` refers to the current subproject, in setti
 rootProject.name = "my-awesome-project"
 ----
 
-[[script-default-imports]]
-== Default Imports
+[[default-script-imports]]
+== Default Script Imports
 
-To make build scripts more concise, Gradle automatically adds a set of import statements to scripts.
+To make build scripts more concise, Gradle automatically adds a set of <<default_script_imports.adoc#script-default-imports,import statements to scripts>>.
 
 As a result, instead of writing `throw new org.gradle.api.tasks.StopExecutionException()`, you can write `throw new StopExecutionException()`.
-
-Gradle implicitly adds the following imports to each script:
-
-[source,groovy]
-----
-include::default-imports.txt[]
-----
-
-Additionally, for Groovy, the following imports are added too:
-[source,groovy]
-----
-import java.lang.*
-import java.io.*
-import java.net.*
-import java.util.*
-import java.time.*
-import java.math.BigDecimal
-import java.math.BigInteger
-import javax.inject.Inject
-----
 
 [.text-right]
 **Next Step:** <<gradle_managed_types_intermediate.adoc#gradle_types_intro,Learn about Gradle Managed Types>> >>
