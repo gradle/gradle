@@ -18,16 +18,10 @@ package org.gradle.api.problems.internal;
 
 public class TaskIdentity {
 
-    private final String buildTreePath;
     private final String taskPath;
 
-    public TaskIdentity(String buildTreePath, String taskPath) {
-        this.buildTreePath = buildTreePath;
+    public TaskIdentity(String taskPath) {
         this.taskPath = taskPath;
-    }
-
-    public String getBuildTreePath() {
-        return buildTreePath;
     }
 
     public String getTaskPath() {

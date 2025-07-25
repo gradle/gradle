@@ -51,33 +51,33 @@ public class TaskFactory implements ITaskFactory {
     @Override
     @SuppressWarnings("deprecation")
     public <S extends Task> S create(final TaskIdentity<S> identity, @Nullable final Object[] constructorArgs) {
-        if (!Task.class.isAssignableFrom(identity.type)) {
+        if (!Task.class.isAssignableFrom(identity.getTaskType())) {
             throw new InvalidUserDataException(String.format(
                 "Cannot create task '%s' of type '%s' as it does not implement the Task interface.",
-                identity.identityPath.toString(),
-                identity.type.getSimpleName()));
+                identity.getBuildTreePath().getPath(),
+                identity.getTaskType().getSimpleName()));
         }
 
-        NameValidator.validate(identity.name, "task name", "");
+        NameValidator.validate(identity.getName(), "task name", "");
 
         final Class<? extends DefaultTask> implType;
-        if (identity.type == Task.class) {
+        if (identity.getTaskType() == Task.class) {
             implType = DefaultTask.class;
-        } else if (DefaultTask.class.isAssignableFrom(identity.type)) {
-            implType = identity.type.asSubclass(DefaultTask.class);
-        } else if (identity.type == org.gradle.api.internal.AbstractTask.class || identity.type == TaskInternal.class) {
+        } else if (DefaultTask.class.isAssignableFrom(identity.getTaskType())) {
+            implType = identity.getTaskType().asSubclass(DefaultTask.class);
+        } else if (identity.getTaskType() == org.gradle.api.internal.AbstractTask.class || identity.getTaskType() == TaskInternal.class) {
             throw new InvalidUserDataException(String.format(
                 "Cannot create task '%s' of type '%s' as this type is not supported for task registration.",
-                identity.identityPath.toString(),
-                identity.type.getSimpleName()));
+                identity.getBuildTreePath().getPath(),
+                identity.getTaskType().getSimpleName()));
         } else {
             throw new InvalidUserDataException(String.format(
                 "Cannot create task '%s' of type '%s' as directly extending AbstractTask is not supported.",
-                identity.identityPath.toString(),
-                identity.type.getSimpleName()));
+                identity.getBuildTreePath().getPath(),
+                identity.getTaskType().getSimpleName()));
         }
 
-        Describable displayName = Describables.withTypeAndName("task", identity.getIdentityPath());
+        Describable displayName = Describables.withTypeAndName("task", identity.getBuildTreePath().getPath());
 
         return org.gradle.api.internal.AbstractTask.injectIntoNewInstance(project, identity, new Callable<S>() {
             @Override
@@ -89,9 +89,9 @@ public class TaskFactory implements ITaskFactory {
                     } else {
                         instance = instantiationScheme.deserializationInstantiator().newInstance(implType, org.gradle.api.internal.AbstractTask.class);
                     }
-                    return identity.type.cast(instance);
+                    return identity.getTaskType().cast(instance);
                 } catch (ObjectInstantiationException e) {
-                    throw new TaskInstantiationException(String.format("Could not create task of type '%s'.", identity.type.getSimpleName()),
+                    throw new TaskInstantiationException(String.format("Could not create task of type '%s'.", identity.getTaskType().getSimpleName()),
                         e.getCause());
                 }
             }

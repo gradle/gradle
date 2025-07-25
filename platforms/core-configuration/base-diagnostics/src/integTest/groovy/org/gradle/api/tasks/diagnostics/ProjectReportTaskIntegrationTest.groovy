@@ -219,7 +219,7 @@ Root project 'my-root-project'
 """
     }
 
-    @ToBeFixedForIsolatedProjects
+    @ToBeFixedForIsolatedProjects(because = "Accesses project.description for another project")
     def "project project structure and software types for multi-project build using declarative dcl"() {
         given: "a build-logic build registering an ecosystem plugin defining several software types via several plugins"
         file("build-logic/src/main/java/com/example/restricted/LibraryExtension.java") << """
