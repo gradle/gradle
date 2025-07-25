@@ -17,10 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
@@ -29,7 +26,6 @@ import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 /**
  * Smoke tests for <a href="https://github.com/bndtools/bnd/blob/master/gradle-plugins/README.md">the BND plugin</a>.
  */
-@Requires(UnitTestPreconditions.Jdk17OrLater)
 class BNDSmokeTest extends AbstractPluginValidatingSmokeTest {
     def setup() {
         settingsFile << """

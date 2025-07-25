@@ -18,13 +18,10 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 
 /**
  * https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
  */
-@Requires(UnitTestPreconditions.Jdk17OrLater)
 class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
     static bomVersion = "3.4.4"
     static bom = "'org.springframework.boot:spring-boot-dependencies:${bomVersion}'"

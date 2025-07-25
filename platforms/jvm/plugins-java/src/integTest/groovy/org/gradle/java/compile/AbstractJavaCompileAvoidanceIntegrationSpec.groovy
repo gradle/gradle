@@ -19,8 +19,6 @@ package org.gradle.java.compile
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.language.fixtures.HelperProcessorFixture
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaGroovyCompileAvoidanceIntegrationSpec {
@@ -424,7 +422,6 @@ record Foo(String property, int newProperty) {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20394")
-    @Requires(UnitTestPreconditions.Jdk17OrLater)
     @ToBeFixedForIsolatedProjects(because = "Configure projects from root")
     def "recompiles when sealed modifier is changed"() {
         given:
