@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.transform.TransformStepNode
 import org.gradle.api.internal.artifacts.transform.TransformStepNodeFactory
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.AttributesFactory
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileFactory
 import org.gradle.api.internal.file.FileLookup
@@ -113,6 +114,7 @@ import org.gradle.internal.serialize.codecs.dm.ArtifactCollectionCodec
 import org.gradle.internal.serialize.codecs.dm.AttributeContainerCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultResolvableArtifactCodec
 import org.gradle.internal.serialize.codecs.dm.ImmutableAttributesCodec
+import org.gradle.internal.serialize.codecs.dm.ImmutableAttributesSchemaCodec
 import org.gradle.internal.serialize.codecs.dm.LocalFileDependencyBackedArtifactSetCodec
 import org.gradle.internal.serialize.codecs.dm.PublishArtifactLocalArtifactMetadataCodec
 import org.gradle.internal.serialize.codecs.dm.ResolveArtifactNodeCodec
@@ -165,6 +167,7 @@ class Codecs(
     actionScheme: TransformActionScheme,
     attributesFactory: AttributesFactory,
     attributeDesugaring: AttributeDesugaring,
+    attributeSchemaFactory: ImmutableAttributesSchemaFactory,
     valueSourceProviderFactory: ValueSourceProviderFactory,
     calculatedValueContainerFactory: CalculatedValueContainerFactory,
     patternSetFactory: PatternSetFactory,
@@ -212,6 +215,7 @@ class Codecs(
             bind(ArtifactCollectionCodec(calculatedValueContainerFactory, artifactSetConverter, attributeDesugaring))
             bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
             bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
+            bind(ImmutableAttributesSchemaCodec(instantiator, attributeSchemaFactory))
             bind(ComponentVariantIdentifierCodec)
             bind(InitialTransformStepNodeCodec(transformStepNodeFactory, buildOperationRunner, calculatedValueContainerFactory))
             bind(ChainedTransformStepNodeCodec(transformStepNodeFactory, buildOperationRunner, calculatedValueContainerFactory))
