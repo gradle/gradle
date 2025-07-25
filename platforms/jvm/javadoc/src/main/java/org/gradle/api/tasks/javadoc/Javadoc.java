@@ -120,7 +120,7 @@ public abstract class Javadoc extends SourceTask {
 
     private final StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
 
-    private FileCollection classpath = getProject().files();
+    private FileCollection classpath = getObjectFactory().fileCollection();
     private final ModularitySpec modularity;
 
     @Nullable
