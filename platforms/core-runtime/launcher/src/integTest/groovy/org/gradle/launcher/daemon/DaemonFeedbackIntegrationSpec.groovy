@@ -189,8 +189,6 @@ task sleep {
         assert new TestFile(logFile).permissions == "rw-------"
     }
 
-    //Java 9 and above needs --add-opens to make environment variable mutation work
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
     def "foreground daemon log honors log levels for logging"() {
         given:
         buildFile """

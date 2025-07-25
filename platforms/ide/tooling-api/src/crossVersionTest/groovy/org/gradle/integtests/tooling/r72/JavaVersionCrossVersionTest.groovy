@@ -22,7 +22,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import spock.lang.Issue
@@ -62,7 +61,7 @@ class JavaVersionCrossVersionTest extends ToolingApiSpecification {
         }
     }
 
-    @Requires([UnitTestPreconditions.Jdk8OrEarlier, IntegTestPreconditions.Java11HomeAvailable])
+    @Requires([IntegTestPreconditions.Java11HomeAvailable])
     def "can deserialize failures with pre-jigsaw client and post-jigsaw daemon"() {
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk11.javaHome.absolutePath)
 

@@ -239,22 +239,6 @@ class UnitTestPreconditions {
         }
     }
 
-    @Deprecated
-    static final class Jdk8OrEarlier implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() <= JavaVersion.VERSION_1_8
-        }
-    }
-
-    @Deprecated
-    static final class Jdk9OrEarlier implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() <= JavaVersion.VERSION_1_9
-        }
-    }
-
     private static class JdkOrEarlier implements TestPrecondition {
         private final JavaVersion version
 

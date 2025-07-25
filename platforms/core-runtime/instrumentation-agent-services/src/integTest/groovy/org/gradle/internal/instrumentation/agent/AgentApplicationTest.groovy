@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
@@ -179,10 +178,6 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         agentWasApplied()
     }
 
-    @Requires(
-        value = UnitTestPreconditions.Jdk8OrEarlier,
-        reason = "Java 9 and above needs --add-opens to make environment variable mutation work"
-    )
     def "foreground daemon respects the feature flag"() {
         given:
         executer.tap {

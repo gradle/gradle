@@ -15,8 +15,7 @@
  */
 package org.gradle.internal.classloader
 
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+
 import spock.lang.Specification
 
 class MultiParentClassLoaderTest extends Specification {
@@ -24,12 +23,12 @@ class MultiParentClassLoaderTest extends Specification {
     private ClassLoader parent2 = Mock()
     private MultiParentClassLoader loader = new MultiParentClassLoader(parent1, parent2)
 
-    public void parentsAreNotVisibleViaSuperClass() {
+    void parentsAreNotVisibleViaSuperClass() {
         expect:
         loader.parent == null
     }
 
-    public void loadsClassFromParentsInOrderSpecified() {
+    void loadsClassFromParentsInOrderSpecified() {
         given:
         _ * parent1.loadClass('string') >> String
         _ * parent1.loadClass('integer') >> { throw new ClassNotFoundException() }
@@ -42,7 +41,7 @@ class MultiParentClassLoaderTest extends Specification {
         loader.loadClass('integer', true) == Integer
     }
 
-    public void throwsCNFExceptionWhenClassNotFound() {
+    void throwsCNFExceptionWhenClassNotFound() {
         given:
         _ * parent1.loadClass('string') >> { throw new ClassNotFoundException() }
         _ * parent2.loadClass('string') >> { throw new ClassNotFoundException() }
@@ -55,38 +54,7 @@ class MultiParentClassLoaderTest extends Specification {
         e.message == 'string not found.'
     }
 
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
-    // todo: find a way to mock this in JDK 9+, where `getDefinedPackage` is final
-    public void loadsPackageFromParentsInOrderSpecified() {
-        def stringPackage = String.class.getPackage()
-        def listPackage = List.class.getPackage()
-
-        given:
-        _ * parent1.getPackage('string') >> stringPackage
-        _ * parent1.getPackage('list') >> null
-        _ * parent2.getPackage('list') >> listPackage
-
-        expect:
-        loader.getPackage('string') == stringPackage
-        loader.getPackage('list') == listPackage
-    }
-
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
-    // todo: find a way to mock this in JDK 9+, where `getDefinedPackages` is final
-    public void containsUnionOfPackagesFromAllParents() {
-        def package1 = Stub(Package)
-        def package2 = Stub(Package)
-        def package3 = Stub(Package)
-
-        given:
-        _ * parent1.getPackages() >> ([package1] as Package[])
-        _ * parent2.getPackages() >> ([package1, package2, package3] as Package[])
-
-        expect:
-        loader.getPackages() == [package1, package2, package3] as Package[]
-    }
-
-    public void loadsResourceFromParentsInOrderSpecified() {
+    void loadsResourceFromParentsInOrderSpecified() {
         URL resource1 = new File('res1').toURI().toURL()
         URL resource2 = new File('res2').toURI().toURL()
 
@@ -100,7 +68,7 @@ class MultiParentClassLoaderTest extends Specification {
         loader.getResource('resource2') == resource2
     }
 
-    public void containsUnionOfResourcesFromAllParents() {
+    void containsUnionOfResourcesFromAllParents() {
         URL resource1 = new File('res1').toURI().toURL()
         URL resource2 = new File('res2').toURI().toURL()
         URL resource3 = new File('res3').toURI().toURL()
@@ -114,7 +82,7 @@ class MultiParentClassLoaderTest extends Specification {
         resources == [resource1, resource2, resource3]
     }
 
-    public void visitsSelfAndParents() {
+    void visitsSelfAndParents() {
         def visitor = Mock(ClassLoaderVisitor)
 
         when:

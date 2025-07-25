@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.util.Matchers
 import org.junit.Assume
@@ -127,7 +126,7 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMul
         }
     }
 
-    
+
     def "can run tests referencing slf4j with modular java"() {
         Assume.assumeTrue(frameworkSupportsModularJava)
 
@@ -178,10 +177,6 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMul
         }
     }
 
-    @Requires(
-        value = UnitTestPreconditions.Jdk8OrEarlier,
-        reason = "Hangs on Java 9"
-    )
     def "can run tests with custom system classloader and java agent"() {
         given:
         file('src/main/java/org/gradle/MySystemClassLoader.java') << customSystemClassLoaderClass

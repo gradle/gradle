@@ -36,7 +36,6 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.util.internal.VersionNumber
 import org.hamcrest.CoreMatchers.allOf
@@ -469,29 +468,6 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
                 containsString("Groovy DSL Settings"),
                 containsString("Kotlin DSL Build Script")
             )
-        )
-    }
-
-    @Test
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier::class)
-    fun `build script can use jdk8 extensions`() {
-
-        withBuildScript(
-            """
-
-            // without kotlin-stdlib-jdk8 we get:
-            // > Retrieving groups by name is not supported on this platform.
-
-            val regex = Regex("(?<bla>.*)")
-            val groups = regex.matchEntire("abc")?.groups
-            println("*" + groups?.get("bla")?.value + "*")
-
-            """
-        )
-
-        assertThat(
-            build("help").output,
-            containsString("*abc*")
         )
     }
 

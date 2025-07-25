@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -31,7 +32,7 @@ import java.nio.file.Paths
 
 // TODO: Move all of these tests to AbstractJavaCompilerIntegrationSpec
 // so that we can verify them for forking, in-process, and cli compilers.
-class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
+class JavaCompileIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
     @Rule
     Resources resources = new Resources()
@@ -597,8 +598,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("gradle/gradle#1358")
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
-    // Java 9 compiler throws error already: 'zip END header not found'
     def "compile classpath snapshotting should warn when jar on classpath is malformed"() {
         buildFile << '''
             plugins {
@@ -622,11 +621,16 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("gradle/gradle#1581")
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
     def "compile classpath snapshotting on Java 8 and earlier should warn when jar on classpath has non-utf8 characters in filenames"() {
         buildFile << '''
             plugins {
                 id("java-library")
+            }
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(8)
+                }
             }
 
             dependencies {
@@ -640,6 +644,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         executer.withStackTraceChecksDisabled()
 
         when:
+        withInstallations(AvailableJavaHomes.getJdk8())
         run 'compileJava', '--debug'
 
         then:
@@ -790,7 +795,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         skipped(':compileJava')
     }
 
-    
+
     def "compile a module"() {
         given:
         buildFile << '''
@@ -815,7 +820,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2537")
-    
+
     def "compile a module with --module-source-path"() {
         given:
         buildFile << '''
@@ -859,7 +864,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2537")
-    
+
     def "compile a module with --module-source-path and sourcepath warns and removes sourcepath"() {
         given:
         buildFile << '''
@@ -1129,7 +1134,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18262")
-    
+
     def "should compile sources from source with -sourcepath option for modules"() {
         given:
         buildFile << """

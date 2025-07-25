@@ -35,7 +35,6 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
     TestResources testResources = new TestResources(temporaryFolder)
 
     @Issue("GRADLE-1563")
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
     // JDK 9 requires an @Deprecated annotation that breaks this same test on Java 7 on Windows.
     def handlesTagsAndTaglets() {
         when:
@@ -49,7 +48,6 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue(["GRADLE-2520", "https://github.com/gradle/gradle/issues/4993"])
-    @Requires(UnitTestPreconditions.Jdk9OrEarlier)
     def canCombineLocalOptionWithOtherOptions() {
         when:
         run("javadoc")
@@ -112,7 +110,6 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(value = [
         UnitTestPreconditions.NotWindows,
-        UnitTestPreconditions.Jdk8OrEarlier
     ], reason = "JDK 9 Breaks multiline -header arguments.")
     @Issue("GRADLE-3099")
     def "writes multiline header"() {
@@ -324,7 +321,7 @@ Joe!""")
         executedAndNotSkipped(":javadoc")
     }
 
-    
+
     @Issue("https://github.com/gradle/gradle/issues/4841")
     def "adding custom javadoc options makes task out-of-date with html5 option"() {
         given: "a javadoc task without custom options"
@@ -361,7 +358,7 @@ Joe!""")
         executedAndNotSkipped(":javadoc")
     }
 
-    
+
     @Issue("https://github.com/gradle/gradle/issues/4841")
     def "changing the value of a custom javadoc options makes task out-of-date"() {
         given: "a javadoc task with a custom options"
@@ -399,7 +396,7 @@ Joe!""")
         executedAndNotSkipped(":javadoc")
     }
 
-    
+
     @Issue("https://github.com/gradle/gradle/issues/4841")
     def "changing which custom javadoc options are available makes task out-of-date"() {
         given: "a javadoc task with a custom options"
@@ -437,7 +434,7 @@ Joe!""")
         executedAndNotSkipped(":javadoc")
     }
 
-    
+
     @Issue("https://github.com/gradle/gradle/issues/4841")
     def "unchanged custom javadoc option does not make task out-of-date"() {
         given: "a javadoc task with a custom options"

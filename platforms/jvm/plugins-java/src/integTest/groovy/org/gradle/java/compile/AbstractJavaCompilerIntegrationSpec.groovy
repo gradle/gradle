@@ -20,18 +20,18 @@ package org.gradle.java.compile
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.integtests.fixtures.jvm.TestJavaClassUtil
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.serialize.JavaClassUtil
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Assume
 import spock.lang.Issue
 
-abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
+abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
     abstract String compilerConfiguration()
 
@@ -155,8 +155,7 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
     // JavaFx was removed in JDK 10
     // JavaFx comes packaged with Oracle JDKs
     @Requires([
-        UnitTestPreconditions.Jdk9OrEarlier,
-        UnitTestPreconditions.JdkOracle
+        IntegTestPreconditions.Java8HomeAvailable
     ])
     def "can compile JavaFx 8 code"() {
         given:
@@ -169,8 +168,15 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
                 }
             }
         """
-
+        buildFile << """
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(8)
+                }
+            }
+        """
         expect:
+        withInstallations(AvailableJavaHomes.getJdk8())
         succeeds("compileJava")
     }
 
