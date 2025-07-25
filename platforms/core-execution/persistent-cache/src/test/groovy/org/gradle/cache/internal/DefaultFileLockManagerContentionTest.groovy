@@ -136,17 +136,15 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
         createLock(Exclusive, file, manager, null)
     }
 
-    def "cannot create lock with contention handling when using rejecting handler"() {
+    def "can create lock with contention handling when using rejecting handler"() {
         FileLockManager manager = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, new RejectingFileLockContentionHandler())
         def file = tmpDir.file("lock-file.bin")
-
+        Consumer<FileLockReleasedSignal> whenContended = Mock()
         when:
-        createLock(Exclusive, file, manager) { FileLockReleasedSignal signal ->
-            signal.trigger()
-        }
+        createLock(Exclusive, file, manager, whenContended)
 
         then:
-        thrown(UnsupportedOperationException)
+        1 * whenContended.accept(_)
     }
 
     FileLock createLock(FileLockManager.LockMode lockMode, File file, FileLockManager lockManager = manager, Consumer<FileLockReleasedSignal> whenContended = null) {
