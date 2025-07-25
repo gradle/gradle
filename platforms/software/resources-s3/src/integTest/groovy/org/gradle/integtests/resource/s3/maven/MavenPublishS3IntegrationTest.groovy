@@ -21,14 +21,11 @@ import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTes
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Repository
 import org.gradle.integtests.resource.s3.fixtures.S3Artifact
 import org.gradle.integtests.resource.s3.fixtures.S3Server
-import org.gradle.test.precondition.Requires
 import org.gradle.test.precondition.TestPrecondition
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.TestCredentialUtil
 import org.junit.Rule
 
-@Requires(IntegTestPreconditions.CanPublishToS3)
 class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
     @Rule
     public S3Server server = new S3Server(temporaryFolder)

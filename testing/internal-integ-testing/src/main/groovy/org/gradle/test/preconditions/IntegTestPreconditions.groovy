@@ -281,13 +281,6 @@ class IntegTestPreconditions {
         }
     }
 
-    static final class CanPublishToS3 implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            // The S3 publish tests require the following
-            return true
-        }
-    }
 
     static class CanKillProcess implements TestPrecondition {
         @Override

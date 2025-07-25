@@ -89,7 +89,6 @@ UnitTestPreconditions$WorkingDir
 UnitTestPreconditions$OnRemoteTestDistributionExecutor
 UnitTestPreconditions$NotInGradleceptionBuild
 
-IntegTestPreconditions$CanPublishToS3
 IntegTestPreconditions$HasMsBuild
 IntegTestPreconditions$HasMsBuild,UnitTestPreconditions$CanInstallExecutable
 IntegTestPreconditions$IsConfigCached
