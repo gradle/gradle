@@ -267,13 +267,6 @@ class UnitTestPreconditions {
         }
     }
 
-    static final class Jdk14OrLater implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() >= JavaVersion.VERSION_14
-        }
-    }
-
     static final class Jdk15OrEarlier implements TestPrecondition {
         @Override
         boolean isSatisfied() {
