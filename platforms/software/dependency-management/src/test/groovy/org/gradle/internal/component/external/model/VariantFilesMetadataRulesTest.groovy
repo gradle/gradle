@@ -64,7 +64,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         }
         def metadata = mavenMetadataFactory.create(componentIdentifier, dependencies)
             .asImmutable()
-            .withDerivationStrategy(JavaEcosystemVariantDerivationStrategy.instance)
+            .withDerivationStrategy(AttributeTestUtil.javaEcosystemVariantDerivationStrategy())
             .asMutable()
         metadata
     }
