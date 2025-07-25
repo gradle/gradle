@@ -304,7 +304,7 @@ However, calling some available methods from this interface—such as `.size()`,
 The same is possible using Kotlin stdlib collection extension methods or Groovy GDK collection extensions.
 Converting a `Configuration` to a `Set<File>` also discards any implicit task dependencies it carries.
 
-You should avoid using these methods when configuring your build. 
+You should avoid using these methods when configuring your build.
 Instead, use the methods defined directly on the Gradle interfaces - this is a necessary _first step_ towards preventing eager resolutions.
 Be sure to use <<lazy_configuration.adoc#working_with_files_in_lazy_properties,lazy types and APIs>> that defer resolution to wire task dependencies and inputs correctly.
 Some methods that cause resolution are not obvious.
@@ -409,3 +409,40 @@ The output reveals that the `lib` project is now built when the `:app:goodClassp
 
 === Tags
 `<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`, `<<tags_reference.adoc#tag:configurations,#configurations>>`
+
+[[dont_hardcode_task_names]]
+== Don't hardcode task names when referring to them
+
+Making assumptions about task names makes a build fragile to Gradle and plugin updates.
+
+=== Explanation
+
+Task names are consider implementation details of a plugin, so hardcoding task name patterns in your build logic
+can result in unexpected behaviors after an upgrade of such plugin as the tasks might be renamed or removed.
+
+Prefer using plugin DSL to achieve your desired behavior. If the DSL is missing, rely on task type to do the configuration.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *Using tasks.named to get `JavaCompile`*: This relies on this task name and that's the only `JavaCompile` task that needs configuring.
+<2> *Using tasks.named to get `Test`*: This relies on this task name and that's the only `Test` task that needs configuring.
+
+==== Do This Instead
+
+====
+include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> *Using java DSL*: Entirely avoids implementation details of `java-library` plugin and sets `sourceCompatibility` for all `JavaCompile` tasks.
+<2> *Using `tasks.withType`*: Avoids hardcoding task names and ensures that all `Test` tasks are configured.
+
+=== Tags
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:upgrades,`#upgrades`>>`
