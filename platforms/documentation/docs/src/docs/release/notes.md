@@ -15,7 +15,7 @@ For an overview of the changes between Gradle 8.0 and @version@, along with demo
 
 This release makes [Configuration Cache](#config-cache) the preferred execution mode and introduces several enhancements to improve its behavior.
 
-Gradle @version@ uses [Kotlin 2](#kotlin-2) and [Groovy 4](#groovy-4), and adopts [Semantic Versioning](#sem-ver) (SemVer) with version numbers in the format `MAJOR.MINOR.PATCH`.
+Gradle @version@ requires [Java 17+ to run](#jvm-17), uses [Kotlin 2](#kotlin-2) and [Groovy 4](#groovy-4), and adopts [Semantic Versioning](#sem-ver) (SemVer) with version numbers in the format `MAJOR.MINOR.PATCH`.
 
 It also introduces several improvements for [build authors](#build-authoring), including much better Kotlin DSL script compilation avoidance, updates to the Gradle API, reproducible archive outputs, and a new dependency graph root type that allows detached configurations to resolve project dependencies.
 
