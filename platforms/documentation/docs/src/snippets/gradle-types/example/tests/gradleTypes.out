@@ -1,0 +1,12 @@
+>> DURING CONFIGURATION
+>>> eagerMessage type: class kotlin.String
+>>> eagerMessage value: Hello from eager
+>>> lazyMessage type: class org.gradle.api.internal.provider.DefaultProperty
+>>> lazyMessage value: property(java.lang.String, map(java.lang.String provider(?) check-type()))
+
+> Task :app:demoTask
+>> DURING EXECUTION
+>>> eagerMessage type: class kotlin.String
+>>> eagerMessage value: Hello from eager
+>>> lazyMessage type: class org.gradle.api.internal.provider.DefaultProperty
+>>> lazyMessage value: Hello from lazy

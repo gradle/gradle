@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[inspecting_build_scans]]
-= Inspecting Gradle Builds
+= Build Scan
 
 ++++
 <div class="badge-wrapper">

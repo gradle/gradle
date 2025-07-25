@@ -33,7 +33,7 @@ Here you can find a brief explanation of all the tags used in the best practices
 `#kotlin-dsl` :: Items that explain the benefits of using the <<kotlin_dsl.adoc#kotdsl:kotlin_dsl,Kotlin DSL>> and how to adopt it effectively.
 
 [[tag:inputs-and-outputs]]
-`#inputs-and-outputs`:: Items that are related to Gradle <<writing_tasks.adoc#task_inputs_and_outputs,task inputs and outputs>>, the annotations used to declare them, and their proper use.
+`#inputs-and-outputs`:: Items that are related to Gradle <<writing_tasks_intermediate.adoc#task_inputs_and_outputs,task inputs and outputs>>, the annotations used to declare them, and their proper use.
 
 [[tag:plugins]]
 `#plugins` :: Items that explain the proper way to <<custom_plugins.adoc#custom_plugins,write plugins>> in Gradle, and common footguns involved in plugin authoring.
@@ -54,7 +54,7 @@ Here you can find a brief explanation of all the tags used in the best practices
 `#task-configuration-avoidance` :: Items that are related to Gradle's <<task_configuration_avoidance.adoc#task_configuration_avoidance,task configuration avoidance>> APIs and how to use them effectively.
 
 [[tag:tasks]]
-`#tasks` :: Items that explain the proper way to <<writing_tasks.adoc#sec:sample_task,write tasks>> in Gradle, and common footguns involved in task authoring.
+`#tasks` :: Items that explain the proper way to <<writing_tasks_intermediate.adoc#sec:sample_task,write tasks>> in Gradle, and common footguns involved in task authoring.
 
 [[tag:up-to-date-checking]]
 `#up-to-date-checking` :: Items that are related to Gradle's <<incremental_build.adoc#sec:how_does_it_work,up-to-date checking>> mechanism, and how to ensure work avoidance behaves properly in your build.

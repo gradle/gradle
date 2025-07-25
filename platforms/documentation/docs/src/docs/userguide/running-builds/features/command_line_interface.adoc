@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[command_line_interface_reference]]
-= Command-Line Interface Reference
+= Command-Line Interface
 :keywords: cli, clean, check, projects, tasks, rerun-tasks, continue, build-cache, no-build-cache, configuration-cache, no-configuration-cache, configuration-cache-problems, configure-on-demand, no-configure-on-demand, max-workers, parallel, no-parallel, priority, profile, scan, watch-fs, no-watch-fs, help, version, show-version, full-stacktrace, stacktrace, org.gradle.debug, org.gradle.debug.host, org.gradle.debug.port, org.gradle.debug.server, org.gradle.debug.suspend, project-cache-dir, system-prop, init-script, project-prop, org.gradle.jvmargs, org.gradle.java.home, gradle-user-home, dependency-verification, write-verification-metadata, refresh-keys, export-keys, include-build, offline, refresh-dependencies, dry-run, continuous, write-locks, update-locks , no-rebuild, org.gradle.warning.mode, warning-mode, no-problems-report, problems-report, org.gradle.console, console, org.gradle.logging.level, quiet, warn, info, debug, daemon, no-daemon, foreground, status, stop, org.gradle.daemon.idletimeout, exclude-task, distribution-type, gradle-distribution-url, gradle-distribution-sha256-sum, gradle-version
 
 The command-line interface is the **primary method of interacting with Gradle**.
@@ -93,7 +93,7 @@ To execute a task called `myTask` on the root project, type:
 $ gradle :myTask
 ----
 
-This will run the single `myTask` and all of its <<tutorial_using_tasks.adoc#sec:task_dependencies,dependencies>>.
+This will run the single `myTask` and all of its <<writing_tasks_intermediate.adoc#sec:task_dependencies,dependencies>>.
 
 [[sec:disambiguate_task_options_from_built_in_options]]
 === Specify options for tasks
@@ -125,7 +125,7 @@ Consider a task named `mytask` that accepts an option named `profile`:
 [[executing_tasks_in_multi_project_builds]]
 === Executing tasks in multi-project builds
 
-In a <<intro_multi_project_builds.adoc#intro_multi_project_builds, multi-project build>>, subproject tasks can be executed with `:` separating the subproject name and task name.
+In a <<multi_project_builds_intermediate.adoc#intro_multi_project_builds, multi-project build>>, subproject tasks can be executed with `:` separating the subproject name and task name.
 The following are equivalent when _run from the root project_:
 
 [source,bash]

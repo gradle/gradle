@@ -16,11 +16,12 @@
 = Installing Gradle
 :keywords: install
 
+If all you want to do is run an existing Gradle project, then you don't need to install Gradle if the build uses the <<gradle_wrapper#gradle_wrapper_reference,Gradle Wrapper>>.
+
 [[gs:installation]]
 == Gradle Installation
 
-If all you want to do is run an existing Gradle project, then you don't need to install Gradle if the build uses the <<gradle_wrapper#gradle_wrapper_reference,Gradle Wrapper>>.
-This is identifiable by the presence of the `gradlew` or `gradlew.bat` files in the root of the project:
+The Gradle Wrapper is identifiable by the presence of the `gradlew` or `gradlew.bat` files in the root of the project:
 
 [listing,subs=+macros]
 ----
@@ -282,19 +283,18 @@ Open a console (or a Windows command prompt) and run `gradle -v` to run gradle a
 ❯ gradle -v
 
 ------------------------------------------------------------
-Gradle {gradleVersion}
+Gradle 9.0.0
 ------------------------------------------------------------
 
-Build time:    2025-05-13 06:56:13 UTC
-Revision:      3c890746756262d3778e12eaa5155d661d7cbdf2
+Build time:    2025-07-17 12:48:00 UTC
+Revision:      2db9560bb68c367a265b10516c856c840f9bed8d
 
-Kotlin:        2.1.21
+Kotlin:        2.2.0
 Groovy:        4.0.27
 Ant:           Apache Ant(TM) version 1.10.15 compiled on August 25 2024
-Launcher JVM:  22.0.1 (Oracle Corporation 22.0.1+8-16)
+Launcher JVM:  17.0.11 (Amazon.com Inc. 17.0.11+9-LTS)
 Daemon JVM:    Compatible with Java 17, any vendor, nativeImageCapable=false (from gradle/gradle-daemon-jvm.properties)
-OS:            Mac OS X 15.5 aarch64
-
+OS:            Mac OS X 14.7.4 aarch64
 ----
 
 You can verify the integrity of the Gradle distribution by downloading the SHA-256 file (available from the link:{website}/releases[releases page]) and following these <<gradle_wrapper.adoc#sec:verification,verification instructions>>.

@@ -41,7 +41,7 @@ While your build file lists direct dependencies, the task helps you understand w
 $ ./gradlew dependencies
 ----
 
-TIP: To render the graph of dependencies <<tutorial_using_tasks.adoc#sec:build_script_external_dependencies, declared in the `buildscript` `classpath` configuration>>, use the <<command_line_interface.adoc#sec:listing_project_dependencies, `buildEnvironment` task>>.
+TIP: To render the graph of dependencies declared in the `buildscript` `classpath` configuration, use the <<command_line_interface.adoc#sec:listing_project_dependencies, `buildEnvironment` task>>.
 
 === Understanding output annotations
 

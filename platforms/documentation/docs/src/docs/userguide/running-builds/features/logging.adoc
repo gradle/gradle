@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[logging]]
-= Logging
+= Logging and Output
 :keywords: error, quiet, warning, lifecycle, info, warn, org.gradle.logging.level, stacktrace, org.gradle.logging.stacktrace, full-stacktrace
 
 The build log is the primary way Gradle communicates what's happening during a build.
@@ -281,7 +281,7 @@ include::{snippetsPath}/initScripts/customLogger/tests/customLogger.out[]
 Your logger can implement any of the listener interfaces listed below.
 When you register a logger, only the logging for the interfaces it implements is replaced.
 Logging for the other interfaces is left untouched.
-You can find out more about the listener interfaces in <<build_lifecycle.adoc#sec:build_phases,Build lifecycle events>>.
+You can find out more about the listener interfaces in <<build_lifecycle_intermediate.adoc#sec:build_phases,Build lifecycle events>>.
 
 * link:{javadocPath}/org/gradle/BuildListener.html[BuildListener]footnote:config_cache_incompat[Not compatible with the configuration cache.]
 * link:{javadocPath}/org/gradle/api/ProjectEvaluationListener.html[ProjectEvaluationListener]

@@ -92,7 +92,7 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-unlockingSi
 
 If you apply plugins to your build, you may want to leverage dependency locking there as well.
 
-To lock the <<plugins.adoc#sec:applying_plugins_buildscript,`classpath` configuration>> used for script plugins:
+To lock the <<plugins_intermediate.adoc#sec:applying_plugins_buildscript,`classpath` configuration>> used for script plugins:
 
 ====
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingClasspathConfiguration/kotlin",files="build.gradle.kts[tags=locking-classpath]"]
@@ -176,7 +176,7 @@ TIP: Lockfiles should be checked in to source control.
 === Location of lock files
 
 - The lock state is preserved in a file named `gradle.lockfile`, located at the root of each project or subproject directory.
-- The exception is the lockfile for the <<plugins.adoc#sec:applying_plugins_buildscript,buildscript itself>>, which is named `buildscript-gradle.lockfile`.
+- The exception is the lockfile for the <<plugins_intermediate.adoc#sec:applying_plugins_buildscript,buildscript itself>>, which is named `buildscript-gradle.lockfile`.
 
 === Structure of lock files
 

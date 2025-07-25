@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[build_scans]]
-= Build Scan
+= Build Scan Basics
 
 ++++
 <div class="badge-wrapper">
@@ -60,7 +60,7 @@ Visit the link:https://scans.gradle.com/[Build Scan page] to learn more.
 
 To see what data is captured and sent in a Build Scan, refer to the link:https://docs.gradle.com/develocity/gradle-plugin/current/#captured_information)[Captured Information] section in the Gradle Develocity Plugin documentation.
 
-Ready to build something? Start with the <<gradle_basics.adoc#gradle,Beginner Tutorial>>.
+Ready to build something? Start with the <<part1_gradle_init.adoc#part1_gradle_init,Beginner Tutorial>>.
 
 [.text-right]
 **Next Step:** <<part1_gradle_init.adoc#part1_gradle_init,Start the Tutorial>> >>

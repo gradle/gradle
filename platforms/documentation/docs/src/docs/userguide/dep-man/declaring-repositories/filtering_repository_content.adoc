@@ -69,7 +69,7 @@ When setting up exclusive content filters be sure to also consider what reposito
 
 [NOTE]
 ====
-If you leverage exclusive content filtering in the <<plugins.adoc#sec:custom_plugin_repositories,`pluginManagement` section of the `settings.gradle(.kts)`>>, it becomes illegal to add more repositories through the project `buildscript.repositories`.
+If you leverage exclusive content filtering in the <<plugins_intermediate.adoc#sec:custom_plugin_repositories,`pluginManagement` section of the `settings.gradle(.kts)`>>, it becomes illegal to add more repositories through the project `buildscript.repositories`.
 In that case, the build configuration will fail.
 
 Your options are either to declare all repositories in settings or to use non-exclusive content filtering.

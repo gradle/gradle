@@ -82,7 +82,7 @@ import java.util.Set;
  */
 public class GradleResolveVisitor extends ResolveVisitor {
     // note: BigInteger and BigDecimal are also imported by default
-    // TODO: sync with the documentation in writing_build_scripts.adoc
+    // TODO: sync with the documentation in writing_build_scripts_intermediate.adoc
     private static final String[] DEFAULT_IMPORTS = {"java.lang.", "java.io.", "java.net.", "java.util.", "groovy.lang.", "groovy.util.", "java.time."};
     private static final String SCRIPTS_PACKAGE = "org.gradle.groovy.scripts";
 

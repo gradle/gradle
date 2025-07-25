@@ -286,7 +286,7 @@ include::{snippetsPath}/bestPractices/groupTasks-do/tests/groupTasks.good.out[]
 
 === References
 
-- <<writing_tasks.adoc#task_group_and_description,Task Group and Description>>
+- <<more_about_tasks.adoc#sec:task_groups,Task Group and Description>>
 
 === Tags
 `<<tags_reference.adoc#tag:tasks,#tasks>>`

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[gradle_wrapper_reference]]
-= Gradle Wrapper Reference
+= Gradle Wrapper
 :keywords: wrapper, distributionUrl, gradle-version, systemProp.gradle.wrapperUser, systemProp.gradle.wrapperPassword, gradle-wrapper.jar, gradle-wrapper.properties, gradlew, gradlew.bat, gradle-version, distribution-type, gradle-distribution-url, gradle-distribution-sha256-sum, network-timeout, no-validate-url, validate-url,
 
 The **recommended way to execute any Gradle build** is with the help of the Gradle Wrapper (referred to as "Wrapper").
