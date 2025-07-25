@@ -33,6 +33,7 @@ import java.time.Instant
 import java.util.concurrent.TimeUnit
 
 import static org.gradle.cache.FileLockManager.LockMode.OnDemand
+import static org.gradle.cache.FileLockManager.LockMode.OnDemandEagerRelease
 import static org.gradle.cache.FileLockManager.LockMode.Shared
 import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode
 
@@ -124,7 +125,7 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
     }
 
     def "open does not lock cache directory when None mode requested"() {
-        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(OnDemand), null, lockManager, Mock(ExecutorFactory))
+        final store = new DefaultPersistentDirectoryStore(cacheDir, "<display>", mode(lockMode), null, lockManager, Mock(ExecutorFactory))
 
         when:
         store.open()
@@ -137,6 +138,9 @@ class DefaultPersistentDirectoryStoreTest extends Specification {
 
         then:
         0 * _._
+
+        where:
+        lockMode << [OnDemand, OnDemandEagerRelease]
     }
 
     def "runs cleanup action when it is due"() {

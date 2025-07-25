@@ -20,7 +20,6 @@ import org.gradle.api.Incubating
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.plugins.PluginAware
-import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForSettings
@@ -29,7 +28,6 @@ import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.baseClass
 import kotlin.script.experimental.api.filePathPattern
 import kotlin.script.experimental.api.implicitReceivers
-import kotlin.script.templates.ScriptTemplateDefinition
 
 
 class KotlinSettingsScriptTemplateCompilationConfiguration : KotlinDslStandaloneScriptCompilationConfiguration({
@@ -47,9 +45,6 @@ class KotlinSettingsScriptTemplateCompilationConfiguration : KotlinDslStandalone
 @Incubating
 @KotlinScript(
     compilationConfiguration = KotlinSettingsScriptTemplateCompilationConfiguration::class
-)
-@ScriptTemplateDefinition(
-    resolver = KotlinBuildScriptDependenciesResolver::class,
 )
 @GradleDsl
 abstract class KotlinSettingsScriptTemplate(

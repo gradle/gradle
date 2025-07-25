@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
 class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport, ConfigurationUsageChangingFixture {
-
     @Issue("https://github.com/gradle/gradle/issues/23932")
     def "does not eagerly resolve compile tasks"() {
         buildFile << """

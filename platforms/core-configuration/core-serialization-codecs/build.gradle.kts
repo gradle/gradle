@@ -49,6 +49,7 @@ dependencies {
     implementation(projects.baseServicesGroovy)
     implementation(projects.beanSerializationServices)
     implementation(projects.buildOperations)
+    implementation(projects.buildDiscoveryApi)
     implementation(projects.configurationProblemsBase)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.execution)

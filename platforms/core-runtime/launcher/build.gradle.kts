@@ -7,6 +7,8 @@ description = "Implementation for launching, controlling and communicating with 
 
 dependencies {
     api(projects.baseServices)
+    api(projects.buildDiscovery)
+    api(projects.buildDiscoveryApi)
     api(projects.buildEvents)
     api(projects.buildOperations)
     api(projects.buildOption)

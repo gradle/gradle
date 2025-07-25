@@ -162,7 +162,7 @@ class BuildLayoutFactoryTest extends Specification {
         currentDir.createFile(settingsFilename)
         def startParameter = new StartParameterInternal()
         startParameter.currentDir = currentDir
-        def config = new BuildLayoutConfiguration(startParameter)
+        def config = startParameter.toBuildLayoutConfiguration()
 
         expect:
         def layout = locator.getLayoutFor(config)
