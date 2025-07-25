@@ -20,16 +20,18 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.plugins.UnknownPluginException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
-class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegrationSpec {
+class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
     def currentGradle = GradleVersion.current().version
 
-    @Requires(value = UnitTestPreconditions.Jdk15OrEarlier, reason = "older Gradle version 6.7.1 is used in test")
+    @Requires(value = IntegTestPreconditions.Java11HomeAvailable, reason = "older Gradle version 6.7.1 is used in test")
     def "can publish and use Gradle plugin with multiple variants"() {
         given:
         def producer = file('producer')
@@ -46,6 +48,13 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
 
             group = "com.example"
             version = "1.0"
+
+            // build for Java 11
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of('11')
+                }
+            }
 
             // == Add a Gradle 7 variant
             def gradle7 = sourceSets.create('gradle7')
@@ -102,6 +111,8 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
             }
         """
 
+        withInstallations(AvailableJavaHomes.getJdk11())
+
         when:
         projectDir(producer)
         succeeds 'publish'
@@ -131,7 +142,7 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
         outputContains("Hello from Gradle 7.0+")
 
         and:
-        def gradle6Executer = buildContext.distribution("6.7.1").executer(temporaryFolder, buildContext)
+        def gradle6Executer = buildContext.distribution("6.7.1").executer(temporaryFolder, buildContext).withJvm(AvailableJavaHomes.getJdk11())
         def gradle6Result = gradle6Executer.usingProjectDirectory(consumer).withTasks('greet').run()
 
         then:
