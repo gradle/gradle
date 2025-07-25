@@ -29,7 +29,7 @@ The following sections describe each requirement and provide guidance on resolvi
 [[config_cache:requirements:disallowed_types]]
 == Certain Types must not be Referenced by Tasks
 
-Some types must not be referenced by task fields or in task actions (such as `doFirst {}` or `doLast {}`).
+Some types must not be referenced by task fields or in task actions (methods annotated `@TaskAction`, or the `doFirst {}` and `doLast {}` DSL blocks).
 
 These types fall into the following categories:
 
@@ -88,7 +88,7 @@ The following is the fixed version:
 include::sample[dir="snippets/configurationCache/disallowedTypesFixed/kotlin",files="build.gradle.kts[tags=task-type]"]
 include::sample[dir="snippets/configurationCache/disallowedTypesFixed/groovy",files="build.gradle[tags=task-type]"]
 ====
-<1> No more problems reported, we now reference the supported type `FileCollection`
+<1> No more problems reported, the task now uses the supported type `ConfigurableFileCollection`
 
 If an ad-hoc task in a script captures a disallowed reference in a `doLast {}` closure:
 
@@ -98,7 +98,7 @@ include::sample[dir="snippets/configurationCache/disallowedTypes/groovy",files="
 ====
 <1> This will be reported as a problem because the `doLast {}` closure is capturing a reference to the `SourceSet`
 
-You still need to fulfil the same requirement, that is not referencing a disallowed type.
+You still need to fulfill the same requirement, that is, do not reference the disallowed type during task execution.
 
 This is how the task declaration above can be fixed:
 
@@ -257,7 +257,7 @@ Use a task input or output property or a script variable to capture the result o
 == Accessing a Task Instance from Another Instance
 
 Tasks must not directly access the state of another task instance.
-Instead, they should be connected using <<lazy_configuration#working_with_task_dependencies_in_lazy_properties, inputs and outputs relationships>>.
+Instead, they should be connected using <<lazy_configuration#working_with_task_dependencies_in_lazy_properties, input and output relationships>>.
 
 This requirement ensures that tasks remain isolated and correctly cacheable.
 As a result, it is unsupported to write tasks that configure other tasks at execution time.
