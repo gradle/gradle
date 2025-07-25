@@ -86,8 +86,7 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
         dsl << ['groovy', 'kotlin']
     }
 
-    @Requires([UnitTestPreconditions.Online, UnitTestPreconditions.Jdk11OrEarlier])
-    // Uses Gradle 5.0 which does not support Java versions >11
+    @Requires([UnitTestPreconditions.Online])
     @UsesSample("testKit/gradleVersion")
     def gradleVersion() {
         expect:

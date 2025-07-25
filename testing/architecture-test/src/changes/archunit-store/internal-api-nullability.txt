@@ -4240,7 +4240,6 @@ Class <org.gradle.test.preconditions.UnitTestPreconditions$HasXCode> is not anno
 Class <org.gradle.test.preconditions.UnitTestPreconditions$HighPerformance> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$IsKnownWindowsSocketDisappearanceIssue> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$IsNotKnownWindowsSocketDisappearanceIssue> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
-Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk11OrEarlier> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk19OrEarlier> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk21OrEarlier> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
 Class <org.gradle.test.preconditions.UnitTestPreconditions$Jdk21OrLater> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UnitTestPreconditions.groovy:0)
