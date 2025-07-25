@@ -290,7 +290,7 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         bytecodeVersion() == 55
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    
     def "fails to compile with release property and flag set"() {
         given:
         goodCode()

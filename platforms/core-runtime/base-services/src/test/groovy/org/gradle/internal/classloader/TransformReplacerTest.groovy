@@ -21,8 +21,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.internal.classloader.TransformReplacer.MarkerResource
 import org.gradle.internal.classpath.TransformedClassPath
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -107,7 +106,7 @@ class TransformReplacerTest extends Specification {
         INSTRUMENTED_CLASS == loadTransformedClass(cp, "Foo", original)
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    
     def "replaces original class with transformed from versioned directory in multi-release JAR"() {
         given:
         def original = jar(testDir.file("original.jar")) {
@@ -136,7 +135,7 @@ class TransformReplacerTest extends Specification {
         INSTRUMENTED_VERSIONED_CLASS == loadTransformedClass(cp, "Foo", original)
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    
     def "replaces original class with transformed from versioned directory in multi-release JAR if next version is not supported"() {
         given:
         def original = jar(testDir.file("original.jar")) {
@@ -166,7 +165,7 @@ class TransformReplacerTest extends Specification {
         INSTRUMENTED_VERSIONED_CLASS == loadTransformedClass(cp, "Foo", original)
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    
     def "fails loading if transformed multi-release jar has no marker resource"() {
         given:
         def original = jar(testDir.file("original.jar")) {
@@ -195,7 +194,7 @@ class TransformReplacerTest extends Specification {
         e.message.contains("cannot be fully instrumented for Java ${JavaVersion.current().majorVersion}")
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    
     def "fails loading if transformed multi-release jar does not instrument current JVM"() {
         given:
         def original = jar(testDir.file("original.jar")) {

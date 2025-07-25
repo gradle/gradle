@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+
 import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Timeout
@@ -140,7 +140,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Flaky(because = "https://github.com/gradle/gradle-private/issues/3636")
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    
     def "can debug on explicitly any host"() {
         given:
         JDWPUtil jdwpClient = new JDWPUtil()

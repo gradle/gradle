@@ -127,7 +127,7 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMul
         }
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    
     def "can run tests referencing slf4j with modular java"() {
         Assume.assumeTrue(frameworkSupportsModularJava)
 

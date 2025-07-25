@@ -790,7 +790,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         skipped(':compileJava')
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    
     def "compile a module"() {
         given:
         buildFile << '''
@@ -815,7 +815,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2537")
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    
     def "compile a module with --module-source-path"() {
         given:
         buildFile << '''
@@ -859,7 +859,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2537")
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    
     def "compile a module with --module-source-path and sourcepath warns and removes sourcepath"() {
         given:
         buildFile << '''
@@ -1129,7 +1129,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18262")
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    
     def "should compile sources from source with -sourcepath option for modules"() {
         given:
         buildFile << """

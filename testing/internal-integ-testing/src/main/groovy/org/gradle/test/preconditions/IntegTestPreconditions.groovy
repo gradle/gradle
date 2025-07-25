@@ -328,7 +328,7 @@ class IntegTestPreconditions {
         @Override
         boolean isSatisfied() {
             // The S3 publish tests require the following
-            return TestPrecondition.satisfied(UnitTestPreconditions.Jdk9OrLater) || TestPrecondition.notSatisfied(IsEmbeddedExecutor)
+            return true
         }
     }
 

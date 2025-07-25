@@ -21,8 +21,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationAccess
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+
 import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.internal.GroovyDependencyUtil
 import org.gradle.util.internal.TextUtil
@@ -349,7 +348,7 @@ abstract class BaseIncrementalCompilationAfterFailureIntegrationTest extends Abs
 class JavaIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrementalCompilationAfterFailureIntegrationTest {
     CompiledLanguage language = CompiledLanguage.JAVA
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    
     def "incremental compilation after failure works with modules #description"() {
         file("impl/build.gradle") << """
             def layout = project.layout

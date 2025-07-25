@@ -153,7 +153,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains('Arg: -DGOO=\'car < caz\'')
     }
 
-    @Requires([UnitTestPreconditions.Jdk9OrLater, PluginTestPreconditions.BashAvailable])
+    @Requires(PluginTestPreconditions.BashAvailable)
     def "can execute generated Unix start script for Java module in Bash"() {
         given:
         turnSampleProjectIntoModule()
@@ -166,7 +166,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains('Hello World!')
     }
 
-    @Requires([UnitTestPreconditions.Jdk9OrLater, PluginTestPreconditions.DashAvailable])
+    @Requires(PluginTestPreconditions.DashAvailable)
     def "can execute generated Unix start script for Java module in Dash"() {
         given:
         turnSampleProjectIntoModule()
@@ -179,7 +179,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains('Hello World!')
     }
 
-    @Requires([UnitTestPreconditions.Jdk9OrLater, PluginTestPreconditions.StaticShAvailable])
+    @Requires(PluginTestPreconditions.StaticShAvailable)
     def "can execute generated Unix start script for Java module in BusyBox"() {
         given:
         turnSampleProjectIntoModule()

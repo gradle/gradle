@@ -16,14 +16,13 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.test.fixtures.maven.MavenModule
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+
 
 import static org.gradle.test.fixtures.jpms.ModuleJarFixture.autoModuleJar
 import static org.gradle.test.fixtures.jpms.ModuleJarFixture.moduleJar
 import static org.gradle.test.fixtures.jpms.ModuleJarFixture.traditionalJar
 
-@Requires(UnitTestPreconditions.Jdk9OrLater)
+
 class EclipseJavaModulesIntegrationTest extends AbstractEclipseIntegrationSpec {
 
     def setup() {
