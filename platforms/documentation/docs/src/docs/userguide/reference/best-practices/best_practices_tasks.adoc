@@ -304,7 +304,7 @@ However, calling some available methods from this interface—such as `.size()`,
 The same is possible using Kotlin stdlib collection extension methods or Groovy GDK collection extensions.
 Converting a `Configuration` to a `Set<File>` also discards any implicit task dependencies it carries.
 
-You should avoid using these methods when configuring your build. 
+You should avoid using these methods when configuring your build.
 Instead, use the methods defined directly on the Gradle interfaces - this is a necessary _first step_ towards preventing eager resolutions.
 Be sure to use <<lazy_configuration.adoc#working_with_files_in_lazy_properties,lazy types and APIs>> that defer resolution to wire task dependencies and inputs correctly.
 Some methods that cause resolution are not obvious.
@@ -409,3 +409,57 @@ The output reveals that the `lib` project is now built when the `:app:goodClassp
 
 === Tags
 `<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`, `<<tags_reference.adoc#tag:configurations,#configurations>>`
+
+[[dont_hardcode_task_names]]
+== Don’t hardcode task names unless they are documented as public API
+
+Hardcoding task names can make a build fragile when upgrading Gradle or third-party plugins.
+
+=== Explanation
+
+Some task names in core Gradle are part of the <<public_apis.adoc#public_gradle_apis,Gradle public API>> and are stable.
+Most other task names in Gradle and third-party plugins are internal implementation details. They may be renamed or removed in future versions and should not be relied upon.
+Task types are also not guaranteed to remain stable; plugin authors may refactor them. In practice, configuring tasks by type is usually more robust than depending on specific names, especially in ecosystems like Android or Kotlin where many tasks are generated dynamically.
+
+Prefer, in order:
+
+  1. Plugin DSL - Future-proof and most stable.
+  2. Task types - Robust in many cases, but can change across plugin versions.
+  3. Task names - Use only when they are explicitly documented as <<public_apis.adoc#public_gradle_apis,public API>>.
+
+As a plugin author, provide a DSL extension for users to configure behavior declaratively. Internally wire the configuration into your tasks. Avoid exposing task names as part of your public API unless you are prepared to maintain them with deprecation cycles.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *Using tasks.named to get `GenerateMavenPom`*: This relies on this task name and that's the only `GenerateMavenPom` task that needs configuring.
+
+==== Do This Instead
+
+The following is okay to use because this task namee is part of <<public_apis.adoc#public_gradle_apis,public API>>.
+
+====
+include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-do/kotlin",files="build.gradle.kts[tags=ok]"]
+include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-do/groovy",files="build.gradle[tags=ok]"]
+====
+
+<1> *Using tasks.named to get `JavaCompile`*: This uses a public constant to get `JavaCompile`.
+
+The best option is to use DSL where possible
+
+====
+include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-do/kotlin",files="build.gradle.kts[tags=best]"]
+include::sample[dir="snippets/bestPractices/avoidHardcodingTaskNames-do/groovy",files="build.gradle[tags=best]"]
+====
+
+<1> *Using java DSL*: Entirely avoids implementation details of `java-library` plugin and sets `sourceCompatibility` for all `JavaCompile` tasks.
+<2> *Using publishing DSL*: Avoids hardcoding task names and ensures that generated pom has the expected URL.
+
+=== Tags
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:upgrades,`#upgrades`>>`
