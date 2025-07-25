@@ -17,12 +17,17 @@
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.plugins.ExtraPropertiesExtension;
-
-import java.util.Map;
+import org.gradle.internal.extensibility.ExtraPropertiesGradlePropertiesLookup;
 
 /**
  * Internal protocol for the initialization of extra properties.
  */
 public interface ExtraPropertiesExtensionInternal extends ExtraPropertiesExtension {
-    void setGradleProperties(Map<String, Object> properties);
+
+    /**
+     * Attached Gradle properties act as a fallback for extra property lookup.
+     * <p>
+     * Only Project and Settings extra properties use this capability.
+     */
+    void attachGradlePropertiesLookup(ExtraPropertiesGradlePropertiesLookup gradlePropertiesLookup);
 }
