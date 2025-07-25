@@ -806,7 +806,7 @@ The default version of CodeNarc has been updated to https://github.com/CodeNarc/
 
 ==== Upgrade to PMD 6.48.0
 
-PMD has been updated to https://pmd.github.io/pmd-6.48.0/pmd_release_notes.html[PMD 6.48.0].
+PMD has been updated to https://github.com/pmd/pmd/releases/tag/pmd_releases%2F6.48.0[PMD 6.48.0].
 
 ==== Configuring a non-existing executable now fails
 
@@ -865,7 +865,7 @@ Other syntax effected by this change includes:
 - You cannot use a bundle as a dependency declaration directly (`implementation(libs.bundles.testing)`).
 Use `implementation.bundle(libs.bundles.testing)` instead.
 
-For more information, see the updated <<jvm_test_suite_plugin.adoc#sec:declare_an_additional_test_suite, declare an additional test suite>> example in the JVM Test Suite Plugin section of the user guide and the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyAdder.html[`DependencyAdder`] page in the DSL reference.
+For more information, see the updated <<jvm_test_suite_plugin.adoc#sec:declare_an_additional_test_suite, declare an additional test suite>> example in the JVM Test Suite Plugin section of the user guide.
 
 === Deprecations
 
