@@ -17,7 +17,6 @@
 package org.gradle.internal.declarativedsl.software
 
 import org.gradle.api.Project
-import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.HasBuildModel
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.ExtensionAware

@@ -46,7 +46,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
     def propertyValue = Mock(PropertyValue)
     def softwareType = Mock(SoftwareType)
     def extensions = Mock(ExtensionContainerInternal)
-    SoftwareFeatureImplementation<Foo> softwareTypeImplementation = Mock(SoftwareFeatureImplementation)
+    BoundSoftwareFeatureImplementation<Foo> softwareTypeImplementation = Mock(BoundSoftwareFeatureImplementation)
     def foo = new Foo()
 
     def "adds software types as extensions when software type plugin is applied"() {

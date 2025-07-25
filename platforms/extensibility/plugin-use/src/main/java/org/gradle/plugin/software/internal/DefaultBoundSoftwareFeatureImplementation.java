@@ -33,7 +33,7 @@ import java.util.Objects;
  * Represents a resolved software type implementation.  Used by declarative DSL to understand which model types should be exposed for
  * which software types.
  */
-public class DefaultSoftwareFeatureImplementation<T extends HasBuildModel<V>, V extends BuildModel> implements SoftwareFeatureImplementation<T, V> {
+public class DefaultBoundSoftwareFeatureImplementation<T extends HasBuildModel<V>, V extends BuildModel> implements BoundSoftwareFeatureImplementation<T, V> {
     private final String featureName;
     private final Class<T> definitionPublicType;
     private final Class<? extends T> definitionImplementationType;
@@ -46,16 +46,17 @@ public class DefaultSoftwareFeatureImplementation<T extends HasBuildModel<V>, V 
     private final SoftwareFeatureTransform<T, ?, V> bindingTransform;
     private final Map<Class<?>, Class<?>> allBindings;
 
-    public DefaultSoftwareFeatureImplementation(String featureName,
-                                                Class<T> definitionPublicType,
-                                                Class<? extends T> definitionImplementationType,
-                                                Class<?> bindingType,
-                                                Class<V> buildModelType,
-                                                Class<? extends V> buildModelImplementationType,
-                                                Class<? extends Plugin<Project>> pluginClass,
-                                                Class<? extends Plugin<Settings>> registeringPluginClass,
-                                                SoftwareFeatureTransform<T, ?, V> bindingTransform,
-                                                Map<Class<?>, Class<?>> nestedBindings) {
+    public DefaultBoundSoftwareFeatureImplementation(
+        String featureName,
+        Class<T> definitionPublicType,
+        Class<? extends T> definitionImplementationType,
+        TargetTypeInformation<?> targetDefinitionType,
+        Class<V> buildModelType,
+        Class<? extends V> buildModelImplementationType,
+        Class<? extends Plugin<Project>> pluginClass,
+        Class<? extends Plugin<Settings>> registeringPluginClass,
+        SoftwareFeatureTransform<T, V, ?> bindingTransform
+    ) {
         this.featureName = featureName;
         this.definitionPublicType = definitionPublicType;
         this.definitionImplementationType = definitionImplementationType;
@@ -148,7 +149,7 @@ public class DefaultSoftwareFeatureImplementation<T extends HasBuildModel<V>, V 
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultSoftwareFeatureImplementation<?, ?> that = (DefaultSoftwareFeatureImplementation<?, ?>) o;
+        DefaultBoundSoftwareFeatureImplementation<?, ?> that = (DefaultBoundSoftwareFeatureImplementation<?, ?>) o;
         return Objects.equals(featureName, that.featureName) && Objects.equals(definitionPublicType, that.definitionPublicType) && Objects.equals(pluginClass, that.pluginClass);
     }
 

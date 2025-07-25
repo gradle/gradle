@@ -131,7 +131,8 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
         OutputDirectory.class,
         OutputFile.class,
         OutputFiles.class,
-        ServiceReference.class
+        ServiceReference.class,
+        SoftwareType.class
     );
 
     public static final ImmutableSet<Class<? extends Annotation>> FUNCTION_TYPE_ANNOTATIONS = ImmutableSet.of(
