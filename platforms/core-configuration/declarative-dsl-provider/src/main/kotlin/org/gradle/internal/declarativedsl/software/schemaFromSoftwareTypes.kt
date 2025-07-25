@@ -31,6 +31,7 @@ import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
+import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultSoftwareFeatureOrigin
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.FixedTypeDiscovery
@@ -196,7 +197,14 @@ data class SoftwareFeatureInfo<T : Any, V : Any>(
                 accessor = ConfigureAccessorInternal.DefaultCustom(host.containerTypeRef(definitionPublicType.kotlin), customAccessorId),
                 FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
                 FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
-            )
+            ),
+            metadata = listOf(DefaultSoftwareFeatureOrigin(
+                delegate.featureName,
+                delegate.pluginClass.name,
+                delegate.registeringPluginClass.name,
+                (delegate.targetDefinitionType as? DefinitionTargetTypeInformation)?.definitionType?.name,
+                (delegate.targetDefinitionType as? BuildModelTargetTypeInformation<*>)?.buildModelType?.name,
+            ))
         )
     }
 

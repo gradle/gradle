@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.plugins.SoftwareFeatureTransform
 import org.gradle.api.internal.plugins.TargetTypeInformation
+import org.gradle.declarative.dsl.schema.SoftwareFeatureOrigin
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
@@ -28,6 +29,7 @@ import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
 import org.gradle.plugin.software.internal.ModelDefault
 import org.gradle.plugin.software.internal.SoftwareFeatureImplementation
 import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
+import org.junit.Assert
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -49,7 +51,7 @@ class SoftwareTypesTest {
                     override fun getPluginClass(): Class<out Plugin<Project>> = SubtypePlugin::class.java
                     override fun getRegisteringPluginClass(): Class<out Plugin<Settings>> = SubtypeEcosystemPlugin::class.java
                     override fun getBindingTransform(): SoftwareFeatureTransform<Subtype, Subtype, Project> =
-                        SoftwareFeatureTransform { context, subtype, subtype1, value ->  Unit }
+                        SoftwareFeatureTransform { _, _, _, _ -> }
                     override fun addModelDefault(rule: ModelDefault<*>) = Unit
                     override fun <V : ModelDefault.Visitor<*>> visitModelDefaults(type: Class<out ModelDefault<V>>, visitor: V) = Unit
                 }).associateBy { it.getFeatureName() }
@@ -71,6 +73,16 @@ class SoftwareTypesTest {
 
             assertFalse(schema.analysisSchema.dataClassTypesByFqName.any { it.key.qualifiedName == Any::class.qualifiedName })
             assertFalse(schema.analysisSchema.dataClassTypesByFqName.any { it.key.qualifiedName == "java.lang.Object" })
+        }
+
+        schemaForProject.analysisSchema.topLevelReceiverType.memberFunctions.single { it.simpleName == "subtype" }.run {
+            metadata.filterIsInstance<SoftwareFeatureOrigin>().single().apply {
+                Assert.assertEquals("subtype", featureName)
+                Assert.assertEquals(SubtypePlugin::class.java.name, featurePluginClassName)
+                Assert.assertEquals(SubtypeEcosystemPlugin::class.java.name, ecosystemPluginClassName)
+                Assert.assertEquals(Project::class.java.name, targetDefinitionClassName)
+                Assert.assertNull(targetBuildModelClassName)
+            }
         }
     }
 
