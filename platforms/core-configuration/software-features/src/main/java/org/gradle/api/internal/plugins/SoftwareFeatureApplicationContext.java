@@ -20,6 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.internal.Cast;
 import org.gradle.internal.inspection.DefaultTypeParameterInspection;
 import org.gradle.internal.inspection.TypeParameterInspection;
 
@@ -35,7 +36,14 @@ public interface SoftwareFeatureApplicationContext {
     @Inject
     ObjectFactory getObjectFactory();
 
-    default <T extends HasBuildModel<V>, V extends BuildModel> V getOrCreateModel(T definition) {
+    default <T extends HasBuildModel<? extends V>, V extends BuildModel> V getOrCreateModel(T definition) {
+        if (definition instanceof ExtensionAware) {
+            Object existingModel = ((ExtensionAware) definition).getExtensions().findByName(SoftwareFeatureBinding.MODEL);
+            if (existingModel != null) {
+                return Cast.uncheckedCast(existingModel);
+            }
+        }
+
         @SuppressWarnings("rawtypes")
         TypeParameterInspection<HasBuildModel, BuildModel> inspection = new DefaultTypeParameterInspection<>(HasBuildModel.class, BuildModel.class, BuildModel.NONE.class);
         Class<V> modelType = inspection.parameterTypeFor(definition.getClass());
