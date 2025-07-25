@@ -16,7 +16,6 @@
 
 package org.gradle.java.compile
 
-import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.language.fixtures.HelperProcessorFixture
@@ -347,7 +346,6 @@ abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaG
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20394")
-    @Requires(UnitTestPreconditions.Jdk16OrLater)
     @ToBeFixedForIsolatedProjects(because = "Configure projects from root")
     def "doesn't recompile when record implementation changes"() {
         given:
@@ -387,7 +385,6 @@ record Foo(String property) {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20394")
-    @Requires(UnitTestPreconditions.Jdk16OrLater)
     @ToBeFixedForIsolatedProjects(because = "Configure projects from root")
     def "recompiles when record components change"() {
         given:
