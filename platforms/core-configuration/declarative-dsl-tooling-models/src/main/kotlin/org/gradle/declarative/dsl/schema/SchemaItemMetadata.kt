@@ -29,11 +29,21 @@ sealed interface SchemaItemMetadata : Serializable
 
 @ToolingModelContract(
     subTypes = [
-        ContainerElementFactory::class
+        ContainerElementFactory::class,
+        SoftwareFeatureOrigin::class
     ]
 )
 sealed interface SchemaMemberOrigin : SchemaItemMetadata
 
 interface ContainerElementFactory : SchemaMemberOrigin {
     val elementType: DataTypeRef
+}
+
+interface SoftwareFeatureOrigin : SchemaMemberOrigin {
+    val featureName: String
+    val featurePluginClassName: String
+    val ecosystemPluginClassName: String
+    val targetDefinitionClassName: String?
+    val targetBuildModelClassName: String?
+    //TODO: feature owner plugin ID?
 }
