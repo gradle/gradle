@@ -1,4 +1,3 @@
-Reusing configuration cache.
 > Task :processResources NO-SOURCE
 > Task :processTestResources NO-SOURCE
 > Task :compileJava
@@ -13,4 +12,3 @@ Reusing configuration cache.
 
 BUILD SUCCESSFUL in 0s
 2 actionable tasks: 2 executed
-Configuration cache entry reused.

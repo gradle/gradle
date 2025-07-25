@@ -141,6 +141,8 @@ When you build your project for the first time, Gradle stores the outcome of the
 
 ----
 > ./gradlew compileJava
+
+Configuration cache entry stored.
 include::{snippetsPath}/bestPractices/useConfigurationCache-do/tests/useConfigurationCache-do.firstRun.out[]
 ----
 
@@ -148,6 +150,8 @@ On subsequent builds, instead of reconfiguring tasks like `:compileJava`, Gradle
 
 ----
 > ./gradlew compileJava
+
+Configuration cache entry reused.
 include::{snippetsPath}/bestPractices/useConfigurationCache-do/tests/useConfigurationCache-do.secondRun.out[]
 ----
 
