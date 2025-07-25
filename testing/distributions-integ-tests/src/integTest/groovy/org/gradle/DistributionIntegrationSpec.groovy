@@ -50,6 +50,8 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "build-cache-packaging",
         "build-cache-spi",
         "build-configuration",
+        "build-discovery",
+        "build-discovery-api",
         "build-events",
         "build-init-specs",
         "build-init-specs-api",

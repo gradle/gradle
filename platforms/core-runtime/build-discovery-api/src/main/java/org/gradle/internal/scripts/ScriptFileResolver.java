@@ -46,10 +46,8 @@ public interface ScriptFileResolver {
      * {@link ScriptingLanguage#getExtension() extension}.
      *
      * @param dir the directory in which to search
-     *
      * @return list containing all script files found in the given directory in no particular order
-     *
      * @since 4.6
      */
-     List<File> findScriptsIn(File dir);
+    List<File> findScriptsIn(File dir);
 }

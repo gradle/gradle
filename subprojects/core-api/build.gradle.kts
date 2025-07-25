@@ -17,6 +17,7 @@ dependencies {
 
     api(projects.stdlibJavaExtensions)
     api(projects.buildCacheSpi)
+    api(projects.buildDiscoveryApi)
     api(projects.loggingApi)
     api(projects.baseServices)
     api(projects.files)
@@ -33,7 +34,6 @@ dependencies {
     implementation(projects.io)
     implementation(projects.baseServicesGroovy)
     implementation(projects.logging)
-    implementation(projects.buildProcessServices)
 
     implementation(libs.commonsLang)
     implementation(libs.jsr305)
