@@ -193,10 +193,6 @@ class DefaultConfigurationCache internal constructor(
     override val isLoaded: Boolean
         get() = cacheAction is Load
 
-    private
-    val isStoreSkipped: Boolean
-        get() = cacheAction is SkipStore
-
     override fun initializeCacheEntry() {
         val (cacheAction, cacheActionDescription) = determineCacheAction()
         this.cacheAction = cacheAction
@@ -246,8 +242,8 @@ class DefaultConfigurationCache internal constructor(
         graphBuilder: BuildTreeWorkGraphBuilder?,
         scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph
     ): BuildTreeConfigurationCache.WorkGraphResult {
-        return when {
-            isLoaded -> {
+        return when (cacheAction) {
+            is Load -> {
                 val finalizedGraph = loadWorkGraph(graph, graphBuilder, false)
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
@@ -255,7 +251,7 @@ class DefaultConfigurationCache internal constructor(
                     entryDiscarded = false
                 )
             }
-            isStoreSkipped -> {
+            SkipStore -> {
                 // build work graph without contributing to a cache entry
                 val finalizedGraph = runAtConfigurationTime {
                     val result = scheduler(graph)
@@ -269,7 +265,7 @@ class DefaultConfigurationCache internal constructor(
                     entryDiscarded = true
                 )
             }
-            else -> {
+            Store, is Update -> {
                 runWorkThatContributesToCacheEntry {
                     val finalizedGraph = scheduler(graph)
                     val rootBuild = buildStateRegistry.rootBuild
