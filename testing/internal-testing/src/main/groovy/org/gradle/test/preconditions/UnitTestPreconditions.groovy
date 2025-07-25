@@ -112,7 +112,7 @@ class UnitTestPreconditions {
         }
     }
 
-    
+
 
     /**
      * @see <a href="https://github.com/gradle/gradle/issues/1111">Link</a>
@@ -246,8 +246,6 @@ class UnitTestPreconditions {
         }
     }
 
-    
-
     static final class Jdk9OrEarlier implements TestPrecondition {
         @Override
         boolean isSatisfied() {
@@ -255,26 +253,10 @@ class UnitTestPreconditions {
         }
     }
 
-    static final class Jdk10OrEarlier implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() <= JavaVersion.VERSION_1_10
-        }
-    }
-
-    
-
     static final class Jdk11OrEarlier implements TestPrecondition {
         @Override
         boolean isSatisfied() {
             return JavaVersion.current() <= JavaVersion.VERSION_11
-        }
-    }
-
-    static final class Jdk12OrLater implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() >= JavaVersion.VERSION_12
         }
     }
 

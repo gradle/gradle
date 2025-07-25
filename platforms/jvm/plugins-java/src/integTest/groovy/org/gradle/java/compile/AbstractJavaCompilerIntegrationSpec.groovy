@@ -390,7 +390,6 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         bytecodeVersion() == TestJavaClassUtil.getClassVersion(lower.javaVersion)
     }
 
-    @Requires(UnitTestPreconditions.Jdk12OrLater)
     def "compile fails when using newer API with release option"() {
         given:
         file("src/main/java/compile/test/FailsOnJava11.java") << """
@@ -419,7 +418,6 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         failure.assertHasErrorOutput("method describeConstable")
     }
 
-    @Requires(UnitTestPreconditions.Jdk12OrLater)
     def "compile fails when using newer API with release property"() {
         given:
         file("src/main/java/compile/test/FailsOnJava11.java") << """
