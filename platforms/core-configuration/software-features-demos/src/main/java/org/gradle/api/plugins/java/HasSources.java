@@ -20,13 +20,13 @@ import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.plugins.HasBuildModel;
-import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
 
-public interface HasSources {
-    NamedDomainObjectContainer<JavaSources> getSources();
+@NullMarked
+public interface HasSources<Model extends HasInputSources> {
+    NamedDomainObjectContainer<? extends Sources<Model>> getSources();
 
-    interface JavaSources extends Named, HasBuildModel<@NonNull JavaClasses> {
-        SourceDirectorySet getJava();
-        SourceDirectorySet getResources();
+    interface Sources<Model extends HasInputSources> extends Named, HasResources, HasBuildModel<Model> {
+        SourceDirectorySet getSourceDirectories();
     }
 }

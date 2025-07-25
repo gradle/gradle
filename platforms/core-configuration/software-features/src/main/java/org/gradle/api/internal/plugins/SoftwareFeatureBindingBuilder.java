@@ -16,10 +16,84 @@
 
 package org.gradle.api.internal.plugins;
 
+import org.gradle.api.internal.plugins.TargetTypeInformation.BuildModelTargetTypeInformation;
+import org.gradle.api.internal.plugins.TargetTypeInformation.DefinitionTargetTypeInformation;
+import org.gradle.internal.inspection.DefaultTypeParameterInspection;
+import org.gradle.internal.inspection.TypeParameterInspection;
+
+import javax.annotation.Nonnull;
 import java.util.List;
 
 public interface SoftwareFeatureBindingBuilder {
-    <T extends HasBuildModel<V>, U extends BuildModel, V extends BuildModel> DslBindingBuilder<T, V> bind(String name, Class<T> dslType, Class<U> bindingTargetType, Class<V> buildModelType, SoftwareFeatureTransform<T, U, V> transform);
+    <
+        Definition extends HasBuildModel<OwnBuildModel>,
+        TargetDefinition extends HasBuildModel<?>,
+        OwnBuildModel extends BuildModel
+        > DslBindingBuilder<Definition, OwnBuildModel> bindSoftwareFeature(
+        String name,
+        ModelBindingTypeInformation<Definition, OwnBuildModel, TargetDefinition> bindingTypeInformation,
+        SoftwareFeatureTransform<Definition, OwnBuildModel, TargetDefinition> transform
+    );
 
+    class ModelBindingTypeInformation<
+        Definition extends HasBuildModel<OwnBuildModel>,
+        OwnBuildModel extends BuildModel,
+        TargetDefinition extends HasBuildModel<?>
+        > {
+
+        public final Class<Definition> definitionType;
+        public final Class<OwnBuildModel> ownBuildModelType;
+        public final TargetTypeInformation<TargetDefinition> targetType;
+
+        public ModelBindingTypeInformation(
+            Class<Definition> definitionType,
+            Class<OwnBuildModel> ownBuildModelType,
+            TargetTypeInformation<TargetDefinition> targetType
+        ) {
+            this.definitionType = definitionType;
+            this.targetType = targetType;
+            this.ownBuildModelType = ownBuildModelType;
+        }
+    }
+
+    static <
+        Definition extends HasBuildModel<OwnBuildModel>,
+        OwnBuildModel extends BuildModel,
+        TargetDefinition extends HasBuildModel<?>
+        >
+    ModelBindingTypeInformation<Definition, OwnBuildModel, TargetDefinition> bindingToTargetDefinition(
+        Class<Definition> definition,
+        Class<TargetDefinition> targetDefinition
+    ) {
+        Class<OwnBuildModel> ownBuildModel = ModelTypeUtils.getBuildModelClass(definition);
+        return new ModelBindingTypeInformation<>(definition, ownBuildModel, new DefinitionTargetTypeInformation<>(targetDefinition));
+    }
+
+    static <
+        Definition extends HasBuildModel<OwnBuildModel>,
+        OwnBuildModel extends BuildModel,
+        TargetBuildModel extends BuildModel
+        >
+    ModelBindingTypeInformation<Definition, OwnBuildModel, HasBuildModel<TargetBuildModel>> bindingToTargetBuildModel(
+        Class<Definition> definition,
+        Class<TargetBuildModel> targetBuildModel
+    ) {
+        Class<OwnBuildModel> ownBuildModel = ModelTypeUtils.getBuildModelClass(definition);
+        return new ModelBindingTypeInformation<>(definition, ownBuildModel, new BuildModelTargetTypeInformation<>(targetBuildModel));
+    }
+
+    // TODO: do not expose this to user code
     List<SoftwareFeatureBinding<?, ?>> build();
+}
+
+class ModelTypeUtils {
+    static <Definition extends HasBuildModel<OwnBuildModel>, OwnBuildModel extends BuildModel> @Nonnull Class<OwnBuildModel> getBuildModelClass(Class<Definition> definition) {
+        @SuppressWarnings("rawtypes")
+        TypeParameterInspection<HasBuildModel, BuildModel> inspection = new DefaultTypeParameterInspection<>(HasBuildModel.class, BuildModel.class, BuildModel.NONE.class);
+        Class<OwnBuildModel> ownBuildModel = inspection.parameterTypeFor(definition);
+        if (ownBuildModel == null) {
+            throw new IllegalArgumentException("Cannot determine build model type for " + definition);
+        }
+        return ownBuildModel;
+    }
 }

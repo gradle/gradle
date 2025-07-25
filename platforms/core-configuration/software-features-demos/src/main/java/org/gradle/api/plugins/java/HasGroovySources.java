@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins;
+package org.gradle.api.plugins.java;
 
-import java.util.Optional;
+import org.gradle.api.Named;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.jspecify.annotations.NullMarked;
 
-public interface SoftwareFeatureBinding<T extends HasBuildModel<V>, V extends BuildModel> {
-    TargetTypeInformation<?> targetDefinitionType();
-    Class<T> getDslType();
-    Optional<Class<? extends T>> getDslImplementationType();
-    Class<V> getBuildModelType();
-    Optional<Class<? extends V>> getBuildModelImplementationType();
-    String getName();
-    SoftwareFeatureTransform<T, ?, V> getTransform();
+@NullMarked
+public interface HasGroovySources extends HasSources<GroovyClasses> {
+    @Override
+    NamedDomainObjectContainer<GroovySources> getSources();
 
-    String MODEL = "model";
+    interface GroovySources extends Named, HasSources.Sources<GroovyClasses>, HasResources {
+    }
 }

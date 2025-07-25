@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins;
+package org.gradle.api.plugins.java;
 
-import java.util.Optional;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.plugins.BuildModel;
+import org.gradle.api.tasks.Nested;
 
-public interface SoftwareFeatureBinding<T extends HasBuildModel<V>, V extends BuildModel> {
-    TargetTypeInformation<?> targetDefinitionType();
-    Class<T> getDslType();
-    Optional<Class<? extends T>> getDslImplementationType();
-    Class<V> getBuildModelType();
-    Optional<Class<? extends V>> getBuildModelImplementationType();
-    String getName();
-    SoftwareFeatureTransform<T, ?, V> getTransform();
+public interface GroovyLibraryModel extends HasJarFile, HasGroovyClasses, BuildModel {
+    @Nested
+    TestReports getTestReports();
 
-    String MODEL = "model";
+    interface TestReports {
+        DirectoryProperty getHtmlReportDir();
+        DirectoryProperty getJunitXmlReportDir();
+    }
 }

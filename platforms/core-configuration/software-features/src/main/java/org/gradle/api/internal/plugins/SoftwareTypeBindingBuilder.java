@@ -20,12 +20,13 @@ import java.util.List;
 
 public interface SoftwareTypeBindingBuilder {
 
-    <T extends HasBuildModel<V>, V extends BuildModel> DslBindingBuilder<T, V> bind(
+    <T extends HasBuildModel<V>, V extends BuildModel> DslBindingBuilder<T, V> bindSoftwareType(
         String name,
         Class<T> dslType,
         Class<V> buildModelType,
         SoftwareTypeTransform<T, V> transform
     );
 
+    // TODO: do not expose this to user code
     List<SoftwareFeatureBinding<?, ?>> build();
 }

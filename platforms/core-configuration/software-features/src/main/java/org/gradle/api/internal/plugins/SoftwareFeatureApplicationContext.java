@@ -53,7 +53,7 @@ public interface SoftwareFeatureApplicationContext {
         return getOrCreateModel(definition, modelType);
     }
 
-    default <T extends HasBuildModel<V>, V extends BuildModel> V getOrCreateModel(T definition, Class<? extends V> implementationType) {
+    default <T extends HasBuildModel<? extends V>, V extends BuildModel> V getOrCreateModel(T definition, Class<? extends V> implementationType) {
         return ((ExtensionAware) definition).getExtensions().create(SoftwareFeatureBinding.MODEL, implementationType);
     }
 }

@@ -17,7 +17,9 @@
 package org.gradle.api.plugins.java;
 
 import org.gradle.api.NamedDomainObjectContainer;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public interface HasJavaClasses {
     NamedDomainObjectContainer<JavaClasses> getClasses();
 }

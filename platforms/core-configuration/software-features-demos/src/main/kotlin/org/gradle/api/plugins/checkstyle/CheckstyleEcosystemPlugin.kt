@@ -22,7 +22,5 @@ import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 
 @RegistersSoftwareTypes(CheckstyleSoftwareFeaturePlugin::class)
 class CheckstyleEcosystemPlugin : Plugin<Settings> {
-    override fun apply(target: Settings) {
-
-    }
+    override fun apply(target: Settings) = Unit
 }

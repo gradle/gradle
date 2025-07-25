@@ -23,43 +23,40 @@ import org.gradle.api.internal.plugins.BindsSoftwareType
 import org.gradle.api.internal.plugins.SoftwareTypeBindingBuilder
 import org.gradle.api.internal.plugins.SoftwareTypeBindingRegistration
 import org.gradle.api.internal.plugins.bindSoftwareType
-import org.gradle.api.plugins.internal.java.DefaultJavaSoftwareType
-import org.gradle.api.plugins.java.JavaClasses.DefaultJavaClasses
-import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.api.plugins.internal.java.DefaultGroovySoftwareType
+import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 
-@BindsSoftwareType(JavaSoftwareTypePlugin.Binding::class)
-class JavaSoftwareTypePlugin : Plugin<Project> {
+@BindsSoftwareType(GroovySoftwareTypePlugin.Binding::class)
+class GroovySoftwareTypePlugin : Plugin<Project> {
     /**
-     * javaLibrary {
+     * groovyLibrary {
      *     version = "11"
      *     sources {
-     *        javaSources("main") {
+     *        groovySources("main") {
      *        }
      *     }
      * }
      */
     class Binding : SoftwareTypeBindingRegistration {
         override fun register(builder: SoftwareTypeBindingBuilder) {
-            builder.bindSoftwareType("javaLibrary", JavaSoftwareType::class) { definition, model ->
+            builder.bindSoftwareType("groovyLibrary", GroovySoftwareType::class) { definition, model ->
                 definition.sources.register("main")
                 definition.sources.register("test")
 
                 definition.sources.all { source ->
-                    // Should be TaskRegistrar with some sort of an implicit namer for the context
                     val compileTask = project.tasks.register(
-                        "compile" + capitalize(source.name) + "Java",
-                        JavaCompile::class.java
+                        "compile" + capitalize(source.name) + "Groovy",
+                        GroovyCompile::class.java
                     ) { task ->
                         task.group = LifecycleBasePlugin.BUILD_GROUP
-                        task.description = "Compiles the " + source.name + " Java source."
+                        task.description = "Compiles the " + source.name + " Groovy source."
                         task.source(source.sourceDirectories.asFileTree)
                     }
 
                     val processResourcesTask = registerResourcesProcessing(source)
 
-                    // Creates an extension on javaSources containing its classes object
-                    model.classes.add(getOrCreateModel(source, DefaultJavaClasses::class.java).apply {
+                    model.classes.add(getOrCreateModel(source, GroovyClasses.DefaultGroovyClasses::class.java).apply {
                         name = source.name
                         inputSources.source(source.sourceDirectories)
                         byteCodeDir.set(compileTask.map { it.destinationDirectory.get() })
@@ -67,13 +64,11 @@ class JavaSoftwareTypePlugin : Plugin<Project> {
                     })
                 }
 
-                val mainClasses = model.classes.named("main")
-                registerJar(mainClasses, model)
+                registerJar(model.classes.named("main"), model)
             }
-            .withDefinitionImplementationType(DefaultJavaSoftwareType::class.java)
+            .withDefinitionImplementationType(DefaultGroovySoftwareType::class.java)
         }
     }
 
     override fun apply(target: Project) = Unit
 }
-

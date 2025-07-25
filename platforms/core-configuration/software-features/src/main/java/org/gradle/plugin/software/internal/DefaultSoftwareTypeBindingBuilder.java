@@ -26,6 +26,7 @@ import org.gradle.api.internal.plugins.SoftwareFeatureBinding;
 import org.gradle.api.internal.plugins.SoftwareFeatureTransform;
 import org.gradle.api.internal.plugins.SoftwareTypeBindingBuilder;
 import org.gradle.api.internal.plugins.SoftwareTypeTransform;
+import org.gradle.api.internal.plugins.TargetTypeInformation;
 import org.gradle.util.Path;
 
 import java.util.ArrayList;
@@ -35,9 +36,17 @@ public class DefaultSoftwareTypeBindingBuilder implements SoftwareTypeBindingBui
     private final List<DslBindingBuilder<?, ?>> bindings = new ArrayList<>();
 
     @Override
-    public <T extends HasBuildModel<V>, V extends BuildModel> DslBindingBuilder<T, V> bind(String name, Class<T> dslType, Class<V> buildModelType, SoftwareTypeTransform<T, V> transform) {
-        SoftwareFeatureTransform<T, ?, V> featureTransform = (SoftwareFeatureApplicationContext context, T definition, Object parentDefinition, V buildModel) -> transform.transform(context, definition, buildModel);
-        DslBindingBuilder<T, V> builder = new DefaultDslBindingBuilder<>(dslType, Project.class, buildModelType, Path.path(name), featureTransform);
+    public <T extends HasBuildModel<V>, V extends BuildModel> DslBindingBuilder<T, V> bindSoftwareType(String name, Class<T> dslType, Class<V> buildModelType, SoftwareTypeTransform<T, V> transform) {
+        SoftwareFeatureTransform<T, V, ?> featureTransform = (SoftwareFeatureApplicationContext context, T definition, V buildModel, Object parentDefinition) ->
+            transform.transform(context, definition, buildModel);
+
+        DslBindingBuilder<T, V> builder = new DefaultDslBindingBuilder<>(dslType,
+            buildModelType,
+            new TargetTypeInformation.DefinitionTargetTypeInformation<>(Project.class),
+            Path.path(name),
+            featureTransform
+        );
+
         bindings.add(builder);
         return builder;
     }
