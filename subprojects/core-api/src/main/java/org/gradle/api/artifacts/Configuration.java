@@ -105,29 +105,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     State getState();
 
     /**
-     * This is a legacy property and the value does not affect dependency resolution
-     * in any way. There is no need to read this property and this method will be deprecated
-     * in an upcoming Gradle version.
-     * <p>
-     * The value of this property does not dictate in any way the "visibility" of
-     * a configuration, or if it is accessible between projects.
-     *
-     * @deprecated This property is deprecated and will be removed in Gradle 10.
-     */
-    @Deprecated
-    boolean isVisible();
-
-    /**
-     * Sets the value returned by {@link #isVisible()}. There is no need to set this property
-     * and this method will be deprecated in an upcoming Gradle version.
-     *
-     * @param visible the value to set.
-     * @deprecated This property is deprecated and will be removed in Gradle 10.
-     */
-    @Deprecated
-    Configuration setVisible(boolean visible);
-
-    /**
      * Returns the names of the configurations which this configuration extends from. The artifacts of the super
      * configurations are also available in this configuration.
      *

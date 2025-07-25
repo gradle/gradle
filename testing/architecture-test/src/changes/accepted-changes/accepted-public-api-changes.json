@@ -1,6 +1,22 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.artifacts.Configuration",
+            "member": "Method org.gradle.api.artifacts.Configuration.isVisible()",
+            "acceptation": "[Property has no effect and is being removed]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.Configuration",
+            "member": "Method org.gradle.api.artifacts.Configuration.setVisible(boolean)",
+            "acceptation": "[Property has no effect and is being removed]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.invocation.Gradle",
             "member": "Method org.gradle.api.invocation.Gradle.getBuildPath()",
             "acceptation": "No need to incubate",

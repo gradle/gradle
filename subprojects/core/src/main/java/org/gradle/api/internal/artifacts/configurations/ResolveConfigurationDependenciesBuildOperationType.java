@@ -47,8 +47,6 @@ public final class ResolveConfigurationDependenciesBuildOperationType implements
 
         String getBuildPath();
 
-        boolean isConfigurationVisible();
-
         boolean isConfigurationTransitive();
 
         /**
