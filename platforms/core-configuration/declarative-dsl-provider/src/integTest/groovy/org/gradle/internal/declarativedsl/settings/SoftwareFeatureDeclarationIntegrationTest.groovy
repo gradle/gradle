@@ -16,17 +16,24 @@
 
 package org.gradle.internal.declarativedsl.settings
 
+import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.HasBuildModel
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
+import org.gradle.integtests.fixtures.polyglot.SkipDsl
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import org.gradle.api.internal.plugins.BuildModel
 
 @PolyglotDslTest
 class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture, PolyglotTestFixture {
 
+    def setup() {
+        file("gradle.properties") << "org.gradle.kotlin.dsl.dcl=true"
+    }
+
+    @SkipDsl(dsl = GradleDsl.GROOVY, because = "software features are not supported in Groovy yet")
     def 'can declare and configure a custom software feature from included build'() {
         given:
         PluginBuilder pluginBuilder = withSoftwareTypePlugins()
@@ -53,6 +60,7 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
         outputContains("Binding FeatureDefinition")
     }
 
+    @SkipDsl(dsl = GradleDsl.GROOVY, because = "software features are not supported in Groovy yet")
     def "can declare and configure a custom software feature in Kotlin"() {
         PluginBuilder pluginBuilder = withSoftwareTypePlugins()
         pluginBuilder.prepareToExecute()
@@ -91,20 +99,20 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
             import org.gradle.api.internal.plugins.BindsSoftwareFeature;
-            import org.gradle.api.internal.plugins.SoftwareFeatureBinding;
             import org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilder;
+            import static org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilder.bindingToTargetDefinition;
             import org.gradle.api.internal.plugins.SoftwareFeatureBindingRegistration;
-            import org.gradle.api.internal.plugins.software.SoftwareFeature;
-            import org.gradle.api.plugins.ExtensionAware;
-            import org.gradle.test.TestSoftwareTypeExtension.ModelType;
+            import org.gradle.test.TestSoftwareTypeExtension;
 
             @BindsSoftwareFeature(SoftwareFeatureImplPlugin.Binding.class)
             public class SoftwareFeatureImplPlugin implements Plugin<Project> {
 
                 static class Binding implements SoftwareFeatureBindingRegistration {
                     @Override public void register(SoftwareFeatureBindingBuilder builder) {
-                        builder.bind("feature", FeatureDefinition.class, ModelType.class, FeatureModel.class,
-                            (context, feature, parent, model) -> {
+                        builder.bindSoftwareFeature(
+                            "feature",
+                            bindingToTargetDefinition(FeatureDefinition.class, TestSoftwareTypeExtension.class),
+                            (context, feature, model, parent) -> {
                                 System.out.println("Binding FeatureDefinition");
                                 model.getText().set(feature.getText());
                                 context.getProject().getTasks().register("printTestSoftwareFeatureConfiguration", task -> {
@@ -138,15 +146,15 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
             import org.gradle.api.internal.plugins.SoftwareFeatureBindingRegistration
             import org.gradle.api.internal.plugins.software.SoftwareFeature
             import org.gradle.api.plugins.ExtensionAware
-            import org.gradle.api.internal.plugins.bind
-            import org.gradle.test.TestSoftwareTypeExtension.ModelType
+            import org.gradle.api.internal.plugins.bindSoftwareFeatureToDefinition
+            import org.gradle.test.TestSoftwareTypeExtension
 
             @BindsSoftwareFeature(SoftwareFeatureImplPlugin.Binding::class)
             class SoftwareFeatureImplPlugin : Plugin<Project> {
 
                 class Binding : SoftwareFeatureBindingRegistration {
                     override fun register(builder: SoftwareFeatureBindingBuilder) {
-                        builder.bind<FeatureDefinition, ModelType, FeatureModel>("feature") { feature, parent, model ->
+                        builder.bindSoftwareFeatureToDefinition("feature", FeatureDefinition::class, TestSoftwareTypeExtension::class) { feature, model, parent  ->
                             println("Binding FeatureDefinition")
                             model.getText().set(feature.getText())
                             getProject().getTasks().register("printTestSoftwareFeatureConfiguration") { task: Task ->

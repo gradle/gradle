@@ -22,10 +22,9 @@ import org.gradle.api.Project
 import org.gradle.api.internal.plugins.BindsSoftwareFeature
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilder
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingRegistration
-import org.gradle.api.internal.plugins.bind
+import org.gradle.api.internal.plugins.bindSoftwareFeatureToBuildModel
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.antlr.internal.DefaultAntlrSourceDirectorySet
-import org.gradle.api.plugins.java.HasSources.JavaSources
 import org.gradle.api.plugins.java.JavaClasses
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 
@@ -43,23 +42,28 @@ class AntlrSoftwareFeaturePlugin : Plugin<Project> {
      */
     class Binding : SoftwareFeatureBindingRegistration {
         override fun register(builder: SoftwareFeatureBindingBuilder) {
-            builder
-                .bind<AntlrGrammarsDefinition, JavaClasses, AntlrGeneratedSources>("antlr") { definition, parent, model ->
-                    definition.grammarSources = createAntlrSourceDirectorySet(definition.name, project.objects)
-                    val outputDirectory = projectLayout.buildDirectory.dir("/generated-src/antlr/" + definition.grammarSources.getName())
+            builder.bindSoftwareFeatureToBuildModel(
+                "antlr",
+                AntlrGrammarsDefinition::class,
+                JavaClasses::class
+            ) { definition, buildModel, target ->
+                val parentModel = getOrCreateModel(target)
 
-                    // Add the generated antlr sources to the java sources
-                    parent.javaSources.srcDir(outputDirectory)
+                definition.grammarSources = createAntlrSourceDirectorySet(definition.name, project.objects)
+                val outputDirectory = projectLayout.buildDirectory.dir("/generated-src/antlr/" + definition.grammarSources.getName())
 
-                    project.tasks.register("generate" + StringUtils.capitalize(definition.name) + "AntlrSources", AntlrTask::class.java) { antlrTask ->
-                        antlrTask.group = LifecycleBasePlugin.BUILD_GROUP
-                        antlrTask.description = "Generates sources from the " + definition.grammarSources.name + " Antlr grammars."
-                        antlrTask.source = definition.grammarSources
-                        antlrTask.outputDirectory = outputDirectory.get().asFile
-                    }
+                // Add the generated antlr sources to the java sources
+                parentModel.inputSources.srcDir(outputDirectory)
 
-                    model.generatedSourcesDir.set(outputDirectory)
+                project.tasks.register("generate" + StringUtils.capitalize(definition.name) + "AntlrSources", AntlrTask::class.java) { antlrTask ->
+                    antlrTask.group = LifecycleBasePlugin.BUILD_GROUP
+                    antlrTask.description = "Generates sources from the " + definition.grammarSources.name + " Antlr grammars."
+                    antlrTask.source = definition.grammarSources
+                    antlrTask.outputDirectory = outputDirectory.get().asFile
                 }
+
+                buildModel.generatedSourcesDir.set(outputDirectory)
+            }
         }
 
         private fun createAntlrSourceDirectorySet(parentDisplayName: String, objectFactory: ObjectFactory): AntlrSourceDirectorySet {
@@ -72,7 +76,5 @@ class AntlrSoftwareFeaturePlugin : Plugin<Project> {
         }
     }
 
-    override fun apply(target: Project) {
-
-    }
+    override fun apply(target: Project) = Unit
 }

@@ -20,6 +20,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.plugins.SoftwareFeatureTransform;
+import org.gradle.api.internal.plugins.TargetTypeInformation;
 
 import java.util.Map;
 
@@ -39,7 +40,7 @@ public interface SoftwareFeatureImplementation<T, V> {
 
     Class<? extends T> getDefinitionImplementationType();
 
-    Class<?> getBindingType();
+    TargetTypeInformation<?> getTargetDefinitionType();
 
     Class<V> getBuildModelType();
 
@@ -49,7 +50,7 @@ public interface SoftwareFeatureImplementation<T, V> {
 
     Class<? extends Plugin<Settings>> getRegisteringPluginClass();
 
-    SoftwareFeatureTransform<T, ?, V> getBindingTransform();
+    SoftwareFeatureTransform<T, V, ?> getBindingTransform();
 
     void addModelDefault(ModelDefault<?> modelDefault);
 
@@ -57,12 +58,4 @@ public interface SoftwareFeatureImplementation<T, V> {
      * Visits all model defaults of the given type with the provided visitor.
      */
     <M extends ModelDefault.Visitor<?>> void visitModelDefaults(Class<? extends ModelDefault<M>> type, M visitor);
-
-    boolean hasBindingFor(Class<?> dslType, Class<?> buildModelType);
-
-    /**
-     * Returns all the DSL to build model bindings that this software feature produces as a map where the key is the public DSL type and the
-     * value is the build model type.
-     */
-    Map<Class<?>, Class<?>> getAllDslBindings();
 }

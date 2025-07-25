@@ -19,6 +19,8 @@ package org.gradle.internal.declarativedsl.software
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.plugins.SoftwareFeatureTransform
+import org.gradle.api.internal.plugins.TargetTypeInformation
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
@@ -37,14 +39,20 @@ class SoftwareTypesTest {
     fun `software types are added to the schema along with their supertypes`() {
         val registryMock = mock<SoftwareFeatureRegistry> { mock ->
             on(mock.softwareFeatureImplementations).thenReturn(
-                setOf(object : SoftwareFeatureImplementation<Subtype> {
+                setOf(object : SoftwareFeatureImplementation<Subtype, Subtype> {
                     override fun getFeatureName(): String = "subtype"
-                    override fun getDefinitionPublicType(): Class<out Subtype> = Subtype::class.java
+                    override fun getDefinitionPublicType(): Class<Subtype> = Subtype::class.java
+                    override fun getDefinitionImplementationType(): Class<out Subtype> = definitionPublicType
+                    override fun getTargetDefinitionType(): TargetTypeInformation<*> = TargetTypeInformation.DefinitionTargetTypeInformation(Project::class.java)
+                    override fun getBuildModelType(): Class<Subtype> = Subtype::class.java
+                    override fun getBuildModelImplementationType(): Class<out Subtype> = buildModelType
                     override fun getPluginClass(): Class<out Plugin<Project>> = SubtypePlugin::class.java
                     override fun getRegisteringPluginClass(): Class<out Plugin<Settings>> = SubtypeEcosystemPlugin::class.java
+                    override fun getBindingTransform(): SoftwareFeatureTransform<Subtype, Subtype, Project> =
+                        SoftwareFeatureTransform { context, subtype, subtype1, value ->  Unit }
                     override fun addModelDefault(rule: ModelDefault<*>) = Unit
                     override fun <V : ModelDefault.Visitor<*>> visitModelDefaults(type: Class<out ModelDefault<V>>, visitor: V) = Unit
-                }).associateBy { it.featureName }
+                }).associateBy { it.getFeatureName() }
             )
         }
 

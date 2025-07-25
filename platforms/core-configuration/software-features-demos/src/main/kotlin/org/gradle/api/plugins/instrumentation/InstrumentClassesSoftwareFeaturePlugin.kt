@@ -24,9 +24,8 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.internal.plugins.BindsSoftwareFeature
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilder
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingRegistration
-import org.gradle.api.internal.plugins.bind
-import org.gradle.api.plugins.java.HasSources.JavaSources
-import org.gradle.api.plugins.java.JavaClasses
+import org.gradle.api.internal.plugins.bindSoftwareFeatureToDefinition
+import org.gradle.api.plugins.java.HasJavaSources.JavaSources
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 
 @BindsSoftwareFeature(InstrumentClassesSoftwareFeaturePlugin.Binding::class)
@@ -44,16 +43,19 @@ class InstrumentClassesSoftwareFeaturePlugin : Plugin<Project> {
      */
     class Binding : SoftwareFeatureBindingRegistration {
         override fun register(builder: SoftwareFeatureBindingBuilder) {
-            builder
-                .bind<InstrumentClassesDefinition, JavaClasses, InstrumentClassesModel>("instrument") { definition, parent, model ->
-                    val instrumentClassesTask = project.tasks.register("instrument" + StringUtils.capitalize(parent.name) + "Classes", InstrumentClasses::class.java) { task ->
+            builder.bindSoftwareFeatureToDefinition(
+                "instrument",
+                InstrumentClassesDefinition::class,
+                JavaSources::class
+            ) { definition, buildModel, target ->
+                    val instrumentClassesTask = project.tasks.register("instrument" + StringUtils.capitalize(target.name) + "Classes", InstrumentClasses::class.java) { task ->
                         task.group = LifecycleBasePlugin.BUILD_GROUP
-                        task.description = "Instruments the ${parent.name} classes."
-                        task.bytecodeDir.set(parent.byteCodeDir)
+                        task.description = "Instruments the ${target.name} classes."
+                        task.bytecodeDir.set(getOrCreateModel(target).byteCodeDir)
                         task.instrumentedClassesDir.set(definition.destinationDirectory)
                     }
 
-                    model.instrumentedClassesDirectory.set(instrumentClassesTask.map { it.instrumentedClassesDir.get() })
+                    buildModel.instrumentedClassesDirectory.set(instrumentClassesTask.map { it.instrumentedClassesDir.get() })
                 }
         }
     }
@@ -63,7 +65,5 @@ class InstrumentClassesSoftwareFeaturePlugin : Plugin<Project> {
         abstract val instrumentedClassesDir: DirectoryProperty
     }
 
-    override fun apply(target: Project) {
-
-    }
+    override fun apply(target: Project) = Unit
 }

@@ -16,23 +16,25 @@
 
 package org.gradle.api.plugins.java;
 
+import org.gradle.api.Named;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.model.ObjectFactory;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 
-public interface JavaClasses extends JvmOutputs, HasInputSources {
+public interface GroovyClasses extends JvmOutputs, HasInputSources {
 
     void setName(String name);
 
-    abstract class DefaultJavaClasses implements JavaClasses {
+    abstract class DefaultGroovyClasses implements GroovyClasses {
         private final SourceDirectorySet javaSources;
 
         private String name;
 
         @Inject
-        public DefaultJavaClasses(ObjectFactory objectFactory) {
+        public DefaultGroovyClasses(ObjectFactory objectFactory) {
             this.javaSources = objectFactory.sourceDirectorySet("java", "Java source");
         }
 

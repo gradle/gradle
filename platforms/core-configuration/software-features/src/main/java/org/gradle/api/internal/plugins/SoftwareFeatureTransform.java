@@ -16,6 +16,6 @@
 
 package org.gradle.api.internal.plugins;
 
-public interface SoftwareFeatureTransform<T, U, V> {
-    void transform(SoftwareFeatureApplicationContext context, T definition, U parentDefinition, V buildModel);
+public interface SoftwareFeatureTransform<Definition, OwnBuildModel, ParentDefinition> {
+    void transform(SoftwareFeatureApplicationContext context, Definition definition, OwnBuildModel buildModel, ParentDefinition parentDefinition);
 }

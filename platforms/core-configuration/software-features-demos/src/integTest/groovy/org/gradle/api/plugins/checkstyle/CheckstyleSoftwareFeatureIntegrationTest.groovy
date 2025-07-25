@@ -17,7 +17,10 @@
 package org.gradle.api.plugins.checkstyle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
+@Requires(IntegTestPreconditions.IsEmbeddedExecutor)
 class CheckstyleSoftwareFeatureIntegrationTest extends AbstractIntegrationSpec {
     def "can apply the CheckstyleSoftwareFeaturePlugin"() {
         given:
@@ -36,6 +39,12 @@ class CheckstyleSoftwareFeatureIntegrationTest extends AbstractIntegrationSpec {
                             ignoreFailures = true
                         }
                     }
+                    javaSources("integTest") {
+                        checkstyle {
+                            configFile = layout.projectDirectory.file("config/checkstyle/checkstyle.xml")
+                            ignoreFailures = true
+                        }
+                    }
                 }
             }
         """
@@ -45,6 +54,7 @@ class CheckstyleSoftwareFeatureIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("checkMainCheckstyle")
+        outputContains("checkIntegTestCheckstyle")
         outputDoesNotContain("checkTestCheckstyle")
     }
 }

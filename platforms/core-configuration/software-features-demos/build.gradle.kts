@@ -35,6 +35,7 @@ dependencies {
     implementation(libs.groovy)
 
     implementation(projects.languageJava)
+    implementation(projects.languageGroovy)
     implementation(projects.antlr)
     implementation(projects.codeQuality)
 

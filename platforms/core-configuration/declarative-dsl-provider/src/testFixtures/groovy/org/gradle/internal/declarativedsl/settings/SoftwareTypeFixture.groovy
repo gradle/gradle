@@ -463,7 +463,7 @@ trait SoftwareTypeFixture {
 
                 static class Binding implements SoftwareTypeBindingRegistration {
                     public void register(SoftwareTypeBindingBuilder builder) {
-                        builder.bind("${softwareType}", ${dslTypeClassName}.class, ${dslTypeClassName}.ModelType.class, (context, definition, model) -> {
+                        builder.bindSoftwareType("${softwareType}", ${dslTypeClassName}.class, ${dslTypeClassName}.ModelType.class, (context, definition, model) -> {
                             System.out.println("Binding " + ${dslTypeClassName}.class.getSimpleName());
                         });
                     }

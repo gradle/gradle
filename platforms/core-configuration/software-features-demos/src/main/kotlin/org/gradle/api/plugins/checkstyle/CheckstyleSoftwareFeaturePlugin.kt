@@ -22,9 +22,8 @@ import org.gradle.api.Project
 import org.gradle.api.internal.plugins.BindsSoftwareFeature
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilder
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingRegistration
-import org.gradle.api.internal.plugins.bind
-import org.gradle.api.plugins.java.HasSources.JavaSources
-import org.gradle.api.plugins.java.JavaClasses
+import org.gradle.api.internal.plugins.bindSoftwareFeatureToDefinition
+import org.gradle.api.plugins.java.HasJavaSources
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 
@@ -42,21 +41,22 @@ class CheckstyleSoftwareFeaturePlugin : Plugin<Project> {
      */
     class Binding : SoftwareFeatureBindingRegistration {
         override fun register(builder: SoftwareFeatureBindingBuilder) {
-            builder
-                .bind<CheckstyleSourceSetDefinition, JavaClasses, CheckstyleModel>("checkstyle") { definition, parent, model ->
-                    val checkstyleTask = project.tasks.register("check" + StringUtils.capitalize(parent.name) + "Checkstyle", Checkstyle::class.java) { task ->
-                        task.group = LifecycleBasePlugin.VERIFICATION_GROUP
-                        task.description = "Runs Checkstyle on the ${parent.name} source set."
-                        task.source(parent.javaSources)
-                        task.configFile = definition.configFile.asFile.get()
-                    }
-
-                    model.reports = checkstyleTask.map { it.reports }
+            builder.bindSoftwareFeatureToDefinition(
+                "checkstyle",
+                CheckstyleSourceSetDefinition::class,
+                HasJavaSources.JavaSources::class
+            ) { definition, buildModel, target ->
+                val checkstyleTask = project.tasks.register("check" + StringUtils.capitalize(target.name) + "Checkstyle", Checkstyle::class.java) { task ->
+                    task.group = LifecycleBasePlugin.VERIFICATION_GROUP
+                    task.description = "Runs Checkstyle on the ${target.name} source set."
+                    task.source(getOrCreateModel(target).inputSources)
+                    task.configFile = definition.configFile.asFile.get()
                 }
+
+                buildModel.reports = checkstyleTask.map { it.reports }
+            }
         }
     }
 
-    override fun apply(target: Project) {
-
-    }
+    override fun apply(target: Project) = Unit
 }

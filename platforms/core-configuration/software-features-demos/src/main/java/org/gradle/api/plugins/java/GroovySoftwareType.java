@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins;
+package org.gradle.api.plugins.java;
 
-import java.util.Optional;
+import org.gradle.api.internal.plugins.HasBuildModel;
+import org.jspecify.annotations.NonNull;
 
-public interface SoftwareFeatureBinding<T extends HasBuildModel<V>, V extends BuildModel> {
-    TargetTypeInformation<?> targetDefinitionType();
-    Class<T> getDslType();
-    Optional<Class<? extends T>> getDslImplementationType();
-    Class<V> getBuildModelType();
-    Optional<Class<? extends V>> getBuildModelImplementationType();
-    String getName();
-    SoftwareFeatureTransform<T, ?, V> getTransform();
-
-    String MODEL = "model";
+public interface GroovySoftwareType extends HasToolChain, HasGroovySources, HasJavaTarget, HasLibraryDependencies, HasBuildModel<@NonNull GroovyLibraryModel> {
 }
