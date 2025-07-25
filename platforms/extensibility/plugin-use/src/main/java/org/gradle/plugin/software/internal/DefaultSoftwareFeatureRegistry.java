@@ -59,10 +59,12 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
     @SuppressWarnings("unused")
     private final InspectionScheme inspectionScheme;
     private final Instantiator instantiator;
+    private final LegacySoftwareTypeDiscovery legacySoftwareTypeDiscovery;
 
     public DefaultSoftwareFeatureRegistry(InspectionScheme inspectionScheme, Instantiator instantiator) {
         this.inspectionScheme = inspectionScheme;
         this.instantiator = instantiator;
+        legacySoftwareTypeDiscovery = new LegacySoftwareTypeDiscovery(inspectionScheme);
     }
 
     @Override
@@ -83,10 +85,18 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
                 registerSoftwareFeatureIfPresent(registeringPluginClass, pluginClass, pluginClassAnnotationMetadata, softwareFeatureImplementationsBuilder);
             })
         );
+        legacySoftwareTypeDiscovery.discoverSoftwareTypeImplementations(registeredTypes, pluginClasses).forEach(implementation -> {
+            softwareFeatureImplementationsBuilder.put(implementation.getFeatureName(), implementation);
+        });
         return softwareFeatureImplementationsBuilder.build();
     }
 
-    private <T extends HasBuildModel<V>, V extends BuildModel> void registerFeature(Class<? extends Plugin<Settings>> registeringPluginClass, Class<? extends Plugin<Project>> pluginClass, SoftwareFeatureBinding<T, V> binding, ImmutableMap.Builder<String, SoftwareFeatureImplementation<?, ?>> softwareFeatureImplementationsBuilder) {
+    private <T extends HasBuildModel<V>, V extends BuildModel> void registerFeature(
+        Class<? extends Plugin<Settings>> registeringPluginClass,
+        Class<? extends Plugin<Project>> pluginClass,
+        SoftwareFeatureBinding<T, V> binding,
+        ImmutableMap.Builder<String, SoftwareFeatureImplementation<?, ?>> softwareFeatureImplementationsBuilder
+    ) {
         String softwareFeatureName = binding.getName();
 
         Class<? extends Plugin<Project>> existingPluginClass = registeredTypes.put(softwareFeatureName, pluginClass);
@@ -96,7 +106,7 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
 
         softwareFeatureImplementationsBuilder.put(
             softwareFeatureName,
-            new DefaultSoftwareFeatureImplementation<>(
+            new DefaultBoundSoftwareFeatureImplementation<>(
                 softwareFeatureName,
                 binding.getDslType(),
                 binding.getDslImplementationType().orElse(binding.getDslType()),
@@ -111,7 +121,12 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
         );
     }
 
-    private void registerSoftwareFeatureIfPresent(Class<? extends Plugin<Settings>> registeringPluginClass, Class<? extends Plugin<Project>> pluginClass, TypeAnnotationMetadata pluginClassAnnotationMetadata, ImmutableMap.Builder<String, SoftwareFeatureImplementation<?, ?>> softwareFeatureImplementationsBuilder) {
+    private void registerSoftwareFeatureIfPresent(
+        Class<? extends Plugin<Settings>> registeringPluginClass,
+        Class<? extends Plugin<Project>> pluginClass,
+        TypeAnnotationMetadata pluginClassAnnotationMetadata,
+        ImmutableMap.Builder<String, SoftwareFeatureImplementation<?, ?>> softwareFeatureImplementationsBuilder
+    ) {
         Optional<BindsSoftwareFeature> bindsSoftwareTypeAnnotation = pluginClassAnnotationMetadata.getAnnotation(BindsSoftwareFeature.class);
         if (bindsSoftwareTypeAnnotation.isPresent()) {
             BindsSoftwareFeature bindsSoftwareType = bindsSoftwareTypeAnnotation.get();
@@ -145,13 +160,6 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
             softwareFeatureImplementations = discoverSoftwareFeatureImplementations();
         }
         return softwareFeatureImplementations;
-    }
-
-    @Override
-    public Optional<SoftwareFeatureImplementation<?, ?>> implementationFor(Class<? extends Plugin<Project>> pluginClass) {
-        return getSoftwareFeatureImplementations().values().stream()
-            .filter(softwareFeatureImplementation -> softwareFeatureImplementation.getPluginClass().isAssignableFrom(pluginClass))
-            .findFirst();
     }
 
     @Override

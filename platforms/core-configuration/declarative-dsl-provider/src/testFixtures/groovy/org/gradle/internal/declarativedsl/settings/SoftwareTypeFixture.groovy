@@ -50,7 +50,7 @@ trait SoftwareTypeFixture {
     PluginBuilder withSoftwareTypePluginWithNdoc() {
         return withSoftwareTypePlugins(
             softwareTypeExtensionWithNdoc,
-            getProjectPluginThatProvidesSoftwareType("TestSoftwareTypeExtension", null, "SoftwareTypeImplPlugin", "testSoftwareType", ""),
+            SoftwareTypeFixture.getProjectPluginThatProvidesLegacySoftwareType("TestSoftwareTypeExtension", null, "SoftwareTypeImplPlugin", "testSoftwareType", ""),
             settingsPluginThatRegistersSoftwareType
         )
     }
@@ -58,7 +58,7 @@ trait SoftwareTypeFixture {
     PluginBuilder withSoftwareTypePluginWithMismatchedModelTypes() {
         def pluginBuilder = withSoftwareTypePlugins(
             softwareTypeExtension,
-            getProjectPluginThatProvidesSoftwareType("TestSoftwareTypeExtension", "AnotherSoftwareTypeExtension"),
+            SoftwareTypeFixture.getProjectPluginThatProvidesLegacySoftwareType("TestSoftwareTypeExtension", "AnotherSoftwareTypeExtension"),
             settingsPluginThatRegistersSoftwareType
         )
 
@@ -84,7 +84,7 @@ trait SoftwareTypeFixture {
 
         pluginBuilder.addPluginId("com.example.another-software-type-impl", "AnotherSoftwareTypeImplPlugin")
         pluginBuilder.file("src/main/java/org/gradle/test/AnotherSoftwareTypeExtension.java") << anotherSoftwareTypeExtension
-        pluginBuilder.file("src/main/java/org/gradle/test/AnotherSoftwareTypeImplPlugin.java") << getProjectPluginThatProvidesSoftwareType(
+        pluginBuilder.file("src/main/java/org/gradle/test/AnotherSoftwareTypeImplPlugin.java") << getProjectPluginThatProvidesLegacySoftwareType(
             "AnotherSoftwareTypeExtension",
             "AnotherSoftwareTypeExtension",
             "AnotherSoftwareTypeImplPlugin",
@@ -98,7 +98,7 @@ trait SoftwareTypeFixture {
     PluginBuilder withSoftwareTypePluginThatHasDifferentPublicAndImplementationModelTypes() {
         PluginBuilder pluginBuilder = withSoftwareTypePlugins(
             publicModelType,
-            getProjectPluginThatProvidesSoftwareType("TestSoftwareTypeExtensionImpl", "TestSoftwareTypeExtension"),
+            getProjectPluginThatProvidesLegacySoftwareType("TestSoftwareTypeExtensionImpl", "TestSoftwareTypeExtension"),
             settingsPluginThatRegistersSoftwareType
         )
 
@@ -158,7 +158,7 @@ trait SoftwareTypeFixture {
     PluginBuilder withSoftwareTypePluginThatExposesExtensionWithDependencies() {
         PluginBuilder pluginBuilder = withSoftwareTypePlugins(
             softwareTypeExtension,
-            getProjectPluginThatProvidesSoftwareType("TestSoftwareTypeExtensionWithDependencies", "TestSoftwareTypeExtensionWithDependencies"),
+            SoftwareTypeFixture.getProjectPluginThatProvidesLegacySoftwareType("TestSoftwareTypeExtensionWithDependencies", "TestSoftwareTypeExtensionWithDependencies"),
             settingsPluginThatRegistersSoftwareType
         )
 
@@ -387,6 +387,52 @@ trait SoftwareTypeFixture {
             }
         """
     }
+
+    static String getProjectPluginThatProvidesLegacySoftwareType(
+        String implementationTypeClassName = "TestSoftwareTypeExtension",
+        String publicTypeClassName = null,
+        String softwareTypePluginClassName = "SoftwareTypeImplPlugin",
+        String softwareType = "testSoftwareType",
+        String conventions = testSoftwareTypeExtensionConventions
+    ) {
+        return """
+            package org.gradle.test;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.provider.ListProperty;
+            import org.gradle.api.provider.Property;
+            import org.gradle.api.tasks.Nested;
+            import ${SoftwareType.class.name};
+            import ${SoftwareFeatureBinding.class.name};
+            import ${SoftwareTypeBindingRegistration.class.name};
+            import ${SoftwareTypeBindingBuilder.class.name};
+            import javax.inject.Inject;
+
+            abstract public class ${softwareTypePluginClassName} implements Plugin<Project> {
+
+                @SoftwareType(${SoftwareTypeArgumentBuilder.name(softwareType)
+            .modelPublicType(publicTypeClassName)
+            .build()})
+                abstract public ${implementationTypeClassName} getTestSoftwareTypeExtension();
+
+                @Override
+                public void apply(Project target) {
+                    System.out.println("Applying " + getClass().getSimpleName());
+                    ${implementationTypeClassName} extension = getTestSoftwareTypeExtension();
+
+                    ${conventions == null ? "" : conventions}
+                    target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
+                        task.doLast("print restricted extension content", t -> {
+                            System.out.println(extension);
+                        });
+                    });
+                }
+            }
+        """
+    }
+
 
     static String getProjectPluginThatProvidesSoftwareType(
         String implementationTypeClassName = "TestSoftwareTypeExtension",

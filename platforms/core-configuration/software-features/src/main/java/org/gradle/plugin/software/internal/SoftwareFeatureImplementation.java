@@ -19,16 +19,20 @@ package org.gradle.plugin.software.internal;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.plugins.BuildModel;
-import org.gradle.api.internal.plugins.HasBuildModel;
 import org.gradle.api.internal.plugins.SoftwareFeatureTransform;
 
 import java.util.Map;
 
 /**
  * Represents a resolved software type implementation including the public model type and the plugin that exposes it.
+ *
+ * This interface does not require the type arguments T and V to follow the bound software feature
+ * definition and model type limitations.
+ * Therefore, it can be used for software features with any definition and model types.
+ *
+ * TODO: Move the type constraints from {@link BoundSoftwareFeatureImplementation} to here once the migration from legacy software types is done.
  */
-public interface SoftwareFeatureImplementation<T extends HasBuildModel<V>, V extends BuildModel> {
+public interface SoftwareFeatureImplementation<T, V> {
     String getFeatureName();
 
     Class<T> getDefinitionPublicType();
