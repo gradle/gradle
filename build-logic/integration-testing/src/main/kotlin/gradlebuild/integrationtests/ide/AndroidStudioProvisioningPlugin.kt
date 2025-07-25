@@ -61,7 +61,7 @@ class AndroidStudioProvisioningPlugin : Plugin<Project> {
             repositories {
                 ivy {
                     // Url of Android Studio archive
-                    url = uri("https://redirector.gvt1.com/edgedl/android/studio/${if (androidStudioFileName.endsWith("dmg")) "install" else "ide-zips"}")
+                    url = uri("https://repo.grdev.net/artifactory/android-studio/${if (androidStudioFileName.endsWith("dmg")) "install" else "ide-zips"}")
                     patternLayout {
                         artifact("[revision]/[artifact]-[revision]-[ext]")
                     }
