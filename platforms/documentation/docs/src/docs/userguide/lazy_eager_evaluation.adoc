@@ -1,0 +1,59 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+= Lazy vs Eager Evaluation
+
+Understanding **when** values in your build are computed is crucial for writing fast and reliable build logic.
+Gradle differentiates between *eager* and *lazy* evaluation:
+
+lazy APIs were explicitly designed to avoid configuring tasks that aren’t going to be run, especially in large projects or Android builds where configuration overhead can be significant.
+
+== Eager Evaluation
+
+Values are computed immediately during the **configuration phase**, before tasks ever run. While simple and sometimes convenient, eager evaluation comes with drawbacks:
+
+* Slows down builds—even when tasks aren’t executed.
+* Breaks compatibility with incremental and configuration caching.
+* Locks in values too early, preventing dependencies on outputs or dynamic inputs.
+
+Essentially, eager evaluation performs unnecessary work and reduces flexibility.
+
+== Lazy Evaluation
+
+Lazy values are computed on-demand, typically during the **execution phase**, using Gradle’s Provider API (`Provider<T>` and `Property<T>`). This approach has three key benefits (as documented in the Gradle User Manual) ([Gradle Documentation][1], [JDriven][2], [Melix][3], [Melix][4]):
+
+1. **Deferred resolution** — values are only computed when needed.
+2. **Automatic task wiring** — Gradle tracks which task produces which output.
+3. **Better performance** — avoids unnecessary computation during configuration.
+
+== Lazy APIs
+
+
+He calls out a common pitfall: using `tasks.withType(Test) {…}` which eagerly configures all matching `Test` tasks, even in builds where they’re not needed. Instead, you should use:
+
+```groovy
+tasks.withType(Test).configureEach {
+    // configure only those tasks actually needed
+}
+```
+
+Or:
+
+```groovy
+tasks.named("test") {
+    // configure only if task will be executed
+}
+```
+
+This use of `configureEach` and `tasks.named(...)` ensures configurations only apply to tasks invoked by the build.

@@ -75,6 +75,35 @@ Providers:
 * A `Provider` can be created from another `Provider` using link:{javadocPath}/org/gradle/api/provider/Provider.html#map-org.gradle.api.Transformer-[Provider.map(Transformer)].
 * Many other types extend `Provider` and can be used wherever a `Provider` is required.
 
+== Chaining Providers
+
+Chaining `Providers` preserves laziness and is essential to use when writing build logic.
+
+These methods allow you to transform, combine, or provide fallback values without triggering eager evaluation:
+
+[cols="1,3", options="header"]
+|===
+| Method | Purpose
+
+| `map()`
+| Transforms the value using a function, producing a new `Provider`.
+
+| `flatMap()`
+| Transforms the value into another `Provider`, and flattens the result.
+
+| `zip()`
+| Combines multiple `Providers` into one, applying a function to their values.
+
+| `orElse()`
+| Supplies a fallback `Provider` if the original is missing or undefined.
+|===
+
+For example:
+
+====
+include::sample[dir="snippets/kotlinDsl/basics/kotlin/my-sub-project",files="build.gradle.kts[tags=transform]"]
+====
+
 [[managed_properties]]
 == Using Gradle Managed Properties
 
