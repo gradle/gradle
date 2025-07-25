@@ -302,20 +302,6 @@ class UnitTestPreconditions {
         }
     }
 
-    static final class Jdk24OrLater implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() >= JavaVersion.VERSION_24
-        }
-    }
-
-    static final class Jdk24OrEarlier implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return JavaVersion.current() <= JavaVersion.VERSION_24
-        }
-    }
-
     static final class JdkOracle implements TestPrecondition {
         @Override
         boolean isSatisfied() {

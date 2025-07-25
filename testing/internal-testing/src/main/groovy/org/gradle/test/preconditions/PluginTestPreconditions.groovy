@@ -20,7 +20,6 @@ import org.gradle.test.precondition.TestPrecondition
 
 // These imports are required, IntelliJ incorrectly thinks that they are not used because old versions of Groovy
 // permitted subtypes to use the parent type's methods without importing them
-import static org.gradle.test.precondition.TestPrecondition.satisfied;
 
 class PluginTestPreconditions {
     static File locate(String shellCommand) {
@@ -35,28 +34,28 @@ class PluginTestPreconditions {
     static class BashAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return satisfied(UnitTestPreconditions.UnixDerivative) && locate("bash") != null
+            return TestPrecondition.satisfied(UnitTestPreconditions.UnixDerivative) && locate("bash") != null
         }
     }
 
     static class DashAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return satisfied(UnitTestPreconditions.UnixDerivative) && locate("dash") != null
+            return TestPrecondition.satisfied(UnitTestPreconditions.UnixDerivative) && locate("dash") != null
         }
     }
 
     static class StaticShAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return satisfied(UnitTestPreconditions.UnixDerivative) && locate("static-sh") != null
+            return TestPrecondition.satisfied(UnitTestPreconditions.UnixDerivative) && locate("static-sh") != null
         }
     }
 
     static class ShellcheckAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return satisfied(UnitTestPreconditions.UnixDerivative) && locate("shellcheck") != null
+            return TestPrecondition.satisfied(UnitTestPreconditions.UnixDerivative) && locate("shellcheck") != null
         }
     }
 }
