@@ -32,8 +32,23 @@ public class DefaultSoftwareFeatureBindingBuilder implements SoftwareFeatureBind
     private final List<DslBindingBuilder<?, ?>> bindings = new ArrayList<>();
 
     @Override
-    public <T extends HasBuildModel<V>, U extends BuildModel, V extends BuildModel> DslBindingBuilder<T, V> bind(String name, Class<T> dslType, Class<U> bindingTargetType, Class<V> buildModelType, SoftwareFeatureTransform<T, U, V> transform) {
-        DslBindingBuilder<T, V> builder = new DefaultDslBindingBuilder<>(dslType, bindingTargetType, buildModelType, Path.path(name), transform);
+    public <
+        Definition extends HasBuildModel<OwnBuildModel>,
+        TargetDefinition extends HasBuildModel<?>,
+        OwnBuildModel extends BuildModel
+        >
+    DslBindingBuilder<Definition, OwnBuildModel> bindSoftwareFeature(
+        String name,
+        ModelBindingTypeInformation<Definition, OwnBuildModel, TargetDefinition> bindingTypeInformation,
+        SoftwareFeatureTransform<Definition, OwnBuildModel, TargetDefinition> transform
+    ) {
+        DslBindingBuilder<Definition, OwnBuildModel> builder = new DefaultDslBindingBuilder<>(
+            bindingTypeInformation.definitionType,
+            bindingTypeInformation.ownBuildModelType,
+            bindingTypeInformation.targetType,
+            Path.path(name),
+            transform
+        );
         bindings.add(builder);
         return builder;
     }

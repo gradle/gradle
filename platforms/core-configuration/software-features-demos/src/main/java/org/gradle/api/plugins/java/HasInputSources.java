@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins;
+package org.gradle.api.plugins.java;
 
-import java.util.Optional;
+import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.plugins.BuildModel;
 
-public interface SoftwareFeatureBinding<T extends HasBuildModel<V>, V extends BuildModel> {
-    TargetTypeInformation<?> targetDefinitionType();
-    Class<T> getDslType();
-    Optional<Class<? extends T>> getDslImplementationType();
-    Class<V> getBuildModelType();
-    Optional<Class<? extends V>> getBuildModelImplementationType();
-    String getName();
-    SoftwareFeatureTransform<T, ?, V> getTransform();
-
-    String MODEL = "model";
+public interface HasInputSources extends BuildModel {
+    SourceDirectorySet getInputSources();
 }

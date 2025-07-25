@@ -19,33 +19,32 @@ package org.gradle.api.plugins.internal.java;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.java.HasJavaSources;
-import org.gradle.api.plugins.java.JavaSoftwareType;
+import org.gradle.api.plugins.java.GroovySoftwareType;
 import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
 
 @NullMarked
-abstract public class DefaultJavaSoftwareType implements JavaSoftwareType {
-    private final NamedDomainObjectContainer<JavaSources> sourcesContainer;
+abstract public class DefaultGroovySoftwareType implements GroovySoftwareType {
+    private final NamedDomainObjectContainer<GroovySources> sourcesContainer;
 
     @Inject
-    public DefaultJavaSoftwareType(ObjectFactory objectFactory) {
-        this.sourcesContainer = objectFactory.domainObjectContainer(HasJavaSources.JavaSources.class, name -> objectFactory.newInstance(DefaultJavaSources.class, name));
+    public DefaultGroovySoftwareType(ObjectFactory objectFactory) {
+        this.sourcesContainer = objectFactory.domainObjectContainer(GroovySources.class, name -> objectFactory.newInstance(DefaultGroovySources.class, name));
     }
 
     @Override
-    public NamedDomainObjectContainer<JavaSources> getSources() {
+    public NamedDomainObjectContainer<GroovySources> getSources() {
         return sourcesContainer;
     }
 
-    static class DefaultJavaSources implements JavaSources {
+    static class DefaultGroovySources implements GroovySources {
         private final String name;
         private final SourceDirectorySet javaSources;
         private final SourceDirectorySet resources;
 
         @Inject
-        public DefaultJavaSources(String name, ObjectFactory objectFactory) {
+        public DefaultGroovySources(String name, ObjectFactory objectFactory) {
             this.name = name;
             this.javaSources = objectFactory.sourceDirectorySet(name, name + " java sources"); // Initialize with actual SourceDirectorySet
             this.resources = objectFactory.sourceDirectorySet(name, name + " resources"); // Initialize with actual SourceDirectorySet

@@ -16,17 +16,16 @@
 
 package org.gradle.plugin.software.internal;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.HasBuildModel;
 import org.gradle.api.internal.plugins.SoftwareFeatureTransform;
+import org.gradle.api.internal.plugins.TargetTypeInformation;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -37,14 +36,13 @@ public class DefaultBoundSoftwareFeatureImplementation<T extends HasBuildModel<V
     private final String featureName;
     private final Class<T> definitionPublicType;
     private final Class<? extends T> definitionImplementationType;
-    private final Class<?> bindingType;
+    private final TargetTypeInformation<?> targetDefinitionType;
     private final Class<V> buildModelType;
     private final Class<? extends V> buildModelImplementationType;
     private final Class<? extends Plugin<Project>> pluginClass;
     private final Class<? extends Plugin<Settings>> registeringPluginClass;
     private final List<ModelDefault<?>> defaults = new ArrayList<>();
-    private final SoftwareFeatureTransform<T, ?, V> bindingTransform;
-    private final Map<Class<?>, Class<?>> allBindings;
+    private final SoftwareFeatureTransform<T, V, ?> bindingTransform;
 
     public DefaultBoundSoftwareFeatureImplementation(
         String featureName,
@@ -60,16 +58,12 @@ public class DefaultBoundSoftwareFeatureImplementation<T extends HasBuildModel<V
         this.featureName = featureName;
         this.definitionPublicType = definitionPublicType;
         this.definitionImplementationType = definitionImplementationType;
-        this.bindingType = bindingType;
+        this.targetDefinitionType = targetDefinitionType;
         this.buildModelType = buildModelType;
         this.buildModelImplementationType = buildModelImplementationType;
         this.pluginClass = pluginClass;
         this.registeringPluginClass = registeringPluginClass;
         this.bindingTransform = bindingTransform;
-        this.allBindings = ImmutableMap.<Class<?>, Class<?>>builder()
-            .put(definitionPublicType, buildModelType)
-            .putAll(nestedBindings)
-            .build();;
     }
 
     @Override
@@ -98,8 +92,8 @@ public class DefaultBoundSoftwareFeatureImplementation<T extends HasBuildModel<V
     }
 
     @Override
-    public Class<?> getBindingType() {
-        return bindingType;
+    public TargetTypeInformation<?> getTargetDefinitionType() {
+        return targetDefinitionType;
     }
 
     @Override
@@ -113,7 +107,7 @@ public class DefaultBoundSoftwareFeatureImplementation<T extends HasBuildModel<V
     }
 
     @Override
-    public SoftwareFeatureTransform<T, ?, V> getBindingTransform() {
+    public SoftwareFeatureTransform<T, V, ?> getBindingTransform() {
         return bindingTransform;
     }
 
@@ -128,17 +122,6 @@ public class DefaultBoundSoftwareFeatureImplementation<T extends HasBuildModel<V
             .filter(type::isInstance)
             .map(type::cast)
             .forEach(modelDefault -> modelDefault.visit(visitor));
-    }
-
-    @Override
-    public boolean hasBindingFor(Class<?> receiverType, Class<?> buildModelType) {
-        return allBindings.entrySet().stream().anyMatch(entry ->
-            entry.getKey().isAssignableFrom(receiverType) && entry.getValue().isAssignableFrom(buildModelType));
-    }
-
-    @Override
-    public Map<Class<?>, Class<?>> getAllDslBindings() {
-        return allBindings;
     }
 
     @Override

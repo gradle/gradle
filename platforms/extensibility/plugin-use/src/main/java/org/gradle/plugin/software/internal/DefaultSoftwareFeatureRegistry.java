@@ -110,13 +110,12 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
                 softwareFeatureName,
                 binding.getDslType(),
                 binding.getDslImplementationType().orElse(binding.getDslType()),
-                binding.getBindingTargetType(),
+                binding.targetDefinitionType(),
                 binding.getBuildModelType(),
                 binding.getBuildModelImplementationType().orElse(binding.getBuildModelType()),
                 pluginClass,
                 registeringPluginClass,
-                Cast.uncheckedCast(binding.getTransform()),
-                binding.getNestedBindings()
+                Cast.uncheckedCast(binding.getTransform())
             )
         );
     }

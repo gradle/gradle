@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins;
+package org.gradle.api.plugins.demoCodeQuality;
 
-import java.util.Optional;
+import org.gradle.api.internal.plugins.BuildModel;
+import org.gradle.api.plugins.quality.CheckstyleReports;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.reporting.ReportContainer;
+import org.gradle.api.reporting.SingleFileReport;
+import org.jspecify.annotations.NullMarked;
 
-public interface SoftwareFeatureBinding<T extends HasBuildModel<V>, V extends BuildModel> {
-    TargetTypeInformation<?> targetDefinitionType();
-    Class<T> getDslType();
-    Optional<Class<? extends T>> getDslImplementationType();
-    Class<V> getBuildModelType();
-    Optional<Class<? extends V>> getBuildModelImplementationType();
-    String getName();
-    SoftwareFeatureTransform<T, ?, V> getTransform();
-
-    String MODEL = "model";
+@NullMarked
+public interface DemoCodeQualityModel extends BuildModel {
+    Provider<ReportContainer<SingleFileReport>> getReports();
+    void setReports(Provider<ReportContainer<SingleFileReport>> reports);
 }

@@ -22,6 +22,5 @@ import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 
 @RegistersSoftwareTypes(JavaSoftwareTypePlugin::class)
 class JavaEcosystemPlugin : Plugin<Settings> {
-    override fun apply(target: Settings) {
-    }
+    override fun apply(target: Settings) = Unit
 }
