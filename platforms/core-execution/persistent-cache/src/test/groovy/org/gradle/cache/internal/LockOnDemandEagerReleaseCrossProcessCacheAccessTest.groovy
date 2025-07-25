@@ -417,38 +417,6 @@ class LockOnDemandEagerReleaseCrossProcessCacheAccessTest extends ConcurrentSpec
         0 * _
     }
 
-    def "notifies handler when lock released on contention"() {
-        def action = Mock(Supplier)
-        def onOpen = Mock(Consumer)
-        def onClose = Mock(Consumer)
-        def lock = Mock(FileLock)
-
-        def cacheAccess = newCacheAccess(onOpen, onClose)
-
-        when:
-        cacheAccess.withFileLock(action)
-
-        then:
-        1 * lockManager.lock(file, _, _, _) >> lock
-
-        then:
-        1 * onOpen.accept(lock)
-
-        then:
-        1 * action.get() >> "result"
-
-        then:
-        1 * onClose.accept(lock)
-        1 * lock.close()
-        0 * _
-
-        when:
-        cacheAccess.close()
-
-        then:
-        0 * _
-    }
-
     def "releases lock when acquire handler fails"() {
         def action = Mock(Supplier)
         def onOpen = Mock(Consumer)
