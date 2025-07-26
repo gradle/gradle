@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.workspace;
 
 import java.io.File;
+import java.util.function.Supplier;
 
 public interface ImmutableWorkspaceProvider {
     ImmutableWorkspace getWorkspace(String path);
@@ -31,6 +32,11 @@ public interface ImmutableWorkspaceProvider {
          * Provides a temporary workspace and executes the given action in it.
          */
         <T> T withTemporaryWorkspace(TemporaryWorkspaceAction<T> action);
+
+        /**
+         * Executes the given action under the global scoped lock.
+         */
+        <T> T withGlobalScopedLock(String uniqueId, Supplier<T> supplier);
 
         @FunctionalInterface
         interface TemporaryWorkspaceAction<T> {

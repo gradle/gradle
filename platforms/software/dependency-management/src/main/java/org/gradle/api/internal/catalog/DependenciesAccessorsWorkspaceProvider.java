@@ -34,7 +34,8 @@ public class DependenciesAccessorsWorkspaceProvider implements ImmutableWorkspac
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         CacheConfigurationsInternal cacheConfigurations,
-        CacheCleanupStrategyFactory cacheCleanupStrategyFactory
+        CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
+        GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory
     ) {
         this.delegate = CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(
             cacheBuilderFactory
@@ -42,7 +43,8 @@ public class DependenciesAccessorsWorkspaceProvider implements ImmutableWorkspac
                 .withDisplayName("dependencies-accessors"),
             fileAccessTimeJournal,
             cacheConfigurations,
-            cacheCleanupStrategyFactory
+            cacheCleanupStrategyFactory,
+            globalScopedCacheBuilderFactory
         );
     }
 
