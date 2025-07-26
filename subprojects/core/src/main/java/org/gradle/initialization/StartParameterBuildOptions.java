@@ -82,6 +82,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigurationCacheIntegrityCheckOption(),
         new ConfigurationCacheEntriesPerKeyOption(),
         new IsolatedProjectsOption(),
+        new IsolatedProjectsEnablePathsOption(),
         new ProblemReportGenerationOption(),
         new PropertyUpgradeReportOption(),
         new TaskGraphOption()
@@ -490,6 +491,20 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setIsolatedProjects(Option.Value.value(value));
+        }
+    }
+
+    public static class IsolatedProjectsEnablePathsOption extends StringBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.unsafe.isolated-projects.enable.paths";
+
+        public IsolatedProjectsEnablePathsOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(String value, StartParameterInternal settings, Origin origin) {
+            settings.setIsolatedProjectsEnablePaths(value);
         }
     }
 
