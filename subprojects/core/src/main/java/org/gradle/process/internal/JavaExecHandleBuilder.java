@@ -43,6 +43,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -427,19 +431,29 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
 
         // Try to shorten command-line if necessary
         if (hasCommandLineExceedMaxLength(getExecutable(), arguments)) {
-            try {
-                File pathingJarFile = writePathingJarFile(classpath);
-                ConfigurableFileCollection shortenedClasspath = fileCollectionFactory.configurableFiles();
-                shortenedClasspath.from(pathingJarFile);
-                List<String> shortenedArguments = getAllArguments(shortenedClasspath);
-                LOGGER.info("Shortening Java classpath {} with {}", this.classpath.getFiles(), pathingJarFile);
-                return shortenedArguments;
-            } catch (IOException e) {
-                LOGGER.info("Pathing JAR could not be created, Gradle cannot shorten the command line.", e);
+            if (javaModuleDetector == null) {
+                return shortenJava8Arguments(arguments);
+            } else {
+                return shortenJava9Arguments(arguments);
             }
         }
 
         return arguments;
+    }
+
+    private List<String> shortenJava8Arguments(List<String> arguments) {
+        File pathingJarFile;
+        try {
+            pathingJarFile = writePathingJarFile(classpath);
+        } catch (IOException e) {
+            LOGGER.info("Pathing JAR could not be created, Gradle cannot shorten the command line.", e);
+            return arguments;
+        }
+        ConfigurableFileCollection shortenedClasspath = fileCollectionFactory.configurableFiles();
+        shortenedClasspath.from(pathingJarFile);
+        List<String> shortenedArguments = getAllArguments(shortenedClasspath);
+        LOGGER.info("Shortening Java classpath {} with {}", this.classpath.getFiles(), pathingJarFile);
+        return shortenedArguments;
     }
 
     private File writePathingJarFile(FileCollection classpath) throws IOException {
@@ -449,6 +463,46 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
             jarOutputStream.putNextEntry(new ZipEntry("META-INF/"));
         }
         return pathingJarFile;
+    }
+
+    private List<String> shortenJava9Arguments(List<String> arguments) {
+        LOGGER.info("Command line too long - creating argsfile(s)");
+        List<String> effectiveArguments = new ArrayList<>();
+        List<String> argsFileContents = new ArrayList<>(arguments.size());
+        try {
+            for (String arg : arguments) {
+                if (arg.startsWith("@")) {
+                    if (!argsFileContents.isEmpty()) {
+                        createArgsFile(argsFileContents, effectiveArguments);
+                        argsFileContents.clear();
+                        continue;
+                    }
+                    effectiveArguments.add(arg);
+                    continue;
+                }
+                if (arg.contains("\\") || arg.contains("/")) {
+                    // In case of a file path, we need to escape backslashes and spaces
+                    arg = arg.replace("\\", "\\\\");
+                    // Hint from https://docs.oracle.com/en/java/javase/17/docs/specs/man/java.html#java-command-line-argument-files, section "java Command-Line Argument Files"
+                    arg = arg.replace(" ", "\" \"");
+                }
+                argsFileContents.add(arg);
+            }
+            if (!argsFileContents.isEmpty()) {
+                createArgsFile(argsFileContents, effectiveArguments);
+            }
+        } catch (IOException e) {
+            LOGGER.info("args file could not be created, Gradle cannot shorten the command line.", e);
+            return arguments;
+        }
+        LOGGER.info("effective arguments {}", effectiveArguments);
+        return effectiveArguments;
+    }
+
+    private void createArgsFile(List<String> argsFileContents, List<String> effectiveArguments) throws IOException {
+        Path argsFile = temporaryFileProvider.createTemporaryFile("args", ".txt").toPath();
+        effectiveArguments.add("@" + argsFile.toAbsolutePath());
+        Files.write(argsFile, argsFileContents, StandardCharsets.UTF_8, StandardOpenOption.CREATE);
     }
 
     private static Manifest toManifest(FileCollection classpath) {
