@@ -20,6 +20,12 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
+/**
+ * @implNote Despite not being part of the public API, this service is known to have been used by users.
+ * So we treat its removal as a breaking change.
+ * @deprecated Instead, use {@link org.gradle.api.file.BuildLayout#getSettingsDirectory()} for settings or {@link org.gradle.api.file.ProjectLayout#getSettingsDirectory()} for project.
+ */
+@Deprecated
 public class SettingsLocation {
 
     protected final BuildLocations buildLocations;

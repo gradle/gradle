@@ -21,10 +21,9 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.internal.initialization.BuildLocations;
 import org.gradle.internal.initialization.BuildLocator;
-import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 

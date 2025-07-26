@@ -19,6 +19,7 @@ package org.gradle.internal.service.scopes;
 import org.gradle.StartParameter;
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.flow.FlowScope;
 import org.gradle.api.initialization.SharedModelDefaults;
 import org.gradle.api.internal.BuildDefinition;
@@ -148,7 +149,6 @@ import org.gradle.initialization.SettingsProcessor;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.buildsrc.BuildSrcBuildListenerFactory;
 import org.gradle.initialization.buildsrc.BuildSrcProjectConfigurationAction;
-import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.ResolvedBuildLayout;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.actor.internal.DefaultActorFactory;
@@ -177,6 +177,7 @@ import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.composite.DefaultBuildIncluder;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
@@ -226,6 +227,8 @@ import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderR
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 
 import java.util.List;
+
+import static java.lang.String.format;
 
 /**
  * Contains the services for a single build invocation inside a build tree.
@@ -313,9 +316,17 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         return buildLocator.findBuild(buildDefinition.getStartParameter().toBuildDiscoveryParameters());
     }
 
+    @SuppressWarnings("deprecation")
     @Provides
-    protected BuildLayout createBuildLayout(BuildLocations buildLocations) {
-        return new BuildLayout(buildLocations);
+    protected org.gradle.initialization.layout.BuildLayout createBuildLayout(BuildLocations buildLocations) {
+        // TODO: Remove the services in Gradle 10, see https://github.com/gradle/gradle/issues/31969
+        DeprecationLogger.deprecateAction(format("Injecting '%s' or '%s' service", org.gradle.initialization.layout.BuildLayout.class.getName(), org.gradle.initialization.SettingsLocation.class.getName()))
+            .withContext("These classes are not part of the public API.")
+            .withAdvice(format("Instead '%s.settingsDirectory' in settings plugins or '%s.settingsDirectory' in project plugins.", org.gradle.api.file.BuildLayout.class.getName(), ProjectLayout.class.getSimpleName()))
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate-internal-buildlayout")
+            .nagUser();
+        return new org.gradle.initialization.layout.BuildLayout(buildLocations);
     }
 
     @Provides
