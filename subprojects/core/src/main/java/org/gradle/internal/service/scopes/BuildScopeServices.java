@@ -214,7 +214,6 @@ import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.DefaultTextFileResourceLoader;
 import org.gradle.internal.resource.TextFileResourceLoader;
-import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scripts.ScriptExecutionListener;
@@ -476,13 +475,13 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         GradleProperties gradleProperties,
         BuildOperationRunner buildOperationRunner,
         BuildOperationProgressEventEmitter emitter,
-        ListenerManager listenerManager
+        Environment environment
     ) {
         return new NotifyingBuildLoader(
             new ProjectPropertySettingBuildLoader(
                 gradleProperties,
                 new InstantiatingBuildLoader(),
-                listenerManager.getBroadcaster(FileResourceListener.class)
+                environment
             ),
             buildOperationRunner,
             emitter

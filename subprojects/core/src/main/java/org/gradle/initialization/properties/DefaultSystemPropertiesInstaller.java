@@ -63,7 +63,7 @@ public class DefaultSystemPropertiesInstaller implements SystemPropertiesInstall
         System.getProperties().putAll(systemPropertiesArgs);
     }
 
-    private void setSystemPropertiesFromGradleProperties(Map<String, Object> properties) {
+    private void setSystemPropertiesFromGradleProperties(Map<String, String> properties) {
         if (properties.isEmpty()) {
             return;
         }

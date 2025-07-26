@@ -41,8 +41,8 @@ public class DefaultProjectPropertiesLoader implements ProjectPropertiesLoader {
     }
 
     @Override
-    public Map<String, Object> loadProjectProperties() {
-        Map<String, Object> properties = new HashMap<>();
+    public Map<String, String> loadProjectProperties() {
+        Map<String, String> properties = new HashMap<>();
 
         properties.putAll(projectPropertiesFromEnvironmentVariables());
         properties.putAll(projectPropertiesFromSystemProperties());

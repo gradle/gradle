@@ -69,7 +69,7 @@ public class DependencyVerificationReportWriter {
 
     private static boolean isVerboseConsoleReport(GradleProperties gradleProperties) {
         try {
-            String param = (String) gradleProperties.find(VERBOSE_CONSOLE);
+            String param = gradleProperties.find(VERBOSE_CONSOLE);
             return VERBOSE_VALUE.equals(param);
         } catch (IllegalStateException e) {
             // Gradle properties are not loaded yet, which can happen in init scripts
