@@ -17,43 +17,61 @@
 Understanding **when** values in your build are computed is crucial for writing fast and reliable build logic.
 Gradle differentiates between *eager* and *lazy* evaluation:
 
-lazy APIs were explicitly designed to avoid configuring tasks that aren’t going to be run, especially in large projects or Android builds where configuration overhead can be significant.
-
 == Eager Evaluation
 
-Values are computed immediately during the **configuration phase**, before tasks ever run. While simple and sometimes convenient, eager evaluation comes with drawbacks:
+Values are computed immediately during the **configuration phase**, before tasks ever run.
 
-* Slows down builds—even when tasks aren’t executed.
-* Breaks compatibility with incremental and configuration caching.
-* Locks in values too early, preventing dependencies on outputs or dynamic inputs.
+Eager evaluation comes with drawbacks:
+
+* **Slows down builds** — even when tasks aren’t executed.
+* **Breaks compatibility** —  with and configuration caching.
 
 Essentially, eager evaluation performs unnecessary work and reduces flexibility.
 
 == Lazy Evaluation
 
-Lazy values are computed on-demand, typically during the **execution phase**, using Gradle’s Provider API (`Provider<T>` and `Property<T>`). This approach has three key benefits (as documented in the Gradle User Manual) ([Gradle Documentation][1], [JDriven][2], [Melix][3], [Melix][4]):
+Lazy values are computed on-demand, typically during the **execution phase**, using Gradle’s Provider API (`Provider<T>` and `Property<T>`).
+
+This approach has three key benefits:
 
 1. **Deferred resolution** — values are only computed when needed.
 2. **Automatic task wiring** — Gradle tracks which task produces which output.
 3. **Better performance** — avoids unnecessary computation during configuration.
 
+Lazy evaluation enables build features like incremental builds, build caching, and configuration cache compatibility.
+
 == Lazy APIs
 
+Lazy APIs were explicitly designed to avoid configuring tasks that aren’t going to be run, especially in large projects or Android builds where configuration overhead can be significant.
 
-He calls out a common pitfall: using `tasks.withType(Test) {…}` which eagerly configures all matching `Test` tasks, even in builds where they’re not needed. Instead, you should use:
+For example, you might use a `String` in your build script, but this value is *eagerly evaluated* during the *configuration phase*.
+Instead, you should use Gradle’s `Property<String>` type, which defers evaluation until it’s needed during task *execution*.
 
-```groovy
+A common pitful when writing build logic is using `tasks.withType(Test) {…}` which *eagerly* configures all matching `Test` tasks, even in builds where they’re not needed:
+
+[source,groovy]
+----
+tasks.withType(Test) {
+    // configure all tasks eagerly
+}
+----
+
+Instead, you should use:
+
+[source,groovy]
+----
 tasks.withType(Test).configureEach {
     // configure only those tasks actually needed
 }
-```
+----
 
 Or:
 
-```groovy
+[source,groovy]
+----
 tasks.named("test") {
     // configure only if task will be executed
 }
-```
+----
 
 This use of `configureEach` and `tasks.named(...)` ensures configurations only apply to tasks invoked by the build.

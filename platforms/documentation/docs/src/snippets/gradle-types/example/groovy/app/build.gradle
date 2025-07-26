@@ -41,3 +41,29 @@ tasks.register("demoTask") {
     }
 }
 // end::demo[]
+
+// tag::type[]
+tasks.register("printFloatFromFile") {
+    // Type: RegularFile
+    def myFile = layout.projectDirectory.file("someNumber.txt")
+
+    // Type: Provider<Float>
+    def floatProvider = project.providers
+        // Type: Provider<FileContents>
+        .fileContents(myFile)
+        // Type: Provider<String>
+        .asText
+        // Type: Provider<Float>
+        .map {
+            // Type: Float
+            it.toFloat()
+        }
+
+    doLast {
+        // Type: Provider<Float>
+        println ">>> Float value from file: $floatProvider"
+        // Type: Float
+        println ">>> Float value from file: ${floatProvider.get()}"
+    }
+}
+// end::type[]

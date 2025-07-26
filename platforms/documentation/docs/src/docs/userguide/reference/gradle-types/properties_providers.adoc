@@ -98,10 +98,16 @@ These methods allow you to transform, combine, or provide fallback values withou
 | Supplies a fallback `Provider` if the original is missing or undefined.
 |===
 
-For example:
+Using `map()` is a common example:
 
 ====
 include::sample[dir="snippets/kotlinDsl/basics/kotlin/my-sub-project",files="build.gradle.kts[tags=transform]"]
+====
+
+You can see the following example for a detailed breakdown at `Provider` chaining using `map()`:
+
+====
+include::sample[dir="snippets/gradle-types/example/groovy/app",files="build.gradle[tags=type]"]
 ====
 
 [[managed_properties]]

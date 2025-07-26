@@ -96,13 +96,13 @@ Gradle provides two main ways to create your own custom plugins:
 
 image::plugin-intro-advanced-3.png[]
 
-=== 1. Precompiled Script Plugins
+=== Precompiled Script Plugins
 
 * Written as `.gradle.kts` or `.gradle` files, compiled automatically.
 * Simple to write but limited to `Project` plugins.
 * Ideal for bundling simple conventions and applying standard tasks.
 
-=== 2. Binary Plugins
+=== Binary Plugins
 
 * Implemented in Java, Kotlin, or Groovy.
 * Can implement any plugin type: `Init`, `Settings`, or `Project`.
