@@ -321,11 +321,13 @@ public class DefaultJavaExecAction implements JavaExecAction {
     }
 
     @Override
+    @Deprecated
     public void setAllJvmArgs(List<String> arguments) {
         throw new UnsupportedOperationException();
     }
 
     @Override
+    @Deprecated
     public void setAllJvmArgs(Iterable<?> arguments) {
         throw new UnsupportedOperationException();
     }

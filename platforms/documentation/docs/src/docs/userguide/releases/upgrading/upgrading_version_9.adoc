@@ -171,6 +171,17 @@ configurations.dependencyScope("implementation") {
 =====
 ====
 
+[[set-all-jvm-args]]
+==== Deprecation of `JavaForkOptions.setAllJvmArgs()`
+
+The link:{javadocPath}/org/gradle/process/JavaForkOptions.html#setAllJvmArgs(java.util.List)[`setAllJvmArgs()` method] on `JavaForkOptions` has been deprecated and will be removed in Gradle 10.0.0.
+
+Instead, use one of the following:
+
+* Use `JavaForkOptions.jvmArgs()`
+* Use `JavaForkOptions.setJvmArgs()`
+* Provide a <<incremental_build.adoc#sec:task_input_nested_inputs,`CommandLineArgumentProvider`>> to add arguments via `JavaForkOptions.getJvmArgumentProviders()`.
+
 [[archives-configuration]]
 ==== Deprecation of the `archives` configuration
 The `archives` configuration added by the `base` plugin has been deprecated and will be removed in Gradle 10.0.0.

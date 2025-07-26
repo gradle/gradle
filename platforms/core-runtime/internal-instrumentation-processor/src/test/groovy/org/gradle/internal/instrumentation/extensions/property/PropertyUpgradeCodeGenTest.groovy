@@ -56,6 +56,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.test.Task;
 
             @Generated
+            @SuppressWarnings("deprecation")
             public final class Task_Adapter {
                 public static int access_get_getMaxErrors(Task self) {
                     ${getDefaultPropertyUpgradeDeprecation("Task", "maxErrors")}
@@ -119,6 +120,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.test.Task;
 
             @Generated
+            @SuppressWarnings("deprecation")
             public final class Task_Adapter {
                 public static boolean access_get_isIncremental(Task self) {
                     ${getDefaultPropertyUpgradeDeprecation("Task", "incremental")}
@@ -186,6 +188,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.test.Task;
 
             @Generated
+            @SuppressWarnings("deprecation")
             public final class Task_Adapter {
                 ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
                 public static $originalType access_get_${getterPrefix}Property(Task self) {
@@ -250,6 +253,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.test.Task;
 
             @Generated
+            @SuppressWarnings("deprecation")
             public final class Task_Adapter {
                 ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
                 public static $originalType access_get_${getterPrefix}Property(Task self) {
@@ -498,6 +502,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.test.Task;
 
             @Generated
+            @SuppressWarnings("deprecation")
             public final class Task_Adapter {
                 public static File access_get_getDestinationDir(Task self) {
                     DeprecationLogger.deprecate("The usage of Task.destinationDir")

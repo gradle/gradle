@@ -324,6 +324,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The DefaultJavaForkOptions.setAllJvmArgs method has been deprecated. This is scheduled to be removed in Gradle 10. Use `jvmArgs()`, `setJvmArgs()`, or `getJvmArgumentProviders()` instead to set JVM arguments. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#set-all-jvm-args")
         run "run", "-PallJvmArgsFile=$allJvmArgsFile.absolutePath"
 
         then:
