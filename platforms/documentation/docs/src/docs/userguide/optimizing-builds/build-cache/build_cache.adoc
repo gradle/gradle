@@ -280,6 +280,8 @@ The remote build cache can be configured by specifying the type of build cache t
 
 The built-in local build cache, link:{groovyDslPath}/org.gradle.caching.local.DirectoryBuildCache.html[DirectoryBuildCache], uses a directory to store build cache artifacts.
 By default, this directory resides in the Gradle User Home, but its location is configurable.
+It is also possible to disable the build cache entirely,
+or to disabling storing of the build outputs there.
 
 For more details on the configuration options refer to the DSL documentation of link:{groovyDslPath}/org.gradle.caching.local.DirectoryBuildCache.html[DirectoryBuildCache].
 Here is an example of the configuration.
@@ -289,6 +291,9 @@ Here is an example of the configuration.
 include::sample[dir="snippets/buildCache/configure-built-in-caches/kotlin",files="settings.gradle.kts[tags=configure-directory-build-cache]"]
 include::sample[dir="snippets/buildCache/configure-built-in-caches/groovy",files="settings.gradle[tags=configure-directory-build-cache]"]
 ====
+
+[[sec:build_cache_configure_local_retention]]
+==== Configuring the local cache retention policy
 
 Gradle will periodically clean-up the local cache directory by removing entries that have not been used recently to conserve disk space.
 How often Gradle will perform this clean-up and how long entries will be retained is configurable via an init-script as demonstrated
