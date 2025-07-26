@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.diagnostics.internal
 
 import org.gradle.api.Project
-import org.gradle.initialization.BuildClientMetaData
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -26,14 +25,13 @@ import org.gradle.util.TestUtil
 class ReportGeneratorTest extends AbstractProjectBuilderSpec {
 
     ReportRenderer renderer = Mock(ReportRenderer)
-    BuildClientMetaData buildClientMetaData = Mock(BuildClientMetaData)
     ReportGenerator.ReportAction<Project> projectReportGenerator = Mock(ReportGenerator.ReportAction)
     StyledTextOutput styledTextOutput = Mock(StyledTextOutput)
 
     def createReportGenerator(File file = null) {
         StyledTextOutputFactory textOutputFactory = Mock(StyledTextOutputFactory)
         textOutputFactory.create(_) >> styledTextOutput
-        return new ReportGenerator(renderer, buildClientMetaData, file, textOutputFactory)
+        return new ReportGenerator(renderer, file, textOutputFactory)
     }
 
     def 'completes renderer at end of generation'() {
@@ -42,9 +40,6 @@ class ReportGeneratorTest extends AbstractProjectBuilderSpec {
 
         when:
         generator.generateReport([project] as Set, projectReportGenerator)
-
-        then:
-        1 * renderer.setClientMetaData(buildClientMetaData)
 
         then:
         1 * renderer.setOutput(styledTextOutput)
@@ -70,9 +65,6 @@ class ReportGeneratorTest extends AbstractProjectBuilderSpec {
 
         when:
         generator.generateReport([project] as Set, projectReportGenerator)
-
-        then:
-        1 * renderer.setClientMetaData(buildClientMetaData)
 
         then:
         1 * renderer.setOutputFile(file)
@@ -104,7 +96,6 @@ class ReportGeneratorTest extends AbstractProjectBuilderSpec {
         generator.generateReport(project.getAllprojects(), projectReportGenerator)
 
         then:
-        1 * renderer.setClientMetaData(buildClientMetaData)
         1 * renderer.setOutput(styledTextOutput)
 
         then:
