@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.initialization.BuildLocator;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.cli.converter.BuildOptionBackedConverter;
@@ -67,10 +67,10 @@ public class BuildEnvironmentConfigurationConverter {
         this.toolchainConfigurationBuildOptionBackedConverter = new BuildOptionBackedConverter<>(new ToolchainBuildOptions());
     }
 
-    public BuildEnvironmentConfigurationConverter(BuildLayoutFactory buildLayoutFactory, FileCollectionFactory fileCollectionFactory) {
+    public BuildEnvironmentConfigurationConverter(BuildLocator buildLocator, FileCollectionFactory fileCollectionFactory) {
         this(new InitialPropertiesConverter(),
             new BuildLayoutConverter(),
-            new LayoutToPropertiesConverter(buildLayoutFactory),
+            new LayoutToPropertiesConverter(buildLocator),
             new StartParameterConverter(),
             new BuildOptionBackedConverter<>(new DaemonBuildOptions()),
             fileCollectionFactory

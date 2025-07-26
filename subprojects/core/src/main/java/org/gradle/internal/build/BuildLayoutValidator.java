@@ -22,7 +22,8 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.initialization.BuildLocations;
+import org.gradle.internal.initialization.BuildLocator;
 import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -35,26 +36,26 @@ import static org.gradle.internal.scripts.ScriptFileUtil.getValidSettingsFileNam
 
 @ServiceScope(Scope.BuildSession.class)
 public class BuildLayoutValidator {
-    private final BuildLayoutFactory buildLayoutFactory;
+    private final BuildLocator buildLocator;
     private final DocumentationRegistry documentationRegistry;
     private final BuildClientMetaData clientMetaData;
     private final List<BuiltInCommand> builtInCommands;
 
     public BuildLayoutValidator(
-        BuildLayoutFactory buildLayoutFactory,
+        BuildLocator buildLocator,
         DocumentationRegistry documentationRegistry,
         BuildClientMetaData clientMetaData,
         List<BuiltInCommand> builtInCommands
     ) {
-        this.buildLayoutFactory = buildLayoutFactory;
+        this.buildLocator = buildLocator;
         this.documentationRegistry = documentationRegistry;
         this.clientMetaData = clientMetaData;
         this.builtInCommands = builtInCommands;
     }
 
     public void validate(StartParameterInternal startParameter) {
-        BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(startParameter.toBuildLayoutConfiguration());
-        if (!buildLayout.isBuildDefinitionMissing()) {
+        BuildLocations buildLocations = buildLocator.findBuild(startParameter.toBuildDiscoveryParameters());
+        if (!buildLocations.isBuildDefinitionMissing()) {
             // All good
             return;
         }

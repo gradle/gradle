@@ -18,7 +18,6 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
-import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.Option
 import org.gradle.internal.buildtree.RunTasksRequirements
@@ -27,6 +26,7 @@ import org.gradle.internal.cc.impl.services.DefaultBuildModelParameters
 import org.gradle.internal.encryption.EncryptionConfiguration
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.initialization.BuildLocations
 import org.gradle.internal.initialization.BuildTreeLocations
 import org.gradle.internal.scripts.DefaultScriptFileResolver
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -138,7 +138,7 @@ class ConfigurationCacheKeyTest {
         val startParameter = StartParameterInternal().apply(configure)
         return ConfigurationCacheKey(
             ConfigurationCacheStartParameter(
-                BuildTreeLocations(BuildLayout(file("root"), null, DefaultScriptFileResolver())),
+                BuildTreeLocations(BuildLocations(file("root"), null, DefaultScriptFileResolver())),
                 startParameter,
                 DefaultInternalOptions(mapOf()),
                 DefaultBuildModelParameters(

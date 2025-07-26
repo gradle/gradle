@@ -19,7 +19,7 @@ package org.gradle.api.internal;
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
-import org.gradle.initialization.layout.BuildLayoutConfiguration;
+import org.gradle.internal.initialization.BuildDiscoveryParameters;
 import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.deprecation.StartParameterDeprecations;
@@ -273,7 +273,7 @@ public class StartParameterInternal extends StartParameter {
         return this.enableProblemReportGeneration;
     }
 
-    public BuildLayoutConfiguration toBuildLayoutConfiguration() {
-        return new BuildLayoutConfiguration(getCurrentDir(), isSearchUpwards(), isUseEmptySettings());
+    public BuildDiscoveryParameters toBuildDiscoveryParameters() {
+        return new BuildDiscoveryParameters(getCurrentDir(), isSearchUpwards(), isUseEmptySettings());
     }
 }

@@ -21,7 +21,7 @@ import org.gradle.api.internal.initialization.CacheConfigurationsHandlingSetting
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.project.BuiltInCommand;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.initialization.BuildLocator;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.composite.ChildBuildRegisteringSettingsLoader;
@@ -34,7 +34,7 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final SettingsProcessor settingsProcessor;
     private final BuildStateRegistry buildRegistry;
     private final ProjectStateRegistry projectRegistry;
-    private final BuildLayoutFactory buildLayoutFactory;
+    private final BuildLocator buildLocator;
     private final GradlePropertiesController gradlePropertiesController;
     private final BuildIncluder buildIncluder;
     private final InitScriptHandler initScriptHandler;
@@ -46,7 +46,7 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
         SettingsProcessor settingsProcessor,
         BuildStateRegistry buildRegistry,
         ProjectStateRegistry projectRegistry,
-        BuildLayoutFactory buildLayoutFactory,
+        BuildLocator buildLocator,
         GradlePropertiesController gradlePropertiesController,
         BuildIncluder buildIncluder,
         InitScriptHandler initScriptHandler,
@@ -57,7 +57,7 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
         this.settingsProcessor = settingsProcessor;
         this.buildRegistry = buildRegistry;
         this.projectRegistry = projectRegistry;
-        this.buildLayoutFactory = buildLayoutFactory;
+        this.buildLocator = buildLocator;
         this.gradlePropertiesController = gradlePropertiesController;
         this.buildIncluder = buildIncluder;
         this.initScriptHandler = initScriptHandler;
@@ -84,7 +84,7 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
                 ),
                 cacheConfigurations
             ),
-            buildLayoutFactory,
+            buildLocator,
             gradlePropertiesController
         );
     }
@@ -97,7 +97,7 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
                     defaultSettingsLoader(),
                     buildIncluder),
                 initScriptHandler),
-            buildLayoutFactory,
+            buildLocator,
             gradlePropertiesController
         );
     }
@@ -106,7 +106,7 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
         return new SettingsAttachingSettingsLoader(
             new DefaultSettingsLoader(
                 settingsProcessor,
-                buildLayoutFactory,
+                buildLocator,
                 builtInCommands,
                 problems
             ),

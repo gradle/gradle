@@ -16,36 +16,30 @@
 package org.gradle.initialization.layout;
 
 import org.gradle.initialization.SettingsLocation;
-import org.gradle.internal.initialization.BuildLogicFiles;
-import org.gradle.internal.scripts.ScriptFileResolver;
+import org.gradle.internal.initialization.BuildLocations;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
 @ServiceScope(Scope.Build.class)
 public class BuildLayout extends SettingsLocation {
-    private final ScriptFileResolver scriptFileResolver;
 
-    // Note: `null` for `settingsFile` means explicitly no settings
-    //       A non null value can be a non existent file, which is semantically equivalent to an empty file
-    public BuildLayout(File rootDirectory, @Nullable File settingsFile, ScriptFileResolver scriptFileResolver) {
-        super(rootDirectory, settingsFile);
-        this.scriptFileResolver = scriptFileResolver;
+    public BuildLayout(BuildLocations buildLocations) {
+        super(buildLocations);
     }
 
     /**
      * Was a build definition found?
      */
     public boolean isBuildDefinitionMissing() {
-        return getSettingsFile() != null && !getSettingsFile().exists() && scriptFileResolver.resolveScriptFile(getRootDirectory(), BuildLogicFiles.BUILD_FILE_BASENAME) == null;
+        return buildLocations.isBuildDefinitionMissing();
     }
 
     /**
      * Returns the root directory of the build, is never null.
      */
     public File getRootDirectory() {
-        return getSettingsDir();
+        return buildLocations.getBuildRootDirectory();
     }
 }

@@ -30,11 +30,11 @@ import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.SettingsState
-import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.file.PathToFileResolver
+import org.gradle.internal.initialization.BuildLocations
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.internal.service.CloseableServiceRegistry
@@ -174,7 +174,7 @@ class DefaultConfigurationCacheHost internal constructor(
 
         private
         fun settingsDir() =
-            service<BuildLayout>().settingsDir
+            service<BuildLocations>().buildRootDirectory
 
         private
         fun getProjectDescriptor(parentPath: Path?): DefaultProjectDescriptor? =

@@ -15,26 +15,24 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.internal.initialization.BuildLocations;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
 public class SettingsLocation {
-    private final File settingsDir;
 
-    @Nullable
-    private final File settingsFile;
+    protected final BuildLocations buildLocations;
 
-    public SettingsLocation(File settingsDir, @Nullable File settingsFile) {
-        this.settingsDir = settingsDir;
-        this.settingsFile = settingsFile;
+    public SettingsLocation(BuildLocations buildLocations) {
+        this.buildLocations = buildLocations;
     }
 
     /**
      * Returns the settings directory. Never null.
      */
     public File getSettingsDir() {
-        return settingsDir;
+        return buildLocations.getBuildRootDirectory();
     }
 
     /**
@@ -42,7 +40,7 @@ public class SettingsLocation {
      */
     @Nullable
     public File getSettingsFile() {
-        return settingsFile;
+        return buildLocations.getSettingsFile();
     }
 }
 

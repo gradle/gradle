@@ -41,6 +41,7 @@ import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
 import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exception.ExceptionAnalyser
+import org.gradle.internal.initialization.BuildLocations
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
@@ -349,15 +350,15 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     private BuildLifecycleController buildController(SettingsInternal settings, GradleInternal gradle) {
         def buildController = Stub(BuildLifecycleController)
         def services = Stub(ServiceRegistry)
-        def buildLayout = Stub(BuildLayout)
+        def buildLocations = Stub(BuildLocations)
 
         _ * buildController.gradle >> gradle
         if (settings != null) {
             _ * gradle.settings >> settings
         }
         _ * gradle.services >> services
-        _ * services.get(BuildLayout) >> buildLayout
-        _ * buildLayout.rootDirectory >> tmpDir.file("root-dir")
+        _ * services.get(BuildLocations) >> buildLocations
+        _ * buildLocations.buildRootDirectory >> tmpDir.file("root-dir")
         _ * services.get(PublicBuildPath) >> Stub(PublicBuildPath)
 
         return buildController
