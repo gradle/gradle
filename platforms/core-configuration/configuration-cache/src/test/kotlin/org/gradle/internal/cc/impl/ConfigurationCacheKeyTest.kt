@@ -150,7 +150,8 @@ class ConfigurationCacheKeyTest {
                     intermediateModelCache = false,
                     parallelToolingApiActions = false,
                     invalidateCoupledProjects = false,
-                    modelAsProjectDependency = false
+                    modelAsProjectDependency = false,
+                    resilientModelBuilding = false,
                 ),
                 ConfigurationCacheLoggingParameters(LogLevel.LIFECYCLE)
             ),
