@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.Category;
+import org.gradle.api.internal.artifacts.NamedVariantIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.dependencies.SelfResolvingDependencyInternal;
@@ -48,6 +49,7 @@ import org.gradle.internal.component.model.ComponentConfigurationIdentifier;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -106,8 +108,10 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
         // However, changing this prevents conflicts between code being compiled and its
         // dependencies from being detected during compilation -- though this also
         // can lead to some false positives.
+        VariantIdentifier id = new NamedVariantIdentifier(componentId, configuration.getName());
         ImmutableCapabilities capabilities = ImmutableCapabilities.of(Configurations.collectCapabilities(configuration, new HashSet<>(), new HashSet<>()));
         LocalVariantGraphResolveMetadata metadata = new DefaultLocalVariantGraphResolveMetadata(
+            id,
             configuration.getName(),
             configuration.isTransitive(),
             attributes,
@@ -117,7 +121,6 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
 
         return new DefaultLocalVariantGraphResolveState(
             idGenerator.nextVariantId(),
-            componentId,
             metadata,
             dependencies,
             Collections.emptySet()
@@ -165,7 +168,9 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
             calculatedValueContainerFactory
         );
 
+        VariantIdentifier id = new NamedVariantIdentifier(componentId, configuration.getName());
         LocalVariantGraphResolveMetadata metadata = new DefaultLocalVariantGraphResolveMetadata(
+            id,
             configurationName,
             configuration.isTransitive(),
             attributes,
@@ -175,7 +180,6 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
 
         return new DefaultLocalVariantGraphResolveState(
             idGenerator.nextVariantId(),
-            componentId,
             metadata,
             dependencies,
             artifactSets.build()

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
@@ -34,14 +35,21 @@ public interface ArtifactVisitor {
     }
 
     /**
-     * Visits an artifact. Artifacts are resolved but not necessarily available unless {@link #requireArtifactFiles()} returns true.
+     * Visits an artifact from the artifact set.
+     * <p>
+     * Artifacts are resolved but not necessarily available unless {@link #requireArtifactFiles()} returns true.
+     * A given artifact may be visited multiple times. The implementation is required to filter out duplicates.
      *
-     * <p>Note that a given artifact may be visited multiple times. The implementation is required to filter out duplicates.</p>
+     * @param artifactSetName The name of the artifact set that this artifact belongs to.
+     * @param sourceVariantId The identifier of the node in the graph that produced this artifact.
+     * @param attributes The attributes of the artifact.
+     * @param capabilities The capabilities of the artifact.
+     * @param artifact The artifact.
      */
-    void visitArtifact(DisplayName variantName, ImmutableAttributes variantAttributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact);
+    void visitArtifact(DisplayName artifactSetName, VariantIdentifier sourceVariantId, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact);
 
     /**
-     * Should the file for each artifact be made available prior to calling {@link #visitArtifact(DisplayName, ImmutableAttributes, ImmutableCapabilities, ResolvableArtifact)}?
+     * Should the file for each artifact be made available prior to calling {@link #visitArtifact(DisplayName, VariantIdentifier, ImmutableAttributes, ImmutableCapabilities, ResolvableArtifact)}?
      *
      * Returns true here allows the collection to preemptively resolve the files in parallel.
      */
