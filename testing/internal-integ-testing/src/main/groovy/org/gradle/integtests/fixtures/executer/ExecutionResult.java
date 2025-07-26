@@ -164,6 +164,16 @@ public interface ExecutionResult {
     ExecutionResult assertTaskNotExecuted(String taskPath);
 
     /**
+     * Asserts that at least one task has been executed.
+     */
+    ExecutionResult assertAnyTasksExecuted();
+
+    /**
+     * Asserts that there are no tasks that have been executed.
+     */
+    ExecutionResult assertNoTasksExecuted();
+
+    /**
      * Asserts that the provided tasks were executed in the given order.  Each task path can be either a String
      * or a {@link TaskOrderSpec}.  See {@link TaskOrderSpecs} for common assertions and an explanation of their usage.
      * Defaults to a {@link TaskOrderSpecs#exact(Object[])} assertion.
@@ -184,6 +194,42 @@ public interface ExecutionResult {
      * Asserts that exactly the given set of tasks have not been skipped.
      */
     ExecutionResult assertTasksNotSkipped(Object... taskPaths);
+
+    /**
+     * Asserts that at least one task was executed and not skipped.
+     * Examples:
+     *
+     *  foo: SKIPPED
+     *  bar: SKIPPED -> false
+     *  ----------------------
+     *  NO TASKS EXECUTED -> false
+     *  ----------------------
+     *  foo:
+     *  bar: SKIPPED -> true
+     *  ----------------------
+     *
+     *  foo:
+     *  bar: -> true
+     */
+    ExecutionResult assertAnyTasksExecutedAndNotSkipped();
+
+    /**
+     * Asserts that no tasks were executed and none were skipped.
+     * Examples:
+     *
+     * foo: SKIPPED
+     * bar: SKIPPED -> true
+     * ----------------------
+     * NO TASKS EXECUTED -> true
+     * ----------------------
+     * foo:
+     * bar: SKIPPED -> false
+     * ----------------------
+     *
+     * foo:
+     * bar: -> false
+     */
+    ExecutionResult assertNoTasksExecutedAndNotSkipped();
 
     /**
      * Asserts that the given task has not been skipped.

@@ -146,6 +146,16 @@ public interface DelegatingExecutionResult extends ExecutionResult {
     }
 
     @Override
+    default ExecutionResult assertAnyTasksExecuted() {
+        return getDelegate().assertAnyTasksExecuted();
+    }
+
+    @Override
+    default ExecutionResult assertNoTasksExecuted() {
+        return getDelegate().assertNoTasksExecuted();
+    }
+
+    @Override
     default ExecutionResult assertTaskOrder(Object... taskPaths) {
         return getDelegate().assertTaskOrder(taskPaths);
     }
@@ -153,6 +163,16 @@ public interface DelegatingExecutionResult extends ExecutionResult {
     @Override
     default ExecutionResult assertTasksSkipped(Object... taskPaths) {
         return getDelegate().assertTasksSkipped(taskPaths);
+    }
+
+    @Override
+    default ExecutionResult assertAnyTasksExecutedAndNotSkipped() {
+        return getDelegate().assertAnyTasksExecutedAndNotSkipped();
+    }
+
+    @Override
+    default ExecutionResult assertNoTasksExecutedAndNotSkipped() {
+        return getDelegate().assertNoTasksExecutedAndNotSkipped();
     }
 
     @Override
