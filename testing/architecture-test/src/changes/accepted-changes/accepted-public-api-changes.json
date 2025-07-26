@@ -23,6 +23,14 @@
             "changes": [
                 "From non-null returning to null returning breaking change"
             ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getConfiguration-usage-reporting(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "new plugin",
+            "changes": [
+                "Method added to public class"
+            ]
         }
     ]
 }

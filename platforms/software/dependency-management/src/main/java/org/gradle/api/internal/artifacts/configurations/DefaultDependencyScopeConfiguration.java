@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.DependencyScopeConfiguration;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
@@ -69,8 +68,7 @@ public class DefaultDependencyScopeConfiguration extends DefaultConfiguration im
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
         TaskDependencyFactory taskDependencyFactory,
-        InternalProblems problemsService,
-        DocumentationRegistry documentationRegistry
+        InternalProblems problemsService
     ) {
         super(
             domainObjectContext,
@@ -96,7 +94,6 @@ public class DefaultDependencyScopeConfiguration extends DefaultConfiguration im
             taskDependencyFactory,
             ConfigurationRoles.DEPENDENCY_SCOPE,
             problemsService,
-            documentationRegistry,
             true
         );
     }
