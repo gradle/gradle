@@ -42,6 +42,7 @@ Gradle also supports the multi-string notation, where each coordinate may be dec
 ====
 include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=module-dependencies-map]"]
 include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="build.gradle[tags=module-dependencies-map]"]
+====
 
 NOTE: The multi-string notation for module dependencies has been deprecated and will not be supported starting in Gradle 10. Use the single-string notation instead.
 
