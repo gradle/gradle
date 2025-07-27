@@ -15,6 +15,136 @@
 [[pre_compiled_script_plugins_advanced]]
 = Pre-compiled Script Plugins
 
+The simplest plugin you can develop is called a *precompiled script plugins*.
+
+These are Kotlin (`.kts`) or Groovy (`.gradle`) scripts.
+They behave like normal Gradle plugins, but you write them using the same syntax as regular build scripts.
+
+Some benefits of *precompiled script plugins*:
+
+* **Encapsulation**: Keep your `build.gradle(.kts)` files clean by moving reusable logic into named plugins.
+* **Tooling support**: You get full IDE support—like autocomplete and navigation—in your precompiled plugins.
+* **Avoid boilerplate**: No need to write full plugin classes or register plugins manually.
+* **Faster adoption**: Use familiar script syntax while reaping the benefits of structured plugin development.
+
+Most *precompiled script plugins* are used as *convention plugins*.
+A Gradle term for reusable build logic that applies standard plugin configurations, defaults, and behaviors across many projects.
+*Convention plugins* are especially useful in large or multi-project builds where consistency is important.
+
+**Precompiled script plugins** or **convention plugins** will often be found in the special `buildSrc` directory:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source, kotlin]
+----
+.
+└── buildSrc
+    ├── build.gradle.kts
+    └── src
+       └── main
+          └── kotlin
+             └── precompiled-script-plugin.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
+----
+.
+└── buildSrc
+    ├── build.gradle
+    └── src
+       └── main
+          └── groovy
+             └── precompiled-script-plugin.gradle
+----
+=====
+====
+
+Or in a composite build with a name similar to `build-logic`:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source, kotlin]
+----
+build-logic
+├── settings.gradle.kts
+├── build.gradle.kts
+└── src
+   └── main
+      └── kotlin
+         └── precompiled-script-plugin.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
+----
+build-logic
+├── settings.gradle
+├── build.gradle
+└── src
+   └── main
+      └── groovy
+         └── precompiled-script-plugin.gradle
+----
+=====
+====
+
+=== 1. Create a `build-logic` module
+
+In your project root, add a `build-logic` directory and treat it like a normal included build.
+
+```kotlin
+// settings.gradle.kts
+includeBuild("build-logic")
+```
+
+=== 2. Create a plugin script
+
+Inside `build-logic/src/main/kotlin`, write a `.gradle.kts` file. For example:
+
+```kotlin
+// build-logic/src/main/kotlin/my-java-library.gradle.kts
+plugins {
+    `java-library`
+}
+
+dependencies {
+    // add common dependencies here
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.encoding = "UTF-8"
+}
+```
+
+> The name of the script (`my-java-library.gradle.kts`) becomes the plugin ID: `my-java-library`.
+
+=== 3. Apply the plugin in your project
+
+In your regular `build.gradle.kts`:
+
+```kotlin
+plugins {
+    id("my-java-library")
+}
+```
+
+Gradle will discover the plugin from the included `build-logic` build or `buildSrc` and apply it just like any other plugin.
+
+
+
+
+
+
+
 If you find yourself duplicating build logic across subprojects and need a better way to organize it, convention plugins can help.
 
 Pre-compiled script plugins are the best way to develop convention plugins.
@@ -52,3 +182,6 @@ include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=a
 ====
 
 The `createMyFileTaskInConventionPlugin` task from the plugin is now available in your subproject.
+
+[.text-right]
+**Next Step:** <<binary_plugin_advanced.adoc#binary_plugins_advanced,Learn about Binary Plugins>> >>

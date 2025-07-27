@@ -485,7 +485,7 @@ include::sample[dir="snippets/tutorial/pluginIntro/groovy", files="build.gradle[
 ====
 
 The `JavaPlugin` symbol in the above sample refers to the link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin].
-This class does not strictly need to be imported as the `org.gradle.api.plugins` package is automatically imported in all build scripts (see <<writing_build_scripts_intermediate.adoc#script-default-imports,Default imports>>).
+This class does not strictly need to be imported as the `org.gradle.api.plugins` package is automatically imported in all build scripts (see <<default_script_imports.adoc#script-default-imports,Default imports>>).
 
 [.multi-language-text.lang-kotlin]
 Furthermore, one needs to append the `::class` suffix to identify a class literal in Kotlin instead of `.class` in Java.

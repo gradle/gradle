@@ -19,7 +19,6 @@ The build lifecycle is the sequence of phases Gradle executes to turn your build
 
 image::gradle-basic-10.png[]
 
-[[sec:build_phases]]
 == Build Phases
 
 A Gradle build has three distinct phases.

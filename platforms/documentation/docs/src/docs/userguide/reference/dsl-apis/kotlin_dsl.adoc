@@ -140,7 +140,7 @@ This helps the IDE identify the object "backing" the script, whether it’s link
 
 All Kotlin DSL build scripts come with implicit imports, including:
 
-* The <<writing_build_scripts_intermediate.adoc#script-default-imports,default Gradle API imports>>
+* The <<default_script_imports.adoc#script-default-imports,default Gradle API imports>>
 * The Kotlin DSL API, which includes types from the following packages:
 ** `org.gradle.kotlin.dsl`
 ** `org.gradle.kotlin.dsl.plugins.dsl`

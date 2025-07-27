@@ -19,7 +19,7 @@ Plugin authors that are ready to write their own plugins and publish it should s
 
 To get started developing Gradle plugins:
 
-1. Read the <<plugin_introduction_advanced.adoc#plugin_introduction_advanced,Deep Dive chapters>>.
+1. Read the <<#gradle_plugin_intro,Deep Dive chapters>>.
 
 [[gradle_plugin_intro]]
 == 1. Gradle Deep Dive
@@ -33,9 +33,7 @@ _Reading time_: **35 minutes**
 This section covers:
 
 <<plugin_introduction_advanced.adoc#plugin_introduction_advanced,Part 1.>> Plugin Introduction +
-<<plugin_introduction_advanced.adoc#plugin_introduction_advanced,Part 2.>> Anatomy of a Plugin +
+<<pre_compiled_script_plugin_advanced.adoc#pre_compiled_script_plugins_advanced,Part 2.>> Pre-Compiled Script Plugins +
+<<binary_plugin_advanced.adoc#binary_plugins_advanced,Part 3.>> Binary Plugins +
 
 [[plugin_tutorial]]
-== 2. Intermediate Gradle Tutorial
-
-Coming Soon!

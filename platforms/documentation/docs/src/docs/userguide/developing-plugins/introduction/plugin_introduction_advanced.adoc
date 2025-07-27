@@ -15,26 +15,63 @@
 [[plugin_introduction_advanced]]
 = Plugin Introduction
 
-Gradle's plugin system lets you extend and organize build logic in a modular and reusable way.
-Plugins can add tasks, configure settings, and enforce conventions across different scopes of a build.
+A Gradle plugin is an add-on that enhances your build by adding tasks, applying conventions, or enabling specific configurations.
 
-Gradle supports three types of plugins, each applied at a different phase of the build lifecycle:
+*Plugins* lets you *extend and organize build logic* in a modular and reusable way.
+
+You apply plugins using the plugins block:
+
+[source,groovy]
+----
+plugins {
+    id 'org.springframework.boot' version '2.5.4'
+}
+----
+
+When you apply a plugin, it typically does one or both of the following:
+
+1. *Adds tasks to your build* - Plugins often expose tasks that perform a specific action.
++
+For example, the Maven Publish Plugin adds a `publishToMavenLocal` task, which uploads artifacts to a Maven repository.
++
+In many cases, these tasks are automatically wired into the task graph via `dependsOn` relationships, so you don’t need to run them manually.
+
+2. *Applies behavior and conventions* - Some plugins automatically configure parts of your build when applied.
++
+For example, the Java Plugin creates the main and test source sets and applies sensible defaults for compiling and testing Java code.
+
+Most plugins provide DSL blocks you can use to fine-tune their behavior.
+For instance, the Java plugin lets you configure how tests are run:
+
+[source,groovy]
+----
+test {
+    useJUnitPlatform {
+        includeTags 'fast'
+        excludeTags 'slow'
+    }
+}
+----
+
+== Plugin Types
+
+Gradle supports *three types of plugins*, each applied at a different phase of the build lifecycle:
 
 image::plugin-intro-advanced-1.png[]
 
-== 1. Init Plugins
+=== 1. Init Plugins
 
 * Applied globally to _all_ builds. Loaded from `~/.gradle/init.gradle[.kts]` or passed via the `--init-script` command-line option.
 * Configure the Gradle runtime before the build even starts. Useful for enforcing corporate policies, setting up shared CI configuration, or applying global conventions.
 * Implement the `Plugin<Gradle>` interface.
 
-== 2. Settings Plugins
+=== 2. Settings Plugins
 
 * Applied in `settings.gradle[.kts]` files.
 * Configure the build layout, such as which projects are included or how plugins are resolved.
 * Implement the `Plugin<Settings>` interface.
 
-== 3. Project Plugins
+=== 3. Project Plugins
 
 * Applied in `build.gradle[.kts]` files.
 * Configure tasks, dependencies, and project-specific behavior.
@@ -42,11 +79,11 @@ image::plugin-intro-advanced-1.png[]
 
 == Plugin Scope
 
-The scope of a plugin is determined by the interface it implements:
+The *scope* of a *plugin* is determined by the *interface* it implements:
 
 image::plugin-intro-advanced-2.png[]
 
-Each plugin type is defined by the interface it implements and the stage of the build lifecycle where it applies:
+Each *plugin type* is defined by the *interface* it implements and the stage of the build lifecycle where it applies:
 
 [cols="25,25,25,25", options="header"]
 |===
@@ -68,57 +105,50 @@ Each plugin type is defined by the interface it implements and the stage of the 
 | `build.gradle[.kts]`
 |===
 
-== Types of Plugins
+== Plugin Sources
 
-Gradle plugins come in several flavors, each suited to different use cases:
+Gradle *plugins* come for *three different places*:
 
-=== Core Plugins
+=== 1. Core Plugins
 
 * Bundled with Gradle itself (e.g., `java`, `application`).
 * You don't author or publish them.
 
-=== Community Plugins
+=== 2. Community Plugins
 
 * Published by the community, typically via the link:https://plugins.gradle.org/[Gradle Plugin Portal].
 * Distributed as binary JARs.
 
-=== Local Plugins
+=== 3. Local Plugins
 
 * Custom plugins you write yourself, for your own builds.
-* Can be:
-
-** Precompiled Script Plugins
-** Binary Plugins
 
 == Authoring Plugins
 
-Gradle provides two main ways to create your own custom plugins:
+Gradle provides *two* main ways to create your own *custom plugins*:
 
 image::plugin-intro-advanced-3.png[]
 
-=== Precompiled Script Plugins
+=== 1. Precompiled Script Plugins
 
-* Written as `.gradle.kts` or `.gradle` files, compiled automatically.
-* Simple to write but limited to `Project` plugins.
-* Ideal for bundling simple conventions and applying standard tasks.
+* Written as `.gradle.kts` or `.gradle` files.
+* Compiled automatically.
+* Ideal for bundling simple conventions.
 
-=== Binary Plugins
+=== 2. Binary Plugins
 
-* Implemented in Java, Kotlin, or Groovy.
-* Can implement any plugin type: `Init`, `Settings`, or `Project`.
+* Typically implemented in Java, Kotlin, or Groovy.
 * Packaged as JARs, reusable across multiple builds.
 * Can be published to repositories for sharing.
 
-It's also important to know about a type of precompiled script plugin called a convention plugin:
+It's also important to know about a type of *precompiled script plugin* called a *convention plugin*:
 
 === Convention Plugins
 
-* A type of precompiled script plugin, typically used to:
+* A type of *precompiled script plugin*, typically used to:
 ** Bundle together multiple plugins.
 ** Apply shared configuration across projects.
 * Usually found in the `buildSrc` directory or a composite build named `build-logic`.
 
-Gradle’s plugin system gives you powerful ways to structure, reuse, and maintain your build logic. By understanding the differences between Init, Settings, and Project plugins, you can create maintainable, scalable builds tailored to your team’s needs.
-
 [.text-right]
-**Next Step:** <<,TO DO>> >>
+**Next Step:** <<pre_compiled_script_plugin_advanced.adoc#pre_compiled_script_plugins_advanced,Learn about Pre-Compiled Script Plugins>> >>

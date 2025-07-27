@@ -142,7 +142,7 @@ include::configuration_cache_status.adoc[leveloffset=+2]
 [[part:dependency_management]]
 == DECLARING DEPENDENCIES
 
-include::declaring_dependencies.adoc[leveloffset=+2]
+include::declaring_dependencies_basics.adoc[leveloffset=+2]
 include::viewing_debugging_dependencies.adoc[leveloffset=+2]
 include::dependency_versions.adoc[leveloffset=+2]
 include::dependency_constraints.adoc[leveloffset=+2]
@@ -152,7 +152,7 @@ include::dependency_verification.adoc[leveloffset=+2]
 
 == DECLARING REPOSITORIES
 
-include::declaring_repositories.adoc[leveloffset=+2]
+include::declaring_repositories_basics.adoc[leveloffset=+2]
 include::centralizing_repositories.adoc[leveloffset=+2]
 include::supported_repository_types.adoc[leveloffset=+2]
 include::supported_metadata_formats.adoc[leveloffset=+2]

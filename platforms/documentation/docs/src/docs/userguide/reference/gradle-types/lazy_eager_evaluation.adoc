@@ -32,11 +32,10 @@ Essentially, eager evaluation performs unnecessary work and reduces flexibility.
 
 Lazy values are computed on-demand, typically during the **execution phase**, using Gradle’s Provider API (`Provider<T>` and `Property<T>`).
 
-This approach has three key benefits:
+This approach has key benefits:
 
 1. **Deferred resolution** — values are only computed when needed.
-2. **Automatic task wiring** — Gradle tracks which task produces which output.
-3. **Better performance** — avoids unnecessary computation during configuration.
+2. **Better performance** — avoids unnecessary computation during configuration.
 
 Lazy evaluation enables build features like incremental builds, build caching, and configuration cache compatibility.
 
@@ -47,7 +46,7 @@ Lazy APIs were explicitly designed to avoid configuring tasks that aren’t goin
 For example, you might use a `String` in your build script, but this value is *eagerly evaluated* during the *configuration phase*.
 Instead, you should use Gradle’s `Property<String>` type, which defers evaluation until it’s needed during task *execution*.
 
-A common pitful when writing build logic is using `tasks.withType(Test) {…}` which *eagerly* configures all matching `Test` tasks, even in builds where they’re not needed:
+Another example which is a common pitfall is using `tasks.withType(Test) {}`:
 
 [source,groovy]
 ----
@@ -56,7 +55,8 @@ tasks.withType(Test) {
 }
 ----
 
-Instead, you should use:
+This eagerly configures all `Test` tasks, even in builds where those tasks may never run.
+Instead, use `configureEach`:
 
 [source,groovy]
 ----

@@ -166,7 +166,7 @@ include::{snippetsPath}/bestPractices/useConfigurationCache-do/tests/useConfigur
 [[avoid_computations_in_configuration_phase]]
 == Avoid Expensive Computations in Configuration Phase
 
-Avoid expensive computations in the <<build_lifecycle.adoc#sec:build_phases,configuration phase>>, instead, move them to task actions.
+Avoid expensive computations in the <<build_lifecycle.adoc#build_phases,configuration phase>>, instead, move them to task actions.
 
 === Explanation
 

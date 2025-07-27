@@ -76,7 +76,7 @@ When the Java Gradle Plugin (`java-gradle-plugin`) detects that the Maven Publis
 * a single "main" publication, named `pluginMaven`, based on the <<java_plugin.adoc#sec:java_plugin_publishing,main Java component>>
 * multiple <<plugins_intermediate.adoc#sec:plugin_markers,"marker" publications>> (one for each plugin defined in the `gradlePlugin {}` block), named `<pluginName>PluginMarkerMaven` (for example in the above example it would be `simplePluginPluginMarkerMaven`)
 
-This automatic configuration happens in a link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:afterEvaluate(org.gradle.api.Action)[Project.afterEvaluate()] block (so at the end of the <<build_lifecycle_intermediate.adoc#sec:build_phases,build configuration phase>>), and only if these publications haven't already been defined, so it's possible to create and customise them during the earlier stages of build configuration.
+This automatic configuration happens in a link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:afterEvaluate(org.gradle.api.Action)[Project.afterEvaluate()] block (so at the end of the <<build_lifecycle.adoc#build_phases,build configuration phase>>), and only if these publications haven't already been defined, so it's possible to create and customise them during the earlier stages of build configuration.
 
 === Ivy Publish Plugin
 
@@ -85,7 +85,7 @@ When the Java Gradle Plugin(`java-gradle-plugin`) detects that the Ivy Publish P
 * a single "main" publication, named `pluginIvy`, based on the <<java_plugin.adoc#sec:java_plugin_publishing,main Java component>>
 * multiple <<plugins_intermediate.adoc#sec:plugin_markers,"marker" publications>> (one for each plugin defined in the `gradlePlugin {}` block), named `<pluginName>PluginMarkerIvy` (for example in the above example it would be `simplePluginPluginMarkerIvy`)
 
-This automatic configuration happens in a link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:afterEvaluate(org.gradle.api.Action)[Project.afterEvaluate()] block (so at the end of the <<build_lifecycle_intermediate.adoc#sec:build_phases,build configuration phase>>), and only if these publications haven't already been defined, so it's possible to create and customise them during the earlier stages of build configuration.
+This automatic configuration happens in a link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:afterEvaluate(org.gradle.api.Action)[Project.afterEvaluate()] block (so at the end of the <<build_lifecycle.adoc#build_phases,build configuration phase>>), and only if these publications haven't already been defined, so it's possible to create and customise them during the earlier stages of build configuration.
 
 === Plugin Publish Plugin
 
