@@ -43,10 +43,11 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
     def deleter = TestFiles.deleter()
     def fileSystemAccess = TestFiles.fileSystemAccess()
     def immutableWorkspaceMetadataStore = Stub(ImmutableWorkspaceMetadataStore) {
-        loadWorkspaceMetadata(_ as File) >> Stub(ImmutableWorkspaceMetadata) {
+        def workspaceMetadata = Stub(ImmutableWorkspaceMetadata) {
             getOriginMetadata() >> Stub(OriginMetadata)
             getOutputPropertyHashes() >> ImmutableListMultimap.of()
         }
+        loadWorkspaceMetadata(_ as File) >> Optional.of(workspaceMetadata)
     }
     def outputSnapshotter = new DefaultOutputSnapshotter(TestFiles.fileCollectionSnapshotter())
 

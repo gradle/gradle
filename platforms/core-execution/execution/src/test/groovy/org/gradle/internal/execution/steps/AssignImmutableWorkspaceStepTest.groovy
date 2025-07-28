@@ -90,6 +90,10 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
         def existingOutputs = ImmutableSortedMap.<String, FileSystemLocationSnapshot> of(
             "output", outputFileSnapshot
         )
+        def originalWorkspaceMetadata = Stub(ImmutableWorkspaceMetadata) {
+            getOriginMetadata() >> delegateOriginMetadata
+            getOutputPropertyHashes() >> ImmutableListMultimap.of("output", outputFileSnapshot.hash)
+        }
 
         when:
         def result = step.execute(work, context)
@@ -107,10 +111,7 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
         1 * outputSnapshotter.snapshotOutputs(work, immutableWorkspace) >> existingOutputs
 
         then:
-        1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Stub(ImmutableWorkspaceMetadata) {
-            getOriginMetadata() >> delegateOriginMetadata
-            getOutputPropertyHashes() >> ImmutableListMultimap.of("output", outputFileSnapshot.hash)
-        }
+        1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Optional.of(originalWorkspaceMetadata)
         0 * _
     }
 
@@ -289,7 +290,7 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
         then:
         1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> tamperedWorkspaceSnapshot
         1 * outputSnapshotter.snapshotOutputs(work, immutableWorkspace) >> tamperedOutputs
-        1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> originalWorkspaceMetadata
+        1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Optional.of(originalWorkspaceMetadata)
 
         then:
         def ex = thrown IllegalStateException
