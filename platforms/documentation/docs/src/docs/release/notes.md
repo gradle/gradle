@@ -97,9 +97,9 @@ Gradle falls back to non-Configuration Cache mode automatically when encounterin
 
 This includes:
 
-- [Core plugins](userguide/configuration_cache.html#config_cache:plugins:core) with limited support (such as Maven Publish and Ivy Publish)
+- [Core plugins](userguide/configuration_cache_status.html#config_cache:plugins:core) with limited support (such as Maven Publish and Ivy Publish)
 - Unsupported or incompatible IDE plugins (such as Eclipse and IDEA)
-- Features not yet supported (such as [Source Dependencies](userguide/configuration_cache.html#config_cache:not_yet_implemented:source_dependencies))
+- Features not yet supported (such as [Source Dependencies](userguide/configuration_cache_status.html#config_cache:not_yet_implemented:source_dependencies))
 
 After running a build, the reason for the fallback can be found in the [Configuration Cache report](userguide/reporting_problems.html#reporting_problems).
 
