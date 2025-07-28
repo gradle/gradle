@@ -1407,7 +1407,7 @@ This method is only meant to be called on configurations which allow the (non-de
 
         then:
         UnsupportedOperationException t = thrown()
-        t.message == "Mutation of attributes is not allowed"
+        t.message == "This container is immutable and cannot be mutated."
     }
 
     def "copied configuration has independent listeners"() {
