@@ -160,10 +160,10 @@
                 <li><a href="../userguide/feature_lifecycle.html">Gradle's Feature Lifecycle</a></li>
             </ul>
 
-            <h3 id="running-gradle-builds">Running Gradle Builds</h3>
+            <h3 id="running-gradle-builds">Gradle Tutorials</h3>
             <ul>
-                <li><a href="../userguide/getting_started_eng.html">Getting Started</a></li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#running-introduction" aria-expanded="false" aria-controls="introduction">Learning the Basics</a>
+                <li><a href="../userguide/getting_started.html">Getting Started</a></li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#running-introduction" aria-expanded="false" aria-controls="introduction">Running Gradle Builds</a>
                     <ul id="running-introduction">
                         <li><a href="../userguide/gradle_basics.html">1. Core Concepts</a></li>
                         <li><a href="../userguide/gradle_wrapper_basics.html">2. Wrapper Basics</a></li>
@@ -188,12 +188,7 @@
                         <li><a href="../userguide/part6_gradle_caching.html">6. Enabling the Build Cache</a></li>
                     </ul>
                 </li>
-            </ul>
-
-            <h3 id="authoring-gradle-builds">Authoring Gradle Builds</h3>
-            <ul>
-                <li><a href="../userguide/getting_started_dev.html">Getting Started</a></li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#beyond-the-basics" aria-expanded="false" aria-controls="beyond-the-basics">Beyond the Basics</a>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#beyond-the-basics" aria-expanded="false" aria-controls="beyond-the-basics">Authoring Gradle Builds</a>
                     <ul id="authoring-introduction">
                         <li><a href="../userguide/gradle_directories_intermediate.html">1. Anatomy of a Gradle Build</a></li>
                         <li><a href="../userguide/multi_project_builds_intermediate.html">2. Structuring Multi-Project Builds</a></li>
@@ -216,17 +211,14 @@
                         <li><a href="../userguide/part7_writing_plugins.html">7. Writing Plugins</a></li>
                     </ul>
                 </li>
-            </ul>
-
-            <h3 id="authoring-gradle-plugins">Developing Gradle Plugins</h3>
-            <ul>
-                <li><a href="../userguide/getting_started_auth.html">Getting Started</a></li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#deep-dive" aria-expanded="false" aria-controls="deep-dive">Deep Dive</a>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#deep-dive" aria-expanded="false" aria-controls="deep-dive">Developing Gradle Plugins</a>
                     <ul id="developing-introduction">
                         <li><a href="../userguide/plugin_introduction_advanced.html">1. Plugin Introduction</a></li>
                         <li><a href="../userguide/pre_compiled_script_plugin_advanced.html">2. Pre-Compiled Script Plugins</a></li>
                         <li><a href="../userguide/binary_plugin_advanced.html">3. Binary Plugins</a></li>
                     </ul>
+                </li>
+                <li><a class="nav-dropdown" data-toggle="collapse" aria-expanded="false">Advanced Tutorial</a>
                 </li>
             </ul>
 
@@ -325,16 +317,11 @@
                         <li><a href="../userguide/ant.html">Using Ant from Gradle</a></li>
                     </ul>
                 </li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#how-to-guides" aria-expanded="false" aria-controls="how-to-guides">How-To Guides</a>
-                    <ul id="how-to-guides-topics">
-                        <li><a href="../userguide/how_to_convert_single_build_to_multi_build.html">Convert a Single-Project Build to Multi-Project</a></li>
-                    </ul>
-                </li>
             </ul>
 
             <h3 id="optimizing-build-performance">Optimizing Gradle Builds</h3>
             <ul>
-                <li><a href="../userguide/performance.html">Improving Performance Basics</a></li>
+                <li><a href="../userguide/performance.html">Improving Performance</a></li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#build-cache" aria-expanded="false" aria-controls="build-cache">Build Cache</a>
                     <ul id="build-cache">
                         <li><a href="../userguide/build_cache.html">Enabling and Configuring</a></li>
@@ -434,20 +421,6 @@
                         <li><a href="../userguide/publishing_ivy.html">Ivy Publish Plugin</a></li>
                     </ul>
                 </li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#how-to" aria-expanded="false" aria-controls="how-to">How-To-Guides</a>
-                    <ul id="how-to">
-                        <li><a href="../userguide/how_to_downgrade_transitive_dependencies.html">How to Downgrade Transitive Dependencies</a></li>
-                        <li><a href="../userguide/how_to_upgrade_transitive_dependencies.html">How to Upgrade Transitive Dependencies</a></li>
-                        <li><a href="../userguide/how_to_exclude_transitive_dependencies.html">How to Exclude Transitive Dependencies</a></li>
-                        <li><a href="../userguide/how_to_prevent_accidental_dependency_upgrades.html">How to Prevent Accidental or Eager Dependency Upgrades</a></li>
-                        <li><a href="../userguide/how_to_align_dependency_versions.html">How to Align Dependency Versions</a></li>
-                        <li><a href="../userguide/how_to_share_outputs_between_projects.html">How to Share Outputs Between Projects</a></li>
-                        <li><a href="../userguide/how_to_resolve_specific_artifacts.html">How to Resolve Specific Artifacts from a Module Dependency</a></li>
-                        <li><a href="../userguide/how_to_use_local_forks.html">How to Use a Local Fork of a Module Dependency</a></li>
-                        <li><a href="../userguide/how_to_fix_version_catalog_problems.html">How to Fix Version Catalog Problems</a></li>
-                        <li><a href="../userguide/how_to_create_feature_variants_of_a_library.html">How to Create Feature Variants of a Library</a></li>
-                    </ul>
-                </li>
             </ul>
 
             <h3 id="platforms">Platforms</h3>
@@ -495,6 +468,29 @@
                     <ul id="third-party-api">
                         <li><a href="../userguide/tooling_api.html">Tooling API</a></li>
                         <li><a href="../userguide/test_reporting_api.html">Test Reporting API</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3 id="how-to-guides">How-To-Guides</h3>
+            <ul>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#how-to-guides" aria-expanded="false" aria-controls="how-to-guides">Structuring Builds</a>
+                    <ul id="how-to-guides-structuring">
+                        <li><a href="../userguide/how_to_convert_single_build_to_multi_build.html">Convert a Single-Project Build to Multi-Project</a></li>
+                    </ul>
+                </li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#how-to" aria-expanded="false" aria-controls="how-to">Dependency Management</a>
+                    <ul id="how-to-guides-dep-man">
+                        <li><a href="../userguide/how_to_downgrade_transitive_dependencies.html">How to Downgrade Transitive Dependencies</a></li>
+                        <li><a href="../userguide/how_to_upgrade_transitive_dependencies.html">How to Upgrade Transitive Dependencies</a></li>
+                        <li><a href="../userguide/how_to_exclude_transitive_dependencies.html">How to Exclude Transitive Dependencies</a></li>
+                        <li><a href="../userguide/how_to_prevent_accidental_dependency_upgrades.html">How to Prevent Accidental or Eager Dependency Upgrades</a></li>
+                        <li><a href="../userguide/how_to_align_dependency_versions.html">How to Align Dependency Versions</a></li>
+                        <li><a href="../userguide/how_to_share_outputs_between_projects.html">How to Share Outputs Between Projects</a></li>
+                        <li><a href="../userguide/how_to_resolve_specific_artifacts.html">How to Resolve Specific Artifacts from a Module Dependency</a></li>
+                        <li><a href="../userguide/how_to_use_local_forks.html">How to Use a Local Fork of a Module Dependency</a></li>
+                        <li><a href="../userguide/how_to_fix_version_catalog_problems.html">How to Fix Version Catalog Problems</a></li>
+                        <li><a href="../userguide/how_to_create_feature_variants_of_a_library.html">How to Create Feature Variants of a Library</a></li>
                     </ul>
                 </li>
             </ul>

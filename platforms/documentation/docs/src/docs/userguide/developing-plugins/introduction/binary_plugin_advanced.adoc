@@ -16,10 +16,14 @@
 = Binary Plugins
 
 If Gradle or the Gradle community does not offer the specific capabilities your project needs, creating your own custom plugin could be a solution.
+This is where binary plugins come in.
 
-== Developing a binary plugin
+A binary plugin is a plugin that is implemented in a compiled language and is packaged as a JAR file.
 
-A plugin is any class that implements the link:{javadocPath}/org/gradle/api/Plugin.html[`Plugin`] interface.
+== Implementing the Plugin Interface
+
+All plugins, aside from pre-compiled script plugins, must implements the link:{javadocPath}/org/gradle/api/Plugin.html[`Plugin`] interface.
+
 For example, this is a "hello world" *plugin*:
 
 ====
@@ -106,21 +110,9 @@ apply plugin: SamplePlugin
 =====
 ====
 
-Note that this is a simple `hello-world` example and does *not* reflect best practices.
+== BLAH
 
-IMPORTANT: Script plugins are *not* recommended.
-
-The best practice for developing plugins is to create _convention plugins_ or _binary plugins_.
-
-== Binary Plugins
-
-A binary plugin is a plugin that is implemented in a compiled language and is packaged as a JAR file.
-It is resolved as a dependency rather than compiled from source.
-
-For most use cases, convention plugins must be updated infrequently.
-Having each developer execute the plugin build as part of their development process is wasteful, and we can instead distribute them as binary dependencies.
-
-There are two ways to update the convention plugin in the example above into a binary plugin.
+There are two ways to update the convention plugin in the previous page into a binary plugin.
 
 1. Use <<composite_builds.adoc#composite_builds,composite builds>>:
 +
@@ -141,6 +133,7 @@ plugins {
 ----
 
 Let's go with the second solution.
+
 This plugin has been re-written in Kotlin and is called `MyCreateFileBinaryPlugin.kt`.
 It is still stored in `buildSrc`:
 
@@ -162,4 +155,6 @@ include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[ta
 include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=apply]"]
 ====
 
-Consult the <<custom_plugins.adoc#custom_plugins,Developing Plugins chapter>> to learn more.
+Ready to build something? Start with the Advanced Tutorial.
+
+Next Step: Start the Tutorial >>

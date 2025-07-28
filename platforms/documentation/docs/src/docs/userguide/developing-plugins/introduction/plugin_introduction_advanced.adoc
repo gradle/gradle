@@ -40,7 +40,7 @@ In many cases, these tasks are automatically wired into the task graph via `depe
 +
 For example, the Java Plugin creates the main and test source sets and applies sensible defaults for compiling and testing Java code.
 
-Most plugins provide DSL blocks you can use to fine-tune their behavior.
+Most plugins provide DSL blocks you can use to fine-tune their behavior in build scripts.
 For instance, the Java plugin lets you configure how tests are run:
 
 [source,groovy]
@@ -140,15 +140,6 @@ image::plugin-intro-advanced-3.png[]
 * Typically implemented in Java, Kotlin, or Groovy.
 * Packaged as JARs, reusable across multiple builds.
 * Can be published to repositories for sharing.
-
-It's also important to know about a type of *precompiled script plugin* called a *convention plugin*:
-
-=== Convention Plugins
-
-* A type of *precompiled script plugin*, typically used to:
-** Bundle together multiple plugins.
-** Apply shared configuration across projects.
-* Usually found in the `buildSrc` directory or a composite build named `build-logic`.
 
 [.text-right]
 **Next Step:** <<pre_compiled_script_plugin_advanced.adoc#pre_compiled_script_plugins_advanced,Learn about Pre-Compiled Script Plugins>> >>

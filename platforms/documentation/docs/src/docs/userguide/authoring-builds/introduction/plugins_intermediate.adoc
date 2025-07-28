@@ -115,7 +115,7 @@ include::sample[dir="snippets/plugins/simple/groovy", files="settings.gradle[tag
 
 The location of the plugin could also be an included build or `buildSrc` for example.
 
-[[sec:plugins_block]]
+[[sec:plugins_apply]]
 == Applying Plugins
 
 Over time, Gradle has introduced several ways to apply plugins, depending on their source and the scope in which they are needed (such as whether they apply to a single project or multiple subprojects).
@@ -200,6 +200,7 @@ apply<MyCustomBarfuinTaskInfoPlugin>()
 ----
 |===
 
+[[sec:plugins_block]]
 === 1. Applying plugins using the `plugins{}` block
 
 The plugin DSL provides a concise and convenient way to declare plugin dependencies.
