@@ -175,8 +175,8 @@ class DefaultTestExecutionResult implements TestExecutionResult {
             this
         }
 
-        TestClassExecutionResult assertTestCount(int tests, int failures, int errors) {
-            testClassResults*.assertTestCount(tests, failures, errors)
+        TestClassExecutionResult assertTestCount(int tests, int failures) {
+            testClassResults*.assertTestCount(tests, failures)
             this
         }
 

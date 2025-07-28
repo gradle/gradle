@@ -48,8 +48,8 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def htmlReport = new HtmlTestExecutionResult(sample.dir, "build/reports/allTests")
-        htmlReport.testClass("org.gradle.sample.CoreTest").assertTestCount(1, 0, 0).assertTestPassed("ok").assertStdout(equalTo("hello from CoreTest.\n"))
-        htmlReport.testClass("org.gradle.sample.UtilTest").assertTestCount(1, 0, 0).assertTestPassed("ok").assertStdout(equalTo("hello from UtilTest.\n"))
+        htmlReport.testClass("org.gradle.sample.CoreTest").assertTestCount(1, 0).assertTestPassed("ok").assertStdout(equalTo("hello from CoreTest.\n"))
+        htmlReport.testClass("org.gradle.sample.UtilTest").assertTestCount(1, 0).assertTestPassed("ok").assertStdout(equalTo("hello from UtilTest.\n"))
     }
 
     def "merges report with duplicated classes and methods"() {
@@ -157,11 +157,11 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def htmlReport = new HtmlTestExecutionResult(testDirectory, 'build/reports/allTests')
-        htmlReport.testClass("org.gradle.testing.UnitTest").assertTestCount(1, 0, 0).assertTestPassed("foo").assertStdout(equalTo('org.gradle.testing.UnitTest#foo\n'))
-        htmlReport.testClass("org.gradle.testing.SuperTest").assertTestCount(2, 1, 0).assertTestPassed("passing")
+        htmlReport.testClass("org.gradle.testing.UnitTest").assertTestCount(1, 0).assertTestPassed("foo").assertStdout(equalTo('org.gradle.testing.UnitTest#foo\n'))
+        htmlReport.testClass("org.gradle.testing.SuperTest").assertTestCount(2, 1).assertTestPassed("passing")
             .assertTestFailed("failing", equalTo('java.lang.AssertionError: failing test'))
             .assertStdout(allOf(containsString('org.gradle.testing.SuperTest#failing\n'), containsString('org.gradle.testing.SuperTest#passing\n')))
-        htmlReport.testClass("org.gradle.testing.SubTest").assertTestCount(4, 1, 0).assertTestPassed("passing") // onlySub is passing once and failing once
+        htmlReport.testClass("org.gradle.testing.SubTest").assertTestCount(4, 1).assertTestPassed("passing") // onlySub is passing once and failing once
             .assertStdout(allOf(containsString('org.gradle.testing.SubTest#passing sub\n'),
                 containsString('org.gradle.testing.SubTest#passing super\n'),
                 containsString('org.gradle.testing.SubTest#onlySub sub\n'),

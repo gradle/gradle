@@ -62,7 +62,7 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('SomeTestClass')
-        result.testClass("SomeTestClass").assertTestCount(1, 1, 0)
+        result.testClass("SomeTestClass").assertTestCount(1, 1)
         result.testClass("SomeTestClass").assertTestFailed("initializationError", startsWith("org.gradle.api.InvalidUserDataException: Can't load category class [org.gradle.CategoryA]"))
 
         where:
@@ -128,7 +128,7 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         executedAndNotSkipped(":test")
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         def testClass = result.testClass("Not a real class name")
-        testClass.assertTestCount(1, 0, 0)
+        testClass.assertTestCount(1, 0)
         testClass.assertTestPassed("someTest")
     }
 

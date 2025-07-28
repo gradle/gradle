@@ -15,12 +15,13 @@
  */
 package org.gradle.api.internal.tasks.testing.report.generic
 
-import com.google.common.collect.HashMultiset
+import com.google.common.collect.HashMultimap
 import com.google.common.collect.ImmutableMultiset
 import com.google.common.collect.Iterables
-import com.google.common.collect.Multiset
+import com.google.common.collect.Multimap
 import com.google.common.collect.Multisets
 import org.gradle.api.tasks.testing.TestResult
+import org.gradle.internal.lazy.Lazy
 import org.gradle.util.Path
 import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
@@ -40,15 +41,49 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
 
+    private final Lazy<Set<Path>> executedTestPathsLazy = Lazy.locking().of({
+        def reportPath = htmlReportDirectory.toPath()
+        try (Stream<java.nio.file.Path> paths = Files.walk(reportPath)) {
+            return paths.filter {
+                it.getFileName().toString() == "index.html"
+            }.map {
+                def html = Jsoup.parse(it.toFile(), null)
+                def breadcrumbs = html.selectFirst(".breadcrumbs")
+                if (breadcrumbs == null) {
+                    return Path.ROOT
+                }
+                def elements = breadcrumbs.text().split(">").collect {
+                    it.trim()
+                }
+                if (elements.size() == 1 || elements[0] != "all") {
+                    throw new IllegalStateException("First element should always be 'all'")
+                }
+                def path = Path.ROOT
+                for (int i = 1; i < elements.size(); i++) {
+                    path = path.child(elements[i])
+                }
+                return path
+            }.collect(Collectors.toSet())
+        }
+    })
     private File htmlReportDirectory
 
     GenericHtmlTestExecutionResult(File projectDirectory, String testReportDirectory = "build/reports/tests/test") {
         this.htmlReportDirectory = new File(projectDirectory, testReportDirectory);
     }
 
+    /**
+     * Only public for HtmlTestExecutionResult to use.
+     * Prefer to add additional methods for the exact assertion over using this method with arbitrary checking.
+     *
+     * @return the set of executed test paths
+     */
+    Set<Path> getExecutedTestPaths() {
+        return executedTestPathsLazy.get()
+    }
+
     @Override
     GenericTestExecutionResult assertTestPathsExecuted(String... testPaths) {
-        def executedTestPaths = getExecutedTestPaths()
         // We always will detect ancestors of the executed test paths as well, so add them to the set
         Set<Path> extendedTestPaths = testPaths.collect {
             Path.path(it)
@@ -61,30 +96,12 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
 
     @Override
     GenericTestExecutionResult assertTestPathsNotExecuted(String... testPaths) {
-        def executedTestPaths = getExecutedTestPaths()
         assertThat(executedTestPaths, not(hasItems(testPaths.collect { Path.path(it) }.toArray(Path[]::new))))
         return this
     }
 
-    private Set<Path> getExecutedTestPaths() {
-        def reportPath = htmlReportDirectory.toPath()
-        try (Stream<java.nio.file.Path> paths = Files.walk(reportPath)) {
-            return paths.filter {
-                it.getFileName().toString() == "index.html"
-            }.map {
-                def relative = reportPath.relativize(it)
-                def testPath = Path.ROOT
-                // We use -1 to exclude the index.html segment
-                for (int i = 0; i < relative.getNameCount() - 1; i++) {
-                    testPath = testPath.child(relative.getName(i).toString())
-                }
-                testPath
-            }.collect(Collectors.toSet())
-        }
-    }
-
     private java.nio.file.Path diskPathForTestPath(String testPath) {
-        htmlReportDirectory.toPath().resolve(GenericHtmlTestReport.getFilePath(Path.path(testPath)))
+        htmlReportDirectory.toPath().resolve(GenericHtmlTestReportGenerator.getFilePath(Path.path(testPath)))
     }
 
     @Override
@@ -140,10 +157,10 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
 
     private static class HtmlTestPathRootExecutionResult implements TestPathRootExecutionResult {
         private Element html
-        private Multiset<String> testsExecuted = HashMultiset.create()
-        private Multiset<String> testsSucceeded = HashMultiset.create()
-        private Multiset<String> testsFailures = HashMultiset.create()
-        private Multiset<String> testsSkipped = HashMultiset.create()
+        private Multimap<String, TestInfo> testsExecuted = HashMultimap.create()
+        private Multimap<String, TestInfo> testsSucceeded = HashMultimap.create()
+        private Multimap<String, TestInfo> testsFailures = HashMultimap.create()
+        private Multimap<String, TestInfo> testsSkipped = HashMultimap.create()
 
         HtmlTestPathRootExecutionResult(Element html) {
             this.html = html
@@ -156,12 +173,13 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
             extractTestCaseTo("tr > td.skipped:eq(0)", testsSkipped)
         }
 
-        private extractTestCaseTo(String cssSelector, Collection<String> target) {
+        private extractTestCaseTo(String cssSelector, Multimap<String, TestInfo> target) {
             html.select(cssSelector).each {
                 def testDisplayName = it.text().trim()
                 def testName = hasNameColumn() ? it.nextElementSibling().text().trim() : testDisplayName
-                testsExecuted << testName
-                target << testName
+                def testInfo = new TestInfo(testName, testDisplayName)
+                testsExecuted.put(testName, testInfo)
+                target.put(testName, testInfo)
             }
         }
 
@@ -171,16 +189,32 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
 
         @Override
         TestPathRootExecutionResult assertChildrenExecuted(String... testNames) {
-            def executedAndNotSkipped = Multisets.difference(testsExecuted, testsSkipped)
+            def executedAndNotSkipped = Multisets.difference(testsExecuted.keys(), testsSkipped.keys())
             assertThat(executedAndNotSkipped, equalTo(ImmutableMultiset.copyOf(testNames)))
             return this
         }
 
         @Override
-        TestPathRootExecutionResult assertChildCount(int tests, int failures, int errors) {
+        TestPathRootExecutionResult assertChildCount(int tests, int failures) {
             assert tests == testsExecuted.size()
             assert failures == testsFailures.size()
             return this
+        }
+
+        @Override
+        int getExecutedChildCount() {
+            return testsExecuted.size()
+        }
+
+        @Override
+        TestPathRootExecutionResult assertChildrenSkipped(String... testNames) {
+            assertThat(testsSkipped.keys(), equalTo(ImmutableMultiset.copyOf(testNames)))
+            return null
+        }
+
+        @Override
+        int getSkippedChildCount() {
+            return testsSkipped.size()
         }
 
         @Override
@@ -208,7 +242,7 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
 
         private getResultType() {
             // Currently the report only contains leaf results
-            assertChildCount(0, 0, 0)
+            assertChildCount(0, 0)
             def successRateElement = html.selectFirst('.summary .successRate')
             if (successRateElement.hasClass("failures")) {
                 return TestResult.ResultType.FAILURE
@@ -220,10 +254,20 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         }
 
         @Override
-        TestPathRootExecutionResult assertFailureMessages(Matcher<? super String> matcher) {
-            def detailsElem = html.selectFirst('.result-details pre')
-            assertThat(detailsElem == null ? '' : detailsElem.text(), matcher)
+        TestPathRootExecutionResult assertDisplayName(Matcher<? super String> matcher) {
+            assertThat(html.selectFirst("h1").text(), matcher)
             return this
+        }
+
+        @Override
+        TestPathRootExecutionResult assertFailureMessages(Matcher<? super String> matcher) {
+            assertThat(getFailureMessages(), matcher)
+            return this
+        }
+
+        @Override
+        String getFailureMessages() {
+            html.selectFirst('.result-details pre')?.text() ?: ''
         }
 
         @Override

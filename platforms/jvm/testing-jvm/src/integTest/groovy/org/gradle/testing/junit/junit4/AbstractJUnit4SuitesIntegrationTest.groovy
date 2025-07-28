@@ -211,11 +211,11 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
         then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.SomeTest1', 'org.gradle.SomeTest2', 'org.gradle.SomeSuite')
-        result.testClass("org.gradle.SomeTest1").assertTestCount(1, 0, 0)
+        result.testClass("org.gradle.SomeTest1").assertTestCount(1, 0)
         result.testClass("org.gradle.SomeTest1").assertTestsExecuted("testOk1")
-        result.testClass("org.gradle.SomeTest2").assertTestCount(1, 0, 0)
+        result.testClass("org.gradle.SomeTest2").assertTestCount(1, 0)
         result.testClass("org.gradle.SomeTest2").assertTestsExecuted("testOk2")
-        result.testClass("org.gradle.SomeSuite").assertTestCount(0, 0, 0)
+        result.testClass("org.gradle.SomeSuite").assertTestCount(0, 0)
         if (supportsSuiteOutput()) {
             result.testClass("org.gradle.SomeSuite").assertStdout(containsString("stdout in TestSetup#setup"))
             result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#setup"))

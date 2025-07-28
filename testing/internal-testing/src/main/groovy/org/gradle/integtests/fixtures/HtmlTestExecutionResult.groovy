@@ -15,64 +15,58 @@
  */
 package org.gradle.integtests.fixtures
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.TestPathExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.TestPathRootExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.FileUtils
-import org.gradle.util.internal.CollectionUtils
-import org.gradle.util.internal.TextUtil
+import org.gradle.util.Path
+import org.hamcrest.BaseMatcher
+import org.hamcrest.Description
 import org.hamcrest.Matcher
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
 
 import java.util.function.Consumer
 
 import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.testCase
-import static org.hamcrest.CoreMatchers.hasItems
-import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.MatcherAssert.assertThat
+import static org.hamcrest.Matchers.blankOrNullString
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.hasItems
+import static org.hamcrest.Matchers.not
 
+/**
+ * Adapts GenericHtmlTestExecutionResult to be used with the Test task, which assumes a specific HTML report structure.
+ */
 class HtmlTestExecutionResult implements TestExecutionResult {
 
-    private File htmlReportDirectory
+    private static boolean isTestClass(Path path) {
+        return path.segmentCount() == 1
+    }
 
-    public HtmlTestExecutionResult(File projectDirectory, String testReportDirectory = "build/reports/tests/test") {
-        this.htmlReportDirectory = new File(projectDirectory, testReportDirectory);
+    private final GenericHtmlTestExecutionResult delegate
+
+    HtmlTestExecutionResult(File projectDirectory, String testReportDirectory = "build/reports/tests/test") {
+        this.delegate = new GenericHtmlTestExecutionResult(projectDirectory, testReportDirectory)
+    }
+
+    private Set<String> getExecutedTestClasses() {
+        return delegate.executedTestPaths.findAll { isTestClass(it) }
+            .collect { it.name }
+            .toSet()
     }
 
     TestExecutionResult assertTestClassesExecuted(String... testClasses) {
-        indexContainsTestClass(testClasses)
-        assertHtmlReportForTestClassExists(testClasses)
+        assertThat(executedTestClasses, equalTo(testClasses.toList().toSet()))
         return this
     }
 
     TestExecutionResult assertTestClassesNotExecuted(String... testClasses) {
-        def indexFile = new File(htmlReportDirectory, "index.html")
-        if (indexFile.exists()) {
-            List<String> executedTestClasses = getExecutedTestClasses()
-            assertThat(executedTestClasses, not(hasItems(testClasses)))
-        }
+        assertThat(executedTestClasses, not(hasItems(testClasses)))
         return this
     }
 
-    private void indexContainsTestClass(String... expectedTestClasses) {
-        List<String> executedTestClasses = getExecutedTestClasses()
-        assert executedTestClasses.containsAll(expectedTestClasses)
-    }
-
-    private List<String> getExecutedTestClasses() {
-        def indexFile = new File(htmlReportDirectory, "index.html")
-        assert indexFile.exists()
-        Document html = Jsoup.parse(indexFile, null)
-        def executedTestClasses = html.select("div:has(h2:contains(Classes)).tab a").collect { it.text() }
-        executedTestClasses
-    }
-
-    private void assertHtmlReportForTestClassExists(String... classNames) {
-        classNames.each {
-            assert new File(htmlReportDirectory, "classes/${FileUtils.toSafeFileName(it)}.html").file
-        }
-    }
-
     boolean testClassExists(String testClass) {
-        return new File(htmlReportDirectory, "classes/${FileUtils.toSafeFileName(testClass)}.html").exists()
+        return delegate.testPathExists(testClass)
     }
 
     boolean testClassDoesNotExist(String testClass) {
@@ -80,58 +74,37 @@ class HtmlTestExecutionResult implements TestExecutionResult {
     }
 
     TestClassExecutionResult testClass(String testClass) {
-        return new HtmlTestClassExecutionResult(new File(htmlReportDirectory, "classes/${FileUtils.toSafeFileName(testClass)}.html"))
+        return new HtmlTestClassExecutionResult(delegate, testClass, delegate.testPath(testClass))
     }
 
     TestClassExecutionResult testClassStartsWith(String testClass) {
-        return new HtmlTestClassExecutionResult(new File(htmlReportDirectory, "classes").listFiles().find { it.name.startsWith(FileUtils.toSafeFileName(testClass)) })
+        def testClassDelegate = delegate.executedTestPaths.find { isTestClass(it) && it.segment(1).startsWith(FileUtils.toSafeFileName(testClass)) }
+        assert testClassDelegate, "No HTML file found for test class starting with '${testClass}'"
+        return this.testClass(testClassDelegate.name)
     }
 
     @Override
     int getTotalNumberOfTestClassesExecuted() {
-        return getExecutedTestClasses().size()
+        return delegate.executedTestPaths.count { isTestClass(it) }
     }
 
     private static class HtmlTestClassExecutionResult implements TestClassExecutionResult {
-        private String classDisplayName
-        private File htmlFile
-        private List<TestCase> testsExecuted = []
-        private List<TestCase> testsSucceeded = []
-        private List<TestCase> testsFailures = []
-        private Set<TestCase> testsSkipped = []
-        private Document html
+        private final GenericHtmlTestExecutionResult parentDelegate
+        private final String pathToTestClass
+        private final TestPathExecutionResult delegate
 
-        public HtmlTestClassExecutionResult(File htmlFile) {
-            this.htmlFile = htmlFile;
-            this.html = Jsoup.parse(htmlFile, null)
-            parseTestClassFile()
+        HtmlTestClassExecutionResult(GenericHtmlTestExecutionResult parentDelegate, String pathToTestClass, TestPathExecutionResult delegate) {
+            this.delegate = delegate
+            this.parentDelegate = parentDelegate
+            this.pathToTestClass = pathToTestClass
         }
 
-        private extractTestCaseTo(String cssSelector, Collection<TestCase> target) {
-            html.select(cssSelector).each {
-                def testDisplayName = it.textNodes().first().wholeText.trim()
-                def testName = hasMethodNameColumn() ? it.nextElementSibling().text() : testDisplayName
-                def failureMessage = getFailureMessages(testName)
-                def testCase = testCase(testName, testDisplayName, failureMessage)
-                testsExecuted << testCase
-                target << testCase
-            }
+        private TestPathRootExecutionResult getTest(String name) {
+            parentDelegate.testPath(pathToTestClass + ":" + name).onlyRoot()
         }
 
-        private boolean hasMethodNameColumn() {
-            return html.select('tr > th').size() == 4
-        }
-
-        private void parseTestClassFile() {
-            // " > TestClass" -> "TestClass"
-            classDisplayName = html.select('div.breadcrumbs').first().textNodes().last().wholeText.trim().substring(3)
-            extractTestCaseTo("tr > td.success:eq(0)", testsSucceeded)
-            extractTestCaseTo("tr > td.failures:eq(0)", testsFailures)
-            extractTestCaseTo("tr > td.skipped:eq(0)", testsSkipped)
-        }
-
-        List<String> getFailureMessages(String testmethod) {
-            html.select("div.test:has(a[name='$testmethod']) > span > pre").collect { it.text() }
+        private TestPathRootExecutionResult getTestWithDisplayName(String name, String displayName) {
+            getTest(name).assertDisplayName(equalTo(displayName))
         }
 
         TestClassExecutionResult assertTestsExecuted(String... testNames) {
@@ -140,39 +113,37 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
         @Override
         TestClassExecutionResult assertTestsExecuted(TestCase... testCases) {
-            def executedAndNotSkipped = testsExecuted - testsSkipped
-            assert executedAndNotSkipped.containsAll(testCases)
-            assert executedAndNotSkipped.size() == testCases.size()
+            String[] testCasesAsNames = testCases.collect { it.name }.toArray(new String[0])
+            delegate.onlyRoot().assertChildrenExecuted(testCasesAsNames)
             return this
         }
 
-        TestClassExecutionResult assertTestCount(int tests, int failures, int errors) {
-            assert tests == testsExecuted.size()
-            assert failures == testsFailures.size()
+        TestClassExecutionResult assertTestCount(int tests, int failures) {
+            delegate.onlyRoot().assertChildCount(tests, failures)
             return this
         }
 
         int getTestCount() {
-            return testsExecuted.size()
+            return delegate.onlyRoot().executedChildCount
         }
 
         TestClassExecutionResult assertTestsSkipped(String... testNames) {
-            assert testsSkipped == testNames.collect { testCase(it) } as Set
+            delegate.onlyRoot().assertChildrenSkipped(testNames)
             return this
         }
 
         @Override
         TestClassExecutionResult assertTestPassed(String name, String displayName) {
-            assert testsSucceeded.contains(testCase(name, displayName))
+            getTestWithDisplayName(name, displayName).assertHasResult(TestResult.ResultType.SUCCESS)
             return this
         }
 
         int getTestSkippedCount() {
-            return testsSkipped.size()
+            return delegate.onlyRoot().skippedChildCount
         }
 
         TestClassExecutionResult assertTestPassed(String name) {
-            assert testsSucceeded.contains(testCase(name))
+            getTest(name).assertHasResult(TestResult.ResultType.SUCCESS)
             return this
         }
 
@@ -184,8 +155,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
         @Override
         TestClassExecutionResult assertTestFailedIgnoreMessages(String name) {
-            def fullMessages = collectTestFailFullMessages(name, name)
-            assert !fullMessages.isEmpty()
+            assertTestFailFullMessages(name, name, not(blankOrNullString()))
             return this
         }
 
@@ -199,45 +169,55 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         boolean testFailed(String name, String displayName, Matcher<? super String>... messageMatchers) {
-            def fullMessages = collectTestFailFullMessages(name, displayName)
-            if (fullMessages.isEmpty()) {
-                return false
-            }
-            def messages = fullMessages.collect { it.readLines().first() }
-            if (messages.size() != messageMatchers.length) {
-                return false
-            }
-            for (int i = 0; i < messageMatchers.length; i++) {
-                if (!messageMatchers[i].matches(messages[i]) && !messageMatchers[i].matches(fullMessages[i])) {
-                    return false
+            assertTestFailFullMessages(name, displayName, new BaseMatcher<String>() {
+                @Override
+                boolean matches(Object actual) {
+                    String str = actual as String
+
+                    def messages = str.readLines()
+                    if (messages.size() != messageMatchers.length) {
+                        return false
+                    }
+                    for (int i = 0; i < messageMatchers.length; i++) {
+                        if (!messageMatchers[i].matches(messages[i])) {
+                            return false
+                        }
+                    }
+                    return true
                 }
-            }
+
+                @Override
+                void describeTo(Description description) {
+                    description.appendList(
+                        "a String with lines matching ",
+                        ", ",
+                        " in order",
+                        messageMatchers.toList()
+                    )
+                }
+            })
             return true
         }
 
-        private List<String> collectTestFailFullMessages(String name, String displayName) {
-            def testCase = testsFailures.grep { it.name == name && it.displayName == displayName }
-            if (testCase.isEmpty()) {
-                return Collections.emptyList()
-            }
-
-            return testCase.first().messages
+        private void assertTestFailFullMessages(String name, String displayName, Matcher<? extends String> matcher) {
+            getTestWithDisplayName(name, displayName)
+                .assertHasResult(TestResult.ResultType.FAILURE)
+                .assertFailureMessages(matcher)
         }
 
         @Override
         TestClassExecutionResult assertTestSkipped(String name, String displayName) {
-            assert testsSkipped.contains(testCase(name, displayName))
+            getTestWithDisplayName(name, displayName).assertHasResult(TestResult.ResultType.SKIPPED)
             return this
         }
 
         @Override
         TestClassExecutionResult assertTestSkipped(String name, Consumer<SkippedExecutionResult> assertions) {
-            TestCase testCase = testsSkipped.find { it == testCase(name) }
-            assert testCase
+            String messages = getTest(name).failureMessages
 
             final SkippedExecutionResult skippedExecutionResult
-            if (!testCase.messages.isEmpty()) {
-                List<String> possibleText = CollectionUtils.single(testCase.messages).readLines()
+            if (!messages.isEmpty()) {
+                List<String> possibleText = messages.readLines()
                 // In the HTML report, the format is:
                 // message
                 // <newline>
@@ -254,14 +234,24 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertExecutionFailedWithCause(Matcher<? super String> causeMatcher) {
-            String failureMethodName = EXECUTION_FAILURE
-            def testCase = testsFailures.find { it.name == failureMethodName }
-            assert testCase
+            getTest(EXECUTION_FAILURE)
+                .assertHasResult(TestResult.ResultType.FAILURE)
+                .assertFailureMessages(new BaseMatcher<String>() {
+                    @Override
+                    boolean matches(Object actual) {
+                        String causeLinePrefix = "Caused by: "
+                        def cause = (actual as String).readLines()
+                            .find { it.startsWith(causeLinePrefix) }
+                            ?.substring(causeLinePrefix.length())
+                        return causeMatcher.matches(cause)
+                    }
 
-            String causeLinePrefix = "Caused by: "
-            def cause = testCase.messages.first().readLines().find { it.startsWith causeLinePrefix }?.substring(causeLinePrefix.length())
-
-            assertThat(cause, causeMatcher)
+                    @Override
+                    void describeTo(Description description) {
+                        description.appendText("an execution failure with cause matching ")
+                            .appendDescriptionOf(causeMatcher)
+                    }
+                })
             this
         }
 
@@ -272,7 +262,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertTestSkipped(String name) {
-            assert testsSkipped.contains(testCase(name))
+            getTest(name).assertHasResult(TestResult.ResultType.SKIPPED)
             return this
         }
 
@@ -285,7 +275,8 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertStdout(Matcher<? super String> matcher) {
-            return assertOutput('Standard output', matcher)
+            delegate.onlyRoot().assertStdout(matcher)
+            return this
         }
 
         TestClassExecutionResult assertTestCaseStdout(String testCaseName, Matcher<? super String> matcher) {
@@ -293,13 +284,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         }
 
         TestClassExecutionResult assertStderr(Matcher<? super String> matcher) {
-            return assertOutput('Standard error', matcher)
-        }
-
-        private HtmlTestClassExecutionResult assertOutput(heading, Matcher<? super String> matcher) {
-            def tabs = html.select("div.tab")
-            def tab = tabs.find { it.select("h2").text() == heading }
-            assert matcher.matches(tab ? TextUtil.normaliseLineSeparators(tab.select("span > pre").first().textNodes().first().wholeText) : "")
+            delegate.onlyRoot().assertStderr(matcher)
             return this
         }
 

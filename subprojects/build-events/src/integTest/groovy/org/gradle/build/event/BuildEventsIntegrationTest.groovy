@@ -363,7 +363,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         // ensure the test has been executed
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('my.MyTest')
-        result.testClass('my.MyTest').assertTestCount(1, 0, 0)
+        result.testClass('my.MyTest').assertTestCount(1, 0)
     }
 
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Cannot run TestKit in embedded mode")
@@ -419,7 +419,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         // ensure the test has been executed
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('my.MyTest')
-        result.testClass('my.MyTest').assertTestCount(1, 0, 0)
+        result.testClass('my.MyTest').assertTestCount(1, 0)
         result.testClass('my.MyTest').assertStdout(containsString("listener registered"))
     }
 

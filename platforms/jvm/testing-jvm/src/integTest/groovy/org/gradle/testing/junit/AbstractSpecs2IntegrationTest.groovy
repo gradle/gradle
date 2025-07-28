@@ -58,7 +58,8 @@ abstract class AbstractSpecs2IntegrationTest extends AbstractTestingMultiVersion
 
         then:
         new DefaultTestExecutionResult(testDirectory)
-            .testClass("BasicSpec").assertTestCount(1, 0, 0)
+            .testClass("BasicSpec")
+            .assertTestCount(1, 0)
             .assertTestPassed('Basic Math')
     }
 

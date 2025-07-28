@@ -136,7 +136,7 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
 
     @SuppressWarnings("unchecked")
     public void assertTestCasesRan(TestClassExecutionResult testExecutionResult) {
-        testExecutionResult.assertTestCount(getTestCount(), getFailureCount(), 0);
+        testExecutionResult.assertTestCount(getTestCount(), getFailureCount());
 
         for (XCTestCaseElement testCase : getTestCases()) {
             if (testCase.isExpectFailure()) {

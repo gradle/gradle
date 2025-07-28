@@ -109,7 +109,8 @@ abstract class AbstractJUnitSpockIntegrationTest extends AbstractTestingMultiVer
 
         then:
         new DefaultTestExecutionResult(testDirectory)
-            .testClass("UnrollTest").assertTestCount(2, 0, 0)
+            .testClass("UnrollTest")
+            .assertTestCount(2, 0)
             .assertTestPassed('can test 1')
             .assertTestPassed('can test 2')
     }
@@ -138,7 +139,7 @@ abstract class AbstractJUnitSpockIntegrationTest extends AbstractTestingMultiVer
 
         then:
         new DefaultTestExecutionResult(testDirectory)
-            .testClass("Sub").assertTestCount(2, 0, 0)
+            .testClass("Sub").assertTestCount(2, 0)
     }
 
     private void writeSpockDependencies() {

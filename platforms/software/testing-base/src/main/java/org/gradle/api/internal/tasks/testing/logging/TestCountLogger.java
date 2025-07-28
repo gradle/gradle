@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.logging;
 
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.tasks.testing.TestEventReporterFactoryInternal;
 import org.gradle.api.internal.tasks.testing.TestWorkerFailureException;
 import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
 import org.gradle.api.tasks.testing.TestDescriptor;
@@ -169,7 +170,7 @@ public class TestCountLogger implements TestListener {
         return !workerFailures.isEmpty();
     }
 
-    public void handleWorkerFailures() {
+    public TestEventReporterFactoryInternal.FailureReportResult handleWorkerFailures() {
         // TODO: We should expand this into different kinds of failures based on the situation we've detected.
         // e.g., test workers can fail to start due to command-line misconfiguration
         // or test workers can start, but fail to run any tests due to a bad classpath

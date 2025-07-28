@@ -57,7 +57,7 @@ class JUnit4TestExecutionIntegrationTest extends AbstractJUnitTestExecutionInteg
         // TODO: This doesn't look like the other test frameworks
         failure.assertHasCause("There were failing tests.")
         DefaultTestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
-        assertFailedToExecute(testResult, 'com.example.Foo').assertTestCount(1, 1, 0)
+        assertFailedToExecute(testResult, 'com.example.Foo').assertTestCount(1, 1)
     }
 
     def "test thread name is reset after test execution"() {

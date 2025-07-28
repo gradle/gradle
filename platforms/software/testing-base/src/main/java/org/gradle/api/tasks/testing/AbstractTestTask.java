@@ -23,7 +23,6 @@ import org.gradle.api.Action;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.exceptions.MarkedVerificationException;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.FailFastTestListenerInternal;
 import org.gradle.api.internal.tasks.testing.MultiTestReportGenerator;
@@ -33,6 +32,7 @@ import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestReportGenerator;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.internal.tasks.testing.junit.result.JUnitXmlResultOptions;
 import org.gradle.api.internal.tasks.testing.junit.result.TestEventReporterAsListener;
 import org.gradle.api.internal.tasks.testing.logging.DefaultTestLoggingContainer;
 import org.gradle.api.internal.tasks.testing.logging.FullExceptionFormatter;
@@ -43,6 +43,7 @@ import org.gradle.api.internal.tasks.testing.logging.TestExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.logging.TestWorkerProgressListener;
 import org.gradle.api.internal.tasks.testing.report.TestReporter;
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReportGenerator;
+import org.gradle.api.internal.tasks.testing.report.generic.JunitXmlTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
@@ -69,14 +70,12 @@ import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
@@ -173,8 +172,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private boolean failFast;
 
     public AbstractTestTask() {
-        Instantiator instantiator = getInstantiator();
-        testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
+        ObjectFactory objectFactory = getObjectFactory();
+        testLogging = objectFactory.newInstance(DefaultTestLoggingContainer.class);
         testListenerSubscriptions = new BroadcastSubscriptions<TestListener>(TestListener.class);
         testOutputListenerSubscriptions = new BroadcastSubscriptions<TestOutputListener>(TestOutputListener.class);
 
@@ -182,7 +181,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         reports.getJunitXml().getRequired().set(true);
         reports.getHtml().getRequired().set(true);
 
-        filter = instantiator.newInstance(DefaultTestFilter.class);
+        filter = objectFactory.newInstance(DefaultTestFilter.class);
         getFailOnNoDiscoveredTests().convention(true);
     }
 
@@ -208,7 +207,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     protected abstract BuildOperationExecutor getBuildOperationExecutor();
 
     @Inject
-    protected abstract Instantiator getInstantiator();
+    protected abstract ObjectFactory getObjectFactory();
 
     @Inject
     protected abstract ListenerManager getListenerManager();
@@ -218,9 +217,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     @Inject
     protected abstract TestEventReporterFactory getTestEventReporterFactory();
-
-    @Inject
-    protected abstract GenericHtmlTestReportGenerator.Factory getGenericHtmlTestReportGeneratorFactory();
 
     /**
      * Creates test executer. For internal use only.
@@ -496,14 +492,16 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         testListenerInternalBroadcaster.add(testWorkerProgressListener);
 
         // Record test events to `results`, and test outputs to `testOutputStore`
-        try (GroupTestEventReporter root = ((TestEventReporterFactoryInternal) getTestEventReporterFactory()).createInternalTestEventReporter(
-            "test task '" + getPath() + "'",
+        try (TestEventReporterAsListener reporterAsListener = new TestEventReporterAsListener(descriptor -> ((TestEventReporterFactoryInternal) getTestEventReporterFactory()).createInternalTestEventReporter(
+            ignored -> descriptor,
             binaryResultsDirectory.get(),
             reportGenerator,
-            testListenerInternalBroadcaster
-        )) {
+            testListenerInternalBroadcaster,
+            true,
+            () -> handleCollectedResults(testCountLogger)
+        ))) {
             TestExecuter<TestExecutionSpec> testExecuter = Cast.uncheckedNonnullCast(createTestExecuter());
-            TestListenerInternal resultProcessorDelegate = new TestEventReporterAsListener(root);
+            TestListenerInternal resultProcessorDelegate = reporterAsListener;
             if (failFast) {
                 resultProcessorDelegate = new FailFastTestListenerInternal(testExecuter, resultProcessorDelegate);
             }
@@ -520,8 +518,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
                 testListenerInternalBroadcaster.removeAll();
             }
         }
-
-        handleCollectedResults(testCountLogger);
     }
 
     private TestReportGenerator createReportGenerators() {
@@ -532,15 +528,21 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             if (testReporter != null) {
                 throw new UnsupportedOperationException("TODO: Map results for legacy reporting interface");
             } else {
-                reportGenerators.add(getGenericHtmlTestReportGeneratorFactory().create(html.getOutputLocation().get().getAsFile().toPath()));
+                reportGenerators.add(getObjectFactory().newInstance(GenericHtmlTestReportGenerator.class, html.getOutputLocation().get().getAsFile().toPath()));
             }
         } else {
             getLogger().info("Test report disabled, omitting generation of the HTML test report.");
         }
 
-        DirectoryReport xml = reports.getJunitXml();
-        if (xml.getRequired().get()) {
-            throw new UnsupportedOperationException("TODO: New JUnit XML report");
+        JUnitXmlReport junitXml = reports.getJunitXml();
+        if (junitXml.getRequired().get()) {
+            JUnitXmlResultOptions xmlResultOptions = new JUnitXmlResultOptions(
+                junitXml.isOutputPerTestCase(),
+                junitXml.getMergeReruns().get(),
+                junitXml.getIncludeSystemOutLog().get(),
+                junitXml.getIncludeSystemErrLog().get()
+            );
+            reportGenerators.add(getObjectFactory().newInstance(JunitXmlTestReportGenerator.class, junitXml.getOutputLocation().get().getAsFile().toPath(), xmlResultOptions));
         }
 
         if (reportGenerators.isEmpty()) {
@@ -553,12 +555,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         }
     }
 
-    private void handleCollectedResults(TestCountLogger testCountLogger) {
+    private TestEventReporterFactoryInternal.FailureReportResult handleCollectedResults(TestCountLogger testCountLogger) {
         if (testCountLogger.hadFailures()) {
             if (testCountLogger.hasWorkerFailures()) {
-                testCountLogger.handleWorkerFailures();
+                return testCountLogger.handleWorkerFailures();
             } else {
-                handleTestFailures();
+                return TestEventReporterFactoryInternal.FailureReportResult.testFailureDetected("There were failing tests.");
             }
         } else if (testCountLogger.getTotalTests() == 0) {
             // No tests were executed, the following rules apply:
@@ -573,6 +575,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
                 throw new TestExecutionException(createNoMatchingTestErrorMessage());
             }
         }
+        return TestEventReporterFactoryInternal.FailureReportResult.noAction();
     }
 
     private boolean shouldFailOnNoMatchingTests() {
@@ -665,28 +668,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     public TestTaskReports reports(Action<? super TestTaskReports> configureAction) {
         configureAction.execute(reports);
         return reports;
-    }
-
-    private void handleTestFailures() {
-        String message = "There were failing tests";
-
-        DirectoryReport htmlReport = getReports().getHtml();
-        if (htmlReport.getRequired().get()) {
-            String reportUrl = new ConsoleRenderer().asClickableFileUrl(htmlReport.getEntryPoint());
-            message = message.concat(". See the report at: " + reportUrl);
-        } else {
-            DirectoryReport junitXmlReport = getReports().getJunitXml();
-            if (junitXmlReport.getRequired().get()) {
-                String resultsUrl = new ConsoleRenderer().asClickableFileUrl(junitXmlReport.getEntryPoint());
-                message = message.concat(". See the results at: " + resultsUrl);
-            }
-        }
-
-        if (getIgnoreFailures()) {
-            getLogger().warn(message);
-        } else {
-            throw new MarkedVerificationException(message);
-        }
     }
 
     /**

@@ -59,8 +59,6 @@ public class TestingBasePluginServices extends AbstractGradleModuleServices {
     public static class TestingBuildSessionScopeServices implements ServiceRegistrationProvider {
         void configure(ServiceRegistration serviceRegistration) {
             serviceRegistration.add(TestListenerBuildOperationAdapter.class);
-            serviceRegistration.add(GenericHtmlTestReportGenerator.Factory.class);
-            serviceRegistration.add(LegacyHtmlTestReportGenerator.Factory.class);
         }
     }
 

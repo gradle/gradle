@@ -43,6 +43,8 @@ dependencies {
     implementation(projects.functional)
     implementation(projects.native)
     implementation(projects.serialization)
+    implementation(projects.testingBase)
+    implementation(projects.testingBaseInfrastructure)
 
     implementation(libs.ant)
     implementation(libs.asm)

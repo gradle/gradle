@@ -141,7 +141,7 @@ class TestNgTestClassExecutionResult implements TestClassExecutionResult {
         this.testClassNode = resultXml
     }
 
-    TestClassExecutionResult assertTestCount(int tests, int failures, int errors) {
+    TestClassExecutionResult assertTestCount(int tests, int failures) {
         throw new RuntimeException("Unsupported. Implement if you need it.");
     }
 

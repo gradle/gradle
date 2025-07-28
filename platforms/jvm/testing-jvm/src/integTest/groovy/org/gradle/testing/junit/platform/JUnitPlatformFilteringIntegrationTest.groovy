@@ -61,7 +61,8 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         then:
         new DefaultTestExecutionResult(testDirectory)
             .assertTestClassesExecuted('org.gradle.NestedTest$Inner')
-            .testClass('org.gradle.NestedTest$Inner').assertTestCount(1, 0, 0)
+            .testClass('org.gradle.NestedTest$Inner')
+            .assertTestCount(1, 0)
             .assertTestPassed('innerTest()')
     }
 
@@ -100,7 +101,7 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         new DefaultTestExecutionResult(testDirectory)
             .assertTestClassesExecuted('EnclosingClass$NestedClass')
             .testClass('EnclosingClass$NestedClass')
-            .assertTestCount(1, 0, 0)
+            .assertTestCount(1, 0)
             .assertTestPassed('nestedTest')
     }
 
@@ -132,7 +133,7 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         new DefaultTestExecutionResult(testDirectory)
             .assertTestClassesExecuted('SubClass')
             .testClass('SubClass')
-            .assertTestCount(1, 0, 0)
+            .assertTestCount(1, 0)
             .assertTestPassed('superTest')
     }
 
@@ -178,7 +179,7 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         new DefaultTestExecutionResult(testDirectory)
             .assertTestClassesExecuted('DeclaresTestsAsFieldsNotMethodsTest')
             .testClass('DeclaresTestsAsFieldsNotMethodsTest')
-            .assertTestCount(1, 0, 0)
+            .assertTestCount(1, 0)
             .assertTestPassed('example')
     }
 
@@ -224,7 +225,7 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         new DefaultTestExecutionResult(testDirectory)
             .assertTestClassesExecuted('DeclaresTestsAsFieldsNotMethodsTest')
             .testClass('DeclaresTestsAsFieldsNotMethodsTest')
-            .assertTestCount(1, 0, 0)
+            .assertTestCount(1, 0)
             .assertTestPassed('example')
     }
 

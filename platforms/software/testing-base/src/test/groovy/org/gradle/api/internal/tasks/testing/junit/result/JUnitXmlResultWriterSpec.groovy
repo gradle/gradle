@@ -57,7 +57,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         then:
         new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", "com.foo.FooTest", TestResultOutputAssociation.WITH_SUITE)
-            .assertTestCount(5, 2, 1, 0)
+            .assertTestCount(5, 2, 1)
             .assertTestFailed("some failing test", equalTo('failure message'))
             .assertTestsSkipped("some skipped test", "some assumption failure test")
             .assertTestsExecuted("some test", "some test two", "some failing test")
@@ -209,7 +209,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         then:
         new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", "com.foo.FooTest", TestResultOutputAssociation.WITH_SUITE)
-            .assertTestCount(1, 0, 1, 0)
+            .assertTestCount(1, 0, 1)
             .assertTestFailed("some failing test")
     }
 
@@ -233,7 +233,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         then:
         new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", writtenName, TestResultOutputAssociation.WITH_SUITE)
-            .assertTestCount(4, 1, 1, 0)
+            .assertTestCount(4, 1, 1)
             .assertTestFailed("some failing test displayName", equalTo('failure message'))
             .assertTestsSkipped("some skipped test displayName")
             .assertTestsExecuted("some test displayName", "some test two displayName", "some failing test displayName")

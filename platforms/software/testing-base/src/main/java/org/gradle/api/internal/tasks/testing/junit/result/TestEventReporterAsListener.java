@@ -16,44 +16,49 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
+import org.gradle.api.internal.tasks.testing.GroupTestEventReporterInternal;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestEventReporterInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
-import org.gradle.api.tasks.testing.GroupTestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporter;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.jspecify.annotations.NullMarked;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 @NullMarked
-public class TestEventReporterAsListener implements TestListenerInternal {
-    private final GroupTestEventReporter root;
+public class TestEventReporterAsListener implements TestListenerInternal, AutoCloseable {
+    private final Function<TestDescriptorInternal, GroupTestEventReporterInternal> rootInitializer;
     private final Map<Object, TestEventReporter> reportersById = new HashMap<>();
 
-    public TestEventReporterAsListener(GroupTestEventReporter root) {
-        this.root = root;
+    public TestEventReporterAsListener(Function<TestDescriptorInternal, GroupTestEventReporterInternal> rootInitializer) {
+        this.rootInitializer = rootInitializer;
     }
 
     @Override
     public void started(TestDescriptorInternal testDescriptor, TestStartEvent startEvent) {
-        GroupTestEventReporter parentReporter;
-        if (testDescriptor.getParent() != null) {
-            parentReporter = (GroupTestEventReporter) reportersById.get(testDescriptor.getParent().getId());
-        } else {
-            parentReporter = root;
-        }
         TestEventReporter reporter;
-        if (testDescriptor.isComposite()) {
-            reporter = parentReporter.reportTestGroup(testDescriptor.getName());
+        if (testDescriptor.getParent() != null) {
+            GroupTestEventReporterInternal parentReporter =
+                (GroupTestEventReporterInternal) reportersById.get(testDescriptor.getParent().getId());
+
+            if (testDescriptor.isComposite()) {
+                reporter = parentReporter.reportTestGroupDirectly(testDescriptor);
+            } else {
+                reporter = parentReporter.reportTestDirectly(testDescriptor);
+            }
         } else {
-            reporter = parentReporter.reportTest(testDescriptor.getName(), testDescriptor.getDisplayName());
+            reporter = rootInitializer.apply(testDescriptor);
         }
         reporter.started(Instant.ofEpochMilli(startEvent.getStartTime()));
         reportersById.put(testDescriptor.getId(), reporter);
@@ -61,15 +66,15 @@ public class TestEventReporterAsListener implements TestListenerInternal {
 
     @Override
     public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
-        TestEventReporter reporter = reportersById.get(testDescriptor.getId());
+        TestEventReporter reporter = reportersById.remove(testDescriptor.getId());
         if (reporter == null) {
             throw new IllegalStateException("No reporter found for test descriptor: " + testDescriptor);
         }
         try {
-            if (completeEvent.getResultType() == null) {
+            if (testResult.getResultType() == null) {
                 throw new IllegalArgumentException("Result type is required");
             }
-            switch (completeEvent.getResultType()) {
+            switch (testResult.getResultType()) {
                 case SUCCESS:
                     reporter.succeeded(Instant.ofEpochMilli(completeEvent.getEndTime()));
                     break;
@@ -80,11 +85,20 @@ public class TestEventReporterAsListener implements TestListenerInternal {
                     reporter.skipped(Instant.ofEpochMilli(completeEvent.getEndTime()));
                     break;
                 default:
-                    throw new IllegalArgumentException("Unknown result type: " + completeEvent.getResultType());
+                    throw new IllegalArgumentException("Unknown result type: " + testResult.getResultType());
             }
-        } finally {
-            reporter.close();
+        } catch (Throwable t) {
+            try {
+                reporter.close();
+            } catch (Exception e) {
+                // Suppress exception from close to avoid masking the original exception
+                // In most cases, close will throw an exception if the reporter is not in a valid state.
+                t.addSuppressed(e);
+            }
+            throw t;
         }
+        // If successful, we close the reporter without suppressing any exceptions.
+        reporter.close();
     }
 
     @Override
@@ -103,5 +117,21 @@ public class TestEventReporterAsListener implements TestListenerInternal {
             throw new IllegalStateException("No reporter found for test descriptor: " + testDescriptor);
         }
         reporter.metadata(Instant.ofEpochMilli(event.getLogTime()), event.getValues());
+    }
+
+    @Override
+    public void close() {
+        List<Throwable> allExceptions = new ArrayList<>();
+        for (TestEventReporter reporter : reportersById.values()) {
+            try {
+                reporter.close();
+            } catch (Throwable t) {
+                allExceptions.add(t);
+            }
+        }
+        reportersById.clear();
+        if (!allExceptions.isEmpty()) {
+            throw new DefaultMultiCauseException("Failed to close some test reporters", allExceptions);
+        }
     }
 }
