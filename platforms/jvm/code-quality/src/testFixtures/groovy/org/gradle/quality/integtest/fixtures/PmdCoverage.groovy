@@ -44,11 +44,12 @@ class PmdCoverage {
         21: '7.0.0',
         22: '7.0.0',
         23: '7.5.0',
-        24: '7.10.0'
+        24: '7.10.0',
+        25: '7.16.0',
     ]
 
     // See https://mvnrepository.com/artifact/net.sourceforge.pmd/pmd
-    private static final String LATEST_PMD_VERSION = '7.13.0'
+    private static final String LATEST_PMD_VERSION = '7.16.0'
 
     private final static Set<String> TESTED_VERSIONS = [
         PmdPlugin.DEFAULT_PMD_VERSION,
