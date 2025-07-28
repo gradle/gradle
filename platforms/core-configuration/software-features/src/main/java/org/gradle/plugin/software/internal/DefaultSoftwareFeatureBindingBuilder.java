@@ -19,17 +19,21 @@ package org.gradle.plugin.software.internal;
 import org.gradle.api.Action;
 import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.DslBindingBuilder;
+import org.gradle.api.internal.plugins.DslBindingBuilderInternal;
 import org.gradle.api.internal.plugins.HasBuildModel;
 import org.gradle.api.internal.plugins.SoftwareFeatureBinding;
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilder;
+import org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilderInternal;
 import org.gradle.api.internal.plugins.SoftwareFeatureTransform;
+import org.gradle.internal.inspection.DefaultTypeParameterInspection;
+import org.gradle.internal.inspection.TypeParameterInspection;
 import org.gradle.util.Path;
 
 import java.util.List;
 import java.util.ArrayList;
 
-public class DefaultSoftwareFeatureBindingBuilder implements SoftwareFeatureBindingBuilder {
-    private final List<DslBindingBuilder<?, ?>> bindings = new ArrayList<>();
+public class DefaultSoftwareFeatureBindingBuilder implements SoftwareFeatureBindingBuilderInternal {
+    private final List<DslBindingBuilderInternal<?, ?>> bindings = new ArrayList<>();
 
     @Override
     public <
@@ -42,10 +46,10 @@ public class DefaultSoftwareFeatureBindingBuilder implements SoftwareFeatureBind
         ModelBindingTypeInformation<Definition, OwnBuildModel, TargetDefinition> bindingTypeInformation,
         SoftwareFeatureTransform<Definition, OwnBuildModel, TargetDefinition> transform
     ) {
-        DslBindingBuilder<Definition, OwnBuildModel> builder = new DefaultDslBindingBuilder<>(
-            bindingTypeInformation.definitionType,
-            bindingTypeInformation.ownBuildModelType,
-            bindingTypeInformation.targetType,
+        DslBindingBuilderInternal<Definition, OwnBuildModel> builder = new DefaultDslBindingBuilder<>(
+            bindingTypeInformation.getDefinitionType(),
+            getBuildModelClass(bindingTypeInformation.getDefinitionType()),
+            bindingTypeInformation.getTargetType(),
             Path.path(name),
             transform
         );
@@ -61,9 +65,19 @@ public class DefaultSoftwareFeatureBindingBuilder implements SoftwareFeatureBind
     @Override
     public List<SoftwareFeatureBinding<?, ?>> build() {
         List<SoftwareFeatureBinding<?, ?>> result = new ArrayList<>();
-        for (DslBindingBuilder<?, ?> binding : bindings) {
+        for (DslBindingBuilderInternal<?, ?> binding : bindings) {
             result.add(binding.build());
         }
         return result;
+    }
+
+    private static <Definition extends HasBuildModel<OwnBuildModel>, OwnBuildModel extends BuildModel> Class<OwnBuildModel> getBuildModelClass(Class<Definition> definition) {
+        @SuppressWarnings("rawtypes")
+        TypeParameterInspection<HasBuildModel, BuildModel> inspection = new DefaultTypeParameterInspection<>(HasBuildModel.class, BuildModel.class, BuildModel.NONE.class);
+        Class<OwnBuildModel> ownBuildModel = inspection.parameterTypeFor(definition);
+        if (ownBuildModel == null) {
+            throw new IllegalArgumentException("Cannot determine build model type for " + definition);
+        }
+        return ownBuildModel;
     }
 }

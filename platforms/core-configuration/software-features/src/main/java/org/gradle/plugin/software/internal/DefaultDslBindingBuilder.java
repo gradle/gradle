@@ -18,6 +18,7 @@ package org.gradle.plugin.software.internal;
 
 import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.DslBindingBuilder;
+import org.gradle.api.internal.plugins.DslBindingBuilderInternal;
 import org.gradle.api.internal.plugins.HasBuildModel;
 import org.gradle.api.internal.plugins.SoftwareFeatureBinding;
 import org.gradle.api.internal.plugins.SoftwareFeatureTransform;
@@ -31,7 +32,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 @NullMarked
-public class DefaultDslBindingBuilder<T extends HasBuildModel<V>, V extends BuildModel> implements DslBindingBuilder<T, V> {
+public class DefaultDslBindingBuilder<T extends HasBuildModel<V>, V extends BuildModel> implements DslBindingBuilderInternal<T, V> {
     private final Class<T> dslType;
     private final TargetTypeInformation<?> targetDefinitionType;
     private final Class<V> buildModelType;

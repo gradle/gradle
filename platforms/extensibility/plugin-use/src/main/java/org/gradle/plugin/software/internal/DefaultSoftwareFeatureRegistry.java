@@ -30,6 +30,7 @@ import org.gradle.api.internal.plugins.SoftwareFeatureBinding;
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilderInternal;
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingRegistration;
 import org.gradle.api.internal.plugins.SoftwareTypeBindingBuilder;
+import org.gradle.api.internal.plugins.SoftwareTypeBindingBuilderInternal;
 import org.gradle.api.internal.plugins.SoftwareTypeBindingRegistration;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.reflect.TypeOf;
@@ -148,7 +149,7 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
             BindsSoftwareType bindsSoftwareType = bindsSoftwareTypeAnnotation.get();
             Class<? extends SoftwareTypeBindingRegistration> bindingRegistrationClass = bindsSoftwareType.value();
             SoftwareTypeBindingRegistration bindingRegistration = instantiator.newInstance(bindingRegistrationClass);
-            SoftwareTypeBindingBuilder builder = new DefaultSoftwareTypeBindingBuilder();
+            SoftwareTypeBindingBuilderInternal builder = new DefaultSoftwareTypeBindingBuilder();
             bindingRegistration.register(builder);
             builder.build().forEach(binding ->
                 registerFeature(registeringPluginKey, pluginClass, binding, softwareFeatureImplementationsBuilder)
