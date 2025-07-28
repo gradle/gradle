@@ -22,7 +22,7 @@ import org.gradle.api.Project
 import org.gradle.api.internal.plugins.BindsSoftwareType
 import org.gradle.api.internal.plugins.SoftwareTypeBindingBuilder
 import org.gradle.api.internal.plugins.SoftwareTypeBindingRegistration
-import org.gradle.api.internal.plugins.bindSoftwareType
+import org.gradle.api.internal.plugins.features.dsl.bindSoftwareType
 import org.gradle.api.plugins.internal.java.DefaultJavaSoftwareType
 import org.gradle.api.plugins.java.JavaClasses.DefaultJavaClasses
 import org.gradle.api.tasks.compile.JavaCompile

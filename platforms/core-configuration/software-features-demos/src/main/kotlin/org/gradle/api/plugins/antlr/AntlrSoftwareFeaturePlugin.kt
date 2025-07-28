@@ -22,7 +22,7 @@ import org.gradle.api.Project
 import org.gradle.api.internal.plugins.BindsSoftwareFeature
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilder
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingRegistration
-import org.gradle.api.internal.plugins.bindSoftwareFeatureToBuildModel
+import org.gradle.api.internal.plugins.features.dsl.bindSoftwareFeatureToBuildModel
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.antlr.internal.DefaultAntlrSourceDirectorySet
 import org.gradle.api.plugins.java.JavaClasses
