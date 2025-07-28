@@ -18,7 +18,6 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.event.types.DefaultFailure;
@@ -27,22 +26,17 @@ import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.kotlin.dsl.support.ScriptCompilationException;
-import org.gradle.plugins.ide.internal.tooling.model.BasicGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleBuild;
-import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
-public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
-    private final BuildStateRegistry buildStateRegistry;
+public class ResilientGradleBuildBuilder extends GradleBuildBuilder implements BuildScopeModelBuilder {
 
     public ResilientGradleBuildBuilder(BuildStateRegistry buildStateRegistry) {
-        this.buildStateRegistry = buildStateRegistry;
+        super(buildStateRegistry);
     }
 
     @Override
@@ -57,7 +51,8 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
         return convert(target, new LinkedHashMap<>());
     }
 
-    private static Throwable ensureProjectsLoaded(BuildState target) {
+    @Override
+    protected Throwable ensureProjectsLoaded(BuildState target) {
         try {
             target.ensureProjectsLoaded();
             return null;
@@ -70,7 +65,8 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
         }
     }
 
-    private DefaultGradleBuild convert(BuildState targetBuild, Map<BuildState, DefaultGradleBuild> all) {
+    @Override
+    protected DefaultGradleBuild convert(BuildState targetBuild, Map<BuildState, DefaultGradleBuild> all) {
         DefaultGradleBuild model = all.get(targetBuild);
         if (model != null) {
             return model;
@@ -100,21 +96,13 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
             System.err.println(e.getMessage());
         }
 
-        if (gradle.getParent() == null) {
-            List<DefaultGradleBuild> allBuilds = new ArrayList<>();
-            buildStateRegistry.visitBuilds(buildState -> {
-                // Do not include the root build and only include builds that are intended to be imported into an IDE
-                if (buildState != targetBuild && buildState.isImportableBuild()) {
-                    allBuilds.add(convert(buildState, all));
-                }
-            });
-            model.addBuilds(allBuilds);
-        }
+        iterateParents(targetBuild, all, gradle, model);
 
         return model;
     }
 
-    private void addIncludedBuilds(GradleInternal gradle, DefaultGradleBuild model, Map<BuildState, DefaultGradleBuild> all) {
+    @Override
+    protected void addIncludedBuilds(GradleInternal gradle, DefaultGradleBuild model, Map<BuildState, DefaultGradleBuild> all) {
         for (IncludedBuildInternal reference : gradle.includedBuilds()) {
             BuildState target = reference.getTarget();
             if (target != null) {
@@ -131,34 +119,5 @@ public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
 //                model.addIncludedBuild(gradleBuild);
 //            }
         }
-    }
-
-    private void addProjects(BuildState target, DefaultGradleBuild model) {
-        Map<ProjectState, BasicGradleProject> convertedProjects = new LinkedHashMap<>();
-
-        ProjectState rootProject = target.getProjects().getRootProject();
-        BasicGradleProject convertedRootProject = convert(target, rootProject, convertedProjects);
-        model.setRootProject(convertedRootProject);
-
-        for (ProjectState project : target.getProjects().getAllProjects()) {
-            model.addProject(convertedProjects.get(project));
-        }
-    }
-
-    private BasicGradleProject convert(BuildState owner, ProjectState project, Map<ProjectState, BasicGradleProject> convertedProjects) {
-        DefaultProjectIdentifier id = new DefaultProjectIdentifier(owner.getBuildRootDir(), project.getProjectPath().getPath());
-        BasicGradleProject converted = new BasicGradleProject()
-            .setName(project.getName())
-            .setProjectIdentifier(id)
-            .setBuildTreePath(project.getIdentityPath().getPath())
-            .setProjectDirectory(project.getProjectDir());
-        if (project.getBuildParent() != null) {
-            converted.setParent(convertedProjects.get(project.getBuildParent()));
-        }
-        convertedProjects.put(project, converted);
-        for (ProjectState child : project.getChildProjects()) {
-            converted.addChild(convert(owner, child, convertedProjects));
-        }
-        return converted;
     }
 }
