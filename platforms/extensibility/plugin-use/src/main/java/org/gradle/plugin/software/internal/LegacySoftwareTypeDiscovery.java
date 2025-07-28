@@ -27,6 +27,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadataWalker;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Set;
@@ -40,14 +41,18 @@ public class LegacySoftwareTypeDiscovery {
 
     public Set<LegacySoftwareTypeImplementation<?>> discoverSoftwareTypeImplementations(
         Map<String, Class<? extends Plugin<Project>>> registeredTypes,
-        Map<Class<? extends Plugin<Settings>>, Set<Class<? extends Plugin<Project>>>> pluginClasses
+        Map<DefaultSoftwareFeatureRegistry.RegisteringPluginKey, Set<Class<? extends Plugin<Project>>>> pluginClasses
     ) {
         final ImmutableSet.Builder<LegacySoftwareTypeImplementation<?>> softwareTypeImplementationsBuilder = ImmutableSet.builder();
         pluginClasses.forEach((registeringPluginClass, pluginClassSet) ->
             pluginClassSet.forEach(pluginClass -> {
                 TypeToken<?> pluginType = TypeToken.of(pluginClass);
                 TypeMetadataWalker.typeWalker(inspectionScheme.getMetadataStore(), SoftwareType.class)
-                    .walk(pluginType, new SoftwareTypeImplementationRecordingVisitor(pluginClass, registeringPluginClass, registeredTypes, softwareTypeImplementationsBuilder));
+                    .walk(pluginType, new SoftwareTypeImplementationRecordingVisitor(
+                        pluginClass,
+                        registeringPluginClass.pluginClass, registeringPluginClass.pluginId,
+                        registeredTypes,
+                        softwareTypeImplementationsBuilder));
             }));
         return softwareTypeImplementationsBuilder.build();
     }
@@ -55,6 +60,7 @@ public class LegacySoftwareTypeDiscovery {
 
     private static class SoftwareTypeImplementationRecordingVisitor implements TypeMetadataWalker.StaticMetadataVisitor {
         private final Class<? extends Plugin<Project>> pluginClass;
+        @Nullable private final String registeringPluginId;
         private final Class<? extends Plugin<Settings>> registeringPluginClass;
         private final Map<String, Class<? extends Plugin<Project>>> registeredTypes;
         private final ImmutableSet.Builder<LegacySoftwareTypeImplementation<?>> softwareTypeImplementationsBuilder;
@@ -62,10 +68,12 @@ public class LegacySoftwareTypeDiscovery {
         public SoftwareTypeImplementationRecordingVisitor(
             Class<? extends Plugin<Project>> pluginClass,
             Class<? extends Plugin<Settings>> registeringPluginClass,
+            @Nullable String pluginId,
             Map<String, Class<? extends Plugin<Project>>> registeredTypes,
             ImmutableSet.Builder<LegacySoftwareTypeImplementation<?>> softwareTypeImplementationsBuilder
         ) {
             this.pluginClass = pluginClass;
+            this.registeringPluginId = pluginId;
             this.registeringPluginClass = registeringPluginClass;
             this.registeredTypes = registeredTypes;
             this.softwareTypeImplementationsBuilder = softwareTypeImplementationsBuilder;
@@ -88,7 +96,8 @@ public class LegacySoftwareTypeDiscovery {
                         softwareType.name(),
                         publicTypeOf(propertyMetadata, softwareType),
                         Cast.uncheckedNonnullCast(pluginClass),
-                        registeringPluginClass
+                        registeringPluginClass,
+                        registeringPluginId
                     )
                 );
             });

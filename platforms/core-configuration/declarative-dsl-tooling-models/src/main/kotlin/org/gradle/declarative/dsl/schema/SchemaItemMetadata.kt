@@ -43,6 +43,7 @@ interface SoftwareFeatureOrigin : SchemaMemberOrigin {
     val featureName: String
     val featurePluginClassName: String
     val ecosystemPluginClassName: String
+    val ecosystemPluginId: String?
     val targetDefinitionClassName: String?
     val targetBuildModelClassName: String?
     //TODO: feature owner plugin ID?

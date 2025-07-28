@@ -70,7 +70,7 @@ public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
     public void applyImperative(@Nullable String pluginId, Plugin<?> plugin) {
         TypeToken<?> pluginType = TypeToken.of(plugin.getClass());
         TypeMetadata typeMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(pluginType.getRawType());
-        registerSoftwareTypes(typeMetadata);
+        registerSoftwareTypes(pluginId, typeMetadata);
 
         delegate.applyImperative(pluginId, plugin);
     }
@@ -90,13 +90,13 @@ public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
         return delegate.toString();
     }
 
-    private void registerSoftwareTypes(TypeMetadata typeMetadata) {
+    private void registerSoftwareTypes(@Nullable String pluginId, TypeMetadata typeMetadata) {
         Optional<RegistersSoftwareTypes> registersSoftwareType = typeMetadata.getTypeAnnotationMetadata().getAnnotation(RegistersSoftwareTypes.class);
         registersSoftwareType.ifPresent(registration -> {
             Class<? extends Plugin<Settings>> registeringPlugin = Cast.uncheckedCast(typeMetadata.getType());
             for (Class<? extends Plugin<Project>> softwareTypeImplClass : registration.value()) {
                 validateSoftwareTypePluginExposesExactlyOneSoftwareType(softwareTypeImplClass, typeMetadata.getType());
-                softwareFeatureRegistry.register(softwareTypeImplClass, registeringPlugin);
+                softwareFeatureRegistry.register(pluginId, softwareTypeImplClass, registeringPlugin);
             }
         });
     }

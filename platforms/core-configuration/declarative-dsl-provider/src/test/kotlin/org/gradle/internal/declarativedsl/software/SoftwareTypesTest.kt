@@ -50,6 +50,7 @@ class SoftwareTypesTest {
                     override fun getBuildModelImplementationType(): Class<out Subtype> = buildModelType
                     override fun getPluginClass(): Class<out Plugin<Project>> = SubtypePlugin::class.java
                     override fun getRegisteringPluginClass(): Class<out Plugin<Settings>> = SubtypeEcosystemPlugin::class.java
+                    override fun getRegisteringPluginId(): String = "com.example.test"
                     override fun getBindingTransform(): SoftwareFeatureTransform<Subtype, Subtype, Project> =
                         SoftwareFeatureTransform { _, _, _, _ -> }
                     override fun addModelDefault(rule: ModelDefault<*>) = Unit
@@ -80,6 +81,7 @@ class SoftwareTypesTest {
                 Assert.assertEquals("subtype", featureName)
                 Assert.assertEquals(SubtypePlugin::class.java.name, featurePluginClassName)
                 Assert.assertEquals(SubtypeEcosystemPlugin::class.java.name, ecosystemPluginClassName)
+                Assert.assertEquals("com.example.test", ecosystemPluginId)
                 Assert.assertEquals(Project::class.java.name, targetDefinitionClassName)
                 Assert.assertNull(targetBuildModelClassName)
             }

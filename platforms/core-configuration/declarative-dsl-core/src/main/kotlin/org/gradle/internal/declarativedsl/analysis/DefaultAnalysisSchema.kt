@@ -386,6 +386,7 @@ object SchemaItemMetadataInternal {
             override val featureName: String,
             override val featurePluginClassName: String,
             override val ecosystemPluginClassName: String,
+            override val ecosystemPluginId: String?,
             override val targetDefinitionClassName: String?,
             override val targetBuildModelClassName: String?
         ) : SoftwareFeatureOrigin

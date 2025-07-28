@@ -50,6 +50,8 @@ public interface SoftwareFeatureImplementation<T, V> {
 
     Class<? extends Plugin<Settings>> getRegisteringPluginClass();
 
+    @Nullable String getRegisteringPluginId();
+
     SoftwareFeatureTransform<T, V, ?> getBindingTransform();
 
     void addModelDefault(ModelDefault<?> modelDefault);
