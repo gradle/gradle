@@ -26,7 +26,6 @@ dependencies {
     api(projects.modelCore)
     api(projects.modelReflect)
     api(projects.persistentCache)
-    api(projects.scopedPersistentCache)
     api(projects.problemsApi)
     api(projects.snapshots)
 

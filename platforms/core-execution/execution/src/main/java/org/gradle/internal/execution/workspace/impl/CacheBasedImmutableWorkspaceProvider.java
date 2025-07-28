@@ -43,6 +43,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
     private final File baseDirectory;
     private final PersistentCache cache;
     private final UnscopedCacheBuilderFactory unscopedCacheBuilderFactory;
+  
     private final Map<String, PersistentCache> keyCaches = new ConcurrentHashMap<>();
 
     public static CacheBasedImmutableWorkspaceProvider createWorkspaceProvider(
