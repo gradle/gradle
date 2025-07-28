@@ -62,7 +62,7 @@ public abstract class JvmEcosystemPlugin implements Plugin<Project> {
 
     private void configureVariantDerivationStrategy(ProjectInternal project) {
         ComponentMetadataHandlerInternal metadataHandler = (ComponentMetadataHandlerInternal) project.getDependencies().getComponents();
-        metadataHandler.setVariantDerivationStrategy(JavaEcosystemVariantDerivationStrategy.getInstance());
+        metadataHandler.setVariantDerivationStrategy(objectFactory.newInstance(JavaEcosystemVariantDerivationStrategy.class));
     }
 
     private void configureSchema(ProjectInternal project) {
