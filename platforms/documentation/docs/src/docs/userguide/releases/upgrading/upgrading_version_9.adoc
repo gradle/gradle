@@ -308,6 +308,14 @@ tasks.register('nestedBuild', GradleBuild) {
 =====
 ====
 
+[[toolchain-project-properties]]
+==== Specifying toolchain configuration using project properties is now deprecated
+In previous versions of Gradle, it was possible to specify toolchain configuration with _project properties_ on the command line using `-P`.
+For example, to enable auto-detection of toolchains, you could specify `-Porg.gradle.java.installations.auto-detect=false`.
+This behavior is now deprecated and will be removed in Gradle 10.0.0.
+Instead, these properties should be specified as Gradle properties on the command line using `-D`, for example `-Dorg.gradle.java.installations.auto-detect=false`.
+
+
 === Potential breaking changes
 
 ==== Upgrade to ASM 9.8
