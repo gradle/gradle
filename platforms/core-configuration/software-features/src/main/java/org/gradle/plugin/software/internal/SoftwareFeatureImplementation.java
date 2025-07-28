@@ -21,8 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.plugins.SoftwareFeatureTransform;
 import org.gradle.api.internal.plugins.TargetTypeInformation;
-
-import java.util.Map;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents a resolved software type implementation including the public model type and the plugin that exposes it.

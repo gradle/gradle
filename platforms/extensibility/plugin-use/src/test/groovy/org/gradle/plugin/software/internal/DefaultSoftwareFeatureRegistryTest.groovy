@@ -20,33 +20,43 @@ import com.google.common.reflect.TypeToken
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.plugins.BindsSoftwareFeature
+import org.gradle.api.internal.plugins.BindsSoftwareType
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.internal.properties.annotations.PropertyMetadata
 import org.gradle.internal.properties.annotations.TypeMetadata
 import org.gradle.internal.properties.annotations.TypeMetadataStore
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata
 import spock.lang.Specification
 
 class DefaultSoftwareFeatureRegistryTest extends Specification {
     def metadataStore = Mock(TypeMetadataStore)
     def inspectionScheme = Mock(InspectionScheme)
-    def registry = new DefaultSoftwareFeatureRegistry(inspectionScheme)
+    def instantiator = Mock(Instantiator)
+    def registry = new DefaultSoftwareFeatureRegistry(inspectionScheme, instantiator)
+    def pluginId = "com.example.test"
 
     def "can register and retrieve a software type (public type = #modelPublicType.simpleName)"() {
         def pluginTypeMetadata = Mock(TypeMetadata)
         def modelTypeMetadata = Mock(TypeMetadata)
+        def typeAnnotationMetadata = Mock(TypeAnnotationMetadata)
         def propertyMetadata = Mock(PropertyMetadata)
         def softwareType = Mock(SoftwareType)
 
         when:
-        registry.register(SoftwareTypeImpl, RegisteringPlugin)
+        registry.register(pluginId, SoftwareTypeImpl, RegisteringPlugin)
 
         and:
         def implementations = registry.softwareFeatureImplementations.values()
 
         then:
-        1 * inspectionScheme.getMetadataStore() >> metadataStore
-        1 * metadataStore.getTypeMetadata(SoftwareTypeImpl) >> pluginTypeMetadata
+        2 * inspectionScheme.getMetadataStore() >> metadataStore
+        2 * metadataStore.getTypeMetadata(SoftwareTypeImpl) >> pluginTypeMetadata
+        1 * pluginTypeMetadata.getTypeAnnotationMetadata() >> typeAnnotationMetadata
+        1 * typeAnnotationMetadata.getAnnotation(BindsSoftwareFeature.class) >> Optional.empty()
+        1 * typeAnnotationMetadata.getAnnotation(BindsSoftwareType.class) >> Optional.empty()
         1 * pluginTypeMetadata.getPropertiesMetadata() >> [propertyMetadata]
         1 * propertyMetadata.getPropertyType() >> SoftwareType.class
         (1..2) * propertyMetadata.getDeclaredType() >> TypeToken.of(TestModel.class)
@@ -67,14 +77,18 @@ class DefaultSoftwareFeatureRegistryTest extends Specification {
 
     def "cannot register a plugin that is not a software type"() {
         def pluginTypeMetadata = Mock(TypeMetadata)
+        def typeAnnotationMetadata = Mock(TypeAnnotationMetadata)
 
         when:
-        registry.register(NotASoftwareTypeImpl, RegisteringPlugin)
+        registry.register(pluginId, NotASoftwareTypeImpl, RegisteringPlugin)
         def implementations = registry.softwareFeatureImplementations
 
         then:
-        1 * inspectionScheme.getMetadataStore() >> metadataStore
-        1 * metadataStore.getTypeMetadata(NotASoftwareTypeImpl) >> pluginTypeMetadata
+        2 * inspectionScheme.getMetadataStore() >> metadataStore
+        2 * metadataStore.getTypeMetadata(NotASoftwareTypeImpl) >> pluginTypeMetadata
+        1 * pluginTypeMetadata.getTypeAnnotationMetadata() >> typeAnnotationMetadata
+        1 * typeAnnotationMetadata.getAnnotation(BindsSoftwareFeature.class) >> Optional.empty()
+        1 * typeAnnotationMetadata.getAnnotation(BindsSoftwareType.class) >> Optional.empty()
         1 * pluginTypeMetadata.getPropertiesMetadata() >> []
 
         and:
@@ -85,20 +99,24 @@ class DefaultSoftwareFeatureRegistryTest extends Specification {
         def pluginTypeMetadata = Mock(TypeMetadata)
         def modelTypeMetadata = Mock(TypeMetadata)
         def propertyMetadata = Mock(PropertyMetadata)
+        def typeAnnotationMetadata = Mock(TypeAnnotationMetadata)
         def softwareType = Mock(SoftwareType)
 
         when:
-        registry.register(SoftwareTypeImpl, RegisteringPlugin)
-        registry.register(SoftwareTypeImpl, RegisteringPlugin)
+        registry.register(pluginId, SoftwareTypeImpl, RegisteringPlugin)
+        registry.register(pluginId, SoftwareTypeImpl, RegisteringPlugin)
         def implementations = registry.softwareFeatureImplementations
 
         then:
-        1 * inspectionScheme.getMetadataStore() >> metadataStore
-        1 * metadataStore.getTypeMetadata(SoftwareTypeImpl) >> pluginTypeMetadata
+        2 * inspectionScheme.getMetadataStore() >> metadataStore
+        2 * metadataStore.getTypeMetadata(SoftwareTypeImpl) >> pluginTypeMetadata
+        1 * pluginTypeMetadata.getTypeAnnotationMetadata() >> typeAnnotationMetadata
         1 * pluginTypeMetadata.getPropertiesMetadata() >> [propertyMetadata]
         1 * propertyMetadata.getPropertyType() >> SoftwareType.class
         1 * propertyMetadata.getDeclaredType() >> TypeToken.of(TestModel.class)
         1 * propertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(softwareType)
+        1 * typeAnnotationMetadata.getAnnotation(BindsSoftwareFeature.class) >> Optional.empty()
+        1 * typeAnnotationMetadata.getAnnotation(BindsSoftwareType.class) >> Optional.empty()
         _ * softwareType.name() >> "test"
         2 * softwareType.modelPublicType() >> TestModel
         1 * metadataStore.getTypeMetadata(TestModel) >> modelTypeMetadata
@@ -115,18 +133,26 @@ class DefaultSoftwareFeatureRegistryTest extends Specification {
         def propertyMetadata = Mock(PropertyMetadata)
         def duplicatePropertyMetadata = Mock(PropertyMetadata)
         def softwareType = Mock(SoftwareType)
+        def typeAnnotationMetadata = Mock(TypeAnnotationMetadata)
+        def duplicateTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
 
         when:
-        registry.register(SoftwareTypeImpl, RegisteringPlugin)
-        registry.register(DuplicateSoftwareTypeImpl, RegisteringPlugin)
+        registry.register(pluginId, SoftwareTypeImpl, RegisteringPlugin)
+        registry.register(pluginId+".duplicate", DuplicateSoftwareTypeImpl, RegisteringPlugin)
         registry.getSoftwareFeatureImplementations()
 
         then:
-        2 * inspectionScheme.getMetadataStore() >> metadataStore
-        1 * metadataStore.getTypeMetadata(SoftwareTypeImpl) >> pluginTypeMetadata
-        1 * metadataStore.getTypeMetadata(DuplicateSoftwareTypeImpl) >> duplicateTypeMetadata
+        4 * inspectionScheme.getMetadataStore() >> metadataStore
+        2 * metadataStore.getTypeMetadata(SoftwareTypeImpl) >> pluginTypeMetadata
+        2 * metadataStore.getTypeMetadata(DuplicateSoftwareTypeImpl) >> duplicateTypeMetadata
+        1 * pluginTypeMetadata.getTypeAnnotationMetadata() >> typeAnnotationMetadata
+        1 * duplicateTypeMetadata.getTypeAnnotationMetadata() >> duplicateTypeAnnotationMetadata
         1 * pluginTypeMetadata.getPropertiesMetadata() >> [propertyMetadata]
         1 * duplicateTypeMetadata.getPropertiesMetadata() >> [duplicatePropertyMetadata]
+        1 * typeAnnotationMetadata.getAnnotation(BindsSoftwareFeature.class) >> Optional.empty()
+        1 * typeAnnotationMetadata.getAnnotation(BindsSoftwareType.class) >> Optional.empty()
+        1 * duplicateTypeAnnotationMetadata.getAnnotation(BindsSoftwareFeature.class) >> Optional.empty()
+        1 * duplicateTypeAnnotationMetadata.getAnnotation(BindsSoftwareType.class) >> Optional.empty()
         1 * propertyMetadata.getPropertyType() >> SoftwareType.class
         1 * propertyMetadata.getDeclaredType() >> TypeToken.of(TestModel.class)
         1 * propertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(softwareType)

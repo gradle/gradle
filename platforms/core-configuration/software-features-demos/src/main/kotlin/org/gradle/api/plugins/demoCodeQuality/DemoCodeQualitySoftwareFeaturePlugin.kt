@@ -23,8 +23,8 @@ import org.gradle.api.Project
 import org.gradle.api.internal.plugins.BindsSoftwareFeature
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilder
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingRegistration
-import org.gradle.api.internal.plugins.bindSoftwareFeatureToBuildModel
-import org.gradle.api.internal.plugins.bindSoftwareFeatureToDefinition
+import org.gradle.api.internal.plugins.features.dsl.bindSoftwareFeatureToBuildModel
+import org.gradle.api.internal.plugins.features.dsl.bindSoftwareFeatureToDefinition
 import org.gradle.api.plugins.java.HasSources
 import org.gradle.api.plugins.java.JvmOutputs
 import org.gradle.api.plugins.quality.Checkstyle

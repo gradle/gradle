@@ -92,7 +92,7 @@ public class LegacySoftwareTypeDiscovery {
                 }
 
                 softwareTypeImplementationsBuilder.add(
-                    new LegacySoftwareTypeImplementation<>(
+                    new DefaultLegacySoftwareTypeImplementation<>(
                         softwareType.name(),
                         publicTypeOf(propertyMetadata, softwareType),
                         Cast.uncheckedNonnullCast(pluginClass),

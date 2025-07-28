@@ -1297,8 +1297,8 @@
   {
     "name": "software-features",
     "path": "platforms/core-configuration/software-features",
-    "unitTests": true,
-    "functionalTests": true,
+    "unitTests": false,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -1312,7 +1312,7 @@
     "name": "software-features-demos",
     "path": "platforms/core-configuration/software-features-demos",
     "unitTests": false,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {

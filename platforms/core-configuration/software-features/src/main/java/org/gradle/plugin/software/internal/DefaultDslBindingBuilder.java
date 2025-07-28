@@ -26,8 +26,8 @@ import org.gradle.api.internal.plugins.TargetTypeInformation;
 import org.gradle.internal.Cast;
 import org.gradle.util.Path;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 

@@ -24,7 +24,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.internal.plugins.BindsSoftwareFeature
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilder
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingRegistration
-import org.gradle.api.internal.plugins.bindSoftwareFeatureToDefinition
+import org.gradle.api.internal.plugins.features.dsl.bindSoftwareFeatureToDefinition
 import org.gradle.api.plugins.java.HasJavaSources.JavaSources
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 
