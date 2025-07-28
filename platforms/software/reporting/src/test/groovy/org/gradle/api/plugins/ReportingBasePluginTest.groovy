@@ -55,18 +55,4 @@ class ReportingBasePluginTest extends AbstractProjectBuilderSpec {
         then:
         extension.baseDirectory.get().asFile == new File(project.file("newBuildDir"), ReportingExtension.DEFAULT_REPORTS_DIR_NAME)
     }
-
-    def "defaults to reports directory in build dir"() {
-        project.pluginManager.apply(ReportingBasePlugin)
-        def extension = project.reporting
-
-        expect:
-        extension.baseDirectory.asFile.get() == new File(project.buildDir, ReportingExtension.DEFAULT_REPORTS_DIR_NAME)
-
-        when:
-        project.layout.buildDirectory.set(project.file("newBuildDir"))
-
-        then:
-        extension.baseDirectory.asFile.get() == new File(project.file("newBuildDir"), ReportingExtension.DEFAULT_REPORTS_DIR_NAME)
-    }
 }
