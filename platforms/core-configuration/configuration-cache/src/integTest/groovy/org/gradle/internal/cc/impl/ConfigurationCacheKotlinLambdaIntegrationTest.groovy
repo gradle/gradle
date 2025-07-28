@@ -16,11 +16,13 @@
 
 package org.gradle.internal.cc.impl
 
-
 import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 class ConfigurationCacheKotlinLambdaIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    @Requires(UnitTestPreconditions.KotlinSupportedJdk)
     def "defers evaluation of #description objects"() {
         given:
         file("buildSrc/settings.gradle.kts").text = ""
