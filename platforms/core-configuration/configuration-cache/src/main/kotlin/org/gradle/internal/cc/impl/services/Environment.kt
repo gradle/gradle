@@ -55,15 +55,17 @@ class ConfigurationCacheEnvironment(
     }
 
     override fun getSystemProperties(): Environment.Properties =
-        TrackingProperties(System.getProperties().uncheckedCast(),
-            { prefix, snapshot -> listener.systemPropertiesPrefixedBy(prefix, snapshot)},
-            {name, value -> listener.systemProperty(name, value)}
+        TrackingProperties(
+            System.getProperties().uncheckedCast(),
+            { prefix, snapshot -> listener.systemPropertiesPrefixedBy(prefix, snapshot) },
+            { name, value -> listener.systemProperty(name, value) }
         )
 
     override fun getVariables(): Environment.Properties =
-        TrackingProperties(System.getenv(), { prefix, snapshot ->
-            listener.envVariablesPrefixedBy(prefix, snapshot)},
-            {name, value -> listener.envVariable(name, value)}
+        TrackingProperties(
+            System.getenv(),
+            { prefix, snapshot -> listener.envVariablesPrefixedBy(prefix, snapshot) },
+            { name, value -> listener.envVariable(name, value) }
         )
 
     private
@@ -106,6 +108,7 @@ open class DefaultEnvironment : Environment {
         override fun byNamePrefix(prefix: String): Map<String, String> =
             map.filterKeysByPrefix(prefix)
 
-        override fun get(name: String): String? = map[name]
+        override fun get(name: String): String? =
+            map[name]
     }
 }
