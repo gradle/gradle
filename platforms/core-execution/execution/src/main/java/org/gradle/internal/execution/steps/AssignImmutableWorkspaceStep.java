@@ -39,6 +39,7 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
+import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,8 +138,29 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
 
     private Optional<WorkspaceResult> loadImmutableWorkspaceIfExists(UnitOfWork work, ImmutableWorkspace workspace) {
         File immutableLocation = workspace.getImmutableLocation();
-        FileSystemLocationSnapshot workspaceSnapshot = fileSystemAccess.read(immutableLocation.getAbsolutePath());
-        switch (workspaceSnapshot.getType()) {
+        Optional<FileSystemLocationSnapshot> workspaceSnapshot = fileSystemAccess.read(immutableLocation.getAbsolutePath(), new SnapshottingFilter() {
+            @Override
+            public boolean isEmpty() {
+                return false;
+            }
+
+            @Override
+            public FileSystemSnapshotPredicate getAsSnapshotPredicate() {
+                // Do not snapshot the workspace, as we are only interested in its existence
+                return (fileSystemLocation, relativePath) -> false;
+            }
+
+            @Override
+            public DirectoryWalkerPredicate getAsDirectoryWalkerPredicate() {
+                // Do not snapshot the workspace, as we are only interested in its existence
+                return (path, name, isDirectory, relativePath) -> false;
+            }
+        });
+
+        if (!workspaceSnapshot.isPresent()) {
+            return Optional.empty();
+        }
+        switch (workspaceSnapshot.get().getType()) {
             case Directory:
                 return loadImmutableWorkspaceIfConsistent(work, workspace);
             case RegularFile:
