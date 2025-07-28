@@ -26,15 +26,31 @@ class CustomModelAction implements BuildAction<MyCustomModel>, Serializable {
 
     @Override
     public MyCustomModel execute(BuildController controller) {
-        GradleBuild build = controller.getModel(GradleBuild.class);
+        GradleBuild build
+        try {
 
+         build = controller.getModel(GradleBuild.class);
+        }
+        catch (Exception e) {
+            System.err.println(e.toString());
+        }
+
+        if(build.didItFail()){
+            System.err.println("Build failed: " + build.failure);
+        }
+
+
+        GradleBuild b = build.includedBuilds.getAt(0)
+        if(b.didItFail()){
+            System.err.println("Build failed: " + b.failure.description);
+        }
         KotlinDslScriptsModel buildScriptModel = controller.getModel(KotlinDslScriptsModel.class);
 
 
         def paths = build.projects.collect{project ->
             project.buildTreePath
         }
-        build.includedBuilds.each {b -> b.projects.each {project ->
+        build.includedBuilds.each {gb -> gb.projects.each {project ->
             paths << project.buildTreePath
         }}
 

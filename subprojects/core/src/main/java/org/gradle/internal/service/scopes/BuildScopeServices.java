@@ -188,6 +188,7 @@ import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.composite.DefaultBuildIncluder;
+import org.gradle.internal.composite.ResilientBuildIncluder;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.event.ScopedListenerManager;
@@ -211,6 +212,7 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
+import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.DefaultTextFileResourceLoader;
 import org.gradle.internal.resource.TextFileResourceLoader;
@@ -265,7 +267,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(WorkNodeDependencyResolver.class);
         registration.add(TaskDependencyResolver.class);
         registration.add(BuildWorkGraphController.class, DefaultBuildWorkGraphController.class);
-        registration.add(BuildIncluder.class, DefaultBuildIncluder.class);
+//        registration.add(BuildIncluder.class, DefaultBuildIncluder.class);
         registration.add(ScriptClassPathResolver.class, DefaultScriptClassPathResolver.class);
         registration.add(ScriptHandlerFactory.class, DefaultScriptHandlerFactory.class);
         registration.add(BuildOutputCleanupRegistry.class, HoldsProjectState.class, DefaultBuildOutputCleanupRegistry.class);
@@ -275,6 +277,35 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         for (GradleModuleServices services : serviceProviders) {
             services.registerBuildServices(registration);
         }
+    }
+
+    @Provides
+    BuildIncluder createBuildIncluder(
+        BuildStateRegistry buildRegistry,
+        BuildInclusionCoordinator coordinator,
+        PublicBuildPath publicBuildPath,
+        Instantiator instantiator,
+        GradleInternal gradle,
+        BuildModelParameters modelParameters,
+        FailureFactory failureFactory
+    ){
+        if(modelParameters.isResilientModelBuilding()){
+            return new ResilientBuildIncluder(
+                buildRegistry,
+                coordinator,
+                publicBuildPath,
+                instantiator,
+                gradle,
+                failureFactory
+            );
+        }
+        return new DefaultBuildIncluder(
+            buildRegistry,
+            coordinator,
+            publicBuildPath,
+            instantiator,
+            gradle
+        );
     }
 
     @Provides

@@ -44,5 +44,4 @@ public interface BuildScopeModelBuilder extends ToolingModelBuilder {
         BuildState targetBuild = ((GradleInternal) project.getGradle()).getOwner();
         return create(targetBuild);
     }
-
 }

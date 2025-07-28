@@ -48,7 +48,8 @@ public class BuildDefinition {
         Action<? super DependencySubstitutions> dependencySubstitutions,
         @Nullable
         PublicBuildPath fromBuild,
-        boolean pluginBuild) {
+        boolean pluginBuild
+    ) {
         this.name = name;
         this.buildRootDir = buildRootDir;
         this.startParameter = startParameter;

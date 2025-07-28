@@ -24,4 +24,8 @@ public interface IncludedBuildInternal extends IncludedBuild {
      * Returns the build which this include refers to.
      */
     BuildState getTarget();
+
+    default boolean isBroken(){
+        return false;
+    }
 }
