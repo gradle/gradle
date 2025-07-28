@@ -33,7 +33,7 @@ public class InProcessGradleExecutorInitialization implements IGlobalExtension {
     public void start() {
         // Check the property without referencing GradleContextualExecuter to avoid loading AbstractGradleExecuter class.
         // Loading AbstractGradleExecuter causes some initialization to happen that fails in some test JVMs
-        if (System.getProperty("org.gradle.integtest.executer") != null && GradleContextualExecuter.isEmbedded()) {
+        if (System.getProperty("org.gradle.integtest.executer") != null && IntegrationTestBuildContext.isEmbedded()) {
             // We obtain ObjectFactory, since that initializes AsmBackedClassGenerator.GENERATED_CLASSES_CACHES
             AbstractGradleExecuter.GLOBAL_SERVICES.get(ObjectFactory.class);
         }

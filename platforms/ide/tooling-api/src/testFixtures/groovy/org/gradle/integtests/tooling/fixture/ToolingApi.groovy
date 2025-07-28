@@ -20,7 +20,6 @@ import groovy.transform.stc.SimpleType
 import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -67,7 +66,7 @@ class ToolingApi implements TestRule {
         this.useSeparateDaemonBaseDir = DefaultGradleConnector.metaClass.respondsTo(null, "daemonBaseDir")
         this.gradleUserHomeDir = context.gradleUserHomeDir
         this.daemonBaseDir = context.daemonBaseDir
-        this.requiresDaemon = !GradleContextualExecuter.embedded
+        this.requiresDaemon = !IntegrationTestBuildContext.embedded
         this.testWorkDirProvider = testWorkDirProvider
     }
 
@@ -314,7 +313,7 @@ class ToolingApi implements TestRule {
      */
     boolean isEmbedded() {
         // Use in-process build when running tests in embedded mode and daemon is not required
-        return GradleContextualExecuter.embedded && !requiresDaemon && GradleVersion.current() == dist.version
+        return IntegrationTestBuildContext.embedded && !requiresDaemon && GradleVersion.current() == dist.version
     }
 
     @Override

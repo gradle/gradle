@@ -21,8 +21,8 @@ import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.tooling.ProjectConnection
@@ -95,7 +95,7 @@ class ToolingApiBackedGradleExecuter extends AbstractGradleExecuter {
                 action.execute(it)
             }
         } finally {
-            if (GradleContextualExecuter.embedded) {
+            if (IntegrationTestBuildContext.embedded) {
                 System.getProperties().clear()
                 System.getProperties().putAll(systemPropertiesBeforeInvocation)
             }

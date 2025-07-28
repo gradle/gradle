@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
@@ -590,7 +590,7 @@ allprojects {
 
     @ToBeFixedForConfigurationCache(because = "test expects configuration phase on second run")
     @Issue("https://github.com/gradle/gradle/issues/18460")
-    @IntegrationTestTimeout(value = 60, onlyIf = { GradleContextualExecuter.embedded })
+    @IntegrationTestTimeout(value = 60, onlyIf = { IntegrationTestBuildContext.embedded })
     def "can query dependencies with configure on demand enabled"() {
         def subprojects = ["a", "b"]
         multiProjectBuild("outputRegistry", subprojects)
