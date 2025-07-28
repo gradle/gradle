@@ -21,7 +21,7 @@ It also introduces several improvements for [build authors](#build-authoring), i
 
 Gradle @version@ includes numerous bug fixes and general improvements.
 As a major release, it also introduces changes to deprecated APIs and behaviors.
-For details on what has been removed or updated, refer to the [Gradle 9.x upgrade guide](userguide/upgrading_major_version_9.html).
+For details on what has been removed or updated, refer to the [Gradle 9.0.0 upgrade guide](userguide/upgrading_major_version_9.html).
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Aaron Matthis](https://github.com/rapus95),
