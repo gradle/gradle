@@ -202,6 +202,7 @@ data class SoftwareFeatureInfo<T : Any, V : Any>(
                 delegate.featureName,
                 delegate.pluginClass.name,
                 delegate.registeringPluginClass.name,
+                delegate.registeringPluginId,
                 (delegate.targetDefinitionType as? DefinitionTargetTypeInformation)?.definitionType?.name,
                 (delegate.targetDefinitionType as? BuildModelTargetTypeInformation<*>)?.buildModelType?.name,
             ))

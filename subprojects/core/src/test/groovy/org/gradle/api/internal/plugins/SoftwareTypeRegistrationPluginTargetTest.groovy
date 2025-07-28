@@ -47,7 +47,7 @@ class SoftwareTypeRegistrationPluginTargetTest extends Specification {
 
     def "adds software type plugins for plugin that registers software types"() {
         when:
-        pluginTarget.applyImperative(null, plugin)
+        pluginTarget.applyImperative("com.example.test", plugin)
 
         then: // setup property metadata
         2 * inspectionScheme.getMetadataStore() >> metadataStore
@@ -60,10 +60,10 @@ class SoftwareTypeRegistrationPluginTargetTest extends Specification {
 
         and: // returns property metadata with an annotation
         1 * propertyMetadata.getAnnotation(SoftwareType.class) >> Optional.of(Stub(SoftwareType))
-        1 * softwareTypeRegistry.register(SoftwareTypePlugin.class, null)
+        1 * softwareTypeRegistry.register("com.example.test", SoftwareTypePlugin.class, null)
 
         and:
-        1 * delegate.applyImperative(null, plugin)
+        1 * delegate.applyImperative("com.example.test", plugin)
     }
 
     def "throws exception when plugins are registered that do not expose software types"() {

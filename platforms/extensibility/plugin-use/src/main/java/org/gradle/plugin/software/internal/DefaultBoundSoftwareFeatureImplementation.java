@@ -23,6 +23,7 @@ import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.HasBuildModel;
 import org.gradle.api.internal.plugins.SoftwareFeatureTransform;
 import org.gradle.api.internal.plugins.TargetTypeInformation;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +43,8 @@ public class DefaultBoundSoftwareFeatureImplementation<T extends HasBuildModel<V
     private final Class<? extends Plugin<Project>> pluginClass;
     private final Class<? extends Plugin<Settings>> registeringPluginClass;
     private final List<ModelDefault<?>> defaults = new ArrayList<>();
+    @Nullable
+    private final String registeringPluginId;
     private final SoftwareFeatureTransform<T, V, ?> bindingTransform;
 
     public DefaultBoundSoftwareFeatureImplementation(
@@ -53,6 +56,7 @@ public class DefaultBoundSoftwareFeatureImplementation<T extends HasBuildModel<V
         Class<? extends V> buildModelImplementationType,
         Class<? extends Plugin<Project>> pluginClass,
         Class<? extends Plugin<Settings>> registeringPluginClass,
+        @Nullable String registeringPluginId,
         SoftwareFeatureTransform<T, V, ?> bindingTransform
     ) {
         this.featureName = featureName;
@@ -63,6 +67,7 @@ public class DefaultBoundSoftwareFeatureImplementation<T extends HasBuildModel<V
         this.buildModelImplementationType = buildModelImplementationType;
         this.pluginClass = pluginClass;
         this.registeringPluginClass = registeringPluginClass;
+        this.registeringPluginId = registeringPluginId;
         this.bindingTransform = bindingTransform;
     }
 
@@ -104,6 +109,12 @@ public class DefaultBoundSoftwareFeatureImplementation<T extends HasBuildModel<V
     @Override
     public Class<? extends Plugin<Settings>> getRegisteringPluginClass() {
         return registeringPluginClass;
+    }
+
+    @Nullable
+    @Override
+    public String getRegisteringPluginId() {
+        return registeringPluginId;
     }
 
     @Override

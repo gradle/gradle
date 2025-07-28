@@ -22,6 +22,7 @@ import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 
@@ -34,11 +35,11 @@ public interface SoftwareFeatureRegistry {
      * Registers a plugin as providing a software type.  Cannot be called again once the list of software types has been
      * queried via {@link #getSoftwareFeatureImplementations()}.
      */
-    void register(Class<? extends Plugin<Project>> pluginClass, Class<? extends Plugin<Settings>> registeringPluginClass);
+    void register(@Nullable String pluginId, Class<? extends Plugin<Project>> pluginClass, Class<? extends Plugin<Settings>> registeringPluginClass);
 
     /**
      * Returns a map of available software types, along with their model types and associated plugins, keyed by software type name.  Note that once
-     * method is called, calling {@link #register(Class, Class)} will result in an error.
+     * method is called, calling {@link #register(String, Class, Class)} will result in an error.
      */
     Map<String, SoftwareFeatureImplementation<?, ?>> getSoftwareFeatureImplementations();
 
