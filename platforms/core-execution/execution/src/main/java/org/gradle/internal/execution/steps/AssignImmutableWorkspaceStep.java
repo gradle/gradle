@@ -119,12 +119,20 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         if (OperatingSystem.current().isWindows()) {
             return workspace.withGlobalScopedLock(uniqueId, () ->
                 loadImmutableWorkspaceIfExists(work, workspace)
-                    .orElseGet(() -> executeInWorkspace(work, context, workspace.getImmutableLocation()))
+                    .orElseGet(() -> {
+                        deleteStaleFiles(work, workspace);
+                        return executeInWorkspace(work, context, workspace.getImmutableLocation());
+                    })
             );
         } else {
             return loadImmutableWorkspaceIfExists(work, workspace)
                 .orElseGet(() -> executeInTemporaryWorkspace(work, context, workspace));
         }
+    }
+
+    @SuppressWarnings("unused")
+    private void deleteStaleFiles(UnitOfWork work, ImmutableWorkspace workspace) {
+        // TODO We need to clean stale files in case previous execution failed
     }
 
     private Optional<WorkspaceResult> loadImmutableWorkspaceIfExists(UnitOfWork work, ImmutableWorkspace workspace) {
@@ -150,8 +158,12 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
 
         // Verify output hashes
         ImmutableListMultimap<String, HashCode> outputHashes = calculateOutputHashes(outputSnapshots);
-        ImmutableWorkspaceMetadata metadata = workspaceMetadataStore.loadWorkspaceMetadata(immutableLocation);
-        if (!metadata.getOutputPropertyHashes().equals(outputHashes)) {
+        Optional<ImmutableWorkspaceMetadata> metadata = workspaceMetadataStore.loadWorkspaceMetadata(immutableLocation);
+
+        if (!metadata.isPresent()) {
+            fileSystemAccess.invalidate(ImmutableList.of(immutableLocation.getAbsolutePath()));
+            return Optional.empty();
+        } else if (!metadata.get().getOutputPropertyHashes().equals(outputHashes)) {
             fileSystemAccess.invalidate(ImmutableList.of(immutableLocation.getAbsolutePath()));
             String actualOutputHashes = outputSnapshots.entrySet().stream()
                 .map(entry -> entry.getKey() + ":\n" + entry.getValue().roots()
@@ -166,7 +178,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
                 immutableLocation.getAbsolutePath(), actualOutputHashes));
         }
 
-        return Optional.of(loadImmutableWorkspace(work, immutableLocation, metadata, outputSnapshots));
+        return Optional.of(loadImmutableWorkspace(work, immutableLocation, metadata.get(), outputSnapshots));
     }
 
     private static WorkspaceResult loadImmutableWorkspace(UnitOfWork work, File immutableLocation, ImmutableWorkspaceMetadata metadata, ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots) {
