@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 import org.apache.commons.lang3.StringEscapeUtils
 import org.gradle.api.Action
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails
 import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails
 import org.gradle.api.problems.internal.ProblemSummaryData
@@ -770,15 +771,26 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
             operation.progress(DefaultProblemProgressDetails.class).collect {
                 def problemDetails = it.details.get("problem") as Map<String, Object>
                 return new ReceivedProblem(operation.id, problemDetails)
-            }.findAll {
-                // Filter out all java version deprecation problems
-                // TODO: The problems API infrastructure should be built-into the executor.
-                // However, since it isn't we do not know if the test has disabled the filtering of
-                // these deprecation logs from the normal deprecation checks.
-                // So, just ignore them all the time, even if the test has requested to not ignore these warnings.
-                it.fqid != 'deprecation:executing-gradle-on-jvm-versions-and-lower'
-            }
+            }.findAll { isRealProblem(it) }
         }
+    }
+
+    static boolean isRealProblem(ReceivedProblem problem) {
+        // Filter out all java version deprecation problems
+        // TODO: The problems API infrastructure should be built-into the executor.
+        // However, since it isn't we do not know if the test has disabled the filtering of
+        // these deprecation logs from the normal deprecation checks.
+        // So, just ignore them all the time, even if the test has requested to not ignore these warnings.
+        if (problem.fqid == 'deprecation:executing-gradle-on-jvm-versions-and-lower') {
+            return false
+        }
+        // Filter out Kotlin DSL JDK incompatibility warnings that don't matter in practice
+        // These occur when we try to run Gradle on newer JDKs when KGP hasn't updated their target compatibility.
+        if (problem.fqid == 'KOTLIN:KGP:MISCONFIGURATION:InconsistentTargetCompatibilityForKotlinAndJavaTasks'
+            && problem.severity == Severity.WARNING) {
+            return false
+        }
+        return true
     }
 
     List<List<ProblemSummaryData>> getProblemSummaries() {
