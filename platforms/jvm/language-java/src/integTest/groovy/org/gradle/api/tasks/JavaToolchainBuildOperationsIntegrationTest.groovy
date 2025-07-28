@@ -351,9 +351,10 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
     }
 
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "emits toolchain usages for test that configures executable path overriding toolchain java extension"() {
-        JvmInstallationMetadata jdkMetadata1 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
-        JvmInstallationMetadata jdkMetadata2 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentVersion(jdkMetadata1.languageVersion))
+        JvmInstallationMetadata jdkMetadata1 = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
+        JvmInstallationMetadata jdkMetadata2 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
         def minJdk = [jdkMetadata1, jdkMetadata2].min { it.languageVersion }
         def maxJdk = [jdkMetadata1, jdkMetadata2].max { it.languageVersion }
