@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2013 the original author or authors.
  *
@@ -20,23 +21,27 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.build.event.types.DefaultFailure;
+import org.gradle.internal.composite.BrokenIncludedBuildState;
 import org.gradle.internal.composite.IncludedBuildInternal;
+import org.gradle.internal.exceptions.LocationAwareException;
+import org.gradle.internal.problems.failure.Failure;
+import org.gradle.kotlin.dsl.support.ScriptCompilationException;
 import org.gradle.plugins.ide.internal.tooling.model.BasicGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleBuild;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class GradleBuildBuilder implements BuildScopeModelBuilder {
+public class ResilientGradleBuildBuilder implements BuildScopeModelBuilder {
     private final BuildStateRegistry buildStateRegistry;
 
-    public GradleBuildBuilder(BuildStateRegistry buildStateRegistry) {
+    public ResilientGradleBuildBuilder(BuildStateRegistry buildStateRegistry) {
         this.buildStateRegistry = buildStateRegistry;
     }
 
@@ -47,8 +52,22 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
 
     @Override
     public DefaultGradleBuild create(BuildState target) {
-        target.ensureProjectsLoaded();
+        ensureProjectsLoaded(target);
+
         return convert(target, new LinkedHashMap<>());
+    }
+
+    private static Throwable ensureProjectsLoaded(BuildState target) {
+        try {
+            target.ensureProjectsLoaded();
+            return null;
+        } catch (LocationAwareException e) {
+            System.err.println(e.getMessage());
+            if (e.getCause() instanceof ScriptCompilationException) {
+                return e.getCause();
+            }
+            throw e;
+        }
     }
 
     private DefaultGradleBuild convert(BuildState targetBuild, Map<BuildState, DefaultGradleBuild> all) {
@@ -60,11 +79,26 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
         all.put(targetBuild, model);
 
         // Make sure the project tree has been loaded and can be queried (but not necessarily configured)
-        targetBuild.ensureProjectsLoaded();
+        ensureProjectsLoaded(targetBuild);
+        if(targetBuild instanceof  BrokenIncludedBuildState) {
+            Failure failure = ((BrokenIncludedBuildState) targetBuild).getFailure();
+            model.setFailure(DefaultFailure.fromFailure(failure, unused -> null));
 
+        }
+
+        File br = targetBuild.getBuildRootDir();
+        System.err.println(br.getAbsolutePath());
+//        model.setRootDir(br);
         GradleInternal gradle = targetBuild.getMutableModel();
-        addProjects(targetBuild, model);
-        addIncludedBuilds(gradle, model, all);
+        if (targetBuild.isProjectsLoaded()) {
+            addProjects(targetBuild, model);
+        }
+
+        try {
+            addIncludedBuilds(gradle, model, all);
+        } catch (IllegalStateException e) {
+            System.err.println(e.getMessage());
+        }
 
         if (gradle.getParent() == null) {
             List<DefaultGradleBuild> allBuilds = new ArrayList<>();
@@ -83,16 +117,19 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
     private void addIncludedBuilds(GradleInternal gradle, DefaultGradleBuild model, Map<BuildState, DefaultGradleBuild> all) {
         for (IncludedBuildInternal reference : gradle.includedBuilds()) {
             BuildState target = reference.getTarget();
-            if (target instanceof IncludedBuildState) {
-                IncludedBuildState includedBuildState = (IncludedBuildState) target;
-                DefaultGradleBuild convertedIncludedBuild = convert(includedBuildState, all);
-                model.addIncludedBuild(convertedIncludedBuild);
-            } else if (target instanceof RootBuildState) {
-                DefaultGradleBuild rootBuild = convert(target, all);
-                model.addIncludedBuild(rootBuild);
-            } else {
-                throw new IllegalStateException("Unknown build type: " + reference.getClass().getName());
+            if (target != null) {
+                model.addIncludedBuild(convert(target, all));
             }
+//            else {
+////                if (reference.isBroken()) {
+////                    throw new IllegalStateException("Unknown build type: " + reference.getClass().getName());
+////                }
+//                DefaultGradleBuild gradleBuild = new DefaultGradleBuild()
+//                    .setRootDir(reference.getProjectDir())
+//                    .setFailed(reference.isBroken());
+//                convert(target, all);
+//                model.addIncludedBuild(gradleBuild);
+//            }
         }
     }
 
