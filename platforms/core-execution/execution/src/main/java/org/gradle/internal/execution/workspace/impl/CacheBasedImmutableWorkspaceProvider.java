@@ -22,9 +22,9 @@ import org.gradle.cache.CacheCleanupStrategyFactory;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
@@ -42,7 +42,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
     private final SingleDepthFileAccessTracker fileAccessTracker;
     private final File baseDirectory;
     private final PersistentCache cache;
-    private final GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory;
+    private final UnscopedCacheBuilderFactory unscopedCacheBuilderFactory;
     private final Map<String, PersistentCache> globalScopedCaches = new ConcurrentHashMap<>();
 
     public static CacheBasedImmutableWorkspaceProvider createWorkspaceProvider(
@@ -50,7 +50,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
         FileAccessTimeJournal fileAccessTimeJournal,
         CacheConfigurationsInternal cacheConfigurations,
         CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
-        GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory
+        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
     ) {
         return createWorkspaceProvider(
             cacheBuilder,
@@ -58,7 +58,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP,
             cacheConfigurations,
             cacheCleanupStrategyFactory,
-            globalScopedCacheBuilderFactory
+            unscopedCacheBuilderFactory
         );
     }
 
@@ -68,7 +68,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
         int treeDepthToTrackAndCleanup,
         CacheConfigurationsInternal cacheConfigurations,
         CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
-        GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory
+        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
     ) {
         return new CacheBasedImmutableWorkspaceProvider(
             cacheBuilder,
@@ -76,7 +76,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             treeDepthToTrackAndCleanup,
             cacheConfigurations,
             cacheCleanupStrategyFactory,
-            globalScopedCacheBuilderFactory
+            unscopedCacheBuilderFactory
         );
     }
 
@@ -86,7 +86,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
         int treeDepthToTrackAndCleanup,
         CacheConfigurationsInternal cacheConfigurations,
         CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
-        GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory
+        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
     ) {
         PersistentCache cache = cacheBuilder
             .withCleanupStrategy(cacheCleanupStrategyFactory.create(createCleanupAction(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations), cacheConfigurations.getCleanupFrequency()::get))
@@ -99,7 +99,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
         this.cache = cache;
         this.baseDirectory = cache.getBaseDir();
         this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, treeDepthToTrackAndCleanup);
-        this.globalScopedCacheBuilderFactory = globalScopedCacheBuilderFactory;
+        this.unscopedCacheBuilderFactory = unscopedCacheBuilderFactory;
     }
 
     private static CleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal, int treeDepthToTrackAndCleanup, CacheConfigurationsInternal cacheConfigurations) {
@@ -131,7 +131,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             @Override
             public <T> T withGlobalScopedLock(String uniqueId, Supplier<T> supplier) {
                 PersistentCache globalScopedCache = globalScopedCaches.computeIfAbsent(uniqueId, cache ->
-                    globalScopedCacheBuilderFactory.createCrossVersionCacheBuilder(uniqueId)
+                    unscopedCacheBuilderFactory.cache(immutableWorkspace)
                         .withInitialLockMode(FileLockManager.LockMode.OnDemand)
                         .open());
 
