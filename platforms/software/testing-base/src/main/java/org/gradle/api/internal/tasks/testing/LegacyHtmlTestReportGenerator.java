@@ -22,8 +22,6 @@ import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.internal.tasks.testing.report.HtmlTestReport;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -42,26 +40,6 @@ import static org.gradle.util.internal.CollectionUtils.collect;
  */
 @NullMarked
 public class LegacyHtmlTestReportGenerator implements TestReportGenerator {
-
-    @NullMarked
-    @ServiceScope(Scope.BuildSession.class)
-    public static class Factory {
-        private final BuildOperationRunner buildOperationRunner;
-        private final BuildOperationExecutor buildOperationExecutor;
-
-        @Inject
-        public Factory(
-            BuildOperationRunner buildOperationRunner,
-            BuildOperationExecutor buildOperationExecutor
-        ) {
-            this.buildOperationRunner = buildOperationRunner;
-            this.buildOperationExecutor = buildOperationExecutor;
-        }
-
-        public LegacyHtmlTestReportGenerator create(Path reportsDirectory) {
-            return new LegacyHtmlTestReportGenerator(buildOperationRunner, buildOperationExecutor, reportsDirectory);
-        }
-    }
 
     private static TestResultsProvider createAggregateProvider(List<Path> resultDirs) {
         if (resultDirs.size() == 1) {
@@ -82,7 +60,8 @@ public class LegacyHtmlTestReportGenerator implements TestReportGenerator {
     private final BuildOperationExecutor buildOperationExecutor;
     private final Path reportsDirectory;
 
-    private LegacyHtmlTestReportGenerator(BuildOperationRunner buildOperationRunner, BuildOperationExecutor buildOperationExecutor, Path reportsDirectory) {
+    @Inject
+    public LegacyHtmlTestReportGenerator(BuildOperationRunner buildOperationRunner, BuildOperationExecutor buildOperationExecutor, Path reportsDirectory) {
         this.buildOperationRunner = buildOperationRunner;
         this.buildOperationExecutor = buildOperationExecutor;
         this.reportsDirectory = reportsDirectory;

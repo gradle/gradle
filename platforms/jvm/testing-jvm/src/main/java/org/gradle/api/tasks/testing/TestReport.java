@@ -58,12 +58,6 @@ public abstract class TestReport extends DefaultTask {
     @Inject
     protected abstract ObjectFactory getObjectFactory();
 
-    @Inject
-    protected abstract GenericHtmlTestReportGenerator.Factory getGenericHtmlTestReportGeneratorFactory();
-
-    @Inject
-    protected abstract LegacyHtmlTestReportGenerator.Factory getLegacyHtmlTestReportGeneratorFactory();
-
     // Method kept for binary compatibility.
     @SuppressWarnings("unused")
     @Inject
@@ -122,9 +116,10 @@ public abstract class TestReport extends DefaultTask {
             assert isGenericImplementation != null : "@SkipWhenEmpty should prevent this from being null";
 
             Path reportsDir = getDestinationDirectory().get().getAsFile().toPath();
-            TestReportGenerator impl = isGenericImplementation
-                ? getGenericHtmlTestReportGeneratorFactory().create(reportsDir)
-                : getLegacyHtmlTestReportGeneratorFactory().create(reportsDir);
+            TestReportGenerator impl = getObjectFactory().newInstance(
+                isGenericImplementation ? GenericHtmlTestReportGenerator.class : LegacyHtmlTestReportGenerator.class,
+                reportsDir
+            );
             Path report = impl.generate(resultDirsAsPaths);
             if (report == null) {
                 getLogger().info("{} - no binary test results found in dirs: {}.", getPath(), getTestResults().getFiles());

@@ -109,7 +109,7 @@ abstract class AbstractJUnitTestClassDetectionIntegrationTest extends AbstractTe
         and:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.testClass("TestCase").with {
-            assertTestCount(1, 0, 0)
+            assertTestCount(1, 0)
         }
     }
 }

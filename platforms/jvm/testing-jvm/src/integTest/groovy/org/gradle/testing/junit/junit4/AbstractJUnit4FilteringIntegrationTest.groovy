@@ -136,9 +136,9 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
         def result = new DefaultTestExecutionResult(testDirectory)
 
         result.assertTestClassesExecuted("FooTest", "FooServerTest")
-        result.testClass("FooTest").assertTestCount(1, 0, 0);
+        result.testClass("FooTest").assertTestCount(1, 0);
         result.testClass("FooTest").assertTestOutcomes(passedTestOutcome, "testFoo")
-        result.testClass("FooServerTest").assertTestCount(1, 0, 0);
+        result.testClass("FooServerTest").assertTestCount(1, 0);
         result.testClass("FooServerTest").assertTestOutcomes(passedTestOutcome, "testFooServer")
     }
 
@@ -163,9 +163,9 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
         def result = new DefaultTestExecutionResult(testDirectory)
 
         result.assertTestClassesExecuted("FooTest", "FooServerTest")
-        result.testClass("FooTest").assertTestCount(1, 0, 0);
+        result.testClass("FooTest").assertTestCount(1, 0);
         result.testClass("FooTest").assertTestOutcomes(passedTestOutcome, "testFoo")
-        result.testClass("FooServerTest").assertTestCount(1, 0, 0);
+        result.testClass("FooServerTest").assertTestCount(1, 0);
         result.testClass("FooServerTest").assertTestOutcomes(passedTestOutcome, "testFooServer")
     }
 }
