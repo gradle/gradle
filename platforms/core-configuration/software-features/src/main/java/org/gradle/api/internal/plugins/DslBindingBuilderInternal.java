@@ -16,11 +16,7 @@
 
 package org.gradle.api.internal.plugins;
 
-public interface SoftwareTypeBindingBuilder {
-    <T extends HasBuildModel<V>, V extends BuildModel> DslBindingBuilder<T, V> bindSoftwareType(
-        String name,
-        Class<T> dslType,
-        Class<V> buildModelType,
-        SoftwareTypeTransform<T, V> transform
-    );
+public interface DslBindingBuilderInternal<T extends HasBuildModel<V>, V extends BuildModel> extends DslBindingBuilder<T, V> {
+
+    SoftwareFeatureBinding<T, V> build();
 }

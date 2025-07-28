@@ -20,7 +20,4 @@ public interface DslBindingBuilder<T extends HasBuildModel<V>, V extends BuildMo
     DslBindingBuilder<T, V> withDefinitionImplementationType(Class<? extends T> implementationType);
 
     DslBindingBuilder<T, V> withBuildModelImplementationType(Class<? extends V> implementationType);
-
-    // TODO: do not expose this to user code
-    SoftwareFeatureBinding<T, V> build();
 }
