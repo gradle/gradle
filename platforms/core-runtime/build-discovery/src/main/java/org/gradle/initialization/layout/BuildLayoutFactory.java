@@ -15,9 +15,8 @@
  */
 package org.gradle.initialization.layout;
 
-import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.initialization.BuildLogicFiles;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.scopes.Scope;
@@ -30,7 +29,6 @@ import java.io.File;
 @ServiceScope(Scope.Global.class)
 public class BuildLayoutFactory {
 
-    private static final String DEFAULT_SETTINGS_FILE_BASENAME = "settings";
     private final ScriptFileResolver scriptFileResolver;
 
     @Inject
@@ -47,11 +45,8 @@ public class BuildLayoutFactory {
      */
     public BuildLayout getLayoutFor(File currentDir, boolean shouldSearchUpwards) {
         boolean searchUpwards = shouldSearchUpwards && !isBuildSrc(currentDir);
-        return getLayoutFor(currentDir, searchUpwards ? null : currentDir.getParentFile());
-    }
-
-    private boolean isBuildSrc(File currentDir) {
-        return currentDir.getName().equals(SettingsInternal.BUILD_SRC);
+        BuildLayout layout = searchUpwards ? findLayoutRecursively(currentDir) : findLayout(currentDir);
+        return layout != null ? layout : getLayoutWithDefaultSettingsFile(currentDir);
     }
 
     /**
@@ -59,35 +54,44 @@ public class BuildLayoutFactory {
      */
     public BuildLayout getLayoutFor(BuildLayoutConfiguration configuration) {
         if (configuration.isUseEmptySettings()) {
-            return buildLayoutFrom(configuration, null);
+            return layout(configuration.getCurrentDir(), null);
         }
         return getLayoutFor(configuration.getCurrentDir(), configuration.isSearchUpwards());
     }
 
-    private BuildLayout buildLayoutFrom(BuildLayoutConfiguration configuration, File settingsFile) {
-        return new BuildLayout(configuration.getCurrentDir(), configuration.getCurrentDir(), settingsFile, scriptFileResolver);
+    @Nullable
+    public File findExistingSettingsFileIn(File directory) {
+        return scriptFileResolver.resolveScriptFile(directory, BuildLogicFiles.SETTINGS_FILE_BASENAME);
     }
 
     @Nullable
-    public File findExistingSettingsFileIn(File directory) {
-        return scriptFileResolver.resolveScriptFile(directory, DEFAULT_SETTINGS_FILE_BASENAME);
-    }
-
-    BuildLayout getLayoutFor(File currentDir, File stopAt) {
-        File settingsFile = findExistingSettingsFileIn(currentDir);
-        if (settingsFile != null) {
-            return layout(currentDir, settingsFile);
-        }
-        for (File candidate = currentDir.getParentFile(); candidate != null && !candidate.equals(stopAt); candidate = candidate.getParentFile()) {
-            settingsFile = findExistingSettingsFileIn(candidate);
-            if (settingsFile != null) {
-                return layout(candidate, settingsFile);
+    private BuildLayout findLayoutRecursively(File dir) {
+        while (dir != null) {
+            BuildLayout layout = findLayout(dir);
+            if (layout != null) {
+                return layout;
             }
+            dir = dir.getParentFile();
         }
-        return layout(currentDir, new File(currentDir, Settings.DEFAULT_SETTINGS_FILE));
+        return null;
     }
 
-    private BuildLayout layout(File rootDir, File settingsFile) {
-        return new BuildLayout(rootDir, settingsFile.getParentFile(), FileUtils.canonicalize(settingsFile), scriptFileResolver);
+    @Nullable
+    private BuildLayout findLayout(File dir) {
+        File settingsFile = findExistingSettingsFileIn(dir);
+        return settingsFile != null ? layout(dir, settingsFile) : null;
+    }
+
+    private BuildLayout getLayoutWithDefaultSettingsFile(File dir) {
+        return layout(dir, new File(dir, BuildLogicFiles.DEFAULT_SETTINGS_FILE));
+    }
+
+    private BuildLayout layout(File rootDir, @Nullable File settingsFile) {
+        File canonicalSettingsFile = settingsFile != null ? FileUtils.canonicalize(settingsFile) : null;
+        return new BuildLayout(rootDir, canonicalSettingsFile, scriptFileResolver);
+    }
+
+    private static boolean isBuildSrc(File dir) {
+        return dir.getName().equals(BuildLogicFiles.BUILD_SOURCE_DIRECTORY);
     }
 }

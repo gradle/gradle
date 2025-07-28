@@ -1,4 +1,4 @@
-    // Copyright (C) 2024 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -55,9 +55,7 @@ If you do so:
 - an artifact declared in a repository _can't_ be found in any other
 - exclusive repository content must be declared in extension (just like for <<#sec:declaring-repository-filter, repository-level content>>)
 
-[NOTE]
-====
-Using exclusive repository content filters is a <<best_practices_dependencies.adoc#use_content_filtering,Gradle Best Practice>>.
+NOTE: Using exclusive repository content filters is a <<best_practices_dependencies.adoc#use_content_filtering,Gradle Best Practice>>.
 
 ====
 include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/kotlin",files="build.gradle.kts[tags=exclusive-repository-filter]"]

@@ -18,14 +18,14 @@
 The table below provides a complete list of documented Gradle Best Practices.
 
 ****
-There are currently *26 Best Practices*.
+There are currently *27 Best Practices*.
 ****
 
 Use this as a quick reference to track newly added recommendations, check adoption status, or explore areas for improving your build:
 
 [.table]
 |===
-| Title | Section | Introduced in Gradle
+| Title | Section | Added in Gradle Version
 
 | <<best_practices_general.adoc#use_kotlin_dsl,Use Kotlin DSL>> | General | 8.14
 | <<best_practices_general.adoc#use_latest_minor_versions,Use the Latest Minor Version of Gradle>> | General | 8.14
@@ -44,7 +44,7 @@ Use this as a quick reference to track newly added recommendations, check adopti
 | <<best_practices_dependencies.adoc#set_up_repositories_in_settings,Set up your Dependency Repositories in the Settings file>> | Dependencies | 9.0.0
 | <<best_practices_dependencies.adoc#dont_depend_on_kotlin_stdlib,Don’t Explicitly Depend on the Kotlin Standard Library>> | Dependencies | 9.0.0
 | <<best_practices_dependencies.adoc#avoid_duplicate_dependencies,Avoid Redundant Dependency Declarations>> | Dependencies | 9.0.0
-| <<best_practices_dependencies.adoc#use_content_filtering,Use Content Filtering with multiple Repositories | 9.1.0
+| <<best_practices_dependencies.adoc#use_content_filtering,Use Content Filtering with multiple Repositories>> | Dependencies | 9.1.0
 
 | <<best_practices_tasks.adoc#avoid_depends_on,Avoid DependsOn>> | Task | 8.14
 | <<best_practices_tasks.adoc#use_cacheability_annotations, Favor @CacheableTask and @DisableCachingByDefault over cacheIf(Spec) and doNotCacheIf(String, Spec)>> | Task | 8.14
@@ -55,6 +55,7 @@ Use this as a quick reference to track newly added recommendations, check adopti
 
 | <<best_practices_performance.adoc#use_utf8_encoding,Enable UTF‑8>> | Performance | 9.0.0
 | <<best_practices_performance.adoc#use_build_cache,Use the Build Cache>> | Performance | 9.1.0
+| <<best_practices_performance.adoc#use_configuration_cache,Use the Configuration Cache>> | Performance | 9.1.0
 | <<best_practices_performance.adoc#avoid_computations_in_configuration_phase,Avoid Expensive Computations in Configuration Phase>> | Performance | 9.0.0
 
 | <<best_practices_security.adoc#best_practices_for_security,Validate the Gradle Distribution SHA-256 Checksum>> | Security | 9.1.0

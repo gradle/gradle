@@ -82,7 +82,7 @@ internal class DefaultConfigurationCacheInputFileCheckerHost(
         }
 
     override fun displayNameOf(fileOrDirectory: File): String =
-        GFileUtils.relativePathOf(fileOrDirectory, startParameter.rootDirectory)
+        GFileUtils.relativePathOf(fileOrDirectory, startParameter.buildTreeRootDirectory)
 
     private fun locationSnapshot(file: File): FileSystemLocationSnapshot =
         fileSystemAccess.read(file.absolutePath)

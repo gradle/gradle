@@ -17,14 +17,19 @@
 package org.gradle.process.internal;
 
 import net.rubygrapefruit.platform.ProcessLauncher;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Iterator;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Stream;
 
 public class ExecHandleRunner implements Runnable {
     private static final Logger LOGGER = Logging.getLogger(ExecHandleRunner.class);
@@ -65,10 +70,35 @@ public class ExecHandleRunner implements Runnable {
             if (process != null) {
                 streamsHandler.disconnect();
                 LOGGER.debug("Abort requested. Destroying process: {}.", execHandle.getDisplayName());
-                process.destroy();
+                destroyProcessTree();
             }
         } finally {
             lock.unlock();
+        }
+    }
+
+    /**
+     * Destroys the process of this runner and its known (grand)children.
+     * Falls back to only destroying the main process if the code runs on Java 8 or lower, which is the Gradle 8 or lower behavior.
+     */
+    private void destroyProcessTree() {
+        if (JavaVersion.current().isJava9Compatible()) {
+            destroyDescendants();
+        }
+        process.destroy();
+    }
+
+    private void destroyDescendants() {
+        try {
+            @SuppressWarnings("unchecked")
+            Stream<Object> descendants = (Stream<Object>) Process.class.getMethod("descendants").invoke(process);
+            Method destroyMethod = Class.forName("java.lang.ProcessHandle").getMethod("destroy");
+            Iterator<Object> it = descendants.iterator();
+            while (it.hasNext()) {
+                destroyMethod.invoke(it.next());
+            }
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | ClassNotFoundException e) {
+            throw new RuntimeException("Failed to destroy descendants of process: " + execHandle.getDisplayName(), e);
         }
     }
 
