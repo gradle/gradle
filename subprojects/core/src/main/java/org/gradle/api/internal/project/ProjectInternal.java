@@ -265,6 +265,23 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     @Nullable
     Object getLifecycleActionsState();
 
+    /**
+     * Two {@link ProjectInternal} instances are considered equal if their {@link #getProjectIdentity() identity} is equal.
+     *
+     * @param o the object to compare with this project
+     * @return true if the given object is a {@link ProjectInternal} with the same identity as this project, false otherwise
+     */
+    @Override
+    boolean equals(Object o);
+
+    /**
+     * Returns the hash code of this project based on its {@link #getProjectIdentity() identity}.
+     *
+     * @return the hash code of this project
+     */
+    @Override
+    int hashCode();
+
     interface DetachedResolver {
         RepositoryHandler getRepositories();
 
