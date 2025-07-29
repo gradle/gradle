@@ -110,7 +110,7 @@ apply plugin: SamplePlugin
 =====
 ====
 
-== BLAH
+== Developing a Binary Plugin
 
 There are two ways to update the convention plugin in the previous page into a binary plugin.
 

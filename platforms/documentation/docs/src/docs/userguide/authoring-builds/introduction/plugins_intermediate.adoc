@@ -22,9 +22,11 @@ image::gradle-basic-15.png[]
 [[sec:what_plugins_do]]
 Plugins introduce new tasks (e.g., `JavaCompile`), domain objects (e.g., `SourceSet`), conventions (e.g., locating Java source at `src/main/java`), and extend core or other plugin objects.
 
+[[sec:using_plugins]]
 Plugins in Gradle are essential for automating common build tasks, integrating with external tools or services, and tailoring the build process to meet specific project needs.
 They also serve as the primary mechanism for organizing build logic.
 
+[[sec:types_of_plugins]]
 == Plugin Distribution
 
 You can leverage plugins from Gradle and the Gradle community or create your own.
@@ -205,6 +207,7 @@ apply<MyCustomBarfuinTaskInfoPlugin>()
 
 The plugin DSL provides a concise and convenient way to declare plugin dependencies.
 
+[[sec:binary_plugin_locations]]
 [[sec:binary_plugins]]
 The plugins block configures an instance of link:{javadocPath}/org/gradle/plugin/use/PluginDependenciesSpec.html[`PluginDependenciesSpec`]:
 
