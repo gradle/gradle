@@ -218,3 +218,10 @@ tasks.named("assemble") {
 ----
 
 === Potential breaking changes
+
+[[kotlin-2-2-10]]
+==== Upgrade to Kotlin 2.2.10
+
+Gradle now embeds Kotlin 2.2.10, upgrading from the previously embedded version 2.2.0.
+
+For full details and potential breaking changes, consult the link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.10[Kotlin release notes].
