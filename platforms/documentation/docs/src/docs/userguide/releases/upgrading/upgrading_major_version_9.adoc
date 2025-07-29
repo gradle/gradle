@@ -361,10 +361,10 @@ tasks.register("otherTest", Test)
 =====
 ====
 
-In this example, `otherTest` relied on the deprecated convention. This scenario emitted a <<upgrading_version_8#test_task_default_classpath,deprecation warning>> in 8.x.
+In this example, `otherTest` relied on the deprecated convention. This scenario started to emit a <<upgrading_version_8#test_task_default_classpath,deprecation warning>> in 8.1.
 Gradle would execute the same tests with `otherTest` and the built-in `test` task because Gradle used the classpath and test classes from the `test` source set.
 
-The convention has been removed, but builds will not fail if they were relying on this behavior. Builds that emitted the deprecation warning in 8.x will silently stop executing tests.
+The convention has been removed, but builds will not fail if they were relying on this behavior. Builds that emitted the deprecation warning will silently stop executing tests.
 In the example above, `otherTest` will be skipped and execute no tests because it has no test classes configured.
 
 To return to the previous behavior, you must explicitly configure the `Test` task:
