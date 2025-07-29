@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("DEPRECATION")
+
 package org.gradle.kotlin.dsl.precompile
 
 import org.gradle.internal.deprecation.DeprecationLogger
@@ -35,7 +37,6 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
     companion object {
 
         init {
-            @Suppress("DEPRECATION")
             DeprecationLogger.deprecateType(PrecompiledScriptDependenciesResolver::class.java)
                 .willBeRemovedInGradle10()
                 .undocumented()
