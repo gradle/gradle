@@ -1,0 +1,276 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+= Writing a Custom Gradle Plugin: FileDiff
+
+In this tutorial, you’ll learn how to encapsulate build logic into a custom Gradle plugin. We’ll walk through creating a plugin that compares the sizes of two files and reports the result—useful for comparing generated artifacts like `.jar` files across different builds.
+
+== What Is a Gradle Plugin?
+
+A *Gradle plugin* is a reusable component that:
+
+* Adds *tasks* to your build (e.g., `bootJar`, `publishToMavenLocal`).
+* Performs *configuration* automatically when applied.
+* Allows for *declarative configuration* via extensions.
+
+Example usage:
+
+[source,groovy]
+----
+plugins {
+    id 'com.example.myplugin' version '1.0'
+}
+----
+
+== What Will We Build?
+
+We’ll create a plugin that:
+
+* Defines a `fileDiff` task that compares the sizes of two files.
+* Is configurable via:
+
+[source,groovy]
+----
+fileDiff {
+file1 = file("a.txt")
+file2 = file("b.txt")
+}
+----
+
+* Writes a result file to `build/diff-result.txt`.
+* Skips execution if the input files haven’t changed (thanks to Gradle’s incremental build support).
+
+== Project Structure
+
+[source,text]
+----
+file-diff-plugin/
+├── build.gradle
+├── settings.gradle
+└── src/
+├── main/
+│   ├── groovy/com/example/plugin/
+│   │   ├── FileDiffPlugin.groovy
+│   │   ├── FileDiffTask.groovy
+│   │   └── FileDiffExtension.groovy
+│   └── resources/META-INF/gradle-plugins/
+│       └── com.example.filediff.properties
+└── test/
+└── groovy/com/example/plugin/
+└── FileDiffPluginIntegrationTest.groovy
+----
+
+== 1. Set Up the Plugin Project
+
+[source,shell]
+----
+mkdir file-diff-plugin && cd file-diff-plugin
+git init
+gradle init --type basic
+----
+
+Update `build.gradle`:
+
+[source,groovy]
+----
+plugins {
+    id 'groovy'
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation('org.spockframework:spock-core:1.3-groovy-2.5') {
+        exclude module: 'groovy-all'
+    }
+}
+----
+
+== 2. Create the Plugin Classes
+
+=== FileDiffExtension.groovy
+
+[source,groovy]
+----
+class FileDiffExtension {
+    final Property<File> file1
+    final Property<File> file2
+
+    @Inject
+    FileDiffExtension(ObjectFactory objects) {
+        file1 = objects.property(File)
+        file2 = objects.property(File)
+    }
+}
+----
+
+=== FileDiffTask.groovy
+
+[source,groovy]
+----
+class FileDiffTask extends DefaultTask {
+
+    @InputFile
+    final Property<File> file1 = project.objects.property(File)
+
+    @InputFile
+    final Property<File> file2 = project.objects.property(File)
+
+    @OutputFile
+    final File resultFile = new File(project.buildDir, "diff-result.txt")
+
+    @TaskAction
+    void diff() {
+        File f1 = file1.get()
+        File f2 = file2.get()
+
+        String output = f1.length() == f2.length() ?
+            "Files have the same size: ${f1.length()} bytes" :
+            "${f1.name} was larger: ${Math.max(f1.length(), f2.length())} bytes"
+
+        resultFile.text = output
+        println output
+        println "Wrote diff result to ${resultFile}"
+    }
+}
+----
+
+=== FileDiffPlugin.groovy
+
+[source,groovy]
+----
+class FileDiffPlugin implements Plugin<Project> {
+    void apply(Project project) {
+    def extension = project.extensions.create('fileDiff', FileDiffExtension)
+        project.tasks.register('fileDiff', FileDiffTask) {
+            it.file1.set(project.provider { extension.file1.get() })
+            it.file2.set(project.provider { extension.file2.get() })
+        }
+    }
+}
+----
+
+== 3. Plugin Metadata
+
+Create `src/main/resources/META-INF/gradle-plugins/com.example.filediff.properties`:
+
+[source]
+----
+implementation-class=com.example.plugin.FileDiffPlugin
+----
+
+== 4. Write an Integration Test
+
+[source,groovy]
+----
+class FileDiffPluginIntegrationTest extends Specification {
+    @Rule TemporaryFolder testProjectDir = new TemporaryFolder()
+    File buildFile
+
+    def setup() {
+        buildFile = testProjectDir.newFile("build.gradle")
+        buildFile << """
+            plugins {
+                id 'com.example.filediff'
+            }
+
+            fileDiff {
+                file1 = file('a.txt')
+                file2 = file('b.txt')
+            }
+        """
+
+        testProjectDir.newFile("a.txt").text = ""
+        testProjectDir.newFile("b.txt").text = ""
+    }
+
+    def "can diff two files of the same size"() {
+        when:
+        def result = GradleRunner.create()
+            .withProjectDir(testProjectDir.root)
+            .withArguments('fileDiff')
+            .withPluginClasspath()
+            .build()
+
+        then:
+        result.output.contains("Files have the same size")
+        result.task(":fileDiff").outcome == TaskOutcome.SUCCESS
+    }
+}
+----
+
+== 5. Publish the Plugin Locally
+
+Add to `build.gradle`:
+
+[source,groovy]
+----
+gradlePlugin {
+    plugins {
+        fileDiff {
+            id = 'com.example.filediff'
+            implementationClass = 'com.example.plugin.FileDiffPlugin'
+        }
+    }
+}
+----
+
+Publish:
+
+[source,shell]
+----
+./gradlew publishToMavenLocal
+----
+
+== 6. Use the Plugin in Another Project
+
+=== settings.gradle
+
+[source,groovy]
+----
+pluginManagement {
+    repositories {
+        mavenLocal()
+        gradlePluginPortal()
+    }
+}
+----
+
+=== build.gradle
+
+[source,groovy]
+----
+plugins {
+    id 'com.example.filediff' version '0.0.1-SNAPSHOT'
+}
+
+fileDiff {
+    file1 = file("build/libs/myapp.jar")
+    file2 = file("target/myapp.jar")
+}
+----
+
+Run:
+
+[source,shell]
+----
+./gradlew fileDiff
+----
