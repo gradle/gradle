@@ -31,6 +31,7 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         """
 
         when:
+        executer.withArguments("-Dorg.gradle.internal.resilient-model-building=true")
         MyCustomModel model = runBuildActionFails(new CustomModelAction())
 
         then:
@@ -47,7 +48,8 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         """
 
         when:
-        executer.withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
+        executer.withArguments("-Dorg.gradle.internal.resilient-model-building=true",
+            KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
         MyCustomModel model = runBuildAction(new CustomModelAction())
 
         then:
@@ -70,7 +72,8 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         """
 
         when:
-        executer.withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
+        executer.withArguments("-Dorg.gradle.internal.resilient-model-building=true",
+            KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
         MyCustomModel model = runBuildAction(new CustomModelAction())
 
         then:
@@ -95,7 +98,8 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
     """
 
         when:
-        executer.withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
+        executer.withArguments("-Dorg.gradle.internal.resilient-model-building=true",
+            KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
         MyCustomModel model = runBuildAction(new CustomModelAction())
 
         then:
@@ -127,7 +131,14 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
 
         then:
         model.paths == [":"]
-        failureDescriptionContains("Script compilation error")
+        model.build != null
+
+        def inlcudedBuild = model.build.includedBuilds.getAt(0)
+        inlcudedBuild != null
+        inlcudedBuild.failure != null
+        inlcudedBuild.failure.message.contains("Script compilation error")
+
+//        failureDescriptionContains("Script compilation error")
     }
 
     def "basic project w/ included build - broken included build settings file and build script - strict mode - build action"() {
@@ -146,10 +157,18 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         """
 
         when:
-        MyCustomModel model = runBuildActionFails(new CustomModelAction())
+        executer.withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+        MyCustomModel model = runBuildAction(new CustomModelAction())
 
         then:
-        failureDescriptionContains("Script compilation error")
+        model.paths == [":"]
+        model.build != null
+
+        def inlcudedBuild = model.build.includedBuilds.getAt(0)
+        inlcudedBuild != null
+        inlcudedBuild.failure != null
+        inlcudedBuild.failure.message.contains("Script compilation error")
+//        failureDescriptionContains("Script compilation error")
     }
 
 

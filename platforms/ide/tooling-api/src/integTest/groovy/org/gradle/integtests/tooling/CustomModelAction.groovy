@@ -40,9 +40,11 @@ class CustomModelAction implements BuildAction<MyCustomModel>, Serializable {
         }
 
 
-        GradleBuild b = build.includedBuilds.getAt(0)
-        if(b.didItFail()){
-            System.err.println("Build failed: " + b.failure.description);
+        if(build.includedBuilds.size() > 0) {
+            GradleBuild b = build.includedBuilds.getAt(0)
+            if(b.didItFail()){
+                System.err.println("Build failed: " + b.failure.description);
+            }
         }
         KotlinDslScriptsModel buildScriptModel = controller.getModel(KotlinDslScriptsModel.class);
 
@@ -62,7 +64,8 @@ class CustomModelAction implements BuildAction<MyCustomModel>, Serializable {
         return new MyCustomModel(
             buildScriptModel.scriptModels,
             identifier,
-            paths
+            paths,
+            build
         );
     }
 }
