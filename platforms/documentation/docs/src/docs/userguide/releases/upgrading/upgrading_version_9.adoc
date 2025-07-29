@@ -217,4 +217,39 @@ tasks.named("assemble") {
 }
 ----
 
+[[deprecated-gradle-build-non-string-properties]]
+==== Non-String project properties in `GradleBuild` task
+The `GradleBuild` task now deprecates using non-String values in `startParameter.projectProperties`.
+While the type is declared as `Map<String, String>`, there was no strict enforcement, allowing non-String values to be set.
+This deprecated behavior will be removed in Gradle 10.0.0.
+
+If you are using non-String values in project properties, convert them to String representation:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+val myIntProp = 42
+
+tasks.register<GradleBuild>("nestedBuild") {
+    startParameter.projectProperties.put("myIntProp", "$myIntProp") // Convert int to String
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+def myIntProp = 42
+
+tasks.register('nestedBuild', GradleBuild) {
+    startParameter.projectProperties.put('myIntProp', "$myIntProp") // Convert int to String
+}
+----
+=====
+====
+
 === Potential breaking changes
