@@ -362,6 +362,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @Nullable
     public String getMinHeapSize() {
         return forkOptions.getMinHeapSize();
     }
@@ -371,6 +372,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @Nullable
     public String getDefaultCharacterEncoding() {
         return forkOptions.getDefaultCharacterEncoding();
     }
@@ -379,7 +381,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
+    public void setDefaultCharacterEncoding(@Nullable String defaultCharacterEncoding) {
         forkOptions.setDefaultCharacterEncoding(defaultCharacterEncoding);
     }
 
@@ -387,7 +389,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public void setMinHeapSize(String heapSize) {
+    public void setMinHeapSize(@Nullable String heapSize) {
         forkOptions.setMinHeapSize(heapSize);
     }
 
@@ -396,6 +398,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @Nullable
     public String getMaxHeapSize() {
         return forkOptions.getMaxHeapSize();
     }
@@ -404,7 +407,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public void setMaxHeapSize(String heapSize) {
+    public void setMaxHeapSize(@Nullable String heapSize) {
         forkOptions.setMaxHeapSize(heapSize);
     }
 
