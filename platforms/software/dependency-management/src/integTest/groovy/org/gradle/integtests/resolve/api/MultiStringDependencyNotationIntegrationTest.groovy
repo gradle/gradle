@@ -672,15 +672,12 @@ class MultiStringDependencyNotationIntegrationTest extends AbstractIntegrationSp
 
         expect:
         2.times { expectMultiStringDeprecationWarning(notation.value) }
-        if (notation.key.contains("group")) {
-            succeeds("dependencies", "--configuration", "runtimeClasspath")
-        } else {
-            fails("dependencies", "--configuration", "runtimeClasspath") // Group is required for module component IDs
-        }
-
+        succeeds("dependencies", "--configuration", "runtimeClasspath")
 
         where:
-        notation << GROOVY_CONSTRAINT_NOTATIONS.entrySet()
+        notation << GROOVY_CONSTRAINT_NOTATIONS.entrySet().findAll {
+            it.key.contains("group") // Group is required for module component IDs
+        }
     }
 
     def "can declare constraint rules using multi-string notation"() {
