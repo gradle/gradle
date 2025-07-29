@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSortedMap;
@@ -94,12 +95,18 @@ import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE;
 public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements Step<C, WorkspaceResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AssignImmutableWorkspaceStep.class);
 
+    enum LockingStrategy {
+        WORKSPACE_LOCK,
+        NO_LOCK
+    }
+
     private final Deleter deleter;
     private final FileSystemAccess fileSystemAccess;
 
     private final ImmutableWorkspaceMetadataStore workspaceMetadataStore;
     private final OutputSnapshotter outputSnapshotter;
     private final Step<? super PreviousExecutionContext, ? extends CachingResult> delegate;
+    private final LockingStrategy lockingStrategy;
 
     public AssignImmutableWorkspaceStep(
         Deleter deleter,
@@ -108,11 +115,28 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         OutputSnapshotter outputSnapshotter,
         Step<? super PreviousExecutionContext, ? extends CachingResult> delegate
     ) {
+        this(deleter, fileSystemAccess, workspaceMetadataStore, outputSnapshotter, delegate,
+            OperatingSystem.current().isWindows()
+                ? LockingStrategy.WORKSPACE_LOCK
+                : LockingStrategy.NO_LOCK
+        );
+    }
+
+    @VisibleForTesting
+    AssignImmutableWorkspaceStep(
+        Deleter deleter,
+        FileSystemAccess fileSystemAccess,
+        ImmutableWorkspaceMetadataStore workspaceMetadataStore,
+        OutputSnapshotter outputSnapshotter,
+        Step<? super PreviousExecutionContext, ? extends CachingResult> delegate,
+        LockingStrategy lockingStrategy
+    ) {
         this.deleter = deleter;
         this.fileSystemAccess = fileSystemAccess;
         this.workspaceMetadataStore = workspaceMetadataStore;
         this.outputSnapshotter = outputSnapshotter;
         this.delegate = delegate;
+        this.lockingStrategy = lockingStrategy;
     }
 
     @Override
@@ -121,7 +145,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         String uniqueId = context.getIdentity().getUniqueId();
         ImmutableWorkspace workspace = workspaceProvider.getWorkspace(uniqueId);
 
-        if (OperatingSystem.current().isWindows()) {
+        if (lockingStrategy == LockingStrategy.WORKSPACE_LOCK) {
             return workspace.withWorkspaceLock(() ->
                 loadImmutableWorkspaceIfExists(work, workspace)
                     .orElseGet(() -> {

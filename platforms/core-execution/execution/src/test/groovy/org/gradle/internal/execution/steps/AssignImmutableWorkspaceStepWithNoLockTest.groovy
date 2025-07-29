@@ -35,6 +35,7 @@ import org.gradle.internal.file.FileType
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.MissingFileSnapshot
+import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.internal.snapshot.TestSnapshotFixture
 import org.gradle.internal.vfs.FileSystemAccess
 import spock.lang.Issue
@@ -45,8 +46,9 @@ import java.nio.file.Paths
 import java.time.Duration
 
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE
+import static org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep.LockingStrategy
 
-class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> implements TestSnapshotFixture {
+class AssignImmutableWorkspaceStepWithNoLockTest extends StepSpec<IdentityContext> implements TestSnapshotFixture {
     def immutableWorkspace = file("immutable-workspace")
     def temporaryWorkspace = file("temporary-workspace")
     def secondTemporaryWorkspace = file("second-temporary-workspace")
@@ -71,7 +73,7 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
         getWorkspace(workId) >> workspace
     }
 
-    def step = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, delegate)
+    def step = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, delegate, LockingStrategy.NO_LOCK)
     def work = Stub(ImmutableUnitOfWork)
 
     def setup() {
@@ -105,7 +107,7 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
         result.afterExecutionOutputState.get().outputFilesProducedByWork == existingOutputs
         result.reusedOutputOriginMetadata.get() == delegateOriginMetadata
 
-        1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> existingWorkspaceSnapshot
+        1 * fileSystemAccess.read(immutableWorkspace.absolutePath, _ as SnapshottingFilter) >> Optional.of(existingWorkspaceSnapshot)
 
         then:
         1 * outputSnapshotter.snapshotOutputs(work, immutableWorkspace) >> existingOutputs
@@ -135,9 +137,9 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
         def result = step.execute(work, context)
 
         then:
-        1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> Stub(MissingFileSnapshot) {
+        1 * fileSystemAccess.read(immutableWorkspace.absolutePath, _ as SnapshottingFilter) >> Optional.of(Stub(MissingFileSnapshot) {
             type >> FileType.Missing
-        }
+        })
 
         then:
         1 * fileSystemAccess.invalidate([temporaryWorkspace.absolutePath])
@@ -193,9 +195,9 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
         step.execute(work, context)
 
         then:
-        1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> Stub(MissingFileSnapshot) {
+        1 * fileSystemAccess.read(immutableWorkspace.absolutePath, _ as SnapshottingFilter) >> Optional.of(Stub(MissingFileSnapshot) {
             type >> FileType.Missing
-        }
+        })
 
         then:
         1 * fileSystemAccess.invalidate([temporaryWorkspace.absolutePath])
@@ -238,9 +240,9 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
         def result = step.execute(work, context)
 
         then:
-        1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> Stub(MissingFileSnapshot) {
+        1 * fileSystemAccess.read(immutableWorkspace.absolutePath, _ as SnapshottingFilter) >> Optional.of(Stub(MissingFileSnapshot) {
             type >> FileType.Missing
-        }
+        })
 
         then:
         1 * fileSystemAccess.invalidate([temporaryWorkspace.absolutePath])
@@ -288,7 +290,7 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
         step.execute(work, context)
 
         then:
-        1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> tamperedWorkspaceSnapshot
+        1 * fileSystemAccess.read(immutableWorkspace.absolutePath, _ as SnapshottingFilter) >> Optional.of(tamperedWorkspaceSnapshot)
         1 * outputSnapshotter.snapshotOutputs(work, immutableWorkspace) >> tamperedOutputs
         1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Optional.of(originalWorkspaceMetadata)
 
