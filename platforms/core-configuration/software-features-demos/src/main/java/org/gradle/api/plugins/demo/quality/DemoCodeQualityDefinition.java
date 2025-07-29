@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.java
+package org.gradle.api.plugins.demo.quality;
 
-import org.gradle.api.Plugin
-import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
+import org.gradle.api.internal.plugins.HasBuildModel;
+import org.gradle.api.provider.Property;
+import org.gradle.declarative.dsl.model.annotations.Restricted;
+import org.jspecify.annotations.NullMarked;
 
-@RegistersSoftwareTypes(JavaSoftwareTypePlugin::class)
-class JavaEcosystemPlugin : Plugin<Settings> {
-    override fun apply(target: Settings) = Unit
+@NullMarked
+public interface DemoCodeQualityDefinition extends HasBuildModel<DemoCodeQualityModel> {
+    @Restricted
+    Property<Boolean> getIgnoreFailures();
 }

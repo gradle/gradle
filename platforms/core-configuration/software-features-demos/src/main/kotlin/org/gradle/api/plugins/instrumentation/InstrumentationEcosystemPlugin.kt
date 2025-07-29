@@ -22,7 +22,5 @@ import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 
 @RegistersSoftwareTypes(InstrumentClassesSoftwareFeaturePlugin::class)
 class InstrumentationEcosystemPlugin : Plugin<Settings> {
-    override fun apply(target: Settings) {
-
-    }
+    override fun apply(target: Settings) = Unit
 }

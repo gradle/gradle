@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.demoCodeQuality;
+package org.gradle.api.plugins.demo.quality;
 
-import org.gradle.api.internal.plugins.HasBuildModel;
-import org.gradle.api.provider.Property;
-import org.gradle.declarative.dsl.model.annotations.Restricted;
+import org.gradle.api.internal.plugins.BuildModel;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.reporting.ReportContainer;
+import org.gradle.api.reporting.SingleFileReport;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-public interface DemoCodeQualityDefinition extends HasBuildModel<DemoCodeQualityModel> {
-    @Restricted
-    Property<Boolean> getIgnoreFailures();
+public interface DemoCodeQualityModel extends BuildModel {
+    Provider<ReportContainer<SingleFileReport>> getReports();
+    void setReports(Provider<ReportContainer<SingleFileReport>> reports);
 }

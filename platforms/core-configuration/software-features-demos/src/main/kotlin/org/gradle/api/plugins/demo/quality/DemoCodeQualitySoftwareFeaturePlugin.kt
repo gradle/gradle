@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.demoCodeQuality
+package org.gradle.api.plugins.demo.quality
 
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.DefaultTask
@@ -36,7 +36,9 @@ class DemoCodeQualitySoftwareFeaturePlugin : Plugin<Project> {
      * javaLibrary {
      *     sources {
      *         javaSources("main") {
-     *             codeQuality {
+     *             demoSourceQuality {
+     *             }
+     *             demoBytecodeQuality {
      *             }
      *         }
      *     }
@@ -44,8 +46,10 @@ class DemoCodeQualitySoftwareFeaturePlugin : Plugin<Project> {
      *
      * groovyLibrary {
      *     sources {
-     *         javaSources("main") {
-     *             codeQuality {
+     *         groovySources("main") {
+     *             demoSourceQuality {
+     *             }
+     *             demoBytecodeQuality {
      *             }
      *         }
      *     }

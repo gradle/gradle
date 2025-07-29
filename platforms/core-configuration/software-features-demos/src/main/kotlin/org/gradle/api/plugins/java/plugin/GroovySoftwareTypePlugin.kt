@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.java
+package org.gradle.api.plugins.java.plugin
 
 import org.apache.commons.lang3.StringUtils.capitalize
 import org.gradle.api.Plugin
@@ -24,6 +24,8 @@ import org.gradle.api.internal.plugins.SoftwareTypeBindingBuilder
 import org.gradle.api.internal.plugins.SoftwareTypeBindingRegistration
 import org.gradle.api.internal.plugins.features.dsl.bindSoftwareType
 import org.gradle.api.plugins.internal.java.DefaultGroovySoftwareType
+import org.gradle.api.plugins.java.GroovyClasses
+import org.gradle.api.plugins.java.GroovySoftwareType
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 

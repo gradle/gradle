@@ -19,7 +19,6 @@ package org.gradle.internal.declarativedsl.settings
 import org.gradle.api.internal.plugins.BindsSoftwareType
 import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.HasBuildModel
-import org.gradle.api.internal.plugins.SoftwareFeatureBinding
 import org.gradle.api.internal.plugins.SoftwareTypeBindingBuilder
 import org.gradle.api.internal.plugins.SoftwareTypeBindingRegistration
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
@@ -50,7 +49,7 @@ trait SoftwareTypeFixture {
     PluginBuilder withSoftwareTypePluginWithNdoc() {
         return withSoftwareTypePlugins(
             softwareTypeExtensionWithNdoc,
-            SoftwareTypeFixture.getProjectPluginThatProvidesLegacySoftwareType("TestSoftwareTypeExtension", null, "SoftwareTypeImplPlugin", "testSoftwareType", ""),
+            getProjectPluginThatProvidesLegacySoftwareType("TestSoftwareTypeExtension", null, "SoftwareTypeImplPlugin", "testSoftwareType", ""),
             settingsPluginThatRegistersSoftwareType
         )
     }
@@ -58,7 +57,7 @@ trait SoftwareTypeFixture {
     PluginBuilder withSoftwareTypePluginWithMismatchedModelTypes() {
         def pluginBuilder = withSoftwareTypePlugins(
             softwareTypeExtension,
-            SoftwareTypeFixture.getProjectPluginThatProvidesLegacySoftwareType("TestSoftwareTypeExtension", "AnotherSoftwareTypeExtension"),
+            getProjectPluginThatProvidesLegacySoftwareType("TestSoftwareTypeExtension", "AnotherSoftwareTypeExtension"),
             settingsPluginThatRegistersSoftwareType
         )
 
@@ -158,7 +157,7 @@ trait SoftwareTypeFixture {
     PluginBuilder withSoftwareTypePluginThatExposesExtensionWithDependencies() {
         PluginBuilder pluginBuilder = withSoftwareTypePlugins(
             softwareTypeExtension,
-            SoftwareTypeFixture.getProjectPluginThatProvidesLegacySoftwareType("TestSoftwareTypeExtensionWithDependencies", "TestSoftwareTypeExtensionWithDependencies"),
+            getProjectPluginThatProvidesLegacySoftwareType("TestSoftwareTypeExtensionWithDependencies", "TestSoftwareTypeExtensionWithDependencies"),
             settingsPluginThatRegistersSoftwareType
         )
 
@@ -405,7 +404,6 @@ trait SoftwareTypeFixture {
             import org.gradle.api.provider.Property;
             import org.gradle.api.tasks.Nested;
             import ${SoftwareType.class.name};
-            import ${SoftwareFeatureBinding.class.name};
             import ${SoftwareTypeBindingRegistration.class.name};
             import ${SoftwareTypeBindingBuilder.class.name};
             import javax.inject.Inject;
@@ -452,7 +450,6 @@ trait SoftwareTypeFixture {
             import org.gradle.api.provider.Property;
             import org.gradle.api.tasks.Nested;
             import ${SoftwareType.class.name};
-            import ${SoftwareFeatureBinding.class.name};
             import ${SoftwareTypeBindingRegistration.class.name};
             import ${BindsSoftwareType.class.name};
             import ${SoftwareTypeBindingBuilder.class.name};

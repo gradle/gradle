@@ -16,6 +16,7 @@ dependencies {
     api(projects.modelCore)
     api(projects.modelReflect)
     api(projects.problemsApi)
+    api(projects.softwareFeaturesApi)
     api(projects.softwareFeatures)
 
     api(libs.guava)
@@ -24,7 +25,6 @@ dependencies {
     implementation(projects.functional)
     implementation(projects.jvmServices)
 
-    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(projects.resourcesHttp))

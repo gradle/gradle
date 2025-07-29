@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.demoCodeQuality
+package org.gradle.api.plugins.demo.quality
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
@@ -27,7 +27,7 @@ class DemoCodeQualityIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             plugins {
                 id 'java-ecosystem'
-                id 'demoCodeQuality-ecosystem'
+                id 'demo-quality-ecosystem'
             }
         """
         file('build.gradle.dcl') << """
@@ -61,7 +61,7 @@ class DemoCodeQualityIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             plugins {
                 id 'java-ecosystem'
-                id 'demoCodeQuality-ecosystem'
+                id 'demo-quality-ecosystem'
             }
         """
         file('build.gradle.dcl') << """
@@ -96,7 +96,7 @@ class DemoCodeQualityIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             plugins {
                 id 'groovy-ecosystem'
-                id 'demoCodeQuality-ecosystem'
+                id 'demo-quality-ecosystem'
             }
         """
         file('build.gradle.dcl') << """

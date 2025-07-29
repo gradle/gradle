@@ -26,6 +26,10 @@ import org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilder
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingRegistration
 import org.gradle.api.internal.plugins.features.dsl.bindSoftwareFeatureToDefinition
 import org.gradle.api.plugins.java.HasJavaSources.JavaSources
+import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 
 @BindsSoftwareFeature(InstrumentClassesSoftwareFeaturePlugin.Binding::class)
@@ -60,8 +64,13 @@ class InstrumentClassesSoftwareFeaturePlugin : Plugin<Project> {
         }
     }
 
+    @CacheableTask
     abstract class InstrumentClasses : DefaultTask() {
+        @get:InputFiles
+        @get:Classpath
         abstract val bytecodeDir: DirectoryProperty
+
+        @get:OutputDirectory
         abstract val instrumentedClassesDir: DirectoryProperty
     }
 

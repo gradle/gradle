@@ -40,6 +40,7 @@ dependencies {
     implementation(projects.serviceLookup)
     implementation(libs.guava)
     implementation(libs.kotlinReflect)
+    implementation(libs.jspecify)
 
     testImplementation(libs.mockitoKotlin)
     testImplementation(testFixtures(projects.declarativeDslCore))
