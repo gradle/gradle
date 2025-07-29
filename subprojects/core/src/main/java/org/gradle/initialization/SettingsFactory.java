@@ -25,6 +25,8 @@ import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.extensibility.DefaultExtraPropertiesGradlePropertiesLookup;
+import org.gradle.internal.extensibility.GradlePropertiesAccessListener;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -37,11 +39,18 @@ public class SettingsFactory {
     private final Instantiator instantiator;
     private final ServiceRegistry buildScopeServices;
     private final ScriptHandlerFactory scriptHandlerFactory;
+    private final GradlePropertiesAccessListener gradlePropertiesAccessListener;
 
-    public SettingsFactory(Instantiator instantiator, ServiceRegistry buildScopeServices, ScriptHandlerFactory scriptHandlerFactory) {
+    public SettingsFactory(
+        Instantiator instantiator,
+        ServiceRegistry buildScopeServices,
+        ScriptHandlerFactory scriptHandlerFactory,
+        GradlePropertiesAccessListener gradlePropertiesAccessListener
+    ) {
         this.instantiator = instantiator;
         this.buildScopeServices = buildScopeServices;
         this.scriptHandlerFactory = scriptHandlerFactory;
+        this.gradlePropertiesAccessListener = gradlePropertiesAccessListener;
     }
 
     public SettingsState createSettings(
@@ -66,7 +75,7 @@ public class SettingsFactory {
             startParameter
         );
         ((ExtraPropertiesExtensionInternal) settings.getExtensions().getExtraProperties())
-            .setGradleProperties(gradleProperties.getProperties());
+            .attachGradlePropertiesLookup(new DefaultExtraPropertiesGradlePropertiesLookup(gradlePropertiesAccessListener, gradleProperties.getProperties()));
         return new SettingsState(settings, serviceRegistryFactory.services);
     }
 

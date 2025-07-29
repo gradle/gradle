@@ -195,6 +195,7 @@ import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.WorkExecutionTracker;
+import org.gradle.internal.extensibility.GradlePropertiesAccessListener;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -482,7 +483,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             new ProjectPropertySettingBuildLoader(
                 gradleProperties,
                 new InstantiatingBuildLoader(),
-                listenerManager.getBroadcaster(FileResourceListener.class)
+                listenerManager.getBroadcaster(FileResourceListener.class),
+                listenerManager.getBroadcaster(GradlePropertiesAccessListener.class)
             ),
             buildOperationRunner,
             emitter
@@ -617,7 +619,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         Instantiator instantiator,
         GradleProperties gradleProperties,
         BuildOperationRunner buildOperationRunner,
-        TextFileResourceLoader textFileResourceLoader
+        TextFileResourceLoader textFileResourceLoader,
+        ListenerManager listenerManager
     ) {
         return new BuildOperationSettingsProcessor(
             new RootBuildCacheControllerSettingsProcessor(
@@ -627,7 +630,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
                         new SettingsFactory(
                             instantiator,
                             buildScopeServices,
-                            scriptHandlerFactory
+                            scriptHandlerFactory,
+                            listenerManager.getBroadcaster(GradlePropertiesAccessListener.class)
                         ),
                         gradleProperties,
                         textFileResourceLoader
