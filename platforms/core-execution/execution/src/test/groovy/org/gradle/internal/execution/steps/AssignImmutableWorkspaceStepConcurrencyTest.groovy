@@ -165,7 +165,7 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
                 }
 
                 @Override
-                def <T> T withGlobalScopedLock(String uniqueId, Supplier<T> supplier) {
+                def <T> T withWorkspaceLock(Supplier<T> supplier) {
                     return supplier.get()
                 }
             }

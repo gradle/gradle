@@ -43,7 +43,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
     private final File baseDirectory;
     private final PersistentCache cache;
     private final UnscopedCacheBuilderFactory unscopedCacheBuilderFactory;
-  
+
     private final Map<String, PersistentCache> keyCaches = new ConcurrentHashMap<>();
 
     public static CacheBasedImmutableWorkspaceProvider createWorkspaceProvider(
@@ -130,9 +130,9 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             }
 
             @Override
-            public <T> T withGlobalScopedLock(String uniqueId, Supplier<T> supplier) {
-                PersistentCache keyCache = keyCaches.computeIfAbsent(uniqueId, cache -> {
-                    File keyCacheDir = new File(baseDirectory, uniqueId);
+            public <T> T withWorkspaceLock(Supplier<T> supplier) {
+                PersistentCache keyCache = keyCaches.computeIfAbsent(path, cache -> {
+                    File keyCacheDir = getImmutableLocation();
                     return unscopedCacheBuilderFactory.cache(keyCacheDir)
                         .withInitialLockMode(FileLockManager.LockMode.OnDemand)
                         .open();

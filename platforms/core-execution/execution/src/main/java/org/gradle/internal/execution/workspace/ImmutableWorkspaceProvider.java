@@ -36,7 +36,7 @@ public interface ImmutableWorkspaceProvider {
         /**
          * Executes the given action under the global scoped lock.
          */
-        <T> T withGlobalScopedLock(String uniqueId, Supplier<T> supplier);
+        <T> T withWorkspaceLock(Supplier<T> supplier);
 
         @FunctionalInterface
         interface TemporaryWorkspaceAction<T> {

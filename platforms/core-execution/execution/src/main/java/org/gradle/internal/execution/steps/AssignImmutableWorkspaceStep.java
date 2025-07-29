@@ -122,10 +122,10 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         ImmutableWorkspace workspace = workspaceProvider.getWorkspace(uniqueId);
 
         if (OperatingSystem.current().isWindows()) {
-            return workspace.withGlobalScopedLock(uniqueId, () ->
+            return workspace.withWorkspaceLock(() ->
                 loadImmutableWorkspaceIfExists(work, workspace)
                     .orElseGet(() -> {
-                        deleteStaleFiles(workspace);
+                        deleteStaleFiles(workspace.getImmutableLocation());
                         return executeInWorkspace(work, context, workspace.getImmutableLocation());
                     })
             );
@@ -135,56 +135,36 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         }
     }
 
-    private void deleteStaleFiles(ImmutableWorkspace workspace) {
-        Path lockFile = DefaultFileLockManager.determineLockTargetFile(workspace.getImmutableLocation()).toPath();
-        try (DirectoryStream<Path> paths = Files.newDirectoryStream(workspace.getImmutableLocation().toPath())) {
+    private void deleteStaleFiles(File workspace) {
+        Path lockFile = DefaultFileLockManager.determineLockTargetFile(workspace).toPath();
+        try (DirectoryStream<Path> paths = Files.newDirectoryStream(workspace.toPath(), path -> !path.equals(lockFile))) {
             for (Path path : paths) {
-                if (path.equals(lockFile)) {
-                    continue;
-                }
                 deleter.deleteRecursively(path.toFile());
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
     }
 
     private Optional<WorkspaceResult> loadImmutableWorkspaceIfExists(UnitOfWork work, ImmutableWorkspace workspace) {
         File immutableLocation = workspace.getImmutableLocation();
-        Optional<FileSystemLocationSnapshot> workspaceSnapshot = fileSystemAccess.read(immutableLocation.getAbsolutePath(), new SnapshottingFilter() {
-            @Override
-            public boolean isEmpty() {
-                return false;
-            }
-
-            @Override
-            public FileSystemSnapshotPredicate getAsSnapshotPredicate() {
-                // Do not snapshot the workspace, as we are only interested in its existence
-                return (fileSystemLocation, relativePath) -> false;
-            }
-
-            @Override
-            public DirectoryWalkerPredicate getAsDirectoryWalkerPredicate() {
-                // Do not snapshot the workspace, as we are only interested in its existence
-                return (path, name, isDirectory, relativePath) -> false;
+        // We only want to check if the immutable workspace exists, so filter the content of the directory.
+        // That way we also avoid lock file snapshotting, that can be deleted without notifying fileSystemAccess
+        Optional<FileSystemLocationSnapshot> workspaceSnapshot = fileSystemAccess.read(immutableLocation.getAbsolutePath(), new SkipDirectoryContentFilter());
+        return workspaceSnapshot.flatMap(snapshot -> {
+            switch (snapshot.getType()) {
+                case Directory:
+                    return loadImmutableWorkspaceIfConsistent(work, workspace);
+                case RegularFile:
+                    throw new IllegalStateException(
+                        "Immutable workspace is occupied by a file: " + immutableLocation.getAbsolutePath() + ". " +
+                            "Deleting the file in question can allow the content to be recreated.");
+                case Missing:
+                    return Optional.empty();
+                default:
+                    throw new AssertionError();
             }
         });
-
-        if (!workspaceSnapshot.isPresent()) {
-            return Optional.empty();
-        }
-        switch (workspaceSnapshot.get().getType()) {
-            case Directory:
-                return loadImmutableWorkspaceIfConsistent(work, workspace);
-            case RegularFile:
-                throw new IllegalStateException(
-                    "Immutable workspace is occupied by a file: " + immutableLocation.getAbsolutePath() + ". " +
-                        "Deleting the file in question can allow the content to be recreated.");
-            case Missing:
-                return Optional.empty();
-            default:
-                throw new AssertionError();
-        }
     }
 
     private Optional<WorkspaceResult> loadImmutableWorkspaceIfConsistent(UnitOfWork work, ImmutableWorkspace workspace) {
@@ -406,5 +386,24 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             }
         });
         return builder.toString();
+    }
+
+    private static class SkipDirectoryContentFilter implements SnapshottingFilter {
+        @Override
+        public boolean isEmpty() {
+            return false;
+        }
+
+        @Override
+        public SnapshottingFilter.FileSystemSnapshotPredicate getAsSnapshotPredicate() {
+            // Do not snapshot the workspace, as we are only interested in its existence
+            return (fileSystemLocation, relativePath) -> false;
+        }
+
+        @Override
+        public SnapshottingFilter.DirectoryWalkerPredicate getAsDirectoryWalkerPredicate() {
+            // Do not snapshot the workspace, as we are only interested in its existence
+            return (path, name, isDirectory, relativePath) -> false;
+        }
     }
 }
