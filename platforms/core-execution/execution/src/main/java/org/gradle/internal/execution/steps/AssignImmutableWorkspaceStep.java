@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.apache.commons.io.FileUtils;
+import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
@@ -48,7 +49,10 @@ import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystemException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Map;
@@ -121,7 +125,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             return workspace.withGlobalScopedLock(uniqueId, () ->
                 loadImmutableWorkspaceIfExists(work, workspace)
                     .orElseGet(() -> {
-                        deleteStaleFiles(work, workspace);
+                        deleteStaleFiles(workspace);
                         return executeInWorkspace(work, context, workspace.getImmutableLocation());
                     })
             );
@@ -131,9 +135,18 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         }
     }
 
-    @SuppressWarnings("unused")
-    private void deleteStaleFiles(UnitOfWork work, ImmutableWorkspace workspace) {
-        // TODO We need to clean stale files in case previous execution failed
+    private void deleteStaleFiles(ImmutableWorkspace workspace) {
+        Path lockFile = DefaultFileLockManager.determineLockTargetFile(workspace.getImmutableLocation()).toPath();
+        try (DirectoryStream<Path> paths = Files.newDirectoryStream(workspace.getImmutableLocation().toPath())) {
+            for (Path path : paths) {
+                if (path.equals(lockFile)) {
+                    continue;
+                }
+                deleter.deleteRecursively(path.toFile());
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Optional<WorkspaceResult> loadImmutableWorkspaceIfExists(UnitOfWork work, ImmutableWorkspace workspace) {

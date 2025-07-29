@@ -129,7 +129,7 @@ public class DefaultFileLockManager implements FileLockManager {
         }
     }
 
-    static File determineLockTargetFile(File target) {
+    public static File determineLockTargetFile(File target) {
         if (target.isDirectory()) {
             return new File(target, target.getName() + ".lock");
         } else {
