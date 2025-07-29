@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.precompile
 
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.hash.Hashing
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependencies
 import org.gradle.util.internal.TextUtil.convertLineSeparatorsToUnix
@@ -28,10 +29,18 @@ import kotlin.script.dependencies.PseudoFuture
 import kotlin.script.dependencies.ScriptContents
 import kotlin.script.dependencies.ScriptDependenciesResolver
 
-
+@Deprecated("Will be removed in Gradle 10")
 class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
 
     companion object {
+
+        init {
+            @Suppress("DEPRECATION")
+            DeprecationLogger.deprecateType(PrecompiledScriptDependenciesResolver::class.java)
+                .willBeRemovedInGradle10()
+                .undocumented()
+                .nagUser()
+        }
 
         fun hashOf(charSequence: CharSequence) =
             hashOfNormalisedString(convertLineSeparatorsToUnix(charSequence.toString()))
