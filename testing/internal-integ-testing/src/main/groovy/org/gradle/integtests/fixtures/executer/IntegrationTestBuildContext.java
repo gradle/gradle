@@ -32,7 +32,7 @@ public class IntegrationTestBuildContext {
     public static final IntegrationTestBuildContext INSTANCE = new IntegrationTestBuildContext();
 
     public static boolean isEmbedded() {
-        return System.getProperty("org.gradle.integtest.executer").equals("embedded");
+        return System.getProperty("org.gradle.integtest.executer", "").equals("embedded");
     }
 
     @Nullable

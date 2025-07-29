@@ -79,9 +79,13 @@ class ToolingApi implements TestRule {
 
     /**
      * Specifies that the test use its own Gradle user home dir and daemon registry.
+     *
+     * @return the user home directory that is used by the test
      */
-    void requireIsolatedUserHome() {
-        withUserHome(testWorkDirProvider.testDirectory.file("user-home-dir"))
+    TestFile requireIsolatedUserHome() {
+        TestFile dir = testWorkDirProvider.testDirectory.file("user-home-dir")
+        withUserHome(dir)
+        return dir
     }
 
     void withUserHome(TestFile userHomeDir) {

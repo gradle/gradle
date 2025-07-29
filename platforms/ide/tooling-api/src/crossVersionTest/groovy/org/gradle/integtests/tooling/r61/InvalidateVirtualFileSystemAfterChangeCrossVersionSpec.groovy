@@ -94,6 +94,8 @@ class InvalidateVirtualFileSystemAfterChangeCrossVersionSpec extends ToolingApiS
 
         def block = server.expectAndBlock("block")
         def build = new NoDaemonGradleExecuter(toolingApi.getDistribution(), temporaryFolder, buildContext)
+            .withDaemonBaseDir(toolingApi.daemonBaseDir)
+            .requireDaemon()
             .withTasks("block", "--info")
             .start()
         block.waitForAllPendingCalls()

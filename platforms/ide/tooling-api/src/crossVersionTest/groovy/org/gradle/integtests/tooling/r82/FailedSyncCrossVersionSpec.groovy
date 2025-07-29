@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r82
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildController
@@ -30,6 +31,7 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
+@ToolingApiVersion('>=8.2') // Since our action uses `buildTreePath`
 @TargetGradleVersion('>=8.2')
 class FailedSyncCrossVersionSpec extends ToolingApiSpecification {
 

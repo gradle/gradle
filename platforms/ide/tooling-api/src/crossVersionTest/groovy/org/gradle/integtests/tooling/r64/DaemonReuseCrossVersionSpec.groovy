@@ -76,6 +76,7 @@ class DaemonReuseCrossVersionSpec extends ToolingApiSpecification {
 
     private void runBuildViaCLI() {
         new NoDaemonGradleExecuter(toolingApi.getDistribution(), temporaryFolder, buildContext)
+            .withDaemonBaseDir(toolingApi.daemonBaseDir)
             .requireDaemon()
             .useOnlyRequestedJvmOpts()
             .withArguments("-Dorg.gradle.jvmargs=${NORMALIZED_BUILD_JVM_OPTS.join(" ")} -Djava.io.tmpdir=${buildContext.getTmpDir().absolutePath}")
