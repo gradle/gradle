@@ -268,11 +268,11 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     /**
      * Two {@link ProjectInternal} instances are considered equal if their {@link #getProjectIdentity() identity} is equal.
      *
-     * @param o the object to compare with this project
+     * @param obj the object to compare with this project
      * @return true if the given object is a {@link ProjectInternal} with the same identity as this project, false otherwise
      */
     @Override
-    boolean equals(Object o);
+    boolean equals(Object obj);
 
     /**
      * Returns the hash code of this project based on its {@link #getProjectIdentity() identity}.
