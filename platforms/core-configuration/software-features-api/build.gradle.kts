@@ -15,12 +15,12 @@
  */
 
 plugins {
-    id("gradlebuild.distribution.implementation-java")
+    id("gradlebuild.distribution.api-java")
     id("gradlebuild.publish-public-libraries")
 }
 
 description = "Public API classes used by software features"
 
 dependencies {
-    implementation(projects.stdlibJavaExtensions)
+    api(projects.stdlibJavaExtensions)
 }

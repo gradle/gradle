@@ -134,6 +134,7 @@ dependencies {
     implementation(projects.modelGroovy)
     implementation(projects.problemsRendering)
     implementation(projects.serviceRegistryBuilder)
+    implementation(projects.softwareFeaturesApi)
 
     implementation(libs.asmCommons)
     implementation(libs.commonsCompress)

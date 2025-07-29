@@ -32,7 +32,7 @@ import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.MatcherAssert.assertThat
 
-abstract class dDistributionIntegrationSpec extends AbstractIntegrationSpec {
+abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     protected static final THIRD_PARTY_LIB_COUNT = 126
 

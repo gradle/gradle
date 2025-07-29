@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.demoCodeQuality
+package org.gradle.api.plugins.java.plugin
 
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 
-@RegistersSoftwareTypes(DemoCodeQualitySoftwareFeaturePlugin::class)
-class DemoCodeQualityEcosystemPlugin : Plugin<Settings> {
+@RegistersSoftwareTypes(JavaSoftwareTypePlugin::class)
+class JavaEcosystemPlugin : Plugin<Settings> {
     override fun apply(target: Settings) = Unit
 }

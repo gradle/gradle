@@ -24,6 +24,7 @@ dependencies {
     api(projects.core)
     api(projects.softwareFeatures)
 
+    implementation(projects.softwareFeaturesApi)
     implementation(projects.declarativeDslApi)
     implementation(projects.coreApi)
 

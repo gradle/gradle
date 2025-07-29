@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.demoCodeQuality;
+package org.gradle.api.plugins.java.plugin
 
-import org.gradle.api.internal.plugins.BuildModel;
-import org.gradle.api.plugins.quality.CheckstyleReports;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.reporting.ReportContainer;
-import org.gradle.api.reporting.SingleFileReport;
-import org.jspecify.annotations.NullMarked;
+import org.gradle.api.Plugin
+import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 
-@NullMarked
-public interface DemoCodeQualityModel extends BuildModel {
-    Provider<ReportContainer<SingleFileReport>> getReports();
-    void setReports(Provider<ReportContainer<SingleFileReport>> reports);
+@RegistersSoftwareTypes(GroovySoftwareTypePlugin::class)
+class GroovyEcosystemPlugin : Plugin<Settings> {
+    override fun apply(target: Settings) = Unit
 }

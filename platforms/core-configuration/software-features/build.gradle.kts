@@ -23,14 +23,13 @@ description = "Implementation of Software Features and Types"
 dependencies {
     api(projects.coreApi)
     api(projects.modelCore)
+    api(projects.baseServices)
     api(projects.stdlibJavaExtensions)
     api(libs.kotlinStdlib)
-    api(libs.kotlinReflect)
+    implementation(libs.kotlinReflect)
 
     api(libs.inject)
     api(libs.jspecify)
-
-    implementation(projects.softwareFeaturesApi)
 
     implementation(libs.groovy)
 }

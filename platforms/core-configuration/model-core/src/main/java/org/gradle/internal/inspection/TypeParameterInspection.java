@@ -21,7 +21,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * An inspection object for a given interface type that can inspect implementations for the parameters of that type.
  *
- * For instance, a TypeParameterInspection for a type {@code Foo} could inspect an implementation type {@code }Bar extends Foo<T>} for the type parameter {@code T}.
+ * For instance, a TypeParameterInspection for a type {@code Foo} could inspect an implementation type {@code Bar extends Foo<T>} for the type parameter {@code T}.
  */
 public interface TypeParameterInspection<INTERFACE, PARAMS> {
     /**

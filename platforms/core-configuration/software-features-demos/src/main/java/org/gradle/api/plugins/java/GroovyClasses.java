@@ -16,9 +16,7 @@
 
 package org.gradle.api.plugins.java;
 
-import org.gradle.api.Named;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.model.ObjectFactory;
 
 import javax.annotation.Nonnull;

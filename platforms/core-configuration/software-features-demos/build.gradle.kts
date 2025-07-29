@@ -21,23 +21,29 @@ plugins {
 description = "Demos of Software Features and Types"
 
 dependencies {
+    api(projects.antlr)
+    api(projects.baseServices)
+    api(projects.codeQuality)
+    api(projects.core)
     api(projects.coreApi)
-    api(projects.modelCore)
-    api(projects.stdlibJavaExtensions)
+    api(projects.declarativeDslApi)
+    api(projects.reporting)
     api(projects.softwareFeatures)
-    api(projects.softwareFeaturesApi)
-    api(projects.toolchainsJvmShared)
 
     api(libs.kotlinStdlib)
     api(libs.inject)
     api(libs.jspecify)
+    api(libs.jsr305)
 
-    implementation(libs.groovy)
+    runtimeOnly(libs.groovy)
 
     implementation(projects.languageJava)
     implementation(projects.languageGroovy)
-    implementation(projects.antlr)
-    implementation(projects.codeQuality)
+    implementation(projects.modelCore)
+    implementation(projects.platformBase)
+    implementation(projects.platformJvm)
+
+    implementation(libs.commonsLang)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

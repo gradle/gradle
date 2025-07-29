@@ -27,6 +27,7 @@ dependencies {
     api(projects.persistentCache)
     api(projects.problemsApi)
     api(projects.snapshots)
+    api(projects.softwareFeaturesApi)
     api(libs.asm)
     api(libs.jspecify)
     api(libs.inject)

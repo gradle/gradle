@@ -29,7 +29,6 @@ import org.gradle.api.internal.plugins.HasBuildModel;
 import org.gradle.api.internal.plugins.SoftwareFeatureBinding;
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilderInternal;
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingRegistration;
-import org.gradle.api.internal.plugins.SoftwareTypeBindingBuilder;
 import org.gradle.api.internal.plugins.SoftwareTypeBindingBuilderInternal;
 import org.gradle.api.internal.plugins.SoftwareTypeBindingRegistration;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
@@ -81,7 +80,7 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
     private Map<String, SoftwareFeatureImplementation<?, ?>> discoverSoftwareFeatureImplementations() {
         final ImmutableMap.Builder<String, SoftwareFeatureImplementation<?, ?>> softwareFeatureImplementationsBuilder = ImmutableMap.builder();
         pluginClasses.forEach((registeringPluginClass, registeredPluginClasses) ->
-            registeredPluginClasses.forEach( pluginClass -> {
+            registeredPluginClasses.forEach(pluginClass -> {
                 TypeMetadata pluginClassTypeMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(pluginClass);
                 TypeAnnotationMetadata pluginClassAnnotationMetadata = pluginClassTypeMetadata.getTypeAnnotationMetadata();
                 registerSoftwareTypeIfPresent(registeringPluginClass, pluginClass, pluginClassAnnotationMetadata, softwareFeatureImplementationsBuilder);
