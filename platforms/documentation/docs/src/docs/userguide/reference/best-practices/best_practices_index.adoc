@@ -18,7 +18,7 @@
 The table below provides a complete list of documented Gradle Best Practices.
 
 ****
-There are currently *27 Best Practices*.
+There are currently *0 Best Practices*.
 ****
 
 Use this as a quick reference to track newly added recommendations, check adoption status, or explore areas for improving your build:
@@ -32,6 +32,7 @@ Use this as a quick reference to track newly added recommendations, check adopti
 | <<best_practices_general.adoc#use_the_plugins_block,Apply Plugins Using the plugins Block>> | General | 8.14
 | <<best_practices_general.adoc#do_not_use_internal_apis,Do Not Use Internal APIs>> | General | 8.14
 | <<best_practices_general.adoc#use_the_gradle_properties_file,Set build flags in gradle.properties>> | General | 9.0.0
+| <<best_practices_general.adoc#name_your_root_project,Name Your Root Project>> | General | 9.2.0
 
 | <<best_practices_structuring_builds.adoc#modularize_builds,Modularize Your Builds>> | Structuring Builds | 9.0.0
 | <<best_practices_structuring_builds.adoc#no_source_in_root,Do Not Put Source Files in the Root Project>> | Structuring Builds | 9.0.0

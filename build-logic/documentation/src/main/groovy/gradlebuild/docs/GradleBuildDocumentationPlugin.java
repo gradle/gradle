@@ -136,6 +136,7 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
             task.getPort().convention(webserverPort);
 
             task.dependsOn(extension.getRenderedDocumentation());
+            task.notCompatibleWithConfigurationCache("There are many CC problems with this task, which clutter the console output and make it hard to see docs generation issues.");
         });
 
         tasks.register("docs", task -> {
