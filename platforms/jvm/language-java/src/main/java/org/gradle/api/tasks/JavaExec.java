@@ -205,7 +205,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @ToBeReplacedByLazyProperty
     public List<String> getJvmArgs() {
-        return javaExecSpec.getJvmArguments().getOrNull();
+        return javaExecSpec.getJvmArguments().get();
     }
 
     /**
@@ -317,6 +317,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @Nullable
     public String getMinHeapSize() {
         return javaExecSpec.getMinHeapSize();
     }
@@ -325,7 +326,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public void setMinHeapSize(String heapSize) {
+    public void setMinHeapSize(@Nullable String heapSize) {
         javaExecSpec.setMinHeapSize(heapSize);
     }
 
@@ -334,6 +335,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @Nullable
     public String getDefaultCharacterEncoding() {
         return javaExecSpec.getDefaultCharacterEncoding();
     }
@@ -342,7 +344,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
+    public void setDefaultCharacterEncoding(@Nullable String defaultCharacterEncoding) {
         javaExecSpec.setDefaultCharacterEncoding(defaultCharacterEncoding);
     }
 
@@ -351,6 +353,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @Nullable
     public String getMaxHeapSize() {
         return javaExecSpec.getMaxHeapSize();
     }
@@ -359,7 +362,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public void setMaxHeapSize(String heapSize) {
+    public void setMaxHeapSize(@Nullable String heapSize) {
         javaExecSpec.setMaxHeapSize(heapSize);
     }
 

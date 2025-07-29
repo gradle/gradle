@@ -41,7 +41,6 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
         return getDelegate().getMainClass();
     }
 
-    @Nullable
     @Override
     default List<String> getArgs() {
         return getDelegate().getArgs();
@@ -60,13 +59,13 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
     }
 
     @Override
-    default JavaExecSpec setArgs(@Nullable List<String> args) {
+    default JavaExecSpec setArgs(List<String> args) {
         getDelegate().setArgs(args);
         return this;
     }
 
     @Override
-    default JavaExecSpec setArgs(@Nullable Iterable<?> args) {
+    default JavaExecSpec setArgs(Iterable<?> args) {
         getDelegate().setArgs(args);
         return this;
     }
@@ -153,19 +152,18 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
         getDelegate().setMaxHeapSize(heapSize);
     }
 
-    @Nullable
     @Override
     default List<String> getJvmArgs() {
         return getDelegate().getJvmArgs();
     }
 
     @Override
-    default void setJvmArgs(@Nullable List<String> arguments) {
+    default void setJvmArgs(List<String> arguments) {
         getDelegate().setJvmArgs(arguments);
     }
 
     @Override
-    default void setJvmArgs(@Nullable Iterable<?> arguments) {
+    default void setJvmArgs(Iterable<?> arguments) {
         getDelegate().setJvmArgs(arguments);
     }
 
