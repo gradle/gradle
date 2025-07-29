@@ -92,12 +92,12 @@ import static org.gradle.util.internal.GUtil.isTrue;
  * }
  *
  * dependencies {
- *   //jaxDoclet "some.interesting:Dependency:1.0"
+ *   // jaxDoclet "some.interesting:Dependency:1.0"
  * }
  *
  * task generateRestApiDocs(type: Javadoc) {
  *   source = sourceSets.main.allJava
- *   destinationDir = reporting.file("rest-api-docs")
+ *
  *   options.docletpath = configurations.jaxDoclet.files.asType(List)
  *   options.doclet = "com.lunatech.doclets.jax.jaxrs.JAXRSDoclet"
  *   options.addStringOption("jaxrscontext", "http://localhost:8080/myapp")

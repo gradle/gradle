@@ -171,6 +171,20 @@ configurations.dependencyScope("implementation") {
 =====
 ====
 
+[[reporting_extension_file]]
+==== Deprecation of `ReportingExtension.file(String)`
+
+The link:{javadocPath}/org/gradle/api/reporting/ReportingExtension.html#file(String)[`file()` method] on `ReportingExtension` has been deprecated and will be removed in Gradle 10.0.0.
+
+Use `ReportingExtension.getBaseDirectory()` with `file(String)` or `dir(String)` instead.
+
+[[reporting_extension_api_doc_title]]
+==== Deprecation of `ReportingExtension.getApiDocTitle()`
+
+The link:{javadocPath}/org/gradle/api/reporting/ReportingExtension.html#getApiDocTitle()[`getApiDocTitle()` method] on `ReportingExtension` has been deprecated and will be removed in Gradle 10.0.0. 
+
+There is no direct replacement for this method.
+
 [[archives-configuration]]
 ==== Deprecation of the `archives` configuration
 The `archives` configuration added by the `base` plugin has been deprecated and will be removed in Gradle 10.0.0.
