@@ -31,7 +31,7 @@ class AbstractKotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScript
         def someInitJar = withEmptyJar("classes_some_init.jar")
 
         toolingApi.requireIsolatedUserHome()
-        def gradleUserHomeDir = toolingApi.createExecuter().gradleUserHomeDir
+        def gradleUserHomeDir = buildContext.gradleUserHomeDir
 
         def init = gradleUserHomeDir.file("init.gradle.kts").tap {
             text = """

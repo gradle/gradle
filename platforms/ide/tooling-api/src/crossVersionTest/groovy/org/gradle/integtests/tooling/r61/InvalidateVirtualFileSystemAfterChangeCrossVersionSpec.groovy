@@ -17,7 +17,7 @@
 package org.gradle.integtests.tooling.r61
 
 import org.gradle.integtests.fixtures.daemon.DaemonFixture
-import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -29,7 +29,6 @@ import java.nio.file.Paths
 
 class InvalidateVirtualFileSystemAfterChangeCrossVersionSpec extends ToolingApiSpecification {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
-    GradleExecuter executer
 
     List<String> changedPaths = [file("src/main/java").absolutePath]
 
@@ -39,8 +38,6 @@ class InvalidateVirtualFileSystemAfterChangeCrossVersionSpec extends ToolingApiS
         buildFile << """
             apply plugin: 'java'
         """
-
-        executer = toolingApi.createExecuter()
     }
 
     def cleanup() {
@@ -94,8 +91,11 @@ class InvalidateVirtualFileSystemAfterChangeCrossVersionSpec extends ToolingApiS
                 }
             }
         """
+
         def block = server.expectAndBlock("block")
-        def build = executer.withTasks("block", "--info").start()
+        def build = new NoDaemonGradleExecuter(toolingApi.getDistribution(), temporaryFolder, buildContext)
+            .withTasks("block", "--info")
+            .start()
         block.waitForAllPendingCalls()
         toolingApi.daemons.daemon.assertBusy()
 

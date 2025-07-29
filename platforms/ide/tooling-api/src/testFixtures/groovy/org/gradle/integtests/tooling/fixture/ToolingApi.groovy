@@ -21,7 +21,6 @@ import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -52,7 +51,7 @@ class ToolingApi implements TestRule {
     private boolean requiresDaemon
     private boolean requireIsolatedDaemons
     private ConnectorFactory connectorFactory = new SharedConnectorFactory()
-    private context = new IntegrationTestBuildContext()
+    private context = IntegrationTestBuildContext.INSTANCE
 
     private final List<Closure> connectorConfigurers = []
     boolean verboseLogging = LOGGER.debugEnabled
@@ -74,21 +73,15 @@ class ToolingApi implements TestRule {
         this.dist = dist
     }
 
+    GradleDistribution getDistribution() {
+        return dist
+    }
+
     /**
      * Specifies that the test use its own Gradle user home dir and daemon registry.
      */
     void requireIsolatedUserHome() {
         withUserHome(testWorkDirProvider.testDirectory.file("user-home-dir"))
-    }
-
-    GradleExecuter createExecuter() {
-        def executer = dist.executer(testWorkDirProvider, context)
-            .withGradleUserHomeDir(gradleUserHomeDir)
-            .withDaemonBaseDir(daemonBaseDir)
-        if (requiresDaemon) {
-            executer.requireDaemon()
-        }
-        return executer
     }
 
     void withUserHome(TestFile userHomeDir) {
