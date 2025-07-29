@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2013 the original author or authors.
  *
@@ -27,28 +26,14 @@ import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.kotlin.dsl.support.ScriptCompilationException;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleBuild;
-import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder;
+import org.jspecify.annotations.NullMarked;
 
-import java.io.File;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class ResilientGradleBuildBuilder extends GradleBuildBuilder implements BuildScopeModelBuilder {
-
+@NullMarked
+public class ResilientGradleBuildBuilder extends GradleBuildBuilder {
     public ResilientGradleBuildBuilder(BuildStateRegistry buildStateRegistry) {
         super(buildStateRegistry);
-    }
-
-    @Override
-    public boolean canBuild(String modelName) {
-        return modelName.equals("org.gradle.tooling.model.gradle.GradleBuild");
-    }
-
-    @Override
-    public DefaultGradleBuild create(BuildState target) {
-        ensureProjectsLoaded(target);
-
-        return convert(target, new LinkedHashMap<>());
     }
 
     @Override
@@ -76,28 +61,21 @@ public class ResilientGradleBuildBuilder extends GradleBuildBuilder implements B
 
         // Make sure the project tree has been loaded and can be queried (but not necessarily configured)
         ensureProjectsLoaded(targetBuild);
-        if(targetBuild instanceof  BrokenIncludedBuildState) {
+        if (targetBuild instanceof BrokenIncludedBuildState) {
             Failure failure = ((BrokenIncludedBuildState) targetBuild).getFailure();
             model.setFailure(DefaultFailure.fromFailure(failure, unused -> null));
-
         }
 
-        File br = targetBuild.getBuildRootDir();
-        System.err.println(br.getAbsolutePath());
-//        model.setRootDir(br);
         GradleInternal gradle = targetBuild.getMutableModel();
         if (targetBuild.isProjectsLoaded()) {
             addProjects(targetBuild, model);
         }
-
         try {
             addIncludedBuilds(gradle, model, all);
         } catch (IllegalStateException e) {
             System.err.println(e.getMessage());
         }
-
         iterateParents(targetBuild, all, gradle, model);
-
         return model;
     }
 
@@ -108,16 +86,6 @@ public class ResilientGradleBuildBuilder extends GradleBuildBuilder implements B
             if (target != null) {
                 model.addIncludedBuild(convert(target, all));
             }
-//            else {
-////                if (reference.isBroken()) {
-////                    throw new IllegalStateException("Unknown build type: " + reference.getClass().getName());
-////                }
-//                DefaultGradleBuild gradleBuild = new DefaultGradleBuild()
-//                    .setRootDir(reference.getProjectDir())
-//                    .setFailed(reference.isBroken());
-//                convert(target, all);
-//                model.addIncludedBuild(gradleBuild);
-//            }
         }
     }
 }
