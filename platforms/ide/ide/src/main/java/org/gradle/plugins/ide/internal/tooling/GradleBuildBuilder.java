@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 public class GradleBuildBuilder implements BuildScopeModelBuilder {
-    private final BuildStateRegistry buildStateRegistry;
+    protected final BuildStateRegistry buildStateRegistry;
 
     public GradleBuildBuilder(BuildStateRegistry buildStateRegistry) {
         this.buildStateRegistry = buildStateRegistry;
@@ -47,11 +47,16 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
 
     @Override
     public DefaultGradleBuild create(BuildState target) {
-        target.ensureProjectsLoaded();
+        ensureProjectsLoaded(target);
         return convert(target, new LinkedHashMap<>());
     }
 
-    private DefaultGradleBuild convert(BuildState targetBuild, Map<BuildState, DefaultGradleBuild> all) {
+    protected Throwable ensureProjectsLoaded(BuildState target) {
+        target.ensureProjectsLoaded();
+        return null;
+    }
+
+    protected DefaultGradleBuild convert(BuildState targetBuild, Map<BuildState, DefaultGradleBuild> all) {
         DefaultGradleBuild model = all.get(targetBuild);
         if (model != null) {
             return model;
@@ -60,12 +65,30 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
         all.put(targetBuild, model);
 
         // Make sure the project tree has been loaded and can be queried (but not necessarily configured)
-        targetBuild.ensureProjectsLoaded();
+        ensureProjectsLoaded(targetBuild);
 
         GradleInternal gradle = targetBuild.getMutableModel();
         addProjects(targetBuild, model);
         addIncludedBuilds(gradle, model, all);
 
+        iterateParents(targetBuild, all, gradle, model);
+
+        return model;
+    }
+
+    protected void addIncludedBuilds(GradleInternal gradle, DefaultGradleBuild model, Map<BuildState, DefaultGradleBuild> all) {
+        for (IncludedBuildInternal reference : gradle.includedBuilds()) {
+            BuildState target = reference.getTarget();
+            if (target instanceof IncludedBuildState || target instanceof RootBuildState) {
+                DefaultGradleBuild convertedIncludedBuild = convert(target, all);
+                model.addIncludedBuild(convertedIncludedBuild);
+            } else {
+                throw new IllegalStateException("Unknown build type: " + reference.getClass().getName());
+            }
+        }
+    }
+
+    protected void iterateParents(BuildState targetBuild, Map<BuildState, DefaultGradleBuild> all, GradleInternal gradle, DefaultGradleBuild model) {
         if (gradle.getParent() == null) {
             List<DefaultGradleBuild> allBuilds = new ArrayList<>();
             buildStateRegistry.visitBuilds(buildState -> {
@@ -76,27 +99,9 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
             });
             model.addBuilds(allBuilds);
         }
-
-        return model;
     }
 
-    private void addIncludedBuilds(GradleInternal gradle, DefaultGradleBuild model, Map<BuildState, DefaultGradleBuild> all) {
-        for (IncludedBuildInternal reference : gradle.includedBuilds()) {
-            BuildState target = reference.getTarget();
-            if (target instanceof IncludedBuildState) {
-                IncludedBuildState includedBuildState = (IncludedBuildState) target;
-                DefaultGradleBuild convertedIncludedBuild = convert(includedBuildState, all);
-                model.addIncludedBuild(convertedIncludedBuild);
-            } else if (target instanceof RootBuildState) {
-                DefaultGradleBuild rootBuild = convert(target, all);
-                model.addIncludedBuild(rootBuild);
-            } else {
-                throw new IllegalStateException("Unknown build type: " + reference.getClass().getName());
-            }
-        }
-    }
-
-    private void addProjects(BuildState target, DefaultGradleBuild model) {
+    protected void addProjects(BuildState target, DefaultGradleBuild model) {
         Map<ProjectState, BasicGradleProject> convertedProjects = new LinkedHashMap<>();
 
         ProjectState rootProject = target.getProjects().getRootProject();
@@ -108,7 +113,7 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
         }
     }
 
-    private BasicGradleProject convert(BuildState owner, ProjectState project, Map<ProjectState, BasicGradleProject> convertedProjects) {
+    protected BasicGradleProject convert(BuildState owner, ProjectState project, Map<ProjectState, BasicGradleProject> convertedProjects) {
         DefaultProjectIdentifier id = new DefaultProjectIdentifier(owner.getBuildRootDir(), project.getProjectPath().getPath());
         BasicGradleProject converted = new BasicGradleProject()
             .setName(project.getName())
