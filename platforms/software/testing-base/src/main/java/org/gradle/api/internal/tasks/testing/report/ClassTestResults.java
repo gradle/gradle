@@ -47,7 +47,7 @@ public class ClassTestResults extends CompositeTestResults {
         this.name = name;
         this.displayName = displayName;
         this.packageResults = packageResults;
-        baseUrl = HTML_REPORT_PREFIX + FileSystem.getCurrent().toLegalFileName(name, FILENAME_REPLACEMENT_CHAR) + HTML_EXTENSION;
+        baseUrl = HTML_REPORT_PREFIX + FileSystem.WINDOWS.toLegalFileName(name, FILENAME_REPLACEMENT_CHAR) + HTML_EXTENSION;
     }
 
     public long getId() {

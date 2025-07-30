@@ -101,7 +101,8 @@ public class Binary2JUnitXmlReportGenerator {
     }
 
     private String getReportFileName(TestClassResult result) {
-        return REPORT_FILE_PREFIX + FileSystem.getCurrent().toLegalFileName(result.getClassName(), ILLEGAL_CHAR_REPLACEMENT) + REPORT_FILE_EXTENSION;
+        // Use Windows filesystem rules for cross-platform compatibility
+        return REPORT_FILE_PREFIX + FileSystem.WINDOWS.toLegalFileName(result.getClassName(), ILLEGAL_CHAR_REPLACEMENT) + REPORT_FILE_EXTENSION;
     }
 
     private static class JUnitXmlReportFileGenerator implements RunnableBuildOperation {
