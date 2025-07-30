@@ -16,76 +16,70 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.event.types.DefaultFailure;
-import org.gradle.internal.composite.BrokenIncludedBuildState;
-import org.gradle.internal.composite.IncludedBuildInternal;
-import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.internal.problems.failure.Failure;
-import org.gradle.kotlin.dsl.support.ScriptCompilationException;
-import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleBuild;
+import org.gradle.internal.composite.BuildIncludeListener;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.Map;
 
 @NullMarked
 public class ResilientGradleBuildBuilder extends GradleBuildBuilder {
-    public ResilientGradleBuildBuilder(BuildStateRegistry buildStateRegistry) {
+    @SuppressWarnings("unused")
+    private final BuildIncludeListener failedIncludedBuildsRegistry;
+
+    public ResilientGradleBuildBuilder(BuildStateRegistry buildStateRegistry, BuildIncludeListener failedIncludedBuildsRegistry) {
         super(buildStateRegistry);
+        this.failedIncludedBuildsRegistry = failedIncludedBuildsRegistry;
     }
 
-    @Override
-    protected Throwable ensureProjectsLoaded(BuildState target) {
-        try {
-            target.ensureProjectsLoaded();
-            return null;
-        } catch (LocationAwareException e) {
-            System.err.println(e.getMessage());
-            if (e.getCause() instanceof ScriptCompilationException) {
-                return e.getCause();
-            }
-            throw e;
-        }
-    }
+//    @Override
+//    protected Throwable ensureProjectsLoaded(BuildState target) {
+//        try {
+//            target.ensureProjectsLoaded();
+//            return null;
+//        } catch (LocationAwareException e) {
+//            System.err.println(e.getMessage());
+//            if (e.getCause() instanceof ScriptCompilationException) {
+//                return e.getCause();
+//            }
+//            throw e;
+//        }
+//    }
 
-    @Override
-    protected DefaultGradleBuild convert(BuildState targetBuild, Map<BuildState, DefaultGradleBuild> all) {
-        DefaultGradleBuild model = all.get(targetBuild);
-        if (model != null) {
-            return model;
-        }
-        model = new DefaultGradleBuild();
-        all.put(targetBuild, model);
-
-        // Make sure the project tree has been loaded and can be queried (but not necessarily configured)
-        ensureProjectsLoaded(targetBuild);
-        if (targetBuild instanceof BrokenIncludedBuildState) {
-            Failure failure = ((BrokenIncludedBuildState) targetBuild).getFailure();
-            model.setFailure(DefaultFailure.fromFailure(failure, unused -> null));
-        }
-
-        GradleInternal gradle = targetBuild.getMutableModel();
-        if (targetBuild.isProjectsLoaded()) {
-            addProjects(targetBuild, model);
-        }
-        try {
-            addIncludedBuilds(gradle, model, all);
-        } catch (IllegalStateException e) {
-            System.err.println(e.getMessage());
-        }
-        iterateParents(targetBuild, all, gradle, model);
-        return model;
-    }
-
-    @Override
-    protected void addIncludedBuilds(GradleInternal gradle, DefaultGradleBuild model, Map<BuildState, DefaultGradleBuild> all) {
-        for (IncludedBuildInternal reference : gradle.includedBuilds()) {
-            BuildState target = reference.getTarget();
-            if (target != null) {
-                model.addIncludedBuild(convert(target, all));
-            }
-        }
-    }
+//    @Override
+//    protected DefaultGradleBuild convert(BuildState targetBuild, Map<BuildState, DefaultGradleBuild> all) {
+//        DefaultGradleBuild model = all.get(targetBuild);
+//        if (model != null) {
+//            return model;
+//        }
+//        model = new DefaultGradleBuild();
+//        all.put(targetBuild, model);
+//
+//        // Make sure the project tree has been loaded and can be queried (but not necessarily configured)
+//        ensureProjectsLoaded(targetBuild);
+////        if (targetBuild instanceof BrokenIncludedBuildState) {
+////            Failure failure = ((BrokenIncludedBuildState) targetBuild).getFailure();
+////            model.setFailure(DefaultFailure.fromFailure(failure, unused -> null));
+////        }
+//
+//        GradleInternal gradle = targetBuild.getMutableModel();
+//        if (targetBuild.isProjectsLoaded()) {
+//            addProjects(targetBuild, model);
+//        }
+//        try {
+//            addIncludedBuilds(gradle, model, all);
+//        } catch (IllegalStateException e) {
+//            System.err.println(e.getMessage());
+//        }
+//        iterateParents(targetBuild, all, gradle, model);
+//        return model;
+//    }
+//
+//    @Override
+//    protected void addIncludedBuilds(GradleInternal gradle, DefaultGradleBuild model, Map<BuildState, DefaultGradleBuild> all) {
+//        for (IncludedBuildInternal reference : gradle.includedBuilds()) {
+//            BuildState target = reference.getTarget();
+//            if (target != null) {
+//                model.addIncludedBuild(convert(target, all));
+//            }
+//        }
+//    }
 }
