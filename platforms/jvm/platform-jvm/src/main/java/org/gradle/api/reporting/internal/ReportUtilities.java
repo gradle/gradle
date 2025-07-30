@@ -17,12 +17,9 @@
 package org.gradle.api.reporting.internal;
 
 import org.gradle.api.Project;
-import org.gradle.api.reporting.ReportingExtension;
 
 /**
  * Utility to calculate report titles for API documentation.
- *
- * TODO: This should be moved to java-base or similar as its only used by JVM-based plugins once the deprecated {@link ReportingExtension#getApiDocTitle()} is removed.
  */
 public interface ReportUtilities {
     /**
