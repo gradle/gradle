@@ -48,10 +48,15 @@ import org.gradle.execution.TaskSelector;
 import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.execution.selection.DefaultBuildTaskSelector;
 import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter;
+import org.gradle.initialization.DefaultGradlePropertiesLoader;
+import org.gradle.initialization.Environment;
+import org.gradle.initialization.IGradlePropertiesLoader;
 import org.gradle.initialization.exception.DefaultExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionCollector;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
+import org.gradle.initialization.properties.DefaultProjectPropertiesLoader;
+import org.gradle.initialization.properties.ProjectPropertiesLoader;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.DefaultBuildLifecycleControllerFactory;
@@ -185,5 +190,15 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
             reportCollector,
             startParameter.isPropertyUpgradeReportEnabled()
         );
+    }
+
+    @Provides
+    protected ProjectPropertiesLoader createProjectPropertiesLoader(StartParameterInternal startParameter, Environment environment) {
+        return new DefaultProjectPropertiesLoader(startParameter, environment);
+    }
+
+    @Provides
+    protected IGradlePropertiesLoader createGradlePropertiesLoader(StartParameterInternal startParameter, Environment environment) {
+        return new DefaultGradlePropertiesLoader(startParameter, environment);
     }
 }
