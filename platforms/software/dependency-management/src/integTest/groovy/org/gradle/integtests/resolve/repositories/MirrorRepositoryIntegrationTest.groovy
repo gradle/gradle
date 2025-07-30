@@ -42,7 +42,8 @@ class MirrorRepositoryIntegrationTest extends AbstractIntegrationSpec {
             def canBeMirrored = r -> {
                 // TODO: Plugin portal
                 // TODO: Disallow mirroring if incompatible features are used
-                return r.getName().equals(ArtifactRepositoryContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME)
+                return r.getName().equals(ArtifactRepositoryContainer.DEFAULT_MAVEN_CENTRAL_REPO_NAME) ||
+                       r.getName().equals(org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler.GRADLE_PLUGIN_PORTAL_REPO_NAME)
             }
             def useMirror = r -> {
                 String mirrorAvailable = System.getProperty("org.gradle.mirror.mavenCentral")
@@ -93,6 +94,26 @@ class MirrorRepositoryIntegrationTest extends AbstractIntegrationSpec {
                 id("com.example.example") version "1.0"
             }
         """ + buildFile.text
+        expect:
+        succeeds("buildEnvironment", "dependencies")
+    }
+
+    def "check resolution with mirror repository for projects for plugin portal"() {
+        buildFile.text = """
+            plugins {
+                id("com.example.example") version "1.0"
+            }
+        """ + buildFile.text
+        expect:
+        succeeds("buildEnvironment", "dependencies")
+    }
+
+    def "check resolution with mirror repository for settings for plugin portal"() {
+        settingsFile << """
+            plugins {
+                id("com.example.example") version "1.0"
+            }
+        """
         expect:
         succeeds("buildEnvironment", "dependencies")
     }
