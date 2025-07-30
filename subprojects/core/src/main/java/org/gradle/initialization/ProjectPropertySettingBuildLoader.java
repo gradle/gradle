@@ -22,139 +22,103 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
 import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.internal.Pair;
-import org.gradle.internal.reflect.PropertyMutator;
-import org.gradle.internal.resource.local.FileResourceListener;
-import org.gradle.util.internal.GUtil;
-import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
 
 import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
-import static org.gradle.internal.Cast.uncheckedCast;
-import static org.gradle.internal.reflect.JavaPropertyReflectionUtil.writeablePropertyIfExists;
 
 public class ProjectPropertySettingBuildLoader implements BuildLoader {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ProjectPropertySettingBuildLoader.class);
 
     private final GradleProperties gradleProperties;
-    private final FileResourceListener fileResourceListener;
     private final BuildLoader buildLoader;
+    private final Environment environment;
 
-    public ProjectPropertySettingBuildLoader(GradleProperties gradleProperties, BuildLoader buildLoader, FileResourceListener fileResourceListener) {
+    public ProjectPropertySettingBuildLoader(GradleProperties gradleProperties, BuildLoader buildLoader, Environment environment) {
         this.buildLoader = buildLoader;
         this.gradleProperties = gradleProperties;
-        this.fileResourceListener = fileResourceListener;
+        this.environment = environment;
     }
 
     @Override
     public void load(SettingsInternal settings, GradleInternal gradle) {
         buildLoader.load(settings, gradle);
-        Project rootProject = gradle.getRootProject();
-        setProjectProperties(rootProject, new CachingPropertyApplicator(rootProject.getClass()));
+        setProjectProperties(gradle.getRootProject());
     }
 
-    private void setProjectProperties(Project project, CachingPropertyApplicator applicator) {
-        addPropertiesToProject(project, applicator);
+    private void setProjectProperties(Project project) {
+        addPropertiesToProject(project);
         for (Project childProject : getChildProjectsForInternalUse(project)) {
-            setProjectProperties(childProject, applicator);
+            setProjectProperties(childProject);
         }
     }
 
-    private void addPropertiesToProject(Project project, CachingPropertyApplicator applicator) {
-        applicator.beginProjectProperties();
-        File projectPropertiesFile = new File(project.getProjectDir(), Project.GRADLE_PROPERTIES);
-        LOGGER.debug("Looking for project properties from: {}", projectPropertiesFile);
-        fileResourceListener.fileObserved(projectPropertiesFile);
-        if (projectPropertiesFile.isFile()) {
-            Properties projectProperties = GUtil.loadProperties(projectPropertiesFile);
-            LOGGER.debug("Adding project properties (if not overwritten by user properties): {}",
-                projectProperties.keySet());
-            configurePropertiesOf(project, applicator, uncheckedCast(projectProperties));
-        } else {
-            LOGGER.debug("project property file does not exists. We continue!");
-            configurePropertiesOf(project, applicator, ImmutableMap.of());
+    private void addPropertiesToProject(Project project) {
+        Map<String, String> intermediateProjectProperties = loadProjectGradleProperties(project);
+        Map<String, String> mergedProjectProperties = gradleProperties.mergeProperties(intermediateProjectProperties);
+
+        ImmutableMap.Builder<String, Object> extraProjectPropertiesBuilder = ImmutableMap.builder();
+
+        for (Map.Entry<String, String> entry : mergedProjectProperties.entrySet()) {
+            String propertyName = entry.getKey();
+            // This is intentional relaxation of the type to support an edge-case of GradleBuild task
+            // that allows passing non-String properties via `startParameter.projectProperties`.
+            // The latter map is typed `Map<String, String>` but due to type erasure, the actual values were never explicitly checked.
+            Object propertyValue = entry.getValue();
+            assignOrCollectProperty(project, extraProjectPropertiesBuilder, propertyName, propertyValue);
         }
-        ((ExtraPropertiesExtensionInternal) project.getExtensions().getExtraProperties())
-            .setGradleProperties(applicator.endProjectProperties());
+
+        installProjectExtraPropertiesDefaults(project, extraProjectPropertiesBuilder.build());
     }
 
-    // {@code mergedProperties} should really be <String, Object>, however properties loader signature expects a <String, String>
-    // even if in practice it was never enforced (one can pass other property types, such as boolean) and
-    // fixing the method signature would be a binary breaking change in a public API.
-    private void configurePropertiesOf(Project project, CachingPropertyApplicator applicator, Map<String, Object> properties) {
-        for (Map.Entry<String, Object> entry : gradleProperties.mergeProperties(properties).entrySet()) {
-            applicator.configureProperty(project, entry.getKey(), entry.getValue());
-        }
-    }
-
-    /**
-     * Applies the given properties to the project and its subprojects, caching property mutators whenever possible
-     * to avoid too many searches.
-     */
-    private static class CachingPropertyApplicator {
-        private final Class<? extends Project> projectClass;
-        private final Map<Pair<String, ? extends Class<?>>, Optional<PropertyMutator>> mutators = new HashMap<>();
-        private ImmutableMap.Builder<String, Object> extraProjectProperties;
-
-        CachingPropertyApplicator(Class<? extends Project> projectClass) {
-            this.projectClass = projectClass;
+    @SuppressWarnings("deprecation")
+    private static void assignOrCollectProperty(
+        Project project,
+        ImmutableMap.Builder<String, Object> extraProjectProperties,
+        String propertyName,
+        Object propertyValue
+    ) {
+        if (propertyName.isEmpty()) {
+            // Historically, we filtered out properties with empty names here.
+            // They could appear in case the properties file has lines containing only '=' or ':'
+            return;
         }
 
-        void configureProperty(Project project, String name, Object value) {
-            if (isPossibleProperty(name)) {
-                assert project.getClass() == projectClass;
-                PropertyMutator propertyMutator = propertyMutatorFor(name, typeOf(value));
-                if (propertyMutator != null) {
-                    propertyMutator.setValue(project, value);
+        switch (propertyName) {
+            case "version":
+                project.setVersion(propertyValue);
+                break;
+            case "group":
+                project.setGroup(propertyValue);
+                break;
+            case "description":
+                // TODO: Remove non-String project properties support in Gradle 10 - https://github.com/gradle/gradle/issues/34454
+                if (propertyValue instanceof String) {
+                    project.setDescription((String) propertyValue);
                 } else {
-                    extraProjectProperties.put(name, value);
+                    extraProjectProperties.put(propertyName, propertyValue);
                 }
-            }
+                break;
+            case "status":
+                project.setStatus(propertyValue);
+                break;
+            case "buildDir":
+                project.setBuildDir(propertyValue);
+                break;
+            default:
+                extraProjectProperties.put(propertyName, propertyValue);
+                break;
         }
+    }
 
-        @Nullable
-        private static Class<?> typeOf(@Nullable Object value) {
-            return value == null ? null : value.getClass();
-        }
+    private Map<String, String> loadProjectGradleProperties(Project project) {
+        File projectPropertiesFile = new File(project.getProjectDir(), Project.GRADLE_PROPERTIES);
+        Map<String, String> loadedProperties = environment.propertiesFile(projectPropertiesFile);
+        return loadedProperties == null ? ImmutableMap.of() : loadedProperties;
+    }
 
-        @Nullable
-        private PropertyMutator propertyMutatorFor(String propertyName, @Nullable Class<?> valueType) {
-            return mutators.computeIfAbsent(
-                Pair.of(propertyName, valueType),
-                key -> {
-                    assert key.left != null;
-                    return Optional.ofNullable(writeablePropertyIfExists(projectClass, key.left, key.right));
-                }
-            ).orElse(null);
-        }
-
-        /**
-         * In a properties file, entries like '=' or ':' on a single line define a property with an empty string name and value.
-         * We know that no property will have an empty property name.
-         *
-         * @see java.util.Properties#load(java.io.Reader)
-         */
-        private static boolean isPossibleProperty(String name) {
-            return !name.isEmpty();
-        }
-
-        public void beginProjectProperties() {
-            extraProjectProperties = ImmutableMap.builder();
-        }
-
-        public Map<String, Object> endProjectProperties() {
-            try {
-                return extraProjectProperties.build();
-            } finally {
-                extraProjectProperties = null;
-            }
-        }
+    private static void installProjectExtraPropertiesDefaults(Project project, Map<String, Object> extraProperties) {
+        ExtraPropertiesExtensionInternal extraPropertiesContainer = (ExtraPropertiesExtensionInternal) project.getExtensions().getExtraProperties();
+        extraPropertiesContainer.setGradleProperties(extraProperties);
     }
 }

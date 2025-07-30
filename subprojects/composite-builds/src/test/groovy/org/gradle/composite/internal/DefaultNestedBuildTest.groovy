@@ -37,7 +37,7 @@ import spock.lang.Specification
 import java.util.function.Function
 
 class DefaultNestedBuildTest extends Specification {
-    def owner = Mock(BuildState)
+    def owningBuild = Mock(BuildState)
     def tree = Mock(BuildTreeState)
     def factory = Mock(BuildModelControllerServices)
     def controller = Mock(BuildLifecycleController)
@@ -52,8 +52,8 @@ class DefaultNestedBuildTest extends Specification {
     BuildTreeFinishExecutor finishExecutor
 
     DefaultNestedBuild build() {
-        _ * factory.servicesForBuild(buildDefinition, _, owner) >> Mock(BuildModelControllerServices.Supplier)
-        _ * factory.newInstance(buildDefinition, _, owner, _) >> controller
+        _ * factory.servicesForBuild(buildDefinition, _) >> Mock(BuildModelControllerServices.Supplier)
+        _ * factory.newInstance(buildDefinition, _, owningBuild, _) >> controller
         _ * buildDefinition.name >> "nested"
         services.add(Stub(BuildOperationExecutor))
         services.add(factory)
@@ -70,7 +70,7 @@ class DefaultNestedBuildTest extends Specification {
             buildTreeController
         }
 
-        return new DefaultNestedBuild(buildIdentifier, Path.path(":a:b:c"), buildDefinition, owner, tree)
+        return new DefaultNestedBuild(buildIdentifier, Path.path(":a:b:c"), buildDefinition, owningBuild, tree)
     }
 
     def "runs action and does not finish build"() {

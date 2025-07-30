@@ -25,9 +25,10 @@ import static org.gradle.initialization.IGradlePropertiesLoader.SYSTEM_PROJECT_P
 
 class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def configurationCache = newConfigurationCacheFixture()
+
     def "invalidates cache when set of Gradle property defining system properties changes"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
         settingsFile << """
             println(gradleProp + '!')
         """
@@ -65,7 +66,6 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
 
     def "invalidates cache when set of Gradle property defining system properties has multiple changes"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
         settingsFile << """
             println(forChange1 + '!')
         """
@@ -91,7 +91,6 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
 
     def "invalidates cache when set of Gradle property defining environment variables changes"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
         settingsFile << """
             println(gradleProp + '!')
         """
@@ -142,7 +141,6 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
 
     def "detects dynamic Gradle property access in settings script"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
         settingsFile << """
             println($dynamicPropertyExpression + '!')
         """
@@ -179,7 +177,6 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
     @Issue("https://github.com/gradle/gradle/issues/19793")
     def "gradle properties must be accessible from task in #build"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
         build.setup(this)
 
         when:
@@ -205,7 +202,6 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
     def "system properties declared in properties of composite build"() {
         given:
         String systemProp = "fromPropertiesFile"
-        def configurationCache = newConfigurationCacheFixture()
         def fixture = spec.createFixtureFor(this, systemProp)
         fixture.setup()
 
@@ -232,10 +228,9 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         spec << SystemPropertiesCompositeBuildFixture.specsWithSystemPropertyAccess()
     }
 
-    def "passing cli override doesn't invalidates cache entry if property wasn't read at configuration time"() {
+    def "reuses cache when system property used only at execution time changes"() {
         given:
         String systemProp = "fromPropertiesFile"
-        def configurationCache = newConfigurationCacheFixture()
         def fixture = spec.createFixtureFor(this, systemProp)
         fixture.setup()
 
@@ -264,10 +259,9 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         spec << SystemPropertiesCompositeBuildFixture.specsWithoutSystemPropertyAccess()
     }
 
-    def "passing cli override invalidates cache entry if property was read at configuration time"() {
+    def "invalidates cache when system property used at configuration time changes"() {
         given:
         String systemProp = "fromPropertiesFile"
-        def configurationCache = newConfigurationCacheFixture()
         def fixture = spec.createFixtureFor(this, systemProp)
         fixture.setup()
 
@@ -307,7 +301,6 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
     def "runtime mutation system properties in composite build"() {
         given:
         String systemProp = "fromPropertiesFile"
-        def configurationCache = newConfigurationCacheFixture()
         def includedBuildSystemPropertyDefinition = new SystemPropertiesCompositeBuildFixture.IncludedBuild("included-build")
         def spec = new SystemPropertiesCompositeBuildFixture.Spec(
             [includedBuildSystemPropertyDefinition],

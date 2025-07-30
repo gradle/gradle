@@ -70,7 +70,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
 
         when:
         configurationCacheRun "ok"
-        configurationCacheRun "ok"
 
         then:
         outputContains("this.value = ${output}")
@@ -129,6 +128,7 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         "double[]"                           | doubleArray()                             | "[4.9E-324, NaN, 1.7976931348623157E308]"
         "boolean[]"                          | "[true, false]"                           | "[true, false]"
         "char[]"                             | "['a', 'b', 'c']"                         | "abc"
+        "LocalDateTime"                      | "LocalDateTime.of(2024, 1, 1, 1, 1)"      | "2024-01-01T01:01"
     }
 
     private String integerArray() {
@@ -215,7 +215,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
 
         when:
         configurationCacheRun "ok"
-        configurationCacheRun "ok"
 
         then:
         outputContains("this.value = ${output}")
@@ -254,7 +253,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         """
 
         when:
-        configurationCacheRun "ok"
         configurationCacheRun "ok"
 
         then:
@@ -300,7 +298,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         """
 
         when:
-        configurationCacheRun "ok"
         configurationCacheRun "ok"
 
         then:
@@ -388,7 +385,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
 
         when:
         configurationCacheRun "ok"
-        configurationCacheRun "ok"
 
         then:
         def expected = output instanceof File ? file(output.path) : output
@@ -452,7 +448,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         """
 
         when:
-        configurationCacheRun "ok"
         configurationCacheRun "ok"
 
         then:
@@ -623,7 +618,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         """
 
         when:
-        configurationCacheRun "ok"
         configurationCacheRun "ok"
 
         then:

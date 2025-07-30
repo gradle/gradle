@@ -33,6 +33,8 @@ import org.gradle.internal.service.scopes.SettingsScopeServices;
 
 import java.io.File;
 
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
+
 public class SettingsFactory {
     private final Instantiator instantiator;
     private final ServiceRegistry buildScopeServices;
@@ -66,7 +68,7 @@ public class SettingsFactory {
             startParameter
         );
         ((ExtraPropertiesExtensionInternal) settings.getExtensions().getExtraProperties())
-            .setGradleProperties(gradleProperties.getProperties());
+            .setGradleProperties(uncheckedNonnullCast(gradleProperties.getProperties()));
         return new SettingsState(settings, serviceRegistryFactory.services);
     }
 

@@ -22,7 +22,10 @@ import java.util.List;
 
 /**
  * Kotlin build script template model.
+ *
+ * @deprecated Will be removed in Gradle 10, use KotlinDslBaseScriptModel instead.
  */
+@Deprecated
 public interface KotlinBuildScriptTemplateModel {
 
     /**

@@ -45,10 +45,10 @@ To do this, Gradle does the following:
 
 [cols="~,~,~,~"]
 |===
-| Phase | Cache | Work Avoidance | Parallelism and Performance
+| Phase | Cache | Cache Key | Work Avoidance | Parallelism and Performance
 
-| *Execution* | Build Cache | Uses task inputs and outputs | Runs independent tasks in parallel with `--parallel`
-| *Configuration* | Configuration Cache | Uses build logic and environment | Runs tasks in parallel (within the same project), optimizes memory, and more
+| *Configuration* | Configuration Cache | Build logic and environment | Skip project configuration | Runs tasks in parallel within the same project, optimizes memory, and more
+| *Execution* | Build Cache | Task inputs | Skip task execution | Runs independent tasks in different projects in parallel with `--parallel`
 |===
 
 The Configuration Cache is similar to the <<build_cache#build_cache,Build Cache>>, but they store different types of data:
@@ -101,6 +101,8 @@ Gradle performs the configuration phase as usual:
 Gradle then stores a snapshot of the task graph in the Configuration Cache for future use.
 After this, Gradle loads the task graph from the cache and proceeds with task execution.
 
+NOTE: When it is enabled, Gradle always loads from the configuration cache - even on a cache miss - to ensure that hits and misses are handled consistently.
+
 === Subsequent Runs
 
 image::configuration-cache-3.png[]
@@ -110,8 +112,8 @@ On subsequent executions of the same tasks (e.g., `./gradlew check` again), Grad
 - Skips the configuration phase entirely.
 - Loads the task graph from the Configuration Cache instead.
 
-Before using the cache, Gradle verifies that no build configuration inputs have changed.
-If any input has changed, Gradle reruns the configuration phase and updates the cache.
+To match a saved entry in the cache, Gradle verifies that no build configuration inputs have changed.
+If any input has changed, Gradle reruns the configuration phase and stores a new entry in the cache.
 
 === Build Configuration Inputs
 
@@ -136,16 +138,15 @@ Gradle uses an optimized serialization mechanism to store Configuration Cache en
 It automatically serializes object graphs containing simple state or supported types.
 
 While Configuration Cache serialization doesn't rely on Java Serialization, it understands <<configuration_cache_status.adoc#config_cache:not_yet_implemented:java_serialization, some of its features>>.
-This can be used to customize serialization behavior, but incurs performance penalty and should be avoided.
+This can be used to customize serialization behavior, but incurs a performance penalty and should be avoided.
 
 [[config_cache:intro:performance_improvements]]
 == Performance Improvements
 
 Beyond skipping the configuration phase, the Configuration Cache enhances performance in the following ways:
 
-- *Parallel Task Execution*: All tasks run in parallel by default, subject to dependency constraints.
+- *Parallel Task Execution*: When parallel execution is enabled, even tasks within the same project can be run in parallel, subject to dependency constraints.
 - *Cached Dependency Resolution*: Dependency resolution results are stored and reused.
-- *Optimized Memory Usage*: After writing the task graph to the cache, Gradle discards configuration and dependency resolution state from memory, lowering peak heap usage.
 
 [[config_cache:in_action]]
 image::configuration-cache/running-help.gif[]
@@ -156,7 +157,8 @@ image::configuration-cache/running-help.gif[]
 If you enable and configure the Configuration Cache in your `gradle.properties` file, it will be automatically enabled when your IDE delegates builds to Gradle.
 No additional setup is required.
 
-Because `gradle.properties` is typically checked into source control, enabling the Configuration Cache this way will apply to your entire team.
+Because `gradle.properties` is typically checked into source control,
+<<userguide/best-practices/best_practices_general.adoc#use_the_gradle_properties_file,enabling the Configuration Cache this way will apply to your entire team>>.
 If you prefer to enable it only for your local environment, you can configure it directly in your IDE instead.
 
 NOTE: Syncing a project in an IDE does not benefit from the Configuration Cache. Only running tasks through the IDE will leverage the cache.

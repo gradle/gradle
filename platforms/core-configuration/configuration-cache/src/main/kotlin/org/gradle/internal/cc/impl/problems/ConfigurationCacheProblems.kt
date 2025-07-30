@@ -33,6 +33,8 @@ import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheThrowable
 import org.gradle.internal.cc.base.problems.AbstractProblemsListener
 import org.gradle.internal.cc.impl.ConfigurationCacheAction
+import org.gradle.internal.cc.impl.ConfigurationCacheAction.Load
+import org.gradle.internal.cc.impl.ConfigurationCacheAction.SkipStore
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.Store
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.Update
 import org.gradle.internal.cc.impl.ConfigurationCacheKey
@@ -128,7 +130,9 @@ class ConfigurationCacheProblems(
 
     val shouldDiscardEntry: Boolean
         get() {
-            if (cacheAction is ConfigurationCacheAction.Load) {
+            // skipping store means there is no entry to be discarded
+            require(cacheAction != SkipStore)
+            if (cacheAction is Load) {
                 return false
             }
             if (seenSerializationErrorOnStore) {
@@ -220,6 +224,18 @@ class ConfigurationCacheProblems(
             .documentationSection(DocumentationSection.TaskOptOut).build()
         report.onIncompatibleTask(problem)
         summarizer.onIncompatibleTask()
+    }
+
+    private
+    fun reportDegradingFeature(feature: String) {
+        val problem = problemFactory
+            .problem {
+                // for now, we don't expect interesting information from degrading features, so only the feature name is displayed
+                text("Feature '$feature' is incompatible with the configuration cache.")
+            }
+            .build()
+        report.onProblem(problem)
+        summarizer.onIncompatibleFeature()
     }
 
     override fun onProblem(problem: PropertyProblem) {
@@ -315,6 +331,7 @@ class ConfigurationCacheProblems(
      */
     override fun report(reportDir: File, validationFailures: ProblemConsumer) {
         addNotReportedDegradingTasks()
+        addDegradingFeatures()
         val summary = summarizer.get()
         val hasNoProblemsForConsole = summary.reportableProblemCount == 0
         val outputDirectory = outputDirectoryFor(reportDir)
@@ -342,12 +359,21 @@ class ConfigurationCacheProblems(
         }
     }
 
-    private fun addNotReportedDegradingTasks() {
+    private
+    fun addNotReportedDegradingTasks() {
         degradationDecision.onDegradedTask { task, reasons ->
             val trace = locationForTask(task)
             if (!incompatibleTasks.contains(trace)) {
                 reportIncompatibleTask(trace, reasons.joinToString())
             }
+        }
+    }
+
+    private
+    fun addDegradingFeatures() {
+        degradationDecision.onDegradedFeature { feature, _ ->
+            // TODO:configuration-cache consider collecting location information (trace)
+            reportDegradingFeature(feature)
         }
     }
 
@@ -361,8 +387,9 @@ class ConfigurationCacheProblems(
     private
     fun ConfigurationCacheAction.summaryText() =
         when (this) {
-            is ConfigurationCacheAction.Load -> "reusing"
+            is Load -> "reusing"
             Store -> "storing"
+            SkipStore -> "skipping"
             is Update -> "updating"
         }
 
@@ -379,6 +406,7 @@ class ConfigurationCacheProblems(
 
         override fun afterStart() = Unit
 
+        @Suppress("CyclomaticComplexMethod")
         override fun beforeComplete() {
             val summary = summarizer.get()
             val reportableProblemCount = summary.reportableProblemCount
@@ -400,8 +428,9 @@ class ConfigurationCacheProblems(
                 cacheAction == Store -> log("Configuration cache entry stored with {}.", problemCountString)
                 cacheAction is Update && !hasProblems -> log("Configuration cache entry updated for {}, {} up-to-date.", updatedProjectsString, reusedProjectsString)
                 cacheAction is Update -> log("Configuration cache entry updated for {} with {}, {} up-to-date.", updatedProjectsString, problemCountString, reusedProjectsString)
-                cacheAction is ConfigurationCacheAction.Load && !hasProblems -> log("Configuration cache entry reused.")
-                cacheAction is ConfigurationCacheAction.Load -> log("Configuration cache entry reused with {}.", problemCountString)
+                cacheAction is Load && !hasProblems -> log("Configuration cache entry reused.")
+                cacheAction is Load -> log("Configuration cache entry reused with {}.", problemCountString)
+                cacheAction == SkipStore -> log("Configuration cache entry discarded as cache is in read-only mode.")
                 hasTooManyProblems -> log("Too many configuration cache problems found ({}).", problemCountString)
                 hasProblems -> log("Configuration cache problems found ({}).", problemCountString)
                 // else not storing or loading and no problems to report
@@ -472,8 +501,10 @@ class ConfigurationCacheProblems(
         }
     }
 
-    private inner class ErrorsAreProblemsProblemsListener(
-        private val problemSeverity: ProblemSeverity
+    private
+    inner class ErrorsAreProblemsProblemsListener(
+        private
+        val problemSeverity: ProblemSeverity
     ) : AbstractProblemsListener() {
 
         override fun onProblem(problem: PropertyProblem) {

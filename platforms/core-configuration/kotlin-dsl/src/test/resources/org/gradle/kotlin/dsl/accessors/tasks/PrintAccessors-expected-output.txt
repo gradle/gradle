@@ -122,6 +122,7 @@
      * @see [DependencyHandler.create]
      * @see [DependencyHandler.add]
      */
+    @Deprecated("Use single-string notation instead")
     fun DependencyHandler.`api`(
         group: String,
         name: String,
@@ -287,7 +288,7 @@
      * @see [DependencyHandler.create]
      * @see [DependencyHandler.add]
      */
-    @Deprecated(message = "The compile configuration has been deprecated for dependency declaration. Please use the 'api' or 'implementation' configuration instead.")
+    @Deprecated("Use single-string notation instead")
     fun DependencyHandler.`compile`(
         group: String,
         name: String,

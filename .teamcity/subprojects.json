@@ -119,6 +119,20 @@
     "crossVersionTests": false
   },
   {
+    "name": "build-discovery",
+    "path": "platforms/core-runtime/build-discovery",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "build-discovery-api",
+    "path": "platforms/core-runtime/build-discovery-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-events",
     "path": "subprojects/build-events",
     "unitTests": true,
@@ -763,6 +777,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "java-api-extractor",
+    "path": "platforms/core-configuration/java-api-extractor",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "java-compiler-plugin",
     "path": "platforms/jvm/java-compiler-plugin",
     "unitTests": true,
@@ -773,6 +794,13 @@
     "name": "java-platform",
     "path": "platforms/jvm/java-platform",
     "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "javadoc",
+    "path": "platforms/jvm/javadoc",
+    "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },

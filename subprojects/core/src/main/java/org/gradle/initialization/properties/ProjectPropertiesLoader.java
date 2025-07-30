@@ -24,5 +24,5 @@ import java.util.Map;
 @ServiceScope(Scope.Build.class)
 public interface ProjectPropertiesLoader {
 
-    Map<String, Object> loadProjectProperties();
+    Map<String, String> loadProjectProperties();
 }

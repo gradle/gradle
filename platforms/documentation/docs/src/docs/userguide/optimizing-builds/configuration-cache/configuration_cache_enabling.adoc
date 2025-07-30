@@ -47,7 +47,7 @@ If enabled in `gradle.properties`, you can override it and disable the cache at 
 === Ignoring Configuration Cache Problems
 
 By default, Gradle fails the build if Configuration Cache problems occur.
-However, when gradually updating plugins or build logic to support the Configuration Cache, it can be useful to temporarily turn problems into warnings by enabling the _warning mode_.
+However, when gradually updating plugins or build logic to support the Configuration Cache, it can be useful to temporarily turn problems into warnings by enabling _warning mode_.
 
 To change this behavior at build time, use the following flag:
 
@@ -68,7 +68,7 @@ org.gradle.configuration-cache.problems=warn
 
 [WARNING]
 ====
-The warning mode is a migration and troubleshooting aid and not intended as a persistent way of ignoring incompatibilities.
+Warning mode is a migration and troubleshooting aid and not intended as a persistent way of ignoring incompatibilities.
 It will also not prevent new incompatibilities being accidentally added to your build later.
 
 Instead, we recommend explicitly marking problematic tasks as <<configuration_cache_debugging.adoc#config_cache:task_opt_out,incompatible>>.
@@ -138,7 +138,7 @@ Undeclared Shared Build Service Usage::
 If a task uses a <<build_services#build_services, shared Build Service>> without explicitly declaring the requirement using the `Task.usesService` method, Gradle will emit a deprecation warning.
 
 Deprecation Enforcement Without Configuration Cache::
-Even when the Configuration Cache is not enabled, Gradle will enforce deprecations for the following requirements if the feature flag is present:
+Even when the Configuration Cache is not enabled, Gradle will warn if the following deprecated features are used:
 - <<configuration_cache_requirements.adoc#config_cache:requirements:build_listeners, Registering build listeners>>
 - <<configuration_cache_requirements.adoc#config_cache:requirements:task_extensions, Using task extensions and conventions at execution time>>
 
@@ -259,8 +259,8 @@ Once your developer workflow (e.g., running tests from the IDE) is stable, consi
 
 Once everything is stable locally and within your team, consider enabling the Configuration Cache on CI:
 
-- Ensure your builds stays CC compliant, developers can’t introduce problem accidentally!
-- CC overhead is compensated by the intra-project task parallelism.
+- This ensures your builds stays CC compliant, and developers can’t introduce problems accidentally!
+- CC overhead is compensated for by the intra-project task parallelism.
 - Getting cache hits may not be possible initially (this is normal).
 
 When you are ready to focus on hit rates:

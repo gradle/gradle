@@ -45,7 +45,7 @@ abstract class GenerateAutoTestedSamplesTestTask @Inject constructor(@Internal v
     val sampleStart = Pattern.compile("""<pre class=['"]autoTested(.*?)['"].*?>""")
 
     @get:InputFiles
-    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:PathSensitive(PathSensitivity.ABSOLUTE)
     abstract val mainSources: ConfigurableFileCollection
 
     @get:Input
@@ -99,7 +99,7 @@ class ${className} extends AbstractAutoTestedSamplesTest {
     '''
     @Test
     void runSamples() {
-        runSamplesFromFile(new File('${file.file.absoluteFile}'), FILE_CONTENT)
+        runSamplesFromFile(new File('${file.file.absolutePath.replace("\\", "/")}'), FILE_CONTENT)
     }
 }
 """

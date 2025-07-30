@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
 class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport, ConfigurationUsageChangingFixture {
-
     @Issue("https://github.com/gradle/gradle/issues/23932")
     def "does not eagerly resolve compile tasks"() {
         buildFile << """
@@ -151,7 +150,6 @@ Artifacts
 
             // A resolvable configuration to collect source data
             def sourceElementsConfig = configurations.create("sourceElements") {
-                visible = true
                 assert canBeResolved
                 canBeConsumed = false
                 attributes {
@@ -242,7 +240,6 @@ Artifacts
 
             // A resolvable configuration to collect JaCoCo coverage data
             def sourceElementsConfig = configurations.create("sourceElements") {
-                visible = true
                 assert canBeResolved
                 canBeConsumed = false
                 extendsFrom(configurations.implementation)

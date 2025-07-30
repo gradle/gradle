@@ -18,6 +18,7 @@ package org.gradle.execution
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.plan.QueryableExecutionPlan
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
@@ -33,7 +34,8 @@ class DryRunBuildExecutionActionTest extends Specification {
     def gradle = Mock(GradleInternal)
     def startParameter = Mock(StartParameterInternal)
     def textOutputFactory = new TestStyledTextOutputFactory()
-    def action = new DryRunBuildExecutionAction(textOutputFactory, delegate)
+    def configurationTimeBarrier = Mock(ConfigurationTimeBarrier)
+    def action = new DryRunBuildExecutionAction(delegate, textOutputFactory, configurationTimeBarrier)
 
     def setup() {
         _ * gradle.getStartParameter() >> startParameter
@@ -46,6 +48,7 @@ class DryRunBuildExecutionActionTest extends Specification {
 
         given:
         startParameter.isDryRun() >> true
+        configurationTimeBarrier.isAtConfigurationTime() >> false
         executionPlan.contents >> contents
         contents.tasks >> toList(task1, task2)
 
@@ -59,17 +62,5 @@ class DryRunBuildExecutionActionTest extends Specification {
 """
         1 * task1.getIdentityPath() >> Path.path(':task1')
         1 * task2.getIdentityPath() >> Path.path(':task2')
-        0 * delegate.execute(_, _)
-    }
-
-    def "proceeds when dry run is not selected"() {
-        given:
-        startParameter.isDryRun() >> false
-
-        when:
-        action.execute(gradle, executionPlan)
-
-        then:
-        1 * delegate.execute(gradle, executionPlan)
     }
 }

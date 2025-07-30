@@ -156,7 +156,6 @@ import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.buildsrc.BuildSrcBuildListenerFactory;
 import org.gradle.initialization.buildsrc.BuildSrcProjectConfigurationAction;
 import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.initialization.layout.ResolvedBuildLayout;
 import org.gradle.initialization.properties.DefaultProjectPropertiesLoader;
@@ -215,7 +214,6 @@ import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.DefaultTextFileResourceLoader;
 import org.gradle.internal.resource.TextFileResourceLoader;
-import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scripts.ScriptExecutionListener;
@@ -322,7 +320,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected BuildLayout createBuildLocations(BuildLayoutFactory buildLayoutFactory, BuildDefinition buildDefinition) {
-        return buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(buildDefinition.getStartParameter()));
+        return buildLayoutFactory.getLayoutFor(buildDefinition.getStartParameter().toBuildLayoutConfiguration());
     }
 
     @Provides
@@ -477,13 +475,13 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         GradleProperties gradleProperties,
         BuildOperationRunner buildOperationRunner,
         BuildOperationProgressEventEmitter emitter,
-        ListenerManager listenerManager
+        Environment environment
     ) {
         return new NotifyingBuildLoader(
             new ProjectPropertySettingBuildLoader(
                 gradleProperties,
                 new InstantiatingBuildLoader(),
-                listenerManager.getBroadcaster(FileResourceListener.class)
+                environment
             ),
             buildOperationRunner,
             emitter

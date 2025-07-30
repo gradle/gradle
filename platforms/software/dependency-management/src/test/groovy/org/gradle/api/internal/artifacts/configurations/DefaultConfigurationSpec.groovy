@@ -115,7 +115,6 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         configuration.name == "name"
-        configuration.visible
         configuration.extendsFrom.empty
         configuration.transitive
         configuration.description == null
@@ -142,12 +141,10 @@ class DefaultConfigurationSpec extends Specification {
 
         when:
         configuration.setDescription("description")
-        configuration.setVisible(false)
         configuration.setTransitive(false)
 
         then:
         configuration.description == "description"
-        !configuration.visible
         !configuration.transitive
     }
 
@@ -783,7 +780,6 @@ This method is only meant to be called on configurations which allow the (non-de
 
     private void checkCopiedConfiguration(Configuration original, Configuration copy, def resolutionStrategyInCopy, int copyCount = 1) {
         assert copy.name == original.name + "Copy${copyCount > 1 ? copyCount : ''}"
-        assert copy.visible == original.visible
         assert copy.transitive == original.transitive
         assert copy.description == original.description
         assert copy.allArtifacts as Set == original.allArtifacts as Set
@@ -1243,11 +1239,6 @@ This method is only meant to be called on configurations which allow the (non-de
         thrown(InvalidUserCodeException)
 
         when:
-        configuration.setVisible(false)
-        then:
-        thrown(InvalidUserCodeException)
-
-        when:
         configuration.extendsFrom(conf("other"))
         then:
         thrown(InvalidUserCodeException)
@@ -1416,7 +1407,7 @@ This method is only meant to be called on configurations which allow the (non-de
 
         then:
         UnsupportedOperationException t = thrown()
-        t.message == "Mutation of attributes is not allowed"
+        t.message == "This container is immutable and cannot be mutated."
     }
 
     def "copied configuration has independent listeners"() {

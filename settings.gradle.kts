@@ -1,4 +1,5 @@
 import com.google.gson.Gson
+import gradlebuild.basics.ArchitectureDataType
 import org.gradle.api.internal.FeaturePreviews
 import java.io.PrintWriter
 import java.io.Serializable
@@ -60,6 +61,8 @@ val core = platform("core") {
         subproject("base-asm")
         subproject("base-services")
         subproject("build-configuration")
+        subproject("build-discovery")
+        subproject("build-discovery-api")
         subproject("build-operations")
         subproject("build-operations-trace")
         subproject("build-option")
@@ -136,6 +139,7 @@ val core = platform("core") {
         subproject("guava-serialization-codecs")
         subproject("input-tracking")
         subproject("isolated-action-services")
+        subproject("java-api-extractor")
         subproject("kotlin-dsl")
         subproject("kotlin-dsl-provider-plugins")
         subproject("kotlin-dsl-tooling-builders")
@@ -231,6 +235,7 @@ val jvm = platform("jvm") {
     subproject("distributions-jvm")
     subproject("ear")
     subproject("jacoco")
+    subproject("javadoc")
     subproject("jvm-services")
     subproject("language-groovy")
     subproject("language-java")
@@ -343,15 +348,29 @@ gradle.rootProject {
         outputFile = layout.projectDirectory.file("architecture/platforms.md")
         elements = provider { architectureElements.map { it.build() } }
     }
-    tasks.register("platformsData", GeneratePlatformsDataTask::class) {
+    val platformsData = tasks.register("platformsData", GeneratePlatformsDataTask::class) {
         description = "Generates the platforms data"
-        outputFile = layout.projectDirectory.file("build/architecture/platforms.json")
+        outputFile = layout.buildDirectory.file("architecture/platforms.json")
         platforms = provider { architectureElements.filterIsInstance<PlatformBuilder>().map { it.build() } }
     }
-    tasks.register("packageInfoData", GeneratePackageInfoDataTask::class) {
+    val packageInfoData = tasks.register("packageInfoData", GeneratePackageInfoDataTask::class) {
         description = "Map packages to the list of package-info.java files that apply to them"
-        outputFile = layout.projectDirectory.file("build/architecture/package-info.json")
+        outputFile = layout.buildDirectory.file("architecture/package-info.json")
         packageInfoFiles = provider { GeneratePackageInfoDataTask.findPackageInfoFiles(projectBaseDirs) }
+    }
+
+    configurations.consumable("platformsData") {
+        outgoing.artifact(platformsData)
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(ArchitectureDataType.PLATFORMS))
+        }
+    }
+
+    configurations.consumable("packageInfoData") {
+        outgoing.artifact(packageInfoData)
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(ArchitectureDataType.PACKAGE_INFO))
+        }
     }
 }
 
