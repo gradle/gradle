@@ -72,12 +72,11 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         """
 
         when:
-        executer.withArguments("-Dorg.gradle.internal.resilient-model-building=true",
-            KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
-        MyCustomModel model = runBuildAction(new CustomModelAction())
+        executer.withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+        MyCustomModel model = runBuildActionFails(new CustomModelAction())
 
         then:
-        model.paths == [":", ":included"]
+        model == null
     }
 
     def "basic project w/ included build in pluginManagement - broken included build build file - build action"() {
@@ -98,8 +97,7 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
     """
 
         when:
-        executer.withArguments("-Dorg.gradle.internal.resilient-model-building=true",
-            KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
+        executer.withArguments("-Dorg.gradle.internal.resilient-model-building=true")
         MyCustomModel model = runBuildAction(new CustomModelAction())
 
         then:
