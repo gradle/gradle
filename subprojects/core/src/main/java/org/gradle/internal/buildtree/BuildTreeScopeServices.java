@@ -217,10 +217,11 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected GradlePropertiesController createGradlePropertiesController(
+        Environment environment,
         IGradlePropertiesLoader propertiesLoader,
         SystemPropertiesInstaller systemPropertiesInstaller,
         ProjectPropertiesLoader projectPropertiesLoader
     ) {
-        return new DefaultGradlePropertiesController(propertiesLoader, systemPropertiesInstaller, projectPropertiesLoader);
+        return new DefaultGradlePropertiesController(environment, propertiesLoader, systemPropertiesInstaller, projectPropertiesLoader);
     }
 }

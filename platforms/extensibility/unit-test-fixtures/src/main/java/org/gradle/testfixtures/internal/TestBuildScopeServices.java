@@ -69,11 +69,6 @@ public class TestBuildScopeServices extends BuildScopeServices {
         }
 
         @Override
-        public Map<String, String> mergeProperties(Map<String, String> properties) {
-            return properties;
-        }
-
-        @Override
         public Map<String, String> getProperties() {
             return Collections.emptyMap();
         }

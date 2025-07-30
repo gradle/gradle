@@ -21,23 +21,24 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.properties.GradleProperties;
 
-import java.io.File;
 import java.util.Map;
 
 import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 
 public class ProjectPropertySettingBuildLoader implements BuildLoader {
 
-    private final GradleProperties gradleProperties;
+    private final GradlePropertiesController gradlePropertiesController;
     private final BuildLoader buildLoader;
-    private final Environment environment;
 
-    public ProjectPropertySettingBuildLoader(GradleProperties gradleProperties, BuildLoader buildLoader, Environment environment) {
+    public ProjectPropertySettingBuildLoader(
+        GradlePropertiesController gradlePropertiesController,
+        BuildLoader buildLoader
+    ) {
+        this.gradlePropertiesController = gradlePropertiesController;
         this.buildLoader = buildLoader;
-        this.gradleProperties = gradleProperties;
-        this.environment = environment;
     }
 
     @Override
@@ -46,16 +47,17 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         setProjectProperties(gradle.getRootProject());
     }
 
-    private void setProjectProperties(Project project) {
+    private void setProjectProperties(ProjectInternal project) {
         addPropertiesToProject(project);
         for (Project childProject : getChildProjectsForInternalUse(project)) {
-            setProjectProperties(childProject);
+            setProjectProperties((ProjectInternal) childProject);
         }
     }
 
-    private void addPropertiesToProject(Project project) {
-        Map<String, String> intermediateProjectProperties = loadProjectGradleProperties(project);
-        Map<String, String> mergedProjectProperties = gradleProperties.mergeProperties(intermediateProjectProperties);
+    private void addPropertiesToProject(ProjectInternal project) {
+        gradlePropertiesController.loadGradleProperties(project.getProjectIdentity(), project.getProjectDir());
+        GradleProperties projectGradleProperties = gradlePropertiesController.getGradleProperties(project.getProjectIdentity());
+        Map<String, String> mergedProjectProperties = projectGradleProperties.getProperties();
 
         ImmutableMap.Builder<String, Object> extraProjectPropertiesBuilder = ImmutableMap.builder();
 
@@ -109,12 +111,6 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
                 extraProjectProperties.put(propertyName, propertyValue);
                 break;
         }
-    }
-
-    private Map<String, String> loadProjectGradleProperties(Project project) {
-        File projectPropertiesFile = new File(project.getProjectDir(), Project.GRADLE_PROPERTIES);
-        Map<String, String> loadedProperties = environment.propertiesFile(projectPropertiesFile);
-        return loadedProperties == null ? ImmutableMap.of() : loadedProperties;
     }
 
     private static void installProjectExtraPropertiesDefaults(Project project, Map<String, Object> extraProperties) {

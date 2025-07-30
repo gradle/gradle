@@ -132,7 +132,6 @@ import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.initialization.DefaultSettingsLoaderFactory;
 import org.gradle.initialization.DefaultSettingsPreparer;
 import org.gradle.initialization.DefaultToolchainManagement;
-import org.gradle.initialization.Environment;
 import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.InitScriptHandler;
@@ -435,16 +434,14 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected BuildLoader createBuildLoader(
-        GradleProperties gradleProperties,
+        GradlePropertiesController gradlePropertiesController,
         BuildOperationRunner buildOperationRunner,
-        BuildOperationProgressEventEmitter emitter,
-        Environment environment
+        BuildOperationProgressEventEmitter emitter
     ) {
         return new NotifyingBuildLoader(
             new ProjectPropertySettingBuildLoader(
-                gradleProperties,
-                new InstantiatingBuildLoader(),
-                environment
+                gradlePropertiesController,
+                new InstantiatingBuildLoader()
             ),
             buildOperationRunner,
             emitter

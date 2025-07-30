@@ -893,7 +893,7 @@ class DefaultConfigurationCache internal constructor(
     private
     fun loadGradleProperties() {
         val rootBuildId = DefaultBuildIdentifier.ROOT
-        gradlePropertiesController.loadGradlePropertiesFrom(rootBuildId, startParameter.buildTreeRootDirectory, true)
+        gradlePropertiesController.loadGradleProperties(rootBuildId, startParameter.buildTreeRootDirectory, true)
     }
 
     private

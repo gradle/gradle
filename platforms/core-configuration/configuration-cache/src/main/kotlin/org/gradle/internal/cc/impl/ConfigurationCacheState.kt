@@ -402,7 +402,7 @@ class ConfigurationCacheState(
         // Load Gradle properties from a file but skip applying system properties defined here.
         // System properties from the file may be mutated by the build logic, and the execution-time values are already restored by the EnvironmentChangeTracker.
         // Applying properties from file overwrites these modifications.
-        serviceOf<GradlePropertiesController>().loadGradlePropertiesFrom(buildId, settingDir, false)
+        serviceOf<GradlePropertiesController>().loadGradleProperties(buildId, settingDir, false)
     }
 
     private
