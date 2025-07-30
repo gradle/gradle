@@ -959,6 +959,10 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         def outputDir2 = gradleUserHomeOutputDir("lib2.jar", "lib2.jar.txt")
         def outputDir3 = gradleUserHomeOutputDir("lib3.jar", "lib3.jar.txt")
         def outputDir4 = gradleUserHomeOutputDir("lib4-1.0.jar", "lib4-1.0.jar.txt")
+        outputDir1.listFiles { dir, name -> name == "some-garbage" }.size() == 1
+        outputDir2.listFiles { dir, name -> name == "some-garbage" }.size() == 1
+        outputDir3.listFiles { dir, name -> name == "some-garbage" }.size() == 1
+        outputDir4.listFiles { dir, name -> name == "some-garbage" }.size() == 1
 
         when:
         succeeds ":app:resolve"
