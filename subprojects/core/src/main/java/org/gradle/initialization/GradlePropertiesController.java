@@ -16,6 +16,7 @@
 
 package org.gradle.initialization;
 
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -32,7 +33,7 @@ public interface GradlePropertiesController {
     /**
      * The {@link GradleProperties} instance attached to this service.
      */
-    GradleProperties getGradleProperties();
+    GradleProperties getGradleProperties(BuildIdentifier buildId);
 
     /**
      * Loads the set of {@link GradleProperties} from the given directory and
@@ -43,15 +44,15 @@ public interface GradlePropertiesController {
      * This method should be called only once per build but multiple calls with the
      * same argument are allowed.
      *
-     * @param settingsDir directory where to look for the {@code gradle.properties} file
+     * @param buildRootDir directory where to look for the {@code gradle.properties} file
      * @param setSystemProperties should system properties be set or not
      * @throws IllegalStateException if called with a different argument in the same build
      */
-    void loadGradlePropertiesFrom(File settingsDir, boolean setSystemProperties);
+    void loadGradlePropertiesFrom(BuildIdentifier buildId, File buildRootDir, boolean setSystemProperties);
 
     /**
-     * Unloads the properties so the next call to {@link #loadGradlePropertiesFrom(File, boolean)} would reload them and
+     * Unloads the properties so the next call to {@link #loadGradlePropertiesFrom(BuildIdentifier, File, boolean)} would reload them and
      * re-evaluate any property defining system properties and environment variables.
      */
-    void unloadGradleProperties();
+    void unloadGradleProperties(BuildIdentifier buildId);
 }

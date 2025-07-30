@@ -388,9 +388,10 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected GradleProperties createGradleProperties(
+        BuildState buildState,
         GradlePropertiesController gradlePropertiesController
     ) {
-        return gradlePropertiesController.getGradleProperties();
+        return gradlePropertiesController.getGradleProperties(buildState.getBuildIdentifier());
     }
 
     @Provides

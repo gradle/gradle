@@ -21,6 +21,7 @@ import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.internal.build.BuildModelControllerServices;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.service.Provides;
@@ -46,7 +47,7 @@ public class TestBuildScopeServices extends BuildScopeServices {
 
     @Override
     @Provides
-    protected GradleProperties createGradleProperties(GradlePropertiesController gradlePropertiesController) {
+    protected GradleProperties createGradleProperties(BuildState buildState, GradlePropertiesController gradlePropertiesController) {
         return new EmptyGradleProperties();
     }
 
