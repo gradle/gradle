@@ -119,12 +119,19 @@ plugins {
 ----
 
 The script itself acts as the plugin.
-There is no need to explicitly implement the link:{javadocPath}/org/gradle/api/Plugin.html[`Plugin`] interface.
+There is no need to explicitly implement the link:{javadocPath}/org/gradle/api/Plugin.html[`Plugin`] interface; a requirement for binary plugins.
 
 == Publishing a Precompiled Script Plugin
 
 You can publish a precompiled script plugin to a repository, either a public (like the link:https://plugins.gradle.org/[Gradle Plugin Portal]) or a private artifact repository (e.g., Maven, Artifactory, Nexus).
-However, this is not typical for most builds.
+However, this is not typical or recommended and would require some work as it must first be turned into a binary plugin.
+
+== Publishing a Precompiled Script Plugin
+
+You can publish a precompiled script plugin to a repository—either a public one such as the https://plugins.gradle.org/[Gradle Plugin Portal], or a private artifact repository like Maven, Artifactory, or Nexus.
+
+However, publishing precompiled script plugins is not typical or recommended (they are meant for internal use only).
+To publish them, you must first convert the precompiled script plugin into a binary plugin.
 
 == Example of a Precompiled Script Plugin
 
@@ -139,8 +146,8 @@ In your project root, add a `buildSrc` directory:
 =====
 [source, kotlin]
 ----
-.                           // root project
-├── ...                     // other project dirs and files
+.   // root project
+├── ...     // other project dirs and files
 └── buildSrc
     ├── build.gradle.kts
     └── src
@@ -152,8 +159,8 @@ In your project root, add a `buildSrc` directory:
 =====
 [source, groovy]
 ----
-.                           // root project
-├── ...                     // other project dirs and files
+.   // root project
+├── ...     // other project dirs and files
 └── buildSrc
     ├── build.gradle
     └── src
@@ -174,7 +181,7 @@ include::sample[dir="snippets/plugins/simple/groovy", files="buildSrc/build.grad
 
 === 3. Create a plugin script
 
-Inside `build-logic/src/main/kotlin` or `build-logic/src/main/groovy`, write a `.gradle(.kts)` file.
+Inside `buildSrc/src/main/kotlin` or `buildSrc/src/main/groovy`, write a `.gradle(.kts)` file.
 For example:
 
 [source,text]
@@ -188,7 +195,7 @@ For example:
              └── my-create-file-plugin.gradle.kts
 ----
 
-Our `my-create-file-plugin.gradle.kts` file contains the following code:
+Our `my-create-file-plugin.gradle(.kts)` file contains the following code:
 
 ====
 include::sample[dir="snippets/plugins/simple/kotlin", files="buildSrc/src/main/kotlin/my-create-file-plugin.gradle.kts[]"]

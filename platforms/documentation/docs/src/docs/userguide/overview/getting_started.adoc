@@ -55,12 +55,12 @@ _Training time_: **55 minutes**
 
 The tutorial covers:
 
-<<part1_gradle_init#part1_begin,Part 1.>> Initializing the Project +
-<<part2_gradle_tasks#part2_begin,Part 2.>> Running Tasks +
-<<part3_gradle_dep_man#part3_begin,Part 3.>> Understanding Dependencies +
-<<part4_gradle_plugins#part4_begin,Part 4.>> Applying Plugins +
-<<part5_gradle_inc_builds#part5_begin,Part 5.>> Exploring Incremental Builds +
-<<part6_gradle_caching#part6_begin,Part 6.>> Enabling the Cache
+<<part1_gradle_init.adoc#part1_begin,Part 1.>> Initializing the Project +
+<<part2_gradle_tasks.adoc#part2_begin,Part 2.>> Running Tasks +
+<<part3_gradle_dep_man.adoc#part3_begin,Part 3.>> Understanding Dependencies +
+<<part4_gradle_plugins.adoc#part4_begin,Part 4.>> Applying Plugins +
+<<part5_gradle_inc_builds.adoc#part5_begin,Part 5.>> Exploring Incremental Builds +
+<<part6_gradle_caching.adoc#part6_begin,Part 6.>> Enabling the Cache
 
 == Gradle for Build Engineers
 
@@ -97,13 +97,13 @@ _Training time_: **65 minutes**
 
 The tutorial covers:
 
-<<part1_gradle_init_project#part1_begin,Part 1.>> Initializing the Project +
-<<part2_build_lifecycle#part2_begin,Part 2.>> Understanding the Build Lifecycle +
-<<part3_multi_project_builds#part3_begin,Part 3.>> Multi-Project Builds +
-<<part4_settings_file#part4_begin,Part 6.>> Writing the Settings File +
-<<part5_build_scripts#part5_begin,Part 5.>> Writing Build Scripts +
-<<part6_writing_tasks#part6_begin,Part 6.>> Writing Tasks +
-<<part7_writing_plugins#part7_begin,Part 7.>> Writing Plugins +
+<<part1_gradle_init_project.adoc#part1_begin,Part 1.>> Initializing the Project +
+<<part2_build_lifecycle.adoc#part2_begin,Part 2.>> Understanding the Build Lifecycle +
+<<part3_multi_project_builds.adoc#part3_begin,Part 3.>> Multi-Project Builds +
+<<part4_settings_file.adoc#part4_begin,Part 6.>> Writing the Settings File +
+<<part5_build_scripts.adoc#part5_begin,Part 5.>> Writing Build Scripts +
+<<part6_writing_tasks.adoc#part6_begin,Part 6.>> Writing Tasks +
+<<part7_writing_plugins.adoc#part7_begin,Part 7.>> Writing Plugins +
 
 == Gradle for Plugin Developers
 
@@ -112,7 +112,7 @@ Plugin authors that are ready to write their own plugins and publish it should s
 [[gradle_plugin_intro]]
 === 1. Learn how to develop Gradle Plugins
 
-This section goes through developing tasks, understanding services, writing and publishing plugins.
+This section goes through developing tasks, writing, and publishing plugins.
 
 [sidebar]
 _Training level_: **Advanced** +
@@ -123,5 +123,18 @@ This section covers:
 <<plugin_introduction_advanced.adoc#plugin_introduction_advanced,Part 1.>> Plugin Introduction +
 <<pre_compiled_script_plugin_advanced.adoc#pre_compiled_script_plugins_advanced,Part 2.>> Pre-Compiled Script Plugins +
 <<binary_plugin_advanced.adoc#binary_plugins_advanced,Part 3.>> Binary Plugins +
+<<developing_binary_plugin_advanced.adoc#develop_binary_plugins_advanced,Part 4.>> Binary Plugin Development +
+<<publishing_binary_plugin_advanced.adoc#publish_binary_plugins_advanced,Part 5.>> Binary Plugin Publishing +
 
 [[advanced_tutorial]]
+=== 2. Advanced Gradle Tutorial
+
+The tutorial will take you from Gradle initialization all the way through creating and publishing a binary plugin.
+
+[sidebar]
+_Training level_: **Advanced** +
+_Training time_: **65 minutes**
+
+The tutorial covers:
+
+<<part1_gradle_init_plugin.adoc#part1_begin,Part 1.>> Initializing the Project +

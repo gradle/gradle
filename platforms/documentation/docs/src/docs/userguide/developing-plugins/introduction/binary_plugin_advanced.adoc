@@ -13,22 +13,21 @@
 // limitations under the License.
 
 [[binary_plugins_advanced]]
-= Binary Plugins
+= Binary Plugin
 
 If Gradle or the Gradle community does not offer the specific capabilities your project needs, creating your own custom plugin could be a solution.
 This is where binary plugins come in.
 
 A binary plugin is a plugin that is implemented in a compiled language and is packaged as a JAR file.
+Binary plugins must implement the link:{javadocPath}/org/gradle/api/Plugin.html[`Plugin`] interface.
 
 == Implementing the Plugin Interface
-
-All plugins, aside from pre-compiled script plugins, must implements the link:{javadocPath}/org/gradle/api/Plugin.html[`Plugin`] interface.
 
 For example, this is a "hello world" *plugin*:
 
 ====
-include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[tags=plugin]"]
-include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=plugin]"]
+include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[tags=simple]"]
+include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=simple]"]
 ====
 <1> Extend the `org.gradle.api.Plugin` interface.
 <2> Override the `apply` method.
@@ -110,7 +109,7 @@ apply plugin: SamplePlugin
 =====
 ====
 
-== Developing a Binary Plugin
+== Updating the Convention Plugin
 
 There are two ways to update the convention plugin in the previous page into a binary plugin.
 
@@ -155,6 +154,8 @@ include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[ta
 include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=apply]"]
 ====
 
-Ready to build something? Start with the Advanced Tutorial.
+This is a very rudimentary example of a binary plugin.
+Let's take a look at a more realistic example.
 
-Next Step: Start the Tutorial >>
+[.text-right]
+**Next Step:** <<developing_binary_plugin_advanced.adoc#develop_binary_plugins_advanced,Learn how to develop Binary Plugins>> >>

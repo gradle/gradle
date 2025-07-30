@@ -1,0 +1,28 @@
+package org.example;
+
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.file.RegularFileProperty;
+
+import javax.inject.Inject;
+
+// tag::simple[]
+public class FileDiffExtension {
+
+    private final RegularFileProperty file1;
+    private final RegularFileProperty file2;
+
+    @Inject
+    public FileDiffExtension(ObjectFactory objects) {
+        this.file1 = objects.fileProperty();
+        this.file2 = objects.fileProperty();
+    }
+
+    public RegularFileProperty getFile1() {
+        return file1;
+    }
+
+    public RegularFileProperty getFile2() {
+        return file2;
+    }
+}
+// tag::simple[]

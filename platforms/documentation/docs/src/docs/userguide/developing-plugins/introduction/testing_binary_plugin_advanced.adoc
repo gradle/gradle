@@ -1,0 +1,125 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[test_binary_plugins_advanced]]
+= Binary Plugin Testing
+
+Gradle provides a robust mechanism for testing binary plugins. This includes:
+
+- Dynamically generating a `build.gradle(.kts)` file that applies your plugin
+- Running Gradle builds programmatically via the Gradle TestKit
+- Verifying task execution, behavior, and output
+
+A well-tested plugin typically includes two levels of testing:
+
+1. Integration Tests
+2. Functional Tests
+
+The directory of our plugin looks as follows:
+
+====
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+.
+└── plugin
+    ├── settings.gradle.kts
+    ├── build.gradle.kts
+    └── src
+       ├── main
+       │   └── java/org/example
+       │       ├── FileDiffTask.java
+       │       ├── FileDiffPlugin.java
+       │       └── FileDiffExtension.java
+       ├── test
+       │   └── java/org/example
+       │       └── FileDiffPluginTest.java
+       └── functionalTest
+           └── java/org/example
+               └── FileDiffPluginFunctionalTest.java
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+└── plugin
+    ├── settings.gradle
+    ├── build.gradle
+    └── src
+       ├── main
+       │   └── java/org/example
+       │       ├── FileDiffTask.java
+       │       ├── FileDiffPlugin.java
+       │       └── FileDiffExtension.java
+       ├── test
+       │   └── java/org/example
+       │       └── FileDiffPluginTest.java
+       └── functionalTest
+           └── java/org/example
+               └── FileDiffPluginFunctionalTest.java
+----
+=====
+====
+
+== Integration Test
+
+Integration tests validate the internal behavior of your plugin in a lightweight, isolated project.
+These tests simulate applying your plugin without needing a full Gradle execution.
+
+They test:
+
+- The plugin applies without errors
+- Tasks or extensions are registered correctly
+
+.src/main/java/org/example/FileDiffExtension.java
+[source,java]
+----
+include::{snippetsPath}/plugins/fileDiffBinaryPlugin/kotlin/plugin/src/test/java/org/example/FileDiffPluginTest.java[]
+----
+
+These tests are fast and useful for verifying the basic mechanics of your plugin logic.
+
+== Functional Test
+
+Functional tests (also known as end-to-end plugin tests) use Gradle's `TestKit` to launch real Gradle builds in a temporary directory.
+This is how you verify your plugin works correctly in real-world usage.
+
+They test:
+
+- The plugin can be applied to a real build
+- The plugin task runs correctly and produces the expected output
+- Users can configure the plugin via the DSL
+
+.src/main/java/org/example/FileDiffExtension.java
+[source,java]
+----
+include::{snippetsPath}/plugins/fileDiffBinaryPlugin/kotlin/plugin/src/functionalTest/java/org/example/FileDiffPluginFunctionalTest.java[]
+----
+
+Gradle doesn’t automatically know about custom test source sets, so you must declare a `functionalTest` source set and tell Gradle how to run it.
+The `build.gradle(.kts)` is updated to create a `functionalTest` task:
+
+====
+include::sample[dir="snippets/plugins/fileDiffBinaryPlugin/kotlin", files="plugin/build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/fileDiffBinaryPlugin/groovy", files="plugin/build.gradle[]"]
+====
+
+== Consumer Project
+
+
+[.text-right]
+**Next Step:** <<publishing_binary_plugin_advanced.adoc#publish_binary_plugins_advanced,Learn how to publish Binary Plugins>> >>

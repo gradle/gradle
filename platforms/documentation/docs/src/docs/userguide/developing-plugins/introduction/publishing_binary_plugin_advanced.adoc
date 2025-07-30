@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-= Writing a Custom Gradle Plugin: FileDiff
+[[publish_binary_plugins_advanced]]
+= Binary Plugin Publishing
 
-[[part1_begin]]
+Ready to build something? Start with the Advanced Tutorial.
+
+Next Step: Start the Tutorial >>
