@@ -17,6 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.initialization.properties.MutableGradleProperties;
 import org.gradle.initialization.properties.ProjectPropertiesLoader;
@@ -67,12 +68,12 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
     private class SharedGradleProperties implements GradleProperties {
 
-        private final String displayName;
+        private final BuildIdentifier buildId;
         private volatile State state;
 
         public SharedGradleProperties(BuildIdentifier buildId) {
-            displayName = buildId.toString();
-            state = new NotLoaded(displayName);
+            this.buildId = buildId;
+            state = new NotLoaded(buildId);
         }
 
         @Nullable
@@ -101,7 +102,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         }
 
         private void unload() {
-            state = new NotLoaded(displayName);
+            state = new NotLoaded(buildId);
         }
     }
 
@@ -114,15 +115,15 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
     private class NotLoaded implements State {
 
-        private final String displayName;
+        private final BuildIdentifier buildId;
 
-        private NotLoaded(String displayName) {
-            this.displayName = displayName;
+        private NotLoaded(BuildIdentifier buildId) {
+            this.buildId = buildId;
         }
 
         @Override
         public GradleProperties gradleProperties() {
-            throw new IllegalStateException(String.format("GradleProperties for %s have not been loaded yet.", displayName));
+            throw new IllegalStateException(String.format("GradleProperties for %s have not been loaded yet.", buildId));
         }
 
         @Override
@@ -130,7 +131,8 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
             MutableGradleProperties loadedProperties = propertiesLoader.loadGradleProperties(settingsDir);
 
             if (setSystemProperties) {
-                systemPropertiesInstaller.setSystemPropertiesFrom(loadedProperties);
+                boolean isRootBuild = DefaultBuildIdentifier.ROOT.equals(buildId);
+                systemPropertiesInstaller.setSystemPropertiesFrom(loadedProperties, isRootBuild);
             }
 
             Map<String, String> projectProperties = projectPropertiesLoader.loadProjectProperties();

@@ -17,7 +17,6 @@
 package org.gradle.initialization
 
 import org.gradle.api.Project
-import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.initialization.properties.DefaultProjectPropertiesLoader
@@ -225,7 +224,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
 
         def gradlePropertiesLoader = new DefaultGradlePropertiesLoader(startParameter, environment)
         def projectPropertiesLoader = new DefaultProjectPropertiesLoader(startParameter, environment)
-        def systemPropertiesInstaller = new DefaultSystemPropertiesInstaller(Mock(EnvironmentChangeTracker), startParameter, Mock(GradleInternal))
+        def systemPropertiesInstaller = new DefaultSystemPropertiesInstaller(Mock(EnvironmentChangeTracker), startParameter)
         def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, systemPropertiesInstaller, projectPropertiesLoader)
 
         when:
@@ -253,7 +252,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
 
         def gradlePropertiesLoader = new DefaultGradlePropertiesLoader(startParameter, environment)
         def projectPropertiesLoader = new DefaultProjectPropertiesLoader(startParameter, environment)
-        def systemPropertiesInstaller = new DefaultSystemPropertiesInstaller(Mock(EnvironmentChangeTracker), startParameter, Mock(GradleInternal))
+        def systemPropertiesInstaller = new DefaultSystemPropertiesInstaller(Mock(EnvironmentChangeTracker), startParameter)
         def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, systemPropertiesInstaller, projectPropertiesLoader)
 
         when:
@@ -275,10 +274,10 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         def gradlePropertiesLoader = new DefaultGradlePropertiesLoader(startParameter, environment)
         def projectPropertiesLoader = new DefaultProjectPropertiesLoader(startParameter, environment)
         def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, Mock(SystemPropertiesInstaller), projectPropertiesLoader)
-        
+
         def rootBuildId = this.rootBuildId
         def includedBuildId = new DefaultBuildIdentifier(Path.path(":included"))
-        
+
         def rootProperties = controller.getGradleProperties(rootBuildId)
         def includedProperties = controller.getGradleProperties(includedBuildId)
 
@@ -289,7 +288,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         then:
         rootProperties.find("prop") == "user value"
         includedProperties.find("prop") == "user value"
-        
+
         and: "properties are separate instances"
         !rootProperties.is(includedProperties)
     }
@@ -306,7 +305,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         def gradlePropertiesLoader = new DefaultGradlePropertiesLoader(startParameter, environment)
         def projectPropertiesLoader = new DefaultProjectPropertiesLoader(startParameter, environment)
         def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, Mock(SystemPropertiesInstaller), projectPropertiesLoader)
-        
+
         def buildId = rootBuildId
         def properties = controller.getGradleProperties(buildId)
 
