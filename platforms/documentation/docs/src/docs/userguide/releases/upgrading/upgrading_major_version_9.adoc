@@ -323,6 +323,113 @@ You can also preserve the file system permissions across archives tasks by confi
 org.gradle.archives.use-file-system-permissions=true
 ----
 
+=== `Test` tasks may no longer execute expected tests
+
+In previous releases, it was possible to create `Test` tasks without any additional configuration.
+By convention, Gradle used the classpath and test classes from the `test` source set.
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+}
+
+// configure test dependencies
+// ...
+
+tasks.register<Test>("otherTest")
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'java-library'
+}
+
+// configure test dependencies
+// ...
+
+tasks.register("otherTest", Test)
+----
+=====
+====
+
+In this example, `otherTest` relied on the deprecated convention. This scenario started to emit a <<upgrading_version_8#test_task_default_classpath,deprecation warning>> in 8.1.
+Gradle would execute the same tests with `otherTest` and the built-in `test` task because Gradle used the classpath and test classes from the `test` source set.
+
+The convention has been removed, but builds will not fail if they were relying on this behavior. Builds that emitted the deprecation warning will silently stop executing tests.
+In the example above, `otherTest` will be skipped and execute no tests because it has no test classes configured.
+
+To return to the previous behavior, you must explicitly configure the `Test` task:
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+val test by testing.suites.existing(JvmTestSuite::class)
+tasks.register<Test>("otherTest") {
+    testClassesDirs = files(test.map { it.sources.output.classesDirs })
+    classpath = files(test.map { it.sources.runtimeClasspath })
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+tasks.register("otherTest", Test) {
+    testClassesDirs = testing.suites.test.sources.output.classesDirs
+    classpath = testing.suites.test.sources.runtimeClasspath
+}
+----
+=====
+====
+
+or add the extra `Test` task through test suites:
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+testing {
+    suites {
+        named<JvmTestSuite>("test") {
+            targets {
+                register("otherTest")
+            }
+        }
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+testing {
+    suites {
+        test {
+            targets {
+                otherTest
+            }
+        }
+    }
+}
+----
+=====
+====
+
 === `test` task fails when no tests are discovered
 
 When test sources are present and no filters are applied, the `test` task will now fail with an error if it runs but doesn’t discover any tests.
