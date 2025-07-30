@@ -517,7 +517,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Override
     public void setIncludedBuilds(Collection<? extends IncludedBuildInternal> includedBuilds) {
         this.includedBuilds = ImmutableList.copyOf(includedBuilds);
-
     }
 
     @Override

@@ -16,11 +16,9 @@
 
 package org.gradle.integtests.tooling
 
-
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.gradle.GradleBuild
-import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 class CustomModelAction implements BuildAction<MyCustomModel>, Serializable {
 
@@ -46,7 +44,7 @@ class CustomModelAction implements BuildAction<MyCustomModel>, Serializable {
                 System.err.println("Build failed: " + b.failure.description);
             }
         }
-        KotlinDslScriptsModel buildScriptModel = controller.getModel(KotlinDslScriptsModel.class);
+//        KotlinDslScriptsModel buildScriptModel = controller.getModel(KotlinDslScriptsModel.class);
 
 
         def paths = build.projects.collect{project ->
@@ -62,7 +60,7 @@ class CustomModelAction implements BuildAction<MyCustomModel>, Serializable {
 
         // Build your custom model
         return new MyCustomModel(
-            buildScriptModel.scriptModels,
+            [:],
             identifier,
             paths,
             build

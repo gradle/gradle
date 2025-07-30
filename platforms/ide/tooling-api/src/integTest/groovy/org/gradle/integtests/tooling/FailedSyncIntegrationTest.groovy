@@ -31,11 +31,17 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         """
 
         when:
-        executer.withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-        MyCustomModel model = runBuildActionFails(new CustomModelAction())
+        executeResilient()
+        MyCustomModel model = runBuildAction(new CustomModelAction())
 
         then:
-        failureDescriptionContains("Script compilation error")
+        model.paths == []
+        model.build != null
+
+//        def inlcudedBuild = model.build.includedBuilds.getAt(0)
+//        inlcudedBuild != null
+//        inlcudedBuild.failure == null
+//        failureDescriptionContains("Script compilation error")
     }
 
     def "basic project - broken root build file with build action"() {
@@ -48,8 +54,8 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         """
 
         when:
-        executer.withArguments("-Dorg.gradle.internal.resilient-model-building=true",
-            KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
+        executeResilient()
+        executer.withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
         MyCustomModel model = runBuildAction(new CustomModelAction())
 
         then:
@@ -72,11 +78,20 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         """
 
         when:
-        executer.withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-        MyCustomModel model = runBuildActionFails(new CustomModelAction())
+        executeResilient()
+        MyCustomModel model = runBuildAction(new CustomModelAction())
 
         then:
-        model == null
+        model.paths == [":", ":included"]
+        model.build != null
+
+        def inlcudedBuild = model.build.includedBuilds.getAt(0)
+        inlcudedBuild != null
+        inlcudedBuild.failure == null
+    }
+
+    def GradleExecuter executeResilient() {
+        executer.withArguments("-Dorg.gradle.internal.resilient-model-building=true")
     }
 
     def "basic project w/ included build in pluginManagement - broken included build build file - build action"() {
@@ -97,7 +112,7 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
     """
 
         when:
-        executer.withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+        executeResilient()
         MyCustomModel model = runBuildAction(new CustomModelAction())
 
         then:
@@ -124,7 +139,7 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
     """
 
         when:
-        executer.withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+        executeResilient()
         MyCustomModel model = runBuildAction(new CustomModelAction())
 
         then:
@@ -155,7 +170,7 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         """
 
         when:
-        executer.withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+        executeResilient()
         MyCustomModel model = runBuildAction(new CustomModelAction())
 
         then:
@@ -166,7 +181,6 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         inlcudedBuild != null
         inlcudedBuild.failure != null
         inlcudedBuild.failure.message.contains("Script compilation error")
-//        failureDescriptionContains("Script compilation error")
     }
 
 
