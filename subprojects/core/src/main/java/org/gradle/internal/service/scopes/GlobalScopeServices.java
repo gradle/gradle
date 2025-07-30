@@ -73,6 +73,7 @@ import org.gradle.internal.execution.history.changes.DefaultExecutionStateChange
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector;
 import org.gradle.internal.execution.steps.ValidateStep;
+import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstanceGenerator;
@@ -138,12 +139,8 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     private final GradleBuildEnvironment environment;
     private final AgentStatus agentStatus;
 
-    public GlobalScopeServices(final boolean longLiving, AgentStatus agentStatus) {
-        this(longLiving, agentStatus, ClassPath.EMPTY);
-    }
-
-    public GlobalScopeServices(final boolean longLiving, AgentStatus agentStatus, ClassPath additionalModuleClassPath) {
-        super(additionalModuleClassPath);
+    public GlobalScopeServices(final boolean longLiving, AgentStatus agentStatus, ClassPath additionalModuleClassPath, CurrentGradleInstallation currentGradleInstallation) {
+        super(additionalModuleClassPath, currentGradleInstallation);
         this.agentStatus = agentStatus;
         this.environment = () -> longLiving;
     }

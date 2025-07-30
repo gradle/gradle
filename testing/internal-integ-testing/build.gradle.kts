@@ -66,6 +66,7 @@ dependencies {
     api(libs.jgit) {
         because("Some tests require a git reportitory - see AbstractIntegrationSpec.initGitDir(")
     }
+    api(libs.jspecify)
     api(libs.jsr305)
     api(libs.junit) {
         because("Part of the public API, used by spock AST transformer")
@@ -116,6 +117,7 @@ dependencies {
     implementation(testFixtures(projects.buildOperations))
     implementation(testFixtures(projects.buildProcessServices))
     implementation(testFixtures(projects.core))
+    implementation(testFixtures(projects.enterpriseLogging))
 
     implementation(libs.ansiControlSequenceUtil)
     implementation(libs.commonsCompress)
@@ -129,7 +131,6 @@ dependencies {
     implementation(libs.jetty)
     implementation(libs.jettyServlet)
     implementation(libs.littleproxy)
-    implementation(libs.jspecify)
     implementation(libs.mavenResolverSupplier) {
         because("For ApiMavenResolver. Wires together implementation for maven-resolver-api")
     }

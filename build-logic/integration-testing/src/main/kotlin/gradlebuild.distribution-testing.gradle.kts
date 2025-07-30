@@ -43,9 +43,6 @@ tasks.withType<DistributionTest>().configureEach {
     addSetUpAndTearDownActions()
 }
 
-fun executerRequiresDistribution(taskName: String) =
-    !taskName.startsWith("embedded") || taskName.contains("CrossVersion") // <- Tooling API [other-version]->[current]
-
 fun executerRequiresFullDistribution(taskName: String) =
     taskName.startsWith("noDaemon")
 
@@ -60,12 +57,10 @@ fun DistributionTest.configureGradleTestEnvironment() {
     val taskName = name
 
     gradleInstallationForTest.apply {
-        if (executerRequiresDistribution(taskName)) {
-            gradleHomeDir = if (executerRequiresFullDistribution(taskName)) {
-                configurations["${prefix}TestFullDistributionRuntimeClasspath"]
-            } else {
-                configurations["${prefix}TestDistributionRuntimeClasspath"]
-            }
+        gradleHomeDir = if (executerRequiresFullDistribution(taskName)) {
+            configurations["${prefix}TestFullDistributionRuntimeClasspath"]
+        } else {
+            configurations["${prefix}TestDistributionRuntimeClasspath"]
         }
         // Set the base user home dir to be share by integration tests.
         // The actual user home dir will be a subfolder using the name of the distribution.
