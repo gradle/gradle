@@ -43,6 +43,7 @@ dependencies {
 
     implementation(projects.buildDiscovery)
     implementation(projects.buildOption)
+    implementation(projects.buildProcessServices)
     implementation(projects.buildState)
     implementation(projects.classloaders)
     implementation(projects.coreApi)
@@ -50,12 +51,12 @@ dependencies {
     implementation(projects.enterpriseLogging)
     implementation(projects.fileCollections)
     implementation(projects.instrumentationAgentServices)
+    implementation(projects.jvmServices)
     implementation(projects.native)
     implementation(projects.problemsApi)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.stdlibJavaExtensions)
-    implementation(projects.jvmServices)
 
     testImplementation(projects.kotlinDsl)
     testImplementation(testFixtures(projects.logging))

@@ -64,7 +64,6 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
         val srcDistribution = bucket("${prefix}TestSrcDistribution", "Declare a src distribution to be used by tests - useful for testing the final distribution that is published")
 
         getByName("${prefix}TestRuntimeClasspath") {
-            extendsFrom(distributionRuntimeOnly)
             if (platformImplementation != null) {
                 extendsFrom(platformImplementation)
             }
