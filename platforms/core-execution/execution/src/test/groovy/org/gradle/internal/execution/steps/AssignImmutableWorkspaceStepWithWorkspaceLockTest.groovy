@@ -28,12 +28,10 @@ import org.gradle.internal.execution.history.ImmutableWorkspaceMetadata
 import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider
-import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ImmutableWorkspace
 import org.gradle.internal.file.Deleter
 import org.gradle.internal.file.FileType
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
-import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.internal.snapshot.TestSnapshotFixture
 import org.gradle.internal.vfs.FileSystemAccess
 
@@ -43,16 +41,18 @@ import java.util.function.Supplier
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE
 import static org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep.LockingStrategy
+import static org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.LockingImmutableWorkspace
 
 class AssignImmutableWorkspaceStepWithWorkspaceLockTest extends StepSpec<IdentityContext> implements TestSnapshotFixture {
-    def immutableWorkspace = temporaryFolder.file("immutable-workspace")
-    def workspace = Stub(ImmutableWorkspace) {
+    def workspaceBaseDir = temporaryFolder.file("hash123")
+    def immutableWorkspace = workspaceBaseDir.file("immutable-workspace")
+    def workspace = Stub(LockingImmutableWorkspace) {
         immutableLocation >> immutableWorkspace
         withWorkspaceLock(_ as Supplier)
             >>
             { Supplier action ->
-                immutableWorkspace.mkdirs()
-                immutableWorkspace.file(immutableWorkspace.name + ".lock").createFile()
+                workspaceBaseDir.mkdirs()
+                workspaceBaseDir.file(workspaceBaseDir.name + ".lock").createFile()
                 action.get()
             }
     }
@@ -61,7 +61,7 @@ class AssignImmutableWorkspaceStepWithWorkspaceLockTest extends StepSpec<Identit
     def immutableWorkspaceMetadataStore = Mock(ImmutableWorkspaceMetadataStore)
     def outputSnapshotter = Mock(OutputSnapshotter)
     def workspaceProvider = Stub(ImmutableWorkspaceProvider) {
-        getWorkspace(workId) >> workspace
+        getLockingWorkspace(workId) >> workspace
     }
 
     def step = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, delegate, LockingStrategy.WORKSPACE_LOCK)
@@ -98,7 +98,7 @@ class AssignImmutableWorkspaceStepWithWorkspaceLockTest extends StepSpec<Identit
         result.afterExecutionOutputState.get().outputFilesProducedByWork == existingOutputs
         result.reusedOutputOriginMetadata.get() == delegateOriginMetadata
 
-        1 * fileSystemAccess.read(immutableWorkspace.absolutePath, _ as SnapshottingFilter) >> Optional.of(existingWorkspaceSnapshot)
+        1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> existingWorkspaceSnapshot
 
         then:
         1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Optional.of(originalWorkspaceMetadata)
@@ -130,7 +130,7 @@ class AssignImmutableWorkspaceStepWithWorkspaceLockTest extends StepSpec<Identit
         step.execute(work, context)
 
         then:
-        1 * fileSystemAccess.read(immutableWorkspace.absolutePath, _ as SnapshottingFilter) >> Optional.of(tamperedWorkspaceSnapshot)
+        1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> tamperedWorkspaceSnapshot
         1 * outputSnapshotter.snapshotOutputs(work, immutableWorkspace) >> tamperedOutputs
         1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Optional.of(originalWorkspaceMetadata)
 
@@ -166,10 +166,10 @@ class AssignImmutableWorkspaceStepWithWorkspaceLockTest extends StepSpec<Identit
         result.execution.get().outcome == EXECUTED_NON_INCREMENTALLY
         result.afterExecutionOutputState.get().successful
 
-        1 * fileSystemAccess.read(immutableWorkspace.absolutePath, _ as SnapshottingFilter) >> Optional.of(existingWorkspaceSnapshot)
+        1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> existingWorkspaceSnapshot
 
         then:
-        1 * deleter.deleteRecursively(outputFile)
+        1 * deleter.deleteRecursively(immutableWorkspace)
         1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Optional.empty()
         1 * fileSystemAccess.invalidate([immutableWorkspace.absolutePath.toString()])
 

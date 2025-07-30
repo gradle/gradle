@@ -112,10 +112,10 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
     }
 
     @Override
-    public ImmutableWorkspace getWorkspace(String path) {
+    public AtomicMoveImmutableWorkspace getAtomicMoveWorkspace(String path) {
         File immutableWorkspace = new File(baseDirectory, path);
         fileAccessTracker.markAccessed(immutableWorkspace);
-        return new ImmutableWorkspace() {
+        return new AtomicMoveImmutableWorkspace() {
             @Override
             public File getImmutableLocation() {
                 return immutableWorkspace;
@@ -128,15 +128,28 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
                 File temporaryWorkspace = new File(baseDirectory, temporaryLocation);
                 return action.executeInTemporaryWorkspace(temporaryWorkspace);
             }
+        };
+    }
+
+    @Override
+    public LockingImmutableWorkspace getLockingWorkspace(String path) {
+        File workspaceBaseDir = new File(baseDirectory, path);
+        fileAccessTracker.markAccessed(workspaceBaseDir);
+        // We use a subdirectory for the workspace to avoid snapshotting of a file lock
+        File workspace = new File(workspaceBaseDir, "workspace");
+        return new LockingImmutableWorkspace() {
+
+            @Override
+            public File getImmutableLocation() {
+                return workspace;
+            }
 
             @Override
             public <T> T withWorkspaceLock(Supplier<T> supplier) {
-                PersistentCache keyCache = keyCaches.computeIfAbsent(path, cache -> {
-                    File keyCacheDir = getImmutableLocation();
-                    return unscopedCacheBuilderFactory.cache(keyCacheDir)
+                PersistentCache keyCache = keyCaches.computeIfAbsent(path, cache ->
+                    unscopedCacheBuilderFactory.cache(workspaceBaseDir)
                         .withInitialLockMode(FileLockManager.LockMode.OnDemand)
-                        .open();
-                });
+                        .open());
 
                 return keyCache.withFileLock(supplier);
             }
