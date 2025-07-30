@@ -276,6 +276,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @param arguments The arguments. Must not be null.
      * @since 4.0
      */
+    //@Deprecated
     void setAllJvmArgs(List<String> arguments);
 
     /**
