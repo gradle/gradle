@@ -27,7 +27,7 @@ import java.io.File;
  * Controls the state (not loaded / loaded) of the attached {@link GradleProperties} instance
  * so that the set of Gradle properties is deterministically loaded only once per build.
  */
-@ServiceScope(Scope.Build.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface GradlePropertiesController {
 
     /**
