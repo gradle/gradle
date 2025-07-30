@@ -1846,7 +1846,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         public IllegalResolutionException(String message, DocumentationRegistry documentationRegistry) {
             super(message);
-            resolution = "For more information, please refer to " + documentationRegistry.getDocumentationFor("viewing_debugging_dependencies.html", "sub:resolving-unsafe-configuration-resolution-errors") + " in the Gradle documentation.";
+            resolution = "For more information, please refer to " + documentationRegistry.getDocumentationFor("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors") + " in the Gradle documentation.";
         }
 
         @Override
