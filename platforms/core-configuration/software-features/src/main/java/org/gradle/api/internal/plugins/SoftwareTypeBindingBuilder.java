@@ -23,4 +23,10 @@ public interface SoftwareTypeBindingBuilder {
         Class<V> buildModelType,
         SoftwareTypeTransform<T, V> transform
     );
+
+    <T extends HasBuildModel<V>, V extends BuildModel> DslBindingBuilder<T, V> bindSoftwareType(
+        String name,
+        Class<T> dslType,
+        SoftwareTypeTransform<T, V> transform
+    );
 }
