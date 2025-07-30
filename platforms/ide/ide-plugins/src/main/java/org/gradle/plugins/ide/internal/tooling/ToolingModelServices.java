@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.composite.BuildIncludeListener;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -55,7 +56,8 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
             final BuildStateRegistry buildStateRegistry,
             final ProjectStateRegistry projectStateRegistry,
             BuildModelParameters buildModelParameters,
-            IntermediateToolingModelProvider intermediateToolingModelProvider
+            IntermediateToolingModelProvider intermediateToolingModelProvider,
+            BuildIncludeListener failedIncludedBuildsRegistry
         ) {
 
             return new BuildScopeToolingModelBuilderRegistryAction() {
@@ -69,7 +71,7 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
                     registry.register(new EclipseModelBuilder(gradleProjectBuilder, projectStateRegistry));
                     registry.register(ideaModelBuilder);
                     registry.register(gradleProjectBuilder);
-                    registry.register(createGradleBuildBuiler(buildModelParameters, buildStateRegistry));
+                    registry.register(createGradleBuildBuiler(buildModelParameters, buildStateRegistry, failedIncludedBuildsRegistry));
                     registry.register(new BasicIdeaModelBuilder(ideaModelBuilder));
                     registry.register(new BuildInvocationsBuilder(taskLister));
                     registry.register(new PublicationsBuilder(projectPublicationRegistry));
@@ -90,8 +92,15 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
             };
         }
 
-        private static ToolingModelBuilder createGradleBuildBuiler(BuildModelParameters buildModelParameters, BuildStateRegistry buildStateRegistry) {
-            return buildModelParameters.isResilientModelBuilding() ? new ResilientGradleBuildBuilder(buildStateRegistry) : new GradleBuildBuilder(buildStateRegistry);
+        private static ToolingModelBuilder createGradleBuildBuiler(
+            BuildModelParameters buildModelParameters,
+            BuildStateRegistry buildStateRegistry,
+            BuildIncludeListener failedIncludedBuildsRegistry
+        ) {
+            if (buildModelParameters.isResilientModelBuilding()) {
+                return new ResilientGradleBuildBuilder(buildStateRegistry, failedIncludedBuildsRegistry);
+            }
+            return new GradleBuildBuilder(buildStateRegistry);
         }
     }
 }
