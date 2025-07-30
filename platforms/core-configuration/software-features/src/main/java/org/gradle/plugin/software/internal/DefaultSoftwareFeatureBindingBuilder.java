@@ -25,12 +25,12 @@ import org.gradle.api.internal.plugins.SoftwareFeatureBinding;
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilder;
 import org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilderInternal;
 import org.gradle.api.internal.plugins.SoftwareFeatureTransform;
-import org.gradle.internal.inspection.DefaultTypeParameterInspection;
-import org.gradle.internal.inspection.TypeParameterInspection;
 import org.gradle.util.Path;
 
 import java.util.List;
 import java.util.ArrayList;
+
+import static org.gradle.plugin.software.internal.ModelTypeUtils.getBuildModelClass;
 
 public class DefaultSoftwareFeatureBindingBuilder implements SoftwareFeatureBindingBuilderInternal {
     private final List<DslBindingBuilderInternal<?, ?>> bindings = new ArrayList<>();
@@ -69,15 +69,5 @@ public class DefaultSoftwareFeatureBindingBuilder implements SoftwareFeatureBind
             result.add(binding.build());
         }
         return result;
-    }
-
-    private static <Definition extends HasBuildModel<OwnBuildModel>, OwnBuildModel extends BuildModel> Class<OwnBuildModel> getBuildModelClass(Class<Definition> definition) {
-        @SuppressWarnings("rawtypes")
-        TypeParameterInspection<HasBuildModel, BuildModel> inspection = new DefaultTypeParameterInspection<>(HasBuildModel.class, BuildModel.class, BuildModel.NONE.class);
-        Class<OwnBuildModel> ownBuildModel = inspection.parameterTypeFor(definition);
-        if (ownBuildModel == null) {
-            throw new IllegalArgumentException("Cannot determine build model type for " + definition);
-        }
-        return ownBuildModel;
     }
 }

@@ -200,7 +200,7 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
             import org.gradle.declarative.dsl.model.annotations.Restricted;
 
             @Restricted
-            public interface FeatureDEFINITION extends HasBuildModel<FeatureModel> {
+            public interface FeatureDefinition extends HasBuildModel<FeatureModel> {
                 @Restricted
                 Property<String> getText();
             }

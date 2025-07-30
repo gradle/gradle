@@ -19,6 +19,7 @@ package org.gradle.api.internal.plugins;
 import org.gradle.api.internal.plugins.TargetTypeInformation.BuildModelTargetTypeInformation;
 import org.gradle.api.internal.plugins.TargetTypeInformation.DefinitionTargetTypeInformation;
 
+
 public interface SoftwareFeatureBindingBuilder {
     <
         Definition extends HasBuildModel<OwnBuildModel>,

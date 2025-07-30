@@ -53,6 +53,11 @@ public class DefaultSoftwareTypeBindingBuilder implements SoftwareTypeBindingBui
         return builder;
     }
 
+    @Override
+    public <T extends HasBuildModel<V>, V extends BuildModel> DslBindingBuilder<T, V> bindSoftwareType(String name, Class<T> dslType, SoftwareTypeTransform<T, V> transform) {
+        return bindSoftwareType(name, dslType, ModelTypeUtils.getBuildModelClass(dslType), transform);
+    }
+
     public SoftwareTypeBindingBuilder apply(Action<SoftwareTypeBindingBuilder> configuration) {
         configuration.execute(this);
         return this;
