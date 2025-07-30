@@ -110,10 +110,10 @@ class AssignImmutableWorkspaceStepWithNoLockTest extends StepSpec<IdentityContex
         1 * fileSystemAccess.read(immutableWorkspace.absolutePath, _ as SnapshottingFilter) >> Optional.of(existingWorkspaceSnapshot)
 
         then:
-        1 * outputSnapshotter.snapshotOutputs(work, immutableWorkspace) >> existingOutputs
+        1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Optional.of(originalWorkspaceMetadata)
 
         then:
-        1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Optional.of(originalWorkspaceMetadata)
+        1 * outputSnapshotter.snapshotOutputs(work, immutableWorkspace) >> existingOutputs
         0 * _
     }
 

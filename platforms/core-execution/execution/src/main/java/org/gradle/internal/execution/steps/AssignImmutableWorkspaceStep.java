@@ -193,16 +193,16 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
 
     private Optional<WorkspaceResult> loadImmutableWorkspaceIfConsistent(UnitOfWork work, ImmutableWorkspace workspace) {
         File immutableLocation = workspace.getImmutableLocation();
-        ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots = outputSnapshotter.snapshotOutputs(work, immutableLocation);
-
-        // Verify output hashes
-        ImmutableListMultimap<String, HashCode> outputHashes = calculateOutputHashes(outputSnapshots);
         Optional<ImmutableWorkspaceMetadata> metadata = workspaceMetadataStore.loadWorkspaceMetadata(immutableLocation);
 
         if (!metadata.isPresent()) {
-            fileSystemAccess.invalidate(ImmutableList.of(immutableLocation.getAbsolutePath()));
-            return Optional.empty();
-        } else if (!metadata.get().getOutputPropertyHashes().equals(outputHashes)) {
+            return handleMissingMetadata(immutableLocation);
+        }
+
+        // Verify output hashes
+        ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots = outputSnapshotter.snapshotOutputs(work, immutableLocation);
+        ImmutableListMultimap<String, HashCode> outputHashes = calculateOutputHashes(outputSnapshots);
+        if (!metadata.get().getOutputPropertyHashes().equals(outputHashes)) {
             fileSystemAccess.invalidate(ImmutableList.of(immutableLocation.getAbsolutePath()));
             String actualOutputHashes = outputSnapshots.entrySet().stream()
                 .map(entry -> entry.getKey() + ":\n" + entry.getValue().roots()
@@ -218,6 +218,29 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         }
 
         return Optional.of(loadImmutableWorkspace(work, immutableLocation, metadata.get(), outputSnapshots));
+    }
+
+    private Optional<WorkspaceResult> handleMissingMetadata(File immutableLocation) {
+        if (lockingStrategy == LockingStrategy.WORKSPACE_LOCK) {
+            // For the workspace lock strategy, this is normal since the workspace directory is created by the locking mechanism
+            return Optional.empty();
+        }
+
+        // For NO_LOCK strategy, we expect the metadata file to be present if the workspace directory exists.
+        fileSystemAccess.invalidate(ImmutableList.of(immutableLocation.getAbsolutePath()));
+        if (immutableLocation.exists()) {
+            // If metadata file is missing, and directory exists, it means that the workspace was created as a result of a previous
+            // execution, but the metadata was later deleted for some reason.
+            throw new IllegalStateException(String.format(
+                "The immutable workspace '%s' exists, but it does not contain the metadata file. " +
+                    "This is unexpected might have been caused by an external process or disk corruption. " +
+                    "You can try to delete the immutable workspace directory and re-run the build.",
+                immutableLocation.getAbsolutePath()
+            ));
+        } else {
+            // If the immutable workspace does not exist at all, we had just incorrect snapshot of the workspace
+            return Optional.empty();
+        }
     }
 
     private static WorkspaceResult loadImmutableWorkspace(UnitOfWork work, File immutableLocation, ImmutableWorkspaceMetadata metadata, ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots) {

@@ -101,10 +101,10 @@ class AssignImmutableWorkspaceStepWithWorkspaceLockTest extends StepSpec<Identit
         1 * fileSystemAccess.read(immutableWorkspace.absolutePath, _ as SnapshottingFilter) >> Optional.of(existingWorkspaceSnapshot)
 
         then:
-        1 * outputSnapshotter.snapshotOutputs(work, immutableWorkspace) >> existingOutputs
+        1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Optional.of(originalWorkspaceMetadata)
 
         then:
-        1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Optional.of(originalWorkspaceMetadata)
+        1 * outputSnapshotter.snapshotOutputs(work, immutableWorkspace) >> existingOutputs
         0 * _
     }
 
@@ -159,10 +159,6 @@ class AssignImmutableWorkspaceStepWithWorkspaceLockTest extends StepSpec<Identit
             afterExecutionOutputState >> Optional.of(new DefaultExecutionOutputState(true, ImmutableSortedMap.of(), Stub(OriginMetadata), false))
         }
 
-        def existingOutputs = ImmutableSortedMap.<String, FileSystemLocationSnapshot> of(
-            "output", outputFileSnapshot
-        )
-
         when:
         def result = step.execute(work, context)
 
@@ -173,12 +169,9 @@ class AssignImmutableWorkspaceStepWithWorkspaceLockTest extends StepSpec<Identit
         1 * fileSystemAccess.read(immutableWorkspace.absolutePath, _ as SnapshottingFilter) >> Optional.of(existingWorkspaceSnapshot)
 
         then:
-        1 * outputSnapshotter.snapshotOutputs(work, immutableWorkspace) >> existingOutputs
-
-        then:
         1 * deleter.deleteRecursively(outputFile)
         1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Optional.empty()
-        2 * fileSystemAccess.invalidate([immutableWorkspace.absolutePath.toString()])
+        1 * fileSystemAccess.invalidate([immutableWorkspace.absolutePath.toString()])
 
         then:
         1 * delegate.execute(work, _ as WorkspaceContext) >> { UnitOfWork work, WorkspaceContext context ->
