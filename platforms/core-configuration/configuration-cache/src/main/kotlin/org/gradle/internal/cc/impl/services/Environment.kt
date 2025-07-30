@@ -24,7 +24,6 @@ import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.service.scopes.EventScope
 import org.gradle.internal.service.scopes.Scope
-import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.internal.GUtil
 import java.io.File
 
@@ -32,12 +31,11 @@ import java.io.File
 /**
  * Augments the [DefaultEnvironment] to track access to properties files, environment variables and system properties.
  **/
-@ServiceScope(Scope.Build::class)
 class ConfigurationCacheEnvironment(
     private val listenerManager: ListenerManager
 ) : DefaultEnvironment() {
 
-    @EventScope(Scope.Build::class)
+    @EventScope(Scope.BuildTree::class)
     interface Listener {
         fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>)
         fun envVariablesPrefixedBy(prefix: String, snapshot: Map<String, String?>)
