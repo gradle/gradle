@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponent
 import org.gradle.api.internal.configuration.DefaultBuildFeatures
 import org.gradle.api.logging.LogLevel
 import org.gradle.execution.selection.BuildTaskSelector
+import org.gradle.initialization.Environment
 import org.gradle.initialization.EnvironmentChangeTracker
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.build.BuildStateRegistry
@@ -60,8 +61,10 @@ import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.promo.ConfigurationCachePromoHandler
 import org.gradle.internal.cc.impl.promo.PromoInputsListener
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
+import org.gradle.internal.cc.impl.services.ConfigurationCacheEnvironment
 import org.gradle.internal.cc.impl.services.DefaultBuildModelParameters
 import org.gradle.internal.cc.impl.services.DefaultDeferredRootBuildGradle
+import org.gradle.internal.cc.impl.services.DefaultEnvironment
 import org.gradle.internal.cc.impl.services.VintageEnvironmentChangeTracker
 import org.gradle.internal.configuration.problems.DefaultProblemFactory
 import org.gradle.internal.configuration.problems.ProblemFactory
@@ -271,6 +274,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         }
 
         if (modelParameters.isConfigurationCache) {
+            registration.add(Environment::class.java, ConfigurationCacheEnvironment::class.java)
             registration.add(BuildTreeLifecycleControllerFactory::class.java, ConfigurationCacheBuildTreeLifecycleControllerFactory::class.java)
             registration.add(ConfigurationCacheStartParameter::class.java)
             registration.add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
@@ -299,6 +303,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(DefaultDeferredRootBuildGradle::class.java)
             registration.add(ConfigurationCacheInputsListener::class.java, InstrumentedInputAccessListener::class.java)
         } else {
+            registration.add(Environment::class.java, DefaultEnvironment::class.java)
             registration.add(InjectedClasspathInstrumentationStrategy::class.java, VintageInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(BuildTreeLifecycleControllerFactory::class.java, BarrierAwareBuildTreeLifecycleControllerFactory::class.java)
             registration.add(VintageConfigurationTimeActionRunner::class.java)
