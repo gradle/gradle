@@ -137,34 +137,34 @@ public interface ExecutionResult {
     ExecutionResult assertNotPostBuildOutput(String expectedOutput);
 
     /**
-     * Asserts that exactly the given set of tasks have show up in the task graph in any order.
+     * Asserts that exactly the given set of tasks are in the task graph in order.
      * Each task path can be either a String or a {@link TaskOrderSpec}.  See {@link TaskOrderSpecs} for common assertions
      * and an explanation of their usage.  Defaults to a {@link TaskOrderSpecs#exact(Object[])} assertion.
      */
     ExecutionResult assertTasksScheduledInOrder(Object... taskPaths);
 
     /**
-     * Asserts that exactly the given set of tasks show up in the task graph.
+     * Asserts that exactly the given set of tasks are in the task graph, in any order.
      */
     ExecutionResult assertTasksScheduled(Object... taskPaths);
 
     /**
-     * Asserts that the given task has been shows up in the task graph.
+     * Asserts that the given task exists in the task graph.
      */
     ExecutionResult assertTaskScheduled(String taskPath);
 
     /**
-     * Asserts that the given task does not show up in the task graph.
+     * Asserts that the given task is not in the task graph.
      */
     ExecutionResult assertTasksNotScheduled(String taskPath);
 
     /**
-     * Asserts that at least one task shows up in the task graph
+     * Asserts that at least one task is in the task graph.
      */
     ExecutionResult assertAnyTasksScheduled();
 
     /**
-     * Asserts that there are no tasks that show up in the task graph.
+     * Asserts that there are no tasks in the task graph.
      */
     ExecutionResult assertNoTasksScheduled();
 
@@ -227,7 +227,7 @@ public interface ExecutionResult {
     ExecutionResult assertAllTasksSkipped();
 
     /**
-     * Asserts that the given task shows up in the task graph and tasks actions ran.
+     * Asserts that the given task is in the task graph and tasks actions ran.
      */
     ExecutionResult assertTaskExecuted(String taskPath);
 
