@@ -19,6 +19,7 @@ package org.gradle.initialization
 import org.gradle.api.Project
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.initialization.properties.DefaultProjectPropertiesLoader
 import org.gradle.initialization.properties.DefaultSystemPropertiesInstaller
 import org.gradle.initialization.properties.MutableGradleProperties
@@ -41,6 +42,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
     private Map<String, String> systemPropertiesArgs = emptyMap()
     private File gradleUserHome = new File("gradleUserHome")
     private final rootBuildId = DefaultBuildIdentifier.ROOT
+    private final rootProjectId = new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "root")
 
     private final Environment environment = Mock(Environment) {
         getSystemProperties() >> Mock(Environment.Properties) {
@@ -57,79 +59,90 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         getGradleUserHomeDir() >> gradleUserHome
     }
 
+    private final IGradlePropertiesLoader gradlePropertiesLoader = Mock(IGradlePropertiesLoader)
+    private final ProjectPropertiesLoader projectPropertiesLoader = Mock(ProjectPropertiesLoader)
+    private final SystemPropertiesInstaller systemPropertiesInstaller = Mock(SystemPropertiesInstaller)
+
     @Rule
     public SetSystemProperties sysProp = new SetSystemProperties()
 
-    def "attached GradleProperties #method fails before loading"() {
-
+    def "attached GradleProperties #method fails before loading build properties"() {
         given:
-        def controller = new DefaultGradlePropertiesController(Mock(IGradlePropertiesLoader), Mock(SystemPropertiesInstaller), Mock(ProjectPropertiesLoader))
+        def controller = new DefaultGradlePropertiesController(environment, gradlePropertiesLoader, systemPropertiesInstaller, projectPropertiesLoader)
         def properties = controller.getGradleProperties(rootBuildId)
-        0 * controller.loadGradlePropertiesFrom(_, _, _)
+        0 * controller.loadGradleProperties(_, _, _)
 
         when:
-        switch (method) {
-            case "find": properties.find("anything"); break
-            case "mergeProperties": properties.mergeProperties([:]); break
-            default: assert false
-        }
-
+        properties.find("anything")
         then:
         thrown(IllegalStateException)
 
-        where:
-        method << ["find", "mergeProperties"]
+        when:
+        properties.getProperties()
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "attached GradleProperties #method fails before loading project properties"() {
+        given:
+        def controller = new DefaultGradlePropertiesController(environment, gradlePropertiesLoader, systemPropertiesInstaller, projectPropertiesLoader)
+        def properties = controller.getGradleProperties(rootProjectId)
+        0 * controller.loadGradleProperties(_, _)
+
+        when:
+        properties.find("anything")
+        then:
+        thrown(IllegalStateException)
+
+        when:
+        properties.getProperties()
+        then:
+        thrown(IllegalStateException)
     }
 
     def "attached GradleProperties methods succeed after loading"() {
-
         given:
-        def loader = Mock(IGradlePropertiesLoader)
-        def controller = new DefaultGradlePropertiesController(loader, Mock(SystemPropertiesInstaller), Mock(ProjectPropertiesLoader))
+        def controller = new DefaultGradlePropertiesController(environment, gradlePropertiesLoader, systemPropertiesInstaller, projectPropertiesLoader)
         def settingsDir = new File('.')
         def properties = controller.getGradleProperties(rootBuildId)
-        def loadedProperties = Mock(MutableGradleProperties)
-        1 * loader.loadGradleProperties(settingsDir) >> loadedProperties
-        1 * loadedProperties.mergeProperties(_) >> [property: '42']
-        1 * loadedProperties.find(_) >> '42'
+        1 * gradlePropertiesLoader.loadGradleProperties(settingsDir) >> new DefaultGradleProperties([property: '42'], [:])
+        1 * projectPropertiesLoader.loadProjectProperties() >> [:]
 
         when:
-        controller.loadGradlePropertiesFrom(rootBuildId, settingsDir, true)
+        controller.loadGradleProperties(rootBuildId, settingsDir, false)
 
         then:
         properties.find("property") == '42'
-        properties.mergeProperties([:]) == [property: '42']
+        properties.getProperties() == [property: '42']
     }
 
-    def "loadGradlePropertiesFrom is idempotent"() {
-
+    def 'loadGradleProperties is idempotent'() {
         given:
         // use a different File instance for each call to ensure it is compared by value
         def currentDir = { new File('.') }
-        def loader = Mock(IGradlePropertiesLoader)
-        def controller = new DefaultGradlePropertiesController(loader, Mock(SystemPropertiesInstaller), Mock(ProjectPropertiesLoader))
-        def loadedProperties = Mock(MutableGradleProperties)
+        def controller = new DefaultGradlePropertiesController(environment, gradlePropertiesLoader, systemPropertiesInstaller, projectPropertiesLoader)
+        def buildProperties = Mock(MutableGradleProperties)
 
         when: "calling the method multiple times with the same value"
-        controller.loadGradlePropertiesFrom(rootBuildId, currentDir(), true)
-        controller.loadGradlePropertiesFrom(rootBuildId, currentDir(), true)
+        controller.loadGradleProperties(rootBuildId, currentDir(), false)
+        controller.loadGradleProperties(rootBuildId, currentDir(), false)
 
         then:
-        1 * loader.loadGradleProperties(currentDir()) >> loadedProperties
+        1 * gradlePropertiesLoader.loadGradleProperties(currentDir()) >> buildProperties
+        1 * projectPropertiesLoader.loadProjectProperties() >> [:]
+        _ * buildProperties.updateOverrideProperties(_)
     }
 
-    def "loadGradlePropertiesFrom fails when called with different argument"() {
-
+    def 'loadGradleProperties fails when called with different argument'() {
         given:
         def settingsDir = new File('a')
-        def loader = Mock(IGradlePropertiesLoader)
-        def controller = new DefaultGradlePropertiesController(loader, Mock(SystemPropertiesInstaller), Mock(ProjectPropertiesLoader))
-        def loadedProperties = Mock(MutableGradleProperties)
-        1 * loader.loadGradleProperties(settingsDir) >> loadedProperties
+        def controller = new DefaultGradlePropertiesController(environment, gradlePropertiesLoader, systemPropertiesInstaller, projectPropertiesLoader)
+        1 * gradlePropertiesLoader.loadGradleProperties(settingsDir) >> new DefaultGradleProperties([property: '42'], [:])
+        1 * projectPropertiesLoader.loadProjectProperties() >> [:]
 
         when:
-        controller.loadGradlePropertiesFrom(rootBuildId, settingsDir, true)
-        controller.loadGradlePropertiesFrom(rootBuildId, new File('b'), true)
+        controller.loadGradleProperties(rootBuildId, settingsDir, true)
+        controller.loadGradleProperties(rootBuildId, new File('b'), true)
 
         then:
         thrown(IllegalStateException)
@@ -138,73 +151,84 @@ class DefaultGradlePropertiesControllerTest extends Specification {
     def "environment variables have precedence over project properties"() {
         given:
         def settingsDir = new File("settingsDir")
-        def gradleUserHomePropertiesFile = propertiesFileFromDir(gradleUserHome)
-        def settingsPropertiesFile = propertiesFileFromDir(settingsDir)
+        def projectDir = new File("projectDir")
 
-        1 * environment.propertiesFile(gradleUserHomePropertiesFile) >> ["prop": "user value"]
-        1 * environment.propertiesFile(settingsPropertiesFile) >> ["prop": "settings value"]
         prefixedEnvironmentVariables = [(ENV_PROJECT_PROPERTIES_PREFIX + "prop"): "env value"]
 
-        def projectProperties = ["prop": "project value"]
         def gradlePropertiesLoader = new DefaultGradlePropertiesLoader(startParameter, environment)
         def projectPropertiesLoader = new DefaultProjectPropertiesLoader(startParameter, environment)
-        def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, Mock(SystemPropertiesInstaller), projectPropertiesLoader)
-        def properties = controller.getGradleProperties(rootBuildId)
+        def controller = new DefaultGradlePropertiesController(environment, gradlePropertiesLoader, systemPropertiesInstaller, projectPropertiesLoader)
+
+        1 * environment.propertiesFile(propertiesFileFromDir(gradleUserHome)) >> ["prop": "user value"]
+        1 * environment.propertiesFile(propertiesFileFromDir(settingsDir)) >> ["prop": "settings value"]
+        1 * environment.propertiesFile(propertiesFileFromDir(projectDir)) >> ["prop": "project value"]
 
         when:
-        controller.loadGradlePropertiesFrom(rootBuildId, settingsDir, true)
-
+        controller.loadGradleProperties(rootBuildId, settingsDir, false)
+        def buildScopedProperties = controller.getGradleProperties(rootBuildId)
         then:
-        "env value" == properties.mergeProperties(projectProperties)["prop"]
+        buildScopedProperties.find("prop") == "env value"
+
+        when:
+        controller.loadGradleProperties(rootProjectId, projectDir)
+        def projectScopedProperties = controller.getGradleProperties(rootProjectId)
+        then:
+        projectScopedProperties.find("prop") == "env value"
     }
 
     def "system properties have precedence over environment variables"() {
         given:
         def settingsDir = new File("settingsDir")
-        def gradleUserHomePropertiesFile = propertiesFileFromDir(gradleUserHome)
-        def settingsPropertiesFile = propertiesFileFromDir(settingsDir)
+        def projectDir = new File("projectDir")
 
-        1 * environment.propertiesFile(gradleUserHomePropertiesFile) >> ["prop": "user value"]
-        1 * environment.propertiesFile(settingsPropertiesFile) >> ["prop": "settings value"]
         prefixedEnvironmentVariables = [(ENV_PROJECT_PROPERTIES_PREFIX + "prop"): "env value"]
         prefixedSystemProperties = [(SYSTEM_PROJECT_PROPERTIES_PREFIX + "prop"): "system value"]
 
-        def projectProperties = ["prop": "project value"]
         def gradlePropertiesLoader = new DefaultGradlePropertiesLoader(startParameter, environment)
         def projectPropertiesLoader = new DefaultProjectPropertiesLoader(startParameter, environment)
-        def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, Mock(SystemPropertiesInstaller), projectPropertiesLoader)
-        def properties = controller.getGradleProperties(rootBuildId)
+        def controller = new DefaultGradlePropertiesController(environment, gradlePropertiesLoader, systemPropertiesInstaller, projectPropertiesLoader)
+
+        1 * environment.propertiesFile(propertiesFileFromDir(gradleUserHome)) >> ["prop": "user value"]
+        1 * environment.propertiesFile(propertiesFileFromDir(settingsDir)) >> ["prop": "settings value"]
+        1 * environment.propertiesFile(propertiesFileFromDir(projectDir)) >> ["prop": "project value"]
 
         when:
-        controller.loadGradlePropertiesFrom(rootBuildId, settingsDir, true)
-
+        controller.loadGradleProperties(rootBuildId, settingsDir, false)
+        def buildScopedProperties = controller.getGradleProperties(rootBuildId)
         then:
-        "system value" == properties.mergeProperties(projectProperties)["prop"]
+        buildScopedProperties.find("prop") == "system value"
+
+        when:
+        controller.loadGradleProperties(rootProjectId, projectDir)
+        def projectScopedProperties = controller.getGradleProperties(rootProjectId)
+        then:
+        projectScopedProperties.find("prop") == "system value"
     }
 
     def "start parameter properties have precedence over system properties"() {
         given:
         def settingsDir = new File("settingsDir")
-        def gradleUserHomePropertiesFile = propertiesFileFromDir(gradleUserHome)
-        def settingsPropertiesFile = propertiesFileFromDir(settingsDir)
+        def projectDir = new File("projectDir")
 
-        1 * environment.propertiesFile(gradleUserHomePropertiesFile) >> ["prop": "user value"]
-        1 * environment.propertiesFile(settingsPropertiesFile) >> ["prop": "settings value"]
         prefixedEnvironmentVariables = [(ENV_PROJECT_PROPERTIES_PREFIX + "prop"): "env value"]
         prefixedSystemProperties = [(SYSTEM_PROJECT_PROPERTIES_PREFIX + "prop"): "system value"]
         projectPropertiesArgs = ["prop": "param value"]
 
-        def projectProperties = ["prop": "project value"]
         def gradlePropertiesLoader = new DefaultGradlePropertiesLoader(startParameter, environment)
         def projectPropertiesLoader = new DefaultProjectPropertiesLoader(startParameter, environment)
-        def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, Mock(SystemPropertiesInstaller), projectPropertiesLoader)
-        def properties = controller.getGradleProperties(rootBuildId)
+        def controller = new DefaultGradlePropertiesController(environment, gradlePropertiesLoader, systemPropertiesInstaller, projectPropertiesLoader)
 
         when:
-        controller.loadGradlePropertiesFrom(rootBuildId, settingsDir, true)
-
+        controller.loadGradleProperties(rootBuildId, settingsDir, false)
+        def buildScopedProperties = controller.getGradleProperties(rootBuildId)
         then:
-        "param value" == properties.mergeProperties(projectProperties)["prop"]
+        buildScopedProperties.find("prop") == "param value"
+
+        when:
+        controller.loadGradleProperties(rootProjectId, projectDir)
+        def projectScopedProperties = controller.getGradleProperties(rootProjectId)
+        then:
+        projectScopedProperties.find("prop") == "param value"
     }
 
     def "load sets system properties"() {
@@ -225,10 +249,10 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         def gradlePropertiesLoader = new DefaultGradlePropertiesLoader(startParameter, environment)
         def projectPropertiesLoader = new DefaultProjectPropertiesLoader(startParameter, environment)
         def systemPropertiesInstaller = new DefaultSystemPropertiesInstaller(Mock(EnvironmentChangeTracker), startParameter)
-        def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, systemPropertiesInstaller, projectPropertiesLoader)
+        def controller = new DefaultGradlePropertiesController(environment, gradlePropertiesLoader, systemPropertiesInstaller, projectPropertiesLoader)
 
         when:
-        controller.loadGradlePropertiesFrom(rootBuildId, settingsDir, setSystemProperties)
+        controller.loadGradleProperties(rootBuildId, settingsDir, setSystemProperties)
 
         then:
         (setSystemProperties ? "userSystemValue" : null) == System.getProperty("userSystemProp")
@@ -253,27 +277,27 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         def gradlePropertiesLoader = new DefaultGradlePropertiesLoader(startParameter, environment)
         def projectPropertiesLoader = new DefaultProjectPropertiesLoader(startParameter, environment)
         def systemPropertiesInstaller = new DefaultSystemPropertiesInstaller(Mock(EnvironmentChangeTracker), startParameter)
-        def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, systemPropertiesInstaller, projectPropertiesLoader)
+        def controller = new DefaultGradlePropertiesController(environment, gradlePropertiesLoader, systemPropertiesInstaller, projectPropertiesLoader)
 
         when:
-        controller.loadGradlePropertiesFrom(rootBuildId, settingsDir, true)
+        controller.loadGradleProperties(rootBuildId, settingsDir, true)
 
         then:
         "commandline value" == System.getProperty("prop")
     }
 
-    def "different build identifiers maintain separate gradle properties"() {
+    def "each build loads own gradle properties"() {
         given:
-        def settingsDir = new File("settingsDir")
-        def gradleUserHomePropertiesFile = propertiesFileFromDir(gradleUserHome)
-        def settingsPropertiesFile = propertiesFileFromDir(settingsDir)
+        def rootDir = new File("rootDir")
+        def includedDir = new File(rootDir, "included")
 
-        2 * environment.propertiesFile(gradleUserHomePropertiesFile) >> ["prop": "user value"]
-        2 * environment.propertiesFile(settingsPropertiesFile) >> ["prop": "settings value"]
+        _ * environment.propertiesFile(propertiesFileFromDir(gradleUserHome)) >> [:]
+        _ * environment.propertiesFile(propertiesFileFromDir(rootDir)) >> ["prop": "root value"]
+        _ * environment.propertiesFile(propertiesFileFromDir(includedDir)) >> ["prop": "included value"]
 
         def gradlePropertiesLoader = new DefaultGradlePropertiesLoader(startParameter, environment)
         def projectPropertiesLoader = new DefaultProjectPropertiesLoader(startParameter, environment)
-        def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, Mock(SystemPropertiesInstaller), projectPropertiesLoader)
+        def controller = new DefaultGradlePropertiesController(environment, gradlePropertiesLoader, Mock(SystemPropertiesInstaller), projectPropertiesLoader)
 
         def rootBuildId = this.rootBuildId
         def includedBuildId = new DefaultBuildIdentifier(Path.path(":included"))
@@ -282,18 +306,18 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         def includedProperties = controller.getGradleProperties(includedBuildId)
 
         when:
-        controller.loadGradlePropertiesFrom(rootBuildId, settingsDir, false)
-        controller.loadGradlePropertiesFrom(includedBuildId, settingsDir, false)
+        controller.loadGradleProperties(rootBuildId, rootDir, false)
+        controller.loadGradleProperties(includedBuildId, includedDir, false)
 
         then:
-        rootProperties.find("prop") == "user value"
-        includedProperties.find("prop") == "user value"
+        rootProperties.find("prop") == "root value"
+        includedProperties.find("prop") == "included value"
 
         and: "properties are separate instances"
         !rootProperties.is(includedProperties)
     }
 
-    def "unloading gradle properties for specific build id"() {
+    def "supports unloading build-scoped properties"() {
         given:
         def settingsDir = new File("settingsDir")
         def gradleUserHomePropertiesFile = propertiesFileFromDir(gradleUserHome)
@@ -304,25 +328,46 @@ class DefaultGradlePropertiesControllerTest extends Specification {
 
         def gradlePropertiesLoader = new DefaultGradlePropertiesLoader(startParameter, environment)
         def projectPropertiesLoader = new DefaultProjectPropertiesLoader(startParameter, environment)
-        def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, Mock(SystemPropertiesInstaller), projectPropertiesLoader)
+        def controller = new DefaultGradlePropertiesController(environment, gradlePropertiesLoader, Mock(SystemPropertiesInstaller), projectPropertiesLoader)
 
-        def buildId = rootBuildId
-        def properties = controller.getGradleProperties(buildId)
+        def properties = controller.getGradleProperties(rootBuildId)
 
         when: "properties are loaded"
-        controller.loadGradlePropertiesFrom(buildId, settingsDir, false)
+        controller.loadGradleProperties(rootBuildId, settingsDir, false)
 
         then: "properties can be accessed"
         properties.find("prop") == "user value"
 
         when: "properties are unloaded"
-        controller.unloadGradleProperties(buildId)
+        controller.unloadGradleProperties(rootBuildId)
 
         and: "accessing properties fails"
         properties.find("prop")
 
         then:
         thrown(IllegalStateException)
+    }
+
+    def "project-scoped properties inherit from build-scoped properties"() {
+        given:
+        def projectDir = new File("project")
+        def buildDir = new File("build")
+        def controller = new DefaultGradlePropertiesController(environment, gradlePropertiesLoader, systemPropertiesInstaller, projectPropertiesLoader)
+
+        1 * gradlePropertiesLoader.loadGradleProperties(buildDir) >> new DefaultGradleProperties([a: "build", b: "build"], [:])
+        1 * projectPropertiesLoader.loadProjectProperties() >> [:]
+
+        1 * environment.propertiesFile(propertiesFileFromDir(projectDir)) >> [b: 'proj']
+
+        when:
+        controller.loadGradleProperties(rootBuildId, buildDir, false)
+        controller.loadGradleProperties(rootProjectId, projectDir)
+        def properties = controller.getGradleProperties(rootProjectId)
+
+        then:
+        properties.find("a") == "build"
+        properties.find("b") == "proj"
+        properties.getProperties() == [a: "build", b: "proj"]
     }
 
     private static File propertiesFileFromDir(File dir) {
