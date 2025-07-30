@@ -516,12 +516,8 @@ post build
         result.assertTasksExecuted()
 
         then:
-        def e12 = thrown(AssertionError)
-        error(e12).startsWith(error('''
-            Build output does not contain the expected non skipped tasks.
-            Expected: []
-            Actual: [:a]
-            '''))
+        def e12 = thrown(IllegalArgumentException)
+        error(e12).startsWith(error('''taskPaths cannot be empty.'''))
 
         when:
         result.assertTasksExecuted(":b")
@@ -804,7 +800,7 @@ BUILD FAILED in 13s
 """
         when:
         def result = OutputScrapingExecutionResult.from(output, "")
-        result.assertTasksExecutedAndNotSkipped(taskPaths)
+        result.assertTasksExecuted(taskPaths)
 
         then:
         def e = thrown(IllegalArgumentException)
