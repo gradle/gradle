@@ -192,8 +192,8 @@ The link:{javadocPath}/org/gradle/process/JavaForkOptions.html#setAllJvmArgs(jav
 
 Instead, use one of the following:
 
-* Use `JavaForkOptions.jvmArgs()`
-* Use `JavaForkOptions.setJvmArgs()`
+* `JavaForkOptions.jvmArgs()`
+* `JavaForkOptions.setJvmArgs()`
 * Provide a <<incremental_build.adoc#sec:task_input_nested_inputs,`CommandLineArgumentProvider`>> to add arguments via `JavaForkOptions.getJvmArgumentProviders()`.
 
 [[archives-configuration]]
