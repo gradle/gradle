@@ -280,8 +280,7 @@ The remote build cache can be configured by specifying the type of build cache t
 
 The built-in local build cache, link:{groovyDslPath}/org.gradle.caching.local.DirectoryBuildCache.html[DirectoryBuildCache], uses a directory to store build cache artifacts.
 By default, this directory resides in the Gradle User Home, but its location is configurable.
-It is also possible to disable the build cache entirely,
-or to disabling storing of the build outputs there.
+It is also possible to disable the build cache entirely, or to disable storing of the build outputs there.
 
 For more details on the configuration options refer to the DSL documentation of link:{groovyDslPath}/org.gradle.caching.local.DirectoryBuildCache.html[DirectoryBuildCache].
 Here is an example of the configuration.
