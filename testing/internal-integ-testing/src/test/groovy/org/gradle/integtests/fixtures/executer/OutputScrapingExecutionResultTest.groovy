@@ -667,7 +667,7 @@ BUILD FAILED in 13s
         result.assertAnyTasksExecuted()
     }
 
-    def 'assertion fails when assertAnyTasksExecuted output'() {
+    def 'assertAnyTasksExecuted() fails assertion when output contains no tasks or skipped tasks'() {
         def output = """
 
 $tasksExecuted
@@ -688,11 +688,11 @@ BUILD FAILED in 13s
 
         where:
         tasksExecuted                                      | message
-        '> Task :a SKIPPED\n\n> Task :b SKIPPED'         | "Build output contains only skipped tasks: [:a, :b]"
+        '> Task :a SKIPPED\n\n> Task :b SKIPPED'           | "Build output contains only skipped tasks: [:a, :b]"
         ''                                                 | "Build output does not contain any executed tasks."
     }
 
-    def 'assertion fails when assertAllTasksExecutedandNotSkipped() is called on at least one test that is not skipped'() {
+    def 'assertAllTasksSkipped() fails assertion when output contains at least one task that is executed'() {
         def output = """
 > Task :a
 > Task :b
