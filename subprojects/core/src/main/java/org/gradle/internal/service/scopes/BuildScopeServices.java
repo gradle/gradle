@@ -267,6 +267,15 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             services.registerBuildServices(registration);
         }
     }
+//
+//    @Provides
+//    BuildIncludeListener createBuildIncludeListener(BuildModelParameters buildModelParameters){
+//        if(buildModelParameters.isResilientModelBuilding()){
+//            return new BrokenBuildsCapturingListener();
+//        }
+//        //ignored in non-resilient model building
+//        return (buildState, exception) -> {};
+//    }
 
     @Provides
     ManagedObjectRegistry decorateManagedObjectRegistry(ManagedObjectRegistry parent) {
@@ -791,4 +800,5 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     protected BuildInitSpecRegistry createInitProjectSpecRegistry() {
         return new BuildInitSpecRegistry();
     }
+
 }
