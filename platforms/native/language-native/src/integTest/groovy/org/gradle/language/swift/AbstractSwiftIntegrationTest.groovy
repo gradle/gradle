@@ -33,7 +33,7 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(tasksToAssembleDevelopmentBinary, ":assemble")
+        result.assertTasksScheduled(tasksToAssembleDevelopmentBinary, ":assemble")
         // TODO - should skip the task as NO-SOURCE
         result.assertTasksSkipped(tasksToAssembleDevelopmentBinary, ":assemble")
     }

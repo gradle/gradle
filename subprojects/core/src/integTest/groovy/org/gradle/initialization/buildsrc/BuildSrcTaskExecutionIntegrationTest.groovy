@@ -31,11 +31,11 @@ class BuildSrcTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             run(":buildSrc:something")
-            result.assertTaskExecuted(":buildSrc:something")
+            result.assertTaskScheduled(":buildSrc:something")
         }
 
         run(":buildSrc:jar")
-        result.assertTaskExecuted(":buildSrc:jar")
+        result.assertTaskScheduled(":buildSrc:jar")
 
         run(":buildSrc:jar")
         // Task will not run when configuration cache is enabled
@@ -55,11 +55,11 @@ class BuildSrcTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             run(":nested:buildSrc:something")
-            result.assertTaskExecuted(":nested:buildSrc:something")
+            result.assertTaskScheduled(":nested:buildSrc:something")
         }
 
         run(":nested:buildSrc:jar")
-        result.assertTaskExecuted(":nested:buildSrc:jar")
+        result.assertTaskScheduled(":nested:buildSrc:jar")
 
         run(":nested:buildSrc:jar")
         // Task will not run when configuration cache is enabled
@@ -78,14 +78,14 @@ class BuildSrcTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             run(":buildSrc:thing", "-x", ":buildSrc:something")
-            result.assertTaskExecuted(":buildSrc:thing")
-            result.assertTaskNotExecuted(":buildSrc:something")
+            result.assertTaskScheduled(":buildSrc:thing")
+            result.assertTasksNotScheduled(":buildSrc:something")
         }
 
         2.times {
             run("-x", ":buildSrc:jar")
-            result.assertTaskNotExecuted(":buildSrc:compileJava")
-            result.assertTaskNotExecuted(":buildSrc:jar")
+            result.assertTasksNotScheduled(":buildSrc:compileJava")
+            result.assertTasksNotScheduled(":buildSrc:jar")
         }
     }
 
@@ -108,7 +108,7 @@ class BuildSrcTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             run("thing", "-x", ":lib:thing")
-            result.assertTaskNotExecuted(":lib:thing")
+            result.assertTasksNotScheduled(":lib:thing")
         }
     }
 }

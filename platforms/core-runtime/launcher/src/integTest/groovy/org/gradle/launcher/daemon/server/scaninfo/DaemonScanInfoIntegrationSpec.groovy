@@ -55,7 +55,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         """
 
         expect:
-        executer.withArguments('help', '--continuous', '-i').run().assertTasksExecuted(':help')
+        executer.withArguments('help', '--continuous', '-i').run().assertTasksScheduled(':help')
     }
 
     //Java 9 and above needs --add-opens to make environment variable mutation work
@@ -77,8 +77,8 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         captureResults << executer.withTasks('capture2').run()
 
         then:
-        captureResults[0].assertTaskExecuted(':capture1')
-        captureResults[1].assertTaskExecuted(':capture2')
+        captureResults[0].assertTaskScheduled(':capture1')
+        captureResults[1].assertTaskScheduled(':capture2')
 
         cleanup:
         daemon?.abort()

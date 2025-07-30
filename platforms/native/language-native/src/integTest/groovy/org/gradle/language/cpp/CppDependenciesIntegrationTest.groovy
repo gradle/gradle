@@ -99,7 +99,7 @@ class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrati
         if (buildType == "Release" && !toolChain.visualCpp) {
             tasks << [ ":log:stripSymbols${buildType}", ":hello:stripSymbols${buildType}", ":app:stripSymbols${buildType}"]
         }
-        assert result.assertTasksExecuted(tasks)
+        assert result.assertTasksScheduled(tasks)
     }
 
     private void assertAppHasOutputFor(String buildType) {

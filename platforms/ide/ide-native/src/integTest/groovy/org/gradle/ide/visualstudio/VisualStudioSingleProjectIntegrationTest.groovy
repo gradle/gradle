@@ -42,7 +42,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         run "visualStudio"
 
         then:
-        result.assertTasksExecuted(":visualStudio", ":appVisualStudioSolution")
+        result.assertTasksScheduled(":visualStudio", ":appVisualStudioSolution")
 
         and:
         final mainSolution = solutionFile("app.sln")
@@ -95,7 +95,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         run "visualStudio"
 
         then:
-        result.assertTasksExecuted(":visualStudio", ":appVisualStudioSolution", getProjectTasks("app"))
+        result.assertTasksScheduled(":visualStudio", ":appVisualStudioSolution", getProjectTasks("app"))
 
         and:
         final projectFile = projectFile("app.vcxproj")
@@ -135,7 +135,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         run "visualStudio"
 
         then:
-        result.assertTasksExecuted(":visualStudio", ":libVisualStudioSolution", getProjectTasks("libDll"))
+        result.assertTasksScheduled(":visualStudio", ":libVisualStudioSolution", getProjectTasks("libDll"))
 
         and:
         final projectFile = projectFile("libDll.vcxproj")
@@ -176,7 +176,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         run "visualStudio"
 
         then:
-        result.assertTasksExecuted(":visualStudio", ":libVisualStudioSolution", getProjectTasks("libLib"))
+        result.assertTasksScheduled(":visualStudio", ":libVisualStudioSolution", getProjectTasks("libLib"))
 
         and:
         final projectFile = projectFile("libLib.vcxproj")
@@ -217,7 +217,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         run "visualStudio"
 
         then:
-        result.assertTasksExecuted(":visualStudio", ":libVisualStudioSolution", getProjectTasks("libLib"), getProjectTasks("libDll"))
+        result.assertTasksScheduled(":visualStudio", ":libVisualStudioSolution", getProjectTasks("libLib"), getProjectTasks("libDll"))
 
         and:
         final libProjectFile = projectFile("libLib.vcxproj")
@@ -326,7 +326,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         run "visualStudio"
 
         then:
-        result.assertTasksExecuted(":visualStudio", ":appVisualStudioSolution", getProjectTasks("app"))
+        result.assertTasksScheduled(":visualStudio", ":appVisualStudioSolution", getProjectTasks("app"))
 
         and:
         final projectFile = projectFile("app.vcxproj")

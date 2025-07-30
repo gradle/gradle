@@ -63,14 +63,14 @@ class ConfigurationCacheBuildSrcIntegrationTest extends AbstractConfigurationCac
         configurationCacheRun("greeting")
 
         then:
-        result.assertTaskExecuted(":buildSrc:jar")
-        result.assertTaskExecuted(":greeting")
+        result.assertTaskScheduled(":buildSrc:jar")
+        result.assertTaskScheduled(":greeting")
 
         when:
         configurationCacheRun("greeting")
 
         then:
-        result.assertTasksExecuted(":greeting") // buildSrc tasks are not executed
+        result.assertTasksScheduled(":greeting") // buildSrc tasks are not executed
         outputContains("yo configuration cache")
         configurationCache.assertStateLoaded()
     }

@@ -279,8 +279,8 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         def result2 = handle2.waitForFinish()
 
         then: "both builds ran, with the settings script editing the archive atomically"
-        result1.assertTasksExecuted(':tasks')
-        result2.assertTasksExecuted(':tasks')
+        result1.assertTasksScheduled(':tasks')
+        result2.assertTasksScheduled(':tasks')
 
         cleanup:
         handle1?.abort()
@@ -364,8 +364,8 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         def result2 = handle2.waitForFinish()
 
         then: "both builds ran, with the settings script editing the archive atomically"
-        result1.assertTasksExecuted(':tasks')
-        result2.assertTasksExecuted(':tasks')
+        result1.assertTasksScheduled(':tasks')
+        result2.assertTasksScheduled(':tasks')
 
         cleanup:
         handle1?.abort()

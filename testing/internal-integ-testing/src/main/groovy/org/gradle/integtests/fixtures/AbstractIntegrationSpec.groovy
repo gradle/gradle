@@ -492,7 +492,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     protected void executedAndNotSkipped(String... tasks) {
         assertHasResult()
         tasks.each {
-            result.assertTaskNotSkipped(it)
+            result.assertTaskExecuted(it)
         }
     }
 
@@ -503,7 +503,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
 
     protected void allSkipped() {
         assertHasResult()
-        result.assertTasksNotSkipped()
+        result.assertTasksExecuted()
     }
 
     protected void skipped(String... tasks) {
@@ -516,14 +516,14 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     protected void notExecuted(String... tasks) {
         assertHasResult()
         tasks.each {
-            result.assertTaskNotExecuted(it)
+            result.assertTasksNotScheduled(it)
         }
     }
 
     protected void executed(String... tasks) {
         assertHasResult()
         tasks.each {
-            result.assertTaskExecuted(it)
+            result.assertTaskScheduled(it)
         }
     }
 

@@ -45,8 +45,8 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateStored()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        result.assertTasksNotSkipped(":jar", ":assemble", ":build")
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksExecuted(":jar", ":assemble", ":build")
         def jarFile = file("build/libs/somelib.jar")
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF")
 
@@ -55,8 +55,8 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateLoaded()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        result.assertTasksNotSkipped() // everything is up-to-date
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksExecuted() // everything is up-to-date
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF")
 
         when:
@@ -71,8 +71,8 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateLoaded()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        result.assertTasksNotSkipped(":jar", ":assemble", ":build")
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksExecuted(":jar", ":assemble", ":build")
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF")
     }
 
@@ -95,8 +95,8 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateStored()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        result.assertTasksNotSkipped(":jar", ":assemble", ":build")
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksExecuted(":jar", ":assemble", ":build")
         def jarFile = file("build/libs/somelib.jar")
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF")
 
@@ -112,8 +112,8 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateLoaded()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        result.assertTasksNotSkipped(":jar", ":assemble", ":build")
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksExecuted(":jar", ":assemble", ":build")
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF")
     }
 
@@ -126,7 +126,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateStored()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
         def jarFile = file("build/libs/somelib.jar")
@@ -137,8 +137,8 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateLoaded()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        result.assertTasksNotSkipped() // everything should be up-to-date
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksExecuted() // everything should be up-to-date
         classFile.isFile()
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class")
 
@@ -154,8 +154,8 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateLoaded()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        result.assertTasksNotSkipped(":compileJava", ":classes", ":jar", ":assemble", ":build")
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksExecuted(":compileJava", ":classes", ":jar", ":assemble", ":build")
         classFile.isFile()
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class")
 
@@ -164,8 +164,8 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateLoaded()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        result.assertTasksNotSkipped() // everything should be up-to-date
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksExecuted() // everything should be up-to-date
         classFile.isFile()
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class")
 
@@ -179,8 +179,8 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateLoaded()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        result.assertTasksNotSkipped(":compileJava", ":classes", ":jar", ":assemble", ":build")
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksExecuted(":compileJava", ":classes", ":jar", ":assemble", ":build")
         classFile.isFile()
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "thing/NewThing.class")
     }
@@ -195,7 +195,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         expect:
         configurationCacheRun "clean"
         assertStateStored()
-        result.assertTasksExecuted(":clean")
+        result.assertTasksScheduled(":clean")
         !buildDir.exists()
 
         when:
@@ -204,7 +204,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateLoaded()
-        result.assertTasksExecuted(":clean")
+        result.assertTasksScheduled(":clean")
         !buildDir.exists()
     }
 
@@ -217,7 +217,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateStored()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
         def jarFile = file("build/libs/somelib.jar")
@@ -228,8 +228,8 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateLoaded()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        result.assertTasksNotSkipped() // everything should be up-to-date
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksExecuted() // everything should be up-to-date
         classFile.isFile()
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt", "META-INF/some.Service")
 
@@ -245,8 +245,8 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateLoaded()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        result.assertTasksNotSkipped(":compileJava", ":processResources", ":classes", ":jar", ":assemble", ":build")
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble", ":build")
         classFile.isFile()
         new ZipTestFixture(jarFile).with {
             hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt", "META-INF/some.Service")
@@ -258,8 +258,8 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateLoaded()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        result.assertTasksNotSkipped() // everything should be up-to-date
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksExecuted() // everything should be up-to-date
         classFile.isFile()
         new ZipTestFixture(jarFile).with {
             hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt", "META-INF/some.Service")
@@ -272,8 +272,8 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateLoaded()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        result.assertTasksNotSkipped(":processResources", ":classes", ":jar", ":assemble", ":build")
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksExecuted(":processResources", ":classes", ":jar", ":assemble", ":build")
         classFile.isFile()
         new ZipTestFixture(jarFile).with {
             hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt", "META-INF/some.Service")
@@ -305,7 +305,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateStored()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
         def jarFile = file("build/libs/somelib.jar")
@@ -323,7 +323,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateLoaded()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":assemble")
         classFile.isFile()
         new ZipTestFixture(jarFile).assertContainsFile("Thing.class")
         new ZipTestFixture(jarFile).assertContainsFile("OtherThing.class")
@@ -413,7 +413,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateStored()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
         def testClassFile = file("build/classes/java/test/ThingTest.class")
@@ -427,8 +427,8 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateLoaded()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        result.assertTasksNotSkipped() // everything should be up-to-date
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        result.assertTasksExecuted() // everything should be up-to-date
         classFile.isFile()
         testClassFile.isFile()
         testResults.isDirectory()
@@ -446,7 +446,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateLoaded()
-        this.result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
+        this.result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         result.assertTasksSkipped(":processResources", ":processTestResources")
         classFile.isFile()
         testClassFile.isFile()
@@ -473,7 +473,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateStored()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":startScripts", ":distTar", ":distZip", ":assemble", ":check", ":build")
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":startScripts", ":distTar", ":distZip", ":assemble", ":check", ":build")
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
         def jarFile = file("build/libs/someapp.jar")
@@ -484,8 +484,8 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateLoaded()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":startScripts", ":distTar", ":distZip", ":assemble", ":check", ":build")
-        result.assertTasksNotSkipped() // everything should be up-to-date
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":startScripts", ":distTar", ":distZip", ":assemble", ":check", ":build")
+        result.assertTasksExecuted() // everything should be up-to-date
         classFile.isFile()
         jarFile.isFile()
 
@@ -501,8 +501,8 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateLoaded()
-        result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":startScripts", ":distTar", ":distZip", ":assemble", ":check", ":build")
-        result.assertTasksNotSkipped(":compileJava", ":classes", ":jar", ":startScripts", ":distTar", ":distZip", ":assemble", ":build")
+        result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":startScripts", ":distTar", ":distZip", ":assemble", ":check", ":build")
+        result.assertTasksExecuted(":compileJava", ":classes", ":jar", ":startScripts", ":distTar", ":distZip", ":assemble", ":build")
         classFile.isFile()
         jarFile.isFile()
     }

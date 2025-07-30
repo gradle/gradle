@@ -104,7 +104,7 @@ class XcodeCppApplicationProjectIntegrationTest extends AbstractXcodeCppProjectI
                 .succeeds()
 
         then:
-        resultLib.assertTasksExecuted(':greeter:compileDebugCpp', ':greeter:linkDebug', ':greeter:_xcode___Greeter_Debug')
+        resultLib.assertTasksScheduled(':greeter:compileDebugCpp', ':greeter:linkDebug', ':greeter:_xcode___Greeter_Debug')
     }
 
     @Requires(value = [HasXCode, NotEmbeddedExecutor], reason = "Need a Gradle install to pass to xcodebuild")

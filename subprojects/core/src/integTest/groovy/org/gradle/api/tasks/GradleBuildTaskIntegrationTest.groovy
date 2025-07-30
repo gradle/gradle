@@ -131,7 +131,7 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         run 'otherBuild'
 
         then:
-        result.assertTaskExecuted(":other:buildSrc:jar")
+        result.assertTaskScheduled(":other:buildSrc:jar")
     }
 
     def "buildSrc can have nested build"() {
@@ -153,8 +153,8 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         run()
 
         then:
-        result.assertTaskExecuted(":buildSrc:other:build")
-        result.assertTaskExecuted(":buildSrc:otherBuild")
+        result.assertTaskScheduled(":buildSrc:other:build")
+        result.assertTaskScheduled(":buildSrc:otherBuild")
     }
 
     def "nested build can nest more builds"() {

@@ -74,7 +74,7 @@ class IdeaCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         succeeds ":idea"
 
         then:
-        result.assertTasksExecuted(":ideaModule", ":ideaProject", ":ideaWorkspace",
+        result.assertTasksScheduled(":ideaModule", ":ideaProject", ":ideaWorkspace",
             ":api:ideaModule",
             ":shared:ideaModule",
             ":shared:api:ideaModule",

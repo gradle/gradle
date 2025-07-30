@@ -76,8 +76,8 @@ class TestSuitesTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'check'
 
         then:
-        result.assertTaskExecuted(':test')
-        result.assertTaskExecuted(':integTest')
+        result.assertTaskScheduled(':test')
+        result.assertTaskScheduled(':integTest')
 
         def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory)
         unitTestResults.assertTestClassesExecuted('example.UnitTest')
@@ -152,8 +152,8 @@ class TestSuitesTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'check'
 
         then:
-        result.assertTaskExecuted(':test')
-        result.assertTaskExecuted(':integTest')
+        result.assertTaskScheduled(':test')
+        result.assertTaskScheduled(':integTest')
 
         def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory)
         unitTestResults.assertTestClassesExecuted('example.UnitTest')

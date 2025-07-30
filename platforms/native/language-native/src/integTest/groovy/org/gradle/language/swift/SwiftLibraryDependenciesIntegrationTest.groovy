@@ -67,7 +67,7 @@ class SwiftLibraryDependenciesIntegrationTest extends AbstractNativeLibraryDepen
         succeeds assembleDevBinaryTask
 
         then:
-        result.assertTasksExecuted([":lib1:compileDebugSwift", ":lib1:linkDebug", ":lib2:compileDebugSwift", ":lib2:linkDebug"], assembleDevBinaryTasks, assembleDevBinaryTask)
+        result.assertTasksScheduled([":lib1:compileDebugSwift", ":lib1:linkDebug", ":lib2:compileDebugSwift", ":lib2:linkDebug"], assembleDevBinaryTasks, assembleDevBinaryTask)
     }
 
     def "can compile against a library with binary-specific implementation dependencies"() {
@@ -116,7 +116,7 @@ class SwiftLibraryDependenciesIntegrationTest extends AbstractNativeLibraryDepen
         succeeds assembleDevBinaryTask
 
         then:
-        result.assertTasksExecuted([":lib1:compileDebugSwift", ":lib1:linkDebug", ":lib2:compileDebugSwift", ":lib2:linkDebug"], assembleDevBinaryTasks, assembleDevBinaryTask)
+        result.assertTasksScheduled([":lib1:compileDebugSwift", ":lib1:linkDebug", ":lib2:compileDebugSwift", ":lib2:linkDebug"], assembleDevBinaryTasks, assembleDevBinaryTask)
     }
 
     @Override

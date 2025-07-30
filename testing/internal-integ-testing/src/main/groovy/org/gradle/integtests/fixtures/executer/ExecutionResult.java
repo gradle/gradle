@@ -137,41 +137,36 @@ public interface ExecutionResult {
     ExecutionResult assertNotPostBuildOutput(String expectedOutput);
 
     /**
-     * Asserts that exactly the given set of tasks have been executed in the given order.
+     * Asserts that exactly the given set of tasks have show up in the task graph in any order.
      * Each task path can be either a String or a {@link TaskOrderSpec}.  See {@link TaskOrderSpecs} for common assertions
      * and an explanation of their usage.  Defaults to a {@link TaskOrderSpecs#exact(Object[])} assertion.
      */
-    ExecutionResult assertTasksExecutedInOrder(Object... taskPaths);
+    ExecutionResult assertTasksScheduledInOrder(Object... taskPaths);
 
     /**
-     * Asserts that exactly the given set of tasks have been executed in any order.
+     * Asserts that exactly the given set of tasks show up in the task graph.
      */
-    ExecutionResult assertTasksExecuted(Object... taskPaths);
+    ExecutionResult assertTasksScheduled(Object... taskPaths);
 
     /**
-     * Asserts that the given task has been executed.
+     * Asserts that the given task has been shows up in the task graph.
      */
-    ExecutionResult assertTaskExecuted(String taskPath);
+    ExecutionResult assertTaskScheduled(String taskPath);
 
     /**
-     * Asserts that exactly the given set of tasks have been executed in any order and none of the tasks were skipped.
+     * Asserts that the given task does not show up in the task graph.
      */
-    ExecutionResult assertTasksExecutedAndNotSkipped(Object... taskPaths);
+    ExecutionResult assertTasksNotScheduled(String taskPath);
 
     /**
-     * Asserts that the given task has not been executed.
+     * Asserts that at least one task shows up in the task graph
      */
-    ExecutionResult assertTaskNotExecuted(String taskPath);
+    ExecutionResult assertAnyTasksScheduled();
 
     /**
-     * Asserts that at least one task has been executed.
+     * Asserts that there are no tasks that show up in the task graph.
      */
-    ExecutionResult assertAnyTasksExecuted();
-
-    /**
-     * Asserts that there are no tasks that have been executed.
-     */
-    ExecutionResult assertNoTasksExecuted();
+    ExecutionResult assertNoTasksScheduled();
 
     /**
      * Asserts that the provided tasks were executed in the given order.  Each task path can be either a String
@@ -191,12 +186,12 @@ public interface ExecutionResult {
     ExecutionResult assertTaskSkipped(String taskPath);
 
     /**
-     * Asserts that exactly the given set of tasks have not been skipped.
+     * Asserts that exactly the given set of tasks are in the tasks graph and task actions ran.
      */
-    ExecutionResult assertTasksNotSkipped(Object... taskPaths);
+    ExecutionResult assertTasksExecuted(Object... taskPaths);
 
     /**
-     * Asserts that at least one task was executed and not skipped.
+     * Asserts that at least one task shows up in the task graph and task actions ran.
      * Examples:
      *
      *  foo: SKIPPED
@@ -211,10 +206,10 @@ public interface ExecutionResult {
      *  foo:
      *  bar: -> true
      */
-    ExecutionResult assertAnyTasksExecutedAndNotSkipped();
+    ExecutionResult assertAnyTasksExecuted();
 
     /**
-     * Asserts that no tasks were executed and none were skipped.
+     * Asserts all tasks in the task graph have been skipped.
      * Examples:
      *
      * foo: SKIPPED
@@ -229,12 +224,12 @@ public interface ExecutionResult {
      * foo:
      * bar: -> false
      */
-    ExecutionResult assertNoTasksExecutedAndNotSkipped();
+    ExecutionResult assertAllTasksSkipped();
 
     /**
-     * Asserts that the given task has not been skipped.
+     * Asserts that the given task shows up in the task graph and tasks actions ran.
      */
-    ExecutionResult assertTaskNotSkipped(String taskPath);
+    ExecutionResult assertTaskExecuted(String taskPath);
 
     /**
      * Asserts that the important information from this result has been verified by the test.

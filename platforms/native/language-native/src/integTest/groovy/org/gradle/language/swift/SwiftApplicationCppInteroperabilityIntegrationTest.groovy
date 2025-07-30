@@ -61,7 +61,7 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(
+        result.assertTasksScheduled(
             ":cppGreeter:compileDebugCpp", ":cppGreeter:${createOrLink(linkage)}Debug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
@@ -95,7 +95,7 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(
+        result.assertTasksScheduled(
             ":cppGreeter:compileDebugSharedCpp", ":cppGreeter:linkDebugShared",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
@@ -148,7 +148,7 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(
+        result.assertTasksScheduled(
             ":greeter:compileDebugSwift", ":greeter:linkDebug",
             ":cppGreeter:compileDebugCpp", ":cppGreeter:${createOrLink(linkage)}Debug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
@@ -199,7 +199,7 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(
+        result.assertTasksScheduled(
             ":cppGreeter:compileDebugCpp", ":cppGreeter:${createOrLink(linkage)}Debug",
             ":logger:compileDebugCpp", ":logger:${createOrLink(linkage)}Debug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
@@ -242,7 +242,7 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(
+        result.assertTasksScheduled(
             ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":logger:compileDebugCpp", ":logger:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
@@ -274,7 +274,7 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(
+        result.assertTasksScheduled(
             ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 

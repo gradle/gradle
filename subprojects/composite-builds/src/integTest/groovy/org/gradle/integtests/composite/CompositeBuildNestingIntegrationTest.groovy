@@ -44,9 +44,9 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         execute(buildA, "assemble")
 
         then:
-        result.assertTaskExecuted(":buildC:jar")
-        result.assertTaskExecuted(":buildB:jar")
-        result.assertTaskExecuted(":jar")
+        result.assertTaskScheduled(":buildC:jar")
+        result.assertTaskScheduled(":buildB:jar")
+        result.assertTaskScheduled(":jar")
     }
 
     def "a nested included build is substituted into all other builds"() {
@@ -84,10 +84,10 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         execute(buildA, "assemble")
 
         then:
-        result.assertTaskExecuted(":buildC:jar")
-        result.assertTaskExecuted(":buildD:jar")
-        result.assertTaskExecuted(":buildB:jar")
-        result.assertTaskExecuted(":jar")
+        result.assertTaskScheduled(":buildC:jar")
+        result.assertTaskScheduled(":buildD:jar")
+        result.assertTaskScheduled(":buildB:jar")
+        result.assertTaskScheduled(":jar")
     }
 
     def "a build can be included by multiple other builds"() {
@@ -115,9 +115,9 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         execute(buildA, "assemble")
 
         then:
-        result.assertTaskExecuted(":buildC:jar")
-        result.assertTaskExecuted(":buildB:jar")
-        result.assertTaskExecuted(":jar")
+        result.assertTaskScheduled(":buildC:jar")
+        result.assertTaskScheduled(":buildB:jar")
+        result.assertTaskScheduled(":jar")
     }
 
     def "nested build can contribute to build script classpath"() {
@@ -176,9 +176,9 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         execute(buildA, "go")
 
         then:
-        result.assertTaskExecuted(":buildC:jar")
-        result.assertTaskExecuted(":buildB:jar")
-        result.assertTaskExecuted(":go")
+        result.assertTaskScheduled(":buildC:jar")
+        result.assertTaskScheduled(":buildB:jar")
+        result.assertTaskScheduled(":go")
     }
 
     def "reports failure for duplicate included build name"() {

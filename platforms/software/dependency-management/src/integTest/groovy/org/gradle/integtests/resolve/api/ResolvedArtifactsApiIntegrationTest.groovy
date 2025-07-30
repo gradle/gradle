@@ -334,7 +334,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, usage=compile}, {artifactType=jar, flavor=two, usage=compile}]")
 
         and:
-        result.assertTasksExecuted(':a:oneJar', ':b:twoJar', ':show')
+        result.assertTasksScheduled(':a:oneJar', ':b:twoJar', ':show')
 
         where:
         expression                                                    | _
@@ -451,7 +451,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         outputContains("variants: [{artifactType=jar, buildType=debug, flavor=one, usage=compile}, {artifactType=jar, flavor=two, usage=compile}]")
 
         and:
-        result.assertTasksExecuted(':a:oneJar', ':b:twoJar', ':show')
+        result.assertTasksScheduled(':a:oneJar', ':b:twoJar', ':show')
 
         where:
         expression                                                    | _
@@ -1173,7 +1173,7 @@ Searched in the following locations:
 
         expect:
         succeeds 'resolveLenient'
-        result.assertTasksExecuted(":c:jar1", ":resolveLenient")
+        result.assertTasksScheduled(":c:jar1", ":resolveLenient")
     }
 
     def "attributes on incoming artifact variants can be requested using Stringly or strongly-typed values"() {

@@ -243,7 +243,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails 'broken'
 
         then:
-        failure.assertNoTasksExecuted()
+        failure.assertNoTasksScheduled()
 
         and:
         configurationCache.assertStateStoreFailed()
@@ -259,7 +259,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails WARN_PROBLEMS_CLI_OPT, 'broken'
 
         then:
-        failure.assertNoTasksExecuted()
+        failure.assertNoTasksScheduled()
 
         and:
         configurationCache.assertStateStoreFailed()
@@ -295,7 +295,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails 'broken'
 
         then:
-        failure.assertNoTasksExecuted()
+        failure.assertNoTasksScheduled()
 
         and:
         // TODO: why are we not discarding the state here, the same way we would have discarded it for the execution-time problems?
@@ -311,7 +311,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails WARN_PROBLEMS_CLI_OPT, 'broken'
 
         then:
-        failure.assertNoTasksExecuted()
+        failure.assertNoTasksScheduled()
 
         and:
         configurationCache.assertStateLoadFailed()
@@ -350,7 +350,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails 'problems', 'broken'
 
         then:
-        failure.assertNoTasksExecuted()
+        failure.assertNoTasksScheduled()
 
         and:
         configurationCache.assertStateStoreFailed()
@@ -375,7 +375,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCacheFails WARN_PROBLEMS_CLI_OPT, 'problems', 'broken'
 
         then:
-        failure.assertNoTasksExecuted()
+        failure.assertNoTasksScheduled()
 
         and:
         configurationCache.assertStateStoreFailed()

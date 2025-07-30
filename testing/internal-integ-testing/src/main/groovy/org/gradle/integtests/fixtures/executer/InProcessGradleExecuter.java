@@ -509,40 +509,33 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         @Override
-        public ExecutionResult assertTasksExecutedInOrder(Object... taskPaths) {
+        public ExecutionResult assertTasksScheduledInOrder(Object... taskPaths) {
             Set<String> expected = TaskOrderSpecs.exact(taskPaths).getTasks();
-            assertTasksExecuted(expected);
+            assertTasksScheduled(expected);
             assertTaskOrder(taskPaths);
-            delegate.assertTasksExecutedInOrder(taskPaths);
+            delegate.assertTasksScheduledInOrder(taskPaths);
             return this;
         }
 
         @Override
-        public ExecutionResult assertTasksExecuted(Object... taskPaths) {
+        public ExecutionResult assertTasksScheduled(Object... taskPaths) {
             Set<String> flattenedTasks = new TreeSet<>(flattenTaskPaths(taskPaths));
             assertEquals(new TreeSet<>(flattenedTasks), new TreeSet<>(executedTasks));
-            delegate.assertTasksExecuted(flattenedTasks);
+            delegate.assertTasksScheduled(flattenedTasks);
             return this;
         }
 
         @Override
-        public ExecutionResult assertTasksExecutedAndNotSkipped(Object... taskPaths) {
-            assertTasksExecuted(taskPaths);
-            assertTasksNotSkipped(taskPaths);
-            return this;
-        }
-
-        @Override
-        public ExecutionResult assertTaskExecuted(String taskPath) {
+        public ExecutionResult assertTaskScheduled(String taskPath) {
             assertThat(executedTasks, hasItem(taskPath));
-            delegate.assertTaskExecuted(taskPath);
+            delegate.assertTaskScheduled(taskPath);
             return this;
         }
 
         @Override
-        public ExecutionResult assertTaskNotExecuted(String taskPath) {
+        public ExecutionResult assertTasksNotScheduled(String taskPath) {
             assertThat(executedTasks, not(hasItem(taskPath)));
-            delegate.assertTaskNotExecuted(taskPath);
+            delegate.assertTasksNotScheduled(taskPath);
             return this;
         }
 
@@ -562,30 +555,30 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         @Override
-        public ExecutionResult assertNoTasksExecutedAndNotSkipped() {
+        public ExecutionResult assertAllTasksSkipped() {
             assertThat(getNotSkippedTasks(), is(empty()));
-            delegate.assertNoTasksExecutedAndNotSkipped();
+            delegate.assertAllTasksSkipped();
             return this;
-        }
-
-        @Override
-        public ExecutionResult assertAnyTasksExecutedAndNotSkipped() {
-            assertThat(getNotSkippedTasks(), is(not(empty())));
-            delegate.assertAnyTasksExecutedAndNotSkipped();
-            return this;
-        }
-
-        @Override
-        public ExecutionResult assertNoTasksExecuted() {
-           assertThat(executedTasks, is(empty()));
-           delegate.assertNoTasksExecuted();
-           return this;
         }
 
         @Override
         public ExecutionResult assertAnyTasksExecuted() {
-            assertThat(executedTasks, is(not(empty())));
+            assertThat(getNotSkippedTasks(), is(not(empty())));
             delegate.assertAnyTasksExecuted();
+            return this;
+        }
+
+        @Override
+        public ExecutionResult assertNoTasksScheduled() {
+           assertThat(executedTasks, is(empty()));
+           delegate.assertNoTasksScheduled();
+           return this;
+        }
+
+        @Override
+        public ExecutionResult assertAnyTasksScheduled() {
+            assertThat(executedTasks, is(not(empty())));
+            delegate.assertAnyTasksScheduled();
             return this;
         }
 
@@ -597,18 +590,19 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         @Override
-        public ExecutionResult assertTasksNotSkipped(Object... taskPaths) {
+        public ExecutionResult assertTasksExecuted(Object... taskPaths) {
+            assertTasksScheduled(taskPaths);
             Set<String> expected = new TreeSet<>(flattenTaskPaths(taskPaths));
             Set<String> notSkipped = getNotSkippedTasks();
             assertThat(notSkipped, equalTo(expected));
-            delegate.assertTasksNotSkipped(expected);
+            delegate.assertTasksExecuted(expected);
             return this;
         }
 
         @Override
-        public ExecutionResult assertTaskNotSkipped(String taskPath) {
+        public ExecutionResult assertTaskExecuted(String taskPath) {
             assertThat(getNotSkippedTasks(), hasItem(taskPath));
-            delegate.assertTaskNotSkipped(taskPath);
+            delegate.assertTaskExecuted(taskPath);
             return this;
         }
 

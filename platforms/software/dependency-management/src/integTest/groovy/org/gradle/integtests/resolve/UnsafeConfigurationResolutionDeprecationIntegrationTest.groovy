@@ -199,7 +199,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         then:
         if (shouldSucceed) {
-            result.assertTaskExecuted(":resolve")
+            result.assertTaskScheduled(":resolve")
         } else {
             result.assertHasErrorOutput(ccMessage as String)
         }

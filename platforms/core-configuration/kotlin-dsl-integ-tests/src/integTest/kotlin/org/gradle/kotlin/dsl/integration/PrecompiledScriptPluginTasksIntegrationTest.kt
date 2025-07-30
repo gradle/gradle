@@ -23,7 +23,6 @@ import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -137,8 +136,8 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
         }
 
         build(firstDir, "classes", "--build-cache").apply {
-            cachedTasks.forEach { assertTaskExecuted(it) }
-            assertTaskExecuted(downstreamKotlinCompileTask)
+            cachedTasks.forEach { assertTaskScheduled(it) }
+            assertTaskScheduled(downstreamKotlinCompileTask)
         }
 
         build(firstDir, "classes", "--build-cache").apply {
@@ -264,7 +263,7 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
         withKotlinDslPluginIn("consumer").appendText("""dependencies { implementation(project(":producer")) }""")
         withFile("consumer/src/main/kotlin/some.gradle.kts", "")
         build(":consumer:classes").apply {
-            assertTaskExecuted(":consumer:compilePluginsBlocks")
+            assertTaskScheduled(":consumer:compilePluginsBlocks")
             assertNotOutput("w: Classpath entry points to a non-existent location")
         }
         assertFalse(file("producer/build/classes/java/main").exists())

@@ -70,7 +70,7 @@ class SwiftSharedLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
         succeeds('assemble')
 
         then:
-        result.assertTasksExecuted(':compileDebugSwift', ':linkDebug', ':assemble')
+        result.assertTasksScheduled(':compileDebugSwift', ':linkDebug', ':assemble')
         sharedLibrary('build/lib/main/debug/Foo').assertExists()
     }
 }

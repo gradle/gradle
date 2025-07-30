@@ -65,7 +65,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'copy'
 
         then:
-        result.assertTaskExecuted(":copy")
+        result.assertTaskScheduled(":copy")
         file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt')
 
         when:
@@ -139,7 +139,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'copy'
 
         then:
-        result.assertTaskExecuted(":copy")
+        result.assertTaskScheduled(":copy")
         file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt')
 
         when:

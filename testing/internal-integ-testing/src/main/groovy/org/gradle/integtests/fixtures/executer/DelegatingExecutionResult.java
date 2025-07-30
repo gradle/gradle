@@ -121,38 +121,33 @@ public interface DelegatingExecutionResult extends ExecutionResult {
     }
 
     @Override
-    default ExecutionResult assertTasksExecutedInOrder(Object... taskPaths) {
-        return getDelegate().assertTasksExecutedInOrder(taskPaths);
+    default ExecutionResult assertTasksScheduledInOrder(Object... taskPaths) {
+        return getDelegate().assertTasksScheduledInOrder(taskPaths);
     }
 
     @Override
-    default ExecutionResult assertTasksExecuted(Object... taskPaths) {
-        return getDelegate().assertTasksExecuted(taskPaths);
+    default ExecutionResult assertTasksScheduled(Object... taskPaths) {
+        return getDelegate().assertTasksScheduled(taskPaths);
     }
 
     @Override
-    default ExecutionResult assertTaskExecuted(String taskPath) {
-        return getDelegate().assertTaskExecuted(taskPath);
+    default ExecutionResult assertTaskScheduled(String taskPath) {
+        return getDelegate().assertTaskScheduled(taskPath);
     }
 
     @Override
-    default ExecutionResult assertTasksExecutedAndNotSkipped(Object... taskPaths) {
-        return getDelegate().assertTasksExecutedAndNotSkipped(taskPaths);
+    default ExecutionResult assertTasksNotScheduled(String taskPath) {
+        return getDelegate().assertTasksNotScheduled(taskPath);
     }
 
     @Override
-    default ExecutionResult assertTaskNotExecuted(String taskPath) {
-        return getDelegate().assertTaskNotExecuted(taskPath);
+    default ExecutionResult assertAnyTasksScheduled() {
+        return getDelegate().assertAnyTasksScheduled();
     }
 
     @Override
-    default ExecutionResult assertAnyTasksExecuted() {
-        return getDelegate().assertAnyTasksExecuted();
-    }
-
-    @Override
-    default ExecutionResult assertNoTasksExecuted() {
-        return getDelegate().assertNoTasksExecuted();
+    default ExecutionResult assertNoTasksScheduled() {
+        return getDelegate().assertNoTasksScheduled();
     }
 
     @Override
@@ -166,13 +161,13 @@ public interface DelegatingExecutionResult extends ExecutionResult {
     }
 
     @Override
-    default ExecutionResult assertAnyTasksExecutedAndNotSkipped() {
-        return getDelegate().assertAnyTasksExecutedAndNotSkipped();
+    default ExecutionResult assertAnyTasksExecuted() {
+        return getDelegate().assertAnyTasksExecuted();
     }
 
     @Override
-    default ExecutionResult assertNoTasksExecutedAndNotSkipped() {
-        return getDelegate().assertNoTasksExecutedAndNotSkipped();
+    default ExecutionResult assertAllTasksSkipped() {
+        return getDelegate().assertAllTasksSkipped();
     }
 
     @Override
@@ -181,13 +176,13 @@ public interface DelegatingExecutionResult extends ExecutionResult {
     }
 
     @Override
-    default ExecutionResult assertTasksNotSkipped(Object... taskPaths) {
-        return getDelegate().assertTasksNotSkipped(taskPaths);
+    default ExecutionResult assertTasksExecuted(Object... taskPaths) {
+        return getDelegate().assertTasksExecuted(taskPaths);
     }
 
     @Override
-    default ExecutionResult assertTaskNotSkipped(String taskPath) {
-        return getDelegate().assertTaskNotSkipped(taskPath);
+    default ExecutionResult assertTaskExecuted(String taskPath) {
+        return getDelegate().assertTaskExecuted(taskPath);
     }
 
     @Override

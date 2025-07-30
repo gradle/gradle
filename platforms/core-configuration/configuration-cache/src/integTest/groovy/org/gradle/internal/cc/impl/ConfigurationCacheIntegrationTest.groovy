@@ -248,7 +248,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         outputContains("running build script")
         outputContains("create task")
         outputContains("configure task")
-        result.assertTasksExecuted(":a")
+        result.assertTasksScheduled(":a")
 
         when:
         configurationCacheRun "a"
@@ -259,7 +259,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         outputDoesNotContain("running build script")
         outputDoesNotContain("create task")
         outputDoesNotContain("configure task")
-        result.assertTasksExecuted(":a")
+        result.assertTasksScheduled(":a")
 
         when:
         configurationCacheRun "b"
@@ -270,7 +270,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         outputContains("running build script")
         outputContains("create task")
         outputContains("configure task")
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
 
         when:
         configurationCacheRun "a"
@@ -281,7 +281,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         outputDoesNotContain("running build script")
         outputDoesNotContain("create task")
         outputDoesNotContain("configure task")
-        result.assertTasksExecuted(":a")
+        result.assertTasksScheduled(":a")
     }
 
     def "configuration cache for multi-level projects"() {

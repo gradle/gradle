@@ -81,7 +81,7 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:${createOrLink(linkage)}Debug",
+        result.assertTasksScheduled(":cppGreeter:compileDebugCpp", ":cppGreeter:${createOrLink(linkage)}Debug",
                 tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
         lib.assertTestCasesRan(testExecutionResult)
 
@@ -126,7 +126,7 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+        result.assertTasksScheduled(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             tasks(":greeter").debug.allToLink,
             tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
     }
