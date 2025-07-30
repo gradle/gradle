@@ -32,6 +32,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
+import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.instrumentation.agent.AgentInitializer;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.jvm.Jvm;
@@ -170,6 +171,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
         BuildProcessState buildProcessState = new BuildProcessState(startParameter.isContinuous(),
             AgentStatus.of(daemonParameters.shouldApplyInstrumentationAgent()),
             ClassPath.EMPTY,
+            CurrentGradleInstallation.locate(),
             loggingServices,
             NativeServices.getInstance());
 

@@ -59,7 +59,7 @@ abstract class DistributionTest : Test() {
      * A local Gradle installation (unpacked distribution) to test against if the tests should fork a new Gradle process (non-embedded)
      */
     @Internal
-    val gradleInstallationForTest = GradleInstallationForTestEnvironmentProvider(project, this)
+    val gradleInstallationForTest = GradleInstallationForTestEnvironmentProvider(project)
 
     /**
      * A 'normalized' distribution to test against if needed
@@ -166,7 +166,7 @@ class LocalRepositoryEnvironmentProvider(project: Project) : CommandLineArgument
 }
 
 
-class GradleInstallationForTestEnvironmentProvider(project: Project, private val testTask: DistributionTest) : CommandLineArgumentProvider, Named {
+class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLineArgumentProvider, Named {
 
     @Internal
     val gradleHomeDir = project.objects.fileCollection()
@@ -187,22 +187,18 @@ class GradleInstallationForTestEnvironmentProvider(project: Project, private val
     val distZipVersion = project.version.toString()
 
     override fun asArguments(): Iterable<String> {
-        val distributionDir = if (gradleHomeDir.files.size == 1) gradleHomeDir.singleFile else null
-        val distributionName = if (distributionDir != null) {
-            // complete distribution is used from 'build/bin distribution'
-            distributionDir.parentFile.parentFile.name
-        } else {
-            // gradle-runtime-api-info.jar in 'build/libs'
-            testTask.classpath.filter { it.name.startsWith("gradle-runtime-api-info") }.singleFile.parentFile.parentFile.parentFile.name
+        require(gradleHomeDir.files.size == 1) {
+            "Expected exactly one Gradle distribution directory, but found: ${gradleHomeDir.files.joinToString(", ")}"
         }
-        return (
-            (if (distributionDir != null) mapOf("integTest.gradleHomeDir" to distributionDir) else emptyMap()) + mapOf(
-                "integTest.gradleUserHomeDir" to absolutePathOf(gradleUserHomeDir.dir(distributionName)),
-                "integTest.samplesdir" to absolutePathOf(gradleSnippetsDir),
-                "org.gradle.integtest.daemon.registry" to absolutePathOf(daemonRegistry.dir(distributionName)),
-                "integTest.distZipVersion" to distZipVersion
-            )
-            ).asSystemPropertyJvmArguments()
+        val distributionDir = gradleHomeDir.singleFile
+        val distributionName = distributionDir.parentFile.parentFile.name
+        return mapOf(
+            "integTest.gradleHomeDir" to distributionDir,
+            "integTest.gradleUserHomeDir" to absolutePathOf(gradleUserHomeDir.dir(distributionName)),
+            "integTest.samplesdir" to absolutePathOf(gradleSnippetsDir),
+            "org.gradle.integtest.daemon.registry" to absolutePathOf(daemonRegistry.dir(distributionName)),
+            "integTest.distZipVersion" to distZipVersion
+        ).asSystemPropertyJvmArguments()
     }
 
     @Internal
