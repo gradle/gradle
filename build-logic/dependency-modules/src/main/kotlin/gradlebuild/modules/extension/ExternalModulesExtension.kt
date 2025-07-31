@@ -28,7 +28,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
 
     val configurationCacheReportVersion = "1.26"
     val gradleIdeStarterVersion = "0.6"
-    val kotlinVersion = "2.2.0"
+    val kotlinVersion = "2.2.20-Beta2"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
