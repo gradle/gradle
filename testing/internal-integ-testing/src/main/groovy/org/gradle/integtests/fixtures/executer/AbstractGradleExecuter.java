@@ -40,6 +40,8 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildprocess.BuildProcessState;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
+import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.Jvm;
@@ -117,10 +119,19 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         true,
         AgentStatus.of(isAgentInstrumentationEnabled()),
         ClassPath.EMPTY,
+        getCurrentInstallation(),
         newCommandLineProcessLogging(),
         NativeServicesTestFixture.getInstance(),
         ValidationServicesFixture.getServices()
     ).getServices();
+
+    private static CurrentGradleInstallation getCurrentInstallation() {
+        TestFile gradleHomeDir = IntegrationTestBuildContext.INSTANCE.getGradleHomeDir();
+        if (gradleHomeDir != null) {
+            return new CurrentGradleInstallation(new GradleInstallation(gradleHomeDir));
+        }
+        return new CurrentGradleInstallation(null);
+    }
 
     private static final JvmVersionDetector JVM_VERSION_DETECTOR = new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(new DefaultJvmMetadataDetector(GLOBAL_SERVICES.get(ClientExecHandleBuilderFactory.class), GLOBAL_SERVICES.get(TemporaryFileProvider.class))));
 

@@ -549,7 +549,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
         then:
         final exeProject = projectFile("exe/exe_mainExe.vcxproj")
         exeProject.projectConfigurations.values().each {
-            assert it.buildCommand == "\"../${hostGradleWrapperFile.name}\" -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
+            assert it.buildCommand == "\"${executer.distribution.gradleHomeDir.file("bin/gradle")}\" -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
         }
     }
 
