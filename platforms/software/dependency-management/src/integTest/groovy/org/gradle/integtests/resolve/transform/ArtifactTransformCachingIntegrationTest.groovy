@@ -2072,7 +2072,7 @@ resultsFile:
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
         def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
-        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
+        writeLastTransformationAccessTimeToJournal(getWorkspaceRoot(outputDir1), daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
         gcFile.lastModified = daysAgo(2)
 
         and:
@@ -2106,7 +2106,7 @@ resultsFile:
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
         def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
-        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
+        writeLastTransformationAccessTimeToJournal(getWorkspaceRoot(outputDir1), daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
         gcFile.lastModified = daysAgo(2)
 
         and:
@@ -2145,7 +2145,7 @@ resultsFile:
         gcFile.assertExists()
 
         when:
-        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
+        writeLastTransformationAccessTimeToJournal(getWorkspaceRoot(outputDir1), daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
 
         and:
         executer.beforeExecute {
@@ -2182,7 +2182,7 @@ resultsFile:
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
         def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
-        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
+        writeLastTransformationAccessTimeToJournal(getWorkspaceRoot(outputDir1), daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
         gcFile.lastModified = daysAgo(2)
 
         and:
@@ -2304,7 +2304,7 @@ resultsFile:
         executer.noDeprecationChecks()
         run '--stop' // ensure daemon does not cache file access times in memory
         def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
-        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
+        writeLastTransformationAccessTimeToJournal(getWorkspaceRoot(outputDir1), daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
         gcFile.lastModified = daysAgo(2)
 
         and:
@@ -2566,13 +2566,22 @@ resultsFile:
     }
 
     Set<TestFile> projectOutputDirs(String from, String to, Closure<String> stream = { output }) {
-        def parts = [Pattern.quote(temporaryFolder.getTestDirectory().absolutePath) + ".*", "build", ".transforms", "[\\w-]+", "transformed"]
+        def parts = [Pattern.quote(temporaryFolder.getTestDirectory().absolutePath) + ".*", "build", ".transforms", "[\\w-]+(${quotedFileSeparator}workspace)?", "transformed"]
         return outputDirs(from, to, parts.join(quotedFileSeparator), stream)
     }
 
     Set<TestFile> gradleUserHomeOutputDirs(String from, String to, Closure<String> stream = { output }) {
-        def parts = [Pattern.quote(cacheDir.absolutePath), "[\\w-]+", "transformed"]
+        def parts = [Pattern.quote(cacheDir.absolutePath), "[\\w-]+(${quotedFileSeparator}workspace)?", "transformed"]
         outputDirs(from, to, parts.join(quotedFileSeparator), stream)
+    }
+
+    TestFile getWorkspaceRoot(File outputDir) {
+        def workspaceRoot = outputDir.parentFile
+        def cacheDir = cacheDir
+        while (workspaceRoot.parentFile != cacheDir) {
+            workspaceRoot = workspaceRoot.parentFile
+        }
+        return new TestFile(workspaceRoot.absolutePath)
     }
 
     private final quotedFileSeparator = Pattern.quote(File.separator)
