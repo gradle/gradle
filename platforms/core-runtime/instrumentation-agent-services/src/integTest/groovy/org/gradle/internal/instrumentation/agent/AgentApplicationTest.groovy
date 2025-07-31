@@ -209,6 +209,27 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         agentStatus << [true, false]
     }
 
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    def "can start gradle client with a long path to agent"() {
+        given:
+        def installPath = ("very-long-path-spanning-over-two-hundred-sixty-symbols" + ("${File.separatorChar}0123456789" * 20))
+        assert installPath.size() > 260
+
+        requireIsolatedGradleDistribution(installPath)
+
+        withAgentApplied(agentStatus)
+        withDumpAgentStatusTask()
+
+        when:
+        succeeds()
+
+        then:
+        agentStatusWas(agentStatus)
+
+        where:
+        agentStatus << [true, false]
+    }
+
     private void withDumpAgentStatusTask() {
         buildFile("""
             import ${AgentStatus.name}

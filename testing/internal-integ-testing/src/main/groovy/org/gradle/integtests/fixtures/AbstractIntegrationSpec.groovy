@@ -366,9 +366,11 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
     /**
      * This is expensive as it creates a complete copy of the distribution inside the test directory.
      * Only use this for testing custom modifications of a distribution.
+     *
+     * @param relPath (optional) a relative path inside the test directory to install the distribution into
      */
-    protected GradleExecuter requireIsolatedGradleDistribution() {
-        def isolatedGradleHomeDir = getTestDirectory().file("gradle-home")
+    protected GradleExecuter requireIsolatedGradleDistribution(String relPath = "gradle-home") {
+        def isolatedGradleHomeDir = getTestDirectory().file(relPath)
         getBuildContext().gradleHomeDir.copyTo(isolatedGradleHomeDir)
         distribution = new UnderDevelopmentGradleDistribution(getBuildContext(), isolatedGradleHomeDir)
         recreateExecuter()
