@@ -36,6 +36,7 @@ import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.UnresolvedDependency
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.ConfigurationServicesBundle
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
@@ -1632,29 +1633,34 @@ This method is only meant to be called on configurations which allow the (non-de
         _ * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
         _ * domainObjectContext.equals(_) >> true // In these tests, we assume we're in the same context
 
-        def publishArtifactNotationParser = new PublishArtifactNotationParserFactory(
+        def publishArtifactNotationParserFactory = new PublishArtifactNotationParserFactory(
             TestUtil.objectFactory(),
             metaDataProvider,
             TestFiles.resolver(),
             TestFiles.taskDependencyFactory(),
         )
-        new DefaultConfigurationFactory(
+
+        ConfigurationServicesBundle configurationServices = new DefaultConfigurationServicesBundle(
+            calculatedValueContainerFactory,
             TestUtil.objectFactory(),
+            TestFiles.fileCollectionFactory(),
+            TestFiles.taskDependencyFactory(),
+            attributesFactory,
+            TestUtil.domainObjectCollectionFactory(),
+            CollectionCallbackActionDecorator.NOOP,
+            TestUtil.problemsService()
+        )
+
+        new DefaultConfigurationFactory(
+            configurationServices,
             listenerManager,
             domainObjectContext,
-            TestFiles.fileCollectionFactory(),
             new TestBuildOperationRunner(),
-            publishArtifactNotationParser,
-            attributesFactory,
+            publishArtifactNotationParserFactory,
             new ResolveExceptionMapper(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
-            new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
+            new AttributeDesugaring(configurationServices.getAttributesFactory()),
             userCodeApplicationContext,
-            CollectionCallbackActionDecorator.NOOP,
             projectStateRegistry,
-            TestUtil.domainObjectCollectionFactory(),
-            calculatedValueContainerFactory,
-            TestFiles.taskDependencyFactory(),
-            TestUtil.problemsService(),
             new DocumentationRegistry()
         )
     }

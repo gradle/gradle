@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.ResolvableConfiguration
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.ConfigurationServicesBundle
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
@@ -65,11 +66,22 @@ class DefaultConfigurationContainerTest extends Specification {
     private CalculatedValueContainerFactory calculatedValueContainerFactory = Mock()
     private ObjectFactory objectFactory = TestUtil.objectFactory()
     private AttributesFactory attributesFactory = AttributeTestUtil.attributesFactory()
-    private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
+
+    ConfigurationServicesBundle configurationServices = new DefaultConfigurationServicesBundle(
+        calculatedValueContainerFactory,
         objectFactory,
+        TestFiles.fileCollectionFactory(),
+        TestFiles.taskDependencyFactory(),
+        attributesFactory,
+        TestUtil.domainObjectCollectionFactory(),
+        CollectionCallbackActionDecorator.NOOP,
+        TestUtil.problemsService()
+    )
+
+    private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
+        configurationServices,
         listenerManager,
         StandaloneDomainObjectContext.ANONYMOUS,
-        TestFiles.fileCollectionFactory(),
         buildOperationRunner,
         new PublishArtifactNotationParserFactory(
                 objectFactory,
@@ -77,16 +89,10 @@ class DefaultConfigurationContainerTest extends Specification {
                 TestFiles.resolver(),
                 TestFiles.taskDependencyFactory(),
         ),
-        attributesFactory,
         Stub(ResolveExceptionMapper),
         new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
         userCodeApplicationContext,
-        CollectionCallbackActionDecorator.NOOP,
         projectStateRegistry,
-        TestUtil.domainObjectCollectionFactory(),
-        calculatedValueContainerFactory,
-        TestFiles.taskDependencyFactory(),
-        TestUtil.problemsService(),
         new DocumentationRegistry()
     )
 
