@@ -176,6 +176,7 @@ import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory
 import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
 import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.composite.BuildIncludeListener;
 import org.gradle.internal.composite.DefaultBuildIncluder;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
@@ -265,15 +266,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             services.registerBuildServices(registration);
         }
     }
-//
-//    @Provides
-//    BuildIncludeListener createBuildIncludeListener(BuildModelParameters buildModelParameters){
-//        if(buildModelParameters.isResilientModelBuilding()){
-//            return new BrokenBuildsCapturingListener();
-//        }
-//        //ignored in non-resilient model building
-//        return (buildState, exception) -> {};
-//    }
 
     @Provides
     OrdinalGroupFactory createOrdinalGroupFactory() {
@@ -585,7 +577,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         Instantiator instantiator,
         GradleProperties gradleProperties,
         BuildOperationRunner buildOperationRunner,
-        TextFileResourceLoader textFileResourceLoader
+        TextFileResourceLoader textFileResourceLoader,
+        BuildIncludeListener buildIncludeListener
     ) {
         return new BuildOperationSettingsProcessor(
             new RootBuildCacheControllerSettingsProcessor(
@@ -598,7 +591,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
                             scriptHandlerFactory
                         ),
                         gradleProperties,
-                        textFileResourceLoader
+                        textFileResourceLoader,
+                        buildIncludeListener
                     )
                 )
             ),

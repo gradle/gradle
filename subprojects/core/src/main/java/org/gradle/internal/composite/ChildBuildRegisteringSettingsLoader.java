@@ -44,21 +44,22 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
         SettingsState state = delegate.findAndLoadSettings(gradle);
 
         // Add included builds defined in settings
-        List<IncludedBuildSpec> includedBuilds = state.getSettings().getIncludedBuilds();
-        if (!includedBuilds.isEmpty()) {
-            Set<IncludedBuildInternal> children = new LinkedHashSet<>(includedBuilds.size());
-            for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
-                CompositeBuildParticipantBuildState includedBuild = buildIncluder.includeBuild(includedBuildSpec);
-                children.add(includedBuild.getModel());
-            }
-
-            // Set the visible included builds
-            gradle.setIncludedBuilds(children);
-        } else {
-            gradle.setIncludedBuilds(Collections.emptyList());
-        }
-
+        gradle.setIncludedBuilds(getIncludedBuildInternals(state));
         return state;
+    }
+
+    @SuppressWarnings("MixedMutabilityReturnType")
+    private Set<IncludedBuildInternal> getIncludedBuildInternals(SettingsState state) {
+        List<IncludedBuildSpec> includedBuilds = state.getSettings().getIncludedBuilds();
+        if (includedBuilds.isEmpty()) {
+            return Collections.emptySet();
+        }
+        Set<IncludedBuildInternal> children = new LinkedHashSet<>(includedBuilds.size());
+        for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
+            CompositeBuildParticipantBuildState includedBuild = buildIncluder.includeBuild(includedBuildSpec);
+            children.add(includedBuild.getModel());
+        }
+        return children;
     }
 
 }
