@@ -57,11 +57,13 @@ fun DistributionTest.configureGradleTestEnvironment() {
     val taskName = name
 
     gradleInstallationForTest.apply {
-        gradleHomeDir = if (executerRequiresFullDistribution(taskName)) {
-            configurations["${prefix}TestFullDistributionRuntimeClasspath"]
-        } else {
-            configurations["${prefix}TestDistributionRuntimeClasspath"]
-        }
+        gradleDistribution.homeDir.fileProvider(
+            if (executerRequiresFullDistribution(taskName)) {
+                configurations["${prefix}TestFullDistributionRuntimeClasspath"].getSingleFileProvider()
+            } else {
+                configurations["${prefix}TestDistributionRuntimeClasspath"].getSingleFileProvider()
+            }
+        )
         // Set the base user home dir to be share by integration tests.
         // The actual user home dir will be a subfolder using the name of the distribution.
         gradleUserHomeDir = intTestHomeDir
@@ -69,6 +71,7 @@ fun DistributionTest.configureGradleTestEnvironment() {
         // The actual daemon registry dir will be a subfolder using the name of the distribution.
         daemonRegistry = repoRoot().dir("build/daemon")
         gradleSnippetsDir = repoRoot().dir("platforms/documentation/docs/src/snippets") // TODO use dependency management
+        distZipVersion = project.version.toString()
     }
 
     // Wire the different inputs for local distributions and repos that are declared by dependencies in the build scripts
@@ -82,4 +85,14 @@ fun DistributionTest.configureGradleTestEnvironment() {
 
 fun DistributionTest.setJvmArgsOfTestJvm() {
     jvmArgs("-Xmx${project.the<IntegrationTestExtension>().testJvmXmx.get()}", "-XX:+HeapDumpOnOutOfMemoryError")
+}
+
+fun Configuration.getSingleFileProvider(): Provider<File> {
+    val name = this.name
+    return incoming.files.elements.map {
+        require(it.size <= 1) {
+            "Expected at most one file in configuration '$name' but found: $it"
+        }
+        it.firstOrNull()?.asFile
+    }
 }
