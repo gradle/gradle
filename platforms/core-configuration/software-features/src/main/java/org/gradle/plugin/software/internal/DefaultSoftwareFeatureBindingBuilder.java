@@ -38,8 +38,8 @@ public class DefaultSoftwareFeatureBindingBuilder implements SoftwareFeatureBind
     @Override
     public <
         Definition extends HasBuildModel<OwnBuildModel>,
-        TargetDefinition extends HasBuildModel<?>,
-        OwnBuildModel extends BuildModel
+        OwnBuildModel extends BuildModel,
+        TargetDefinition extends HasBuildModel<?>
         >
     DslBindingBuilder<Definition, OwnBuildModel> bindSoftwareFeature(
         String name,
