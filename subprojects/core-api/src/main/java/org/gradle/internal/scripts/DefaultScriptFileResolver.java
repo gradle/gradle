@@ -15,8 +15,12 @@
  */
 package org.gradle.internal.scripts;
 
-import org.jspecify.annotations.Nullable;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 
+import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,14 +44,56 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
     }
 
     @Override
+    @Nullable
     public File resolveScriptFile(File dir, String basename) {
+        File selectedCandidate = null;
+        List<File> ignoredCandidates = new ArrayList<>();
+
         for (String extension : EXTENSIONS) {
             File candidate = new File(dir, basename + extension);
             if (isCandidateFile(candidate)) {
-                return candidate;
+                if (selectedCandidate == null) {
+                    selectedCandidate = candidate;
+                } else {
+                    ignoredCandidates.add(candidate);
+                }
             }
         }
-        return null;
+
+        if (!ignoredCandidates.isEmpty()) {
+            reportMultipleCandidates(dir, selectedCandidate, ignoredCandidates);
+        }
+
+        return selectedCandidate;
+    }
+
+    private static void reportMultipleCandidates(File dir, File selectedCandidate, List<File> ignoredCandidates) {
+        ProblemsProgressEventEmitterHolder.get().getReporter().report(
+            ProblemId.create("multiple-candidates", "Multiple script candidates", GradleCoreProblemGroup.script()),
+            spec -> {
+                spec.severity(Severity.WARNING);
+                spec.contextualLabel(
+                    String.format("Multiple scripts were found in directory '%s'", dir.getAbsolutePath())
+                );
+
+                StringBuilder detailsMessage = new StringBuilder();
+                detailsMessage.append("There were multiple candidate script files found in the '")
+                    .append(dir.getAbsolutePath())
+                    .append("' directory:")
+                    .append(System.lineSeparator());
+                detailsMessage.append("Gradle doesn't merge multiple script files, but selects a single one to execute.")
+                    .append(System.lineSeparator());
+                detailsMessage.append(" - Selected candidate: ")
+                    .append(selectedCandidate.getAbsolutePath())
+                    .append(System.lineSeparator());
+                for (File ignoredCandidate : ignoredCandidates) {
+                    detailsMessage.append("Ignored candidate: ")
+                        .append(ignoredCandidate.getAbsolutePath())
+                        .append(System.lineSeparator());
+                }
+                spec.details(detailsMessage.toString());
+            }
+        );
     }
 
     private boolean isCandidateFile(File candidate) {
