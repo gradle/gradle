@@ -22,7 +22,6 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.TaskFileVarFactory;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
@@ -63,39 +62,26 @@ import java.util.Map;
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractNativeCompileTask extends DefaultTask {
-    private final Property<NativePlatform> targetPlatform;
-    private final Property<NativeToolChain> toolChain;
     private boolean positionIndependentCode;
     private boolean debug;
     private boolean optimize;
-    private final DirectoryProperty objectFileDir;
-    private final ConfigurableFileCollection includes;
-    private final ConfigurableFileCollection systemIncludes;
     private final ConfigurableFileCollection source;
     private final Map<String, String> macros = new LinkedHashMap<String, String>();
-    private final ListProperty<String> compilerArgs;
     // Don't serialize the compiler. It holds state that is mostly only required at execution time and that can be calculated from the other fields of this task
     // after being deserialized. However, it is also required to calculate the producers of the header files to calculate the work graph.
     // It would be better to provide some way for a task to express these things separately.
     private transient IncrementalCompilerBuilder.IncrementalCompiler incrementalCompiler;
 
     public AbstractNativeCompileTask() {
-        ObjectFactory objectFactory = getProject().getObjects();
-        this.includes = getProject().files();
-        this.systemIncludes = getProject().files();
-        dependsOn(includes);
-        dependsOn(systemIncludes);
+        dependsOn(getIncludes());
+        dependsOn(getSystemIncludes());
 
         this.source = getTaskFileVarFactory().newInputFileCollection(this);
-        this.objectFileDir = objectFactory.directoryProperty();
-        this.compilerArgs = getProject().getObjects().listProperty(String.class);
-        this.targetPlatform = objectFactory.property(NativePlatform.class);
-        this.toolChain = objectFactory.property(NativeToolChain.class);
     }
 
     private IncrementalCompilerBuilder.IncrementalCompiler getIncrementalCompiler() {
         if (incrementalCompiler == null) {
-            incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, includes.plus(systemIncludes), macros, toolChain.map(nativeToolChain -> nativeToolChain instanceof Gcc || nativeToolChain instanceof Clang));
+            incrementalCompiler = getIncrementalCompilerBuilder().newCompiler(this, source, getIncludes().plus(getSystemIncludes()), macros, getToolChain().map(nativeToolChain -> nativeToolChain instanceof Gcc || nativeToolChain instanceof Clang));
         }
         return incrementalCompiler;
     }
@@ -116,11 +102,11 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     protected void compile(InputChanges inputs) {
         BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
         NativeCompileSpec spec = createCompileSpec();
-        spec.setTargetPlatform(targetPlatform.get());
+        spec.setTargetPlatform(getTargetPlatform().get());
         spec.setTempDir(getTemporaryDir());
-        spec.setObjectFileDir(objectFileDir.get().getAsFile());
-        spec.include(includes);
-        spec.systemInclude(systemIncludes);
+        spec.setObjectFileDir(getObjectFileDir().get().getAsFile());
+        spec.include(getIncludes());
+        spec.systemInclude(getSystemIncludes());
         spec.source(getSource());
         spec.setMacros(getMacros());
         spec.args(getCompilerArgs().get());
@@ -132,8 +118,8 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
         configureSpec(spec);
 
-        NativeToolChainInternal nativeToolChain = (NativeToolChainInternal) toolChain.get();
-        NativePlatformInternal nativePlatform = (NativePlatformInternal) targetPlatform.get();
+        NativeToolChainInternal nativeToolChain = (NativeToolChainInternal) getToolChain().get();
+        NativePlatformInternal nativePlatform = (NativePlatformInternal) getTargetPlatform().get();
         PlatformToolProvider platformToolProvider = nativeToolChain.select(nativePlatform);
         setDidWork(doCompile(spec, platformToolProvider).getDidWork());
     }
@@ -157,9 +143,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      * @since 4.7
      */
     @Internal
-    public Property<NativeToolChain> getToolChain() {
-        return toolChain;
-    }
+    public abstract Property<NativeToolChain> getToolChain();
 
     /**
      * The platform being compiled for.
@@ -167,9 +151,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      * @since 4.7
      */
     @Nested
-    public Property<NativePlatform> getTargetPlatform() {
-        return targetPlatform;
-    }
+    public abstract Property<NativePlatform> getTargetPlatform();
 
     /**
      * Should the compiler generate position independent code?
@@ -227,23 +209,19 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      * @since 4.3
      */
     @OutputDirectory
-    public DirectoryProperty getObjectFileDir() {
-        return objectFileDir;
-    }
+    public abstract DirectoryProperty getObjectFileDir();
 
     /**
      * Returns the header directories to be used for compilation.
      */
     @Internal("The paths for include directories are tracked via the includePaths property, the contents are tracked via discovered inputs")
-    public ConfigurableFileCollection getIncludes() {
-        return includes;
-    }
+    public abstract ConfigurableFileCollection getIncludes();
 
     /**
      * Add directories where the compiler should search for header files.
      */
     public void includes(Object includeRoots) {
-        includes.from(includeRoots);
+        getIncludes().from(includeRoots);
     }
 
     /**
@@ -252,9 +230,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      * @since 4.8
      */
     @Internal("The paths for include directories are tracked via the includePaths property, the contents are tracked via discovered inputs")
-    public ConfigurableFileCollection getSystemIncludes() {
-        return systemIncludes;
-    }
+    public abstract ConfigurableFileCollection getSystemIncludes();
 
     /**
      * Returns the source files to be compiled.
@@ -293,9 +269,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
      * @since 4.3
      */
     @Input
-    public ListProperty<String> getCompilerArgs() {
-        return compilerArgs;
-    }
+    public abstract ListProperty<String> getCompilerArgs();
 
     /**
      * The set of dependent headers. This is used for up-to-date checks only.
