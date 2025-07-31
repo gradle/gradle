@@ -17,7 +17,7 @@
 
 ++++
 <div class="badge-wrapper">
-    <a class="badge" href="https://dpeuniversity.gradle.com/app/courses/b5069222-cfd0-4393-b645-7a2c713853d5/" target="_blank">
+    <a class="badge" href="https://dpeuniversity.gradle.com/app/learning_paths/f633b8eb-2979-449e-a434-b94787fe5f32" target="_blank">
         <span class="badge-type button--blue">LEARN</span>
         <span class="badge-text">How to Use a Build Scan&nbsp;&nbsp;&nbsp;&gt;</span>
     </a>
