@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures
 
+import org.apache.commons.io.FileSystem
 import org.gradle.internal.FileUtils
 import org.gradle.util.internal.CollectionUtils
 import org.gradle.util.internal.TextUtil
@@ -67,12 +68,12 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
     private void assertHtmlReportForTestClassExists(String... classNames) {
         classNames.each {
-            assert new File(htmlReportDirectory, "classes/${FileUtils.toSafeFileName(it)}.html").file
+            assert new File(htmlReportDirectory, "classes/${FileSystem.WINDOWS.toLegalFileName(it, '-' as char)}.html").file
         }
     }
 
     boolean testClassExists(String testClass) {
-        return new File(htmlReportDirectory, "classes/${FileUtils.toSafeFileName(testClass)}.html").exists()
+        return new File(htmlReportDirectory, "classes/${FileSystem.WINDOWS.toLegalFileName(testClass, '-' as char)}.html").exists()
     }
 
     boolean testClassDoesNotExist(String testClass) {
@@ -80,11 +81,11 @@ class HtmlTestExecutionResult implements TestExecutionResult {
     }
 
     TestClassExecutionResult testClass(String testClass) {
-        return new HtmlTestClassExecutionResult(new File(htmlReportDirectory, "classes/${FileUtils.toSafeFileName(testClass)}.html"))
+        return new HtmlTestClassExecutionResult(new File(htmlReportDirectory, "classes/${FileSystem.WINDOWS.toLegalFileName(testClass, '-' as char)}.html"))
     }
 
     TestClassExecutionResult testClassStartsWith(String testClass) {
-        return new HtmlTestClassExecutionResult(new File(htmlReportDirectory, "classes").listFiles().find { it.name.startsWith(FileUtils.toSafeFileName(testClass)) })
+        return new HtmlTestClassExecutionResult(new File(htmlReportDirectory, "classes").listFiles().find { it.name.startsWith(FileSystem.WINDOWS.toLegalFileName(testClass, '-' as char)) })
     }
 
     @Override
