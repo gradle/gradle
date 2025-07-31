@@ -16,16 +16,20 @@
 package org.gradle.internal.scripts;
 
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static org.gradle.internal.FileUtils.hasExtension;
 
 public class DefaultScriptFileResolver implements ScriptFileResolver {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScriptFileResolver.class);
     private static final String[] EXTENSIONS = ScriptFileUtil.getValidExtensions();
 
     @Nullable
@@ -40,14 +44,39 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
     }
 
     @Override
+    @Nullable
     public File resolveScriptFile(File dir, String basename) {
+        File selectedCandidate = null;
+        List<File> ignoredCandidates = new ArrayList<>();
+
         for (String extension : EXTENSIONS) {
             File candidate = new File(dir, basename + extension);
             if (isCandidateFile(candidate)) {
-                return candidate;
+                if (selectedCandidate == null) {
+                    selectedCandidate = candidate;
+                } else {
+                    ignoredCandidates.add(candidate);
+                }
             }
         }
-        return null;
+
+        if (!ignoredCandidates.isEmpty()) {
+            reportMultipleCandidates(dir, selectedCandidate, ignoredCandidates);
+        }
+
+        return selectedCandidate;
+    }
+
+    private static void reportMultipleCandidates(File dir, File selectedCandidate, List<File> ignoredCandidates) {
+        String ignoredCandidateFileNames = ignoredCandidates
+            .stream()
+            .map(File::getName)
+            .map(path -> "'" + path + "'")
+            .collect(Collectors.joining(", "));
+        LOGGER.warn(
+            "Multiple build files were found in directory '{}'. Using '{}', and ignoring {}",
+            dir, selectedCandidate.getName(), ignoredCandidateFileNames
+        );
     }
 
     private boolean isCandidateFile(File candidate) {
