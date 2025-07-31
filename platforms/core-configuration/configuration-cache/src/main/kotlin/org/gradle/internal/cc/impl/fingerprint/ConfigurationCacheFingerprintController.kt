@@ -21,7 +21,6 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.project.ProjectIdentity
-import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
@@ -51,7 +50,6 @@ import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.impl.DefaultFileNormalizationSpec
 import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.extensions.core.directoryChildrenNamesHash
-import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.hash.HashCode
@@ -103,7 +101,6 @@ class ConfigurationCacheFingerprintController internal constructor(
 
     interface Host {
         val valueSourceProviderFactory: ValueSourceProviderFactory
-        val gradleProperties: GradleProperties
     }
 
     private
@@ -447,9 +444,6 @@ class ConfigurationCacheFingerprintController internal constructor(
     ) : ConfigurationCacheFingerprintChecker.Host,
         ConfigurationCacheInputFileChecker.Host by inputFileCheckerHost {
 
-        private
-        val gradleProperties by lazy(host::gradleProperties)
-
         override val isEncrypted: Boolean
             get() = encryptionService.isEncrypting
 
@@ -479,9 +473,6 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override val ignoredFileSystemCheckInputs: String?
             get() = startParameter.ignoredFileSystemCheckInputs
-
-        override fun gradleProperty(propertyName: String): String? =
-            gradleProperties.find(propertyName)?.uncheckedCast()
 
         override fun hashCodeOfDirectoryContent(file: File): HashCode =
             directoryChildrenNamesHash(file)
