@@ -358,8 +358,9 @@ Do not use `gradle.properties` in subprojects to set properties in your build.
 
 === Explanation
 
-It's possible to have `gradle.properties` in both the root project and in any of the subprojects.
-Using it outside of the root project makes it difficult to trace what Gradle property values are set throughout the project, and understand where they were set or overriden.
+While it's possible to have `gradle.properties` in both the root project and in any of the subprojects, it's not well-supported neither by Gradle itself nor by most plugins such as Android Gradle Plugin or Kotlin Gradle Plugin.
+
+Using it outside of the root project makes it also difficult to trace what Gradle property values are set throughout the project, understand where they were set or overridden, or predict what the actual value will be.
 
 === Example
 
