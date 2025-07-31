@@ -31,7 +31,7 @@ class DefaultScriptFileResolverTest extends AbstractIntegrationSpec {
         def result = executer.withTasks("help").run()
 
         then:
-        receivedProblem
+        receivedProblem.fqid == "scripts:multiple-candidates"
     }
 
 }

@@ -73,25 +73,21 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
             spec -> {
                 spec.severity(Severity.WARNING);
                 spec.contextualLabel(
-                    String.format("Multiple scripts were found in directory '%s'", dir.getAbsolutePath())
+                    String.format("Multiple script candidates were found in directory '%s'", dir.getAbsolutePath())
                 );
+                spec.fileLocation(dir.getAbsolutePath());
 
                 StringBuilder detailsMessage = new StringBuilder();
-                detailsMessage.append("There were multiple candidate script files found in the '")
-                    .append(dir.getAbsolutePath())
-                    .append("' directory:")
-                    .append(System.lineSeparator());
-                detailsMessage.append("Gradle doesn't merge multiple script files, but selects a single one to execute.")
-                    .append(System.lineSeparator());
                 detailsMessage.append(" - Selected candidate: ")
                     .append(selectedCandidate.getAbsolutePath())
                     .append(System.lineSeparator());
                 for (File ignoredCandidate : ignoredCandidates) {
-                    detailsMessage.append("Ignored candidate: ")
+                    detailsMessage.append(" - Ignored candidate: ")
                         .append(ignoredCandidate.getAbsolutePath())
                         .append(System.lineSeparator());
                 }
                 spec.details(detailsMessage.toString());
+                spec.solution("Remove the ignored script files or rename them");
             }
         );
     }
