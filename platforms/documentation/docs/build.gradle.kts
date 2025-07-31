@@ -2,6 +2,7 @@ import gradlebuild.basics.configurationCacheEnabledForDocsTests
 import gradlebuild.basics.googleApisJs
 import gradlebuild.basics.repoRoot
 import gradlebuild.basics.runBrokenForConfigurationCacheDocsTests
+import gradlebuild.basics.util.getSingleFileProvider
 import gradlebuild.integrationtests.model.GradleDistribution
 import org.asciidoctor.gradle.jvm.AsciidoctorTask
 import org.gradle.docs.internal.tasks.CheckLinks
@@ -626,9 +627,11 @@ tasks.named<Test>("docsTest") {
     // Exemplar doesn't know about that it's running in the context of the gradle/gradle build
     // so it uses the Gradle distribution from the running build. This is not correct, because
     // we want to verify that the samples work with the Gradle distribution being built.
-    val installationEnvProvider = objects.newInstance<GradleInstallationForTestEnvironmentProvider>(project, this)
-    installationEnvProvider.gradleHomeDir.from(configurations.integTestDistributionRuntimeClasspath)
-    installationEnvProvider.samplesdir = project.layout.buildDirectory.dir("working/samples/testing")
+    val installationEnvProvider = objects.newInstance<GradleInstallationForTestEnvironmentProvider>().apply {
+        gradleDistribution.homeDir.fileProvider(configurations.integTestDistributionRuntimeClasspath.getSingleFileProvider())
+        samplesdir = project.layout.buildDirectory.dir("working/samples/testing")
+        repoRoot = project.repoRoot()
+    }
     jvmArgumentProviders.add(installationEnvProvider)
 
     // For unknown reason, this is set to 'sourceSet.getRuntimeClasspath()' in the 'org.gradle.samples' plugin
@@ -870,33 +873,23 @@ tasks.named("check") {
 }
 
 // TODO there is some duplication with DistributionTest.kt here - https://github.com/gradle/gradle-private/issues/3126
-abstract class GradleInstallationForTestEnvironmentProvider
-@Inject constructor(project: Project, testTask: Test) : CommandLineArgumentProvider {
-    @Internal
-    val gradleHomeDir: ConfigurableFileCollection = project.objects.fileCollection()
+abstract class GradleInstallationForTestEnvironmentProvider : CommandLineArgumentProvider {
 
-    @PathSensitive(PathSensitivity.RELATIVE)
-    @InputDirectory
-    val samplesdir: DirectoryProperty = project.objects.directoryProperty()
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:InputDirectory
+    abstract val samplesdir: DirectoryProperty
 
-    @Nested
-    val gradleDistribution: GradleDistribution = GradleDistribution(gradleHomeDir)
+    @get:Nested
+    abstract val gradleDistribution: GradleDistribution
 
-    private val testTaskClasspath: FileCollection = testTask.classpath
-    private val repoRoot: Directory = project.repoRoot()
+    @get:Internal
+    abstract val repoRoot: DirectoryProperty
 
     override fun asArguments(): Iterable<String> {
-        val distributionName = testTaskClasspath
-            .filter { it.name.startsWith("gradle-runtime-api-info") }
-            .singleFile
-            .parentFile
-            .parentFile
-            .parentFile
-            .name
         return listOf(
-            "-DintegTest.gradleHomeDir=${gradleHomeDir.singleFile}",
+            "-DintegTest.gradleHomeDir=${gradleDistribution.homeDir.get().asFile}",
             "-DintegTest.samplesdir=${samplesdir.get().asFile}",
-            "-DintegTest.gradleUserHomeDir=${repoRoot.dir("intTestHomeDir/$distributionName")}"
+            "-DintegTest.gradleUserHomeDir=${repoRoot.dir("intTestHomeDir/${gradleDistribution.name.get()}").get().asFile}"
         )
     }
 }

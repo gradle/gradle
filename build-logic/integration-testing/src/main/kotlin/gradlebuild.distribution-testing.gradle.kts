@@ -15,6 +15,7 @@
  */
 
 import gradlebuild.basics.repoRoot
+import gradlebuild.basics.util.getSingleFileProvider
 import gradlebuild.cleanup.services.CachesCleaner
 import gradlebuild.integrationtests.extension.IntegrationTestExtension
 import gradlebuild.integrationtests.setSystemPropertiesOfTestJVM
@@ -57,11 +58,13 @@ fun DistributionTest.configureGradleTestEnvironment() {
     val taskName = name
 
     gradleInstallationForTest.apply {
-        gradleHomeDir = if (executerRequiresFullDistribution(taskName)) {
-            configurations["${prefix}TestFullDistributionRuntimeClasspath"]
-        } else {
-            configurations["${prefix}TestDistributionRuntimeClasspath"]
-        }
+        gradleDistribution.homeDir.fileProvider(
+            if (executerRequiresFullDistribution(taskName)) {
+                configurations["${prefix}TestFullDistributionRuntimeClasspath"].getSingleFileProvider()
+            } else {
+                configurations["${prefix}TestDistributionRuntimeClasspath"].getSingleFileProvider()
+            }
+        )
         // Set the base user home dir to be share by integration tests.
         // The actual user home dir will be a subfolder using the name of the distribution.
         gradleUserHomeDir = intTestHomeDir
@@ -69,6 +72,7 @@ fun DistributionTest.configureGradleTestEnvironment() {
         // The actual daemon registry dir will be a subfolder using the name of the distribution.
         daemonRegistry = repoRoot().dir("build/daemon")
         gradleSnippetsDir = repoRoot().dir("platforms/documentation/docs/src/snippets") // TODO use dependency management
+        distZipVersion = project.version.toString()
     }
 
     // Wire the different inputs for local distributions and repos that are declared by dependencies in the build scripts
