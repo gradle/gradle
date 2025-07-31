@@ -15,8 +15,6 @@ dependencies {
     implementation(projects.jvm)
     implementation(projects.kotlinDsl)
 
-    implementation(project(":java-api-extractor"))
-
     implementation(kotlin("gradle-plugin"))
 
     implementation("com.google.code.gson:gson")

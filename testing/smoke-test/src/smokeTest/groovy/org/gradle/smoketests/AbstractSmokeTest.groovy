@@ -48,7 +48,7 @@ abstract class AbstractSmokeTest extends Specification {
     static class TestedVersions {
         /**
          * May also need to update
-         * @see BuildScanPluginSmokeTest
+         * @see DevelocityPluginSmokeTest
          */
 
         // https://plugins.gradle.org/plugin/biz.aQute.bnd

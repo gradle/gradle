@@ -6,6 +6,7 @@ on:
     branches:
       - release
       - release7x
+      - release8x
 
 permissions:
   issues: write

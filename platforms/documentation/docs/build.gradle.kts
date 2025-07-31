@@ -29,7 +29,6 @@ configurations {
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
             attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-documentation"))
         }
-        isVisible = false
     }
 }
 
@@ -642,8 +641,6 @@ tasks.named<Test>("docsTest") {
         if (javaVersion.isJava9Compatible) {
             excludeTestsMatching("org.gradle.docs.samples.*.building-groovy-*.sample")
         }
-        // disable sanityCheck of 'structuring-software-projects' in any case due to deprecation warning in Android project
-        excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects*_sanityCheck.sample")
 
         if (OperatingSystem.current().isWindows && javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
             // Disable tests that suffer from charset issues under JDK 18 for now

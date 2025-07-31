@@ -13,6 +13,7 @@ plugins {
 description = "Kotlin DSL Provider"
 
 dependencies {
+    api(projects.buildDiscoveryApi)
     api(projects.buildProcessServices)
     api(projects.baseServices)
     api(projects.classloaders)
@@ -59,7 +60,7 @@ dependencies {
     implementation(projects.serviceProvider)
     implementation(projects.snapshots)
 
-    implementation("org.gradle:java-api-extractor")
+    implementation(projects.javaApiExtractor)
     implementation("org.gradle:kotlin-dsl-shared-runtime")
 
     implementation(libs.asm)

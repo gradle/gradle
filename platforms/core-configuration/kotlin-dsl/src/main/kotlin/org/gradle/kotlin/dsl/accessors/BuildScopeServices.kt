@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
@@ -35,13 +36,15 @@ object BuildScopeServices : ServiceRegistrationProvider {
         fileCollectionFactory: FileCollectionFactory,
         executionEngine: ExecutionEngine,
         inputFingerprinter: InputFingerprinter,
-        workspaceProvider: KotlinDslWorkspaceProvider
+        workspaceProvider: KotlinDslWorkspaceProvider,
+        buildState: BuildState
     ) = Stage1BlocksAccessorClassPathGenerator(
         classLoaderHierarchyHasher,
         fileCollectionFactory,
         executionEngine,
         inputFingerprinter,
-        workspaceProvider
+        workspaceProvider,
+        buildState
     )
 
     @Provides

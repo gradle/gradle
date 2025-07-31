@@ -25,9 +25,11 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.plugins.DefaultPluginManager
+import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.ClasspathNormalizer
@@ -217,9 +219,13 @@ fun Project.enableScriptCompilationOf(
         )
 
         val accessorsGenerationClasspath = configurations.resolvable("precompiledScriptPluginAccessorsGenerationClasspath") {
-            // We use both compile and runtime classpath to include compileOnly, implementation and runtimeOnly dependencies
-            it.extendsFrom(configurations["compileClasspath"])
-            it.extendsFrom(configurations["runtimeClasspath"])
+            // We combine compile and runtime classpath to allow for compileOnly dependencies to be used for code generation
+            it.extendsFrom(
+                configurations[JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME],
+                configurations[JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME],
+                configurations[JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME],
+            )
+            serviceOf<JvmPluginServices>().configureAsRuntimeClasspath(it)
         }
 
         val (generatePrecompiledScriptPluginAccessors, _) =

@@ -96,7 +96,6 @@ tasks.check {
 }
 
 val rules by configurations.creating {
-    isVisible = false
     isCanBeConsumed = false
 
     attributes {

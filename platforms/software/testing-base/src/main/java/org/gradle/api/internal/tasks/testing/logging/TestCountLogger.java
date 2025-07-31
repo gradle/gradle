@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.logging;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.tasks.testing.TestWorkerFailureException;
+import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestListener;
@@ -132,7 +133,7 @@ public class TestCountLogger implements TestListener {
             // Looks like a test worker suite
             // TODO: Instead of assuming all failures at this level are worker failures, we should
             // identify worker failures in the TestFailureDetails
-            if (suite.getParent().getParent() == null) {
+            if (suite.getParent().getParent() == null && suite.getDisplayName().startsWith(ForkingTestClassProcessor.GRADLE_TEST_WORKER_NAME)) {
                 if (result.getResultType() == TestResult.ResultType.FAILURE) {
                     workerFailures.addAll(result.getFailures());
                 }

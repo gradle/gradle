@@ -498,18 +498,40 @@ When using a hierarchical directory structure to organize your Gradle projects, 
 When you use the link:{kotlinDslPath}/gradle/org.gradle.api.initialization/-settings/include.html[Settings.include()] method to include a project in your Grade settings file, you typically include projects by supplying the directory name like `include("featureA")`.
 This usage assumes that `featureA` is located at the root of your build.
 
-You can also include projects located in subdirectories using hierarchical paths with the `:` charactor as a separator.
-This allows you to organize large builds containing many projects to improve comprehensibility, versus having all your projects live at the root of the build.
+You can include projects located in nested subdirectories by specifying their full project path using `:` as a separator between path segments.
 For instance, if project `search` was located in a subdirectory named `features`, itself located in a subdirectory named `subs`, you could call `include(":subs:features:search")` to include it.
 
-However, without further configuration, Gradle will create empty projects for every element of the path.
+Nesting projects in a sensible hierarchical directory structure is common practice in larger Gradle builds.
+This approach helps organize large builds and improves comprehensibility, compared to placing all projects directly under the build's root.
+
+However, without further configuration, Gradle will create empty projects for each element in every hierarchical path, even if some of those directories do not contain actual Gradle projects.
 In the example above, Gradle will create a project named `:subs`, a project named `:subs:features`, and a project named `:subs:features:search`.
-This probably isn't intended, as you likely only want to include the `search` project.
-Additional projects - even if empty - will slow down your build, clutter reporting, and make your build harder to understand.
+This behavior is usually not intended, as you likely only want to include the `search` project.
 
-To avoid this, be sure to explicitly set the link:{kotlinDslPath}/gradle/org.gradle.api/-project/get-project-dir.html[Project.projectDir] property of any projects included in nested directories: `project(':my-web-module').projectDir = file("subs/web/my-web-module"`).
+Unused projects - even if empty - can surprise maintainers, clutter reports, and make your build harder to understand.
+They also introduce unintended side effects.
+If you use `allprojects { ... }` or `subprojects { ... }`, plugins and configuration blocks will apply to every project, including the empty ones.
+This can degrade build performance.
+Additionally, invoking tasks on deeply nested projects requires using the full project path, such as `gradle :subs:features:search:build`, instead of the shorter `gradle :search:build`.
 
-As ab added benefit, this will allow you to reference the project by the shorter name `:my-web-module` instead of the full logical path `:subs:web:my-web-module`.
+To avoid these downsides when using a hierarchical project structure, you can provide a flat name when including the project and explicitly set the link:{kotlinDslPath}/gradle/org.gradle.api/-project/get-project-dir.html[Project.projectDir] property for any projects located in nested directories:
+```
+include(':my-web-module')
+project(':my-web-module').projectDir = file("subs/web/my-web-module")
+```
+This will prevent Gradle from creating empty projects for each element of the project's path.
+
+NOTE: Always use an identical _logical_ project **name** and _physical_ project **location** to avoid confusion.
+Don't include a project named `:search` and locate it at `features/ui/default-search-toolbar`, as this will lead to confusion about the location of the project.
+Instead, locate this project at `features/ui/search`.
+
+You should avoid unnecessarily deep directory structures.
+For builds containing only a few projects, it’s usually better to keep the structure flat by placing all projects at the root of the build.
+This eliminates the need to explicitly set `projectDir`.
+Within the context of a particular build, the _pathless_ project name should clearly indicate where the project is located.
+You can also run the <<project_report_plugin.adoc#project_report_plugin,projects report>> for more information about the projects in your build and their locations.
+
+If you find yourself facing ambiguity about project locations, consider simplifying the directory layout by flattening the structure, or using longer, more descriptive project names.
 
 === Example
 

@@ -178,7 +178,6 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
 
             configurations {
                 foo {
-                    visible = true
                     outgoing.artifact(tasks.jar1)
                 }
                 bar {

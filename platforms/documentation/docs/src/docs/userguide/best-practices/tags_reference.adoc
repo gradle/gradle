@@ -23,6 +23,9 @@ Here you can find a brief explanation of all the tags used in the best practices
 [[tag:composite-builds]]
 `#composite-builds` :: Items that are related to using Gradle's <<composite_builds.adoc#defining_composite_builds,composite builds>> feature.
 
+[[tag:configurations]]
+`#configurations` :: Items that are related to using the link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[`Configuration`] type in Gradle.
+
 [[tag:dependencies]]
 `#dependencies` :: Items that are related to <<dependency_resolution.adoc#dependency-resolution-basics,dependency resolution>> in Gradle, including declaring dependencies, dependency management, and dependency resolution.
 
@@ -38,8 +41,17 @@ Here you can find a brief explanation of all the tags used in the best practices
 [[tag:properties]]
 `#properties` :: Items that explain the proper way to use <<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>>, and the appropriate usage of using particular properties.
 
+[[tag:repositories]]
+`#repositories` :: Items that explain how to declare and use <<declaring_repositories.adoc#three-declaring-repositories,dependency repositories>>.
+
+[[tag:settings]]
+`#settings` :: Items that explain how to use the <<settings_file_basics.adoc#settings_file_basics,settings file>> to configure multi-project builds, including how to structure projects and include them in the build.
+
 [[tag:structuring-builds]]
 `#structuring-builds` :: Items that explain how to organize build logic across different files and directories, and how to use multiple projects within a build.
+
+[[tag:task-configuration-avoidance]]
+`#task-configuration-avoidance` :: Items that are related to Gradle's <<task_configuration_avoidance.adoc#task_configuration_avoidance,task configuration avoidance>> APIs and how to use them effectively.
 
 [[tag:tasks]]
 `#tasks` :: Items that explain the proper way to <<writing_tasks.adoc#sec:sample_task,write tasks>> in Gradle, and common footguns involved in task authoring.

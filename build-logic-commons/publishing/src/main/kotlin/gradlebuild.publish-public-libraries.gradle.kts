@@ -135,7 +135,6 @@ fun publishNormalizedToLocalRepository() {
         }
         isCanBeResolved = false
         isCanBeConsumed = true
-        isVisible = false
         outgoing.artifact(localRepository) {
             builtBy(localPublish)
         }
@@ -160,5 +159,5 @@ fun publishNormalizedToLocalRepository() {
 tasks.register("promotionBuild") {
     description = "Build production distros, smoke test them and publish"
     group = "publishing"
-    dependsOn(":packageBuild", ":publishBuildLogic", "publish")
+    dependsOn(":packageBuild", "publish")
 }

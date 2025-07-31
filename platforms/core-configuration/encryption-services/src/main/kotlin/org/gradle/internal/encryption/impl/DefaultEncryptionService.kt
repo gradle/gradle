@@ -132,5 +132,7 @@ class DefaultEncryptionService(
 
             EncryptionKind.NONE ->
                 NoEncryptionKeySource()
+        }.apply {
+            logger.info("Encryption key source: $sourceDescription")
         }
 }

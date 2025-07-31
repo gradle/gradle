@@ -17,6 +17,7 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.util.Path;
 
@@ -35,13 +36,17 @@ public final class TaskIdentity<T extends Task> {
      */
     public final long uniqueId;
 
-    TaskIdentity(Class<T> type, String name, Path projectPath, Path identityPath, Path buildPath, long uniqueId) {
+    private final ProjectIdentity projectIdentity;
+
+    TaskIdentity(Class<T> type, String name, ProjectIdentity projectIdentity, long uniqueId) {
         this.name = name;
-        this.projectPath = projectPath;
-        this.identityPath = identityPath;
-        this.buildPath = buildPath;
         this.type = type;
+        this.projectIdentity = projectIdentity;
         this.uniqueId = uniqueId;
+
+        this.projectPath = projectIdentity.getProjectPath().child(name);
+        this.identityPath = projectIdentity.getBuildTreePath().child(name);
+        this.buildPath = projectIdentity.getBuildPath();
     }
 
     public long getId() {
@@ -88,5 +93,9 @@ public final class TaskIdentity<T extends Task> {
 
     public Class<T> getTaskType() {
         return type;
+    }
+
+    public ProjectIdentity getProjectIdentity() {
+        return projectIdentity;
     }
 }

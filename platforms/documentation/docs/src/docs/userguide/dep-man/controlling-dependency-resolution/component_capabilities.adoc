@@ -121,8 +121,8 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 [[sec:declaring-additional-capabilities-for-a-local-component]]
 == Declaring capabilities for a local component
 
-Every component has an _implicit capability_ matching its GAV coordinates. H
-owever, you can also declare additional explicit capabilities, which is useful when a library published under different GAV coordinates serves as an _alternate implementation_ of the same API:
+Every component has an _implicit capability_ matching its GAV coordinates.
+However, you can also declare additional explicit capabilities, which is useful when a library published under different GAV coordinates serves as an _alternate implementation_ of the same API:
 
 ====
 include::sample[dir="snippets/dependencyManagement/modelingFeatures-outgoingCapabilities/kotlin",files="build.gradle.kts[tags=declare-outgoing-capabilities]"]

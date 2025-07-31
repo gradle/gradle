@@ -103,19 +103,6 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
         repo.url == repoDir.toURI()
     }
 
-    def testCreateJCenterRepo() {
-        given:
-        def jcenterUrl = new URI(DefaultRepositoryHandler.BINTRAY_JCENTER_URL)
-
-        when:
-        fileResolver.resolveUri(DefaultRepositoryHandler.BINTRAY_JCENTER_URL) >> jcenterUrl
-
-        then:
-        def repo = factory.createJCenterRepository()
-        repo instanceof DefaultMavenArtifactRepository
-        repo.url == jcenterUrl
-    }
-
     def testCreateMavenCentralRepo() {
         given:
         def centralUrl = new URI(RepositoryHandler.MAVEN_CENTRAL_URL)

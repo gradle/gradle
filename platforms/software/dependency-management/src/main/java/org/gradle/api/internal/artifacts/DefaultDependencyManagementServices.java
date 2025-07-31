@@ -505,6 +505,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         @Provides({ComponentMetadataHandler.class, ComponentMetadataHandlerInternal.class})
         DefaultComponentMetadataHandler createComponentMetadataHandler(
             Instantiator instantiator,
+            ObjectFactory objectFactory,
             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
             SimpleMapInterner interner,
             AttributesFactory attributesFactory,
@@ -514,7 +515,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         ) {
             DefaultComponentMetadataHandler componentMetadataHandler = instantiator.newInstance(DefaultComponentMetadataHandler.class, instantiator, moduleIdentifierFactory, interner, attributesFactory, isolatableFactory, componentMetadataRuleExecutor, platformSupport);
             if (domainObjectContext.isScript()) {
-                componentMetadataHandler.setVariantDerivationStrategy(JavaEcosystemVariantDerivationStrategy.getInstance());
+                componentMetadataHandler.setVariantDerivationStrategy(objectFactory.newInstance(JavaEcosystemVariantDerivationStrategy.class));
             }
             return componentMetadataHandler;
         }

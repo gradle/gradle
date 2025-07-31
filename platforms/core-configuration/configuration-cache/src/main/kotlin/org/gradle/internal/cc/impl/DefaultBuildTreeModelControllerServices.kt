@@ -98,6 +98,11 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         private
         val isolatedProjectsTasksConfigureOnDemand =
             InternalFlag("org.gradle.internal.isolated-projects.configure-on-demand.tasks", false)
+
+        // Experimental flag to enable resilient model building.
+        private
+        val resilientModelBuilding =
+            InternalFlag("org.gradle.internal.resilient-model-building", false)
     }
 
     override fun servicesForBuildTree(requirements: BuildActionModelRequirements): BuildTreeModelControllerServices.Supplier {
@@ -150,6 +155,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val parallelToolingActions = parallelProjectExecution && options.getOption(parallelBuilding).get()
         val invalidateCoupledProjects = isolatedProjects && options.getOption(invalidateCoupledProjects).get()
         val modelAsProjectDependency = isolatedProjects && options.getOption(modelProjectDependencies).get()
+        val resilientModelBuilding = options.getOption(resilientModelBuilding).get()
 
         return if (requirements.isCreatesModel) {
             val configureOnDemand = isolatedProjects &&
@@ -164,7 +170,8 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                 intermediateModelCache = isolatedProjects,
                 parallelToolingApiActions = parallelToolingActions,
                 invalidateCoupledProjects = invalidateCoupledProjects,
-                modelAsProjectDependency = modelAsProjectDependency
+                modelAsProjectDependency = modelAsProjectDependency,
+                resilientModelBuilding = resilientModelBuilding
             )
         } else {
             val configurationCache = isolatedProjects || startParameter.configurationCache.get()
@@ -183,7 +190,8 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                     intermediateModelCache = false,
                     parallelToolingApiActions = parallelToolingActions,
                     invalidateCoupledProjects = invalidateCoupledProjects,
-                    modelAsProjectDependency = modelAsProjectDependency
+                    modelAsProjectDependency = modelAsProjectDependency,
+                    resilientModelBuilding = resilientModelBuilding
                 )
             }
 
@@ -201,7 +209,8 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                     intermediateModelCache = false,
                     parallelToolingApiActions = parallelToolingActions,
                     invalidateCoupledProjects = invalidateCoupledProjects,
-                    modelAsProjectDependency = modelAsProjectDependency
+                    modelAsProjectDependency = modelAsProjectDependency,
+                    resilientModelBuilding = resilientModelBuilding
                 )
             }
         }
@@ -222,7 +231,8 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                     intermediateModelCache = false,
                     parallelToolingApiActions = false,
                     invalidateCoupledProjects = false,
-                    modelAsProjectDependency = false
+                    modelAsProjectDependency = false,
+                    resilientModelBuilding = false
                 )
             val buildFeatures = DefaultBuildFeatures(startParameter, buildModelParameters)
             val requirements = RunTasksRequirements(startParameter)

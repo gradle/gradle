@@ -90,7 +90,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
 
         LOGGER.info("{} started executing tests.", workerProcessContext.getDisplayName());
 
-        SecurityManager securityManager = System.getSecurityManager();
+        SecurityManagerRef securityManagerRef = SecurityManagerRef.getOrFake();
 
         System.setProperty(WORKER_ID_SYS_PROPERTY, workerProcessContext.getWorkerId().toString());
 
@@ -115,14 +115,8 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
                 runQueue.clear();
             }
 
-            if (System.getSecurityManager() != securityManager) {
-                try {
-                    // Reset security manager the tests seem to have installed
-                    System.setSecurityManager(securityManager);
-                } catch (SecurityException e) {
-                    LOGGER.warn("Unable to reset SecurityManager. Continuing anyway...", e);
-                }
-            }
+            // Reset any security manager the tests seem to have installed
+            securityManagerRef.reinstall(LOGGER);
             testServices.close();
         }
     }

@@ -1,22 +1,17 @@
-
 > Configure project :
 Good map
 org.gradle.usage -> java-runtime
 org.gradle.category -> library
-
 > Task :projects
-
 Projects:
-
 ------------------------------------------------------------
 Root project 'avoid-internal-do'
 ------------------------------------------------------------
-
+Location: /home/user/gradle/samples
+Project hierarchy:
 Root project 'avoid-internal-do'
 No sub-projects
-
 To see a list of the tasks of a project, run gradle <project-path>:tasks
 For example, try running gradle :tasks
-
 BUILD SUCCESSFUL in 0s
 1 actionable task: 1 executed

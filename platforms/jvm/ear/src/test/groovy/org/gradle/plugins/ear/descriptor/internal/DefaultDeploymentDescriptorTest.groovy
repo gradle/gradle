@@ -72,6 +72,7 @@ class DefaultDeploymentDescriptorTest extends Specification {
         '8'     | _
         '9'     | _
         '10'    | _
+        '11'    | _
         acceptableDescriptors = defaultDescriptorForVersion(version)
     }
 
@@ -217,6 +218,8 @@ class DefaultDeploymentDescriptorTest extends Specification {
         '9'     | 'asElement'        | { it.asElement() }
         '10'    | 'asNode'           | { it.asNode() }
         '10'    | 'asElement'        | { it.asElement() }
+        '11'    | 'asNode'           | { it.asNode() }
+        '11'    | 'asElement'        | { it.asElement() }
         acceptableDescriptors = defaultDescriptorForVersion(version)
     }
 

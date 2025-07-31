@@ -19,6 +19,7 @@ package org.gradle.process.internal.worker
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
@@ -26,8 +27,9 @@ class DefaultWorkerProcessBuilderIntegrationTest extends AbstractIntegrationSpec
 
     @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "test classpath does not contain nonexistent entries"() {
+        String integTestHomeDir = IntegrationTestBuildContext.INSTANCE.getGradleUserHomeDir().absolutePath
         given:
-        file("src/test/java/ClasspathTest.java") << '''
+        file("src/test/java/ClasspathTest.java") << """
         import org.junit.Test;
 
         import static org.junit.Assert.assertTrue;
@@ -37,12 +39,12 @@ class DefaultWorkerProcessBuilderIntegrationTest extends AbstractIntegrationSpec
             public void test() {
                 String runtimeClasspath = System.getProperty("java.class.path");
                 System.out.println(runtimeClasspath);
-                assertTrue(runtimeClasspath.contains(System.getProperty("user.home")));
+                assertTrue(runtimeClasspath.contains("${integTestHomeDir.replace("\\", "\\\\")}"));
                 assertTrue(!runtimeClasspath.contains("Non exist path"));
             }
         }
 
-        '''
+        """
         buildFile << """
         plugins {
             id "java-library"

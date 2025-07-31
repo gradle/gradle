@@ -69,6 +69,8 @@ dependencies {
     api(projects.buildCacheLocal)
     api(projects.buildCachePackaging)
     api(projects.buildCacheSpi)
+    api(projects.buildDiscovery)
+    api(projects.buildDiscoveryApi)
     api(projects.buildInitSpecs)
     api(projects.buildOperations)
     api(projects.buildOption)
@@ -146,7 +148,6 @@ dependencies {
         // Used for its nullability annotations, not needed at runtime
         exclude("org.checkerframework", "checker-qual")
     }
-    implementation(libs.xmlApis)
 
     compileOnly(libs.kotlinStdlib) {
         because("it needs to forward calls from instrumented code to the Kotlin standard library")

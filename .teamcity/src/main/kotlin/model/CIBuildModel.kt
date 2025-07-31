@@ -18,7 +18,6 @@ import configurations.CompileAll
 import configurations.DocsTestType
 import configurations.DocsTestType.CONFIG_CACHE_DISABLED
 import configurations.DocsTestType.CONFIG_CACHE_ENABLED
-import configurations.FlakyTestQuarantine
 import configurations.FunctionalTest
 import configurations.Gradleception
 import configurations.OsAwareBaseGradleBuildType
@@ -222,10 +221,6 @@ data class CIBuildModel(
                 specificBuilds =
                     listOf(
                         SpecificBuild.TestPerformanceTest,
-                        SpecificBuild.FlakyTestQuarantineLinux,
-                        SpecificBuild.FlakyTestQuarantineMacOs,
-                        SpecificBuild.FlakyTestQuarantineMacOsAppleSilicon,
-                        SpecificBuild.FlakyTestQuarantineWindows,
                     ),
                 functionalTests =
                     listOf(
@@ -747,30 +742,6 @@ enum class SpecificBuild {
             model: CIBuildModel,
             stage: Stage,
         ): OsAwareBaseGradleBuildType = SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, name, "configCacheSmokeTest", splitNumber = 4)
-    },
-    FlakyTestQuarantineLinux {
-        override fun create(
-            model: CIBuildModel,
-            stage: Stage,
-        ): OsAwareBaseGradleBuildType = FlakyTestQuarantine(model, stage, Os.LINUX)
-    },
-    FlakyTestQuarantineMacOs {
-        override fun create(
-            model: CIBuildModel,
-            stage: Stage,
-        ): OsAwareBaseGradleBuildType = FlakyTestQuarantine(model, stage, Os.MACOS)
-    },
-    FlakyTestQuarantineMacOsAppleSilicon {
-        override fun create(
-            model: CIBuildModel,
-            stage: Stage,
-        ): OsAwareBaseGradleBuildType = FlakyTestQuarantine(model, stage, Os.MACOS, Arch.AARCH64)
-    },
-    FlakyTestQuarantineWindows {
-        override fun create(
-            model: CIBuildModel,
-            stage: Stage,
-        ): OsAwareBaseGradleBuildType = FlakyTestQuarantine(model, stage, Os.WINDOWS)
     },
     SmokeIdeTests {
         override fun create(

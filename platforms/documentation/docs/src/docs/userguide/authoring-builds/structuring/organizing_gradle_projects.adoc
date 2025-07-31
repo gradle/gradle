@@ -89,10 +89,10 @@ The project contains a single subproject called `app`:
 [source, kotlin]
 ----
 .   // <1>
-├── settings.gradle // <2>
-└── app/                // <3>
-    ├── build.gradle       // <4>
-    └── src/            // <5>
+├── settings.gradle.kts // <2>
+└── app/                   // <3>
+    ├── build.gradle.kts       // <4>
+    └── src/               // <5>
 ----
 =====
 [.multi-language-sample]
@@ -100,16 +100,16 @@ The project contains a single subproject called `app`:
 [source, groovy]
 ----
 .   // <1>
-├── settings.gradle.kts // <2>
-└── app/                    // <3>
-    ├── build.gradle.kts        // <4>
-    └── src/                // <5>
+├── settings.gradle // <2>
+└── app/                 // <3>
+    ├── build.gradle        // <4>
+    └── src/             // <5>
 ----
 =====
 <1> Root project
-<2> Subproject
-<3> Subproject build file
-<4> Settings file
+<2> Settings file
+<3> Subproject
+<4> Subproject build file
 <5> Source code and more
 
 This is the recommended project structure for starting any Gradle project.

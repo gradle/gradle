@@ -25,11 +25,13 @@ import java.util.Objects;
  * Provides common projections for selected project properties.
  */
 public interface ProjectDetails {
-
     String getDisplayName();
 
     @Nullable
     String getDescription();
+
+    String getRelativeProjectDir();
+    String getAbsoluteProjectDir();
 
     static ProjectDetails of(Project project) {
         return withDisplayNameAndDescription(project);
@@ -45,11 +47,18 @@ public interface ProjectDetails {
 
     class ProjectDisplayNameAndDescription implements ProjectDetails {
         private final String displayName;
+        @Nullable
         private final String description;
+        private final String absoluteProjectDirPath;
+        private final String relativeProjectDirPath;
+        private final String projectLogicalPath;
 
         private ProjectDisplayNameAndDescription(Project project) {
             displayName = project.getDisplayName();
             description = project.getDescription();
+            absoluteProjectDirPath = project.getProjectDir().toPath().toString();
+            relativeProjectDirPath = project.getRootProject().getProjectDir().toPath().relativize(project.getProjectDir().toPath()).toString();
+            projectLogicalPath = project.getBuildTreePath();
         }
 
         @Override
@@ -59,14 +68,23 @@ public interface ProjectDetails {
 
         @Nullable
         @Override
-
         public String getDescription() {
             return description;
         }
 
         @Override
+        public String getRelativeProjectDir() {
+            return relativeProjectDirPath;
+        }
+
+        @Override
+        public String getAbsoluteProjectDir() {
+            return absoluteProjectDirPath;
+        }
+
+        @Override
         public int hashCode() {
-            return Objects.hash(displayName, description);
+            return Objects.hash(displayName, description, relativeProjectDirPath, projectLogicalPath);
         }
 
         @Override
@@ -78,9 +96,12 @@ public interface ProjectDetails {
                 return false;
             }
             ProjectDisplayNameAndDescription that = (ProjectDisplayNameAndDescription) obj;
-            return Objects.equals(displayName, that.displayName) && Objects.equals(description, that.description);
+            return Objects.equals(displayName, that.displayName) && Objects.equals(description, that.description)
+                && Objects.equals(relativeProjectDirPath, that.relativeProjectDirPath)
+                && Objects.equals(projectLogicalPath, that.projectLogicalPath);
         }
     }
+
     class ProjectNameAndPath extends ProjectDisplayNameAndDescription {
         private final String name;
         private final String path;

@@ -516,10 +516,6 @@ A custom `dependencies` block differs from the top-level `dependencies` block in
 * Dependencies must be declared using a `String`, an instance of `Dependency`, a `FileCollection`, a `Provider` of `Dependency`, or a `ProviderConvertible` of `MinimalExternalModuleDependency`.
 * Outside of Gradle build scripts, you must explicitly call a getter for the `DependencyCollector` and `add`.
 ** `dependencies.add("implementation", x)` becomes `getImplementation().add(x)`
-* You cannot declare dependencies with the `Map` notation from Kotlin and Java.
-Use multi-argument methods instead in Kotlin and Java.
-** Kotlin: `compileOnly(mapOf("group" to "foo", "name" to "bar"))` becomes `compileOnly(module(group = "foo", name = "bar"))`
-** Java: `compileOnly(Map.of("group", "foo", "name", "bar"))` becomes `getCompileOnly().add(module("foo", "bar", null))`
 * You cannot add a dependency with an instance of `Project`. You must turn it into a `ProjectDependency` first.
 * You cannot add version catalog bundles directly.
 Instead, use the `bundle` method on each configuration.

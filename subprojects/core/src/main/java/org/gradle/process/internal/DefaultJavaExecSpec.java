@@ -27,7 +27,6 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaExecSpec;
-import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.InputStream;
@@ -100,18 +99,17 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
     }
 
     @Override
-    public JavaExecSpec setArgs(@Nullable List<String> arguments) {
+    public JavaExecSpec setArgs(List<String> arguments) {
         argumentsSpec.setArgs(arguments);
         return this;
     }
 
     @Override
-    public JavaExecSpec setArgs(@Nullable Iterable<?> arguments) {
+    public JavaExecSpec setArgs(Iterable<?> arguments) {
         argumentsSpec.setArgs(arguments);
         return this;
     }
 
-    @Nullable
     @Override
     public List<String> getArgs() {
         return argumentsSpec.getArgs();

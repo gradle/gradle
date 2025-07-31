@@ -52,7 +52,6 @@ sayHello (org.gradle.api.DefaultTask)""")
 
     def "shows Default tasks with same name defined in multiple projects when run with --types"() {
         given:
-        buildFile << multiProjectBuild()
         settingsFile << "include 'sub1', 'sub2'"
 
         file('sub1/build.gradle') << """
@@ -264,9 +263,25 @@ b
 
     def "renders tasks in a multi-project build running [tasks]"() {
         given:
-        buildFile << multiProjectBuild()
-        createDirs("sub1", "sub2")
         settingsFile << "include 'sub1', 'sub2'"
+        buildFile << """
+            task a {
+                group = '$GROUP'
+            }
+            task c
+        """
+        file("sub1/build.gradle") << """
+            task a {
+                group = '$GROUP'
+            }
+            task b
+        """
+        file("sub2/build.gradle") << """
+            task a {
+                group = '$GROUP'
+            }
+            task b
+        """
 
         when:
         succeeds TASKS_REPORT_TASK
@@ -284,9 +299,25 @@ c
 
     def "renders tasks in a multi-project build running [tasks, --all]"() {
         given:
-        buildFile << multiProjectBuild()
-        createDirs("sub1", "sub2")
         settingsFile << "include 'sub1', 'sub2'"
+        buildFile << """
+            task a {
+                group = '$GROUP'
+            }
+            task c
+        """
+        file("sub1/build.gradle") << """
+            task a {
+                group = '$GROUP'
+            }
+            task b
+        """
+        file("sub2/build.gradle") << """
+            task a {
+                group = '$GROUP'
+            }
+            task b
+        """
 
         when:
         succeeds TASKS_DETAILED_REPORT_TASK
@@ -492,7 +523,6 @@ model - Displays the configuration model of root project 'test-project'. [deprec
 
     def "can run multiple task reports in parallel"() {
         given:
-        buildFile << multiProjectBuild()
         def projects = (1..100).collect {"project$it"}
         createDirs(projects as String[])
         settingsFile << "include '${projects.join("', '")}'"
@@ -533,21 +563,6 @@ model - Displays the configuration model of root project 'test-project'. [deprec
 ${'-' * header.length()}"""
     }
 
-    static String multiProjectBuild() {
-        """
-            allprojects {
-                task a {
-                    group = '$GROUP'
-                }
-            }
-
-            subprojects {
-                task b
-            }
-
-            task c
-        """
-    }
 
     static String twoGroupsTasks() {
         """

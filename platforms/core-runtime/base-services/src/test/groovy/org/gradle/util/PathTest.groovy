@@ -334,6 +334,18 @@ class PathTest extends Specification {
         path('a:b:c').ancestors().toList() == paths(['a', 'a:b'])
     }
 
+    def "can determine if one path starts with another"() {
+        expect:
+        path(':a:b').startsWith(path(':a'))
+        path(':a:b').startsWith(path(':a:b'))
+        !path(':a:b').startsWith(path(':b'))
+        !path(':a:b').startsWith(path('a'))
+        !path('a:b').startsWith(path(':a'))
+        !path('a:b').startsWith(path('b'))
+        path('a:b:c').startsWith(path('a:b'))
+        path('a:b:c').startsWith(path('a:b:c'))
+    }
+
     def paths(List<String> paths) {
         return paths.collect { path(it) }
     }

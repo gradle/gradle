@@ -750,6 +750,9 @@ Refresh the <<dependency_caching.adoc#sec:controlling-dependency-caching-command
 `-m`, `--dry-run`::
 Run Gradle with all task actions disabled. Use this to show which task would have executed.
 
+`--task-graph`::
+Run Gradle with all task actions disabled and print the task dependency graph.
+
 `-t`, `--continuous`::
 Enables <<#sec:continuous_build,continuous build>>. Gradle does not exit and will re-execute tasks when task file inputs change.
 

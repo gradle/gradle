@@ -2,7 +2,7 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "Kotlin DSL Tooling Models for IDEs"
+description = "Kotlin DSL Tooling Models for IDEs (Legacy)"
 
 dependencies {
     api(libs.jspecify)

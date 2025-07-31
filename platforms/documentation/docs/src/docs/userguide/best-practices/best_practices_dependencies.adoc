@@ -197,7 +197,7 @@ include::sample[dir="snippets/bestPractices/settingsRepositories-do/groovy",file
 
 === Tags
 
-`<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
+`<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`, `<<tags_reference.adoc#tag:repositories,#repositories>>`
 
 [[dont_depend_on_kotlin_stdlib]]
 == Don't Explicitly Depend on the Kotlin Standard Library
@@ -299,9 +299,8 @@ include::sample[dir="snippets/bestPractices/avoidDuplicateDependencies-do/groovy
 == Declare Dependencies using a single GAV (`group:artifact:version`) String
 
 When declaring dependencies without a <<version_catalogs.adoc#version-catalog,version catalog>>, prefer using the single GAV string notation `implementation("org.example:library:1.0")`.
-Avoid using the named argument notation unless necessary `implementation(group = "org.example", name = "library", version = "1.0")`.
-
-TIP: The named argument and map notations may be deprecated in the future.
+Avoid using the named argument notation.
+The named argument notation has been deprecated and will no longer be supported starting in Gradle 10.
 
 === Explanation
 
@@ -309,17 +308,6 @@ All of these declarations will be treated equivalently when Gradle resolves depe
 However, the single-string form is more concise, easier to read, and is widely adopted in the broader JVM ecosystem.
 
 This format is also recommended by link:https://central.sonatype.com/artifact/com.google.guava/guava[Maven Central] in its documentation and usage examples, making it the most familiar and consistent style for developers across tools.
-
-A valid reason to use named arguments format is when resolving a dependency from an Ivy repository that requires selecting a specific configuration by name.
-This syntax is only applicable for Ivy dependencies and should not be used with standard Maven modules:
-
-[source,kotlin]
-----
-// Use this syntax only for Ivy modules when a specific configuration must be selected
-dependencies {
-    implementation(group = "org.someOrg", name = "someModule", version = "1.0", configuration = "someConf")
-}
-----
 
 === Example
 
@@ -358,3 +346,86 @@ include::sample[dir="snippets/bestPractices/useGavString-do/groovy",files="build
 === Tags
 
 `<<tags_reference.adoc#tag:dependencies,#dependencies>>`
+
+
+[[use_content_filtering]]
+== Use Content Filtering with multiple Repositories
+
+When using multiple repositories in a build, use <<filtering_repository_content.adoc#repository-content-filtering,repository content filtering>> to ensure that dependencies are resolved from an appropriate repository.
+
+=== Explanation
+
+If your build declares more than one repository, you should declare content filters on these repositories to ensure you search for and obtain dependencies from the correct place.
+
+Content filtering is necessary if you have a reason to restrict searching for a dependency to a particular repository, and can be a good idea even if acceptable dependency artifacts exist in multiple locations.
+
+When possible, you should use the <<filtering_repository_content.adoc#sec:declaring-content-repositories,exclusiveContent>> feature to restrict dependencies to a particular known repository.
+
+Content filtering has three main benefits:
+
+1. **Performance**, since you only query repositories for dependencies that should actually exist within them
+2. **Security**, by avoiding asking potentially every repository for every dependency (even ones they shouldn't contain), you improve resiliency to supply chain attacks by avoiding leaking information about your dependencies to other repositories, or even downloading potentially malicious artifacts
+3. **Reliability**, by avoiding searching repositories that contain invalid or incorrect metadata for particular dependencies, which could result in obtaining incorrect transitive dependencies
+
+Repositories will be searched for dependencies that pass their filters in the order they are declared.
+Often the last repository is declared without any filters in order to serve as a default _fallback repository_ that is queried for any dependencies that don't pass the filters present on the other repositories.
+
+WARNING: Carefully consider using content filtering with a fallback repository.
+This can pose a security risk, so make sure you fully trust the fallback repository.
+This setup can result in inadvertently (and silently) resolving dependencies from the fallback repository that were intended to come from filtered repositories if the dependencies were not available in those repositories.
+
+=== Example
+
+==== Don't Do This
+
+Don't add multiple repositories without content filtering:
+
+====
+include::sample[dir="snippets/bestPractices/contentFiltering-avoid/kotlin",files="settings.gradle.kts[tags=content-filtering-avoid]"]
+include::sample[dir="snippets/bestPractices/contentFiltering-avoid/groovy",files="settings.gradle[tags=content-filtering-avoid]"]
+====
+
+==== Do This Instead
+
+Use content filtering to ensure that the proper repositories are searched first for the expected artifacts:
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/contentFiltering-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/contentFiltering-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/bestPractices/contentFiltering-do/kotlin",files="settings.gradle.kts[tags=content-filtering-do]"]
+include::sample[dir="snippets/bestPractices/contentFiltering-do/groovy",files="settings.gradle[tags=content-filtering-do]"]
+====
+
+In many cases, it is better to use exclusive content filtering, as it ensures that dependencies _can only be found in the expected repository_.
+If they are not present there, they will not be found at all.
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/contentFilteringExclusive-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/contentFilteringExclusive-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/bestPractices/contentFilteringExclusive-do/kotlin",files="settings.gradle.kts[tags=content-filtering-do]"]
+include::sample[dir="snippets/bestPractices/contentFilteringExclusive-do/groovy",files="settings.gradle[tags=content-filtering-do]"]
+====
+
+=== References
+
+- <<filtering_repository_content.adoc#repository-content-filtering,Filtering Repository Content>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:repositories,#repositories>>`, `<<tags_reference.adoc#tag:dependencies,#dependencies>>`

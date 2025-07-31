@@ -330,13 +330,12 @@ tasks.named("updateDaemonJvm") {
         failureCauseContains("Toolchain resolvers did not return download URLs providing a JDK matching {languageVersion=20, vendor=vendor matching('FOO'), implementation=vendor-specific, nativeImageCapable=false} for any of the requested platforms")
     }
 
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "configuring the languageVersion will use that value for the generate properties file"() {
         given:
-        // Run the test by specifying a different version than the one used to execute, using two LTS alternatives
-        def javaVersion = Jvm.current().javaVersion == JavaVersion.VERSION_21 ? JavaVersion.VERSION_17 : JavaVersion.VERSION_21
         buildFile("""
 tasks.named("updateDaemonJvm") {
-    languageVersion = JavaLanguageVersion.of(${javaVersion.majorVersion})
+    languageVersion = JavaLanguageVersion.of(${AvailableJavaHomes.differentVersion.javaVersionMajor})
     toolchainPlatforms = []
 }
 """)
@@ -345,7 +344,7 @@ tasks.named("updateDaemonJvm") {
         run "updateDaemonJvm"
 
         then:
-        assertJvmCriteria(javaVersion)
+        assertJvmCriteria(AvailableJavaHomes.differentVersion.javaVersion)
 
     }
 

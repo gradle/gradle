@@ -35,6 +35,8 @@ tasks.withType<AbstractPublishToMaven>().configureEach {
     this.onlyIf { !noUpload.map { it == "true" }.orElse(false).get() }
     if (name.endsWith("ToRemoteRepository")) {
         failEarlyIfUrlOrCredentialsAreNotSet(this)
+        // packageBuild task executes tests, so we must run after it
+        mustRunAfter(":packageBuild")
     }
 }
 

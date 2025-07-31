@@ -222,7 +222,7 @@ $marker
         [marker, description] << [
             ["BUILD SUCCESSFUL in 1s", "vintage"],
             [
-                """Some tasks in this build are not compatible with the configuration cache.
+                """Some tasks or features in this build are not compatible with the configuration cache.
 See the complete report at file:///root/build/reports/configuration-cache/hash1/hash2/configuration-cache-report.html
 BUILD SUCCESSFUL in 1s""",
                 "configuration cache"

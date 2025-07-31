@@ -32,11 +32,11 @@ public abstract class GradlePropertyValueSource extends AbstractPropertyValueSou
     @Nullable
     @Override
     public String obtain() {
-        @Nullable String propertyName = propertyNameOrNull();
+        String propertyName = propertyNameOrNull();
         if (propertyName == null) {
             return null;
         }
-        return (String) getGradleProperties().find(propertyName);
+        return getGradleProperties().find(propertyName);
     }
 
     @Override

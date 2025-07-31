@@ -180,7 +180,6 @@ dependencies {
         // TODO upgrade this AGP version to recent version
         api(libs.agp)                   { version { strictly("3.0.0"); because("We use 3.0.0 for internal performance test") }}
         api(libs.xbeanReflect)          { version { strictly("3.18") }}
-        api(libs.xmlApis)               { version { strictly("1.4.01"); because("2.0.x has a POM with relocation Gradle does not handle well") }}
 
         // compile only
         api(libs.maven3Compat)          { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
@@ -231,7 +230,7 @@ dependencies {
         api(libs.samplesCheck)          { version { strictly("1.0.3") }}
         api(libs.samplesDiscovery)      { version { strictly("1.0.3") }}
         api(libs.snappy)                { version { strictly("0.5") }}
-        api(libs.socksProxy)            { version { strictly("2.0.0") }}
+        api(libs.socksProxy)            { version { strictly("4.1.2") } }
         api(libs.spock)                 { version { strictly(spockVersion) }}
         api(libs.spockJUnit4)           { version { strictly(spockVersion) }}
         api(libs.sshdCore)              { version { strictly(sshdVersion) }}

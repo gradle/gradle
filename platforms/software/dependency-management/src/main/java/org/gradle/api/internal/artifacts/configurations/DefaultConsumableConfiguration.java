@@ -99,8 +99,6 @@ public class DefaultConsumableConfiguration extends DefaultConfiguration impleme
             documentationRegistry,
             true
         );
-
-        setVisible(false);
     }
 
 }

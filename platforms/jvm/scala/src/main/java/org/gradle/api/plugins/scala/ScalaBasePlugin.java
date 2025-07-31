@@ -50,7 +50,7 @@ import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.api.reporting.internal.ReportUtilities;
 import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.api.tasks.ScalaSourceDirectorySet;
 import org.gradle.api.tasks.SourceSet;
@@ -417,7 +417,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
                 scalaDoc.getClasspath()
             ));
             scalaDoc.getConventionMapping().map("destinationDir", (Callable<File>) () -> javaPluginExtension(project).getDocsDir().dir("scaladoc").get().getAsFile());
-            scalaDoc.getConventionMapping().map("title", (Callable<String>) () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
+            scalaDoc.getConventionMapping().map("title", (Callable<String>) () -> ReportUtilities.getApiDocTitleFor(project));
             scalaDoc.getJavaLauncher().convention(getJavaLauncher(project));
         });
     }

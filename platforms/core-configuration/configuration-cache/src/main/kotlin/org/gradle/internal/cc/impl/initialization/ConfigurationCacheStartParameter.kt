@@ -20,13 +20,13 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
-import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.impl.ConfigurationCacheLoggingParameters
 import org.gradle.internal.cc.impl.Workarounds
 import org.gradle.internal.extensions.core.getInternalFlag
 import org.gradle.internal.extensions.stdlib.unsafeLazy
+import org.gradle.internal.initialization.BuildTreeLocations
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.internal.IncubationLogger
@@ -35,7 +35,7 @@ import java.io.File
 
 @ServiceScope(Scope.BuildTree::class)
 class ConfigurationCacheStartParameter internal constructor(
-    private val buildLayout: BuildLayout,
+    private val buildTreeLocations: BuildTreeLocations,
     private val startParameter: StartParameterInternal,
     options: InternalOptions,
     private val modelParameters: BuildModelParameters,
@@ -119,6 +119,11 @@ class ConfigurationCacheStartParameter internal constructor(
     val recreateCache: Boolean
         get() = startParameter.isConfigurationCacheRecreateCache
 
+    /**
+     * Whether we should skip creating an entry in case of a cache miss.
+     */
+    val isReadOnlyCache = options.getInternalFlag("org.gradle.configuration-cache.internal.read-only", false)
+
     val isIntegrityCheckEnabled: Boolean
         get() = startParameter.isConfigurationCacheIntegrityCheckEnabled
 
@@ -131,11 +136,8 @@ class ConfigurationCacheStartParameter internal constructor(
     val currentDirectory: File
         get() = startParameter.currentDir
 
-    val settingsDirectory: File
-        get() = buildLayout.settingsDir
-
-    val rootDirectory: File
-        get() = buildLayout.rootDirectory
+    val buildTreeRootDirectory: File
+        get() = buildTreeLocations.buildTreeRootDirectory
 
     val isOffline
         get() = startParameter.isOffline

@@ -23,19 +23,27 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-abstract class MessageBuilderHelper {
+/* package */ abstract class MessageBuilderHelper {
+    public static final String PATH_SEPARATOR = " --> ";
+
+    private MessageBuilderHelper() { /* not instantiable */ }
 
     public static List<String> formattedPathsTo(EdgeState edge) {
         return findPathsTo(edge).stream().map(path -> {
             String header = Iterables.getLast(path).getSelector().getDependencyMetadata().isConstraint() ? "Constraint" : "Dependency";
-            String formattedPath = path.stream()
-                .map(EdgeState::getFrom)
-                .map(NodeState::getDisplayName)
+            String formattedPath = streamNodeNames(path)
                 .collect(Collectors.joining(" --> "));
 
             return header + " path: " + formattedPath;
         }).collect(Collectors.toList());
+    }
+
+    /* package */ static List<List<String>> segmentedPathsTo(EdgeState edge) {
+        return findPathsTo(edge).stream()
+            .map(p -> streamNodeNames(p).collect(Collectors.toList()))
+            .collect(Collectors.toList());
     }
 
     private static List<List<EdgeState>> findPathsTo(EdgeState edge) {
@@ -60,5 +68,11 @@ abstract class MessageBuilderHelper {
                 accumulator.add(Lists.reverse(currentPath));
             }
         }
+    }
+
+    private static Stream<String> streamNodeNames(List<EdgeState> path) {
+        return path.stream()
+            .map(EdgeState::getFrom)
+            .map(NodeState::getDisplayName);
     }
 }

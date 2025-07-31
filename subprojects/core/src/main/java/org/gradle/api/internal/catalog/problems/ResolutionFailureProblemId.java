@@ -27,6 +27,9 @@ import org.jspecify.annotations.NullMarked;
  */
 @NullMarked
 public enum ResolutionFailureProblemId implements Describable {
+    // Component Selection failures
+    NO_VERSION_SATISFIES("No version satisfies the constraints"),
+
     // Variant Selection failures
     CONFIGURATION_NOT_COMPATIBLE("Configuration selected by name is not compatible"),
     CONFIGURATION_NOT_CONSUMABLE("Configuration selected by name is not consumable"),

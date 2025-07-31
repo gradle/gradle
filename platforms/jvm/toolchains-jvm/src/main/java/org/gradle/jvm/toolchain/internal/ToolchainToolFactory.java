@@ -18,10 +18,11 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.Project.class)
 public interface ToolchainToolFactory {
-
+    @Nullable
     <T> T create(Class<T> toolType, JavaToolchain javaToolchain);
 
 }

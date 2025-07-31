@@ -360,7 +360,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         super.add(configuration);
         configureAction.execute(configuration);
         configuration.preventUsageMutation();
-        configuration.setVisible(false);
         return configuration;
     }
 

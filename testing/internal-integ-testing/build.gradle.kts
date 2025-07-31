@@ -79,13 +79,14 @@ dependencies {
     api(libs.samplesDiscovery)
     api(libs.servletApi)
     api(libs.slf4jApi)
-    api(libs.socksProxy)
     api(libs.spock) {
         because("Part of the public API")
     }
 
     implementation(projects.baseServicesGroovy)
     implementation(projects.buildCache)
+    implementation(projects.buildDiscovery)
+    implementation(projects.buildDiscoveryApi)
     implementation(projects.buildEvents)
     implementation(projects.buildOption)
     implementation(projects.buildProcessServices)
@@ -130,6 +131,7 @@ dependencies {
     implementation(libs.jetty)
     implementation(libs.jettyServlet)
     implementation(libs.littleproxy)
+    implementation(libs.jspecify)
     implementation(libs.mavenResolverSupplier) {
         because("For ApiMavenResolver. Wires together implementation for maven-resolver-api")
     }
@@ -139,6 +141,7 @@ dependencies {
     implementation(libs.nativePlatform)
     implementation(libs.netty)
     implementation(libs.opentest4j)
+    implementation(libs.socksProxy)
     // we depend on both: sshd platforms and libraries
     implementation(libs.sshdCore)
     implementation(platform(libs.sshdCore))

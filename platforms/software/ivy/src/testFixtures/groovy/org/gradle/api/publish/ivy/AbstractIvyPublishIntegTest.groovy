@@ -18,7 +18,7 @@ package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ArtifactResolutionExpectationSpec
-import org.gradle.test.fixtures.GradleMetadataAwarePublishingSpec
+import org.gradle.test.fixtures.DependencyDeclarationFixture
 import org.gradle.test.fixtures.ModuleArtifact
 import org.gradle.test.fixtures.SingleArtifactResolutionResultSpec
 import org.gradle.test.fixtures.ivy.IvyFileModule
@@ -27,7 +27,8 @@ import org.gradle.test.fixtures.ivy.IvyModule
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
-abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec implements GradleMetadataAwarePublishingSpec {
+abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec implements DependencyDeclarationFixture {
+    boolean requiresExternalDependencies
 
     protected static IvyJavaModule javaLibrary(IvyFileModule module) {
         new IvyJavaModule(module)
@@ -41,6 +42,16 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
         expectationSpec()
 
         expectation.validate()
+    }
+
+    private String convertDependencyNotation(dependencyNotation) {
+        if (dependencyNotation instanceof CharSequence) {
+            return dependencyNotation
+        }
+        if (dependencyNotation instanceof IvyModule) {
+            return asDependencyNotation(dependencyNotation.organisation, dependencyNotation.module, dependencyNotation.revision)
+        }
+        throw new UnsupportedOperationException("Unsupported dependency notation: ${dependencyNotation}")
     }
 
     void resolveApiArtifacts(IvyModule module, @DelegatesTo(value = IvyArtifactResolutionExpectation, strategy = Closure.DELEGATE_FIRST) Closure<?> expectationSpec) {
@@ -62,48 +73,39 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
     def doResolveArtifacts(ResolveParams params) {
         // Replace the existing buildfile with one for resolving the published module
         settingsFile.text = "rootProject.name = 'resolve'"
-        String attributes = params.variant == null ?
-            "" :
-            """
-    attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.${params.variant}))
-    }
-"""
 
-        String extraArtifacts = ""
-        if (params.additionalArtifacts) {
-            String artifacts = params.additionalArtifacts.collect {
-                def tokens = it.ivyTokens
-                """
-                    artifact {
-                        name = '${sq(tokens.artifact)}'
-                        classifier = '${sq(tokens.classifier)}'
-                        type = '${sq(tokens.type)}'
-                    }"""
-            }.join('\n')
-            extraArtifacts = """
-                {
-                    transitive = false
-                    $artifacts
+        String artifacts = params.additionalArtifacts.collect {
+            def tokens = it.ivyTokens
+            """
+                artifact {
+                    name = '${sq(tokens.artifact)}'
+                    classifier = '${sq(tokens.classifier)}'
+                    type = '${sq(tokens.type)}'
                 }
             """
-        }
+        }.join('\n')
 
         String dependencyNotation = params.dependency
-        if (params.configuration) {
-            dependencyNotation = "${dependencyNotation}, configuration: '${sq(params.configuration)}'"
-        }
-
         def externalRepo = requiresExternalDependencies?mavenCentralRepositoryDefinition():''
         def optional = params.optionalFeatureCapabilities.collect {
-            "resolve($dependencyNotation) { capabilities { requireCapability('$it') } }"
+            """
+                resolve($dependencyNotation) {
+                    capabilities {
+                        requireCapability('$it')
+                    }
+                }
+            """
         }.join('\n')
         buildFile.text = """
             apply plugin: 'java-base'
 
             configurations {
                 resolve {
-                    $attributes
+                    if (${params.variant != null}) {
+                        attributes {
+                            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.${params.variant}))
+                        }
+                    }
                 }
             }
             repositories {
@@ -116,7 +118,13 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
                 ${externalRepo}
             }
             dependencies {
-                resolve($dependencyNotation) $extraArtifacts
+                resolve($dependencyNotation) {
+                    $artifacts
+                    transitive = ${params.additionalArtifacts.isEmpty()}
+                    if (${params.configuration != null}) {
+                        targetConfiguration = '${sq(params.configuration ?: "")}'
+                    }
+                }
                 $optional
             }
 
@@ -128,7 +136,6 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
 
         if (params.status != null) {
             buildFile.text = buildFile.text + """
-
                 dependencies.components.all { ComponentMetadataDetails details, IvyModuleDescriptor ivyModule ->
                     details.statusScheme = [ '${sq(params.status)}' ]
                 }
@@ -147,7 +154,7 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
     static class ResolveParams {
         IvyModule module
         String dependency
-        List<? extends ModuleArtifact> additionalArtifacts
+        List<? extends ModuleArtifact> additionalArtifacts = []
 
         String configuration
         String status

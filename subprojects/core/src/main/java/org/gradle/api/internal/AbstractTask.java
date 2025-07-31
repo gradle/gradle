@@ -133,8 +133,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private ExtensibleDynamicObject extensibleDynamicObject;
 
+    @Nullable
     private String description;
 
+    @Nullable
     private String group;
 
     private final Property<Duration> timeout;
@@ -600,23 +602,25 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Internal
     @Override
+    @Nullable
     public String getDescription() {
         return description;
     }
 
     @Override
-    public void setDescription(String description) {
+    public void setDescription(@Nullable String description) {
         this.description = description;
     }
 
     @Internal
     @Override
+    @Nullable
     public String getGroup() {
         return group;
     }
 
     @Override
-    public void setGroup(String group) {
+    public void setGroup(@Nullable String group) {
         this.group = group;
     }
 

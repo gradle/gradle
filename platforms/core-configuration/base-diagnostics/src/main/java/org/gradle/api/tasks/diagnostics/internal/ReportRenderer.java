@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
-import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.io.File;
@@ -25,13 +24,6 @@ import java.io.IOException;
  * Renders the model of a project report.
  */
 public interface ReportRenderer {
-
-    /**
-     * Set the build client metadata.
-     *
-     * @param clientMetaData the build client metadata, never null
-     */
-    void setClientMetaData(BuildClientMetaData clientMetaData);
 
     /**
      * Sets the text output for the report. This method must be called before any other methods on this renderer.

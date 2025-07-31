@@ -73,6 +73,7 @@ import org.jetbrains.org.objectweb.asm.signature.SignatureReader
 import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
 import java.io.Closeable
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 
 
@@ -86,19 +87,28 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
     private val asyncIO: AsyncIOScopeFactory,
 ) {
 
-    fun projectAccessorsClassPath(scriptTarget: ExtensionAware, classPath: ClassPath): AccessorsClassPath =
-        scriptTarget.getOrCreateProperty("gradleKotlinDsl.accessorsClassPath") {
-            buildAccessorsClassPathFor(scriptTarget, classPath)
+    private
+    val classPathCache = ConcurrentHashMap<ClassLoaderScope, AccessorsClassPath>()
+
+    fun projectAccessorsClassPath(scriptTarget: ExtensionAware, classPath: ClassPath): AccessorsClassPath {
+        val classLoaderScope = classLoaderScopeOf(scriptTarget)
+        if (classLoaderScope == null) {
+            return AccessorsClassPath.empty
+        }
+        return classPathCache.computeIfAbsent(classLoaderScope) {
+            buildAccessorsClassPathFor(classLoaderScope, scriptTarget, classPath)
                 ?: AccessorsClassPath.empty
         }
-
+    }
 
     private
-    fun buildAccessorsClassPathFor(scriptTarget: Any, classPath: ClassPath): AccessorsClassPath? =
-        classLoaderScopeOf(scriptTarget)
-            ?.let { classLoaderScope ->
-                configuredProjectSchemaOf(scriptTarget, classLoaderScope)
-            }?.let { scriptTargetSchema ->
+    fun buildAccessorsClassPathFor(
+        classLoaderScope: ClassLoaderScope,
+        scriptTarget: Any,
+        classPath: ClassPath
+    ): AccessorsClassPath? =
+        configuredProjectSchemaOf(scriptTarget, classLoaderScope)
+            ?.let { scriptTargetSchema ->
                 val work = GenerateProjectAccessors(
                     scriptTarget,
                     scriptTargetSchema,

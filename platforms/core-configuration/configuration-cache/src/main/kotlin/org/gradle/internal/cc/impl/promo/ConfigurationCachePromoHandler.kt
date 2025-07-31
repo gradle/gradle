@@ -23,6 +23,7 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.RootBuildLifecycleListener
+import org.gradle.internal.Factory
 import org.gradle.internal.InternalBuildAdapter
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.impl.DefaultConfigurationCacheDegradationController
@@ -30,6 +31,7 @@ import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 
@@ -84,7 +86,14 @@ internal class ConfigurationCachePromoHandler(
         if (!problems.arePresent()) {
             // Collecting degradation reasons may be somewhat expensive, let's skip it if the build is already incompatible.
             // We can only collect the reasons before the start of the execution phase. CC does that too.
-            val hasDegradationReasons = degradationController.degradationDecision.shouldDegrade
+
+            val hasDegradationReasons = DeprecationLogger.whileDisabled(
+            // Collecting degradation reasons uses Task.project call internally, which is deprecated at execution time.
+            // We disable deprecations for the computation until we'll have a proper build lifecycle callback.
+                Factory {
+                    degradationController.degradationDecision.shouldDegrade
+                }
+            ) ?: false
             problems.addIfNeeded(hasDegradationReasons)
         }
 

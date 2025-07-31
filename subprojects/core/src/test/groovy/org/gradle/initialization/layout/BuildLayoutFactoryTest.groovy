@@ -16,9 +16,11 @@
 package org.gradle.initialization.layout
 
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.internal.FileUtils
 import org.gradle.internal.scripts.ScriptFileUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
 class BuildLayoutFactoryTest extends Specification {
@@ -130,19 +132,25 @@ class BuildLayoutFactoryTest extends Specification {
         settingsFilename << TEST_CASES
     }
 
-    def "returns current directory when no settings or wrapper properties files"() {
+    def "returns current directory when no settings files in current and all parent directories"() {
         given:
         def locator = buildLayoutFactoryFor()
+        // A directory that will not have Gradle settings file in any of its parents up to the file system root
+        def tmpDir = new TemporaryFolder()
+        tmpDir.create()
 
         and:
-        def currentDir = tmpDir.createDir("sub/current")
+        def currentDir = tmpDir.newFolder("sub", "current")
 
         expect:
-        def layout = locator.getLayoutFor(currentDir, tmpDir.testDirectory)
+        def layout = locator.getLayoutFor(currentDir, true)
         layout.rootDirectory == currentDir
         layout.settingsDir == currentDir
-        layout.settingsFile == new File(currentDir, "settings.gradle") // this is the current behaviour
+        layout.settingsFile == FileUtils.canonicalize(new File(currentDir, "settings.gradle"))
         layout.buildDefinitionMissing
+
+        cleanup:
+        tmpDir.delete()
     }
 
     def "can override build layout by specifying an empty settings script with existing #settingsFilename"() {
@@ -154,7 +162,7 @@ class BuildLayoutFactoryTest extends Specification {
         currentDir.createFile(settingsFilename)
         def startParameter = new StartParameterInternal()
         startParameter.currentDir = currentDir
-        def config = new BuildLayoutConfiguration(startParameter)
+        def config = startParameter.toBuildLayoutConfiguration()
 
         expect:
         def layout = locator.getLayoutFor(config)

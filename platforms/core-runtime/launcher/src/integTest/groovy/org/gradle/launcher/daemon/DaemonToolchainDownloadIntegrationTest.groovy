@@ -16,13 +16,12 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
-import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JdkRepository
 import org.gradle.test.precondition.Requires
@@ -33,14 +32,12 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
 import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
 import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
 
+@Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
 class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
-
-    // Run the test by specifying a different version than the one used to execute, using two LTS alternatives
-    def javaVersion = Jvm.current().javaVersion == JavaVersion.VERSION_21 ? JavaVersion.VERSION_17 : JavaVersion.VERSION_21
 
     def "toolchain selection that requires downloading fails when it is disabled"() {
         given:
-        writeJvmCriteria(javaVersion)
+        writeJvmCriteria(AvailableJavaHomes.differentVersion.javaVersion)
 
         when:
         failure = executer
@@ -48,7 +45,7 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
             .runWithFailure()
 
         then:
-        failure.assertHasDescription("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}. " +
+        failure.assertHasDescription("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=${AvailableJavaHomes.differentVersion.javaVersionMajor}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}. " +
                 "Toolchain auto-provisioning is not enabled.")
             .assertHasResolutions(
                 DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
@@ -58,7 +55,7 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
 
     def "toolchain download on http fails"() {
         given:
-        writeJvmCriteria(javaVersion)
+        writeJvmCriteria(AvailableJavaHomes.differentVersion.javaVersion)
         writeToolchainDownloadUrls("http://example.com")
 
         when:
@@ -68,13 +65,13 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
             .runWithFailure()
 
         then:
-        failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}) " +
+        failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${AvailableJavaHomes.differentVersion.javaVersionMajor}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}) " +
             "from 'http://example.com', due to: Attempting to download java toolchain from an insecure URI http://example.com. This is not supported, use a secure URI instead")
     }
 
     def "toolchain download on syntax exception url fails"() {
         given:
-        writeJvmCriteria(javaVersion)
+        writeJvmCriteria(AvailableJavaHomes.differentVersion.javaVersion)
         writeToolchainDownloadUrls("https://example.com/v=^10")
 
         when:
@@ -84,7 +81,7 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
             .runWithFailure()
 
         then:
-        failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}) from 'https://example.com/v=^10'")
+        failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${AvailableJavaHomes.differentVersion.javaVersionMajor}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}) from 'https://example.com/v=^10'")
             .assertHasResolutions(
                 DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
                 DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain repositories at https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories."),
@@ -94,7 +91,7 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
 
     def "toolchain download on invalid url fails"() {
         given:
-        writeJvmCriteria(javaVersion)
+        writeJvmCriteria(AvailableJavaHomes.differentVersion.javaVersion)
         writeToolchainDownloadUrls("invalid-url")
 
         when:
@@ -104,18 +101,18 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
             .runWithFailure()
 
         then:
-        failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}) from 'invalid-url'")
+        failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${AvailableJavaHomes.differentVersion.javaVersionMajor}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}) from 'invalid-url'")
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(IntegTestPreconditions.JavaHomeWithTwoDifferentVersionsAvailable)
     def "toolchain downloaded is checked against the spec"() {
-        def otherJavaVersion = AvailableJavaHomes.getDifferentVersion(javaVersion).javaVersion
+        def otherJavaVersion = AvailableJavaHomes.getDifferentVersion(AvailableJavaHomes.differentVersion.javaVersion).javaVersion
         given:
         def jdkRepository = new JdkRepository(otherJavaVersion)
         def uri = jdkRepository.start()
         jdkRepository.reset()
 
-        writeJvmCriteria(javaVersion)
+        writeJvmCriteria(AvailableJavaHomes.differentVersion.javaVersion)
         writeToolchainDownloadUrls(uri.toString())
 
         when:
@@ -129,11 +126,11 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
         jdkRepository.stop()
 
         then:
-        failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}) from '$uri', " +
-            "due to: Toolchain provisioned from '$uri' doesn't satisfy the specification: {languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}")
+        failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${AvailableJavaHomes.differentVersion.javaVersionMajor}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}) from '$uri', " +
+            "due to: Toolchain provisioned from '$uri' doesn't satisfy the specification: {languageVersion=${AvailableJavaHomes.differentVersion.javaVersionMajor}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}")
     }
 
-    @Requires(value = [IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable, IntegTestPreconditions.NotNoDaemonExecutor])
+    @Requires(IntegTestPreconditions.NotNoDaemonExecutor)
     def "toolchain downloaded is used by daemon when spec matches"() {
         def differentJdk = AvailableJavaHomes.differentVersion
         given:
@@ -163,7 +160,7 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
         assertDaemonUsedJvm(findJavaHome(installedToolchains[0]))
     }
 
-    @Requires(value = [IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable, IntegTestPreconditions.NotNoDaemonExecutor])
+    @Requires(value = [IntegTestPreconditions.JavaHomeWithTwoDifferentVersionsAvailable, IntegTestPreconditions.NotNoDaemonExecutor])
     def "toolchain download can handle different jvms with the same archive name"() {
         def differentJdk = AvailableJavaHomes.differentVersion
         given:
@@ -194,7 +191,7 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
         assertDaemonUsedJvm(javaHome)
 
         when:
-        def differentJdk2 = AvailableJavaHomes.getDifferentVersion { (it.getLanguageVersion() != differentJdk.getJavaVersion()) }
+        def differentJdk2 = AvailableJavaHomes.getDifferentVersion(differentJdk.javaVersion)
         def jdkRepository2 = new JdkRepository(differentJdk2, "jdk.zip")
         def uri2 = jdkRepository2.start()
         jdkRepository2.reset()
@@ -222,7 +219,7 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
         javaHome != javaHome2
     }
 
-    @Requires(value = [IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable, IntegTestPreconditions.NotNoDaemonExecutor])
+    @Requires(IntegTestPreconditions.NotNoDaemonExecutor)
     def "toolchain download can handle corrupted archive"() {
         def differentJdk = AvailableJavaHomes.differentVersion
         given:

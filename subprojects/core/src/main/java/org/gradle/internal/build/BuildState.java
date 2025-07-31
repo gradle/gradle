@@ -24,6 +24,7 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.function.Function;
@@ -35,6 +36,7 @@ import java.util.function.Function;
  */
 @ServiceScope(Scope.Build.class)
 public interface BuildState {
+
     DisplayName getDisplayName();
 
     /**
@@ -46,6 +48,11 @@ public interface BuildState {
      * Returns an identifying path for this build in the build tree. This path is fixed for the lifetime of the build.
      */
     Path getIdentityPath();
+
+    /**
+     * Get the parent build of this build, if any.
+     */
+    @Nullable BuildState getParent();
 
     /**
      * Is this an implicit build? An implicit build is one that is managed by Gradle and which is not addressable by user build logic.
@@ -131,4 +138,5 @@ public interface BuildState {
      * Runs whatever work is required prior to discarding the model for this build. Called at the end of the build.
      */
     ExecutionResult<Void> beforeModelDiscarded(boolean failed);
+
 }

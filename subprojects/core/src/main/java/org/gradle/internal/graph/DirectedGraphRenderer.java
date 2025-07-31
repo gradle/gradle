@@ -16,10 +16,14 @@
 package org.gradle.internal.graph;
 
 import org.gradle.api.Action;
-import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
 
@@ -54,7 +58,7 @@ public class DirectedGraphRenderer<N> {
         graphRenderer.visit(new Action<StyledTextOutput>() {
             @Override
             public void execute(StyledTextOutput output) {
-                nodeRenderer.renderTo(node, output);
+                nodeRenderer.renderTo(node, output, alreadySeen);
                 if (alreadySeen) {
                     output.text(" (*)");
                 }

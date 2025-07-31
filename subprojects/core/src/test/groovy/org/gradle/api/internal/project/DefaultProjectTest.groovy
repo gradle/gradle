@@ -39,6 +39,7 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ProcessOperations
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory
 import org.gradle.api.internal.file.DefaultProjectLayout
@@ -288,11 +289,40 @@ class DefaultProjectTest extends Specification {
         }
     }
 
-    private DefaultProject defaultProject(String name, ProjectState owner, ProjectInternal parent, File rootDir, ClassLoaderScope scope) {
-        _ * owner.identityPath >> (parent == null ? Path.ROOT : parent.identityPath.child(name))
-        _ * owner.projectPath >> (parent == null ? Path.ROOT : parent.projectPath.child(name))
+    private DefaultProject defaultProject(
+        String name,
+        ProjectState owner,
+        ProjectInternal parent,
+        File rootDir,
+        ClassLoaderScope scope
+    ) {
+        def identityPath = parent == null ? Path.ROOT : parent.identityPath.child(name)
+        def projectPath = parent == null ? Path.ROOT : parent.projectPath.child(name)
+        def identity = new ProjectIdentity(
+            DefaultBuildIdentifier.ROOT,
+            identityPath,
+            projectPath,
+            name
+        )
+
+        _ * owner.identity >> identity
+        _ * owner.identityPath >> identity.buildTreePath
+        _ * owner.projectPath >> identity.projectPath
         _ * owner.depth >> owner.projectPath.segmentCount()
-        def project = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultProject, name, parent, rootDir, new File(rootDir, 'build.gradle'), script, build, owner, projectServiceRegistryFactoryMock, scope, baseClassLoaderScope)
+
+        def project = TestUtil.instantiatorFactory().decorateLenient().newInstance(
+            DefaultProject,
+            name,
+            parent,
+            rootDir,
+            new File(rootDir, 'build.gradle'),
+            script,
+            build,
+            owner,
+            projectServiceRegistryFactoryMock,
+            scope,
+            baseClassLoaderScope
+        )
         _ * owner.applyToMutableState(_) >> { Consumer action -> action.accept(project) }
         return project
     }

@@ -20,12 +20,14 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.ConfigurationResolver
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationFactory
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyFactory
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory
@@ -62,8 +64,12 @@ class NameValidatorTest extends Specification {
     def "tasks are not allowed to be named '#name'"() {
         when:
         def project = Mock(ProjectInternal) {
-            projectPath(_) >> Path.path(":foo:bar")
-            identityPath(_) >> Path.path("build:foo:bar")
+            getProjectIdentity() >> new ProjectIdentity(
+                DefaultBuildIdentifier.ROOT,
+                Path.path(":build:foo:bar"),
+                Path.path(":build:foo:bar"),
+                "root"
+            )
             getGradle() >> Mock(GradleInternal) {
                 getIdentityPath() >> Path.path(":build:foo:bar")
             }

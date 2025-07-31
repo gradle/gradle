@@ -41,7 +41,7 @@ class DefaultIncludedBuildTest extends Specification {
     DefaultIncludedBuild build
 
     def setup() {
-        _ * buildFactory.servicesForBuild(buildDefinition, _, owningBuild) >> Mock(BuildModelControllerServices.Supplier)
+        _ * buildFactory.servicesForBuild(buildDefinition, _) >> Mock(BuildModelControllerServices.Supplier)
         _ * owningBuild.nestedBuildFactory >> buildFactory
         _ * buildFactory.newInstance(_, _, _, _) >> controller
         _ * controller.gradle >> gradle

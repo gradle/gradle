@@ -33,8 +33,9 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
 
         then:
         fixture.assertHtmlReportHasProblems {
-            totalProblemsCount = 209
-            withLocatedProblem("Build file 'testing/architecture-test/build.gradle.kts'", "Project ':architecture-test' cannot access 'Project.tasks' functionality on another project ':'")
+            // In gradle/gradle total problems count depends on amount of subprojects.
+            // We want to avoid useless test failures
+            ignoreTotalProblemsCount = true
             withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.extensions' functionality on subprojects via 'allprojects'")
         }
     }

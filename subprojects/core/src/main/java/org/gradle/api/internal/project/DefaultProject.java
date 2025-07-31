@@ -141,6 +141,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.singletonMap;
@@ -175,7 +177,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private final String name;
 
-    private Object group;
+    private @Nullable Object group;
 
     private Object version;
 
@@ -474,13 +476,22 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public Object getGroup() {
         onMutableStateAccess();
-        if (group != null) {
-            return group;
-        } else if (this == rootProject) {
+        if (group == null) {
+            group = getDefaultGroup();
+        }
+        return group;
+    }
+
+    private String getDefaultGroup() {
+        ProjectInternal parent = getParent();
+        if (parent == null) {
             return "";
         }
-        group = rootProject.getName() + (getParent() == rootProject ? "" : "." + getParent().getPath().substring(1).replace(':', '.'));
-        return group;
+
+        return Stream.concat(
+            Stream.of(rootProject.getName()),
+            parent.getProjectIdentity().getProjectPath().segments().stream()
+        ).collect(Collectors.joining("."));
     }
 
     @Override

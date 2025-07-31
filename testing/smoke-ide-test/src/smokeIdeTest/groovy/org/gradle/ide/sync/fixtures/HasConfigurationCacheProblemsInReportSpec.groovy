@@ -29,6 +29,8 @@ class HasConfigurationCacheProblemsInReportSpec {
     @Nullable
     Integer totalProblemsCount
 
+    boolean ignoreTotalProblemsCount
+
     void validateSpec() {
         def totalCount = totalProblemsCount ?: locationsWithProblems.size()
         if (totalCount < locationsWithProblems.size()) {

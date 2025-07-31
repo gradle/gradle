@@ -248,6 +248,9 @@ Note that `taskY.mustRunAfter(taskX)` or `taskY.shouldRunAfter(taskX)` does not 
 [[sec:finalizer_tasks]]
 == Finalizer tasks
 
+Finalizer tasks are useful when the build creates a resource that must be cleaned up, regardless of whether the build fails or succeeds.
+An example of such a resource is a web container that is started before an integration test task and must be shut down, even if some tests fail.
+
 Finalizer tasks are automatically added to the task graph when the finalized task is scheduled to run.
 
 To specify a finalizer task, you use the link:{javadocPath}/org/gradle/api/Task.html#finalizedBy-java.lang.Object...-[Task.finalizedBy(java.lang.Object...)] method.
@@ -274,9 +277,6 @@ $ gradle -q taskX
 include::{snippetsPath}/tasks/finalizersWithFailure/tests-groovy/taskFinalizersWithFailureGroovy.out[]
 ----
 ====
-
-Finalizer tasks are useful when the build creates a resource that must be cleaned up, regardless of whether the build fails or succeeds.
-An example of such a resource is a web container that is started before an integration test task and must be shut down, even if some tests fail.
 
 [[sec:skipping_tasks]]
 == Skipping tasks

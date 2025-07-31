@@ -22,5 +22,5 @@ import java.util.Map;
 
 public interface MutableGradleProperties extends GradleProperties {
 
-    void updateOverrideProperties(Map<String, Object> properties);
+    void updateOverrideProperties(Map<String, String> properties);
 }

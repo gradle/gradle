@@ -226,7 +226,7 @@ class CompositeBuildBuildPathAssignmentIntegrationTest extends AbstractComposite
             it.settingsFile << """
                 gradle.projectsEvaluated {
                     // only print from the root build of the build tree to avoid duplication
-                    if (gradle.owner.identityPath.path == ':') {
+                    if (gradle.buildPath == ':') {
                         def registry = gradle.services.get(${BuildStateRegistry.name})
                         registry.visitBuilds { b ->
                             def buildId = b.buildIdentifier

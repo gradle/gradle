@@ -203,12 +203,13 @@ class StartParameterTest extends Specification {
         parameter.consoleOutput = ConsoleOutput.Plain
         parameter.configureOnDemand = true
         parameter.systemPropertiesArgs.put("testprop", "foo")
+        parameter.dryRun = true
+        parameter.taskGraph = true
 
         // Non-copied
         parameter.currentDir = new File("other")
         parameter.taskNames = ['task1']
         parameter.excludedTaskNames = ['excluded1']
-        parameter.dryRun = true
         parameter.continueOnFailure = true
         parameter.rerunTasks = true
         parameter.refreshDependencies = true
@@ -237,11 +238,12 @@ class StartParameterTest extends Specification {
         newParameter.buildCacheEnabled == parameter.buildCacheEnabled
         newParameter.writeDependencyLocks == parameter.writeDependencyLocks
         newParameter.lockedDependenciesToUpdate == parameter.lockedDependenciesToUpdate
+        newParameter.dryRun == parameter.dryRun
+        newParameter.taskGraph == parameter.taskGraph
 
         assertRunsDefaultTasks(newParameter)
         newParameter.excludedTaskNames.empty
         newParameter.currentDir == new File(System.getProperty("user.dir")).getCanonicalFile()
-        !newParameter.dryRun
         assertThat(newParameter, isSerializable())
     }
 

@@ -78,7 +78,6 @@ class KotlinScriptClassPathProvider(
     /**
      * Generated Gradle API jar plus supporting libraries such as groovy-all.jar and generated API extensions.
      */
-    internal
     val gradleKotlinDsl: ClassPath by lazy {
         gradleApi + gradleApiExtensions + gradleKotlinDslJars
     }

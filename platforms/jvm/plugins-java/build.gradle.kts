@@ -35,6 +35,8 @@ dependencies {
 
     testImplementation(testFixtures(projects.core))
 
+    integTestImplementation(projects.javadoc)
+
     integTestImplementation(testFixtures(projects.messaging))
     integTestImplementation(testFixtures(projects.enterpriseOperations))
     integTestImplementation(testFixtures(projects.languageJava))

@@ -55,7 +55,7 @@ class ConfigurationCacheKey(
 
         putAll(
             startParameter.includedBuilds.map {
-                relativePathOf(it, startParameter.rootDirectory)
+                relativePathOf(it, startParameter.buildTreeRootDirectory)
             }
         )
 
@@ -108,14 +108,14 @@ class ConfigurationCacheKey(
             if (projectDir != null) {
                 relativePathOf(
                     projectDir,
-                    startParameter.rootDirectory
+                    startParameter.buildTreeRootDirectory
                 ).let { relativeProjectDir ->
                     putString(relativeProjectDir)
                 }
             } else {
                 relativeChildPathOrNull(
                     startParameter.currentDirectory,
-                    startParameter.rootDirectory
+                    startParameter.buildTreeRootDirectory
                 )?.let { relativeSubDir ->
                     putString(relativeSubDir)
                 }

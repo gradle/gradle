@@ -129,7 +129,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @return The immutable list of arguments. Returns an empty list if there are no arguments.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Optional @Input
     List<String> getJvmArgs();
 
     /**
@@ -139,7 +139,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @param arguments The arguments. Must not be null.
      * @since 4.0
      */
-    void setJvmArgs(@Nullable List<String> arguments);
+    void setJvmArgs(List<String> arguments);
 
     /**
      * Sets the extra arguments to use to launch the JVM for the process. System properties
@@ -147,7 +147,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @param arguments The arguments. Must not be null.
      */
-    void setJvmArgs(@Nullable Iterable<?> arguments);
+    void setJvmArgs(Iterable<?> arguments);
 
     /**
      * Adds some arguments to use to launch the JVM for the process.

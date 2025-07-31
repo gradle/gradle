@@ -72,12 +72,12 @@ import org.gradle.api.internal.filestore.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.api.internal.filestore.TwoStageArtifactIdentifierFileStore;
 import org.gradle.api.internal.project.HoldsProjectState;
-import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.hash.ChecksumService;
+import org.gradle.internal.initialization.BuildTreeLocations;
 import org.gradle.internal.resolve.resolver.ResolvedVariantCache;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
@@ -177,9 +177,8 @@ class DependencyManagementBuildTreeScopeServices implements ServiceRegistrationP
     }
 
     @Provides
-    StartParameterResolutionOverride createStartParameterResolutionOverride(StartParameter startParameter, BuildLayout buildLayout) {
-        File rootDirectory = buildLayout.getRootDirectory();
-        File gradleDir = new File(rootDirectory, "gradle");
+    StartParameterResolutionOverride createStartParameterResolutionOverride(StartParameter startParameter, BuildTreeLocations buildTreeLocations) {
+        File gradleDir = new File(buildTreeLocations.getBuildTreeRootDirectory(), "gradle");
         return new StartParameterResolutionOverride(startParameter, gradleDir);
     }
 

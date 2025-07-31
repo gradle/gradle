@@ -21,6 +21,8 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.tasks.TaskInstantiationException
 import org.gradle.internal.instantiation.DeserializationInstantiator
@@ -36,6 +38,13 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
     def deserializeInstantiator = Mock(DeserializationInstantiator)
     ITaskFactory taskFactory
 
+    ProjectIdentity projectId = new ProjectIdentity(
+        DefaultBuildIdentifier.ROOT,
+        Path.ROOT,
+        Path.ROOT,
+        "root"
+    )
+
     def setup() {
         taskFactory = new TaskFactory().createChild(project, instantiationScheme)
         _ * instantiationScheme.instantiator() >> instantiator
@@ -45,7 +54,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     void injectsProjectAndNameIntoTask() {
         when:
-        Task task = taskFactory.create(new TaskIdentity(DefaultTask, 'task', null, Path.path(':task'), null, 12))
+        Task task = taskFactory.create(new TaskIdentity(DefaultTask, 'task', projectId, 12))
 
         then:
         task.project == project
@@ -54,7 +63,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     void testCreateTaskOfTypeWithNoArgsConstructor() {
         when:
-        Task task = taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', null, Path.path(':task'), null, 12))
+        Task task = taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', projectId, 12))
 
         then:
         task instanceof TestDefaultTask
@@ -62,7 +71,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     void testCreateTaskWhereSuperTypeOfDefaultImplementationRequested() {
         when:
-        Task task = taskFactory.create(new TaskIdentity(type, 'task', null, Path.path(':task'), null, 12))
+        Task task = taskFactory.create(new TaskIdentity(type, 'task', projectId, 12))
 
         then:
         task instanceof DefaultTask
@@ -73,7 +82,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     void testCreateTaskForDeserialization() {
         when:
-        Task task = taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', null, Path.path(':task'), null, 12), (Object[]) null)
+        Task task = taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', projectId, 12), (Object[]) null)
 
         then:
         1 * deserializeInstantiator.newInstance(TestDefaultTask, AbstractTask) >> { new TestDefaultTask() }
@@ -82,7 +91,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     void testCreateTaskForTypeWhichDoesNotImplementTask() {
         when:
-        taskFactory.create(new TaskIdentity(NotATask, 'task', null, Path.path(':task'), null, 12))
+        taskFactory.create(new TaskIdentity(NotATask, 'task', projectId, 12))
 
         then:
         InvalidUserDataException e = thrown()
@@ -91,7 +100,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     void testCreateTaskForUnsupportedType() {
         when:
-        taskFactory.create(new TaskIdentity(taskType, 'task', null, Path.path(':task'), null, 12))
+        taskFactory.create(new TaskIdentity(taskType, 'task', projectId, 12))
 
         then:
         InvalidUserDataException e = thrown()
@@ -103,7 +112,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     void testCreateTaskForTypeDirectlyExtendingAbstractTask() {
         when:
-        taskFactory.create(new TaskIdentity(ExtendsAbstractTask, 'task', null, Path.path(':task'), null, 12))
+        taskFactory.create(new TaskIdentity(ExtendsAbstractTask, 'task', projectId, 12))
 
         then:
         InvalidUserDataException e = thrown()
@@ -114,7 +123,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
         def failure = new RuntimeException()
 
         when:
-        taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', null, Path.path(':task'), null, 12))
+        taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', projectId, 12))
 
         then:
         TaskInstantiationException e = thrown()

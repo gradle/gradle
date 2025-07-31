@@ -31,7 +31,6 @@ import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.initialization.buildsrc.BuildSrcDetector;
 import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.util.Path;
@@ -77,8 +76,8 @@ public class DefaultSettingsLoader implements SettingsLoader {
 
     @Override
     public SettingsState findAndLoadSettings(GradleInternal gradle) {
-        StartParameter startParameter = gradle.getStartParameter();
-        SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
+        StartParameterInternal startParameter = gradle.getStartParameter();
+        SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(startParameter.toBuildLayoutConfiguration());
 
         SettingsState state;
         ProjectSpec spec;
@@ -147,7 +146,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
         StartParameterInternal noSearchParameter = (StartParameterInternal) startParameter.newInstance();
         noSearchParameter.useEmptySettings();
         noSearchParameter.doNotSearchUpwards();
-        BuildLayout layout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(noSearchParameter));
+        BuildLayout layout = buildLayoutFactory.getLayoutFor(noSearchParameter.toBuildLayoutConfiguration());
         SettingsState state = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter, layout, classLoaderScope);
         return state;
     }

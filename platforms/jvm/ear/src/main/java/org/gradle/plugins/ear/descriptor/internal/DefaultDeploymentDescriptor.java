@@ -381,7 +381,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
             rootAttributes.put("xsi:schemaLocation", "http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_" + version + ".xsd");
         } else if ("7".equals(version) || "8".equals(version)) {
             rootAttributes.put("xsi:schemaLocation", "http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/application_" + version + ".xsd");
-        } else if ("9".equals(version) || "10".equals(version)) {
+        } else if ("9".equals(version) || "10".equals(version) || "11".equals(version)) {
             rootAttributes.put("xsi:schemaLocation", "https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/application_" + version + ".xsd");
         }
         if (applicationName != null) {
@@ -437,7 +437,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
             return new QName("http://java.sun.com/xml/ns/javaee", name);
         } else if ("7".equals(version) || "8".equals(version)) {
             return new QName("http://xmlns.jcp.org/xml/ns/javaee", name);
-        } else if ("9".equals(version) || "10".equals(version)) {
+        } else if ("9".equals(version) || "10".equals(version) || "11".equals(version)) {
             return new QName("https://jakarta.ee/xml/ns/jakartaee", name);
         } else {
             return new QName(name);

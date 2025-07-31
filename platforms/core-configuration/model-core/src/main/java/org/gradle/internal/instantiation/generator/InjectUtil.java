@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 class InjectUtil {
+
     /**
      * Selects the single injectable constructor for the given type.
      * The type must either have only one public or package-private default constructor,
@@ -47,13 +48,15 @@ class InjectUtil {
                 TreeFormatter formatter = new TreeFormatter();
                 formatter.node("The constructor for type ");
                 formatter.appendType(reportAs);
-                formatter.append(" should be public or package protected or annotated with @Inject.");
+                formatter.append(" should be public or package protected or ");
+                appendAnnotatedWithInject(formatter);
                 throw new IllegalArgumentException(formatter.toString());
             } else {
                 TreeFormatter formatter = new TreeFormatter();
                 formatter.node("The constructor for type ");
                 formatter.appendType(reportAs);
-                formatter.append(" should be annotated with @Inject.");
+                formatter.append(" should be ");
+                appendAnnotatedWithInject(formatter);
                 throw new IllegalArgumentException(formatter.toString());
             }
         }
@@ -68,17 +71,25 @@ class InjectUtil {
         if (injectConstructors.isEmpty()) {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node(reportAs);
-            formatter.append(" has no constructor that is annotated with @Inject.");
+            formatter.append(" has no constructor that is ");
+            appendAnnotatedWithInject(formatter);
             throw new IllegalArgumentException(formatter.toString());
         }
         if (injectConstructors.size() > 1) {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node(reportAs);
-            formatter.append(" has multiple constructors that are annotated with @Inject.");
+            formatter.append(" has multiple constructors that are ");
+            appendAnnotatedWithInject(formatter);
             throw new IllegalArgumentException(formatter.toString());
         }
 
         return injectConstructors.get(0);
+    }
+
+    private static void appendAnnotatedWithInject(TreeFormatter formatter) {
+        formatter.append("annotated with @Inject (");
+        formatter.append(Inject.class.getName());
+        formatter.append(") for dependency injection.");
     }
 
     private static boolean isPublicOrPackageScoped(Class<?> type, ClassGenerator.GeneratedConstructor<?> constructor) {

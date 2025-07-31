@@ -86,7 +86,8 @@ public class JvmPluginsHelper {
         sourceDirectorySet.getDestinationDirectory().convention(target.getLayout().getBuildDirectory().dir(sourceSetChildPath));
 
         DefaultSourceSetOutput sourceSetOutput = Cast.cast(DefaultSourceSetOutput.class, sourceSet.getOutput());
-        sourceSetOutput.getClassesDirs().from(sourceDirectorySet.getClassesDirectory());
+        sourceSetOutput.getClassesDirs().from(sourceDirectorySet.getDestinationDirectory());
+        sourceSetOutput.getClassesDirs().builtBy(compileTask);
         sourceSetOutput.getGeneratedSourcesDirs().from(options.flatMap(CompileOptions::getGeneratedSourceOutputDirectory));
         sourceDirectorySet.compiledBy(compileTask, AbstractCompile::getDestinationDirectory);
     }
