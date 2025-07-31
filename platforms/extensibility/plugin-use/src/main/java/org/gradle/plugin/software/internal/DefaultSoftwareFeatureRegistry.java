@@ -50,7 +50,7 @@ import java.util.Set;
 /**
  * Default implementation of {@link SoftwareFeatureRegistry} that registers software types.
  */
-public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
+public class DefaultSoftwareFeatureRegistry extends CompatibleSoftwareFeatureRegistry {
     private final Map<RegisteringPluginKey, Set<Class<? extends Plugin<Project>>>> pluginClasses = new LinkedHashMap<>();
     private final Map<String, Class<? extends Plugin<Project>>> registeredTypes = new HashMap<>();
 
@@ -215,4 +215,8 @@ public class DefaultSoftwareFeatureRegistry implements SoftwareFeatureRegistry {
             return Objects.hash(pluginClass, pluginId);
         }
     }
+}
+
+@SuppressWarnings("deprecation")
+abstract class CompatibleSoftwareFeatureRegistry implements SoftwareFeatureRegistry, org.gradle.plugin.software.internal.SoftwareTypeRegistry {
 }
