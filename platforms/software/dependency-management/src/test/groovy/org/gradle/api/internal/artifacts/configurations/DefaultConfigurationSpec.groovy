@@ -1657,8 +1657,7 @@ This method is only meant to be called on configurations which allow the (non-de
             TestUtil.domainObjectCollectionFactory(),
             calculatedValueContainerFactory,
             TestFiles.taskDependencyFactory(),
-            TestUtil.problemsService(),
-            new DocumentationRegistry()
+            TestUtil.problemsService()
         )
     }
 
