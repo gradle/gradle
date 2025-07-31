@@ -18,7 +18,6 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectIdentity
-import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
@@ -43,9 +42,9 @@ import org.gradle.internal.cc.base.serialize.HostServiceProvider
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.Load
+import org.gradle.internal.cc.impl.ConfigurationCacheAction.SkipStore
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.Store
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.Update
-import org.gradle.internal.cc.impl.ConfigurationCacheAction.SkipStore
 import org.gradle.internal.cc.impl.extensions.withMostRecentEntry
 import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
@@ -877,8 +876,6 @@ class DefaultConfigurationCache internal constructor(
                 action(object : ConfigurationCacheFingerprintController.Host {
                     override val valueSourceProviderFactory: ValueSourceProviderFactory
                         get() = host.service()
-                    override val gradleProperties: GradleProperties
-                        get() = gradlePropertiesController.gradleProperties
                 })
             }
         }
