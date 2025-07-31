@@ -83,6 +83,9 @@ The update to Groovy 4 comes with many breaking changes, such as the removal of 
 For a complete overview of Groovy language changes from 3.x to 4.x, see the https://groovy-lang.org/releasenotes/groovy-4.0.html[Groovy 4.0 release notes].
 These changes may affect those who use Groovy directly or indirectly in Gradle, and in rare cases, users relying on transitive dependencies.
 
+TIP: Popular Groovy classes that used to be in packages like `groovy.util` are now in different packages to account for the JPMS "split package requirement".
+See link:https://groovy-lang.org/releasenotes/groovy-4.0.html#Groovy4.0-split-package-renaming[this specific entry].
+
 ==== `is`-prefixed `Boolean` properties no longer recognized by Groovy
 
 Groovy 4 no longer treats getters with an `is` prefix and a `Boolean` return type as properties.
