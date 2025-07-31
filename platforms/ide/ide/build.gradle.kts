@@ -23,10 +23,13 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
+    implementation(projects.buildEvents)
+    implementation(projects.problemsApi)
     implementation(projects.baseServicesGroovy)
     implementation(projects.buildProcessServices)
     implementation(projects.classloaders)
     implementation(projects.ear)
+    implementation(projects.kotlinDsl)
     implementation(projects.languageJava)
     implementation(projects.loggingApi)
     implementation(projects.platformBase)
