@@ -34,6 +34,7 @@ import java.io.File;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceProvider, Closeable {
@@ -44,7 +45,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
     private final PersistentCache cache;
     private final UnscopedCacheBuilderFactory unscopedCacheBuilderFactory;
 
-    private final Map<String, PersistentCache> keyCaches = new ConcurrentHashMap<>();
+    private final Map<String, CacheContainer> keyCaches = new ConcurrentHashMap<>();
 
     public static CacheBasedImmutableWorkspaceProvider createWorkspaceProvider(
         CacheBuilder cacheBuilder,
@@ -146,12 +147,12 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
 
             @Override
             public <T> T withWorkspaceLock(Supplier<T> supplier) {
-                PersistentCache keyCache = keyCaches.computeIfAbsent(path, cache ->
-                    unscopedCacheBuilderFactory.cache(workspaceBaseDir)
+                CacheContainer cacheContainer = keyCaches.computeIfAbsent(path, cache ->
+                    new CacheContainer(unscopedCacheBuilderFactory.cache(workspaceBaseDir)
                         .withInitialLockMode(FileLockManager.LockMode.OnDemand)
-                        .open());
+                        .open()));
 
-                return keyCache.withFileLock(supplier);
+                return cacheContainer.withFileLock(supplier);
             }
         };
     }
@@ -160,5 +161,29 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
     public void close() {
         keyCaches.forEach((id, cache) -> cache.close());
         cache.close();
+    }
+
+    private static class CacheContainer {
+        private final ReentrantLock lock = new ReentrantLock();
+        private final PersistentCache cache;
+
+        CacheContainer(PersistentCache cache) {
+            this.cache = cache;
+        }
+
+        public <T> T withFileLock(Supplier<T> supplier) {
+            return cache.withFileLock(() -> {
+                lock.lock();
+                try {
+                    return supplier.get();
+                } finally {
+                    lock.unlock();
+                }
+            });
+        }
+
+        public void close() {
+            cache.close();
+        }
     }
 }
