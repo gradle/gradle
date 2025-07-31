@@ -28,7 +28,6 @@ import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.plugin.software.internal.SoftwareFeatureImplementation;
-import org.gradle.plugin.software.internal.SoftwareFeatureRegistry;
 import org.gradle.util.Path;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.work.DisableCachingByDefault;
@@ -68,7 +67,8 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     public abstract BuildStateRegistry getBuildStateRegistry();
 
     @Inject
-    protected abstract SoftwareFeatureRegistry getSoftwareTypeRegistry();
+    @SuppressWarnings("deprecation")
+    protected abstract org.gradle.plugin.software.internal.SoftwareTypeRegistry getSoftwareTypeRegistry();
 
     /**
      * Report model.

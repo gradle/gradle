@@ -129,6 +129,14 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         }
 
         @Provides
+        @SuppressWarnings("deprecation")
+        void configure(ServiceRegistration registration, PluginScheme pluginScheme, InstantiatorFactory instantiatorFactory) {
+            DefaultSoftwareFeatureRegistry softwareFeatureRegistry = new DefaultSoftwareFeatureRegistry(pluginScheme.getInspectionScheme(), instantiatorFactory.injectScheme().instantiator());
+            registration.add(org.gradle.plugin.software.internal.SoftwareTypeRegistry.class, softwareFeatureRegistry);
+            registration.add(SoftwareFeatureRegistry.class, softwareFeatureRegistry);
+        }
+
+        @Provides
         AutoAppliedPluginRegistry createInjectedAutoAppliedPluginRegistry(BuildDefinition buildDefinition) {
             return new InjectedAutoAppliedPluginRegistry(buildDefinition);
         }
@@ -136,11 +144,6 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         @Provides
         PluginHandler createPluginHandler(List<AutoAppliedPluginRegistry> registries) {
             return new DefaultPluginHandler(new CompositeAutoAppliedPluginRegistry(registries));
-        }
-
-        @Provides
-        SoftwareFeatureRegistry createSoftwareTypeRegistry(PluginScheme pluginScheme, InstantiatorFactory instantiatorFactory) {
-            return new DefaultSoftwareFeatureRegistry(pluginScheme.getInspectionScheme(), instantiatorFactory.injectScheme().instantiator());
         }
 
         @Provides
