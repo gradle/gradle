@@ -202,11 +202,11 @@ interface InjectedExecOps {
     @get:Inject val execOps: ExecOperations
 }
 
-tasks.register("myAdHocExecOperationsTask") {
-    val injected = project.objects.newInstance<InjectedExecOps>()
+val execOps = project.objects.newInstance<InjectedExecOps>().execOps
 
+tasks.register("myAdHocExecOperationsTask") {
     doLast {
-        injected.execOps.exec {
+        execOps.exec {
             commandLine("ls", "-la")
         }
     }

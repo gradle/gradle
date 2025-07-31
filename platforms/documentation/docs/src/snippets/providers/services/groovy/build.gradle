@@ -239,11 +239,11 @@ interface InjectedExecOps {
     ExecOperations getExecOps()
 }
 
-tasks.register('myAdHocExecOperationsTask') {
-    def injected = project.objects.newInstance(InjectedExecOps)
+def execOps = project.objects.newInstance(InjectedExecOps).execOps
 
+tasks.register('myAdHocExecOperationsTask') {
     doLast {
-        injected.execOps.exec {
+        execOps.exec {
             commandLine 'ls', '-la'
         }
     }
