@@ -141,12 +141,9 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
             import org.gradle.api.Project
             import org.gradle.api.Task
             import org.gradle.api.internal.plugins.BindsSoftwareFeature
-            import org.gradle.api.internal.plugins.SoftwareFeatureBinding
             import org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilder
             import org.gradle.api.internal.plugins.SoftwareFeatureBindingRegistration
-            import org.gradle.api.internal.plugins.software.SoftwareFeature
-            import org.gradle.api.plugins.ExtensionAware
-            import org.gradle.api.internal.plugins.bindSoftwareFeatureToDefinition
+            import org.gradle.api.internal.plugins.features.dsl.bindSoftwareFeatureToDefinition
             import org.gradle.test.TestSoftwareTypeExtension
 
             @BindsSoftwareFeature(SoftwareFeatureImplPlugin.Binding::class)
