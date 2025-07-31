@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.NamedModuleVariantIdentifier;
+import org.gradle.api.internal.artifacts.NamedVariantIdentifier;
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.IvyArtifactNameSerializer;
@@ -46,7 +46,7 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
-import org.gradle.internal.component.model.ModuleVariantIdentifier;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
@@ -147,8 +147,8 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
             boolean isExternalVariant = decoder.readBoolean();
             ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = readFiles(decoder, metadata.getId());
 
-            ModuleVariantIdentifier id = new NamedModuleVariantIdentifier(metadata.getId(), configurationName);
-            RealisedConfigurationMetadata configurationMetadata = new RealisedConfigurationMetadata(id, configurationName, configuration.isTransitive(), configuration.isVisible(),
+            VariantIdentifier id = new NamedVariantIdentifier(metadata.getId(), configurationName);
+            RealisedConfigurationMetadata configurationMetadata = new RealisedConfigurationMetadata(configurationName, id, metadata.getId(), configuration.isTransitive(), configuration.isVisible(),
                 hierarchy, artifacts, ImmutableList.of(), attributes, capabilities, false, isExternalVariant);
             ImmutableList<ModuleDependencyMetadata> dependencies = readDependencies(decoder, deduplicationDependencyCache);
             configurationMetadata.setDependencies(dependencies);
@@ -215,10 +215,11 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
         boolean visible = decoder.readBoolean();
         ImmutableSet<String> hierarchy = ImmutableSet.copyOf(readStringSet(decoder));
         List<ExcludeMetadata> excludeMetadata = readMavenExcludes(decoder);
-        ModuleVariantIdentifier id = new NamedModuleVariantIdentifier(resolveMetadata.getId(), name);
+        VariantIdentifier id = new NamedVariantIdentifier(resolveMetadata.getId(), name);
         RealisedConfigurationMetadata realized = new RealisedConfigurationMetadata(
-            id,
             name,
+            id,
+            resolveMetadata.getId(),
             transitive,
             visible,
             hierarchy,

@@ -24,7 +24,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.NamedModuleVariantIdentifier;
+import org.gradle.api.internal.artifacts.NamedVariantIdentifier;
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.IvyArtifactNameSerializer;
@@ -49,7 +49,7 @@ import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
-import org.gradle.internal.component.model.ModuleVariantIdentifier;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
@@ -152,10 +152,11 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
             }
             ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = readFiles(decoder, metadata.getId());
 
-            ModuleVariantIdentifier id = new NamedModuleVariantIdentifier(metadata.getId(), configurationName);
+            VariantIdentifier id = new NamedVariantIdentifier(metadata.getId(), configurationName);
             RealisedConfigurationMetadata configurationMetadata = new RealisedConfigurationMetadata(
-                id,
                 configurationName,
+                id,
+                metadata.getId(),
                 transitive,
                 visible,
                 hierarchy,
@@ -163,8 +164,9 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
                 excludes,
                 attributes,
                 capabilities,
-                    false,
-                isExternalVariant);
+                false,
+                isExternalVariant
+            );
 
             ImmutableList.Builder<ModuleDependencyMetadata> builder = ImmutableList.builder();
             int dependenciesCount = decoder.readSmallInt();

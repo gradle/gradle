@@ -20,7 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.NamedModuleVariantIdentifier;
+import org.gradle.api.internal.artifacts.NamedVariantIdentifier;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.descriptor.Configuration;
@@ -36,6 +36,7 @@ import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -93,8 +94,8 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     @Override
     protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> parents, VariantMetadataRules componentMetadataRules) {
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = getArtifactsForConfiguration();
-        NamedModuleVariantIdentifier id = new NamedModuleVariantIdentifier(componentId, name);
-        final DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(id, name, transitive, visible, parents, artifacts, componentMetadataRules, ImmutableList.of(), getAttributes(), false);
+        VariantIdentifier id = new NamedVariantIdentifier(componentId, name);
+        final DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(name, id, componentId, transitive, visible, parents, artifacts, componentMetadataRules, ImmutableList.of(), getAttributes(), false);
         configuration.setConfigDependenciesFactory(() -> filterDependencies(configuration));
         return configuration;
     }

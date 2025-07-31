@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.artifacts.NamedModuleVariantIdentifier;
+import org.gradle.api.internal.artifacts.NamedVariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
@@ -35,6 +35,7 @@ import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.util.IdentityHashMap;
@@ -99,8 +100,8 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
         ImmutableList<ModuleComponentArtifactMetadata> artifacts = configurationHelper.filterArtifacts(name, hierarchy);
         ImmutableList<ExcludeMetadata> excludesForConfiguration = configurationHelper.filterExcludes(hierarchy);
 
-        NamedModuleVariantIdentifier id = new NamedModuleVariantIdentifier(componentId, name);
-        DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(id, name, transitive, visible, hierarchy, ImmutableList.copyOf(artifacts), componentMetadataRules, excludesForConfiguration, getAttributes().asImmutable(), false);
+        VariantIdentifier id = new NamedVariantIdentifier(componentId, name);
+        DefaultConfigurationMetadata configuration = new DefaultConfigurationMetadata(name, id, componentId, transitive, visible, hierarchy, ImmutableList.copyOf(artifacts), componentMetadataRules, excludesForConfiguration, getAttributes().asImmutable(), false);
         configuration.setDependencies(configurationHelper.filterDependencies(configuration));
         return configuration;
     }

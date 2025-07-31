@@ -23,7 +23,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.artifacts.NamedModuleVariantIdentifier;
+import org.gradle.api.internal.artifacts.NamedVariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
@@ -47,7 +47,7 @@ import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.component.model.ModuleVariantIdentifier;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.jspecify.annotations.Nullable;
 
 import java.util.IdentityHashMap;
@@ -225,8 +225,8 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
         boolean addedByRule,
         boolean externalVariant
     ) {
-        ModuleVariantIdentifier id = new NamedModuleVariantIdentifier(componentId, name);
-        RealisedConfigurationMetadata configuration = new RealisedConfigurationMetadata(id, name, transitive, visible, hierarchy, artifacts, excludes, componentLevelAttributes, capabilities, addedByRule, externalVariant);
+        VariantIdentifier id = new NamedVariantIdentifier(componentId, name);
+        RealisedConfigurationMetadata configuration = new RealisedConfigurationMetadata(name, id, componentId, transitive, visible, hierarchy, artifacts, excludes, componentLevelAttributes, capabilities, addedByRule, externalVariant);
         List<ModuleDependencyMetadata> dependencyMetadata;
         if (configurationHelper != null) {
             dependencyMetadata = configurationHelper.filterDependencies(configuration);

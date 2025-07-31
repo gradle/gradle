@@ -28,7 +28,7 @@ import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
-import org.gradle.internal.component.model.ModuleVariantIdentifier;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import java.util.List;
@@ -36,8 +36,9 @@ import java.util.Set;
 
 public abstract class AbstractConfigurationMetadata implements ModuleConfigurationMetadata {
 
-    private final ModuleVariantIdentifier id;
     private final String name;
+    private final VariantIdentifier id;
+    private final ModuleComponentIdentifier componentId;
     private final ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
     private final boolean transitive;
     private final boolean visible;
@@ -53,8 +54,9 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     private Factory<List<ModuleDependencyMetadata>> configDependenciesFactory;
 
     AbstractConfigurationMetadata(
-        ModuleVariantIdentifier id,
         String name,
+        VariantIdentifier id,
+        ModuleComponentIdentifier componentId,
         boolean transitive,
         boolean visible,
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
@@ -65,8 +67,9 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
         ImmutableCapabilities capabilities,
         boolean externalVariant
     ) {
-        this.id = id;
         this.name = name;
+        this.id = id;
+        this.componentId = componentId;
         this.transitive = transitive;
         this.visible = visible;
         this.artifacts = artifacts;
@@ -79,8 +82,9 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     }
 
     AbstractConfigurationMetadata(
-        ModuleVariantIdentifier id,
         String name,
+        VariantIdentifier id,
+        ModuleComponentIdentifier componentId,
         boolean transitive,
         boolean visible,
         ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
@@ -91,8 +95,9 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
         ImmutableCapabilities capabilities,
         boolean externalVariant
     ) {
-        this.id = id;
         this.name = name;
+        this.id = id;
+        this.componentId = componentId;
         this.transitive = transitive;
         this.visible = visible;
         this.artifacts = artifacts;
@@ -115,7 +120,7 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     }
 
     @Override
-    public ModuleVariantIdentifier getId() {
+    public VariantIdentifier getId() {
         return id;
     }
 
@@ -181,7 +186,7 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
 
     @Override
     public ModuleComponentArtifactMetadata artifact(IvyArtifactName artifact) {
-        return new DefaultModuleComponentArtifactMetadata(id.getComponentId(), artifact);
+        return new DefaultModuleComponentArtifactMetadata(componentId, artifact);
     }
 
     @Override
@@ -205,7 +210,7 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     }
 
     protected ModuleComponentIdentifier getComponentId() {
-        return id.getComponentId();
+        return componentId;
     }
 
 }

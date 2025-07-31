@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.NamedModuleVariantIdentifier;
+import org.gradle.api.internal.artifacts.NamedVariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -47,7 +47,7 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.component.model.ModuleVariantIdentifier;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -86,10 +86,11 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
                     // We do not need to apply the rules manually to derived variants, because the derivation already
                     // instantiated 'derivedVariant' as 'DefaultConfigurationMetadata' which does the rules application
                     // automatically when calling the getters (done in the code below).
-                    ModuleVariantIdentifier id = new NamedModuleVariantIdentifier(metadata.getId(), sourceVariant.getName());
+                    VariantIdentifier id = new NamedVariantIdentifier(metadata.getId(), sourceVariant.getName());
                     RealisedConfigurationMetadata derivedVariantMetadata = new RealisedConfigurationMetadata(
-                        id,
                         sourceVariant.getName(),
+                        id,
+                        metadata.getId(),
                         sourceVariant.isTransitive(),
                         sourceVariant.isVisible(),
                         sourceVariant.getHierarchy(),
@@ -200,8 +201,8 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         boolean isExternalVariant
     ) {
         ImmutableList<ModuleDependencyMetadata> asImmutable = ImmutableList.copyOf(Cast.<List<ModuleDependencyMetadata>>uncheckedCast(dependencies));
-        ModuleVariantIdentifier id = new NamedModuleVariantIdentifier(componentId, name);
-        return new RealisedConfigurationMetadata(id, name, transitive, visible, hierarchy, artifacts, ImmutableList.of(), attributes, capabilities, asImmutable, addedByRule, isExternalVariant);
+        VariantIdentifier id = new NamedVariantIdentifier(componentId, name);
+        return new RealisedConfigurationMetadata(name, id, componentId, transitive, visible, hierarchy, artifacts, ImmutableList.of(), attributes, capabilities, asImmutable, addedByRule, isExternalVariant);
     }
 
     static ImmutableList<? extends ModuleComponentArtifactMetadata> getArtifactsForConfiguration(DefaultMavenModuleResolveMetadata metadata) {
