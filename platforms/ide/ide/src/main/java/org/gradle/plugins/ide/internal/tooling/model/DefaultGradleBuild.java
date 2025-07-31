@@ -46,7 +46,7 @@ public class DefaultGradleBuild implements Serializable, GradleBuildIdentity {
 
     public DefaultGradleBuild setRootProject(PartialBasicGradleProject rootProject) {
         this.rootProject = rootProject;
-        this.buildIdentifier = new DefaultBuildIdentifier(rootProject.getRootDir());
+        this.setBuildIdentifier(new DefaultBuildIdentifier(rootProject.getRootDir()));
         return this;
     }
 
@@ -96,5 +96,9 @@ public class DefaultGradleBuild implements Serializable, GradleBuildIdentity {
 
     public InternalFailure getFailure() {
         return failure;
+    }
+
+    public void setBuildIdentifier(DefaultBuildIdentifier buildIdentifier) {
+        this.buildIdentifier = buildIdentifier;
     }
 }
