@@ -39,67 +39,78 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
     private val dynamicCallProblemReporting: DynamicCallProblemReporting
 ) : DynamicObject {
     override fun hasMethod(name: String, vararg arguments: Any?): Boolean {
-        onAccess(MemberKind.METHOD, name)
-        return delegate.hasMethod(name, *arguments)
+        val result = withLookupTracking { delegate.hasMethod(name, *arguments) }
+        if (result.value) {
+            onAccess(MemberKind.METHOD, name, result.isTopLevel)
+        }
+        return result.value
     }
 
     override fun tryInvokeMethod(name: String, vararg arguments: Any?): DynamicInvokeResult {
-        onAccess(MemberKind.METHOD, name)
+        // Use `hasMethod` to report access
+        hasMethod(name, *arguments)
         return delegate.tryInvokeMethod(name, *arguments)
     }
 
     override fun hasProperty(name: String): Boolean {
-        onAccess(MemberKind.PROPERTY, name)
-        return delegate.hasProperty(name)
+        val result = withLookupTracking { delegate.hasProperty(name) }
+        if (result.value) {
+            onAccess(MemberKind.PROPERTY, name, result.isTopLevel)
+        }
+        return result.value
     }
 
     override fun tryGetProperty(name: String): DynamicInvokeResult {
-        onAccess(MemberKind.PROPERTY, name)
+        // Use `hasProperty` to report access
+        hasProperty(name)
         return delegate.tryGetProperty(name)
     }
 
     override fun trySetProperty(name: String, value: Any?): DynamicInvokeResult {
-        onAccess(MemberKind.PROPERTY, name)
+        // Use `hasProperty` to report access
+        hasProperty(name)
         return delegate.trySetProperty(name, value)
     }
 
     override fun trySetPropertyWithoutInstrumentation(name: String, value: Any?): DynamicInvokeResult {
-        onAccess(MemberKind.PROPERTY, name)
+        // Use `hasProperty` to report access
+        hasProperty(name)
         return delegate.trySetPropertyWithoutInstrumentation(name, value)
     }
 
     override fun getProperties(): MutableMap<String, *> {
-        onAccess(MemberKind.PROPERTY, null)
-        return delegate.properties
+        // Directly use ACTIVE_LOOKUP here since we're checking before accessing properties
+        onAccess(MemberKind.PROPERTY, null, ACTIVE_LOOKUP.get() == null)
+        return withLookupTracking { delegate.properties }.value
     }
 
     override fun getMissingProperty(name: String): MissingPropertyException {
-        onAccess(MemberKind.PROPERTY, name)
         return delegate.getMissingProperty(name)
     }
 
     override fun setMissingProperty(name: String): MissingPropertyException {
-        onAccess(MemberKind.PROPERTY, name)
         return delegate.setMissingProperty(name)
     }
 
     override fun methodMissingException(name: String, vararg params: Any?): MissingMethodException {
-        onAccess(MemberKind.METHOD, name)
         return delegate.methodMissingException(name, *params)
     }
 
     override fun getProperty(name: String): Any? {
-        onAccess(MemberKind.PROPERTY, name)
+        // Use `hasProperty` to report access
+        hasProperty(name)
         return delegate.getProperty(name)
     }
 
     override fun setProperty(name: String, value: Any?) {
-        onAccess(MemberKind.PROPERTY, name)
+        // Use `hasProperty` to report access
+        hasProperty(name)
         return delegate.setProperty(name, value)
     }
 
     override fun invokeMethod(name: String, vararg arguments: Any?): Any? {
-        onAccess(MemberKind.METHOD, name)
+        // Use `hasMethod` to report access
+        hasMethod(name, *arguments)
         return delegate.invokeMethod(name, *arguments)
     }
 
@@ -109,9 +120,11 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
     }
 
     private
-    fun onAccess(memberKind: MemberKind, memberName: String?) {
+    fun onAccess(memberKind: MemberKind, memberName: String?, isTopLevelAccess: Boolean) {
         coupledProjectsListener.onProjectReference(referrerProject.owner, ownerProject.owner)
-        maybeReportProjectIsolationViolation(memberKind, memberName)
+        if (isTopLevelAccess) {
+            maybeReportProjectIsolationViolation(memberKind, memberName)
+        }
     }
 
     @Suppress("ThrowingExceptionsWithoutMessageOrCause")
@@ -123,8 +136,7 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
                 reference(referrerProject.identityPath.toString())
                 text(" cannot dynamically look up a ")
                 text(memberKind.name.lowercase(Locale.ENGLISH))
-                text(" in the parent project ")
-                reference(ownerProject.identityPath.toString())
+                text(" in the parent project")
             }
                 .mapLocation { location ->
                     when (memberKind) {
@@ -146,5 +158,23 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
 
     companion object {
         val PROBLEM_KEY = Any()
+
+        private val ACTIVE_LOOKUP = ThreadLocal<Unit>()
+
+        private data class TrackingResult<T>(val value: T, val isTopLevel: Boolean)
+
+        private fun <T : Any?> withLookupTracking(block: () -> T): TrackingResult<T> {
+            val isActive = ACTIVE_LOOKUP.get()
+            return if (isActive == null) {
+                ACTIVE_LOOKUP.set(Unit)
+                try {
+                    TrackingResult(block(), true)
+                } finally {
+                    ACTIVE_LOOKUP.remove()
+                }
+            } else {
+                TrackingResult(block(), false)
+            }
+        }
     }
 }

@@ -187,7 +187,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
 
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a")
-            problem("Build file 'a/build.gradle.kts': Project ':a' cannot dynamically look up a property in the parent project ':'")
+            problem("Build file 'a/build.gradle.kts': Project ':a' cannot dynamically look up a property in the parent project")
         }
 
         where:
