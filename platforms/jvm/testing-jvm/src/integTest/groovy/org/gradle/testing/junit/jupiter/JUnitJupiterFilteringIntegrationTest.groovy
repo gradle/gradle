@@ -30,18 +30,14 @@ class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrat
     def "nested classes are executed when filtering by class name"() {
         given:
         buildFile << """
-            apply plugin: 'java'
-            ${mavenCentralRepository()}
             dependencies {
-                ${testFrameworkDependencies}
                 testImplementation 'org.junit.jupiter:junit-jupiter:${version}'
             }
             test {
-                ${configureTestFramework}
                 ${maybeConfigureFilters(withConfiguredFilters)}
             }
         """
-
+\
         file("src/test/java/SampleTest.java") << """
             import static org.junit.jupiter.api.Assertions.fail;
 
