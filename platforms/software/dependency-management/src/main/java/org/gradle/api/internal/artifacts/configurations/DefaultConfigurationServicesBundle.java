@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.operations.BuildOperationRunner;
 
 /**
  * Default implementation of services bundle used by {@link DefaultConfiguration}.
@@ -36,17 +37,19 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
  * Every service, factory, or other type in this bundle <strong>must</strong> be effectively immutable.
  */
 public final class DefaultConfigurationServicesBundle implements ConfigurationServicesBundle {
-    public final ProjectStateRegistry projectStateRegistry;
-    public final CalculatedValueContainerFactory calculatedValueContainerFactory;
-    public final ObjectFactory objectFactory;
-    public final FileCollectionFactory fileCollectionFactory;
-    public final TaskDependencyFactory taskDependencyFactory;
-    public final AttributesFactory attributesFactory;
-    public final DomainObjectCollectionFactory domainObjectCollectionFactory;
-    public final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
-    public final InternalProblems problems;
+    private final BuildOperationRunner buildOperationRunner;
+    private final ProjectStateRegistry projectStateRegistry;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final ObjectFactory objectFactory;
+    private final FileCollectionFactory fileCollectionFactory;
+    private final TaskDependencyFactory taskDependencyFactory;
+    private final AttributesFactory attributesFactory;
+    private final DomainObjectCollectionFactory domainObjectCollectionFactory;
+    private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
+    private final InternalProblems problems;
 
-    public DefaultConfigurationServicesBundle(ProjectStateRegistry projectStateRegistry,
+    public DefaultConfigurationServicesBundle(BuildOperationRunner buildOperationRunner,
+                                              ProjectStateRegistry projectStateRegistry,
                                               CalculatedValueContainerFactory calculatedValueContainerFactory,
                                               ObjectFactory objectFactory,
                                               FileCollectionFactory fileCollectionFactory,
@@ -55,6 +58,7 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
                                               DomainObjectCollectionFactory domainObjectCollectionFactory,
                                               CollectionCallbackActionDecorator collectionCallbackActionDecorator,
                                               InternalProblems problems) {
+        this.buildOperationRunner = buildOperationRunner;
         this.projectStateRegistry = projectStateRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.objectFactory = objectFactory;
@@ -64,6 +68,11 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
         this.problems = problems;
+    }
+
+    @Override
+    public BuildOperationRunner getBuildOperationRunner() {
+        return buildOperationRunner;
     }
 
     @Override

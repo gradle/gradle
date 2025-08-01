@@ -1644,6 +1644,7 @@ This method is only meant to be called on configurations which allow the (non-de
         )
 
         ConfigurationServicesBundle configurationServices = new DefaultConfigurationServicesBundle(
+            new TestBuildOperationRunner(),
             projectStateRegistry,
             calculatedValueContainerFactory,
             TestUtil.objectFactory(),
@@ -1659,7 +1660,6 @@ This method is only meant to be called on configurations which allow the (non-de
             configurationServices,
             listenerManager,
             domainObjectContext,
-            new TestBuildOperationRunner(),
             publishArtifactNotationParserFactory,
             new ResolveExceptionMapper(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
             new AttributeDesugaring(configurationServices.getAttributesFactory()),

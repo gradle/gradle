@@ -66,6 +66,7 @@ class DefaultConfigurationContainerSpec extends Specification {
 
 
     ConfigurationServicesBundle configurationServices = new DefaultConfigurationServicesBundle(
+        buildOperationRunner,
         projectStateRegistry,
         calculatedValueContainerFactory,
         objectFactory,
@@ -81,7 +82,6 @@ class DefaultConfigurationContainerSpec extends Specification {
         configurationServices,
         listenerManager,
         domainObjectContext,
-        buildOperationRunner,
         Stub(PublishArtifactNotationParserFactory),
         Stub(ResolveExceptionMapper),
         new AttributeDesugaring(AttributeTestUtil.attributesFactory()),

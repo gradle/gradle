@@ -583,7 +583,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        ConfigurationServicesBundle createConfigurationServicesBundle(ProjectStateRegistry projectStateRegistry,
+        ConfigurationServicesBundle createConfigurationServicesBundle(BuildOperationRunner buildOperationRunner,
+                                                                      ProjectStateRegistry projectStateRegistry,
                                                                       FileCollectionFactory fileCollectionFactory,
                                                                       ObjectFactory objectFactory,
                                                                       AttributesFactory attributesFactory,
@@ -593,6 +594,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                       TaskDependencyFactory taskDependencyFactory,
                                                                       InternalProblems problems) {
             return new DefaultConfigurationServicesBundle(
+                buildOperationRunner,
                 projectStateRegistry,
                 calculatedValueContainerFactory,
                 objectFactory,

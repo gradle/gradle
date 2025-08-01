@@ -30,7 +30,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -47,7 +46,6 @@ public class DefaultConfigurationFactory {
     private final ConfigurationServicesBundle configurationServices;
     private final ListenerManager listenerManager;
     private final DomainObjectContext domainObjectContext;
-    private final BuildOperationRunner buildOperationRunner;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final ResolveExceptionMapper exceptionContextualizer;
@@ -59,7 +57,6 @@ public class DefaultConfigurationFactory {
         ConfigurationServicesBundle configurationServices,
         ListenerManager listenerManager,
         DomainObjectContext domainObjectContext,
-        BuildOperationRunner buildOperationRunner,
         PublishArtifactNotationParserFactory artifactNotationParserFactory,
         ResolveExceptionMapper exceptionMapper,
         AttributeDesugaring attributeDesugaring,
@@ -68,7 +65,6 @@ public class DefaultConfigurationFactory {
         this.configurationServices = configurationServices;
         this.listenerManager = listenerManager;
         this.domainObjectContext = domainObjectContext;
-        this.buildOperationRunner = buildOperationRunner;
         this.artifactNotationParser = artifactNotationParserFactory.create();
         this.capabilityNotationParser = new CapabilityNotationParserFactory(true).create();
         this.exceptionContextualizer = exceptionMapper;
@@ -97,7 +93,6 @@ public class DefaultConfigurationFactory {
             resolver,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
-            buildOperationRunner,
             artifactNotationParser,
             capabilityNotationParser,
             exceptionContextualizer,
@@ -126,7 +121,6 @@ public class DefaultConfigurationFactory {
             resolver,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
-            buildOperationRunner,
             artifactNotationParser,
             capabilityNotationParser,
             exceptionContextualizer,
@@ -154,7 +148,6 @@ public class DefaultConfigurationFactory {
             resolver,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
-            buildOperationRunner,
             artifactNotationParser,
             capabilityNotationParser,
             exceptionContextualizer,
@@ -182,7 +175,6 @@ public class DefaultConfigurationFactory {
             resolver,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
-            buildOperationRunner,
             artifactNotationParser,
             capabilityNotationParser,
             exceptionContextualizer,
