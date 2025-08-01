@@ -68,9 +68,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
      *
      * @implNote The properties are looked up by known names to avoid eager access of all Gradle-properties.
      */
-    // Suppressing deprecations, because IntelliJ sees the `find(): String` type and suggests to "simplify" the code
-    // However, the simplification would not support the `GradleBuild` task edge case described in the method.
-    @SuppressWarnings({"deprecation", "DataFlowIssue", "CastCanBeRemovedNarrowingVariableType"})
+    @SuppressWarnings({"deprecation"})
     private static Set<String> assignSelectedPropertiesDirectly(
         ProjectInternal project,
         GradleProperties projectGradleProperties
@@ -88,35 +86,35 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         // TODO: Remove non-String project properties support in Gradle 10 - https://github.com/gradle/gradle/issues/34454
 
         String versionName = "version";
-        Object versionValue = projectGradleProperties.find(versionName);
+        Object versionValue = projectGradleProperties.findUnsafe(versionName);
         if (versionValue != null) {
             project.setVersion(versionValue);
             consumedProperties.add(versionName);
         }
 
         String groupName = "group";
-        Object groupValue = projectGradleProperties.find(groupName);
+        Object groupValue = projectGradleProperties.findUnsafe(groupName);
         if (groupValue != null) {
             project.setGroup(groupValue);
             consumedProperties.add(groupName);
         }
 
         String statusName = "status";
-        Object statusValue = projectGradleProperties.find(statusName);
+        Object statusValue = projectGradleProperties.findUnsafe(statusName);
         if (statusValue != null) {
             project.setStatus(statusValue);
             consumedProperties.add(statusName);
         }
 
         String buildDirName = "buildDir";
-        Object buildDirValue = projectGradleProperties.find(buildDirName);
+        Object buildDirValue = projectGradleProperties.findUnsafe(buildDirName);
         if (buildDirValue != null) {
             project.setBuildDir(buildDirValue);
             consumedProperties.add(buildDirName);
         }
 
         String descriptionName = "description";
-        Object descriptionValue = projectGradleProperties.find(descriptionName);
+        Object descriptionValue = projectGradleProperties.findUnsafe(descriptionName);
         // This intentionally differs from others for backward-compatibility.
         // Other setters accept `Object` as an argument and therefore consume a property of any type.
         // If it so happens that the description value is not a String, it would not match the

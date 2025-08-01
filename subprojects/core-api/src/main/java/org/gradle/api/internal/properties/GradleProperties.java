@@ -61,4 +61,13 @@ public interface GradleProperties {
      * The returned map is never null. An empty map is returned if nothing is found.
      */
     Map<String, String> getPropertiesWithPrefix(String prefix);
+
+    /**
+     * AVOID THIS METHOD UNLESS NECESSARY
+     * <p>
+     * It is equivalent to {@link #find(String)}, except that it does not enforce the type of the returned value.
+     */
+    // TODO: Remove non-String project properties support in Gradle 10 - https://github.com/gradle/gradle/issues/34454
+    @Nullable
+    Object findUnsafe(String propertyName);
 }

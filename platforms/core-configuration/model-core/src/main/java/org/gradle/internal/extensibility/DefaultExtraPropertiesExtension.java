@@ -46,7 +46,7 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
         }
 
         if (gradleProperties != null) {
-            return gradleProperties.find(name) != null;
+            return gradleProperties.findUnsafe(name) != null;
         }
 
         return false;
@@ -72,7 +72,7 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
         }
 
         if (gradleProperties != null) {
-            return gradleProperties.find(name);
+            return gradleProperties.findUnsafe(name);
         }
 
         return null;
@@ -101,7 +101,7 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
         }
 
         if (gradleProperties != null) {
-            Object value = gradleProperties.find(name);
+            Object value = gradleProperties.findUnsafe(name);
             if (value != null) {
                 return value;
             }

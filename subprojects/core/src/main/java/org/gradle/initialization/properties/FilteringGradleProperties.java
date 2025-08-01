@@ -23,6 +23,8 @@ import org.jspecify.annotations.Nullable;
 import java.util.Map;
 import java.util.function.Predicate;
 
+import static org.gradle.internal.Cast.uncheckedCast;
+
 public class FilteringGradleProperties implements GradleProperties {
 
     private final GradleProperties delegate;
@@ -34,11 +36,16 @@ public class FilteringGradleProperties implements GradleProperties {
     }
 
     @Override
-    public @Nullable String find(String propertyName) {
+    public @Nullable Object findUnsafe(String propertyName) {
         if (!propertyNameFilter.test(propertyName)) {
             return null;
         }
-        return delegate.find(propertyName);
+        return delegate.findUnsafe(propertyName);
+    }
+
+    @Override
+    public @Nullable String find(String propertyName) {
+        return uncheckedCast(findUnsafe(propertyName));
     }
 
     @Override

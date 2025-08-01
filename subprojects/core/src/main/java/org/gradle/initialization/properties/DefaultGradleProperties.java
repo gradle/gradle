@@ -36,6 +36,11 @@ public class DefaultGradleProperties implements GradleProperties {
     }
 
     @Override
+    public @Nullable Object findUnsafe(String propertyName) {
+        return properties.get(propertyName);
+    }
+
+    @Override
     public Map<String, String> getProperties() {
         return properties;
     }

@@ -42,7 +42,8 @@ class FilteringGradlePropertiesTest extends Specification {
         given:
         def predicate = { String name -> name.startsWith("allowed") } as Predicate<String>
         def filteringProperties = new FilteringGradleProperties(delegate, predicate)
-        delegate.find("allowed.property") >> "value"
+        1 * delegate.findUnsafe("allowed.property") >> "value"
+        0 * delegate.find(_)
 
         when:
         def result = filteringProperties.find("allowed.property")
@@ -55,7 +56,8 @@ class FilteringGradlePropertiesTest extends Specification {
         given:
         def predicate = { String name -> name.startsWith("allowed") } as Predicate<String>
         def filteringProperties = new FilteringGradleProperties(delegate, predicate)
-        delegate.find("allowed.property") >> null
+        1 * delegate.findUnsafe("allowed.property") >> null
+        0 * delegate.find(_)
 
         when:
         def result = filteringProperties.find("allowed.property")

@@ -120,6 +120,11 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
             return gradleProperties().getPropertiesWithPrefix(prefix);
         }
 
+        @Override
+        public @Nullable Object findUnsafe(String propertyName) {
+            return gradleProperties().findUnsafe(propertyName);
+        }
+
         private GradleProperties gradleProperties() {
             return checkLoaded().gradleProperties;
         }
@@ -258,6 +263,11 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         @Override
         public Map<String, String> getPropertiesWithPrefix(String prefix) {
             return gradleProperties().getPropertiesWithPrefix(prefix);
+        }
+
+        @Override
+        public @Nullable Object findUnsafe(String propertyName) {
+            return gradleProperties().findUnsafe(propertyName);
         }
 
         private GradleProperties gradleProperties() {

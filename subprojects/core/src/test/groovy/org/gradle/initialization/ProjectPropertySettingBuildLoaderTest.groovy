@@ -100,11 +100,11 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         loader.load(settings, gradle)
 
         then:
-        1 * rootGradleProperties.find("version") >> null
-        1 * rootGradleProperties.find("group") >> null
-        1 * rootGradleProperties.find("status") >> null
-        1 * rootGradleProperties.find("buildDir") >> null
-        1 * rootGradleProperties.find("description") >> null
+        1 * rootGradleProperties.findUnsafe("version") >> null
+        1 * rootGradleProperties.findUnsafe("group") >> null
+        1 * rootGradleProperties.findUnsafe("status") >> null
+        1 * rootGradleProperties.findUnsafe("buildDir") >> null
+        1 * rootGradleProperties.findUnsafe("description") >> null
         0 * rootGradleProperties._
 
         0 * rootProject.setDescription(_)
@@ -114,11 +114,11 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         0 * rootProject.setBuildDir(_)
 
         then:
-        1 * childGradleProperties.find("version") >> null
-        1 * childGradleProperties.find("group") >> null
-        1 * childGradleProperties.find("status") >> null
-        1 * childGradleProperties.find("buildDir") >> null
-        1 * childGradleProperties.find("description") >> null
+        1 * childGradleProperties.findUnsafe("version") >> null
+        1 * childGradleProperties.findUnsafe("group") >> null
+        1 * childGradleProperties.findUnsafe("status") >> null
+        1 * childGradleProperties.findUnsafe("buildDir") >> null
+        1 * childGradleProperties.findUnsafe("description") >> null
         0 * childGradleProperties._
 
         0 * childProject.setDescription(_)

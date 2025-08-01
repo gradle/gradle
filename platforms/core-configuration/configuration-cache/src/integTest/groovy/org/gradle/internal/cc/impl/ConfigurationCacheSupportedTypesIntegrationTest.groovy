@@ -634,4 +634,50 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         "WithExtraConstructors"   | "new WithExtraConstructors('str', 42)"                                                           | "WithExtraConstructors[str=str, number=42]"
         "WithAlternativeTypes"    | "new WithAlternativeTypes(42, true, false as boolean, new TreeSet(['a', 'b', 'c']))"             | "WithAlternativeTypes[number=42, a=true, b=false, ts=[a, b, c]]"
     }
+
+    def "task actions support capturing project extra properties"() {
+        def configurationCache = newConfigurationCacheFixture()
+
+        // build-scoped properties are required, because they validate that Gradle-properties as captured by extra-properties
+        // are not serialized as a service (that is always build-scoped), ensuring that project-scoped overrides are preserved.
+        file("gradle.properties") << """
+            foo=root-value
+        """
+
+        file("sub/gradle.properties") << """
+            foo=sub-value
+        """
+
+        settingsFile """
+            include("sub")
+        """
+
+        buildFile "sub/build.gradle", """
+            class SomeTask extends DefaultTask {
+                @Input
+                ExtraPropertiesExtension props = project.ext
+
+                @TaskAction
+                def action() {
+                    println("Execution '\${props.get('foo')}'")
+                }
+            }
+
+            tasks.register("someTask", SomeTask)
+        """
+
+        when:
+        configurationCacheRun ":sub:some"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Execution 'sub-value'")
+
+        when:
+        configurationCacheRun ":sub:some"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("Execution 'sub-value'")
+    }
 }
