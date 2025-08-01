@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -38,6 +39,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  */
 @ServiceScope(Scope.Project.class)
 public interface ConfigurationServicesBundle {
+    BuildOperationRunner getBuildOperationRunner();
     ProjectStateRegistry getProjectStateRegistry();
     AttributesFactory getAttributesFactory();
     ObjectFactory getObjectFactory();

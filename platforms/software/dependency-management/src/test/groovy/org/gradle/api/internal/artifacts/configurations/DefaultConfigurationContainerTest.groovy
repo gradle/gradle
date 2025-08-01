@@ -67,6 +67,7 @@ class DefaultConfigurationContainerTest extends Specification {
     private AttributesFactory attributesFactory = AttributeTestUtil.attributesFactory()
 
     ConfigurationServicesBundle configurationServices = new DefaultConfigurationServicesBundle(
+        buildOperationRunner,
         projectStateRegistry,
         calculatedValueContainerFactory,
         objectFactory,
@@ -82,7 +83,6 @@ class DefaultConfigurationContainerTest extends Specification {
         configurationServices,
         listenerManager,
         StandaloneDomainObjectContext.ANONYMOUS,
-        buildOperationRunner,
         new PublishArtifactNotationParserFactory(
                 objectFactory,
                 metaDataProvider,

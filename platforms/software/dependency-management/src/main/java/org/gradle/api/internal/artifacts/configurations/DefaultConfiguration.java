@@ -103,7 +103,6 @@ import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
@@ -159,7 +158,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private @Nullable DefaultPublishArtifactSet allArtifacts;
     private final ConfigurationResolvableDependencies resolvableDependencies;
     private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
-    private final BuildOperationRunner buildOperationRunner;
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private @Nullable ResolutionStrategyInternal resolutionStrategy;
     private final ResolveExceptionMapper exceptionMapper;
@@ -226,7 +224,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         ConfigurationResolver resolver,
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        BuildOperationRunner buildOperationRunner,
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
         ResolveExceptionMapper exceptionMapper,
@@ -245,7 +242,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.resolver = resolver;
         this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.dependencyResolutionListeners = dependencyResolutionListeners;
-        this.buildOperationRunner = buildOperationRunner;
         this.domainObjectContext = domainObjectContext;
         this.exceptionMapper = exceptionMapper;
         this.attributeDesugaring = attributeDesugaring;
@@ -627,7 +623,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      * Must be called from {@link #resolveExclusivelyIfRequired} only.
      */
     private ResolverResults resolveGraphInBuildOperation() {
-        return buildOperationRunner.call(new CallableBuildOperation<ResolverResults>() {
+        return configurationServices.getBuildOperationRunner().call(new CallableBuildOperation<ResolverResults>() {
             @Override
             public ResolverResults call(BuildOperationContext context) {
                 runDependencyActions();

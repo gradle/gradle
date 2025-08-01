@@ -28,7 +28,6 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
-import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.inject.Inject;
@@ -47,7 +46,6 @@ public class DefaultLegacyConfiguration extends DefaultConfiguration implements 
         ConfigurationResolver resolver,
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        BuildOperationRunner buildOperationRunner,
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
         ResolveExceptionMapper exceptionMapper,
@@ -64,7 +62,6 @@ public class DefaultLegacyConfiguration extends DefaultConfiguration implements 
             resolver,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
-            buildOperationRunner,
             artifactNotationParser,
             capabilityNotationParser,
             exceptionMapper,
