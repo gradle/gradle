@@ -108,8 +108,11 @@ internal class ConfigurationCachePromoHandler(
         }
     }
 
-    override fun beforeComplete() {
-        if (problems.arePresent() || runWithoutBuildDefinition()) {
+    override fun beforeComplete(failure: Throwable?) {
+        // Order of checks is somewhat important.
+        // With an infra failure, it is unsafe to check the build definition presence, as the Settings may not be initialized.
+        // We don't show the promo if there is any failure, so we don't need to know the build definition anyway.
+        if (failure != null || problems.arePresent() || runWithoutBuildDefinition()) {
             return
         }
 
