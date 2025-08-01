@@ -395,6 +395,14 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         assertHasNoPromo()
     }
 
+    def "shows no promo message when gradle init is invoked with project"() {
+        when:
+        fails("init", "--use-defaults")
+
+        then:
+        assertHasNoPromo()
+    }
+
     def "shows no promo message when gradle help is invoked without project"() {
         given:
         withEmptyProjectDirectory()
@@ -417,6 +425,17 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
 
         then:
         assertHasPromo()
+    }
+
+    def "shows no promo message when unsupported command is invoked without project"() {
+        given:
+        withEmptyProjectDirectory()
+
+        when:
+        fails("wrapper")
+
+        then:
+        assertHasNoPromo()
     }
 
     private void withEmptyProjectDirectory() {

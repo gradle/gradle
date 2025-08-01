@@ -17,13 +17,11 @@
 package org.gradle.internal.cc.impl.promo
 
 import org.gradle.BuildResult
-import org.gradle.StartParameter
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.logging.Logging
-import org.gradle.configuration.project.BuiltInCommand
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.initialization.layout.ResolvedBuildLayout
 import org.gradle.internal.Factory
@@ -53,8 +51,6 @@ import org.gradle.internal.service.scopes.ServiceScope
  */
 @ServiceScope(Scope.BuildTree::class)
 internal class ConfigurationCachePromoHandler(
-    private val startParameter: StartParameter,
-    private val builtInCommands: List<BuiltInCommand>,
     private val buildRegistry: BuildStateRegistry,
     private val degradationController: DefaultConfigurationCacheDegradationController,
     private val documentationRegistry: DocumentationRegistry
@@ -138,9 +134,5 @@ internal class ConfigurationCachePromoHandler(
 
     private fun TaskExecutionGraph.hasIncompatibleTasks() = allTasks.any { !(it as TaskInternal).isCompatibleWithConfigurationCache }
 
-    private fun runWithoutBuildDefinition(): Boolean {
-        return builtInCommands.any {
-            it.wasInvoked(startParameter) && (it.requireEmptyBuildDefinition() || rootBuildLayout.isBuildDefinitionMissing)
-        }
-    }
+    private fun runWithoutBuildDefinition() = rootBuildLayout.isBuildDefinitionMissing
 }
