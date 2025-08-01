@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.ConfigurationServicesBundle;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
@@ -55,8 +54,7 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
         AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext,
         ProjectStateRegistry projectStateRegistry,
-        DefaultConfigurationFactory defaultConfigurationFactory,
-        DocumentationRegistry documentationRegistry
+        DefaultConfigurationFactory defaultConfigurationFactory
     ) {
         super(
             configurationServices,
@@ -75,7 +73,6 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
             projectStateRegistry,
             defaultConfigurationFactory,
             ConfigurationRoles.RESOLVABLE,
-            documentationRegistry,
             true
         );
     }

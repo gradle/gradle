@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.ConfigurationServicesBundle;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
@@ -56,7 +55,6 @@ public class DefaultConfigurationFactory {
     private final AttributeDesugaring attributeDesugaring;
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final ProjectStateRegistry projectStateRegistry;
-    private final DocumentationRegistry documentationRegistry;
 
     @Inject
     public DefaultConfigurationFactory(
@@ -68,8 +66,7 @@ public class DefaultConfigurationFactory {
         ResolveExceptionMapper exceptionMapper,
         AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext,
-        ProjectStateRegistry projectStateRegistry,
-        DocumentationRegistry documentationRegistry
+        ProjectStateRegistry projectStateRegistry
     ) {
         this.configurationServices = configurationServices;
         this.listenerManager = listenerManager;
@@ -81,7 +78,6 @@ public class DefaultConfigurationFactory {
         this.attributeDesugaring = attributeDesugaring;
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.projectStateRegistry = projectStateRegistry;
-        this.documentationRegistry = documentationRegistry;
     }
 
     /**
@@ -113,8 +109,7 @@ public class DefaultConfigurationFactory {
             userCodeApplicationContext,
             projectStateRegistry,
             this,
-            role,
-            documentationRegistry
+            role
         );
     }
 
@@ -143,8 +138,7 @@ public class DefaultConfigurationFactory {
             attributeDesugaring,
             userCodeApplicationContext,
             projectStateRegistry,
-            this,
-            documentationRegistry
+            this
         );
     }
 
@@ -173,8 +167,7 @@ public class DefaultConfigurationFactory {
             attributeDesugaring,
             userCodeApplicationContext,
             projectStateRegistry,
-            this,
-            documentationRegistry
+            this
         );
     }
 
@@ -203,8 +196,7 @@ public class DefaultConfigurationFactory {
             attributeDesugaring,
             userCodeApplicationContext,
             projectStateRegistry,
-            this,
-            documentationRegistry
+            this
         );
     }
 }
