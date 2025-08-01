@@ -817,4 +817,5 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     protected BuildInitSpecRegistry createInitProjectSpecRegistry() {
         return new BuildInitSpecRegistry();
     }
+
 }
