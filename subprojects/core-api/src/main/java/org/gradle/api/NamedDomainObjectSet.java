@@ -16,6 +16,7 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import org.gradle.api.model.ManagedType;
 import org.gradle.api.specs.Spec;
 
 import java.util.Set;
@@ -27,10 +28,12 @@ import java.util.Set;
  * an existing object in terms of {@code equals}, but IS in terms of name equality will result in the existing collection item with
  * the equal name being removed.</p>
  *
- * <p>You can create an instance of this type using the factory method {@link org.gradle.api.model.ObjectFactory#namedDomainObjectSet(Class)}.</p>
- *
  * @param <T> The type of objects in the set
+ *
+ * @see ManagedType Create an instance of this as a managed property (preferred).
+ * @see org.gradle.api.model.ObjectFactory#namedDomainObjectSet(Class) Create an instance of this manually.
  */
+@ManagedType
 public interface NamedDomainObjectSet<T> extends NamedDomainObjectCollection<T>, DomainObjectSet<T> {
 
     /**
