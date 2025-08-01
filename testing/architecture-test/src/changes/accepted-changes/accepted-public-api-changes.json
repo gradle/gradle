@@ -9,9 +9,73 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.quality.PmdExtension",
+            "member": "Method org.gradle.api.plugins.quality.PmdExtension.getIncrementalAnalysis()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.PmdExtension",
+            "member": "Method org.gradle.api.plugins.quality.PmdExtension.getMaxFailures()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.PmdExtension",
+            "member": "Method org.gradle.api.plugins.quality.PmdExtension.getRulesMinimumPriority()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.PmdExtension",
+            "member": "Method org.gradle.api.plugins.quality.PmdExtension.getThreads()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.tasks.GenerateModuleMetadata",
+            "member": "Method org.gradle.api.publish.tasks.GenerateModuleMetadata.getOutputFile()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.tasks.GenerateModuleMetadata",
+            "member": "Method org.gradle.api.publish.tasks.GenerateModuleMetadata.getSuppressedValidationErrors()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.api.reporting.ReportingExtension",
             "member": "Method org.gradle.api.reporting.ReportingExtension.getBaseDirectory()",
             "acceptation": "ReportingExtension is already abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompileOptions.getDisabledGlobalASTTransformations()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompileOptions.getForkOptions()",
+            "acceptation": "these methods are now generated at runtime",
             "changes": [
                 "Method is now abstract"
             ]
@@ -30,6 +94,230 @@
             "acceptation": "Was always nullable, this is correctly reflecting the state of the code",
             "changes": [
                 "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask",
+            "member": "Method org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getCompilerArgs()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask",
+            "member": "Method org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getIncludes()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask",
+            "member": "Method org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getObjectFileDir()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask",
+            "member": "Method org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getSystemIncludes()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask",
+            "member": "Method org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getTargetPlatform()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask",
+            "member": "Method org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.getToolChain()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.swift.tasks.SwiftCompile",
+            "member": "Method org.gradle.language.swift.tasks.SwiftCompile.getCompilerArgs()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.swift.tasks.SwiftCompile",
+            "member": "Method org.gradle.language.swift.tasks.SwiftCompile.getMacros()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.swift.tasks.SwiftCompile",
+            "member": "Method org.gradle.language.swift.tasks.SwiftCompile.getModuleFile()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.swift.tasks.SwiftCompile",
+            "member": "Method org.gradle.language.swift.tasks.SwiftCompile.getModuleName()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.swift.tasks.SwiftCompile",
+            "member": "Method org.gradle.language.swift.tasks.SwiftCompile.getModules()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.swift.tasks.SwiftCompile",
+            "member": "Method org.gradle.language.swift.tasks.SwiftCompile.getObjectFileDir()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.swift.tasks.SwiftCompile",
+            "member": "Method org.gradle.language.swift.tasks.SwiftCompile.getSource()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.swift.tasks.SwiftCompile",
+            "member": "Method org.gradle.language.swift.tasks.SwiftCompile.getSourceCompatibility()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.swift.tasks.SwiftCompile",
+            "member": "Method org.gradle.language.swift.tasks.SwiftCompile.getTargetPlatform()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.swift.tasks.SwiftCompile",
+            "member": "Method org.gradle.language.swift.tasks.SwiftCompile.getToolChain()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.AbstractLinkTask",
+            "member": "Method org.gradle.nativeplatform.tasks.AbstractLinkTask.getDestinationDirectory()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.AbstractLinkTask",
+            "member": "Method org.gradle.nativeplatform.tasks.AbstractLinkTask.getLinkedFile()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.AbstractLinkTask",
+            "member": "Method org.gradle.nativeplatform.tasks.AbstractLinkTask.getLinkerArgs()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.AbstractLinkTask",
+            "member": "Method org.gradle.nativeplatform.tasks.AbstractLinkTask.getTargetPlatform()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.AbstractLinkTask",
+            "member": "Method org.gradle.nativeplatform.tasks.AbstractLinkTask.getToolChain()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.CreateStaticLibrary",
+            "member": "Method org.gradle.nativeplatform.tasks.CreateStaticLibrary.getOutputFile()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.CreateStaticLibrary",
+            "member": "Method org.gradle.nativeplatform.tasks.CreateStaticLibrary.getStaticLibArgs()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.CreateStaticLibrary",
+            "member": "Method org.gradle.nativeplatform.tasks.CreateStaticLibrary.getTargetPlatform()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.CreateStaticLibrary",
+            "member": "Method org.gradle.nativeplatform.tasks.CreateStaticLibrary.getToolChain()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.GeneratePluginDescriptors",
+            "member": "Method org.gradle.plugin.devel.tasks.GeneratePluginDescriptors.getDeclarations()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.GeneratePluginDescriptors",
+            "member": "Method org.gradle.plugin.devel.tasks.GeneratePluginDescriptors.getOutputDirectory()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.eclipse.model.EclipseClasspath",
+            "member": "Method org.gradle.plugins.ide.eclipse.model.EclipseClasspath.getContainsTestFixtures()",
+            "acceptation": "these methods are now generated at runtime",
+            "changes": [
+                "Method is now abstract"
             ]
         }
     ]
