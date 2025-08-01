@@ -35,7 +35,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         run("greet")
 
         then:
-        postBuildOutputContains(PROMO_PREFIX)
+        assertHasPromo()
     }
 
 
@@ -51,9 +51,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         fails("run")
 
         then:
-        // TODO(https://github.com/gradle/gradle/issues/33857) post-build output scraping is broken for failed builds
-        outputDoesNotContain(PROMO_PREFIX)
-        postBuildOutputDoesNotContain(PROMO_PREFIX)
+        assertHasNoPromo()
     }
 
     def "shows no promo message if build fails at execution time"() {
@@ -66,9 +64,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         fails("fail")
 
         then:
-        // TODO(https://github.com/gradle/gradle/issues/33857) post-build output scraping is broken for failed builds
-        outputDoesNotContain(PROMO_PREFIX)
-        postBuildOutputDoesNotContain(PROMO_PREFIX)
+        assertHasNoPromo()
     }
 
     def "shows promo message when running with isolated projects disabled in command-line"() {
@@ -81,7 +77,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         run("greet", "-D${IsolatedProjectsOption.PROPERTY_NAME}=false")
 
         then:
-        postBuildOutputContains(PROMO_PREFIX)
+        assertHasPromo()
     }
 
     def "shows promo message when running with isolated projects disabled in properties files"() {
@@ -96,7 +92,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         run("greet")
 
         then:
-        postBuildOutputContains(PROMO_PREFIX)
+        assertHasPromo()
     }
 
     def "shows no promo message when #ccSwitch is given in command-line"() {
@@ -109,7 +105,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         run("greet", ccSwitch)
 
         then:
-        postBuildOutputDoesNotContain(PROMO_PREFIX)
+        assertHasNoPromo()
 
         where:
         ccSwitch << [
@@ -135,7 +131,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         run("greet")
 
         then:
-        postBuildOutputDoesNotContain(PROMO_PREFIX)
+        assertHasNoPromo()
 
         where:
         ccStateLine << [
@@ -161,7 +157,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         run("greet")
 
         then:
-        postBuildOutputDoesNotContain(PROMO_PREFIX)
+        assertHasNoPromo()
     }
 
     def "shows no promo message if execution is not cc compatible"() {
@@ -180,7 +176,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         run("greet")
 
         then:
-        postBuildOutputDoesNotContain(PROMO_PREFIX)
+        assertHasNoPromo()
     }
 
     def "shows no promo message if external process used at configuration time with #execMethod"() {
@@ -209,7 +205,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         run("greet")
 
         then:
-        postBuildOutputDoesNotContain(PROMO_PREFIX)
+        assertHasNoPromo()
 
         where:
         execMethod << ["execWithExecOperations", "execWithGroovyApi"]
@@ -245,7 +241,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         run("greet")
 
         then:
-        postBuildOutputContains(PROMO_PREFIX)
+        assertHasPromo()
 
         where:
         execMethod << ["execWithExecOperations", "execWithGroovyApi"]
@@ -290,7 +286,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
 
         then:
         outputContains("Hello")
-        postBuildOutputContains(PROMO_PREFIX)
+        assertHasPromo()
 
         where:
         execMethod << ["execWithExecOperations", "execWithGroovyApi"]
@@ -311,7 +307,7 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         run("greet")
 
         then:
-        postBuildOutputContains(PROMO_PREFIX)
+        assertHasPromo()
     }
 
     def "shows no promo message if a task in the graph is marked as cc incompatible"() {
@@ -336,25 +332,25 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         run("incompatible")
 
         then:
-        postBuildOutputDoesNotContain(PROMO_PREFIX)
+        assertHasNoPromo()
 
         when: "incompatible task runs as dependency"
         run("withIncompatibleDep")
 
         then:
-        postBuildOutputDoesNotContain(PROMO_PREFIX)
+        assertHasNoPromo()
 
         when: "incompatible task is a skipped dependency"
         run("withIncompatibleDep", "-Dskip.incompatible=true")
 
         then:
-        postBuildOutputDoesNotContain(PROMO_PREFIX)
+        assertHasNoPromo()
 
         when: "promo is present when incompatible task is excluded from the task graph"
         run("withIncompatibleDep", "-x", "incompatible")
 
         then:
-        postBuildOutputContains(PROMO_PREFIX)
+        assertHasPromo()
 
         where:
         incompatibleReason << [
@@ -378,12 +374,22 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         run("run")
 
         then:
-        postBuildOutputContains(PROMO_PREFIX)
+        assertHasPromo()
 
         where:
         incompatibleReason << [
             "notCompatibleWithConfigurationCache('reasons')",
             "services.get(${ConfigurationCacheDegradationController.name}).requireConfigurationCacheDegradation(task, provider { 'reasons' })"
         ]
+    }
+
+    private void assertHasPromo() {
+        postBuildOutputContains(PROMO_PREFIX)
+    }
+
+    private void assertHasNoPromo() {
+        // TODO(https://github.com/gradle/gradle/issues/33857) post-build output scraping is broken for failed builds
+        outputDoesNotContain(PROMO_PREFIX)
+        postBuildOutputDoesNotContain(PROMO_PREFIX)
     }
 }
