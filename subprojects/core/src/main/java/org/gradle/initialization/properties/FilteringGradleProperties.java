@@ -21,34 +21,46 @@ import org.gradle.api.internal.properties.GradleProperties;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
+import java.util.function.Predicate;
 
-public class DefaultGradleProperties implements GradleProperties {
+import static org.gradle.internal.Cast.uncheckedCast;
 
-    private final ImmutableMap<String, String> properties;
+public class FilteringGradleProperties implements GradleProperties {
 
-    public DefaultGradleProperties(Map<String, String> properties) {
-        this.properties = ImmutableMap.copyOf(properties);
-    }
+    private final GradleProperties delegate;
+    private final Predicate<String> propertyNameFilter;
 
-    @Override
-    public @Nullable String find(String propertyName) {
-        return properties.get(propertyName);
+    public FilteringGradleProperties(GradleProperties delegate, Predicate<String> propertyNameFilter) {
+        this.delegate = delegate;
+        this.propertyNameFilter = propertyNameFilter;
     }
 
     @Override
     public @Nullable Object findUnsafe(String propertyName) {
-        return properties.get(propertyName);
+        if (!propertyNameFilter.test(propertyName)) {
+            return null;
+        }
+        return delegate.findUnsafe(propertyName);
+    }
+
+    @Override
+    public @Nullable String find(String propertyName) {
+        return uncheckedCast(findUnsafe(propertyName));
     }
 
     @Override
     public Map<String, String> getProperties() {
-        return properties;
+        return collectProperties(propertyNameFilter);
     }
 
     @Override
     public Map<String, String> getPropertiesWithPrefix(String prefix) {
-        return properties.entrySet().stream()
-            .filter(entry -> entry.getKey().startsWith(prefix))
+        return collectProperties(it -> it.startsWith(prefix) && propertyNameFilter.test(it));
+    }
+
+    private ImmutableMap<String, String> collectProperties(Predicate<String> keyFilter) {
+        return delegate.getProperties().entrySet().stream()
+            .filter(it -> keyFilter.test(it.getKey()))
             .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }

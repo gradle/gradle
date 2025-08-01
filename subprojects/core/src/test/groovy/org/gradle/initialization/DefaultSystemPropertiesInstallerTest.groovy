@@ -19,6 +19,7 @@ package org.gradle.initialization
 import org.gradle.api.Project
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.properties.GradleProperties
+import org.gradle.initialization.properties.DefaultGradleProperties
 import org.gradle.initialization.properties.DefaultSystemPropertiesInstaller
 import org.gradle.initialization.properties.SystemPropertiesInstaller
 import org.gradle.util.SetSystemProperties
@@ -29,12 +30,10 @@ import static java.util.Collections.emptyMap
 
 class DefaultSystemPropertiesInstallerTest extends Specification {
 
-    private GradleProperties loadedGradleProperties = Mock(GradleProperties) {
-        getProperties() >> [
-            (Project.SYSTEM_PROP_PREFIX + ".userSystemProp"): "userSystemValue",
-            (Project.SYSTEM_PROP_PREFIX + ".userSystemProp2"): "userSystemValue2",
-        ]
-    }
+    private GradleProperties loadedGradleProperties = new DefaultGradleProperties([
+        (Project.SYSTEM_PROP_PREFIX + ".userSystemProp"): "userSystemValue",
+        (Project.SYSTEM_PROP_PREFIX + ".userSystemProp2"): "userSystemValue2",
+    ])
     private EnvironmentChangeTracker environmentChangeTracker = Mock(EnvironmentChangeTracker)
     private StartParameterInternal startParameter = Mock(StartParameterInternal) {
         systemPropertiesArgs >> { startParameterSystemProperties }

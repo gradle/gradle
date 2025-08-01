@@ -72,5 +72,15 @@ public class TestBuildScopeServices extends BuildScopeServices {
         public Map<String, String> getProperties() {
             return Collections.emptyMap();
         }
+
+        @Override
+        public Map<String, String> getPropertiesWithPrefix(String prefix) {
+            return Collections.emptyMap();
+        }
+
+        @Override
+        public @Nullable Object findUnsafe(String propertyName) {
+            return null;
+        }
     }
 }
