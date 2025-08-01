@@ -16,14 +16,17 @@
 
 package org.gradle.plugin.devel.tasks
 
-
+import groovy.transform.SelfType
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 
 import static org.gradle.util.internal.TextUtil.getPluralEnding
 import static org.hamcrest.Matchers.containsString
 
-trait ValidatePluginsTrait implements CommonPluginValidationTrait {
+@SelfType(AbstractIntegrationSpec)
+trait ValidatePluginsTrait implements CommonPluginValidationTrait, ValidationMessageChecker {
 
     def setup() {
         enableProblemsApiCheck()
