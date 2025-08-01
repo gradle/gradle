@@ -35,8 +35,11 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         MyCustomModel model = runBuildAction(new CustomModelAction())
 
         then:
-        model.paths == []
+        model.paths == [":"]
         model.build != null
+        model.build.didItFail()
+        model.build.failure != null
+        model.build.failure.message.contains("Script compilation error")
     }
 
     def "basic project - broken root build file with build action"() {
@@ -55,6 +58,7 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
 
         then:
         model.paths == [":"]
+        model.build != null
     }
 
     def "basic project w/ included build - broken included build build file - build action"() {

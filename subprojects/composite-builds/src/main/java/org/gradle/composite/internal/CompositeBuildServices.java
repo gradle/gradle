@@ -17,6 +17,7 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ComponentSelectorNotationConverter;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.BuildTreeLocalComponentProvider;
@@ -32,6 +33,7 @@ import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.GlobalDependencySubstitutionRegistry;
 import org.gradle.internal.composite.BuildIncludeListener;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -69,21 +71,11 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
 
         @Provides
         BuildIncludeListener createBuildIncludeListener(BuildModelParameters buildModelParameters, FailureFactory failureFactory) {
-            if(buildModelParameters.isResilientModelBuilding()){
+            if (buildModelParameters.isResilientModelBuilding()) {
                 return new BrokenBuildsCapturingListener(failureFactory);
             }
             //ignored in non-resilient model building
-            return new BuildIncludeListener() {;
-                @Override
-                public void buildInclusionFailed(BuildState buildState, Exception exception) {
-                    // No-op in non-resilient model building
-                }
-
-                @Override
-                public Map<BuildState, Failure> getBrokenBuilds() {
-                    return Collections.emptyMap();
-                }
-            };
+            return new NoOpBuildIncludeListener();
         }
 
         @Provides
@@ -116,6 +108,28 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
         @Provides
         public CompositeBuildContext createCompositeBuildContext() {
             return new DefaultBuildableCompositeBuildContext();
+        }
+
+        private static class NoOpBuildIncludeListener implements BuildIncludeListener {
+            @Override
+            public void buildInclusionFailed(BuildState buildState, Exception exception) {
+                // No-op in non-resilient model building
+            }
+
+            @Override
+            public Map<BuildState, Failure> getBrokenBuilds() {
+                return Collections.emptyMap();
+            }
+
+            @Override
+            public void settingsScriptFailed(SettingsInternal settingsScript, LocationAwareException e) {
+                // No-op in non-resilient model building
+            }
+
+            @Override
+            public Map<SettingsInternal, Failure> getBrokenSettings() {
+                return Collections.emptyMap();
+            }
         }
     }
 }

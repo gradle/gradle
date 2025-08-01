@@ -16,8 +16,10 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.composite.BuildIncludeListener;
+import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
 import org.jspecify.annotations.Nullable;
@@ -28,7 +30,8 @@ import java.util.Map;
 public class BrokenBuildsCapturingListener implements BuildIncludeListener {
 
     private final FailureFactory failureFactory;
-    Map<BuildState, Failure> brokenBuilds = new HashMap<>();
+    private final Map<BuildState, Failure> brokenBuilds = new HashMap<>();
+    private final Map<SettingsInternal, Failure> brokenSettings = new HashMap<>();
 
     public BrokenBuildsCapturingListener(
         FailureFactory failureFactory
@@ -45,5 +48,15 @@ public class BrokenBuildsCapturingListener implements BuildIncludeListener {
     @Override
     public Map<BuildState, Failure> getBrokenBuilds() {
         return brokenBuilds;
+    }
+
+    @Override
+    public void settingsScriptFailed(SettingsInternal settingsScript, LocationAwareException e) {
+        getBrokenSettings().put(settingsScript, failureFactory.create(e));
+    }
+
+    @Override
+    public Map<SettingsInternal, Failure> getBrokenSettings() {
+        return brokenSettings;
     }
 }
