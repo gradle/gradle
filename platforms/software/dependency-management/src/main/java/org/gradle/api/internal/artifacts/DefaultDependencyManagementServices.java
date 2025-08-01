@@ -583,7 +583,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        ConfigurationServicesBundle createConfigurationServicesBundle(FileCollectionFactory fileCollectionFactory,
+        ConfigurationServicesBundle createConfigurationServicesBundle(ProjectStateRegistry projectStateRegistry,
+                                                                      FileCollectionFactory fileCollectionFactory,
                                                                       ObjectFactory objectFactory,
                                                                       AttributesFactory attributesFactory,
                                                                       CollectionCallbackActionDecorator collectionCallbackActionDecorator,
@@ -592,6 +593,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                       TaskDependencyFactory taskDependencyFactory,
                                                                       InternalProblems problems) {
             return new DefaultConfigurationServicesBundle(
+                projectStateRegistry,
                 calculatedValueContainerFactory,
                 objectFactory,
                 fileCollectionFactory,

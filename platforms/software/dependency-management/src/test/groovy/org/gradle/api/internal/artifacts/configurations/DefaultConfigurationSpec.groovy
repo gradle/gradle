@@ -1641,6 +1641,7 @@ This method is only meant to be called on configurations which allow the (non-de
         )
 
         ConfigurationServicesBundle configurationServices = new DefaultConfigurationServicesBundle(
+            projectStateRegistry,
             calculatedValueContainerFactory,
             TestUtil.objectFactory(),
             TestFiles.fileCollectionFactory(),
@@ -1659,8 +1660,7 @@ This method is only meant to be called on configurations which allow the (non-de
             publishArtifactNotationParserFactory,
             new ResolveExceptionMapper(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
             new AttributeDesugaring(configurationServices.getAttributesFactory()),
-            userCodeApplicationContext,
-            projectStateRegistry
+            userCodeApplicationContext
         )
     }
 

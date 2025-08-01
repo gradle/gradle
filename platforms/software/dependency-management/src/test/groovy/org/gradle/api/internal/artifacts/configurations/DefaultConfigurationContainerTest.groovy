@@ -67,6 +67,7 @@ class DefaultConfigurationContainerTest extends Specification {
     private AttributesFactory attributesFactory = AttributeTestUtil.attributesFactory()
 
     ConfigurationServicesBundle configurationServices = new DefaultConfigurationServicesBundle(
+        projectStateRegistry,
         calculatedValueContainerFactory,
         objectFactory,
         TestFiles.fileCollectionFactory(),
@@ -90,8 +91,7 @@ class DefaultConfigurationContainerTest extends Specification {
         ),
         Stub(ResolveExceptionMapper),
         new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
-        userCodeApplicationContext,
-        projectStateRegistry
+        userCodeApplicationContext
     )
 
     private DefaultConfigurationContainer configurationContainer = objectFactory.newInstance(DefaultConfigurationContainer.class,

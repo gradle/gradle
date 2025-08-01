@@ -25,7 +25,6 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -54,7 +53,6 @@ public class DefaultLegacyConfiguration extends DefaultConfiguration implements 
         ResolveExceptionMapper exceptionMapper,
         AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext,
-        ProjectStateRegistry projectStateRegistry,
         DefaultConfigurationFactory defaultConfigurationFactory,
         ConfigurationRole roleAtCreation
     ) {
@@ -72,7 +70,6 @@ public class DefaultLegacyConfiguration extends DefaultConfiguration implements 
             exceptionMapper,
             attributeDesugaring,
             userCodeApplicationContext,
-            projectStateRegistry,
             defaultConfigurationFactory,
             roleAtCreation,
             false
