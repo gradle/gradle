@@ -24,10 +24,6 @@ import java.io.File;
 @ServiceScope(Scope.BuildTree.class)
 public interface IGradlePropertiesLoader {
 
-    String SYSTEM_PROJECT_PROPERTIES_PREFIX = "org.gradle.project.";
-
-    String ENV_PROJECT_PROPERTIES_PREFIX = "ORG_GRADLE_PROJECT_";
-
     /**
      * Loads the set of Gradle properties.
      *

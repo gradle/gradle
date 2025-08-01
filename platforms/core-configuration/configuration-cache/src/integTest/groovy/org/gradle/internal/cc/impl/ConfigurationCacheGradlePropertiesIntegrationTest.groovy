@@ -20,8 +20,8 @@ import org.gradle.internal.cc.impl.fixtures.GradlePropertiesIncludedBuildFixture
 import org.gradle.internal.cc.impl.fixtures.SystemPropertiesCompositeBuildFixture
 import spock.lang.Issue
 
-import static org.gradle.initialization.IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX
-import static org.gradle.initialization.IGradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX
+import static org.gradle.initialization.properties.GradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX
+import static org.gradle.initialization.properties.GradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX
 
 class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 

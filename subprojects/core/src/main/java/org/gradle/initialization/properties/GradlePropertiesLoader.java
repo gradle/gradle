@@ -21,6 +21,10 @@ import java.util.Map;
 
 public interface GradlePropertiesLoader {
 
+    String SYSTEM_PROJECT_PROPERTIES_PREFIX = "org.gradle.project.";
+
+    String ENV_PROJECT_PROPERTIES_PREFIX = "ORG_GRADLE_PROJECT_";
+
     Map<String, String> loadFromGradleHome();
 
     Map<String, String> loadFromGradleUserHome();

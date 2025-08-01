@@ -27,8 +27,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.gradle.api.Project.GRADLE_PROPERTIES;
-import static org.gradle.initialization.IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX;
-import static org.gradle.initialization.IGradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX;
 
 public class DefaultGradlePropertiesLoader implements GradlePropertiesLoader {
 
