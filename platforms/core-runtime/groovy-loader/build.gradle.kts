@@ -34,8 +34,3 @@ dependencies {
 
     implementation(libs.slf4jApi)
 }
-
-strictCompile {
-    ignoreRawTypes() // raw types used in public API
-    ignoreAnnotationProcessing() // Without this, javac will complain about unclaimed annotations
-}
