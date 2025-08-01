@@ -35,7 +35,8 @@ import java.util.concurrent.CountDownLatch
 import java.util.function.BiFunction
 import java.util.function.Supplier
 
-import static org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.AtomicMoveImmutableWorkspace.*
+import static org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep.LockingStrategy
+import static org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.AtomicMoveImmutableWorkspace.TemporaryWorkspaceAction
 
 class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityContext> {
     def workspacesRoot = temporaryFolder.file("workspaces").createDir()
@@ -53,7 +54,6 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
     }
     def outputSnapshotter = new DefaultOutputSnapshotter(TestFiles.fileCollectionSnapshotter())
 
-    def step = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, delegate)
 
     def temporaryWorkspace1 = workspacesRoot.file("temporary-workspace-1")
     def temporaryWorkspace2 = workspacesRoot.file("temporary-workspace-2")
@@ -72,7 +72,8 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
     def work1Finished = new CountDownLatch(1)
     def work2Started = new CountDownLatch(1)
 
-    def "handles race condition by returning earlier execution as up-to-date and discarding temporary workspace of the later one"() {
+    def "atomic move strategy handles race condition by returning earlier execution as up-to-date and discarding temporary workspace of the later one"() {
+        def step = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, delegate, LockingStrategy.ATOMIC_MOVE)
         Map<Thread, Throwable> exceptions = [:]
         def exceptionHandler = { thread, exception ->
             exceptions.put(thread, exception)
