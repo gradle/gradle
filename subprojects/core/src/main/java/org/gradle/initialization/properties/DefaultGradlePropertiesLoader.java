@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,46 +21,58 @@ import org.gradle.initialization.Environment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.gradle.initialization.IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX;
-import static org.gradle.initialization.IGradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX;
+import static org.gradle.api.Project.GRADLE_PROPERTIES;
 
-public class DefaultProjectPropertiesLoader implements ProjectPropertiesLoader {
+public class DefaultGradlePropertiesLoader implements GradlePropertiesLoader {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultProjectPropertiesLoader.class);
-
-    private final Environment environment;
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultGradlePropertiesLoader.class);
 
     private final StartParameterInternal startParameter;
+    private final Environment environment;
 
-    public DefaultProjectPropertiesLoader(StartParameterInternal startParameter, Environment environment) {
-        this.environment = environment;
+    public DefaultGradlePropertiesLoader(StartParameterInternal startParameter, Environment environment) {
         this.startParameter = startParameter;
+        this.environment = environment;
     }
 
     @Override
-    public Map<String, String> loadProjectProperties() {
-        Map<String, String> properties = new HashMap<>();
-
-        properties.putAll(projectPropertiesFromEnvironmentVariables());
-        properties.putAll(projectPropertiesFromSystemProperties());
-        properties.putAll(startParameter.getProjectProperties());
-
-        return properties;
+    public Map<String, String> loadFromGradleHome() {
+        return loadFrom(startParameter.getGradleHomeDir());
     }
 
-    private Map<String, String> projectPropertiesFromSystemProperties() {
+    @Override
+    public Map<String, String> loadFromGradleUserHome() {
+        return loadFrom(startParameter.getGradleUserHomeDir());
+    }
+
+    @Override
+    public Map<String, String> loadFrom(File dir) {
+        Map<String, String> loadedProperties = environment.propertiesFile(new File(dir, GRADLE_PROPERTIES));
+        return loadedProperties == null ? Collections.emptyMap() : loadedProperties;
+    }
+
+    @Override
+    public Map<String, String> loadFromSystemProperties() {
         Map<String, String> systemProjectProperties = byPrefix(SYSTEM_PROJECT_PROPERTIES_PREFIX, environment.getSystemProperties());
         LOGGER.debug("Found system project properties: {}", systemProjectProperties.keySet());
         return systemProjectProperties;
     }
 
-    private Map<String, String> projectPropertiesFromEnvironmentVariables() {
+    @Override
+    public Map<String, String> loadFromEnvironmentVariables() {
         Map<String, String> envProjectProperties = byPrefix(ENV_PROJECT_PROPERTIES_PREFIX, environment.getVariables());
         LOGGER.debug("Found env project properties: {}", envProjectProperties.keySet());
         return envProjectProperties;
+    }
+
+    @Override
+    public Map<String, String> loadFromStartParameterProjectProperties() {
+        return startParameter.getProjectProperties();
     }
 
     private static Map<String, String> byPrefix(String prefix, Environment.Properties properties) {
