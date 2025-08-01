@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,6 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.properties;
+@org.jspecify.annotations.NullMarked
+package org.gradle.api.internal.project;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-import org.jspecify.annotations.Nullable;
-
-import java.util.Map;
-
-/**
- * Immutable set of Gradle properties loaded at the start of the build.
- */
-@ServiceScope(Scope.Build.class)
-public interface GradleProperties {
-
-    @Nullable
-    String find(String propertyName);
-
-    Map<String, String> getProperties();
-}

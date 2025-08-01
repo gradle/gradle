@@ -17,7 +17,6 @@
 package org.gradle.initialization.properties;
 
 import org.gradle.api.Project;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.initialization.EnvironmentChangeTracker;
@@ -29,27 +28,22 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
 public class DefaultSystemPropertiesInstaller implements SystemPropertiesInstaller {
 
     private final EnvironmentChangeTracker environmentChangeTracker;
-
     private final StartParameterInternal startParameter;
-
-    private final GradleInternal gradleInternal;
 
     public DefaultSystemPropertiesInstaller(
         EnvironmentChangeTracker environmentChangeTracker,
-        StartParameterInternal startParameter,
-        GradleInternal gradleInternal
+        StartParameterInternal startParameter
     ) {
         this.environmentChangeTracker = environmentChangeTracker;
         this.startParameter = startParameter;
-        this.gradleInternal = gradleInternal;
     }
 
     @Override
-    public void setSystemPropertiesFrom(GradleProperties gradleProperties) {
+    public void setSystemPropertiesFrom(GradleProperties gradleProperties, boolean isRootBuild) {
         // TODO:configuration-cache What happens when a system property is set from a Gradle property and
         //    that same system property is then used to set a Gradle property from an included build?
         //    e.g., included-build/gradle.properties << systemProp.org.gradle.project.fromSystemProp=42
-        setSystemPropertiesFromGradleProperties(gradleProperties.getProperties());
+        setSystemPropertiesFromGradleProperties(gradleProperties.getProperties(), isRootBuild);
         setSystemPropertiesFromStartParameter();
     }
 
@@ -63,7 +57,7 @@ public class DefaultSystemPropertiesInstaller implements SystemPropertiesInstall
         System.getProperties().putAll(systemPropertiesArgs);
     }
 
-    private void setSystemPropertiesFromGradleProperties(Map<String, String> properties) {
+    private void setSystemPropertiesFromGradleProperties(Map<String, String> properties, boolean isRootBuild) {
         if (properties.isEmpty()) {
             return;
         }
@@ -72,7 +66,7 @@ public class DefaultSystemPropertiesInstaller implements SystemPropertiesInstall
         for (String key : properties.keySet()) {
             if (key.length() > prefixLength && key.startsWith(prefix)) {
                 String systemPropertyKey = key.substring(prefixLength);
-                if (!gradleInternal.isRootBuild()) {
+                if (!isRootBuild) {
                     environmentChangeTracker.systemPropertyLoaded(systemPropertyKey, properties.get(key), System.getProperty(systemPropertyKey));
                 }
                 System.setProperty(systemPropertyKey, uncheckedNonnullCast(properties.get(key)));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,27 @@
 
 package org.gradle.initialization.properties;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-@ServiceScope(Scope.BuildTree.class)
-public interface SystemPropertiesInstaller {
+import java.util.Map;
 
-    void setSystemPropertiesFrom(GradleProperties gradleProperties, boolean isRootBuild);
+public class ResolvedGradleProperties implements GradleProperties {
+
+    private final ImmutableMap<String, String> properties;
+
+    public ResolvedGradleProperties(Map<String, String> properties) {
+        this.properties = ImmutableMap.copyOf(properties);
+    }
+
+    @Override
+    public @Nullable String find(String propertyName) {
+        return properties.get(propertyName);
+    }
+
+    @Override
+    public Map<String, String> getProperties() {
+        return properties;
+    }
 }

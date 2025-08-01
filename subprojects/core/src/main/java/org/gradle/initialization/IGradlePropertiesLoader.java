@@ -21,7 +21,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
-@ServiceScope(Scope.Build.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface IGradlePropertiesLoader {
 
     String SYSTEM_PROJECT_PROPERTIES_PREFIX = "org.gradle.project.";

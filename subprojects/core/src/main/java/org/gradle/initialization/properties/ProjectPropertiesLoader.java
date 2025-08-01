@@ -21,7 +21,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Map;
 
-@ServiceScope(Scope.Build.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface ProjectPropertiesLoader {
 
     Map<String, String> loadProjectProperties();

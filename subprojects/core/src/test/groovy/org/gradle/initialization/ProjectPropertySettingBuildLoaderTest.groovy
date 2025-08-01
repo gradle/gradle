@@ -16,14 +16,16 @@
 package org.gradle.initialization
 
 import com.google.common.collect.ImmutableMap
-import org.gradle.api.Project
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Path
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -35,11 +37,14 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
     final SettingsInternal settings = Mock()
     final ProjectInternal rootProject = Mock()
     final ProjectInternal childProject = Mock()
-    final GradleProperties gradleProperties = Mock()
+    final GradlePropertiesController gradlePropertiesController = Mock()
+    final GradleProperties rootGradleProperties = Mock()
+    final GradleProperties childGradleProperties = Mock()
+    final ProjectIdentity rootProjectIdentity = new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "root")
+    final ProjectIdentity childProjectIdentity = new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.path(":child"), "child")
     final File rootProjectDir = tmpDir.createDir('root')
     final File childProjectDir = tmpDir.createDir('child')
-    final Environment environment = Mock(Environment)
-    final ProjectPropertySettingBuildLoader loader = new ProjectPropertySettingBuildLoader(gradleProperties, target, environment)
+    final ProjectPropertySettingBuildLoader loader = new ProjectPropertySettingBuildLoader(gradlePropertiesController, target)
     final ExtensionContainerInternal rootExtension = Mock()
     final ExtraPropertiesExtensionInternal rootProperties = Mock()
     final ExtensionContainerInternal childExtension = Mock()
@@ -51,6 +56,8 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         _ * childProject.childProjectsUnchecked >> [:]
         _ * rootProject.projectDir >> rootProjectDir
         _ * childProject.projectDir >> childProjectDir
+        _ * rootProject.projectIdentity >> rootProjectIdentity
+        _ * childProject.projectIdentity >> childProjectIdentity
         _ * rootProject.extensions >> rootExtension
         _ * childProject.extensions >> childExtension
         _ * rootExtension.extraProperties >> rootProperties
@@ -59,7 +66,11 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
 
     def "delegates to build loader"() {
         given:
-        _ * gradleProperties.mergeProperties(!null) >> [:]
+        _ * gradlePropertiesController.loadGradleProperties(_, _)
+        _ * gradlePropertiesController.getGradleProperties(rootProjectIdentity) >> rootGradleProperties
+        _ * gradlePropertiesController.getGradleProperties(childProjectIdentity) >> childGradleProperties
+        _ * rootGradleProperties.getProperties() >> [:]
+        _ * childGradleProperties.getProperties() >> [:]
 
         when:
         loader.load(settings, gradle)
@@ -71,7 +82,12 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
 
     def "sets project properties on each project in hierarchy"() {
         given:
-        2 * gradleProperties.mergeProperties([:]) >> [prop: 'value']
+        1 * gradlePropertiesController.loadGradleProperties(rootProjectIdentity, rootProjectDir)
+        1 * gradlePropertiesController.loadGradleProperties(childProjectIdentity, childProjectDir)
+        1 * gradlePropertiesController.getGradleProperties(rootProjectIdentity) >> rootGradleProperties
+        1 * gradlePropertiesController.getGradleProperties(childProjectIdentity) >> childGradleProperties
+        1 * rootGradleProperties.getProperties() >> [prop: 'value']
+        1 * childGradleProperties.getProperties() >> [prop: 'value']
 
         when:
         loader.load(settings, gradle)
@@ -83,7 +99,12 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
 
     def "defines extra property for unknown property"() {
         given:
-        2 * gradleProperties.mergeProperties([:]) >> [prop: 'value']
+        1 * gradlePropertiesController.loadGradleProperties(rootProjectIdentity, rootProjectDir)
+        1 * gradlePropertiesController.loadGradleProperties(childProjectIdentity, childProjectDir)
+        1 * gradlePropertiesController.getGradleProperties(rootProjectIdentity) >> rootGradleProperties
+        1 * gradlePropertiesController.getGradleProperties(childProjectIdentity) >> childGradleProperties
+        1 * rootGradleProperties.getProperties() >> [prop: 'value']
+        1 * childGradleProperties.getProperties() >> [:]
 
         when:
         loader.load(settings, gradle)
@@ -94,22 +115,37 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
 
     def "loads project properties from gradle.properties file in project dir"() {
         given:
-        _ * environment.propertiesFile(rootPropertiesFile()) >> [prop: 'rootValue']
-        _ * environment.propertiesFile(childPropertiesFile()) >> [prop: 'childValue']
+        1 * gradlePropertiesController.loadGradleProperties(rootProjectIdentity, rootProjectDir)
+        1 * gradlePropertiesController.loadGradleProperties(childProjectIdentity, childProjectDir)
+        1 * gradlePropertiesController.getGradleProperties(rootProjectIdentity) >> rootGradleProperties
+        1 * gradlePropertiesController.getGradleProperties(childProjectIdentity) >> childGradleProperties
+        1 * rootGradleProperties.getProperties() >> [prop: 'rootValue']
+        1 * childGradleProperties.getProperties() >> [prop: 'childValue']
 
         when:
         loader.load(settings, gradle)
 
         then:
-        1 * gradleProperties.mergeProperties([prop: 'rootValue']) >> [prop: 'rootValue']
-        1 * gradleProperties.mergeProperties([prop: 'childValue']) >> [prop: 'childValue']
         1 * rootProperties.setGradleProperties(ImmutableMap.of('prop', 'rootValue'))
         1 * childProperties.setGradleProperties(ImmutableMap.of('prop', 'childValue'))
     }
 
     def "defines project properties from Project class"() {
         given:
-        2 * gradleProperties.mergeProperties([:]) >> [
+        1 * gradlePropertiesController.loadGradleProperties(rootProjectIdentity, rootProjectDir)
+        1 * gradlePropertiesController.loadGradleProperties(childProjectIdentity, childProjectDir)
+        1 * gradlePropertiesController.getGradleProperties(rootProjectIdentity) >> rootGradleProperties
+        1 * gradlePropertiesController.getGradleProperties(childProjectIdentity) >> childGradleProperties
+        1 * rootGradleProperties.getProperties() >> [
+            description: 'my project',
+            group: 'my-group',
+            version: '1.0',
+            status: 'my-status',
+            buildDir: 'my-build-dir',
+            foo: 'bar', // unknown properties are ignored
+            "": 'ignored' // empty properties are ignored
+        ]
+        1 * childGradleProperties.getProperties() >> [
             description: 'my project',
             group: 'my-group',
             version: '1.0',
@@ -135,15 +171,8 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         1 * childProject.setStatus('my-status')
         1 * childProject.setBuildDir('my-build-dir')
 
-        0 * rootProperties.set(_, _)
-        0 * childProperties.set(_, _)
+        1 * rootProperties.setGradleProperties(ImmutableMap.of('foo', 'bar'))
+        1 * childProperties.setGradleProperties(ImmutableMap.of('foo', 'bar'))
     }
 
-    private File childPropertiesFile() {
-        new File(childProjectDir, Project.GRADLE_PROPERTIES)
-    }
-
-    private File rootPropertiesFile() {
-        new File(rootProjectDir, Project.GRADLE_PROPERTIES)
-    }
 }
