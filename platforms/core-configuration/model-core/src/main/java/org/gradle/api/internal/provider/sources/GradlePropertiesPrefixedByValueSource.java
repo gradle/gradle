@@ -20,7 +20,6 @@ import org.gradle.api.internal.properties.GradleProperties;
 
 import javax.inject.Inject;
 import java.util.Map;
-import java.util.stream.Stream;
 
 public abstract class GradlePropertiesPrefixedByValueSource extends MapWithPrefixedKeysValueSource<GradlePropertiesPrefixedByValueSource.Parameters> {
     public interface Parameters extends MapWithPrefixedKeysValueSource.Parameters {
@@ -30,7 +29,7 @@ public abstract class GradlePropertiesPrefixedByValueSource extends MapWithPrefi
     protected abstract GradleProperties getGradleProperties();
 
     @Override
-    protected Stream<Map.Entry<String, String>> itemsToFilter() {
-        return getGradleProperties().getProperties().entrySet().stream();
+    protected Map<String, String> collectItems(String prefix) {
+        return getGradleProperties().getPropertiesWithPrefix(prefix);
     }
 }

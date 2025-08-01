@@ -43,7 +43,7 @@ public class DefaultSystemPropertiesInstaller implements SystemPropertiesInstall
         // TODO:configuration-cache What happens when a system property is set from a Gradle property and
         //    that same system property is then used to set a Gradle property from an included build?
         //    e.g., included-build/gradle.properties << systemProp.org.gradle.project.fromSystemProp=42
-        setSystemPropertiesFromGradleProperties(gradleProperties.getProperties(), isRootBuild);
+        setSystemPropertiesFromGradleProperties(gradleProperties, isRootBuild);
         setSystemPropertiesFromStartParameter();
     }
 
@@ -57,20 +57,18 @@ public class DefaultSystemPropertiesInstaller implements SystemPropertiesInstall
         System.getProperties().putAll(systemPropertiesArgs);
     }
 
-    private void setSystemPropertiesFromGradleProperties(Map<String, String> properties, boolean isRootBuild) {
-        if (properties.isEmpty()) {
-            return;
-        }
+    private void setSystemPropertiesFromGradleProperties(GradleProperties properties, boolean isRootBuild) {
         String prefix = Project.SYSTEM_PROP_PREFIX + '.';
         int prefixLength = prefix.length();
-        for (String key : properties.keySet()) {
-            if (key.length() > prefixLength && key.startsWith(prefix)) {
-                String systemPropertyKey = key.substring(prefixLength);
-                if (!isRootBuild) {
-                    environmentChangeTracker.systemPropertyLoaded(systemPropertyKey, properties.get(key), System.getProperty(systemPropertyKey));
-                }
-                System.setProperty(systemPropertyKey, uncheckedNonnullCast(properties.get(key)));
+        Map<String, String> prefixedProperties = properties.getPropertiesWithPrefix(prefix);
+        for (Map.Entry<String, String> entry : prefixedProperties.entrySet()) {
+            String prefixedPropertyName = entry.getKey();
+            String systemPropertyKey = prefixedPropertyName.substring(prefixLength);
+            String propertyValue = entry.getValue();
+            if (!isRootBuild) {
+                environmentChangeTracker.systemPropertyLoaded(systemPropertyKey, propertyValue, System.getProperty(systemPropertyKey));
             }
+            System.setProperty(systemPropertyKey, uncheckedNonnullCast(propertyValue));
         }
     }
 }

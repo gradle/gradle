@@ -39,4 +39,11 @@ public class DefaultGradleProperties implements GradleProperties {
     public Map<String, String> getProperties() {
         return properties;
     }
+
+    @Override
+    public Map<String, String> getPropertiesWithPrefix(String prefix) {
+        return properties.entrySet().stream()
+            .filter(entry -> entry.getKey().startsWith(prefix))
+            .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
 }

@@ -21,8 +21,8 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.initialization.properties.GradlePropertiesLoader;
 import org.gradle.initialization.properties.DefaultGradleProperties;
+import org.gradle.initialization.properties.GradlePropertiesLoader;
 import org.gradle.initialization.properties.SystemPropertiesInstaller;
 import org.jspecify.annotations.Nullable;
 
@@ -113,6 +113,11 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         @Override
         public Map<String, String> getProperties() {
             return gradleProperties().getProperties();
+        }
+
+        @Override
+        public Map<String, String> getPropertiesWithPrefix(String prefix) {
+            return gradleProperties().getPropertiesWithPrefix(prefix);
         }
 
         private GradleProperties gradleProperties() {
@@ -248,6 +253,11 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         @Override
         public Map<String, String> getProperties() {
             return gradleProperties().getProperties();
+        }
+
+        @Override
+        public Map<String, String> getPropertiesWithPrefix(String prefix) {
+            return gradleProperties().getPropertiesWithPrefix(prefix);
         }
 
         private GradleProperties gradleProperties() {

@@ -32,4 +32,6 @@ public interface GradleProperties {
     String find(String propertyName);
 
     Map<String, String> getProperties();
+
+    Map<String, String> getPropertiesWithPrefix(String prefix);
 }
