@@ -286,7 +286,7 @@ The result is that the following artifacts will be published:
 * The sources JAR artifact that has been explicitly configured: `my-library-1.0-sources.jar`
 * The Javadoc JAR artifact that has been explicitly configured: `my-library-1.0-javadoc.jar`
 
-The <<signing_plugin.adoc#signing_plugin, Signing Plugin>> is used to generate a signature file for each artifact. In addition, checksum files will be generated for all artifacts and signature files.
+The <<signing_plugin.adoc#signing_plugin, Signing Plugin>> is used to generate a signature file for each artifact. In addition, checksum files will be generated for all artifacts.
 
 TIP: publishToMavenLocal` does not create checksum files in `$USER_HOME/.m2/repository`.
 If you want to verify that the checksum files are created correctly, or use them for later publishing, consider configuring a <<supported_repository_types.adoc#sec:maven-repo,custom Maven repository>> with a `file://` URL and using that as the publishing target instead.
