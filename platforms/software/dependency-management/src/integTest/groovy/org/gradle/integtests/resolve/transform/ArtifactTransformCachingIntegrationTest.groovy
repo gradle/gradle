@@ -29,6 +29,8 @@ import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -897,7 +899,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
-    def "immutable transform is run again and old output is removed after it failed in previous build"() {
+    @Requires(UnitTestPreconditions.NotWindows)
+    def "lock-free transform is run again and old output is removed after it failed in previous build"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks() << withFileLibDependency("lib3.jar") << withExternalLibDependency("lib4")
 
@@ -929,6 +932,53 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         gradleUserHomeOutputDir("lib2.jar", "lib2.jar.txt") != outputDir2
         gradleUserHomeOutputDir("lib3.jar", "lib3.jar.txt") != outputDir3
         gradleUserHomeOutputDir("lib4-1.0.jar", "lib4-1.0.jar.txt") != outputDir4
+
+        when:
+        succeeds ":app:resolve"
+
+        then:
+        output.count("files: [lib1.jar.txt, lib2.jar.txt, lib3.jar.txt, lib4-1.0.jar.txt]") == 1
+
+        output.count("Transformed") == 0
+    }
+
+    @Requires(UnitTestPreconditions.Windows)
+    def "workspace-locking transform is run again and deletes stale files after it failed in previous build"() {
+        given:
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks() << withFileLibDependency("lib3.jar") << withExternalLibDependency("lib4")
+
+        when:
+        executer.withArgument("-Dbroken=true")
+        fails ":app:resolve"
+
+        then:
+        failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
+        failure.assertHasCause("Failed to transform lib1.jar (project :lib) to match attributes {artifactType=size, usage=api}")
+        failure.assertHasCause("Failed to transform lib2.jar (project :lib) to match attributes {artifactType=size, usage=api}")
+        def outputDir1 = gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt")
+        def outputDir2 = gradleUserHomeOutputDir("lib2.jar", "lib2.jar.txt")
+        def outputDir3 = gradleUserHomeOutputDir("lib3.jar", "lib3.jar.txt")
+        def outputDir4 = gradleUserHomeOutputDir("lib4-1.0.jar", "lib4-1.0.jar.txt")
+        outputDir1.listFiles { dir, name -> name == "some-garbage" }.size() == 1
+        outputDir2.listFiles { dir, name -> name == "some-garbage" }.size() == 1
+        outputDir3.listFiles { dir, name -> name == "some-garbage" }.size() == 1
+        outputDir4.listFiles { dir, name -> name == "some-garbage" }.size() == 1
+
+        when:
+        succeeds ":app:resolve"
+
+        then:
+        output.count("files: [lib1.jar.txt, lib2.jar.txt, lib3.jar.txt, lib4-1.0.jar.txt]") == 1
+
+        output.count("Transformed") == 4
+        isTransformed("lib1.jar", "lib1.jar.txt")
+        isTransformed("lib2.jar", "lib2.jar.txt")
+        isTransformed("lib3.jar", "lib3.jar.txt")
+        isTransformed("lib4-1.0.jar", "lib4-1.0.jar.txt")
+        outputDir1.listFiles { dir, name -> name == "some-garbage" }.size() == 0
+        outputDir2.listFiles { dir, name -> name == "some-garbage" }.size() == 0
+        outputDir3.listFiles { dir, name -> name == "some-garbage" }.size() == 0
+        outputDir4.listFiles { dir, name -> name == "some-garbage" }.size() == 0
 
         when:
         succeeds ":app:resolve"
@@ -2022,7 +2072,7 @@ resultsFile:
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
         def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
-        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
+        writeLastTransformationAccessTimeToJournal(getWorkspaceRoot(outputDir1), daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
         gcFile.lastModified = daysAgo(2)
 
         and:
@@ -2056,7 +2106,7 @@ resultsFile:
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
         def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
-        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
+        writeLastTransformationAccessTimeToJournal(getWorkspaceRoot(outputDir1), daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
         gcFile.lastModified = daysAgo(2)
 
         and:
@@ -2095,7 +2145,7 @@ resultsFile:
         gcFile.assertExists()
 
         when:
-        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
+        writeLastTransformationAccessTimeToJournal(getWorkspaceRoot(outputDir1), daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
 
         and:
         executer.beforeExecute {
@@ -2132,7 +2182,7 @@ resultsFile:
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
         def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
-        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
+        writeLastTransformationAccessTimeToJournal(getWorkspaceRoot(outputDir1), daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
         gcFile.lastModified = daysAgo(2)
 
         and:
@@ -2254,7 +2304,7 @@ resultsFile:
         executer.noDeprecationChecks()
         run '--stop' // ensure daemon does not cache file access times in memory
         def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
-        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
+        writeLastTransformationAccessTimeToJournal(getWorkspaceRoot(outputDir1), daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
         gcFile.lastModified = daysAgo(2)
 
         and:
@@ -2516,13 +2566,22 @@ resultsFile:
     }
 
     Set<TestFile> projectOutputDirs(String from, String to, Closure<String> stream = { output }) {
-        def parts = [Pattern.quote(temporaryFolder.getTestDirectory().absolutePath) + ".*", "build", ".transforms", "[\\w-]+", "transformed"]
+        def parts = [Pattern.quote(temporaryFolder.getTestDirectory().absolutePath) + ".*", "build", ".transforms", "[\\w-]+(${quotedFileSeparator}workspace)?", "transformed"]
         return outputDirs(from, to, parts.join(quotedFileSeparator), stream)
     }
 
     Set<TestFile> gradleUserHomeOutputDirs(String from, String to, Closure<String> stream = { output }) {
-        def parts = [Pattern.quote(cacheDir.absolutePath), "[\\w-]+", "transformed"]
+        def parts = [Pattern.quote(cacheDir.absolutePath), "[\\w-]+(${quotedFileSeparator}workspace)?", "transformed"]
         outputDirs(from, to, parts.join(quotedFileSeparator), stream)
+    }
+
+    TestFile getWorkspaceRoot(File outputDir) {
+        def workspaceRoot = outputDir.parentFile
+        def cacheDir = cacheDir
+        while (workspaceRoot.parentFile != cacheDir) {
+            workspaceRoot = workspaceRoot.parentFile
+        }
+        return new TestFile(workspaceRoot.absolutePath)
     }
 
     private final quotedFileSeparator = Pattern.quote(File.separator)

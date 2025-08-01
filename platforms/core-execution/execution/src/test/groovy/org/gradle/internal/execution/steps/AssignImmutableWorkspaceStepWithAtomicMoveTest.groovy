@@ -28,8 +28,6 @@ import org.gradle.internal.execution.history.ExecutionOutputState
 import org.gradle.internal.execution.history.ImmutableWorkspaceMetadata
 import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider
-import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ImmutableWorkspace
-import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ImmutableWorkspace.TemporaryWorkspaceAction
 import org.gradle.internal.file.Deleter
 import org.gradle.internal.file.FileType
 import org.gradle.internal.snapshot.DirectorySnapshot
@@ -45,12 +43,15 @@ import java.nio.file.Paths
 import java.time.Duration
 
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE
+import static org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep.LockingStrategy
+import static org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.AtomicMoveImmutableWorkspace.TemporaryWorkspaceAction
+import static org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.AtomicMoveImmutableWorkspace
 
-class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> implements TestSnapshotFixture {
+class AssignImmutableWorkspaceStepWithAtomicMoveTest extends StepSpec<IdentityContext> implements TestSnapshotFixture {
     def immutableWorkspace = file("immutable-workspace")
     def temporaryWorkspace = file("temporary-workspace")
     def secondTemporaryWorkspace = file("second-temporary-workspace")
-    def workspace = Stub(ImmutableWorkspace) {
+    def workspace = Stub(AtomicMoveImmutableWorkspace) {
         immutableLocation >> immutableWorkspace
         withTemporaryWorkspace(_ as TemporaryWorkspaceAction)
             >>
@@ -68,10 +69,10 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
     def immutableWorkspaceMetadataStore = Mock(ImmutableWorkspaceMetadataStore)
     def outputSnapshotter = Mock(OutputSnapshotter)
     def workspaceProvider = Stub(ImmutableWorkspaceProvider) {
-        getWorkspace(workId) >> workspace
+        getAtomicMoveWorkspace(workId) >> workspace
     }
 
-    def step = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, delegate)
+    def step = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, delegate, LockingStrategy.ATOMIC_MOVE)
     def work = Stub(ImmutableUnitOfWork)
 
     def setup() {
@@ -90,6 +91,10 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
         def existingOutputs = ImmutableSortedMap.<String, FileSystemLocationSnapshot> of(
             "output", outputFileSnapshot
         )
+        def originalWorkspaceMetadata = Stub(ImmutableWorkspaceMetadata) {
+            getOriginMetadata() >> delegateOriginMetadata
+            getOutputPropertyHashes() >> ImmutableListMultimap.of("output", outputFileSnapshot.hash)
+        }
 
         when:
         def result = step.execute(work, context)
@@ -104,13 +109,10 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
         1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> existingWorkspaceSnapshot
 
         then:
-        1 * outputSnapshotter.snapshotOutputs(work, immutableWorkspace) >> existingOutputs
+        1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Optional.of(originalWorkspaceMetadata)
 
         then:
-        1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Stub(ImmutableWorkspaceMetadata) {
-            getOriginMetadata() >> delegateOriginMetadata
-            getOutputPropertyHashes() >> ImmutableListMultimap.of("output", outputFileSnapshot.hash)
-        }
+        1 * outputSnapshotter.snapshotOutputs(work, immutableWorkspace) >> existingOutputs
         0 * _
     }
 
@@ -289,7 +291,7 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
         then:
         1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> tamperedWorkspaceSnapshot
         1 * outputSnapshotter.snapshotOutputs(work, immutableWorkspace) >> tamperedOutputs
-        1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> originalWorkspaceMetadata
+        1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Optional.of(originalWorkspaceMetadata)
 
         then:
         def ex = thrown IllegalStateException
