@@ -370,10 +370,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun systemProperty(name: String, value: String?) {
-        if (isInputTrackingDisabled()) {
-            return
-        }
-        addSystemPropertyToFingerprint(name, value)
+        systemPropertyRead(name, value, null)
     }
 
     private
@@ -396,10 +393,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun envVariable(name: String, value: String?) {
-        if (isInputTrackingDisabled()) {
-            return
-        }
-        addEnvVariableToFingerprint(name, value)
+        envVariableRead(name, value, null)
     }
 
     private
