@@ -17,13 +17,11 @@
 package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.initialization.properties.MutableGradleProperties;
-import org.gradle.initialization.properties.ProjectPropertiesLoader;
+import org.gradle.initialization.properties.GradlePropertiesLoader;
 import org.gradle.initialization.properties.ResolvedGradleProperties;
 import org.gradle.initialization.properties.SystemPropertiesInstaller;
 import org.jspecify.annotations.Nullable;
@@ -35,24 +33,18 @@ import java.util.concurrent.ConcurrentMap;
 
 public class DefaultGradlePropertiesController implements GradlePropertiesController {
 
-    private final Environment environment;
-    private final IGradlePropertiesLoader propertiesLoader;
+    private final GradlePropertiesLoader gradlePropertiesLoader;
     private final SystemPropertiesInstaller systemPropertiesInstaller;
-    private final ProjectPropertiesLoader projectPropertiesLoader;
 
     private final ConcurrentMap<BuildIdentifier, BuildScopedGradleProperties> buildProperties = new ConcurrentHashMap<>();
     private final ConcurrentMap<ProjectIdentity, ProjectScopedGradleProperties> projectProperties = new ConcurrentHashMap<>();
 
     public DefaultGradlePropertiesController(
-        Environment environment,
-        IGradlePropertiesLoader propertiesLoader,
-        SystemPropertiesInstaller systemPropertiesInstaller,
-        ProjectPropertiesLoader projectPropertiesLoader
+        GradlePropertiesLoader gradlePropertiesLoader,
+        SystemPropertiesInstaller systemPropertiesInstaller
     ) {
-        this.environment = environment;
-        this.propertiesLoader = propertiesLoader;
+        this.gradlePropertiesLoader = gradlePropertiesLoader;
         this.systemPropertiesInstaller = systemPropertiesInstaller;
-        this.projectPropertiesLoader = projectPropertiesLoader;
     }
 
     @Override
@@ -80,30 +72,41 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
     @Override
     public void loadGradleProperties(ProjectIdentity projectId, File projectDir) {
-        getOrCreateGradleProperties(projectId).loadProperties(projectDir, false);
+        LoadedBuildScopedState loadedBuildProperties = getOrCreateGradleProperties(projectId.getBuildIdentifier())
+            .checkLoaded();
+        getOrCreateGradleProperties(projectId).loadProperties(loadedBuildProperties, projectDir);
     }
 
     private BuildScopedGradleProperties getOrCreateGradleProperties(BuildIdentifier buildId) {
-        return buildProperties.computeIfAbsent(buildId, BuildScopedGradleProperties::new);
+        return buildProperties.computeIfAbsent(buildId, id ->
+            new BuildScopedGradleProperties(gradlePropertiesLoader, systemPropertiesInstaller, id));
     }
 
     private ProjectScopedGradleProperties getOrCreateGradleProperties(ProjectIdentity projectId) {
-        return projectProperties.computeIfAbsent(projectId, ProjectScopedGradleProperties::new);
+        return projectProperties.computeIfAbsent(projectId, id ->
+            new ProjectScopedGradleProperties(gradlePropertiesLoader, id));
     }
 
-    private abstract static class SharedGradleProperties<I, T extends GradleProperties> implements GradleProperties {
+    private static class BuildScopedGradleProperties implements GradleProperties {
 
-        private final I id;
-        private volatile PropertiesState<T> state;
+        private final GradlePropertiesLoader loader;
+        private final SystemPropertiesInstaller systemPropertiesInstaller;
+        private final BuildIdentifier buildId;
+        @Nullable
+        private volatile LoadedBuildScopedState loaded;
 
-        public SharedGradleProperties(I id) {
-            this.id = id;
-            this.state = createNotLoadedState(id);
+        private BuildScopedGradleProperties(
+            GradlePropertiesLoader loader,
+            SystemPropertiesInstaller systemPropertiesInstaller,
+            BuildIdentifier buildId
+        ) {
+            this.loader = loader;
+            this.systemPropertiesInstaller = systemPropertiesInstaller;
+            this.buildId = buildId;
         }
 
-        @Nullable
         @Override
-        public String find(String propertyName) {
+        public @Nullable String find(String propertyName) {
             return gradleProperties().find(propertyName);
         }
 
@@ -112,135 +115,185 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
             return gradleProperties().getProperties();
         }
 
-        protected T gradleProperties() {
-            return state.gradleProperties();
+        private GradleProperties gradleProperties() {
+            return checkLoaded().gradleProperties;
         }
 
-        protected void loadProperties(File dir, boolean setSystemProperties) {
-            state = state.loadProperties(dir, setSystemProperties);
+        private LoadedBuildScopedState checkLoaded() {
+            LoadedBuildScopedState loaded = this.loaded;
+            if (loaded == null) {
+                throw new IllegalStateException(String.format("GradleProperties for %s have not been loaded yet.", buildId));
+            }
+            return loaded;
         }
 
-        protected void unload() {
-            state = createNotLoadedState(id);
+        private void loadProperties(File buildRootDir, boolean setSystemProperties) {
+            LoadedBuildScopedState loaded = this.loaded;
+            if (loaded != null) {
+                if (loaded.buildRootDir.equals(buildRootDir)) {
+                    // Ignore repeated loads from the same location
+                    return;
+                }
+                throw new IllegalStateException(String.format(
+                    "GradleProperties has already been loaded from '%s' and cannot be loaded from '%s'.",
+                    loaded.buildRootDir, buildRootDir
+                ));
+            }
+
+            this.loaded = loadNewState(buildRootDir, setSystemProperties);
         }
 
-        protected abstract PropertiesState<T> createNotLoadedState(I id);
-    }
-
-    private class BuildScopedGradleProperties extends SharedGradleProperties<BuildIdentifier, MutableGradleProperties> {
-        public BuildScopedGradleProperties(BuildIdentifier id) {
-            super(id);
-        }
-
-        @Override
-        protected NotLoadedBuildProperties createNotLoadedState(BuildIdentifier id) {
-            return new NotLoadedBuildProperties(id);
-        }
-    }
-
-    private class ProjectScopedGradleProperties extends SharedGradleProperties<ProjectIdentity, GradleProperties> {
-        public ProjectScopedGradleProperties(ProjectIdentity id) {
-            super(id);
-        }
-
-        @Override
-        protected NotLoadedProjectProperties createNotLoadedState(ProjectIdentity id) {
-            return new NotLoadedProjectProperties(id);
-        }
-    }
-
-    private interface PropertiesState<T extends GradleProperties> {
-        T gradleProperties();
-
-        PropertiesState<T> loadProperties(File dir, boolean setSystemProperties);
-    }
-
-    private class NotLoadedBuildProperties implements PropertiesState<MutableGradleProperties> {
-
-        private final BuildIdentifier buildId;
-
-        private NotLoadedBuildProperties(BuildIdentifier buildId) {
-            this.buildId = buildId;
-        }
-
-        @Override
-        public MutableGradleProperties gradleProperties() {
-            throw new IllegalStateException(String.format("GradleProperties for %s have not been loaded yet.", buildId));
-        }
-
-        @Override
-        public PropertiesState<MutableGradleProperties> loadProperties(File buildRootDir, boolean setSystemProperties) {
-            MutableGradleProperties loadedProperties = propertiesLoader.loadGradleProperties(buildRootDir);
+        private LoadedBuildScopedState loadNewState(File buildRootDir, boolean setSystemProperties) {
+            Map<String, String> fromGradleHome = loader.loadFromGradleHome();
+            Map<String, String> fromBuildRoot = loader.loadFrom(buildRootDir);
+            Map<String, String> fromGradleUserHome = loader.loadFromGradleUserHome();
 
             if (setSystemProperties) {
                 boolean isRootBuild = DefaultBuildIdentifier.ROOT.equals(buildId);
-                systemPropertiesInstaller.setSystemPropertiesFrom(loadedProperties, isRootBuild);
+                GradleProperties systemPropertiesSource = new ResolvedGradleProperties(mergeMaps(
+                    fromGradleHome,
+                    fromBuildRoot,
+                    fromGradleUserHome
+                ));
+                systemPropertiesInstaller.setSystemPropertiesFrom(systemPropertiesSource, isRootBuild);
             }
 
-            Map<String, String> projectProperties = projectPropertiesLoader.loadProjectProperties();
-            loadedProperties.updateOverrideProperties(projectProperties);
-            return new Loaded<>(loadedProperties, buildRootDir);
+            Map<String, String> fromEnvVariables = loader.loadFromEnvironmentVariables();
+            Map<String, String> fromSystemProperties = loader.loadFromSystemProperties();
+            Map<String, String> fromStartParamProjectProperties = loader.loadFromStartParameterProjectProperties();
+
+            return LoadedBuildScopedState.from(
+                buildRootDir,
+                fromGradleHome,
+                fromBuildRoot,
+                fromGradleUserHome,
+                fromEnvVariables,
+                fromSystemProperties,
+                fromStartParamProjectProperties
+            );
+        }
+
+        private void unload() {
+            this.loaded = null;
         }
     }
 
-    private class NotLoadedProjectProperties implements PropertiesState<GradleProperties> {
 
+    private static class LoadedBuildScopedState {
+
+        private final File buildRootDir;
+        private final GradleProperties gradleProperties;
+        private final Map<String, String> projectScopedDefaults;
+        private final Map<String, String> projectScopedOverrides;
+
+        private LoadedBuildScopedState(
+            File buildRootDir,
+            GradleProperties gradleProperties,
+            Map<String, String> projectScopedDefaults,
+            Map<String, String> projectScopedOverrides
+        ) {
+            this.buildRootDir = buildRootDir;
+            this.gradleProperties = gradleProperties;
+            this.projectScopedDefaults = projectScopedDefaults;
+            this.projectScopedOverrides = projectScopedOverrides;
+        }
+
+        public static LoadedBuildScopedState from(
+            File buildRootDir,
+            Map<String, String> fromGradleHome,
+            Map<String, String> fromBuildRoot,
+            Map<String, String> fromGradleUserHome,
+            Map<String, String> fromEnvVariables,
+            Map<String, String> fromSystemProperties,
+            Map<String, String> fromStartParamProjectProperties
+        ) {
+            ImmutableMap<String, String> defaults = mergeMaps(
+                fromGradleHome,
+                fromBuildRoot
+            );
+
+            ImmutableMap<String, String> overrides = mergeMaps(
+                fromGradleUserHome,
+                fromEnvVariables,
+                fromSystemProperties,
+                fromStartParamProjectProperties
+            );
+
+            ImmutableMap<String, String> buildScopedProperties = mergeMaps(
+                defaults,
+                overrides
+            );
+
+            return new LoadedBuildScopedState(buildRootDir, new ResolvedGradleProperties(buildScopedProperties), defaults, overrides);
+        }
+    }
+
+    private static class ProjectScopedGradleProperties implements GradleProperties {
+
+        private final GradlePropertiesLoader loader;
         private final ProjectIdentity projectId;
+        @Nullable
+        private volatile GradleProperties loaded;
 
-        private NotLoadedProjectProperties(ProjectIdentity projectId) {
+        private ProjectScopedGradleProperties(GradlePropertiesLoader loader, ProjectIdentity projectId) {
+            this.loader = loader;
             this.projectId = projectId;
         }
 
         @Override
-        public GradleProperties gradleProperties() {
-            throw new IllegalStateException(String.format("GradleProperties for %s have not been loaded yet.", projectId));
+        public @Nullable String find(String propertyName) {
+            return gradleProperties().find(propertyName);
         }
 
         @Override
-        public PropertiesState<GradleProperties> loadProperties(File projectDir, boolean setSystemProperties) {
-            // setSystemProperties is ignored for project properties
-            Map<String, String> loadedProperties = loadProjectLocalProperties(projectDir);
-            BuildScopedGradleProperties buildGradleProperties = getOrCreateGradleProperties(projectId.getBuildIdentifier());
-            Map<String, String> resolvedProjectGradleProperties =
-                buildGradleProperties.gradleProperties().mergeProperties(loadedProperties);
-            GradleProperties projectGradleProperties = new ResolvedGradleProperties(resolvedProjectGradleProperties);
-            return new Loaded<>(projectGradleProperties, projectDir);
+        public Map<String, String> getProperties() {
+            return gradleProperties().getProperties();
         }
 
-        private Map<String, String> loadProjectLocalProperties(File projectDir) {
-            Map<String, String> loadedProperties = environment.propertiesFile(new File(projectDir, Project.GRADLE_PROPERTIES));
-            return loadedProperties == null ? ImmutableMap.of() : ImmutableMap.copyOf(loadedProperties);
+        private GradleProperties gradleProperties() {
+            GradleProperties loaded = this.loaded;
+            if (loaded == null) {
+                throw new IllegalStateException(String.format("GradleProperties for %s have not been loaded yet.", projectId));
+            }
+            return loaded;
+        }
+
+        private void loadProperties(LoadedBuildScopedState loadedBuildProperties, File projectDir) {
+            if (this.loaded != null) {
+                throw new IllegalStateException(String.format(
+                    "GradleProperties has already been loaded for %s",
+                    projectId
+                ));
+            }
+
+            this.loaded = loadNewState(loadedBuildProperties, projectDir);
+        }
+
+        private GradleProperties loadNewState(LoadedBuildScopedState loadedBuildProperties, File projectDir) {
+            Map<String, String> fromProjectDir = loader.loadFrom(projectDir);
+
+            ImmutableMap<String, String> projectScopedProperties = mergeMaps(
+                loadedBuildProperties.projectScopedDefaults,
+                fromProjectDir,
+                loadedBuildProperties.projectScopedOverrides
+            );
+
+            return new ResolvedGradleProperties(projectScopedProperties);
         }
     }
 
-    private static class Loaded<T extends GradleProperties> implements PropertiesState<T> {
 
-        private final T gradleProperties;
-        private final File propertiesDir;
-
-        public Loaded(T gradleProperties, File propertiesDir) {
-            this.gradleProperties = gradleProperties;
-            this.propertiesDir = propertiesDir;
+    /**
+     * Merges multiple maps into an ImmutableMap, with later maps taking precedence over earlier ones.
+     */
+    @SafeVarargs
+    private static ImmutableMap<String, String> mergeMaps(
+        Map<String, String>... maps
+    ) {
+        ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+        for (Map<String, String> map : maps) {
+            builder.putAll(map);
         }
-
-        @Override
-        public T gradleProperties() {
-            return gradleProperties;
-        }
-
-        @Override
-        public PropertiesState<T> loadProperties(File dir, boolean setSystemProperties) {
-            checkSameLocation(dir);
-            return this;
-        }
-
-        private void checkSameLocation(File dir) {
-            if (!propertiesDir.equals(dir)) {
-                throw new IllegalStateException(String.format(
-                    "GradleProperties has already been loaded from '%s' and cannot be loaded from '%s'.",
-                    propertiesDir, dir
-                ));
-            }
-        }
+        return builder.buildKeepingLast();
     }
 }

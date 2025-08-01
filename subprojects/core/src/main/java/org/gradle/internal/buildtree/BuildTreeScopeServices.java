@@ -49,18 +49,15 @@ import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.execution.selection.DefaultBuildTaskSelector;
 import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter;
 import org.gradle.initialization.DefaultGradlePropertiesController;
-import org.gradle.initialization.DefaultGradlePropertiesLoader;
 import org.gradle.initialization.Environment;
 import org.gradle.initialization.EnvironmentChangeTracker;
 import org.gradle.initialization.GradlePropertiesController;
-import org.gradle.initialization.IGradlePropertiesLoader;
 import org.gradle.initialization.exception.DefaultExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionCollector;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
-import org.gradle.initialization.properties.DefaultProjectPropertiesLoader;
+import org.gradle.initialization.properties.DefaultGradlePropertiesLoader;
 import org.gradle.initialization.properties.DefaultSystemPropertiesInstaller;
-import org.gradle.initialization.properties.ProjectPropertiesLoader;
 import org.gradle.initialization.properties.SystemPropertiesInstaller;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -198,16 +195,6 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected ProjectPropertiesLoader createProjectPropertiesLoader(StartParameterInternal startParameter, Environment environment) {
-        return new DefaultProjectPropertiesLoader(startParameter, environment);
-    }
-
-    @Provides
-    protected IGradlePropertiesLoader createGradlePropertiesLoader(StartParameterInternal startParameter, Environment environment) {
-        return new DefaultGradlePropertiesLoader(startParameter, environment);
-    }
-
-    @Provides
     protected SystemPropertiesInstaller createSystemPropertiesInstaller(
         EnvironmentChangeTracker environmentChangeTracker,
         StartParameterInternal startParameter
@@ -217,11 +204,10 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected GradlePropertiesController createGradlePropertiesController(
+        StartParameterInternal startParameter,
         Environment environment,
-        IGradlePropertiesLoader propertiesLoader,
-        SystemPropertiesInstaller systemPropertiesInstaller,
-        ProjectPropertiesLoader projectPropertiesLoader
+        SystemPropertiesInstaller systemPropertiesInstaller
     ) {
-        return new DefaultGradlePropertiesController(environment, propertiesLoader, systemPropertiesInstaller, projectPropertiesLoader);
+        return new DefaultGradlePropertiesController(new DefaultGradlePropertiesLoader(startParameter, environment), systemPropertiesInstaller);
     }
 }
