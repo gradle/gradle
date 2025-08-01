@@ -35,16 +35,19 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
     private final GradlePropertiesLoader gradlePropertiesLoader;
     private final SystemPropertiesInstaller systemPropertiesInstaller;
+    private final GradlePropertiesAccessListener listener;
 
     private final ConcurrentMap<BuildIdentifier, BuildScopedGradleProperties> buildProperties = new ConcurrentHashMap<>();
     private final ConcurrentMap<ProjectIdentity, ProjectScopedGradleProperties> projectProperties = new ConcurrentHashMap<>();
 
     public DefaultGradlePropertiesController(
         GradlePropertiesLoader gradlePropertiesLoader,
-        SystemPropertiesInstaller systemPropertiesInstaller
+        SystemPropertiesInstaller systemPropertiesInstaller,
+        GradlePropertiesAccessListener listener
     ) {
         this.gradlePropertiesLoader = gradlePropertiesLoader;
         this.systemPropertiesInstaller = systemPropertiesInstaller;
+        this.listener = listener;
     }
 
     @Override
@@ -79,35 +82,41 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
     private BuildScopedGradleProperties getOrCreateGradleProperties(BuildIdentifier buildId) {
         return buildProperties.computeIfAbsent(buildId, id ->
-            new BuildScopedGradleProperties(gradlePropertiesLoader, systemPropertiesInstaller, id));
+            new BuildScopedGradleProperties(gradlePropertiesLoader, systemPropertiesInstaller, id, listener));
     }
 
     private ProjectScopedGradleProperties getOrCreateGradleProperties(ProjectIdentity projectId) {
         return projectProperties.computeIfAbsent(projectId, id ->
-            new ProjectScopedGradleProperties(gradlePropertiesLoader, id));
+            new ProjectScopedGradleProperties(gradlePropertiesLoader, id, listener));
     }
 
-    private static class BuildScopedGradleProperties implements GradleProperties {
+    private static abstract class ScopedGradleProperties implements GradleProperties {
 
-        private final GradlePropertiesLoader loader;
-        private final SystemPropertiesInstaller systemPropertiesInstaller;
-        private final BuildIdentifier buildId;
-        @Nullable
-        private volatile LoadedBuildScopedState loaded;
+        private final GradlePropertiesAccessListener.PropertyScope propertyScope;
+        private final GradlePropertiesAccessListener listener;
 
-        private BuildScopedGradleProperties(
-            GradlePropertiesLoader loader,
-            SystemPropertiesInstaller systemPropertiesInstaller,
-            BuildIdentifier buildId
+        protected ScopedGradleProperties(
+            GradlePropertiesAccessListener.PropertyScope propertyScope,
+            GradlePropertiesAccessListener listener
         ) {
-            this.loader = loader;
-            this.systemPropertiesInstaller = systemPropertiesInstaller;
-            this.buildId = buildId;
+            this.propertyScope = propertyScope;
+            this.listener = listener;
         }
+
+        protected abstract GradleProperties gradleProperties();
 
         @Override
         public @Nullable String find(String propertyName) {
-            return gradleProperties().find(propertyName);
+            String value = gradleProperties().find(propertyName);
+            listener.onGradlePropertyAccess(propertyScope, propertyName, value);
+            return value;
+        }
+
+        @Override
+        public @Nullable Object findUnsafe(String propertyName) {
+            Object value = gradleProperties().findUnsafe(propertyName);
+            listener.onGradlePropertyAccess(propertyScope, propertyName, value);
+            return value;
         }
 
         @Override
@@ -119,13 +128,30 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         public Map<String, String> getPropertiesWithPrefix(String prefix) {
             return gradleProperties().getPropertiesWithPrefix(prefix);
         }
+    }
 
-        @Override
-        public @Nullable Object findUnsafe(String propertyName) {
-            return gradleProperties().findUnsafe(propertyName);
+    private static class BuildScopedGradleProperties extends ScopedGradleProperties {
+
+        private final GradlePropertiesLoader loader;
+        private final SystemPropertiesInstaller systemPropertiesInstaller;
+        private final BuildIdentifier buildId;
+        @Nullable
+        private volatile LoadedBuildScopedState loaded;
+
+        private BuildScopedGradleProperties(
+            GradlePropertiesLoader loader,
+            SystemPropertiesInstaller systemPropertiesInstaller,
+            BuildIdentifier buildId,
+            GradlePropertiesAccessListener listener
+        ) {
+            super(new BuildPropertyScope(buildId), listener);
+            this.loader = loader;
+            this.systemPropertiesInstaller = systemPropertiesInstaller;
+            this.buildId = buildId;
         }
 
-        private GradleProperties gradleProperties() {
+        @Override
+        protected GradleProperties gradleProperties() {
             return checkLoaded().gradleProperties;
         }
 
@@ -165,6 +191,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
                     fromBuildRoot,
                     fromGradleUserHome
                 ));
+                // These should be tracked from the user-home scope
                 systemPropertiesInstaller.setSystemPropertiesFrom(systemPropertiesSource, isRootBuild);
             }
 
@@ -238,39 +265,25 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         }
     }
 
-    private static class ProjectScopedGradleProperties implements GradleProperties {
+    private static class ProjectScopedGradleProperties extends ScopedGradleProperties {
 
         private final GradlePropertiesLoader loader;
         private final ProjectIdentity projectId;
         @Nullable
         private volatile GradleProperties loaded;
 
-        private ProjectScopedGradleProperties(GradlePropertiesLoader loader, ProjectIdentity projectId) {
+        private ProjectScopedGradleProperties(
+            GradlePropertiesLoader loader,
+            ProjectIdentity projectId,
+            GradlePropertiesAccessListener listener
+        ) {
+            super(new ProjectPropertyScope(projectId), listener);
             this.loader = loader;
             this.projectId = projectId;
         }
 
         @Override
-        public @Nullable String find(String propertyName) {
-            return gradleProperties().find(propertyName);
-        }
-
-        @Override
-        public Map<String, String> getProperties() {
-            return gradleProperties().getProperties();
-        }
-
-        @Override
-        public Map<String, String> getPropertiesWithPrefix(String prefix) {
-            return gradleProperties().getPropertiesWithPrefix(prefix);
-        }
-
-        @Override
-        public @Nullable Object findUnsafe(String propertyName) {
-            return gradleProperties().findUnsafe(propertyName);
-        }
-
-        private GradleProperties gradleProperties() {
+        protected GradleProperties gradleProperties() {
             GradleProperties loaded = this.loaded;
             if (loaded == null) {
                 throw new IllegalStateException(String.format("GradleProperties for %s have not been loaded yet.", projectId));
@@ -315,5 +328,41 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
             builder.putAll(map);
         }
         return builder.buildKeepingLast();
+    }
+
+    private static class BuildPropertyScope implements GradlePropertiesAccessListener.PropertyScope.Build {
+        private final BuildIdentifier buildId;
+
+        public BuildPropertyScope(BuildIdentifier buildId) {
+            this.buildId = buildId;
+        }
+
+        @Override
+        public BuildIdentifier getBuildIdentifier() {
+            return buildId;
+        }
+
+        @Override
+        public String toString() {
+            return "BuildPropertyScope{" + buildId + '}';
+        }
+    }
+
+    private static class ProjectPropertyScope implements GradlePropertiesAccessListener.PropertyScope.Project {
+        private final ProjectIdentity projectId;
+
+        public ProjectPropertyScope(ProjectIdentity projectId) {
+            this.projectId = projectId;
+        }
+
+        @Override
+        public ProjectIdentity getProjectIdentity() {
+            return projectId;
+        }
+
+        @Override
+        public String toString() {
+            return "ProjectPropertyScope{" + projectId + '}';
+        }
     }
 }

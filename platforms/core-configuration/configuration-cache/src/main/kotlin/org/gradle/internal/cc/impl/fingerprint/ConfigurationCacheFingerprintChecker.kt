@@ -298,6 +298,14 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                         .text(" has been added")
                 }
             }
+
+            is ConfigurationCacheFingerprint.GradleProperty -> input.run {
+                // TODO:wip
+//                ifOrNull(propertyValue != host.gradleProperty(propertyScope, propertyName)) {
+                ifOrNull(false) {
+                    text("Gradle property ").reference(propertyName).text(" has changed")
+                }
+            }
         }
     }
 

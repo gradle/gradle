@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl.fingerprint
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.provider.ValueSourceParameters
+import org.gradle.initialization.GradlePropertiesAccessListener
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import java.io.File
@@ -144,6 +145,12 @@ sealed class ConfigurationCacheFingerprint {
     data class EnvironmentVariablesPrefixedBy(
         val prefix: String,
         val snapshot: Map<String, String?>
+    ) : ConfigurationCacheFingerprint()
+
+    class GradleProperty(
+        val propertyScope: GradlePropertiesAccessListener.PropertyScope,
+        val propertyName: String,
+        val propertyValue: Any?
     ) : ConfigurationCacheFingerprint()
 }
 
