@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.initialization.properties.GradlePropertiesLoader;
-import org.gradle.initialization.properties.ResolvedGradleProperties;
+import org.gradle.initialization.properties.DefaultGradleProperties;
 import org.gradle.initialization.properties.SystemPropertiesInstaller;
 import org.jspecify.annotations.Nullable;
 
@@ -150,7 +150,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
             if (setSystemProperties) {
                 boolean isRootBuild = DefaultBuildIdentifier.ROOT.equals(buildId);
-                GradleProperties systemPropertiesSource = new ResolvedGradleProperties(mergeMaps(
+                GradleProperties systemPropertiesSource = new DefaultGradleProperties(mergeMaps(
                     fromGradleHome,
                     fromBuildRoot,
                     fromGradleUserHome
@@ -224,7 +224,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
                 overrides
             );
 
-            return new LoadedBuildScopedState(buildRootDir, new ResolvedGradleProperties(buildScopedProperties), defaults, overrides);
+            return new LoadedBuildScopedState(buildRootDir, new DefaultGradleProperties(buildScopedProperties), defaults, overrides);
         }
     }
 
@@ -278,7 +278,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
                 loadedBuildProperties.projectScopedOverrides
             );
 
-            return new ResolvedGradleProperties(projectScopedProperties);
+            return new DefaultGradleProperties(projectScopedProperties);
         }
     }
 

@@ -22,11 +22,11 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 
-public class ResolvedGradleProperties implements GradleProperties {
+public class DefaultGradleProperties implements GradleProperties {
 
     private final ImmutableMap<String, String> properties;
 
-    public ResolvedGradleProperties(Map<String, String> properties) {
+    public DefaultGradleProperties(Map<String, String> properties) {
         this.properties = ImmutableMap.copyOf(properties);
     }
 
