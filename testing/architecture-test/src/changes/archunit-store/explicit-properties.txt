@@ -73,7 +73,6 @@ Method <org.gradle.api.tasks.scala.ScalaDoc.getJavaLauncher()> is not abstract
 Method <org.gradle.api.tasks.scala.ScalaDoc.getMaxMemory()> is not abstract
 Method <org.gradle.api.tasks.scala.ScalaDoc.getScalaClasspath()> is not abstract
 Method <org.gradle.api.tasks.scala.ScalaDoc.getSource()> is not abstract
-Method <org.gradle.api.tasks.testing.AbstractTestTask.getBinaryResultsDirectory()> is not abstract
 Method <org.gradle.api.tasks.testing.Test.getBootstrapClasspath()> is not abstract
 Method <org.gradle.api.tasks.testing.Test.getCandidateClassFiles()> is not abstract
 Method <org.gradle.api.tasks.testing.Test.getClasspath()> is not abstract
