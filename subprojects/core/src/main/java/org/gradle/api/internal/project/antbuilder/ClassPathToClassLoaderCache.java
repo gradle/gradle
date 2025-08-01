@@ -41,7 +41,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * cleared before we have a chance to clean it up. So we use a PhantomReference to the cached class loader, in addition to the soft reference, to finalize the class loader before it gets kicked off
  * the cache.
  */
-public class ClassPathToClassLoaderCache implements Stoppable {
+class ClassPathToClassLoaderCache implements Stoppable {
     private final static Logger LOG = LoggerFactory.getLogger(ClassPathToClassLoaderCache.class);
 
     private final FinalizerThread finalizerThread;
