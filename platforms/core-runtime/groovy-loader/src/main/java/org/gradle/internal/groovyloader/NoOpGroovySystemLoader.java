@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.classloading;
+package org.gradle.internal.groovyloader;
 
 /**
  * Doesn't need to do anything.

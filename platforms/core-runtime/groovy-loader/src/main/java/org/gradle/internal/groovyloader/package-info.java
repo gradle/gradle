@@ -18,6 +18,6 @@
  * Utilities to load Groovy System in isolation and ensure proper cleanup.
  */
 @NullMarked
-package org.gradle.api.internal.classloading;
+package org.gradle.internal.groovyloader;
 
 import org.jspecify.annotations.NullMarked;

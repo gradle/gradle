@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.classloading;
+package org.gradle.internal.groovyloader;
 
 import org.gradle.api.GradleException;
 import org.gradle.util.internal.VersionNumber;
