@@ -47,7 +47,7 @@ import java.lang.annotation.RetentionPolicy;
  *
  *     RegularFileProperty getProperty();
  *
- *     &#064;Nested
+ *     &commat;Nested
  *     NestedExample getNested();
  * }
  *
