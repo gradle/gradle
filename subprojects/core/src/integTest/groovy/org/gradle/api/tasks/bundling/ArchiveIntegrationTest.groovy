@@ -88,7 +88,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'copy'
 
         then:
-        result.assertTasksExecutedAndNotSkipped(":copy")
+        result.assertTasksExecuted(":copy")
         // Copy (intentionally) leaves stuff behind
         file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt', 'file3.txt')
 
@@ -162,7 +162,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'copy'
 
         then:
-        result.assertTasksExecutedAndNotSkipped(":copy")
+        result.assertTasksExecuted(":copy")
         // Copy (intentionally) leaves stuff behind
         file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt', 'file3.txt')
 

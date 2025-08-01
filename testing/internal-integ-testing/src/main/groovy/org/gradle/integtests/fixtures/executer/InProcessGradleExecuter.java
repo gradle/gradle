@@ -591,7 +591,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
         @Override
         public ExecutionResult assertTasksExecuted(Object... taskPaths) {
-            assertTasksScheduled(taskPaths);
             Set<String> expected = new TreeSet<>(flattenTaskPaths(taskPaths));
             Set<String> notSkipped = getNotSkippedTasks();
             assertThat(notSkipped, equalTo(expected));

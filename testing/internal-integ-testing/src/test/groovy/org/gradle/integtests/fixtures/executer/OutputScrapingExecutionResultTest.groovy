@@ -779,7 +779,7 @@ BUILD FAILED in 13s
         taskPaths << [[] as Object[], null]
     }
 
-    def "throws exception when assertTasksExecutedAndNotSkipped taskPaths is empty"() {
+    def "throws exception when assertTasksExecuted taskPaths is empty"() {
         def output = """
 > Task :compileMyTestBinaryMyTestJava
 > Task :myTestBinaryTest

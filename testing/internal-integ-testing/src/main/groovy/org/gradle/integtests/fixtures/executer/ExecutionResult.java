@@ -186,12 +186,12 @@ public interface ExecutionResult {
     ExecutionResult assertTaskSkipped(String taskPath);
 
     /**
-     * Asserts that exactly the given set of tasks are in the tasks graph and task actions ran.
+     * Asserts that exactly the given set of tasks are in the tasks graph, task actions ran. and were not skipped.
      */
     ExecutionResult assertTasksExecuted(Object... taskPaths);
 
     /**
-     * Asserts that at least one task shows up in the task graph and task actions ran.
+     * Asserts that at least one task shows up in the task graph, it ran, and was not skipped.
      * Examples:
      *
      *  foo: SKIPPED
@@ -227,7 +227,7 @@ public interface ExecutionResult {
     ExecutionResult assertAllTasksSkipped();
 
     /**
-     * Asserts that the given task is in the task graph and tasks actions ran.
+     * Asserts that the given task is in the task graph and tasks actions ran and were not skipped.
      */
     ExecutionResult assertTaskExecuted(String taskPath);
 
