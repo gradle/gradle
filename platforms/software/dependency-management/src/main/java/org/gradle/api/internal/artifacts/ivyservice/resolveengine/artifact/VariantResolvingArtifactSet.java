@@ -38,8 +38,8 @@ import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.resolve.resolver.ExcludingVariantArtifactSet;
 import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -55,7 +55,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
     private final ImmutableAttributes overriddenAttributes;
 
     // TODO: Create a separate implementation of ArtifactSet for when !requestedArtifacts.isEmpty()
-    private final List<IvyArtifactName> requestedArtifacts;
+    private final ImmutableList<IvyArtifactName> requestedArtifacts;
 
     private final ExcludeSpec exclusions;
     private final Set<CapabilitySelector> capabilitySelectors;
@@ -64,7 +64,7 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         ComponentGraphResolveState component,
         VariantGraphResolveState variant,
         ImmutableAttributes overriddenAttributes,
-        List<IvyArtifactName> requestedArtifacts,
+        ImmutableList<IvyArtifactName> requestedArtifacts,
         ExcludeSpec exclusions,
         Set<CapabilitySelector> capabilitySelectors
     ) {

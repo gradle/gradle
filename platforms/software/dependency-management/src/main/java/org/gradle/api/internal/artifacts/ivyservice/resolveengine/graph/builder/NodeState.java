@@ -266,7 +266,7 @@ public class NodeState implements DependencyGraphNode {
      * @param discoveredEdges A collector for visited edges.
      */
     void visitOutgoingDependenciesAndCollectEdges(Collection<EdgeState> discoveredEdges) {
-        ExcludeSpec resolutionFilter = computeModuleResolutionFilter(incomingEdges);
+        ExcludeSpec resolutionFilter = getAllExcludes();
         StrictVersionConstraints ancestorsStrictVersions = this.ancestorsStrictVersions;
 
         doVisitDependencies(resolutionFilter, ancestorsStrictVersions, discoveredEdges);
@@ -757,6 +757,11 @@ public class NodeState implements DependencyGraphNode {
 
     boolean shouldIncludedInGraphResult() {
         return isSelected() && !component.getModule().isVirtualPlatform();
+    }
+
+    @Override
+    public ExcludeSpec getAllExcludes() {
+        return computeModuleResolutionFilter(incomingEdges);
     }
 
     private ExcludeSpec computeModuleResolutionFilter(List<EdgeState> incomingEdges) {
