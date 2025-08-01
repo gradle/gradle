@@ -181,9 +181,20 @@ Use `ReportingExtension.getBaseDirectory()` with `file(String)` or `dir(String)`
 [[reporting_extension_api_doc_title]]
 ==== Deprecation of `ReportingExtension.getApiDocTitle()`
 
-The link:{javadocPath}/org/gradle/api/reporting/ReportingExtension.html#getApiDocTitle()[`getApiDocTitle()` method] on `ReportingExtension` has been deprecated and will be removed in Gradle 10.0.0. 
+The link:{javadocPath}/org/gradle/api/reporting/ReportingExtension.html#getApiDocTitle()[`getApiDocTitle()` method] on `ReportingExtension` has been deprecated and will be removed in Gradle 10.0.0.
 
 There is no direct replacement for this method.
+
+[[set-all-jvm-args]]
+==== Deprecation of `JavaForkOptions.setAllJvmArgs()`
+
+The link:{javadocPath}/org/gradle/process/JavaForkOptions.html#setAllJvmArgs(java.util.List)[`setAllJvmArgs()` method] on `JavaForkOptions` has been deprecated and will be removed in Gradle 10.0.0.
+
+Instead, use one of the following:
+
+* `JavaForkOptions.jvmArgs()`
+* `JavaForkOptions.setJvmArgs()`
+* Provide a <<incremental_build.adoc#sec:task_input_nested_inputs,`CommandLineArgumentProvider`>> to add arguments via `JavaForkOptions.getJvmArgumentProviders()`.
 
 [[archives-configuration]]
 ==== Deprecation of the `archives` configuration

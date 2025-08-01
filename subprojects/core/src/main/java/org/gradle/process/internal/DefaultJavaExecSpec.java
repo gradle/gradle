@@ -190,12 +190,14 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
     }
 
     @Override
+    @Deprecated
     public void setAllJvmArgs(List<String> arguments) {
         getJvmArguments().empty();
         super.setAllJvmArgs(arguments);
     }
 
     @Override
+    @Deprecated
     public void setAllJvmArgs(Iterable<?> arguments) {
         getJvmArguments().empty();
         super.setAllJvmArgs(arguments);
