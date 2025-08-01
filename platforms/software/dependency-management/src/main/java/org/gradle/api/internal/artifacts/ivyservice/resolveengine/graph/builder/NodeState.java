@@ -243,7 +243,7 @@ public class NodeState implements DependencyGraphNode {
         }
 
         // Determine the net exclusion for this node, by inspecting all transitive incoming edges
-        ExcludeSpec resolutionFilter = computeModuleResolutionFilter(incomingEdges);
+        ExcludeSpec resolutionFilter = getAllExcludes();
 
         // Virtual platforms require their constraints to be recomputed each time as each module addition can cause a shift in versions
         if (!isVirtualPlatformNeedsRefresh()) {
@@ -700,6 +700,11 @@ public class NodeState implements DependencyGraphNode {
         return isSelected() && !component.getModule().isVirtualPlatform();
     }
 
+    @Override
+    public ExcludeSpec getAllExcludes() {
+        return computeModuleResolutionFilter(incomingEdges);
+    }
+
     private ExcludeSpec computeModuleResolutionFilter(List<EdgeState> incomingEdges) {
         if (metadata.isExternalVariant()) {
             // If the current node represents an external variant, we must not consider its excludes
@@ -842,7 +847,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     private void collectOwnStrictVersions() {
-        List<DependencyState> dependencies = dependencies(computeModuleResolutionFilter(incomingEdges));
+        List<DependencyState> dependencies = dependencies(getAllExcludes());
         Set<ModuleIdentifier> constraintsSet = null;
         for (DependencyState dependencyState : dependencies) {
             constraintsSet = maybeCollectStrictVersions(constraintsSet, dependencyState);

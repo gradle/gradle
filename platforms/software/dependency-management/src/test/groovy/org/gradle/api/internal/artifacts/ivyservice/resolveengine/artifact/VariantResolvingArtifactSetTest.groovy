@@ -55,7 +55,7 @@ class VariantResolvingArtifactSetTest extends Specification {
 
     def "returns empty set when component id does not match spec"() {
         when:
-        def artifactSet = new VariantResolvingArtifactSet(component, variant, ImmutableAttributes.EMPTY, [], noExcludes(), [] as Set)
+        def artifactSet = new VariantResolvingArtifactSet(component, variant, ImmutableAttributes.EMPTY, noExcludes(), [] as Set)
         def spec = new ArtifactSelectionSpec(ImmutableAttributes.EMPTY, { false }, selectFromAll, false, ResolutionStrategy.SortOrder.DEFAULT)
         def selected = artifactSet.select(services, spec)
 
@@ -77,7 +77,7 @@ class VariantResolvingArtifactSetTest extends Specification {
 
         when:
         def spec = new ArtifactSelectionSpec(ImmutableAttributes.EMPTY, { true }, false, false, ResolutionStrategy.SortOrder.DEFAULT)
-        def artifactSet = new VariantResolvingArtifactSet(component, variant, ImmutableAttributes.EMPTY, [], noExcludes(), [] as Set)
+        def artifactSet = new VariantResolvingArtifactSet(component, variant, ImmutableAttributes.EMPTY, noExcludes(), [] as Set)
         services.getArtifactVariantSelector() >> new ArtifactVariantSelector() {
             @Override
             ResolvedArtifactSet select(ResolvedVariantSet candidates, ImmutableAttributes requestAttributes, boolean allowNoMatchingVariants) {
@@ -104,7 +104,7 @@ class VariantResolvingArtifactSetTest extends Specification {
         }
 
         def artifacts = Stub(ResolvedArtifactSet)
-        def artifactSet = new VariantResolvingArtifactSet(component, variant, ImmutableAttributes.EMPTY, [], noExcludes(), [] as Set)
+        def artifactSet = new VariantResolvingArtifactSet(component, variant, ImmutableAttributes.EMPTY, noExcludes(), [] as Set)
 
         when:
         def spec = new ArtifactSelectionSpec(ImmutableAttributes.EMPTY, { true }, selectFromAll, false, ResolutionStrategy.SortOrder.DEFAULT)
