@@ -16,15 +16,17 @@
 
 package org.gradle.initialization;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.initialization.properties.FilteringGradleProperties;
 
-import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
 
 import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 
@@ -57,64 +59,80 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
     private void addPropertiesToProject(ProjectInternal project) {
         gradlePropertiesController.loadGradleProperties(project.getProjectIdentity(), project.getProjectDir());
         GradleProperties projectGradleProperties = gradlePropertiesController.getGradleProperties(project.getProjectIdentity());
-        Map<String, String> mergedProjectProperties = projectGradleProperties.getProperties();
-
-        ImmutableMap.Builder<String, Object> extraProjectPropertiesBuilder = ImmutableMap.builder();
-
-        for (Map.Entry<String, String> entry : mergedProjectProperties.entrySet()) {
-            String propertyName = entry.getKey();
-            // This is intentional relaxation of the type to support an edge-case of GradleBuild task
-            // that allows passing non-String properties via `startParameter.projectProperties`.
-            // The latter map is typed `Map<String, String>` but due to type erasure, the actual values were never explicitly checked.
-            Object propertyValue = entry.getValue();
-            assignOrCollectProperty(project, extraProjectPropertiesBuilder, propertyName, propertyValue);
-        }
-
-        installProjectExtraPropertiesDefaults(project, extraProjectPropertiesBuilder.build());
+        Set<String> consumedProperties = assignSelectedPropertiesDirectly(project, projectGradleProperties);
+        installProjectExtraPropertiesDefaults(project, projectGradleProperties, consumedProperties);
     }
 
-    @SuppressWarnings("deprecation")
-    private static void assignOrCollectProperty(
-        Project project,
-        ImmutableMap.Builder<String, Object> extraProjectProperties,
-        String propertyName,
-        Object propertyValue
+    /**
+     * Assigns selected properties from the provided Gradle properties to the given project instance.
+     *
+     * @implNote The properties are looked up by known names to avoid eager access of all Gradle-properties.
+     */
+    // Suppressing deprecations, because IntelliJ sees the `find(): String` type and suggests to "simplify" the code
+    // However, the simplification would not support the `GradleBuild` task edge case described in the method.
+    @SuppressWarnings({"deprecation", "DataFlowIssue", "CastCanBeRemovedNarrowingVariableType"})
+    private static Set<String> assignSelectedPropertiesDirectly(
+        ProjectInternal project,
+        GradleProperties projectGradleProperties
     ) {
-        if (propertyName.isEmpty()) {
-            // Historically, we filtered out properties with empty names here.
-            // They could appear in case the properties file has lines containing only '=' or ':'
-            return;
+        ImmutableSet.Builder<String> consumedProperties = ImmutableSet.builder();
+        // Historically, we filtered out properties with empty names here.
+        // They could appear in case the properties file has lines containing only '=' or ':'
+        consumedProperties.add("");
+
+        // The `Object` type of variables below is intentional.
+        // This is a relaxation of the type to support an edge-case of GradleBuild task
+        // that allows passing non-String properties via `startParameter.projectProperties`.
+        // As they make their way into `GradleProperties`, the `find` method can return non-String values
+        // despite the declared String type
+        // TODO: Remove non-String project properties support in Gradle 10 - https://github.com/gradle/gradle/issues/34454
+
+        String versionName = "version";
+        Object versionValue = projectGradleProperties.find(versionName);
+        if (versionValue != null) {
+            project.setVersion(versionValue);
+            consumedProperties.add(versionName);
         }
 
-        switch (propertyName) {
-            case "version":
-                project.setVersion(propertyValue);
-                break;
-            case "group":
-                project.setGroup(propertyValue);
-                break;
-            case "description":
-                // TODO: Remove non-String project properties support in Gradle 10 - https://github.com/gradle/gradle/issues/34454
-                if (propertyValue instanceof String) {
-                    project.setDescription((String) propertyValue);
-                } else {
-                    extraProjectProperties.put(propertyName, propertyValue);
-                }
-                break;
-            case "status":
-                project.setStatus(propertyValue);
-                break;
-            case "buildDir":
-                project.setBuildDir(propertyValue);
-                break;
-            default:
-                extraProjectProperties.put(propertyName, propertyValue);
-                break;
+        String groupName = "group";
+        Object groupValue = projectGradleProperties.find(groupName);
+        if (groupValue != null) {
+            project.setGroup(groupValue);
+            consumedProperties.add(groupName);
         }
+
+        String statusName = "status";
+        Object statusValue = projectGradleProperties.find(statusName);
+        if (statusValue != null) {
+            project.setStatus(statusValue);
+            consumedProperties.add(statusName);
+        }
+
+        String buildDirName = "buildDir";
+        Object buildDirValue = projectGradleProperties.find(buildDirName);
+        if (buildDirValue != null) {
+            project.setBuildDir(buildDirValue);
+            consumedProperties.add(buildDirName);
+        }
+
+        String descriptionName = "description";
+        Object descriptionValue = projectGradleProperties.find(descriptionName);
+        // This intentionally differs from others for backward-compatibility.
+        // Other setters accept `Object` as an argument and therefore consume a property of any type.
+        // If it so happens that the description value is not a String, it would not match the
+        // `Project.setDescription(String)` setter and thus the property would end up in the map of extra-properties.
+        if (descriptionValue instanceof String) {
+            project.setDescription((String) descriptionValue);
+            consumedProperties.add(descriptionName);
+        }
+
+        return consumedProperties.build();
     }
 
-    private static void installProjectExtraPropertiesDefaults(Project project, Map<String, Object> extraProperties) {
+    private static void installProjectExtraPropertiesDefaults(ProjectInternal project, GradleProperties projectGradleProperties, Set<String> consumedProperties) {
         ExtraPropertiesExtensionInternal extraPropertiesContainer = (ExtraPropertiesExtensionInternal) project.getExtensions().getExtraProperties();
-        extraPropertiesContainer.setGradleProperties(extraProperties);
+        Predicate<String> wasNotConsumed = it -> !consumedProperties.contains(it);
+        extraPropertiesContainer.setGradleProperties(new FilteringGradleProperties(projectGradleProperties, wasNotConsumed));
     }
+
 }
