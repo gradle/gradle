@@ -146,9 +146,9 @@ This update introduces a range of new features and improvements to the Groovy la
 For a comprehensive overview of what’s new, see the [Groovy 4.0 release notes](https://groovy-lang.org/releasenotes/groovy-4.0.html) for full details.
 
 Gradle uses Groovy for build logic, which includes:
-Build scripts written in the Groovy DSL (`.gradle` files)
-Ant integration
-Plugins
+* Build scripts written in the Groovy DSL (`.gradle` files)
+* Ant integration
+* Plugins
 
 Some behavior has changed between Groovy 3.0 and 4.0. If you're upgrading, review the [Gradle 9.0.0 upgrade guide](userguide/upgrading_major_version_9.html#groovy-4) for migration details.
 
