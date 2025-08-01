@@ -159,7 +159,8 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
 
     @Override
     public void close() {
-        keyCaches.forEach((id, cache) -> cache.close());
+        keyCaches.entrySet().parallelStream()
+            .forEach(entry -> entry.getValue().close());
         cache.close();
     }
 
