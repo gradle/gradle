@@ -66,6 +66,7 @@ class DefaultConfigurationContainerSpec extends Specification {
 
 
     ConfigurationServicesBundle configurationServices = new DefaultConfigurationServicesBundle(
+        projectStateRegistry,
         calculatedValueContainerFactory,
         objectFactory,
         fileCollectionFactory,
@@ -84,8 +85,7 @@ class DefaultConfigurationContainerSpec extends Specification {
         Stub(PublishArtifactNotationParserFactory),
         Stub(ResolveExceptionMapper),
         new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
-        userCodeApplicationContext,
-        projectStateRegistry
+        userCodeApplicationContext
     )
 
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(

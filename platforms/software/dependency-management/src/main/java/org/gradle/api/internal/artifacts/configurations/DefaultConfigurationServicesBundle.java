@@ -21,6 +21,7 @@ import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
@@ -35,6 +36,7 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
  * Every service, factory, or other type in this bundle <strong>must</strong> be effectively immutable.
  */
 public final class DefaultConfigurationServicesBundle implements ConfigurationServicesBundle {
+    public final ProjectStateRegistry projectStateRegistry;
     public final CalculatedValueContainerFactory calculatedValueContainerFactory;
     public final ObjectFactory objectFactory;
     public final FileCollectionFactory fileCollectionFactory;
@@ -44,7 +46,8 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
     public final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
     public final InternalProblems problems;
 
-    public DefaultConfigurationServicesBundle(CalculatedValueContainerFactory calculatedValueContainerFactory,
+    public DefaultConfigurationServicesBundle(ProjectStateRegistry projectStateRegistry,
+                                              CalculatedValueContainerFactory calculatedValueContainerFactory,
                                               ObjectFactory objectFactory,
                                               FileCollectionFactory fileCollectionFactory,
                                               TaskDependencyFactory taskDependencyFactory,
@@ -52,6 +55,7 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
                                               DomainObjectCollectionFactory domainObjectCollectionFactory,
                                               CollectionCallbackActionDecorator collectionCallbackActionDecorator,
                                               InternalProblems problems) {
+        this.projectStateRegistry = projectStateRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.objectFactory = objectFactory;
         this.fileCollectionFactory = fileCollectionFactory;
@@ -60,6 +64,11 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
         this.problems = problems;
+    }
+
+    @Override
+    public ProjectStateRegistry getProjectStateRegistry() {
+        return projectStateRegistry;
     }
 
     @Override

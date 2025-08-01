@@ -78,7 +78,6 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.initialization.ResettableConfiguration;
 import org.gradle.api.internal.project.ProjectIdentity;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
@@ -148,7 +147,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final DefaultDependencyConstraintSet dependencyConstraints;
     private final DefaultDomainObjectSet<Dependency> ownDependencies;
     private final DefaultDomainObjectSet<DependencyConstraint> ownDependencyConstraints;
-    private final ProjectStateRegistry projectStateRegistry;
     private @Nullable CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private @Nullable CompositeDomainObjectSet<DependencyConstraint> inheritedDependencyConstraints;
     private @Nullable DefaultDependencySet allDependencies;
@@ -234,14 +232,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         ResolveExceptionMapper exceptionMapper,
         AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext,
-        ProjectStateRegistry projectStateRegistry,
         DefaultConfigurationFactory defaultConfigurationFactory,
         ConfigurationRole roleAtCreation,
         boolean lockUsage
     ) {
         super(configurationServices.getTaskDependencyFactory());
         this.userCodeApplicationContext = userCodeApplicationContext;
-        this.projectStateRegistry = projectStateRegistry;
         this.identityPath = domainObjectContext.identityPath(name);
         this.projectPath = domainObjectContext.projectPath(name);
         this.name = name;
@@ -815,7 +811,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         if (useDependedOn) {
             return new TasksFromProjectDependencies(taskName, () -> {
                 return getAllDependencies().withType(ProjectDependency.class);
-            }, taskDependencyFactory, projectStateRegistry);
+            }, taskDependencyFactory, configurationServices.getProjectStateRegistry());
         } else {
             return new TasksFromDependentProjects(taskName, getName(), taskDependencyFactory);
         }

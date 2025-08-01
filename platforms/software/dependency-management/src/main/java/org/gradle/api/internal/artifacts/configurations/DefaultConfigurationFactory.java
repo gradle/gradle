@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -54,7 +53,6 @@ public class DefaultConfigurationFactory {
     private final ResolveExceptionMapper exceptionContextualizer;
     private final AttributeDesugaring attributeDesugaring;
     private final UserCodeApplicationContext userCodeApplicationContext;
-    private final ProjectStateRegistry projectStateRegistry;
 
     @Inject
     public DefaultConfigurationFactory(
@@ -65,8 +63,7 @@ public class DefaultConfigurationFactory {
         PublishArtifactNotationParserFactory artifactNotationParserFactory,
         ResolveExceptionMapper exceptionMapper,
         AttributeDesugaring attributeDesugaring,
-        UserCodeApplicationContext userCodeApplicationContext,
-        ProjectStateRegistry projectStateRegistry
+        UserCodeApplicationContext userCodeApplicationContext
     ) {
         this.configurationServices = configurationServices;
         this.listenerManager = listenerManager;
@@ -77,7 +74,6 @@ public class DefaultConfigurationFactory {
         this.exceptionContextualizer = exceptionMapper;
         this.attributeDesugaring = attributeDesugaring;
         this.userCodeApplicationContext = userCodeApplicationContext;
-        this.projectStateRegistry = projectStateRegistry;
     }
 
     /**
@@ -107,7 +103,6 @@ public class DefaultConfigurationFactory {
             exceptionContextualizer,
             attributeDesugaring,
             userCodeApplicationContext,
-            projectStateRegistry,
             this,
             role
         );
@@ -137,7 +132,6 @@ public class DefaultConfigurationFactory {
             exceptionContextualizer,
             attributeDesugaring,
             userCodeApplicationContext,
-            projectStateRegistry,
             this
         );
     }
@@ -166,7 +160,6 @@ public class DefaultConfigurationFactory {
             exceptionContextualizer,
             attributeDesugaring,
             userCodeApplicationContext,
-            projectStateRegistry,
             this
         );
     }
@@ -195,7 +188,6 @@ public class DefaultConfigurationFactory {
             exceptionContextualizer,
             attributeDesugaring,
             userCodeApplicationContext,
-            projectStateRegistry,
             this
         );
     }
