@@ -383,6 +383,56 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         ]
     }
 
+
+    def "shows no promo message when gradle init is invoked"() {
+        given:
+        withEmptyProjectDirectory()
+
+        when:
+        run("init", "--use-defaults")
+
+        then:
+        assertHasNoPromo()
+    }
+
+    def "shows no promo message when gradle help is invoked without project"() {
+        given:
+        withEmptyProjectDirectory()
+
+        when:
+        run("help")
+
+        then:
+        assertHasNoPromo()
+    }
+
+    def "shows promo message when gradle help is invoked with project"() {
+        given:
+        buildFile """
+            // Some non-empty build file
+        """
+
+        when:
+        run("help")
+
+        then:
+        assertHasPromo()
+    }
+
+    private void withEmptyProjectDirectory() {
+        settingsFile """
+            // This is here to prevent Gradle searching up to find the build's settings.gradle
+        """
+
+        def initDir = createDir("toInit")
+
+        executer.tap {
+            inDirectory(initDir)
+            withRepositoryMirrors()
+            ignoreMissingSettingsFile()
+        }
+    }
+
     private void assertHasPromo() {
         postBuildOutputContains(PROMO_PREFIX)
     }
