@@ -163,12 +163,11 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
 
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests daemon")
     def "url connection caching is not disabled by default"() {
-
         given:
         buildFile << """
             task checkUrlConnectionCaching {
                 doLast {
-                    URL url = new URL("jar:file://valid_jar_url_syntax.jar!/")
+                    URL url = new URL("${buildFile.toURI().toASCIIString()}")
                     URLConnection urlConnection = url.openConnection()
                     assert urlConnection.defaultUseCaches
                 }
