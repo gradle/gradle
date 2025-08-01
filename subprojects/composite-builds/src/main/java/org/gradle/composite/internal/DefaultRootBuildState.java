@@ -118,6 +118,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
         try {
             RootBuildLifecycleListener buildLifecycleListener = listenerManager.getBroadcaster(RootBuildLifecycleListener.class);
             buildLifecycleListener.afterStart();
+            Throwable failure = null;
             try {
                 GradleInternal gradle = getBuildController().getGradle();
                 DefaultDeploymentRegistry deploymentRegistry = gradle.getServices().get(DefaultDeploymentRegistry.class);
@@ -128,8 +129,11 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
                     }
                 });
                 return action.apply(buildTreeLifecycleController);
+            } catch (RuntimeException | Error e) {
+                failure = e;
+                throw e;
             } finally {
-                buildLifecycleListener.beforeComplete();
+                buildLifecycleListener.beforeComplete(failure);
             }
         } finally {
             completed = true;
