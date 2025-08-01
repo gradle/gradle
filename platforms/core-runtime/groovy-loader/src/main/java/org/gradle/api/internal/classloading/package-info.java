@@ -14,24 +14,10 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.implementation-java")
-}
+/**
+ * Utilities to load Groovy System in isolation and ensure proper cleanup.
+ */
+@NullMarked
+package org.gradle.api.internal.classloading;
 
-description = "Manages loading Groovy System in isolated contexts"
-
-gradleModule {
-    targetRuntimes {
-        usedInWorkers = true
-    }
-}
-
-dependencies {
-    implementation(projects.baseServices) {
-        because("VersionNumber")
-    }
-    implementation(projects.stdlibJavaExtensions)
-
-    implementation(libs.jspecify)
-    implementation(libs.slf4jApi)
-}
+import org.jspecify.annotations.NullMarked;

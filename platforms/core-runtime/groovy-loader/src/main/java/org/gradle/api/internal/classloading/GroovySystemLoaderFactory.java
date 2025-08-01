@@ -18,6 +18,7 @@ package org.gradle.api.internal.classloading;
 
 import org.gradle.api.GradleException;
 import org.gradle.util.internal.VersionNumber;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -39,7 +40,7 @@ public class GroovySystemLoaderFactory {
         }
     }
 
-    private Class<?> getGroovySystem(ClassLoader classLoader) {
+    private @Nullable Class<?> getGroovySystem(ClassLoader classLoader) {
         try {
             return classLoader.loadClass("groovy.lang.GroovySystem");
         } catch (ClassNotFoundException e) {
@@ -52,7 +53,7 @@ public class GroovySystemLoaderFactory {
         return isGroovy24OrLater(groovyVersion) ? new ClassInfoCleaningGroovySystemLoader(classLoader) : NO_OP;
     }
 
-    private VersionNumber getGroovyVersion(Class<?> groovySystem) throws IllegalAccessException, InvocationTargetException {
+    private @Nullable VersionNumber getGroovyVersion(Class<?> groovySystem) throws IllegalAccessException, InvocationTargetException {
         try {
             Method getVersion = groovySystem.getDeclaredMethod("getVersion");
             String versionString = (String) getVersion.invoke(null);
@@ -62,7 +63,7 @@ public class GroovySystemLoaderFactory {
         }
     }
 
-    private boolean isGroovy24OrLater(VersionNumber groovyVersion) {
+    private boolean isGroovy24OrLater(@Nullable VersionNumber groovyVersion) {
         if (groovyVersion == null) {
             return false;
         }
