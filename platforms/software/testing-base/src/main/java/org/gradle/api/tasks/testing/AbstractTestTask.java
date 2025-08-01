@@ -175,7 +175,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private final BroadcastSubscriptions<TestListener> testListenerSubscriptions;
     private final BroadcastSubscriptions<TestOutputListener> testOutputListenerSubscriptions;
     private final TestLoggingContainer testLogging;
-    private final DirectoryProperty binaryResultsDirectory;
     private TestReporter testReporter;
     private boolean ignoreFailures;
     private boolean failFast;
@@ -185,7 +184,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
         testListenerSubscriptions = new BroadcastSubscriptions<TestListener>(TestListener.class);
         testOutputListenerSubscriptions = new BroadcastSubscriptions<TestOutputListener>(TestOutputListener.class);
-        binaryResultsDirectory = getObjectFactory().directoryProperty();
 
         reports = getObjectFactory().newInstance(DefaultTestTaskReports.class, Describables.quoted("Task", getIdentityPath()));
         reports.getJunitXml().getRequired().set(true);
@@ -256,9 +254,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @since 4.4
      */
     @OutputDirectory
-    public DirectoryProperty getBinaryResultsDirectory() {
-        return binaryResultsDirectory;
-    }
+    public abstract DirectoryProperty getBinaryResultsDirectory();
 
     /**
      * Registers a test listener with this task. Consider also the following handy methods for quicker hooking into test execution: {@link #beforeTest(Closure)}, {@link

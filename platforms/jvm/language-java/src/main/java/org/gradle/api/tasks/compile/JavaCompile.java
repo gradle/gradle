@@ -58,6 +58,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.jvm.toolchain.JavaCompiler;
@@ -95,10 +96,13 @@ import java.util.concurrent.Callable;
 public abstract class JavaCompile extends AbstractCompile implements HasCompileOptions {
 
     private final FileCollection stableSources;
+    private final ModularitySpec modularity;
     private File previousCompilationDataFile;
 
     public JavaCompile() {
-        this.stableSources = getObjectFactory().fileCollection().from((Callable<FileTree>) this::getSource);
+        ObjectFactory objectFactory = getObjectFactory();
+        this.stableSources = objectFactory.fileCollection().from((Callable<FileTree>) this::getSource);
+        this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
 
         JavaToolchainService javaToolchainService = getJavaToolchainService();
         Provider<JavaCompiler> javaCompilerConvention = getProviderFactory()
@@ -326,7 +330,9 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
      * @since 6.4
      */
     @Nested
-    public abstract ModularitySpec getModularity();
+    public ModularitySpec getModularity() {
+        return modularity;
+    }
 
     /**
      * Returns the compilation options.

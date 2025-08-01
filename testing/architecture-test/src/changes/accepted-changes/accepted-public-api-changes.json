@@ -41,14 +41,6 @@
             ]
         },
         {
-            "type": "org.gradle.api.tasks.compile.JavaCompile",
-            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getModularity()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
             "type": "org.gradle.api.tasks.javadoc.Groovydoc",
             "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.getAccess()",
             "acceptation": "Replaced with abstract getter",
@@ -75,6 +67,14 @@
         {
             "type": "org.gradle.api.tasks.javadoc.Groovydoc",
             "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.getProcessScripts()",
+            "acceptation": "Replaced with abstract getter",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getBinaryResultsDirectory()",
             "acceptation": "Replaced with abstract getter",
             "changes": [
                 "Method is now abstract"
