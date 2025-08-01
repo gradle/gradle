@@ -17,11 +17,11 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.io.FileSystem;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -40,7 +40,6 @@ import java.io.FilenameFilter;
 public class Binary2JUnitXmlReportGenerator {
     private static final String REPORT_FILE_PREFIX = "TEST-";
     private static final String REPORT_FILE_EXTENSION = ".xml";
-    private static final char ILLEGAL_CHAR_REPLACEMENT = '-';
 
     private final File testResultsDir;
     private final TestResultsProvider testResultsProvider;
@@ -101,8 +100,7 @@ public class Binary2JUnitXmlReportGenerator {
     }
 
     private String getReportFileName(TestClassResult result) {
-        // Use Windows filesystem rules for cross-platform compatibility
-        return REPORT_FILE_PREFIX + FileSystem.WINDOWS.toLegalFileName(result.getClassName(), ILLEGAL_CHAR_REPLACEMENT) + REPORT_FILE_EXTENSION;
+        return REPORT_FILE_PREFIX + FileUtils.toSafeFileName(result.getClassName()) + REPORT_FILE_EXTENSION;
     }
 
     private static class JUnitXmlReportFileGenerator implements RunnableBuildOperation {
