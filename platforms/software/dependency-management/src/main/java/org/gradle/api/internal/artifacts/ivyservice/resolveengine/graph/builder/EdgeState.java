@@ -64,7 +64,7 @@ class EdgeState implements DependencyGraphEdge {
      */
     private @Nullable ExcludeSpec transitiveExclusions;
     private ExcludeSpec cachedEdgeExclusions;
-    private ExcludeSpec cachedExclusions;
+    private @Nullable ExcludeSpec cachedExclusions;
 
     private @Nullable NodeState resolvedVariant;
     private boolean unattached;
@@ -336,7 +336,9 @@ class EdgeState implements DependencyGraphEdge {
         if (cachedExclusions == null) {
             computeExclusions();
         }
-        return cachedExclusions;
+        return cachedExclusions == null
+            ? resolveState.getModuleExclusions().nothing()
+            : cachedExclusions;
     }
 
     private void computeExclusions() {
