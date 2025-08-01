@@ -108,7 +108,7 @@ private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragme
                     ALOAD(0)
                     LDC(functionName)
                     ALOAD(1)
-                    invokeRuntime("applySoftwareType", "(L${Project::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V")
+                    invokeRuntime("applySoftwareFeature", "(L${Project::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V")
                     RETURN()
                 }
             },
