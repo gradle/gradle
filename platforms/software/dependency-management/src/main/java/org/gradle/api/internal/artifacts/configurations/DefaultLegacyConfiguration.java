@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.LegacyConfiguration;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.ConfigurationServicesBundle;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
@@ -57,8 +56,7 @@ public class DefaultLegacyConfiguration extends DefaultConfiguration implements 
         UserCodeApplicationContext userCodeApplicationContext,
         ProjectStateRegistry projectStateRegistry,
         DefaultConfigurationFactory defaultConfigurationFactory,
-        ConfigurationRole roleAtCreation,
-        DocumentationRegistry documentationRegistry
+        ConfigurationRole roleAtCreation
     ) {
         super(
             configurationServices,
@@ -77,7 +75,6 @@ public class DefaultLegacyConfiguration extends DefaultConfiguration implements 
             projectStateRegistry,
             defaultConfigurationFactory,
             roleAtCreation,
-            documentationRegistry,
             false
         );
     }

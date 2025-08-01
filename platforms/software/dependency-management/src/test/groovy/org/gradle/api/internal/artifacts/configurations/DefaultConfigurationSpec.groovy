@@ -1663,8 +1663,7 @@ This method is only meant to be called on configurations which allow the (non-de
             new ResolveExceptionMapper(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
             new AttributeDesugaring(configurationServices.getAttributesFactory()),
             userCodeApplicationContext,
-            projectStateRegistry,
-            new DocumentationRegistry()
+            projectStateRegistry
         )
     }
 

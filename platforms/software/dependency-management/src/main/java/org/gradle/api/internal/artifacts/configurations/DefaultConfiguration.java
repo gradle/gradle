@@ -52,7 +52,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet;
@@ -97,6 +96,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -214,7 +214,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private @Nullable ConfigurationInternal consistentResolutionSource;
     private @Nullable String consistentResolutionReason;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
-    private final DocumentationRegistry documentationRegistry;
 
     private final ConfigurationServicesBundle configurationServices;
 
@@ -238,7 +237,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         ProjectStateRegistry projectStateRegistry,
         DefaultConfigurationFactory defaultConfigurationFactory,
         ConfigurationRole roleAtCreation,
-        DocumentationRegistry documentationRegistry,
         boolean lockUsage
     ) {
         super(configurationServices.getTaskDependencyFactory());
@@ -278,7 +276,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.outgoing = configurationServices.getObjectFactory().newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, artifactNotationParser, capabilityNotationParser, configurationServices.getFileCollectionFactory(), configurationServices.getAttributesFactory(), configurationServices.getDomainObjectCollectionFactory(), taskDependencyFactory);
         this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(Optional.empty());
         this.defaultConfigurationFactory = defaultConfigurationFactory;
-        this.documentationRegistry = documentationRegistry;
 
         this.canBeConsumed = roleAtCreation.isConsumable();
         this.canBeResolved = roleAtCreation.isResolvable();
@@ -612,7 +609,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         ResolverResults newState;
         if (!domainObjectContext.getModel().hasMutableState()) {
-            throw new IllegalResolutionException("Resolution of the " + displayName.getDisplayName() + " was attempted without an exclusive lock. This is unsafe and not allowed.", documentationRegistry);
+            throw new IllegalResolutionException("Resolution of the " + displayName.getDisplayName() + " was attempted without an exclusive lock. This is unsafe and not allowed.");
         } else {
             newState = resolveExclusivelyIfRequired();
         }
@@ -1828,9 +1825,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private static final class IllegalResolutionException extends GradleException implements ResolutionProvider {
         private final String resolution;
 
-        public IllegalResolutionException(String message, DocumentationRegistry documentationRegistry) {
+        public IllegalResolutionException(String message) {
             super(message);
-            resolution = "For more information, please refer to " + documentationRegistry.getDocumentationFor("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors") + " in the Gradle documentation.";
+            Documentation userGuideLink = Documentation.userManual("viewing_debugging_dependencies.html", "sub:resolving-unsafe-configuration-resolution-errors");
+            resolution = "For more information, please refer to " + userGuideLink.getUrl() + " in the Gradle documentation.";
         }
 
         @Override
