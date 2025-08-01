@@ -55,6 +55,10 @@ public class BuildLocations {
      * Settings script file or null if using "empty settings".
      * <p>
      * When not null, the file might not exist on disk, in which case it is treated as a file with empty contents.
+     * <p>
+     * Note that this file might still not be the effective settings file, because under certain conditions
+     * the build can switch to empty settings despite a valid settings file being present.
+     * See {@link org.gradle.initialization.DefaultSettingsLoader settings loader} logic for details.
      */
     @Nullable
     public File getSettingsFile() {
