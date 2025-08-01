@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.SmokeTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+
 
 /**
  * Smoke test verifying the external plugins used during the Gradle build itself.
@@ -34,7 +34,6 @@ import org.gradle.test.preconditions.UnitTestPreconditions
  * major version bump. Either by having the external plugins been fixed or by switching to different plugins.
  */
 @Requires([
-    UnitTestPreconditions.Jdk9OrLater,
     IntegTestPreconditions.NotConfigCached,
     SmokeTestPreconditions.GradleBuildJvmSpecAvailable
 ])

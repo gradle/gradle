@@ -16,10 +16,12 @@
 
 package org.gradle.testing.junit.junit4
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
 import spock.lang.Issue
@@ -28,7 +30,7 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT4_CATEGORIES
 import static org.hamcrest.CoreMatchers.startsWith
 
 @TargetCoverage({ JUNIT4_CATEGORIES })
-class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest implements JUnit4MultiVersionTest {
+class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest implements JUnit4MultiVersionTest, JavaToolchainFixture {
     String singularCategoryOrTagName = "category"
     String pluralCategoryOrTagName = "categories"
 
@@ -133,7 +135,7 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
     }
 
     @Issue('https://github.com/gradle/gradle/issues/3189')
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
+    @Requires(IntegTestPreconditions.Java8HomeAvailable)
     def "can work with PowerMock"() {
         given:
         file('src/test/java/FastTest.java') << '''
@@ -158,6 +160,13 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
 
             ${mavenCentralRepository()}
 
+            // build for java 8
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(8)
+                }
+            }
+
             dependencies {
                 ${testFrameworkDependencies}
                 testImplementation "org.powermock:powermock-api-mockito:1.6.5"
@@ -170,6 +179,7 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         """.stripIndent()
 
         when:
+        withInstallations(AvailableJavaHomes.getJdk8())
         fails('test')
 
         then:

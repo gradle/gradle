@@ -25,9 +25,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
 
-@Requires(UnitTestPreconditions.Jdk17OrLater)
 class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implements TestsBuildInitSpecsViaPlugin, JavaToolchainFixture {
     private static final String DECLARATIVE_JVM_PLUGIN_ID = "org.gradle.experimental.jvm-ecosystem-init"
     private static final String DECLARATIVE_PLUGIN_VERSION = "0.1.33"
@@ -336,7 +334,6 @@ defaults {
         canBuildGeneratedProject(AvailableJavaHomes.getJdk21())
     }
 
-    @Requires(UnitTestPreconditions.Jdk17OrLater)
     def "gives decent error message when triggered with unknown init-type after loading project specs"() {
         when:
         targetDir = file("new-project").with { createDir() }

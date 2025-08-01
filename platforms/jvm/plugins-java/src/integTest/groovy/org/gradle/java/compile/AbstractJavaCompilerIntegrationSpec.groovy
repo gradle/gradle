@@ -20,18 +20,18 @@ package org.gradle.java.compile
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.integtests.fixtures.jvm.TestJavaClassUtil
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.serialize.JavaClassUtil
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Assume
 import spock.lang.Issue
 
-abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
+abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
     abstract String compilerConfiguration()
 
@@ -155,8 +155,7 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
     // JavaFx was removed in JDK 10
     // JavaFx comes packaged with Oracle JDKs
     @Requires([
-        UnitTestPreconditions.Jdk9OrEarlier,
-        UnitTestPreconditions.JdkOracle
+        IntegTestPreconditions.Java8HomeAvailable
     ])
     def "can compile JavaFx 8 code"() {
         given:
@@ -169,8 +168,15 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
                 }
             }
         """
-
+        buildFile << """
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(8)
+                }
+            }
+        """
         expect:
+        withInstallations(AvailableJavaHomes.getJdk8())
         succeeds("compileJava")
     }
 
@@ -236,7 +242,6 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         bytecodeVersion() == TestJavaClassUtil.getClassVersion(lower.javaVersion)
     }
 
-    @Requires(UnitTestPreconditions.Jdk11OrLater)
     def "compile with release flag using #notation notation"() {
         given:
         goodCode()
@@ -266,7 +271,6 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         ]
     }
 
-    @Requires(UnitTestPreconditions.Jdk11OrLater)
     def "compile with release property set"() {
         given:
         goodCode()
@@ -290,7 +294,7 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         bytecodeVersion() == 55
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+
     def "fails to compile with release property and flag set"() {
         given:
         goodCode()
@@ -310,7 +314,6 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         failureHasCause('Cannot specify --release via `CompileOptions.compilerArgs` when using `CompileOptions.release`.')
     }
 
-    @Requires(UnitTestPreconditions.Jdk11OrLater)
     def "compile with release property and autoTargetJvmDisabled"() {
         given:
         goodCode()
@@ -335,6 +338,7 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         then:
         bytecodeVersion() == 55
     }
+
 
     def "compile with target compatibility"() {
         given:
@@ -392,7 +396,6 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         bytecodeVersion() == TestJavaClassUtil.getClassVersion(lower.javaVersion)
     }
 
-    @Requires(UnitTestPreconditions.Jdk12OrLater)
     def "compile fails when using newer API with release option"() {
         given:
         file("src/main/java/compile/test/FailsOnJava11.java") << """
@@ -421,7 +424,6 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         failure.assertHasErrorOutput("method describeConstable")
     }
 
-    @Requires(UnitTestPreconditions.Jdk12OrLater)
     def "compile fails when using newer API with release property"() {
         given:
         file("src/main/java/compile/test/FailsOnJava11.java") << """

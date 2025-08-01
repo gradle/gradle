@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.testfixtures
+package org.gradle.testkit.projectbuilder
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
@@ -22,15 +22,13 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
 @Issue("GRADLE-3558")
-@Requires(UnitTestPreconditions.Jdk11OrEarlier)
 // Avoid testing version range in favor of better coverage build performance.
-@TargetVersions(['5.0', '6.8'])
+@TargetVersions(['7.6.6', '8.14.3'])
 class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
     public static final String TEST_TASK_NAME = 'test'
@@ -43,15 +41,11 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
 
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution")
     def "can apply plugin using ProjectBuilder in a test running with Gradle version under development"() {
-        writeSourceFiles()
-        expect:
-        run TEST_TASK_NAME
-    }
-
-    private void writeSourceFiles() {
         File repoDir = file('repo')
         publishHelloWorldPluginWithOldGradleVersion(repoDir)
         writeConsumingProject(repoDir)
+        expect:
+        run TEST_TASK_NAME
     }
 
     private void publishHelloWorldPluginWithOldGradleVersion(File repoDir) {
@@ -64,7 +58,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
                 import org.gradle.api.Project
                 import org.gradle.api.Plugin
 
-                class HelloWorldPlugin implements Plugin<Project> {
+                abstract class HelloWorldPlugin implements Plugin<Project> {
                     void apply(Project project) {
                         project.tasks.create('helloWorld', HelloWorld)
                     }
@@ -77,7 +71,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
                 import org.gradle.api.DefaultTask
                 import org.gradle.api.tasks.TaskAction
 
-                class HelloWorld extends DefaultTask {
+                abstract class HelloWorld extends DefaultTask {
                     @TaskAction
                     void printHelloWorld() {
                         System.out.println 'Hello world!'
@@ -86,15 +80,11 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
             """
 
             file('build.gradle') << """
-                apply plugin: 'groovy'
+                apply plugin: 'groovy-gradle-plugin'
                 apply plugin: 'maven-publish'
 
                 group = 'org.gradle'
                 version = '1.0'
-
-                dependencies {
-                    compile gradleApi()
-                }
 
                 publishing {
                     publications {
@@ -111,7 +101,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
             """
         }
 
-        createGradleExecutor(version, helloWorldPluginDir, 'publish').noDeprecationChecks().run()
+        createGradleExecutor(MultiVersionIntegrationSpec.version, helloWorldPluginDir, 'publish').noDeprecationChecks().run()
     }
 
     private void writeConsumingProject(File repoDir) {
@@ -141,15 +131,14 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
         """
 
         file('build.gradle') << """
-            apply plugin: 'groovy'
+            apply plugin: 'java-gradle-plugin'
 
             group = 'org.gradle'
             version = '1.0'
 
             dependencies {
-                'implementation' gradleApi()
-                'implementation' 'org.gradle:hello:1.0'
-                'testImplementation' 'junit:junit:4.13'
+                implementation('org.gradle:hello:1.0')
+                testImplementation 'junit:junit:4.13'
             }
 
             repositories {

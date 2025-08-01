@@ -16,8 +16,7 @@
 package org.gradle.internal.classloader
 
 
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+
 import org.junit.Before
 import org.junit.Test
 import org.junit.runners.BlockJUnit4ClassRunner
@@ -76,7 +75,6 @@ class FilteringClassLoaderTest extends Specification {
         cannotSeePackage('org.junit')
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
     void filtersPackagesByDefaultPostJdk8() {
         given:
         assert classLoader.parent.getDefinedPackage('org.junit') != null

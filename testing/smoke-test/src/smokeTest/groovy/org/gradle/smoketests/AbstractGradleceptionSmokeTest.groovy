@@ -25,12 +25,11 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.SmokeTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+
 
 import java.text.SimpleDateFormat
 
 @Requires([
-    UnitTestPreconditions.Jdk9OrLater,
     IntegTestPreconditions.NotConfigCached,
     SmokeTestPreconditions.GradleBuildJvmSpecAvailable
 ])

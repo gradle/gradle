@@ -21,8 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.Flaky
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+
 import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Issue
@@ -93,7 +92,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20644")
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    
     def "can debug Java exec with socket server debugger (server = true) on explicitly any host with task :#taskName"() {
         def jdwpHost = nonLoopbackAddress()
         Assume.assumeNotNull(jdwpHost)

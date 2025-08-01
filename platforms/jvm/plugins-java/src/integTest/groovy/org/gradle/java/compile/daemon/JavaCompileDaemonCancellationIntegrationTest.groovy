@@ -22,11 +22,10 @@ import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+
 import org.junit.Rule
 
-@Requires(UnitTestPreconditions.Jdk9OrLater)
+
 class JavaCompileDaemonCancellationIntegrationTest extends DaemonIntegrationSpec {
     private static final String ANNOTATION_PROCESSOR_PROJECT_NAME = "processor"
 

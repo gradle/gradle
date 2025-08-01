@@ -19,11 +19,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+
 import org.junit.Rule
 
-@Requires(UnitTestPreconditions.Jdk9OrLater)
+
 class SamplesApplicationIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule Sample sample = new Sample(temporaryFolder, 'java/application')
