@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.attributes.matching.AttributeMatchingCandidate;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.jspecify.annotations.Nullable;
 
@@ -36,6 +37,11 @@ public interface ResolvedVariant extends AttributeMatchingCandidate {
      * using {@link org.gradle.api.artifacts.ModuleDependency#artifact(Action)} or where individual artifacts have been excluded from the variant.
      */
     VariantResolveMetadata.@Nullable Identifier getIdentifier();
+
+    /**
+     * Get the ID of the variant in the graph that produces this artifact collection.
+     */
+    VariantIdentifier getSourceVariantId();
 
     ResolvedArtifactSet getArtifacts();
 

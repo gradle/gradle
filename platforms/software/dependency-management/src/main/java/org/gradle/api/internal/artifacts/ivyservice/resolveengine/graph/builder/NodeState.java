@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ArtifactSelectionDetailsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
@@ -159,6 +160,11 @@ public class NodeState implements DependencyGraphNode {
     @Override
     public long getNodeId() {
         return nodeId;
+    }
+
+    @Override
+    public VariantIdentifier getId() {
+        return variantState.getMetadata().getId();
     }
 
     @Override
