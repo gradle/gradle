@@ -140,15 +140,13 @@ public class DefaultSettingsLoader implements SettingsLoader {
         return startParameter.getProjectDir() != null && loadedSettings.getSettingsDir().equals(startParameter.getProjectDir());
     }
 
-    @SuppressWarnings("deprecation") // StartParameter.setSettingsFile() and StartParameter.getBuildFile()
     private SettingsState createEmptySettings(GradleInternal gradle, StartParameter startParameter, ClassLoaderScope classLoaderScope) {
         logger.debug("Creating empty settings for build: '{}'", gradle.getIdentityPath());
         StartParameterInternal noSearchParameter = (StartParameterInternal) startParameter.newInstance();
         noSearchParameter.useEmptySettings();
         noSearchParameter.doNotSearchUpwards();
         BuildLocations buildLocations = buildLocator.findBuild(noSearchParameter.toBuildDiscoveryParameters());
-        SettingsState state = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter, buildLocations, classLoaderScope);
-        return state;
+        return findSettingsAndLoadIfAppropriate(gradle, noSearchParameter, buildLocations, classLoaderScope);
     }
 
     private void setDefaultProject(ProjectSpec spec, SettingsInternal settings) {
