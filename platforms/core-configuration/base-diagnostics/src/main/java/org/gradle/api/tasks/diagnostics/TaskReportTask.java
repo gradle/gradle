@@ -292,8 +292,8 @@ public abstract class TaskReportTask extends ConventionReportTask {
             .startsWith(relativeProjectIdentity.getBuildTreePath());
 
         return isParentProject
-            ? relativeProjectIdentity.getProjectPath().relativePath(taskId.projectPath)
-            : taskId.projectPath;
+            ? relativeProjectIdentity.getProjectPath().relativePath(taskId.getPath())
+            : taskId.getPath();
     }
 
     /**

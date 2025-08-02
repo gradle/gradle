@@ -24,16 +24,54 @@ import org.gradle.util.Path;
 @UsedByScanPlugin
 public final class TaskIdentity<T extends Task> {
 
-    public final Class<T> type;
-    public final String name;
-    public final Path projectPath; // path within its build (i.e. including project path)
-    public final Path identityPath; // path within the build tree (i.e. including project path)
-    public final Path buildPath; // path of the owning build
+    // TODO #34344: Remove these public fields and String-typed getters.
 
     /**
-     * Tasks can be replaced in Gradle, meaning there can be two different tasks with the same path/type.
-     * This allows identifying a precise instance.
+     * The type of the task.
+     *
+     * @deprecated Use {@link #getTaskType()} instead.
      */
+    @Deprecated
+    public final Class<T> type;
+
+    /**
+     * The name of the task.
+     *
+     * @deprecated Use {@link #getName()} instead.
+     */
+    @Deprecated
+    public final String name;
+
+    /**
+     * The path of the task within the build.
+     *
+     * @deprecated Use {@link #getPath()} instead.
+     */
+    @Deprecated
+    public final Path projectPath;
+
+    /**
+     * The path of the task within the build tree.
+     *
+     * @deprecated Use {@link #getBuildTreePath()} instead.
+     */
+    @Deprecated
+    public final Path identityPath;
+
+    /**
+     * The path of the owning build.
+     *
+     * @deprecated Use {@link #getProjectIdentity()} instead.
+     */
+    @Deprecated
+    public final Path buildPath;
+
+    /**
+     * A unique identifier for the task within the build.
+     *
+     * @deprecated Use {@link #getId()} instead.
+     */
+    @Deprecated
     public final long uniqueId;
 
     private final ProjectIdentity projectIdentity;
@@ -49,6 +87,19 @@ public final class TaskIdentity<T extends Task> {
         this.buildPath = projectIdentity.getBuildPath();
     }
 
+    /**
+     * Get the name of the task.
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Get the unique identifier for the task within the build.
+     * <p>
+     * Tasks can be replaced in Gradle, meaning there can be two different tasks with the same path/type.
+     * This allows identifying a precise instance.
+     */
     public long getId() {
         return uniqueId;
     }
@@ -67,7 +118,7 @@ public final class TaskIdentity<T extends Task> {
 
     @Override
     public int hashCode() {
-        return (int) (uniqueId ^ uniqueId >>> 32);
+        return Long.hashCode(uniqueId);
     }
 
     @Override
@@ -75,27 +126,67 @@ public final class TaskIdentity<T extends Task> {
         return "TaskIdentity{path=" + identityPath + ", type=" + type + ", uniqueId=" + uniqueId + '}';
     }
 
+    /**
+     * Get the path of this task within the build.
+     */
+    public Path getPath() {
+        return projectPath;
+    }
+
+    /**
+     * Get the path of this task within the build tree.
+     */
+    public Path getBuildTreePath() {
+        return identityPath;
+    }
+
+    /**
+     * Get the path of this task within the build.
+     *
+     * @deprecated Use {@link #getPath()} instead.
+     */
+    @Deprecated
     public String getTaskPath() {
-        return projectPath.getPath();
+        return getPath().getPath();
     }
 
+    /**
+     * @deprecated Use {@link #getProjectIdentity()} instead.
+     */
+    @Deprecated
     public String getProjectPath() {
-        return projectPath.getParent().getPath();
+        return getProjectIdentity().getProjectPath().getPath();
     }
 
+    /**
+     * Get the path of this task within the build tree.
+     *
+     * @deprecated Use {@link #getBuildTreePath()} instead.
+     */
+    @Deprecated
     public String getIdentityPath() {
-        return identityPath.getPath();
+        return getBuildTreePath().getPath();
     }
-
+    /**
+     * @deprecated Use {@link #getProjectIdentity()} instead.
+     */
+    @Deprecated
     public String getBuildPath() {
-        return buildPath.getPath();
+        return getProjectIdentity().getBuildPath().getPath();
     }
 
+    /**
+     * Get the type of the task.
+     */
     public Class<T> getTaskType() {
         return type;
     }
 
+    /**
+     * Get the identity of the project that owns this task.
+     */
     public ProjectIdentity getProjectIdentity() {
         return projectIdentity;
     }
+
 }

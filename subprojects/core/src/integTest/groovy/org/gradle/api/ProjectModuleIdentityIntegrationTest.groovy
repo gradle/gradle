@@ -28,9 +28,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class ProjectModuleIdentityIntegrationTest extends AbstractIntegrationSpec {
 
     def "default group for root project is an empty string"() {
-        buildFile << """
+        buildFile("""
             assert group == ""
-        """
+        """)
 
         expect:
         succeeds("help")
@@ -38,27 +38,34 @@ class ProjectModuleIdentityIntegrationTest extends AbstractIntegrationSpec {
 
     def "default group for subproject is based on project structure"() {
         given:
-        settingsFile << """
+        settingsFile("""
             rootProject.name = "root"
             include(":sub")
             include(":sub:subsub")
-        """
+        """)
 
-        file("sub/build.gradle") << """
+        buildFile("sub/build.gradle", """
             assert group == "root"
-        """
-        file("sub/subsub/build.gradle") << """
+        """)
+        buildFile("sub/subsub/build.gradle", """
             assert group == "root.sub"
-        """
+        """)
 
         expect:
         succeeds("help")
     }
 
-    def "default version for root project is 'unspecified'"() {
-        buildFile << """
+    def "default version for project is 'unspecified'"() {
+        settingsFile("""
+            rootProject.name = "root"
+            include(":sub")
+        """)
+        buildFile("""
             assert version == "unspecified"
-        """
+        """)
+        buildFile("sub/build.gradle", """
+            assert version == "unspecified"
+        """)
 
         expect:
         succeeds("help")
