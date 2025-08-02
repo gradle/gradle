@@ -140,13 +140,13 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
 
         if (lockingStrategy == LockingStrategy.WORKSPACE_LOCK) {
             LockingImmutableWorkspace workspace = workspaceProvider.getLockingWorkspace(uniqueId);
-            return workspace.withWorkspaceLock(() ->
-                loadImmutableWorkspaceIfExists(work, workspace)
+            return loadImmutableWorkspaceIfExists(work, workspace).orElseGet(() ->
+                workspace.withWorkspaceLock(() -> loadImmutableWorkspaceIfExists(work, workspace)
                     .orElseGet(() -> {
                         deleteStaleFiles(workspace.getImmutableLocation());
                         return executeInWorkspace(work, context, workspace.getImmutableLocation());
                     })
-            );
+                ));
         } else {
             AtomicMoveImmutableWorkspace workspace = workspaceProvider.getAtomicMoveWorkspace(uniqueId);
             return loadImmutableWorkspaceIfExists(work, workspace)
