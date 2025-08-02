@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r22
 
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
@@ -128,7 +129,7 @@ task slow { doLast { ${server.callFromBuild('sync')} } }
     }
 
     private GradleExecuter daemonExecutor() {
-        targetDist.executer(temporaryFolder, getBuildContext())
+        new NoDaemonGradleExecuter(targetDist, temporaryFolder, getBuildContext())
             .withDaemonBaseDir(toolingApi.daemonBaseDir)
             .withBuildJvmOpts(buildJvmArguments)
             .useOnlyRequestedJvmOpts()

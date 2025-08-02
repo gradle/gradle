@@ -17,8 +17,8 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.test.fixtures.file.TestFile;
-import org.gradle.util.GradleVersion;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
+import org.gradle.util.GradleVersion;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -30,6 +30,10 @@ public class IntegrationTestBuildContext {
     // Collect this early, as the process' current directory can change during embedded test execution
     public static final TestFile TEST_DIR = new TestFile(new File(".").toURI());
     public static final IntegrationTestBuildContext INSTANCE = new IntegrationTestBuildContext();
+
+    public static boolean isEmbedded() {
+        return System.getProperty("org.gradle.integtest.executer", "").equals("embedded");
+    }
 
     @Nullable
     public TestFile getGradleHomeDir() {

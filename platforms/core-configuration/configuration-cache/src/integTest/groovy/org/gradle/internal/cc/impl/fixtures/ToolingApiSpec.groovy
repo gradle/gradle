@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.fixture
+package org.gradle.internal.cc.impl.fixtures
 
 import groovy.transform.SelfType
 import org.apache.tools.ant.util.TeeOutputStream
@@ -40,6 +40,13 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 
 import javax.inject.Inject
 
+/**
+ * An integration test which executes builds using the Tooling API.
+ * <p>
+ * <strong>Prefer {@link org.gradle.integtests.tooling.fixture.ToolingApiSpecification}, as this class
+ * serves a very similar purpose, but is less advanced. We should eventually migrate all usages of this
+ * class to the other one.</strong>
+ */
 @SelfType(AbstractIntegrationSpec)
 trait ToolingApiSpec {
     ToolingApiBackedGradleExecuter getToolingApiExecutor() {
@@ -178,7 +185,7 @@ trait ToolingApiSpec {
 
             class MyModelBuilder implements ToolingModelBuilder {
                 boolean canBuild(String modelName) {
-                    return modelName == "${ org.gradle.integtests.tooling.fixture.SomeToolingModel.class.name}"
+                    return modelName == "${ SomeToolingModel.class.name}"
                 }
                 Object buildAll(String modelName, Project project) {
                     println("creating model for \$project")

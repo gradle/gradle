@@ -18,8 +18,8 @@ package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.integtests.fixtures.ProjectDirectoryCreator
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.integtests.tooling.fixture.ToolingApiBackedGradleExecuter
-import org.gradle.integtests.tooling.fixture.ToolingApiSpec
+import org.gradle.internal.cc.impl.fixtures.ToolingApiBackedGradleExecuter
+import org.gradle.internal.cc.impl.fixtures.ToolingApiSpec
 
 class AbstractIsolatedProjectsToolingApiIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements ToolingApiSpec, ProjectDirectoryCreator {
 
