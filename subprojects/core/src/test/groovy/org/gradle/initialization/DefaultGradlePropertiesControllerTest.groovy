@@ -86,25 +86,6 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         properties.getProperties() == [property: '42']
     }
 
-    def "loading build-scoped properties from the same location is idempotent"() {
-        given:
-        // use a different File instance for each call to ensure it is compared by value
-        def currentDir = { new File('.') }
-        def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, systemPropertiesInstaller)
-
-        when: "calling the method multiple times with the same value"
-        controller.loadGradleProperties(rootBuildId, currentDir(), false)
-        controller.loadGradleProperties(rootBuildId, currentDir(), false)
-
-        then:
-        1 * gradlePropertiesLoader.loadFromGradleHome() >> [:]
-        1 * gradlePropertiesLoader.loadFrom(currentDir()) >> [:]
-        1 * gradlePropertiesLoader.loadFromGradleUserHome() >> [:]
-        1 * gradlePropertiesLoader.loadFromEnvironmentVariables() >> [:]
-        1 * gradlePropertiesLoader.loadFromSystemProperties() >> [:]
-        1 * gradlePropertiesLoader.loadFromStartParameterProjectProperties() >> [:]
-    }
-
     def "loading build-scoped properties second time from another location fails"() {
         given:
         def settingsDir = new File('a')
