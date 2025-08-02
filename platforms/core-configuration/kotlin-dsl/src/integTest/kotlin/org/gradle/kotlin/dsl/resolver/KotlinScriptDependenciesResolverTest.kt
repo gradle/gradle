@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("DEPRECATION")
+
 package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
