@@ -1,8 +1,0 @@
-plugins {
-    id("org.example.filediff")
-}
-
-fileDiff {
-    file1 = file("a.txt")
-    file2 = file("b.txt")
-}

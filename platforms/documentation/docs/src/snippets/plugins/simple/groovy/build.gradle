@@ -44,9 +44,8 @@ class SamplePlugin implements Plugin<Project> { // <1>
         }
     }
 }
-
-apply plugin: SamplePlugin // <3>
 // end::plugin[]
+apply plugin: SamplePlugin // <3>
 
 // tag::plugin-1[]
 class SamplePlugin1 implements Plugin<Project> { // <1>

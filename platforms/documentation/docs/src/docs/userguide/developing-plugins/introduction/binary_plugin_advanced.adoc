@@ -26,12 +26,11 @@ Binary plugins must implement the link:{javadocPath}/org/gradle/api/Plugin.html[
 For example, this is a "hello world" *plugin*:
 
 ====
-include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[tags=simple]"]
-include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=simple]"]
+include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[tags=plugin]"]
+include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=plugin]"]
 ====
 <1> Extend the `org.gradle.api.Plugin` interface.
 <2> Override the `apply` method.
-<3> `apply` the plugin to the project.
 
 === 1. Extend the `org.gradle.api.Plugin` interface
 
@@ -69,7 +68,6 @@ Add tasks and other logic in the `apply()` method:
 [source, kotlin]
 ----
 override fun apply() {
-
 }
 ----
 =====
@@ -79,82 +77,12 @@ override fun apply() {
 [source,groovy]
 ----
 void apply(Project project) {
-
 }
 ----
 =====
 ====
 
-=== 3. `apply` the plugin to your project
-
-When `SamplePlugin` is applied in your project, Gradle calls the `fun apply() {}` method defined.
-This adds the `ScriptPlugin` task to your project:
-
-====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source, kotlin]
-----
-apply<SamplePlugin>()
-----
-=====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-apply plugin: SamplePlugin
-----
-=====
-====
-
-== Updating the Convention Plugin
-
-There are two ways to update the convention plugin in the previous page into a binary plugin.
-
-1. Use <<composite_builds.adoc#composite_builds,composite builds>>:
-+
-.settings.gradle.kts
-[source,kotlin]
-----
-includeBuild("my-plugin")
-----
-
-2. <<publishing_gradle_plugins.adoc#sec:publishing_your_plugin,Publish the plugin>> to a repository:
-+
-.build.gradle.kts
-[source,kotlin]
-----
-plugins {
-    id("com.gradle.plugin.my-plugin") version "1.0.0"
-}
-----
-
-Let's go with the second solution.
-
-This plugin has been re-written in Kotlin and is called `MyCreateFileBinaryPlugin.kt`.
-It is still stored in `buildSrc`:
-
-====
-include::sample[dir="snippets/plugins/simple/kotlin", files="buildSrc/src/main/kotlin/MyCreateFileBinaryPlugin.kt[]"]
-====
-
-The plugin can be published and given an `id` using a `gradlePlugin{}` block so that it can be referenced in the root:
-
-====
-include::sample[dir="snippets/plugins/simple/kotlin", files="buildSrc/build.gradle.kts[tags=plugin-3]"]
-include::sample[dir="snippets/plugins/simple/groovy", files="buildSrc/build.gradle[tags=plugin-3]"]
-====
-
-Then, the plugin can be applied in the build file:
-
-====
-include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[tags=apply]"]
-include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=apply]"]
-====
-
-This is a very rudimentary example of a binary plugin.
+This is a very rudimentary example of a plugin.
 Let's take a look at a more realistic example.
 
 [.text-right]

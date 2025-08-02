@@ -17,22 +17,36 @@
 
 When creating a plugin in Gradle, you will most likely offer tasks users can run and DSL blocks that users can use to configure your plugin.
 
-Let's take a look at an example of a binary plugin that offers both.
-
-== Components of a Plugin
-
-A basic plugin consists of three main components:
-
-1. *Plugin Class* - Defines what happens when the plugin is applied. Typically, this involves registering tasks or modifying the project configuration.
-
-2. *Extension Class* - Holds configuration data provided by users via the build script.
-
-3. *Task Class* - Implements logic that is executed when the task is run. The plugin will typically register a task and wire it up with values from the extension.
+Let's create a binary plugin that offers both.
 
 When you write a plugin in Gradle, if you want to share it between multiple projects then the best option is to create the plugin in a separate repository.
 This way, you can publish it to a private or public Maven repository, and then apply it in whatever project you need.
 
-Let's walk through a simple plugin that compares the size of two files.
+== Components of a Plugin
+
+First, let's review the three components of a plugin:
+
+image::plugin-1.png[]
+
+[cols="1,1,2", options="header"]
+|===
+|Component |Role |Description
+
+|*Plugin Class*
+|Entry point
+|Defines what happens when the plugin is applied. Typically, this involves registering tasks or modifying the project configuration.
+
+|*Extension Class*
+|Configuration
+|Holds configuration data provided by users via the build script.
+
+|*Task Class*
+|Behavior
+|Implements logic that is executed when the task is run. The plugin will typically register a task and wire it up with values from the extension.
+|===
+
+Our simple plugin compares the size of two files.
+It is called `FileSizeDiff`.
 Here's the suggested directory structure:
 
 ====
@@ -47,9 +61,9 @@ Here's the suggested directory structure:
     └── src
        └── main
            └── java/org/example
-               ├── FileDiffTask.java
-               ├── FileDiffPlugin.java
-               └── FileDiffExtension.java
+               ├── FileSizeDiffTask.java
+               ├── FileSizeDiffPlugin.java
+               └── FileSizeDiffExtension.java
 ----
 =====
 [.multi-language-sample]
@@ -63,31 +77,31 @@ Here's the suggested directory structure:
     └── src
        └── main
            └── java/org/example
-               ├── FileDiffTask.java
-               ├── FileDiffPlugin.java
-               └── FileDiffExtension.java
+               ├── FileSizeDiffTask.java
+               ├── FileSizeDiffPlugin.java
+               └── FileSizeDiffExtension.java
 ----
 =====
 ====
 
-This `build.gradle(.kts)` for this `diff-file` plugin looks as follows:
+This `build.gradle(.kts)` for this `filesizediff` plugin looks as follows:
 
 ====
-include::sample[dir="snippets/plugins/fileDiffBinaryPlugin/kotlin", files="plugin/build.gradle.kts[tags=simple]"]
-include::sample[dir="snippets/plugins/fileDiffBinaryPlugin/groovy", files="plugin/build.gradle[tags=simple]"]
+include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/kotlin", files="plugin/build.gradle.kts[tags=simple]"]
+include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/groovy", files="plugin/build.gradle[tags=simple]"]
 ====
 <1> `java-gradle-plugin` - Sets up various configurations you need to do plugin development in Java
 <2> `junit` testing framework - A popular Java testing framework
-<3> Plugin configuration - Sets an id of `org.example.filediff` which we can use to reference the plugin
+<3> Plugin configuration - Sets an id of `org.example.filesizediff` which we can use to reference the plugin
 
 == 1. Extension
 
 The extension defines the plugin’s configurable inputs, two file properties in this case:
 
-.src/main/java/org/example/FileDiffExtension.java
+.src/main/java/org/example/FileSizeDiffExtension.java
 [source,java]
 ----
-include::{snippetsPath}/plugins/fileDiffBinaryPlugin/kotlin/plugin/src/main/java/org/example/FileDiffExtension.java[]
+include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/kotlin/plugin/src/main/java/org/example/FileSizeDiffExtension.java[]
 ----
 
 The two properties representing the input files are of the `RegularFileProperty` type which extends `Property` and are therefore lazy.
@@ -96,10 +110,10 @@ The two properties representing the input files are of the `RegularFileProperty`
 
 The task does the bulk of the work:
 
-.src/main/java/org/example/FileDiffTask.java
+.src/main/java/org/example/FileSizeDiffTask.java
 [source,java]
 ----
-include::{snippetsPath}/plugins/fileDiffBinaryPlugin/kotlin/plugin/src/main/java/org/example/FileDiffTask.java[]
+include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/kotlin/plugin/src/main/java/org/example/FileSizeDiffTask.java[]
 ----
 
 The task defines two input file properties and one output file property:
@@ -121,29 +135,29 @@ The task logic is implemented in a method annotated with `@TaskAction`, which:
 
 This class wires up the extension and task when the plugin is applied:
 
-.src/main/java/org/example/FileDiffPlugin.java
+.src/main/java/org/example/FileSizeDiffPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/plugins/fileDiffBinaryPlugin/kotlin/plugin/src/main/java/org/example/FileDiffPlugin.java[]
+include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/kotlin/plugin/src/main/java/org/example/FileSizeDiffPlugin.java[]
 ----
 
 In the plugin class, we override the `apply` method, which is invoked when the plugin is applied to a project via `build.gradle(.kts)`.
 
 Within this method, the plugin does two things:
 
-1. **Creates an extension named `filediff`:**
-This allows users to configure the plugin using a `fileDiff { ... }` block in their build script.
-The configuration values are stored in an instance of `FileDiffExtension`.
+1. **Creates an extension named `filesizediff`:**
+This allows users to configure the plugin using a `fileSizeDiff { ... }` block in their build script.
+The configuration values are stored in an instance of `FileSizeDiffExtension`.
 
-2. **Registers a task of type `FileDiffTask`:**
-The task is given the name `fileDiff`, and its properties (`file1` and `file2`) are mapped from the corresponding properties in the `fileDiff` extension.
+2. **Registers a task of type `FileSizeDiffTask`:**
+The task is given the name `fileSizeDiff`, and its properties (`file1` and `file2`) are mapped from the corresponding properties in the `fileSizeDiff` extension.
 This ensures the task uses the values provided by the user in their build script.
 
 This enables the following usage in a `build.gradle(.kts)` file:
 
 ====
-include::sample[dir="snippets/plugins/fileDiffBinaryPlugin/kotlin", files="consumer/build.gradle.kts"]
-include::sample[dir="snippets/plugins/fileDiffBinaryPlugin/groovy", files="consumer/build.gradle"]
+include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/kotlin", files="consumer/build.gradle.kts"]
+include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/groovy", files="consumer/build.gradle"]
 ====
 
 [.text-right]
