@@ -72,7 +72,7 @@ idea {
     }
 }
 '''
-        result.assertTasksExecuted(":ideaModule", ":ideaProject", ":ideaWorkspace",
+        result.assertTasksScheduled(":ideaModule", ":ideaProject", ":ideaWorkspace",
             ":api:ideaModule",
             ":idea"
         )

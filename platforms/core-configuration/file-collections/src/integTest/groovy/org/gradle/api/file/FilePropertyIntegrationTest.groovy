@@ -375,21 +375,21 @@ task useDirProviderApi {
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createFile", ":merge")
+        result.assertTasksScheduled(":createFile", ":merge")
         file("output/merged.txt").text == 'file1'
 
         when:
         run("merge")
 
         then:
-        result.assertTasksNotSkipped()
+        result.assertTasksExecuted()
 
         when:
         file("file-source.txt").text = "new-file1"
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createFile", ":merge")
+        result.assertTasksScheduled(":createFile", ":merge")
         file("output/merged.txt").text == 'new-file1'
     }
 
@@ -432,21 +432,21 @@ task useDirProviderApi {
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createFile", ":merge")
+        result.assertTasksScheduled(":createFile", ":merge")
         file("output/merged.txt").text == 'file1'
 
         when:
         run("merge")
 
         then:
-        result.assertTasksNotSkipped()
+        result.assertTasksExecuted()
 
         when:
         file("file-source.txt").text = "new-file1"
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createFile", ":merge")
+        result.assertTasksScheduled(":createFile", ":merge")
         file("output/merged.txt").text == 'new-file1'
     }
 
@@ -487,21 +487,21 @@ task useDirProviderApi {
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createFile", ":merge")
+        result.assertTasksScheduled(":createFile", ":merge")
         file("output/merged.txt").text == 'file1'
 
         when:
         run("merge")
 
         then:
-        result.assertTasksNotSkipped()
+        result.assertTasksExecuted()
 
         when:
         file("file-source.txt").text = "new-file1"
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createFile", ":merge")
+        result.assertTasksScheduled(":createFile", ":merge")
         file("output/merged.txt").text == 'new-file1'
     }
 
@@ -544,14 +544,14 @@ task useDirProviderApi {
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createFile", ":merge")
+        result.assertTasksScheduled(":createFile", ":merge")
         file("output/merged.txt").text == 'file1'
 
         when:
         run("merge")
 
         then:
-        result.assertTasksNotSkipped()
+        result.assertTasksExecuted()
     }
 
     def "can wire the output directory of a task as input to another task using property"() {
@@ -601,21 +601,21 @@ task useDirProviderApi {
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createDir", ":merge")
+        result.assertTasksScheduled(":createDir", ":merge")
         file("output/merged.txt").text == 'dir1'
 
         when:
         run("merge")
 
         then:
-        result.assertTasksNotSkipped()
+        result.assertTasksExecuted()
 
         when:
         file("dir-source.txt").text = "new-dir1"
         run("merge")
 
         then:
-        result.assertTasksNotSkipped(":createDir", ":merge")
+        result.assertTasksExecuted(":createDir", ":merge")
         file("output/merged.txt").text == 'new-dir1'
     }
 
@@ -657,14 +657,14 @@ task useDirProviderApi {
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createDir", ":merge")
+        result.assertTasksScheduled(":createDir", ":merge")
         file("output/merged.txt").text == 'dir1'
 
         when:
         run("merge")
 
         then:
-        result.assertTasksNotSkipped()
+        result.assertTasksExecuted()
     }
 
     def "can wire the output of a task as a dependency of another task via #fileMethod"() {
@@ -717,7 +717,7 @@ task useDirProviderApi {
         run("otherTask")
 
         then:
-        result.assertTasksExecuted(":createDir", ":createFile1", ":otherTask")
+        result.assertTasksScheduled(":createDir", ":createFile1", ":otherTask")
 
         where:
         fileMethod    | dirMethod
@@ -752,7 +752,7 @@ class SomeTask extends DefaultTask {
         run("doNothing")
 
         then:
-        result.assertTasksNotSkipped(":doNothing")
+        result.assertTasksExecuted(":doNothing")
 
         when:
         run("doNothing")
@@ -806,6 +806,6 @@ class SomeTask extends DefaultTask {
         then:
         failure.assertHasDescription("A problem was found with the configuration of task ':consumer' (type 'ConsumerTask').")
         failureDescriptionContains(missingValueMessage { type('ConsumerTask').property('bean.inputFile') })
-        failure.assertTasksExecuted(':producer', ':consumer')
+        failure.assertTasksScheduled(':producer', ':consumer')
     }
 }

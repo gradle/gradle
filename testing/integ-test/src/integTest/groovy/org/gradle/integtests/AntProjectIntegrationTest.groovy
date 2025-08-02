@@ -47,7 +47,7 @@ task ant(dependsOn: target1)
         target1File.assertDoesNotExist()
         target2File.assertDoesNotExist()
 
-        inTestDirectory().withTasks('ant').run().assertTasksExecutedInOrder(':initialize', ':target2', ':target1', ':ant')
+        inTestDirectory().withTasks('ant').run().assertTasksScheduledInOrder(':initialize', ':target2', ':target1', ':ant')
 
         target1File.assertExists()
         target2File.assertExists()
@@ -81,7 +81,7 @@ task ant(dependsOn: [target1, target2])
         target1File.assertDoesNotExist()
         target2File.assertDoesNotExist()
 
-        inTestDirectory().withTasks('ant').run().assertTasksExecuted(':target1', ':target2', ':ant')
+        inTestDirectory().withTasks('ant').run().assertTasksScheduled(':target1', ':target2', ':ant')
 
         target1File.assertExists()
         target2File.assertExists()
@@ -115,7 +115,7 @@ task ant(dependsOn: [target1, target2])
         target1File.assertDoesNotExist()
         target2File.assertDoesNotExist()
 
-        inTestDirectory().withTasks('ant').run().assertTasksExecuted(':target1', ':target2', ':ant')
+        inTestDirectory().withTasks('ant').run().assertTasksScheduled(':target1', ':target2', ':ant')
 
         target1File.assertExists()
         target2File.assertExists()
@@ -178,7 +178,7 @@ ant.importBuild('build.xml')
 ant.importBuild('build.xml')
 """
         inTestDirectory().withTasks('a', 'e', 'h').run()
-            .assertTasksExecutedInOrder any(
+            .assertTasksScheduledInOrder any(
                 exact(any(':d', ':c', ':b'), ':a'),
                 exact(any(':g', ':f'), ':e'),
                 exact(':i', ':h')
@@ -197,7 +197,7 @@ ant.importBuild('build.xml')
         testFile('build.gradle') << """
 ant.importBuild('build.xml')
 """
-        inTestDirectory().withTasks('a').run().assertTasksExecutedInOrder(':b', ':c', ':a')
+        inTestDirectory().withTasks('a').run().assertTasksScheduledInOrder(':b', ':c', ':a')
     }
 
     @Test
@@ -246,7 +246,7 @@ ant.importBuild(file('build.xml')) { antTaskName ->
 
 task ant(dependsOn: 'ant-target1')
 """
-        inTestDirectory().withTasks('clean', 'ant').run().assertTasksExecutedInOrder(':clean', ':ant-clean', ':ant-target2', ':ant-target1', ':ant')
+        inTestDirectory().withTasks('clean', 'ant').run().assertTasksScheduledInOrder(':clean', ':ant-clean', ':ant-target2', ':ant-target1', ':ant')
 
     }
 
@@ -267,7 +267,7 @@ ant.importBuild(file('build.xml')) { antTaskName ->
 
 task runAnt(dependsOn: 'a')
 """
-        inTestDirectory().withTasks('runAnt').run().assertTasksExecutedInOrder(':c', ':ant-b', ':a', ':runAnt')
+        inTestDirectory().withTasks('runAnt').run().assertTasksScheduledInOrder(':c', ':ant-b', ':a', ':runAnt')
 
     }
 }

@@ -376,7 +376,7 @@ class RuleTaskCreationIntegrationTest extends AbstractIntegrationSpec implements
         succeeds "bar"
 
         then:
-        result.assertTasksExecuted(":foo", ":bar")
+        result.assertTasksScheduled(":foo", ":bar")
     }
 
     def "task instantiation and configuration is deferred until required"() {

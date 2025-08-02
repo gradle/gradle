@@ -50,7 +50,7 @@ class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
         succeeds(":xcode")
 
         then:
-        result.assertTasksExecuted(":xcodeProject", ":xcodeProjectWorkspaceSettings",
+        result.assertTasksScheduled(":xcodeProject", ":xcodeProjectWorkspaceSettings",
             ":app:xcodeProjectWorkspaceSettings", ":app:xcodeProject",
             ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeProject",
             ":xcodeWorkspaceWorkspaceSettings", ":xcodeWorkspace", ":xcode")
@@ -93,7 +93,7 @@ class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
         succeeds(":xcode")
 
         then:
-        result.assertTasksExecuted(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme",
+        result.assertTasksScheduled(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme",
             ":app:xcodeProjectWorkspaceSettings", ":app:xcodeProject", ":app:xcodeScheme",
             ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeProject", ":greeter:xcodeScheme",
             ":empty:xcodeProjectWorkspaceSettings", ":empty:xcodeProject",
@@ -133,7 +133,7 @@ class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
         succeeds(":xcode")
 
         then:
-        result.assertTasksExecuted(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
+        result.assertTasksScheduled(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
             ":greeter:compileDebugSwift",
             ":xcodeProjectWorkspaceSettings", ":xcodeProject",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
@@ -148,7 +148,7 @@ class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
         succeeds(":xcode")
 
         then:
-        result.assertTasksExecuted(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
+        result.assertTasksScheduled(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
             ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeScheme",
             ":xcodeProjectWorkspaceSettings", ":xcodeProject",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
@@ -180,7 +180,7 @@ class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
         succeeds(":xcode")
 
         then:
-        result.assertTasksExecuted(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
+        result.assertTasksScheduled(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
             ":greeter:xcodeProject", ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeScheme",
             ":xcodeProjectWorkspaceSettings", ":xcodeProject",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
@@ -196,7 +196,7 @@ class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
         succeeds(":xcode")
 
         then:
-        result.assertTasksExecuted(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
+        result.assertTasksScheduled(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
             ":greeter:compileDebugSwift",
             ":xcodeProjectWorkspaceSettings", ":xcodeProject",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")

@@ -424,6 +424,6 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
         when:
         run("show")
         then:
-        result.assertTasksExecuted(":generate", ":show")
+        result.assertTasksScheduled(":generate", ":show")
     }
 }

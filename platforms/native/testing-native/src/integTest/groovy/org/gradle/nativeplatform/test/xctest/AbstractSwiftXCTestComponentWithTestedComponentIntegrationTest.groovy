@@ -55,7 +55,7 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
         succeeds taskNameToAssembleDevelopmentBinary
 
         then:
-        result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
+        result.assertTasksScheduled(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
         swift3Component.assertTestCasesRan(testExecutionResult)
     }
 
@@ -89,7 +89,7 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
         succeeds taskNameToAssembleDevelopmentBinary
 
         then:
-        result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
+        result.assertTasksScheduled(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
         fixture.assertTestCasesRan(testExecutionResult)
 
         where:

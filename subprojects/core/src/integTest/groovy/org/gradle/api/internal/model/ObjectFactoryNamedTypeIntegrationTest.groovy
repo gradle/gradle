@@ -143,7 +143,7 @@ class ObjectFactoryNamedTypeIntegrationTest extends AbstractIntegrationSpec {
         run("a")
 
         then:
-        result.assertTaskNotSkipped(":a")
+        result.assertTaskExecuted(":a")
         file("out.txt").text == "b"
 
         when:

@@ -79,7 +79,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         succeeds ':xcode'
 
         then:
-        result.assertTasksExecuted(":greeter:compileDebugSwift",
+        result.assertTasksScheduled(":greeter:compileDebugSwift",
             ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj")
@@ -91,7 +91,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         succeeds ':xcodeProject'
 
         then:
-        result.assertTasksExecuted(":greeter:compileDebugSwift",
+        result.assertTasksScheduled(":greeter:compileDebugSwift",
             ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme")
     }
 
@@ -138,7 +138,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         succeeds ':xcode'
 
         then:
-        result.assertTasksExecuted(":greeter:compileDebugSwift",
+        result.assertTasksScheduled(":greeter:compileDebugSwift",
             ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj")
@@ -190,7 +190,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         succeeds ':xcode'
 
         then:
-        result.assertTasksExecuted(":greeter:compileDebugSwift",
+        result.assertTasksScheduled(":greeter:compileDebugSwift",
             ":compileDebugSwift",
             ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
@@ -245,7 +245,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         succeeds ':xcode'
 
         then:
-        result.assertTasksExecuted(":greeter:compileDebugSwift",
+        result.assertTasksScheduled(":greeter:compileDebugSwift",
             ":compileDebugSwift",
             ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
@@ -306,7 +306,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         succeeds ':xcode'
 
         then:
-        result.assertTasksExecuted(":greeter:compileDebugSwift",
+        result.assertTasksScheduled(":greeter:compileDebugSwift",
             ":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
             ":xcodeProject", ":xcodeProjectWorkspaceSettings",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")
@@ -367,7 +367,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         succeeds ':xcode'
 
         then:
-        result.assertTasksExecuted(":greeter:compileDebugSwift",
+        result.assertTasksScheduled(":greeter:compileDebugSwift",
             ":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
             ":xcodeProject", ":xcodeProjectWorkspaceSettings",
             ":xcodeWorkspace", ":xcodeWorkspaceWorkspaceSettings", ":xcode")

@@ -119,8 +119,8 @@ class StaleOutputJavaProject {
     }
 
     void assertBuildTasksExecuted(ExecutionResult result) {
-        result.assertTaskNotSkipped(getCompileTaskPath())
-        result.assertTaskNotSkipped(getJarTaskPath())
+        result.assertTaskExecuted(getCompileTaskPath())
+        result.assertTaskExecuted(getJarTaskPath())
     }
 
     void assertBuildTasksSkipped(ExecutionResult result) {

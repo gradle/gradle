@@ -39,6 +39,6 @@ class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification 
         }
 
         then:
-        result.assertTaskExecuted(':foo')
+        result.assertTaskScheduled(':foo')
     }
 }

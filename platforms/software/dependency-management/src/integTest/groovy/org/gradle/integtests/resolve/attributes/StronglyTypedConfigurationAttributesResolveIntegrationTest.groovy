@@ -226,7 +226,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:foo2Jar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:foo2Jar', ':a:checkDebug')
     }
 
     def "selects configuration with requested value when multiple are compatible"() {
@@ -300,7 +300,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:foo2Jar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:foo2Jar', ':a:checkDebug')
     }
 
     def "fails when multiple candidates are still available after disambiguation rules have been applied"() {
@@ -496,7 +496,7 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:foo2Jar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:foo2Jar', ':a:checkDebug')
     }
 
     def "can select best compatible match based on requested value"() {
@@ -577,13 +577,13 @@ All of them match the consumer attributes:
         run ':a:checkFreeDebug'
 
         then:
-        result.assertTasksExecuted(':b:foo2Jar', ':a:checkFreeDebug')
+        result.assertTasksScheduled(':b:foo2Jar', ':a:checkFreeDebug')
 
         when:
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:fooJar', ':a:checkDebug')
     }
 
     def "producer can apply additional compatibility rules when consumer does not have an opinion for attribute known to both"() {
@@ -659,7 +659,7 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:barJar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:barJar', ':a:checkDebug')
     }
 
     def "consumer can veto producers view of compatibility"() {
@@ -734,7 +734,7 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:barJar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:barJar', ':a:checkDebug')
     }
 
     def "producer can apply disambiguation for attribute known to both"() {
@@ -793,7 +793,7 @@ All of them match the consumer attributes:
         run ':a:check'
 
         then:
-        result.assertTasksExecuted(':b:barJar', ':a:check')
+        result.assertTasksScheduled(':b:barJar', ':a:check')
     }
 
     def "producer can apply disambiguation for attribute not known to consumer"() {
@@ -852,7 +852,7 @@ All of them match the consumer attributes:
         run ':a:check'
 
         then:
-        result.assertTasksExecuted(':b:barJar', ':a:check')
+        result.assertTasksScheduled(':b:barJar', ':a:check')
     }
 
     def "producer can apply disambiguation when consumer does not define any attributes"() {
@@ -911,7 +911,7 @@ All of them match the consumer attributes:
         run ':a:check'
 
         then:
-        result.assertTasksExecuted(':b:barJar', ':a:check')
+        result.assertTasksScheduled(':b:barJar', ':a:check')
     }
 
     def "both dependencies will choose the same default value"() {
@@ -1005,7 +1005,7 @@ All of them match the consumer attributes:
         run ':a:check'
 
         then:
-        result.assertTasksExecuted(':b:barJar', ':c:barJar', ':a:check')
+        result.assertTasksScheduled(':b:barJar', ':c:barJar', ':a:check')
     }
 
     def "can inject configuration into compatibility and disambiguation rules"() {
@@ -1099,7 +1099,7 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:foo2Jar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:foo2Jar', ':a:checkDebug')
     }
 
     def "user receives reasonable error message when compatibility rule cannot be created"() {

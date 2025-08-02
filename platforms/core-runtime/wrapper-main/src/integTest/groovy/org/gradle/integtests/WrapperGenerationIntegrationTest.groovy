@@ -124,7 +124,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         run "wrapper", "--gradle-version", "2.2.1", "--rerun-tasks", "--no-validate-url"
 
         then:
-        result.assertTasksExecuted(":wrapper")
+        result.assertTasksScheduled(":wrapper")
         wrapperJar.md5Hash == old(wrapperJar.md5Hash)
         wrapperProperties.text == old(wrapperProperties.text)
     }

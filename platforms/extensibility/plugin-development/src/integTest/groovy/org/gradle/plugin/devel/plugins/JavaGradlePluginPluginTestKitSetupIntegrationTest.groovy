@@ -48,8 +48,8 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         expect:
         succeeds("assertHasTestKit")
         succeeds("test")
-        result.assertTaskExecuted(":pluginUnderTestMetadata")
-        result.assertTaskExecuted(":pluginDescriptors")
+        result.assertTaskScheduled(":pluginUnderTestMetadata")
+        result.assertTaskScheduled(":pluginDescriptors")
     }
 
     def "wires creation of plugin under test metadata into build lifecycle"() {

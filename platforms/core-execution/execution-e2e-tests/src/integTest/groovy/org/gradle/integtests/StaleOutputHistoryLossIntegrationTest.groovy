@@ -327,7 +327,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec impl
         result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.assertTaskExecuted(taskPath)
+        result.assertTaskScheduled(taskPath)
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
 
@@ -380,7 +380,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec impl
         result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.assertTaskExecuted(taskPath)
+        result.assertTaskScheduled(taskPath)
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
 
@@ -431,7 +431,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec impl
         result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.assertTasksExecuted(taskPath, ':copy1', ':copy2')
+        result.assertTasksScheduled(taskPath, ':copy1', ':copy2')
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
 
@@ -495,7 +495,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec impl
         result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.assertTaskExecuted(taskPath)
+        result.assertTaskScheduled(taskPath)
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
 
@@ -531,7 +531,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec impl
         result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.assertTaskExecuted(taskPath)
+        result.assertTaskScheduled(taskPath)
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
 

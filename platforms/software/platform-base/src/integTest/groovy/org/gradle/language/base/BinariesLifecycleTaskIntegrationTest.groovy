@@ -84,13 +84,13 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         run "assemble"
 
         then:
-        result.assertTasksExecuted(":libBuildableBinary1", ":libBuildableBinary2", ":assemble")
+        result.assertTasksScheduled(":libBuildableBinary1", ":libBuildableBinary2", ":assemble")
 
         when:
         run "build"
 
         then:
-        result.assertTasksExecuted(":libBuildableBinary1", ":libBuildableBinary2", ":assemble", ":check", ":build")
+        result.assertTasksScheduled(":libBuildableBinary1", ":libBuildableBinary2", ":assemble", ":check", ":build")
     }
 
     def "does not produce error when assemble task has other dependencies" () {
@@ -104,7 +104,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         run "assemble"
 
         then:
-        result.assertTasksExecutedInOrder(":someOtherTask", ":assemble")
+        result.assertTasksScheduledInOrder(":someOtherTask", ":assemble")
     }
 
     def "does not do anything when the project is empty" () {
@@ -112,7 +112,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         run "assemble"
 
         then:
-        result.assertTasksExecuted(":assemble")
+        result.assertTasksScheduled(":assemble")
         result.assertTasksSkipped(":assemble")
     }
 
@@ -123,7 +123,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         run "assemble"
 
         then:
-        result.assertTasksExecuted(":assemble")
+        result.assertTasksScheduled(":assemble")
         result.assertTasksSkipped(":assemble")
     }
 
@@ -135,7 +135,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         run "assemble"
 
         then:
-        result.assertTasksExecuted(":libBuildableBinary", ":assemble")
+        result.assertTasksScheduled(":libBuildableBinary", ":assemble")
     }
 
     def "check task does not build binaries" () {
@@ -146,7 +146,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         run "check"
 
         then:
-        result.assertTasksExecuted(":check")
+        result.assertTasksScheduled(":check")
     }
 
     def withLibBinaries(String... binaries) {

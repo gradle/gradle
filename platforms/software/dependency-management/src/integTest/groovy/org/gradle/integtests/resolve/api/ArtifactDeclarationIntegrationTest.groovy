@@ -236,7 +236,7 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
         succeeds ':b:checkDeps'
 
         then:
-        result.assertTasksExecuted(":a:jar", ":b:checkDeps")
+        result.assertTasksScheduled(":a:jar", ":b:checkDeps")
         resolve.expectGraph {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
@@ -280,7 +280,7 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
         succeeds ':b:checkDeps'
 
         then:
-        result.assertTasksExecuted(":a:jar", ":b:checkDeps")
+        result.assertTasksScheduled(":a:jar", ":b:checkDeps")
         resolve.expectGraph {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
@@ -328,7 +328,7 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
         succeeds ':b:checkDeps'
 
         then:
-        result.assertTasksExecuted(":a:classes", ":b:checkDeps")
+        result.assertTasksScheduled(":a:classes", ":b:checkDeps")
         resolve.expectGraph {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
@@ -364,7 +364,7 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
         succeeds ':b:checkDeps'
 
         then:
-        result.assertTasksExecuted(":b:checkDeps")
+        result.assertTasksScheduled(":b:checkDeps")
         resolve.expectGraph {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
@@ -403,7 +403,7 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
         succeeds ':b:checkDeps'
 
         then:
-        result.assertTasksExecuted(":a:classes", ":b:checkDeps")
+        result.assertTasksScheduled(":a:classes", ":b:checkDeps")
         resolve.expectGraph {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
@@ -442,7 +442,7 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
         succeeds ':b:checkDeps'
 
         then:
-        result.assertTasksExecuted(":a:classes", ":b:checkDeps")
+        result.assertTasksScheduled(":a:classes", ":b:checkDeps")
         resolve.expectGraph {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
@@ -557,7 +557,7 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("b:checkDeps")
-        result.assertTasksExecutedInOrder(":a:jar", ":b:checkDeps")
+        result.assertTasksScheduledInOrder(":a:jar", ":b:checkDeps")
         resolve.expectGraph {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {

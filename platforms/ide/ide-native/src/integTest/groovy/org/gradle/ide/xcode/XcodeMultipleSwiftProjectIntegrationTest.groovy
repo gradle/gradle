@@ -81,7 +81,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             .succeeds()
 
         then:
-        resultDebugApp.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:linkDebug',
+        resultDebugApp.assertTasksScheduled(':greeter:compileDebugSwift', ':greeter:linkDebug',
             ':app:compileDebugSwift', ':app:linkDebug', ':app:installDebug', ':app:_xcode___App_Debug')
 
         when:
@@ -92,7 +92,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             .succeeds()
 
         then:
-        resultReleaseApp.assertTasksExecuted(':greeter:compileReleaseSwift', ':greeter:linkRelease', ':greeter:stripSymbolsRelease',
+        resultReleaseApp.assertTasksScheduled(':greeter:compileReleaseSwift', ':greeter:linkRelease', ':greeter:stripSymbolsRelease',
             ':app:compileReleaseSwift', ':app:linkRelease', ':app:stripSymbolsRelease', ':app:installRelease', ':app:_xcode___App_Release')
     }
 
@@ -149,7 +149,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             .succeeds()
 
         then:
-        resultDebugApp.assertTasksExecuted(':log:compileDebugSwift', ':log:linkDebug',
+        resultDebugApp.assertTasksScheduled(':log:compileDebugSwift', ':log:linkDebug',
             ':hello:compileDebugSwift', ':hello:linkDebug',
             ':app:compileDebugSwift', ':app:linkDebug', ':app:installDebug', ':app:_xcode___App_Debug')
 
@@ -161,7 +161,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             .succeeds()
 
         then:
-        resultReleaseHello.assertTasksExecuted(':hello:compileReleaseSwift', ':hello:linkRelease', ':hello:stripSymbolsRelease',
+        resultReleaseHello.assertTasksScheduled(':hello:compileReleaseSwift', ':hello:linkRelease', ':hello:stripSymbolsRelease',
             ':log:stripSymbolsRelease', ':log:compileReleaseSwift', ':log:linkRelease',
             ':hello:_xcode___Hello_Release')
     }
@@ -225,7 +225,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             .succeeds()
 
         then:
-        resultDebugApp.assertTasksExecuted(':log:compileDebugSwift', ':log:linkDebug',
+        resultDebugApp.assertTasksScheduled(':log:compileDebugSwift', ':log:linkDebug',
             ':hello:compileDebugSwift', ':hello:linkDebug',
             ':app:compileDebugSwift', ':app:linkDebug', ':app:installDebug', ':app:_xcode___App_Debug')
 
@@ -237,7 +237,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             .succeeds()
 
         then:
-        resultReleaseHello.assertTasksExecuted(':hello:compileReleaseSwift', ':hello:linkRelease', ':hello:stripSymbolsRelease',
+        resultReleaseHello.assertTasksScheduled(':hello:compileReleaseSwift', ':hello:linkRelease', ':hello:stripSymbolsRelease',
             ':log:stripSymbolsRelease', ':log:compileReleaseSwift', ':log:linkRelease',
             ':hello:_xcode___Hello_Release')
     }
@@ -305,7 +305,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             .succeeds()
 
         then:
-        resultDebugApp.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+        resultDebugApp.assertTasksScheduled(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ':hello:compileDebugSwift', ':hello:linkDebug',
             ':app:compileDebugSwift', ':app:linkDebug', ':app:installDebug', ':app:_xcode___App_Debug')
 
@@ -317,7 +317,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             .succeeds()
 
         then:
-        resultReleaseHello.assertTasksExecuted(':hello:compileReleaseSwift', ':hello:linkRelease', ':hello:stripSymbolsRelease',
+        resultReleaseHello.assertTasksScheduled(':hello:compileReleaseSwift', ':hello:linkRelease', ':hello:stripSymbolsRelease',
             ":cppGreeter:compileReleaseCpp", ":cppGreeter:linkRelease", ":cppGreeter:stripSymbolsRelease",
             ':hello:_xcode___Hello_Release')
     }
@@ -389,7 +389,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             .succeeds()
 
         then:
-        resultDebugApp.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:createDebug",
+        resultDebugApp.assertTasksScheduled(":cppGreeter:compileDebugCpp", ":cppGreeter:createDebug",
             ':hello:compileDebugSwift', ':hello:linkDebug',
             ':app:compileDebugSwift', ':app:linkDebug', ':app:installDebug', ':app:_xcode___App_Debug')
 
@@ -401,7 +401,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             .succeeds()
 
         then:
-        resultReleaseHello.assertTasksExecuted(':hello:compileReleaseSwift', ':hello:linkRelease', ':hello:stripSymbolsRelease',
+        resultReleaseHello.assertTasksScheduled(':hello:compileReleaseSwift', ':hello:linkRelease', ':hello:stripSymbolsRelease',
             ":cppGreeter:compileReleaseCpp", ":cppGreeter:createRelease",
             ':hello:_xcode___Hello_Release')
     }
@@ -523,7 +523,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             .succeeds()
 
         then:
-        resultDebugApp.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:linkDebug', ':compileDebugSwift', ':linkDebug', ':installDebug', ':_xcode___App_Debug')
+        resultDebugApp.assertTasksScheduled(':greeter:compileDebugSwift', ':greeter:linkDebug', ':compileDebugSwift', ':linkDebug', ':installDebug', ':_xcode___App_Debug')
 
         when:
         def resultReleaseGreeter = xcodebuild
@@ -533,7 +533,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             .succeeds()
 
         then:
-        resultReleaseGreeter.assertTasksExecuted(':compileReleaseSwift', ':linkRelease', ':stripSymbolsRelease', ':_xcode___Greeter_Release')
+        resultReleaseGreeter.assertTasksScheduled(':compileReleaseSwift', ':linkRelease', ':stripSymbolsRelease', ':_xcode___Greeter_Release')
     }
 
     @ToBeFixedForConfigurationCache
@@ -564,7 +564,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             .succeeds(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
-        resultTestRunner.assertTasksExecuted(':greeter:compileDebugSwift', ':greeter:compileTestSwift', ':greeter:linkTest',
+        resultTestRunner.assertTasksScheduled(':greeter:compileDebugSwift', ':greeter:compileTestSwift', ':greeter:linkTest',
             ':greeter:installTest', ':greeter:syncBundleToXcodeBuiltProductDir', ':greeter:_xcode__build_GreeterTest___GradleTestRunner_Debug')
 
         resultTestRunner.assertHasPostBuildOutput("Test Case '-[GreeterTest.MultiplyTestSuite testCanMultiplyTotalOf42]' passed")

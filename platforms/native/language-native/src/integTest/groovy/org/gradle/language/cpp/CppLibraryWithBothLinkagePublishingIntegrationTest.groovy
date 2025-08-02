@@ -50,7 +50,7 @@ class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractInstall
         run('publish')
 
         then:
-        result.assertTasksExecuted(
+        result.assertTasksScheduled(
             ':compileDebugSharedCpp', ':linkDebugShared',
             ':compileReleaseSharedCpp', ':linkReleaseShared', stripSymbolsTasks('ReleaseShared'),
             ':compileDebugStaticCpp', ':createDebugStatic',

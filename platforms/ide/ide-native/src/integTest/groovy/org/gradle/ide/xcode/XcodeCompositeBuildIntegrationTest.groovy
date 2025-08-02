@@ -68,7 +68,7 @@ class XcodeCompositeBuildIntegrationTest extends AbstractXcodeIntegrationSpec {
         succeeds(":xcode")
 
         then:
-        result.assertTasksExecuted(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme",
+        result.assertTasksScheduled(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme",
             ":app:xcodeProjectWorkspaceSettings", ":app:xcodeProject", ":app:xcodeScheme",
             ":greeter:xcodeProjectWorkspaceSettings", ":greeter:xcodeProject", ":greeter:xcodeScheme",
             ":empty:xcodeProjectWorkspaceSettings", ":empty:xcodeProject",

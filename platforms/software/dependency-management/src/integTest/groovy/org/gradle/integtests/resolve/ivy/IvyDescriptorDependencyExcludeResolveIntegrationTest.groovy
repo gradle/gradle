@@ -513,9 +513,9 @@ task syncMerged(type: Sync) {
         then:
         assertResolvedFiles(resolvedJars)
         if (taskDependenciesExecuted) {
-            result.assertTaskExecuted(":c:compileJava")
+            result.assertTaskScheduled(":c:compileJava")
         } else {
-            result.assertTaskNotExecuted(":c:compileJava")
+            result.assertTasksNotScheduled(":c:compileJava")
         }
 
         where:

@@ -48,7 +48,7 @@ class KotlinDslNullnessIntegrationTest : AbstractKotlinIntegrationTest() {
 
         val result = build("classes")
 
-        result.assertTaskExecuted(":compileKotlin")
+        result.assertTaskScheduled(":compileKotlin")
     }
 
     @Test
@@ -75,7 +75,7 @@ class KotlinDslNullnessIntegrationTest : AbstractKotlinIntegrationTest() {
 
         val result = build("classes")
 
-        result.assertTaskExecuted(":compileKotlin")
+        result.assertTaskScheduled(":compileKotlin")
     }
 
     @Test
@@ -103,7 +103,7 @@ class KotlinDslNullnessIntegrationTest : AbstractKotlinIntegrationTest() {
 
         val result = build("classes")
 
-        result.assertTaskExecuted(":compileKotlin")
+        result.assertTaskScheduled(":compileKotlin")
     }
 
     @Test
@@ -133,7 +133,7 @@ class KotlinDslNullnessIntegrationTest : AbstractKotlinIntegrationTest() {
 
         val result = build("classes")
 
-        result.assertTaskExecuted(":compileKotlin")
+        result.assertTaskScheduled(":compileKotlin")
     }
 
     @Test
@@ -163,7 +163,7 @@ class KotlinDslNullnessIntegrationTest : AbstractKotlinIntegrationTest() {
 
         val result = build("classes")
 
-        result.assertTaskExecuted(":compileKotlin")
+        result.assertTaskScheduled(":compileKotlin")
     }
 
     @Test
@@ -184,7 +184,7 @@ class KotlinDslNullnessIntegrationTest : AbstractKotlinIntegrationTest() {
 
         val result = build("classes")
 
-        result.assertTaskExecuted(":compileKotlin")
+        result.assertTaskScheduled(":compileKotlin")
     }
 
     @Test
@@ -216,7 +216,7 @@ class KotlinDslNullnessIntegrationTest : AbstractKotlinIntegrationTest() {
         )
         withBuildScript("""plugins { id("my-plugin") }""")
         val result = build("help")
-        result.assertTaskExecuted(":buildSrc:compileKotlin")
+        result.assertTaskScheduled(":buildSrc:compileKotlin")
     }
 
     @Test
@@ -253,6 +253,6 @@ class KotlinDslNullnessIntegrationTest : AbstractKotlinIntegrationTest() {
         )
         withBuildScript("""plugins { id("my-plugin") }""")
         val result = build("help")
-        result.assertTaskExecuted(":buildSrc:compileKotlin")
+        result.assertTaskScheduled(":buildSrc:compileKotlin")
     }
 }

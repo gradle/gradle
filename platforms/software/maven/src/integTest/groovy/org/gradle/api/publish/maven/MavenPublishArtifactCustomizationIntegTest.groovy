@@ -45,7 +45,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         def module = mavenRepo.module("group", "projectText", "1.0")
         module.assertPublished()
         module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0.foo", "projectText-1.0.bar", "projectText-1.0-customjar.jar", "projectText-1.0.reg")
-        result.assertTasksExecuted(":customJar", ":regularFileTask", ":generatePomFileForMavenCustomPublication", ":publishMavenCustomPublicationToMavenRepository", ":publish")
+        result.assertTasksScheduled(":customJar", ":regularFileTask", ":generatePomFileForMavenCustomPublication", ":publishMavenCustomPublicationToMavenRepository", ":publish")
 
         and:
         resolveArtifacts(module) {

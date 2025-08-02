@@ -194,7 +194,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         configurationCacheRun("reliesOnSerialization")
 
         then:
-        result.assertTasksExecuted(":reliesOnSerialization")
+        result.assertTasksScheduled(":reliesOnSerialization")
 
         where:
         providerChain                               || _
@@ -400,7 +400,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
 
         then:
         result.assertTaskSkipped(":always")
-        result.assertTasksNotSkipped(":never")
+        result.assertTasksExecuted(":never")
     }
 
     def "shouldRunAfter doesn't imply dependency"() {
@@ -414,13 +414,13 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         configurationCacheRun 'b'
 
         then:
-        result.assertTasksExecuted ':b'
+        result.assertTasksScheduled ':b'
 
         when:
         configurationCacheRun 'b'
 
         then:
-        result.assertTasksExecuted ':b'
+        result.assertTasksScheduled ':b'
     }
 
     def "mustRunAfter doesn't imply dependency"() {
@@ -434,13 +434,13 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         configurationCacheRun 'b'
 
         then:
-        result.assertTasksExecuted ':b'
+        result.assertTasksScheduled ':b'
 
         when:
         configurationCacheRun 'b'
 
         then:
-        result.assertTasksExecuted ':b'
+        result.assertTasksScheduled ':b'
     }
 
     def "finalizedBy implies dependency"() {
@@ -454,13 +454,13 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         configurationCacheRun 'b'
 
         then:
-        result.assertTasksExecuted ':b', ':a'
+        result.assertTasksScheduled ':b', ':a'
 
         when:
         configurationCacheRun 'b'
 
         then:
-        result.assertTasksExecuted ':b', ':a'
+        result.assertTasksScheduled ':b', ':a'
     }
 
     def "clean task is scheduled correctly in the presence of finalizers with dependencies"() {

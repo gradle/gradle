@@ -28,7 +28,7 @@ class CachedCustomPluginIntegrationTest extends AbstractIntegrationSpec implemen
             file("buildSrc/src/main/groovy/CustomTask.groovy") << customGroovyTask()
             file("buildSrc/src/main/groovy/CustomPlugin.groovy") << """
                 import org.gradle.api.*
-    
+
                 class CustomPlugin implements Plugin<Project> {
                     @Override
                     void apply(Project project) {
@@ -41,7 +41,7 @@ class CachedCustomPluginIntegrationTest extends AbstractIntegrationSpec implemen
             """
             file("buildSrc/build.gradle") << """
                 apply plugin: "java-gradle-plugin"
-                
+
                 gradlePlugin {
                     plugins {
                         examplePlugin {
@@ -68,7 +68,7 @@ class CachedCustomPluginIntegrationTest extends AbstractIntegrationSpec implemen
         executer.inDirectory(originalProjectDir)
         withBuildCache().run "customTask"
         then:
-        result.assertTaskNotSkipped(":customTask")
+        result.assertTaskExecuted(":customTask")
 
         when:
         setupProjectInDirectory(newProjectDir)

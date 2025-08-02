@@ -106,7 +106,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
 
         then:
         assertHasBuildSuccessfulLogging()
-        result.assertTasksExecuted(":help")
+        result.assertTasksScheduled(":help")
     }
 
     // older versions do not run any tasks
@@ -127,7 +127,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
 
         then:
         assertHasBuildSuccessfulLogging()
-        result.assertTasksExecuted(":thing")
+        result.assertTasksScheduled(":thing")
     }
 
     // older versions do not run any tasks
@@ -145,7 +145,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
 
         then:
         assertHasBuildSuccessfulLogging()
-        result.assertTasksExecuted(":help")
+        result.assertTasksScheduled(":help")
     }
 
     // older versions do not run any tasks
@@ -166,7 +166,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
 
         then:
         assertHasBuildSuccessfulLogging()
-        result.assertTasksExecuted(":thing")
+        result.assertTasksScheduled(":thing")
     }
 
     // older versions do not run any tasks
@@ -187,7 +187,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
 
         then:
         assertHasBuildSuccessfulLogging()
-        result.assertTasksExecuted(":thing")
+        result.assertTasksScheduled(":thing")
     }
 
     // older versions do not run any tasks
@@ -208,6 +208,6 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
 
         then:
         assertHasBuildSuccessfulLogging()
-        result.assertTasksExecuted(":thing")
+        result.assertTasksScheduled(":thing")
     }
 }

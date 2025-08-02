@@ -52,12 +52,12 @@ class InputPropertyAnnotationOverrideIntegrationTest extends AbstractIntegration
         succeeds("custom")
         then:
         file("build/output").text == "done"
-        result.assertTasksExecuted(":custom")
+        result.assertTasksScheduled(":custom")
         when:
         file("inputs/input").text = "new"
         succeeds("custom")
         then:
-        result.assertTasksExecuted(":custom")
+        result.assertTasksScheduled(":custom")
 
         where:
         inputType      | inputValue
@@ -84,7 +84,7 @@ class InputPropertyAnnotationOverrideIntegrationTest extends AbstractIntegration
         succeeds("custom")
         then:
         file("build/output").text == "done"
-        result.assertTasksExecuted(":custom")
+        result.assertTasksScheduled(":custom")
 
         when:
         file("inputs/input").text = "new"

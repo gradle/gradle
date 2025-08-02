@@ -55,12 +55,12 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         fails(buildA, "assemble")
 
         then:
-        result.assertTaskExecuted(":buildB:compileJava")
-        result.assertTaskNotExecuted(":compileJava")
-        result.assertTaskNotExecuted(":classes")
-        result.assertTaskNotExecuted(":jar")
-        result.assertTaskNotExecuted(":other")
-        result.assertTaskNotExecuted(":assemble")
+        result.assertTaskScheduled(":buildB:compileJava")
+        result.assertTasksNotScheduled(":compileJava")
+        result.assertTasksNotScheduled(":classes")
+        result.assertTasksNotScheduled(":jar")
+        result.assertTasksNotScheduled(":other")
+        result.assertTasksNotScheduled(":assemble")
         failure.assertHasFailures(1)
         failure.assertHasDescription("Execution failed for task ':buildB:compileJava'.")
     }
@@ -80,7 +80,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         fails(buildA, "assemble")
 
         then:
-        result.assertTaskExecuted(":buildB:broken")
+        result.assertTaskScheduled(":buildB:broken")
         failure.assertHasFailures(1)
         failure.assertHasDescription("Execution failed for task ':buildB:broken'.")
     }
@@ -138,8 +138,8 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         fails(buildA, "assemble")
 
         then:
-        result.assertTaskExecuted(":broken")
-        result.assertTaskExecuted(":buildB:broken")
+        result.assertTaskScheduled(":broken")
+        result.assertTaskScheduled(":buildB:broken")
         failure.assertHasFailures(2)
         failure.assertHasDescription("Execution failed for task ':broken'.")
         failure.assertHasDescription("Execution failed for task ':buildB:broken'.")
@@ -160,7 +160,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         fails(buildA, "assemble")
 
         then:
-        result.assertTaskExecuted(":broken")
+        result.assertTaskScheduled(":broken")
         failure.assertHasFailures(1)
         failure.assertHasDescription("Execution failed for task ':broken'.")
     }

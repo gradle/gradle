@@ -83,7 +83,7 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         isolatedProjectsRun(":b:producer")
 
         then:
-        result.assertTasksExecuted(":a:producer", ":b:producer")
+        result.assertTasksScheduled(":a:producer", ":b:producer")
         fixture.assertStateStored {
             // TODO:isolated desired behavior
 //            projectsConfigured(":", ":b", ":a")
@@ -94,14 +94,14 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         isolatedProjectsRun(":b:producer")
 
         then:
-        result.assertTasksExecuted(":a:producer", ":b:producer")
+        result.assertTasksScheduled(":a:producer", ":b:producer")
         fixture.assertStateLoaded()
 
         when:
         isolatedProjectsRun("producer")
 
         then:
-        result.assertTasksExecuted(":a:producer", ":b:producer", ":c:producer")
+        result.assertTasksScheduled(":a:producer", ":b:producer", ":c:producer")
         fixture.assertStateStored {
             projectsConfigured(":", ":b", ":a", ":c")
         }
@@ -110,7 +110,7 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         isolatedProjectsRun("producer")
 
         then:
-        result.assertTasksExecuted(":a:producer", ":b:producer", ":c:producer")
+        result.assertTasksScheduled(":a:producer", ":b:producer", ":c:producer")
         fixture.assertStateLoaded()
     }
 
