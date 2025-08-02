@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.file;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
@@ -48,6 +49,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.DosFileAttributeView;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -709,50 +713,68 @@ public class TestFile extends File {
         return this;
     }
 
+    private static final Set<PosixFilePermission> ALLOW_ALL = ImmutableSet.copyOf(EnumSet.allOf(PosixFilePermission.class));
+
     /**
      * Recursively delete this directory, reporting all failed paths.
      */
     public TestFile forceDeleteDir() throws IOException {
-        if (isDirectory()) {
-            if (FileUtils.isSymlink(this)) {
-                if (!delete()) {
-                    throw new IOException("Unable to delete symlink: " + getCanonicalPath());
+        Path path = toPath();
+        if (Files.isDirectory(path)) {
+            List<IOException> errors = new ArrayList<>();
+            Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                    try {
+                        deleteWithForceWriteable(file);
+                    } catch (IOException e) {
+                        errors.add(e);
+                    }
+                    return FileVisitResult.CONTINUE;
                 }
-            } else {
-                List<String> errorPaths = new ArrayList<>();
-                Files.walkFileTree(toPath(), new SimpleFileVisitor<Path>() {
 
-                    @Override
-                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        if (!file.toFile().delete()) {
-                            errorPaths.add(file.toFile().getCanonicalPath());
-                        }
-                        return FileVisitResult.CONTINUE;
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
+                    try {
+                        deleteWithForceWriteable(dir);
+                    } catch (IOException e) {
+                        errors.add(e);
                     }
-
-                    @Override
-                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                        if (!dir.toFile().delete()) {
-                            errorPaths.add(dir.toFile().getCanonicalPath());
-                        }
-                        return FileVisitResult.CONTINUE;
-                    }
-                });
-                if (!errorPaths.isEmpty()) {
-                    StringBuilder builder = new StringBuilder()
-                        .append("Unable to recursively delete directory ")
-                        .append(getCanonicalPath())
-                        .append(", failed paths:\n");
-                    for (String errorPath : errorPaths) {
-                        builder.append("\t- ").append(errorPath).append("\n");
-                    }
-                    throw new IOException(builder.toString());
+                    return FileVisitResult.CONTINUE;
                 }
+
+                private void deleteWithForceWriteable(Path file) throws IOException {
+                    // Try to delete the file.
+                    try {
+                        Files.deleteIfExists(file);
+                    } catch (IOException e) {
+                        // If unable, try to set the file to be writable and delete it again
+                        // This replicates old Java File.delete() behavior
+
+                        // Windows/NTFS:
+                        DosFileAttributeView dosAttrs = Files.getFileAttributeView(file, DosFileAttributeView.class);
+                        if (dosAttrs != null && dosAttrs.readAttributes().isReadOnly()) {
+                            dosAttrs.setReadOnly(false);
+                        }
+                        // Linux:
+                        PosixFileAttributeView posixAttrs = Files.getFileAttributeView(file.getParent(), PosixFileAttributeView.class);
+                        if (posixAttrs != null && !posixAttrs.readAttributes().permissions().containsAll(ALLOW_ALL)) {
+                            posixAttrs.setPermissions(ALLOW_ALL);
+                        }
+
+                        Files.deleteIfExists(file);
+                    }
+                }
+            });
+            if (!errors.isEmpty()) {
+                IOException ex = new IOException("Unable to recursively delete directory " + getCanonicalPath());
+                for (IOException error : errors) {
+                    ex.addSuppressed(error);
+                }
+                throw ex;
             }
-        } else if (exists()) {
-            if (!delete()) {
-                throw new IOException("Unable to delete file: " + getCanonicalPath());
-            }
+        } else {
+            Files.deleteIfExists(path);
         }
         return this;
     }

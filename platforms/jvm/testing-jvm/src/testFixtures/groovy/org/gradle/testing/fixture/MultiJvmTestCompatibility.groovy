@@ -23,9 +23,9 @@ import org.gradle.api.JavaVersion;
  */
 class MultiJvmTestCompatibility {
     /**
-     * Check that the console is correct for a test worker. On Java 22, the console exists but is not a terminal. On earlier versions, the console does not exist.
+     * Check that the console is correct for a test worker. On Java 22-24, the console exists but is not a terminal. On earlier versions, the console does not exist.
      */
-    static final String CONSOLE_CHECK = JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_22)
+    static final String CONSOLE_CHECK = (JavaVersion.VERSION_22 <= JavaVersion.current() && JavaVersion.current() <= JavaVersion.VERSION_24)
         ? "assertFalse(System.console().isTerminal());"
         : "assertNull(System.console());"
 }

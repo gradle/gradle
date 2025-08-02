@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.fixtures.timeout;
 
+import org.gradle.internal.jvm.Jvm;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -270,6 +272,10 @@ public class JavaProcessStackTracesMonitor {
 
 
     public File printAllStackTracesByJstack() {
+        if (Jvm.current().getJavaVersionMajor() >= 25) {
+            output.println("Java 25+ has issues with jstack, avoiding printing stack traces.");
+            return outputFile;
+        }
         output.println(ps().getSuspiciousDaemons().stream().map(JavaProcessInfo::jstack).collect(Collectors.joining("\n")));
         return outputFile;
     }

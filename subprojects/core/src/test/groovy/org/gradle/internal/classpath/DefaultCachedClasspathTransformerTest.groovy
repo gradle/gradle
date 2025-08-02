@@ -47,9 +47,9 @@ import spock.lang.Subject
 import java.util.zip.ZipEntry
 
 class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
-    private static final String HASH_JAR = "91ec681b708f5791b57ef1225ccbde75"
-    private static final String HASH_JAR_WITH_STORED_RESOURCE = "67661fe89bbac9fbbd0863814999dd24"
-    private static final String HASH_DIR = "26d84a27e45ab67d330b1199328b4ee7"
+    private static final String HASH_JAR = "b9a2db56446a6a559d0ac1d2db10c62a"
+    private static final String HASH_JAR_WITH_STORED_RESOURCE = "276829aabf209427bc6638b2891c5610"
+    private static final String HASH_DIR = "5ec19da21b201b2d67eab868b56a5b45"
     private static final String HASH_COPYING_TRANSFORM_ON_JAR = "o_1f5b1eae547bef94b883b9b49cacc47c"
 
     @Rule
@@ -406,7 +406,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def file = testDir.file("thing.jar")
         jar(file)
         def classpath = DefaultClassPath.of(file)
-        def cachedFile = testDir.file("cached/b4df09c8c528b9489440109655e5b9e2/thing.jar")
+        def cachedFile = testDir.file("cached/7439dae91da32f8968da3ad8e973fd6d/thing.jar")
 
         when:
         def cachedClasspath = transformer.transform(classpath, transform)
