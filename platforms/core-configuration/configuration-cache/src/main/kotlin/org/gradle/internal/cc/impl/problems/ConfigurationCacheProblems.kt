@@ -407,7 +407,7 @@ class ConfigurationCacheProblems(
         override fun afterStart() = Unit
 
         @Suppress("CyclomaticComplexMethod")
-        override fun beforeComplete() {
+        override fun beforeComplete(failure: Throwable?) {
             val summary = summarizer.get()
             val reportableProblemCount = summary.reportableProblemCount
             val deferredProblemCount = summary.deferredProblemCount

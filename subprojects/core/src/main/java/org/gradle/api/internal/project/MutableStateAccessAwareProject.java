@@ -135,14 +135,17 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    @SuppressWarnings({"EqualsDoesntCheckParameterClass", "EqualsWhichDoesntCheckParameterClass"})
     public final boolean equals(Object other) {
-        return delegate.equals(other);
+        if (!(other instanceof ProjectInternal)) {
+            return false;
+        }
+        ProjectInternal otherProject = (ProjectInternal) other;
+        return getProjectIdentity().equals(otherProject.getProjectIdentity());
     }
 
     @Override
     public final int hashCode() {
-        return delegate.hashCode();
+        return getProjectIdentity().hashCode();
     }
 
     @Nullable

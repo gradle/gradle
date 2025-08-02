@@ -27,7 +27,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -45,10 +44,7 @@ import javax.inject.Inject;
 import java.util.Collections;
 
 public abstract class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary, PublicationAwareComponent {
-    private final ConfigurableFileCollection publicHeaders;
     private final FileCollection publicHeadersWithConvention;
-    private final SetProperty<Linkage> linkage;
-    private final Property<CppBinary> developmentBinary;
     private final Configuration apiElements;
     private final MainLibraryVariant mainVariant;
     private final DefaultLibraryDependencies dependencies;
@@ -56,12 +52,9 @@ public abstract class DefaultCppLibrary extends DefaultCppComponent implements C
     @Inject
     public DefaultCppLibrary(String name, RoleBasedConfigurationContainerInternal configurations, AttributesFactory attributesFactory) {
         super(name);
-        this.developmentBinary = getObjectFactory().property(CppBinary.class);
-        publicHeaders = getObjectFactory().fileCollection();
-        publicHeadersWithConvention = createDirView(publicHeaders, "src/" + name + "/public");
+        publicHeadersWithConvention = createDirView(getPublicHeaders(), "src/" + name + "/public");
 
-        linkage = getObjectFactory().setProperty(Linkage.class);
-        linkage.set(Collections.singleton(Linkage.SHARED));
+        getLinkage().convention(Collections.singleton(Linkage.SHARED));
 
         dependencies = getObjectFactory().newInstance(DefaultLibraryDependencies.class, getNames().withSuffix("implementation"), getNames().withSuffix("api"));
 
@@ -125,13 +118,8 @@ public abstract class DefaultCppLibrary extends DefaultCppComponent implements C
     }
 
     @Override
-    public ConfigurableFileCollection getPublicHeaders() {
-        return publicHeaders;
-    }
-
-    @Override
     public void publicHeaders(Action<? super ConfigurableFileCollection> action) {
-        action.execute(publicHeaders);
+        action.execute(getPublicHeaders());
     }
 
     @Override
@@ -160,12 +148,5 @@ public abstract class DefaultCppLibrary extends DefaultCppComponent implements C
     }
 
     @Override
-    public Property<CppBinary> getDevelopmentBinary() {
-        return developmentBinary;
-    }
-
-    @Override
-    public SetProperty<Linkage> getLinkage() {
-        return linkage;
-    }
+    public abstract Property<CppBinary> getDevelopmentBinary();
 }

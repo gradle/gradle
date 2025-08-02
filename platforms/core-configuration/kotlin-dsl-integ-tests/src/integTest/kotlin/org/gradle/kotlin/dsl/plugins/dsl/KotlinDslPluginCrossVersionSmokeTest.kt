@@ -46,7 +46,6 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
 
     @Test
     @Requires(NotEmbeddedExecutor::class)
-    @Category(Flaky::class) // https://github.com/gradle/gradle-private/issues/4752
     fun `can run with oldest supported version of kotlin-dsl plugin`() {
 
         withDefaultSettingsIn("buildSrc")
@@ -66,7 +65,8 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
 
         expectConfigurationCacheRequestedDeprecation()
 
-        build("help").apply {
+        // Suppress CC problem caused by the outdated KGP version. Can be removed when KGP 2.0+ is used.
+        build("help", "-Dorg.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners=true").apply {
 
             assertThat(
                 output,

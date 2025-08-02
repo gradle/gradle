@@ -79,12 +79,14 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         when:
         fails "checkDeps"
+        operations.debugTree()
 
         then:
         failedResolve.assertFailurePresent(failure)
-        def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        def op = operations.first(ResolveConfigurationDependenciesBuildOperationType) {
+            it.details.projectPath == ":"
+        }
         op.details.configurationName == "compileClasspath"
-        op.details.projectPath == ":"
         op.details.buildPath == ":"
         op.details.scriptConfiguration == false
         op.details.configurationDescription ==~ /Compile classpath for source set 'main'.*/

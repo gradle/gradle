@@ -26,6 +26,7 @@ import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.MutationGuard
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
 import org.gradle.api.internal.file.DefaultProjectLayout
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -42,7 +43,6 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.internal.PatternSets
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator
 import org.gradle.internal.Describables
-import org.gradle.internal.build.BuildState
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.resource.DefaultTextFileResourceLoader
@@ -297,11 +297,27 @@ class DefaultProjectSpec extends Specification {
 
         build.services >> serviceRegistry
 
+        def projectPath = parent == null ? Path.ROOT : parent.projectPath.child(name)
+        def buildIdentifier
+        if (build.identityPath.getPath().isEmpty()) {
+            // No identity path was configured
+            buildIdentifier = DefaultBuildIdentifier.ROOT
+        } else {
+            buildIdentifier = new DefaultBuildIdentifier(build.identityPath)
+        }
+        def identity = new ProjectIdentity(
+            buildIdentifier,
+            Path.path(buildIdentifier.buildPath).append(projectPath),
+            projectPath,
+            name
+        )
+
         def container = Mock(ProjectState)
-        _ * container.projectPath >> (parent == null ? Path.ROOT : parent.projectPath.child(name))
-        _ * container.identityPath >> (parent == null ? build.identityPath : build.identityPath.append(parent.projectPath).child(name))
-        _ * container.owner >> Mock(BuildState)
+        _ * container.projectPath >> identity.projectPath
+        _ * container.identityPath >> identity.buildTreePath
+        _ * container.owner >> build.owner
         _ * container.displayName >> Describables.of(name)
+        _ * container.identity >> identity
 
         def descriptor = Mock(ProjectDescriptor) {
             getName() >> name

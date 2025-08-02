@@ -171,6 +171,31 @@ configurations.dependencyScope("implementation") {
 =====
 ====
 
+[[reporting_extension_file]]
+==== Deprecation of `ReportingExtension.file(String)`
+
+The link:{javadocPath}/org/gradle/api/reporting/ReportingExtension.html#file(String)[`file()` method] on `ReportingExtension` has been deprecated and will be removed in Gradle 10.0.0.
+
+Use `ReportingExtension.getBaseDirectory()` with `file(String)` or `dir(String)` instead.
+
+[[reporting_extension_api_doc_title]]
+==== Deprecation of `ReportingExtension.getApiDocTitle()`
+
+The link:{javadocPath}/org/gradle/api/reporting/ReportingExtension.html#getApiDocTitle()[`getApiDocTitle()` method] on `ReportingExtension` has been deprecated and will be removed in Gradle 10.0.0.
+
+There is no direct replacement for this method.
+
+[[set-all-jvm-args]]
+==== Deprecation of `JavaForkOptions.setAllJvmArgs()`
+
+The link:{javadocPath}/org/gradle/process/JavaForkOptions.html#setAllJvmArgs(java.util.List)[`setAllJvmArgs()` method] on `JavaForkOptions` has been deprecated and will be removed in Gradle 10.0.0.
+
+Instead, use one of the following:
+
+* `JavaForkOptions.jvmArgs()`
+* `JavaForkOptions.setJvmArgs()`
+* Provide a <<incremental_build.adoc#sec:task_input_nested_inputs,`CommandLineArgumentProvider`>> to add arguments via `JavaForkOptions.getJvmArgumentProviders()`.
+
 [[archives-configuration]]
 ==== Deprecated `archives` configuration
 
@@ -220,5 +245,40 @@ tasks.named("assemble") {
     dependsOn(specialJar)
 }
 ----
+
+[[deprecated-gradle-build-non-string-properties]]
+==== Non-String project properties in `GradleBuild` task
+The `GradleBuild` task now deprecates using non-String values in `startParameter.projectProperties`.
+While the type is declared as `Map<String, String>`, there was no strict enforcement, allowing non-String values to be set.
+This deprecated behavior will be removed in Gradle 10.0.0.
+
+If you are using non-String values in project properties, convert them to String representation:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+val myIntProp = 42
+
+tasks.register<GradleBuild>("nestedBuild") {
+    startParameter.projectProperties.put("myIntProp", "$myIntProp") // Convert int to String
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+def myIntProp = 42
+
+tasks.register('nestedBuild', GradleBuild) {
+    startParameter.projectProperties.put('myIntProp', "$myIntProp") // Convert int to String
+}
+----
+=====
+====
 
 === Potential breaking changes
