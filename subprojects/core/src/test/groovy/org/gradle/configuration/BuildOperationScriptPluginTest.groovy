@@ -32,7 +32,7 @@ class BuildOperationScriptPluginTest extends Specification {
     def scriptSourceResource = Mock(TextResource)
     def scriptSourceResourceLocation = Mock(ResourceLocation)
     def decoratedScriptPlugin = Mock(ScriptPlugin)
-    def buildOperationScriptPlugin = new BuildOperationScriptPlugin(decoratedScriptPlugin, buildOperationRunner, userCodeApplicationContext)
+    def buildOperationScriptPlugin = new BuildOperationScriptPlugin(decoratedScriptPlugin, buildOperationRunner, userCodeApplicationContext, resilientConfigurationListener)
     def target = "Test Target"
 
     def "delegates to decorated script plugin via build operation"() {
