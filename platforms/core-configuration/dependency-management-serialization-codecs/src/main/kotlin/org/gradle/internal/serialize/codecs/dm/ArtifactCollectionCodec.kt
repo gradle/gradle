@@ -29,6 +29,7 @@ import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
+import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.internal.DisplayName
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.extensions.stdlib.uncheckedCast
@@ -45,6 +46,7 @@ class ArtifactCollectionCodec(
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
     private val artifactSetConverter: ArtifactSetToFileCollectionFactory,
     private val attributeDesugaring: AttributeDesugaring,
+    private val taskDependencyFactory: TaskDependencyFactory
 ) : Codec<ArtifactCollectionInternal> {
 
     override suspend fun WriteContext.encode(value: ArtifactCollectionInternal) {
@@ -60,7 +62,7 @@ class ArtifactCollectionCodec(
         val lenient = readBoolean()
         val elements = readList().uncheckedCast<List<Any>>()
 
-        val files = artifactSetConverter.asFileCollection(displayName, lenient,
+        val artifacts = artifactSetConverter.getSelectedArtifacts(
             elements.map { element ->
                 when (element) {
                     is Throwable -> artifactSetConverter.asResolvedArtifactSet(element)
@@ -70,7 +72,8 @@ class ArtifactCollectionCodec(
                 }
             }
         )
-        return DefaultArtifactCollection(files, lenient, artifactSetConverter.resolutionHost(displayName), calculatedValueContainerFactory, attributeDesugaring)
+
+        return DefaultArtifactCollection(artifacts, lenient, artifactSetConverter.resolutionHost(displayName), taskDependencyFactory, calculatedValueContainerFactory, attributeDesugaring)
     }
 }
 

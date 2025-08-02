@@ -707,6 +707,7 @@ class DefaultConfigurationCacheIO internal constructor(
             parallelLoad = startParameter.isParallelLoad,
             problems = service(),
             attributeDesugaring = service(),
+            taskDependencyFactory = service(),
         )
 
     private
