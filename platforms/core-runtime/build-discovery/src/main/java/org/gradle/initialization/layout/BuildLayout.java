@@ -15,37 +15,37 @@
  */
 package org.gradle.initialization.layout;
 
-import org.gradle.initialization.SettingsLocation;
-import org.gradle.internal.initialization.BuildLogicFiles;
-import org.gradle.internal.scripts.ScriptFileResolver;
+import org.gradle.internal.initialization.BuildLocations;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
+/**
+ * @implNote Despite not being part of the public API, this service is known to have been used by users.
+ * So we treat its removal as a breaking change.
+ * @deprecated Instead, use {@link org.gradle.api.file.BuildLayout#getSettingsDirectory()} for settings or {@link org.gradle.api.file.ProjectLayout#getSettingsDirectory()} for project.
+ */
+@Deprecated
 @ServiceScope(Scope.Build.class)
-public class BuildLayout extends SettingsLocation {
-    private final ScriptFileResolver scriptFileResolver;
+@SuppressWarnings("deprecation")
+public class BuildLayout extends org.gradle.initialization.SettingsLocation {
 
-    // Note: `null` for `settingsFile` means explicitly no settings
-    //       A non null value can be a non existent file, which is semantically equivalent to an empty file
-    public BuildLayout(File rootDirectory, @Nullable File settingsFile, ScriptFileResolver scriptFileResolver) {
-        super(rootDirectory, settingsFile);
-        this.scriptFileResolver = scriptFileResolver;
+    public BuildLayout(BuildLocations buildLocations) {
+        super(buildLocations);
     }
 
     /**
      * Was a build definition found?
      */
     public boolean isBuildDefinitionMissing() {
-        return getSettingsFile() != null && !getSettingsFile().exists() && scriptFileResolver.resolveScriptFile(getRootDirectory(), BuildLogicFiles.BUILD_FILE_BASENAME) == null;
+        return buildLocations.isBuildDefinitionMissing();
     }
 
     /**
      * Returns the root directory of the build, is never null.
      */
     public File getRootDirectory() {
-        return getSettingsDir();
+        return buildLocations.getBuildRootDirectory();
     }
 }

@@ -18,7 +18,7 @@ package org.gradle.launcher.cli.converter
 
 import org.gradle.cli.CommandLineParser
 import org.gradle.initialization.BuildLayoutParameters
-import org.gradle.initialization.layout.BuildLayoutFactory
+import org.gradle.internal.initialization.BuildLocator
 import org.gradle.launcher.configuration.BuildLayoutResult
 import org.gradle.launcher.configuration.InitialProperties
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
@@ -32,7 +32,7 @@ class LayoutToPropertiesConverterTest extends Specification {
     SetSystemProperties sysProperties = new SetSystemProperties()
     @Rule
     TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
-    def converter = new LayoutToPropertiesConverter(new BuildLayoutFactory())
+    def converter = new LayoutToPropertiesConverter(new BuildLocator())
     def gradleDistribution = temp.createDir("gradleDistribution")
     def gradleHome = temp.createDir("gradleHome")
     def rootDir = temp.createDir("projectDir")

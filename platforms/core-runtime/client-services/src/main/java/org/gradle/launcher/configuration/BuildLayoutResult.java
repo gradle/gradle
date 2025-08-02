@@ -18,7 +18,7 @@ package org.gradle.launcher.configuration;
 
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildLayoutParameters;
-import org.gradle.initialization.layout.BuildLayoutConfiguration;
+import org.gradle.internal.initialization.BuildDiscoveryParameters;
 
 import java.io.File;
 
@@ -30,7 +30,7 @@ public interface BuildLayoutResult {
 
     void applyTo(StartParameterInternal startParameter);
 
-    BuildLayoutConfiguration toLayoutConfiguration();
+    BuildDiscoveryParameters toBuildDiscoveryParameters();
 
     File getGradleInstallationHomeDir();
 

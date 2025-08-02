@@ -19,7 +19,7 @@ package org.gradle.launcher.cli.converter
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.cli.CommandLineParser
-import org.gradle.initialization.layout.BuildLayoutFactory
+import org.gradle.internal.initialization.BuildLocator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -130,7 +130,7 @@ class StartParameterConverterTest extends Specification {
         def converter = new StartParameterConverter()
         def initialPropertiesConverter = new InitialPropertiesConverter()
         def buildLayoutConverter = new BuildLayoutConverter()
-        def propertiesConverter = new LayoutToPropertiesConverter(new BuildLayoutFactory())
+        def propertiesConverter = new LayoutToPropertiesConverter(new BuildLocator())
 
         def parser = new CommandLineParser()
         initialPropertiesConverter.configure(parser)

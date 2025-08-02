@@ -15,7 +15,6 @@
  */
 package org.gradle.initialization
 
-
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
@@ -24,9 +23,9 @@ import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.plugins.internal.HelpBuiltInCommand
 import org.gradle.buildinit.plugins.internal.action.InitBuiltInCommand
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.initialization.layout.BuildLayout
-import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.FileUtils
+import org.gradle.internal.initialization.BuildLocations
+import org.gradle.internal.initialization.BuildLocator
 import org.gradle.internal.logging.ToStringLogger
 import org.gradle.internal.scripts.ScriptFileResolver
 import org.gradle.internal.service.ServiceRegistry
@@ -44,15 +43,15 @@ class DefaultSettingsLoaderTest extends Specification {
         file.deleteOnExit()
         FileUtils.canonicalize(file)
     }
-    private mockBuildLayout = new BuildLayout(projectRootDir, null, Stub(ScriptFileResolver))
+    private mockBuildLocations = new BuildLocations(projectRootDir, null, Stub(ScriptFileResolver))
     @SuppressWarnings('GroovyAssignabilityCheck')
-    private mockBuildLayoutFactory = Mock(BuildLayoutFactory) {
-        getLayoutFor(_) >> mockBuildLayout
+    private mockBuildLayoutFactory = Mock(BuildLocator) {
+        findBuild(_) >> mockBuildLocations
     }
     private mockProjectDescriptor = Mock(DefaultProjectDescriptor) {
         getPath() >> ":"
-        getProjectDir() >> mockBuildLayout.settingsDir
-        getBuildFile() >> new File(mockBuildLayout.settingsDir, "build.gradle")
+        getProjectDir() >> mockBuildLocations.buildRootDirectory
+        getBuildFile() >> new File(mockBuildLocations.buildRootDirectory, "build.gradle")
     }
     private mockProjectRegistry = Mock(ProjectRegistry) {
         getAllProjects() >> Collections.singleton(mockProjectDescriptor)
@@ -70,7 +69,7 @@ class DefaultSettingsLoaderTest extends Specification {
         // When we process, we're interested in retaining the start parameter in
         // the resulting state, so we can test it, so create a new mock and configure it
         //noinspection GroovyAssignabilityCheck
-        process(mockGradle, mockBuildLayout, mockClassLoaderScope, _) >> { gradle, settingsLocation, clasLoaderScope, startParameter ->
+        process(mockGradle, mockBuildLocations, mockClassLoaderScope, _) >> { gradle, settingsLocation, clasLoaderScope, startParameter ->
             def mockResultSettingsScript = Mock(ScriptSource) {
                 getDisplayName() >> "foo"
             }
@@ -89,7 +88,7 @@ class DefaultSettingsLoaderTest extends Specification {
     }
 
     void setup() {
-        startParameterInternal.setCurrentDir( projectRootDir )
+        startParameterInternal.setCurrentDir(projectRootDir)
     }
 
     private logger = new ToStringLogger()
@@ -109,7 +108,7 @@ class DefaultSettingsLoaderTest extends Specification {
 
     def "running init uses new empty settings"() {
         given:
-        startParameterInternal.setCurrentDir(mockBuildLayout.settingsDir)
+        startParameterInternal.setCurrentDir(mockBuildLocations.buildRootDirectory)
         startParameterInternal.setTaskNames(["init"])
 
         when:

@@ -24,6 +24,7 @@ import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
+import org.gradle.internal.initialization.BuildLocations;
 import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -54,13 +55,13 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
     @Override
     public SettingsState process(
         GradleInternal gradle,
-        SettingsLocation settingsLocation,
+        BuildLocations buildLocations,
         ClassLoaderScope baseClassLoaderScope,
         StartParameter startParameter
     ) {
         Timer settingsProcessingClock = Time.startTimer();
-        TextResourceScriptSource settingsScript = new TextResourceScriptSource(textFileResourceLoader.loadFile("settings file", settingsLocation.getSettingsFile()));
-        SettingsState state = settingsFactory.createSettings(gradle, settingsLocation.getSettingsDir(), settingsScript, gradleProperties, startParameter, baseClassLoaderScope);
+        TextResourceScriptSource settingsScript = new TextResourceScriptSource(textFileResourceLoader.loadFile("settings file", buildLocations.getSettingsFile()));
+        SettingsState state = settingsFactory.createSettings(gradle, buildLocations.getBuildRootDirectory(), settingsScript, gradleProperties, startParameter, baseClassLoaderScope);
 
         SettingsInternal settings = state.getSettings();
         gradle.getBuildListenerBroadcaster().beforeSettings(settings);

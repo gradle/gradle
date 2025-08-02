@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,34 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization.layout;
+package org.gradle.internal.initialization;
 
 import org.gradle.initialization.BuildLayoutParameters;
 
 import java.io.File;
 
 /**
- * Configuration which affects the (static) layout of a build.
+ * Target directory and other parameters to determine the location of the build.
+ *
+ * @see BuildLocator
  */
-public class BuildLayoutConfiguration {
-    private final File currentDir;
+public class BuildDiscoveryParameters {
+
+    private final File targetDirectory;
     private final boolean searchUpwards;
     private final boolean useEmptySettings;
 
-    public BuildLayoutConfiguration(File currentDir, boolean searchUpwards, boolean useEmptySettings) {
-        this.currentDir = currentDir;
+    public BuildDiscoveryParameters(File targetDirectory, boolean searchUpwards, boolean useEmptySettings) {
+        this.targetDirectory = targetDirectory;
         this.searchUpwards = searchUpwards;
         this.useEmptySettings = useEmptySettings;
     }
 
-    public BuildLayoutConfiguration(BuildLayoutParameters parameters) {
-        this.currentDir = parameters.getCurrentDir();
+    public BuildDiscoveryParameters(BuildLayoutParameters parameters) {
+        this.targetDirectory = parameters.getCurrentDir();
         this.searchUpwards = true;
         this.useEmptySettings = false;
     }
 
-    public File getCurrentDir() {
-        return currentDir;
+    public File getTargetDirectory() {
+        return targetDirectory;
     }
 
     public boolean isSearchUpwards() {

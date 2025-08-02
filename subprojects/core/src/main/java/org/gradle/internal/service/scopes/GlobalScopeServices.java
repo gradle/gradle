@@ -62,7 +62,7 @@ import org.gradle.initialization.DefaultJdkToolsInitializer;
 import org.gradle.initialization.FlatClassLoaderRegistry;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.initialization.LegacyTypesSupport;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.initialization.BuildLocator;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -152,7 +152,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     void configure(ServiceRegistration registration) {
         super.configure(registration);
         registration.add(ScriptFileResolvedListener.class, ScriptFileResolverListeners.class, DefaultScriptFileResolverListeners.class);
-        registration.add(BuildLayoutFactory.class);
+        registration.add(BuildLocator.class);
         registration.add(ValidateStep.ValidationWarningRecorder.class, WorkValidationWarningReporter.class, DefaultWorkValidationWarningRecorder.class);
     }
 

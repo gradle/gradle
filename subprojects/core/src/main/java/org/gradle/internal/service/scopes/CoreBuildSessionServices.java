@@ -40,8 +40,6 @@ import org.gradle.deployment.internal.PendingChangesManager;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildLayoutValidator;
 import org.gradle.internal.buildevents.BuildStartedTime;
@@ -49,6 +47,8 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.DefaultChecksumService;
+import org.gradle.internal.initialization.BuildLocations;
+import org.gradle.internal.initialization.BuildLocator;
 import org.gradle.internal.initialization.BuildTreeLocations;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -103,9 +103,9 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    BuildTreeLocations createBuildTreeLocations(BuildLayoutFactory buildLayoutFactory, StartParameter startParameter) {
-        BuildLayout rootBuildLayout = buildLayoutFactory.getLayoutFor(((StartParameterInternal) startParameter).toBuildLayoutConfiguration());
-        return new BuildTreeLocations(rootBuildLayout);
+    BuildTreeLocations createBuildTreeLocations(BuildLocator buildLocator, StartParameter startParameter) {
+        BuildLocations rootBuildLocations = buildLocator.findBuild(((StartParameterInternal) startParameter).toBuildDiscoveryParameters());
+        return new BuildTreeLocations(rootBuildLocations);
     }
 
     @Provides
@@ -121,7 +121,7 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
         BuildOperationRunner buildOperationRunner,
         StartParameter startParameter
     ) {
-        BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildTreeLocations.getRootBuildLayout(), startParameter);
+        BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildTreeLocations.getRoot(), startParameter);
         return new ProjectCacheDir(cacheDir.getDir(), buildOperationRunner, deleter);
     }
 

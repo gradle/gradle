@@ -29,7 +29,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.NoOpBuildEventConsumer;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.initialization.BuildLocator;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
@@ -109,7 +109,7 @@ import static java.util.Collections.emptySet;
 public class ProviderConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProviderConnection.class);
     private final PayloadSerializer payloadSerializer;
-    private final BuildLayoutFactory buildLayoutFactory;
+    private final BuildLocator buildLocator;
     private final DaemonClientFactory daemonClientFactory;
     private final BuildActionExecutor<BuildActionParameters, BuildRequestContext> embeddedExecutor;
     private final ServiceRegistry sharedServices;
@@ -124,7 +124,7 @@ public class ProviderConnection {
 
     public ProviderConnection(
         ServiceRegistry sharedServices,
-        BuildLayoutFactory buildLayoutFactory,
+        BuildLocator buildLocator,
         DaemonClientFactory daemonClientFactory,
         BuildActionExecutor<BuildActionParameters, BuildRequestContext> embeddedExecutor,
         PayloadSerializer payloadSerializer,
@@ -135,7 +135,7 @@ public class ProviderConnection {
         NotifyDaemonClientExecuter notifyDaemonClientExecuter,
         IsolatableSerializerRegistry isolatableSerializerRegistry
     ) {
-        this.buildLayoutFactory = buildLayoutFactory;
+        this.buildLocator = buildLocator;
         this.daemonClientFactory = daemonClientFactory;
         this.embeddedExecutor = embeddedExecutor;
         this.payloadSerializer = payloadSerializer;
@@ -345,7 +345,7 @@ public class ProviderConnection {
             layout.setProjectDir(operationParameters.getProjectDir());
         });
 
-        AllProperties properties = new LayoutToPropertiesConverter(buildLayoutFactory).convert(initialProperties, buildLayoutResult);
+        AllProperties properties = new LayoutToPropertiesConverter(buildLocator).convert(initialProperties, buildLayoutResult);
 
         DaemonParameters daemonParams = new DaemonParameters(buildLayoutResult.getGradleUserHomeDir(), fileCollectionFactory, Collections.emptyMap(), operationParameters.getEnvironmentVariables(null));
         new DaemonBuildOptions().propertiesConverter().convert(properties.getProperties(), daemonParams);

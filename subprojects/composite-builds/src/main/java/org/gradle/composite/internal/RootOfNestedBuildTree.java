@@ -23,7 +23,6 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.RunNestedBuildBuildOperationType;
-import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.Pair;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.AbstractBuildState;
@@ -41,6 +40,7 @@ import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.exception.ExceptionAnalyser;
+import org.gradle.internal.initialization.BuildLocations;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -110,7 +110,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
 
     @Override
     public File getBuildRootDir() {
-        return getBuildController().getGradle().getServices().get(BuildLayout.class).getRootDirectory();
+        return getBuildController().getGradle().getServices().get(BuildLocations.class).getBuildRootDirectory();
     }
 
     @Override

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.initialization;
 
-import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -30,10 +29,10 @@ import java.io.File;
 @ServiceScope(Scope.BuildSession.class)
 public class BuildTreeLocations {
 
-    private final BuildLayout rootBuildLayout;
+    private final BuildLocations rootBuildLocations;
 
-    public BuildTreeLocations(BuildLayout rootBuildLayout) {
-        this.rootBuildLayout = rootBuildLayout;
+    public BuildTreeLocations(BuildLocations rootBuildLocations) {
+        this.rootBuildLocations = rootBuildLocations;
     }
 
     /**
@@ -45,13 +44,13 @@ public class BuildTreeLocations {
      * via the <code>ProjectDescriptor</code> of the root project.
      */
     public File getBuildTreeRootDirectory() {
-        return rootBuildLayout.getRootDirectory();
+        return rootBuildLocations.getBuildRootDirectory();
     }
 
     /**
-     * Layout of the root build.
+     * Locations of the root build.
      */
-    public BuildLayout getRootBuildLayout() {
-        return rootBuildLayout;
+    public BuildLocations getRoot() {
+        return rootBuildLocations;
     }
 }

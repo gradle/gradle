@@ -20,7 +20,7 @@ import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.loadercache.ModelClassLoaderFactory;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.initialization.BuildLocator;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.daemon.client.serialization.ClasspathInferer;
 import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderFactory;
@@ -102,7 +102,7 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
     ProviderConnection createProviderConnection(
         BuildExecutor buildActionExecuter,
         DaemonClientFactory daemonClientFactory,
-        BuildLayoutFactory buildLayoutFactory,
+        BuildLocator buildLocator,
         ServiceRegistry serviceRegistry,
         FileCollectionFactory fileCollectionFactory,
         GlobalUserInputReceiver userInput,
@@ -136,7 +136,7 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
 
         return new ProviderConnection(
             serviceRegistry,
-            buildLayoutFactory,
+            buildLocator,
             daemonClientFactory,
             buildActionExecuter,
             payloadSerializer,

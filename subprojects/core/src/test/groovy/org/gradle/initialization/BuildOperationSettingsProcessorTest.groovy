@@ -20,6 +20,7 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.internal.initialization.BuildLocations
 import org.gradle.internal.operations.BuildOperationMetadata
 import org.gradle.internal.operations.TestBuildOperationRunner
 import spock.lang.Specification
@@ -29,7 +30,7 @@ class BuildOperationSettingsProcessorTest extends Specification {
     def buildOperationRunner = new TestBuildOperationRunner()
     def settingsProcessor = Mock(SettingsProcessor)
     def gradleInternal = Mock(GradleInternal)
-    def settingsLocation = Mock(SettingsLocation)
+    def buildLocations = Mock(BuildLocations)
     def buildOperationScriptPlugin = new BuildOperationSettingsProcessor(settingsProcessor, buildOperationRunner)
     def classLoaderScope = Mock(ClassLoaderScope)
     def startParameter = Mock(StartParameter)
@@ -42,10 +43,10 @@ class BuildOperationSettingsProcessorTest extends Specification {
         settings()
 
         when:
-        buildOperationScriptPlugin.process(gradleInternal, settingsLocation, classLoaderScope, startParameter)
+        buildOperationScriptPlugin.process(gradleInternal, buildLocations, classLoaderScope, startParameter)
 
         then:
-        1 * settingsProcessor.process(gradleInternal, settingsLocation, classLoaderScope, startParameter) >> state
+        1 * settingsProcessor.process(gradleInternal, buildLocations, classLoaderScope, startParameter) >> state
     }
 
     def "exposes build operation with settings configuration result"() {
@@ -54,10 +55,10 @@ class BuildOperationSettingsProcessorTest extends Specification {
         def contextualizedName = "Contextualized display name"
 
         when:
-        buildOperationScriptPlugin.process(gradleInternal, settingsLocation, classLoaderScope, startParameter)
+        buildOperationScriptPlugin.process(gradleInternal, buildLocations, classLoaderScope, startParameter)
 
         then:
-        1 * settingsProcessor.process(gradleInternal, settingsLocation, classLoaderScope, startParameter) >> state
+        1 * settingsProcessor.process(gradleInternal, buildLocations, classLoaderScope, startParameter) >> state
         1 * gradleInternal.contextualize("Evaluate settings") >> contextualizedName
 
         and:
@@ -73,7 +74,7 @@ class BuildOperationSettingsProcessorTest extends Specification {
     private void settings() {
         _ * state.settings >> settingsInternal
         _ * settingsInternal.gradle >> gradleInternal
-        _ * settingsLocation.settingsDir >> rootDir
-        _ * settingsLocation.settingsFile >> new File("settings.gradle")
+        _ * buildLocations.buildRootDirectory >> rootDir
+        _ * buildLocations.settingsFile >> new File("settings.gradle")
     }
 }

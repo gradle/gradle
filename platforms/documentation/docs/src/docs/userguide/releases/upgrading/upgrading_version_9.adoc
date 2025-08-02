@@ -277,4 +277,15 @@ tasks.register('nestedBuild', GradleBuild) {
 =====
 ====
 
+[[deprecate-internal-buildlayout]]
+==== Usage of internal `BuildLayout` and `SettingsLocation` services is now deprecated
+
+Internal services `org.gradle.initialization.layout.BuildLayout` and `org.gradle.initialization.SettingsLocation` are deprecated.
+As the classes don't make it explicit that they are not part of the Gradle API, their removal is scheduled for Gradle 10.0.0.
+
+If you need the settings directory in the context of a `Project` plugin,
+then use public link:{javadocPath}/org/gradle/api/file/ProjectLayout.html[`ProjectLayout.settingsDirectory`] service.
+If you need it in the context of a `Settings` plugin,
+then use public link:{javadocPath}/org/gradle/api/file/BuildLayout.html[`org.gradle.api.file.BuildLayout.settingsDirectory`] service (note the different package).
+
 === Potential breaking changes

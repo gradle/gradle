@@ -78,10 +78,10 @@ import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
-import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.initialization.BuildLocations;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.LoggingManagerFactory;
@@ -395,10 +395,10 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
 
     @Provides({ProjectLayout.class, TaskFileVarFactory.class})
     DefaultProjectLayout createProjectLayout(
-        BuildLayout buildLayout, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory,
+        BuildLocations buildLocations, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory,
         FilePropertyFactory filePropertyFactory, PatternSetFactory patternSetFactory, PropertyHost propertyHost, FileFactory fileFactory
     ) {
-        File settingsDir = buildLayout.getSettingsDir();
+        File settingsDir = buildLocations.getBuildRootDirectory();
         File projectDir = project.getProjectDir();
         return new DefaultProjectLayout(settingsDir, projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
     }
