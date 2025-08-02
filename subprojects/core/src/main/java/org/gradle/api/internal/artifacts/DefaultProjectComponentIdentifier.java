@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.util.Path;
@@ -26,14 +25,6 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
 
     public DefaultProjectComponentIdentifier(ProjectIdentity projectIdentity) {
         this.projectIdentity = projectIdentity;
-    }
-
-    /**
-     * Prefer {@link #DefaultProjectComponentIdentifier(ProjectIdentity)}.
-     */
-    @VisibleForTesting
-    public DefaultProjectComponentIdentifier(BuildIdentifier buildIdentifier, Path identityPath, Path projectPath, String projectName) {
-        this(new ProjectIdentity(buildIdentifier, identityPath, projectPath, projectName));
     }
 
     @Override
@@ -48,7 +39,7 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
 
     @Override
     public BuildIdentifier getBuild() {
-        return projectIdentity.getBuildIdentifier();
+        return new DefaultBuildIdentifier(projectIdentity.getBuildPath());
     }
 
     @Override
