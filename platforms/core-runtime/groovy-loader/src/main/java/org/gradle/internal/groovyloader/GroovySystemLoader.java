@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.classloading;
+package org.gradle.internal.groovyloader;
 
-/**
- * Doesn't need to do anything.
- */
-public class NoOpGroovySystemLoader implements GroovySystemLoader {
-    @Override
-    public void shutdown() {
-    }
+public interface GroovySystemLoader {
+    /**
+     * Invoked when this Groovy system is to be discarded, so that the Groovy system can remove any static state it may have registered in other ClassLoaders.
+     */
+    void shutdown();
 
-    @Override
-    public void discardTypesFrom(ClassLoader classLoader) {
-    }
+    /**
+     * Invoked when another ClassLoader is discarded, so that this Groovy system can remove state for the classes loaded from the ClassLoader
+     */
+    void discardTypesFrom(ClassLoader classLoader);
 }

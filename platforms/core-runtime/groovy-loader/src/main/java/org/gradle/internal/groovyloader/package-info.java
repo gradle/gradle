@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.classloading;
+/**
+ * Utilities to load Groovy System in isolation and ensure proper cleanup.
+ */
+@NullMarked
+package org.gradle.internal.groovyloader;
 
-public interface GroovySystemLoader {
-    /**
-     * Invoked when this Groovy system is to be discarded, so that the Groovy system can remove any static state it may have registered in other ClassLoaders.
-     */
-    void shutdown();
-
-    /**
-     * Invoked when another ClassLoader is discarded, so that this Groovy system can remove state for the classes loaded from the ClassLoader
-     */
-    void discardTypesFrom(ClassLoader classLoader);
-}
+import org.jspecify.annotations.NullMarked;
