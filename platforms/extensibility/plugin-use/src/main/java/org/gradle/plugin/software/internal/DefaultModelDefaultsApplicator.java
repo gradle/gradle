@@ -17,7 +17,6 @@
 package org.gradle.plugin.software.internal;
 
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 
 import java.util.List;
 
@@ -32,7 +31,7 @@ public class DefaultModelDefaultsApplicator implements ModelDefaultsApplicator {
     }
 
     @Override
-    public <T> void applyDefaultsTo(T target, ClassLoaderScope classLoaderScope, Plugin<?> plugin, SoftwareTypeImplementation<?> softwareTypeImplementation) {
-        defaultsHandlers.forEach(handler -> handler.apply(target, classLoaderScope, softwareTypeImplementation.getSoftwareType(), plugin));
+    public <T> void applyDefaultsTo(T target, ClassLoaderContext classLoaderContext, Plugin<?> plugin, SoftwareFeatureImplementation<?, ?> softwareFeatureImplementation) {
+        defaultsHandlers.forEach(handler -> handler.apply(target, classLoaderContext, softwareFeatureImplementation.getFeatureName(), plugin));
     }
 }

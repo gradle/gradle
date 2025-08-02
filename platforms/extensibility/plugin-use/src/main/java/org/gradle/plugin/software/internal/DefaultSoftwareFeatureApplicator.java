@@ -17,13 +17,17 @@
 package org.gradle.plugin.software.internal;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Named;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
+import org.gradle.api.internal.plugins.SoftwareFeatureApplicationContext;
+import org.gradle.api.internal.plugins.SoftwareFeatureBinding;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
@@ -56,29 +60,64 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
     private final PluginManagerInternal pluginManager;
     private final Set<AppliedFeature> applied = new HashSet<>();
     private final ClassLoaderScope classLoaderScope;
+    private final ObjectFactory objectFactory;
 
-    public DefaultSoftwareFeatureApplicator(ModelDefaultsApplicator modelDefaultsApplicator, InspectionScheme inspectionScheme, InternalProblems problems, PluginManagerInternal pluginManager, ClassLoaderScope classLoaderScope) {
+    public DefaultSoftwareFeatureApplicator(ModelDefaultsApplicator modelDefaultsApplicator, InspectionScheme inspectionScheme, InternalProblems problems, PluginManagerInternal pluginManager, ClassLoaderScope classLoaderScope, ObjectFactory objectFactory) {
         this.modelDefaultsApplicator = modelDefaultsApplicator;
         this.inspectionScheme = inspectionScheme;
         this.problems = problems;
         this.pluginManager = pluginManager;
         this.classLoaderScope = classLoaderScope;
+        this.objectFactory = objectFactory;
     }
 
     @Override
-    public <T> T applyFeatureTo(ExtensionAware target, SoftwareTypeImplementation<T> softwareFeature) {
+    public <T, V> T applyFeatureTo(ExtensionAware target, SoftwareFeatureImplementation<T, V> softwareFeature) {
         AppliedFeature appliedFeature = new AppliedFeature(target, softwareFeature);
         if (!applied.contains(appliedFeature)) {
+            if (!(softwareFeature instanceof LegacySoftwareTypeImplementation)) {
+                T dslObject = createDslObject(target, softwareFeature);
+                V buildModelObject = createBuildModelObject((ExtensionAware) dslObject, softwareFeature);
+                SoftwareFeatureApplicationContext context = objectFactory.newInstance(SoftwareFeatureApplicationContext.class);
+                softwareFeature.getBindingTransform().transform(context, dslObject, Cast.uncheckedCast(buildModelObject), Cast.uncheckedCast(target));
+            }
+
             pluginManager.apply(softwareFeature.getPluginClass());
             Plugin<Project> plugin = pluginManager.getPluginContainer().getPlugin(softwareFeature.getPluginClass());
             applyAndMaybeRegisterExtension(target, softwareFeature, plugin);
             applied.add(appliedFeature);
-            modelDefaultsApplicator.applyDefaultsTo(target, classLoaderScope, plugin, softwareFeature);
+            modelDefaultsApplicator.applyDefaultsTo(target, new ClassLoaderContextFromScope(classLoaderScope), plugin, softwareFeature);
         }
-        return Cast.uncheckedCast(target.getExtensions().getByName(softwareFeature.getSoftwareType()));
+        return Cast.uncheckedCast(target.getExtensions().getByName(softwareFeature.getFeatureName()));
     }
 
-    private <T> void applyAndMaybeRegisterExtension(ExtensionAware target, SoftwareTypeImplementation<T> softwareFeature, Plugin<?> plugin) {
+    private static <T, V> T createDslObject(ExtensionAware target, SoftwareFeatureImplementation<T, V> softwareFeature) {
+        Class<? extends T> dslType = softwareFeature.getDefinitionImplementationType();
+        if (Named.class.isAssignableFrom(dslType)) {
+            if (Named.class.isAssignableFrom(target.getClass())) {
+                return target.getExtensions().create(softwareFeature.getFeatureName(), dslType, ((Named) target).getName());
+            } else {
+                throw new IllegalArgumentException("Cannot infer a name for " + dslType.getSimpleName() + " because the parent object of type " + target.getClass().getSimpleName() + " does not implement Named.");
+            }
+        } else {
+            return target.getExtensions().create(softwareFeature.getFeatureName(), dslType);
+        }
+    }
+
+    private static <V> V createBuildModelObject(ExtensionAware target, SoftwareFeatureImplementation<?, V> softwareFeature) {
+        Class<? extends V> buildModelType = softwareFeature.getBuildModelImplementationType();
+        if (Named.class.isAssignableFrom(buildModelType)) {
+            if (Named.class.isAssignableFrom(target.getClass())) {
+                return target.getExtensions().create(SoftwareFeatureBinding.MODEL, buildModelType, ((Named) target).getName());
+            } else {
+                throw new IllegalArgumentException("Cannot infer a name for " + buildModelType.getSimpleName() + " because the parent object of type " + target.getClass().getSimpleName() + " does not implement Named.");
+            }
+        } else {
+            return target.getExtensions().create(SoftwareFeatureBinding.MODEL, buildModelType);
+        }
+    }
+
+    private <T, V> void applyAndMaybeRegisterExtension(ExtensionAware target, SoftwareFeatureImplementation<T, V> softwareFeature, Plugin<?> plugin) {
         DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(softwareFeature.getPluginClass(), false, problems);
         ExtensionAddingVisitor<T> extensionAddingVisitor = new ExtensionAddingVisitor<>(target, typeValidationContext);
         inspectionScheme.getPropertyWalker().visitProperties(
@@ -116,9 +155,15 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
             this.validationContext = validationContext;
         }
 
+        /**
+         * Checks the invariants related to the plugin's software type property and its effects on the runtime model.
+         *
+         * The extension must have been already added in {@link SoftwareFeatureApplicator#applyFeatureTo}
+         */
         @Override
         public void visitSoftwareTypeProperty(String propertyName, PropertyValue value, Class<?> declaredPropertyType, SoftwareType softwareType) {
-            T publicModelObject = Cast.uncheckedNonnullCast(value.call());
+            T publicModelObject = Cast.uncheckedNonnullCast(Objects.requireNonNull(value.call()));
+
             if (softwareType.disableModelManagement()) {
                 Object extension = target.getExtensions().findByName(softwareType.name());
                 if (extension == null) {
@@ -159,9 +204,9 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
 
     private static class AppliedFeature {
         private final Object target;
-        private final SoftwareTypeImplementation<?> softwareFeature;
+        private final SoftwareFeatureImplementation<?, ?> softwareFeature;
 
-        public AppliedFeature(Object target, SoftwareTypeImplementation<?> softwareFeature) {
+        public AppliedFeature(Object target, SoftwareFeatureImplementation<?, ?> softwareFeature) {
             this.target = target;
             this.softwareFeature = softwareFeature;
         }
@@ -188,6 +233,24 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
             int result = System.identityHashCode(target);
             result = 31 * result + softwareFeature.hashCode();
             return result;
+        }
+    }
+
+    private static class ClassLoaderContextFromScope implements ModelDefaultsApplicator.ClassLoaderContext {
+        private final ClassLoaderScope scope;
+
+        public ClassLoaderContextFromScope(ClassLoaderScope scope) {
+            this.scope = scope;
+        }
+
+        @Override
+        public ClassLoader getClassLoader() {
+            return scope.getLocalClassLoader();
+        }
+
+        @Override
+        public ClassLoader getParentClassLoader() {
+            return scope.getParent().getLocalClassLoader();
         }
     }
 }

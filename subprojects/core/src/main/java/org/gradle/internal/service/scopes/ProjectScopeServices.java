@@ -108,8 +108,8 @@ import org.gradle.normalization.internal.DefaultRuntimeClasspathNormalization;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
 import org.gradle.plugin.software.internal.ModelDefaultsHandler;
-import org.gradle.plugin.software.internal.PluginScheme;
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+import org.gradle.plugin.internal.PluginScheme;
+import org.gradle.plugin.software.internal.SoftwareFeatureRegistry;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 import org.jspecify.annotations.Nullable;
@@ -386,11 +386,11 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     protected ModelDefaultsHandler createActionBasedModelDefaultsHandler(
         SharedModelDefaults sharedModelDefaults,
         ProjectLayout projectLayout,
-        SoftwareTypeRegistry softwareTypeRegistry,
+        SoftwareFeatureRegistry softwareFeatureRegistry,
         PluginScheme pluginScheme,
         InternalProblems problems
     ) {
-        return new ActionBasedModelDefaultsHandler(sharedModelDefaults, projectLayout, softwareTypeRegistry, pluginScheme.getInspectionScheme(), problems);
+        return new ActionBasedModelDefaultsHandler(sharedModelDefaults, projectLayout, softwareFeatureRegistry, pluginScheme.getInspectionScheme(), problems);
     }
 
     @Provides({ProjectLayout.class, TaskFileVarFactory.class})

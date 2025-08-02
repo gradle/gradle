@@ -22,7 +22,9 @@ description = "DCL-related utilities that are meant to be reused in the Gradle s
 
 dependencies {
     api(projects.core)
+    api(projects.softwareFeatures)
 
+    implementation(projects.softwareFeaturesApi)
     implementation(projects.declarativeDslApi)
     implementation(projects.coreApi)
 

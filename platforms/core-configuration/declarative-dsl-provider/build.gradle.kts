@@ -26,6 +26,7 @@ dependencies {
     api(projects.declarativeDslEvaluator)
     api(projects.declarativeDslToolingModels)
     api(projects.serviceProvider)
+    api(projects.softwareFeatures)
     api(projects.stdlibJavaExtensions)
 
     api(libs.kotlinStdlib)
@@ -40,6 +41,7 @@ dependencies {
     implementation(projects.serviceLookup)
     implementation(libs.guava)
     implementation(libs.kotlinReflect)
+    implementation(libs.jspecify)
 
     testImplementation(libs.mockitoKotlin)
     testImplementation(testFixtures(projects.declarativeDslCore))

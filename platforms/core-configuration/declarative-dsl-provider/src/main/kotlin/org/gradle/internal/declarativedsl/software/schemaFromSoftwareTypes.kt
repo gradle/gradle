@@ -16,7 +16,13 @@
 
 package org.gradle.internal.declarativedsl.software
 
+import org.gradle.api.Project
+import org.gradle.api.internal.plugins.HasBuildModel
+import org.gradle.api.internal.plugins.TargetTypeInformation
+import org.gradle.api.internal.plugins.TargetTypeInformation.BuildModelTargetTypeInformation
+import org.gradle.api.internal.plugins.TargetTypeInformation.DefinitionTargetTypeInformation
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
@@ -25,6 +31,7 @@ import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
+import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultSoftwareFeatureOrigin
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.FixedTypeDiscovery
@@ -39,10 +46,17 @@ import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.withTag
 import org.gradle.plugin.software.internal.SoftwareFeatureApplicator
-import org.gradle.plugin.software.internal.SoftwareTypeImplementation
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry
+import org.gradle.plugin.software.internal.SoftwareFeatureImplementation
+import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
+import kotlin.collections.associate
+import kotlin.collections.flatten
+import kotlin.collections.groupBy
+import kotlin.collections.map
+import kotlin.jvm.kotlin
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlin.reflect.full.allSupertypes
+import kotlin.reflect.full.starProjectedType
 
 
 /**
@@ -54,18 +68,21 @@ import kotlin.reflect.KFunction
  * build script, but are captured and applied when a project build script references a given software type.
  */
 internal
-fun EvaluationSchemaBuilder.softwareTypesComponent(
-    schemaTypeToExtend: KClass<*>,
-    softwareTypeRegistry: SoftwareTypeRegistry,
+fun EvaluationSchemaBuilder.softwareFeaturesComponent(
+    rootSchemaType: KClass<*>,
+    softwareFeatureRegistry: SoftwareFeatureRegistry,
     withDefaultsApplication: Boolean
 ) {
-    val softwareTypeInfo: List<SoftwareTypeInfo<*>> = buildSoftwareTypeInfo(softwareTypeRegistry, schemaTypeToExtend)
-    registerAnalysisSchemaComponent(SoftwareTypeComponent(schemaTypeToExtend, softwareTypeInfo))
+    // Maps from the parent binding type to the software feature implementations that can bind to it
+    val featureIndex = buildSoftwareFeatureInfo(softwareFeatureRegistry) { replaceProjectWithSchemaTopLevelType(it, rootSchemaType) }
+
+    // Register analysis schema components for each software feature that can bind to a given type
+    registerAnalysisSchemaComponent(SoftwareFeatureComponent(featureIndex))
 
     if (withDefaultsApplication) {
         ifConversionSupported(mapper = { it as? ProjectInternal }) {
             registerObjectConversionComponent { project ->
-                SoftwareTypeConversionComponent(softwareTypeInfo, project.services.get(SoftwareFeatureApplicator::class.java))
+                SoftwareFeatureConversionComponent(featureIndex.allFeatures, project.services.get(SoftwareFeatureApplicator::class.java))
             }
         }
     }
@@ -73,87 +90,148 @@ fun EvaluationSchemaBuilder.softwareTypesComponent(
 }
 
 internal
-fun EvaluationSchemaBuilder.softwareTypesDefaultsComponent(
+fun EvaluationSchemaBuilder.softwareFeaturesDefaultsComponent(
     schemaTypeToExtend: KClass<*>,
-    softwareTypeRegistry: SoftwareTypeRegistry
+    softwareFeatureRegistry: SoftwareFeatureRegistry
 ) {
-    val softwareTypeInfo = buildSoftwareTypeInfoWithoutResolution(softwareTypeRegistry, schemaTypeToExtend)
-    registerAnalysisSchemaComponent(SoftwareTypeComponent(schemaTypeToExtend, softwareTypeInfo))
+    val softwareFeatureInfo = buildSoftwareTypeInfo(softwareFeatureRegistry) { replaceProjectWithSchemaTopLevelType(it, schemaTypeToExtend) }
+    registerAnalysisSchemaComponent(SoftwareFeatureComponent(softwareFeatureInfo))
 }
 
-
 private
-class SoftwareTypeComponent(
-    private val schemaTypeToExtend: KClass<*>,
-    private val softwareTypeImplementations: List<SoftwareTypeInfo<*>>
+class SoftwareFeatureComponent(
+    private val featureSchemaBindingIndex: SoftwareFeatureSchemaBindingIndex,
 ) : AnalysisSchemaComponent {
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
-        FixedTypeDiscovery(schemaTypeToExtend, softwareTypeImplementations.map { it.modelPublicType.kotlin })
+        FixedTypeDiscovery(
+            null,
+            featureSchemaBindingIndex.run { (bindingToDefinition.values + bindingByModelType.values).flatten().map { it.definitionPublicType.kotlin } }
+        )
     )
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
-        softwareTypeConfiguringFunctions(schemaTypeToExtend, softwareTypeImplementations)
+        softwareFeatureConfiguringFunctions(featureSchemaBindingIndex)
     )
 }
 
-
 private
-class SoftwareTypeConversionComponent(
-    private val softwareTypeImplementations: List<SoftwareTypeInfo<*>>,
+class SoftwareFeatureConversionComponent(
+    private val softwareFeatureImplementations: List<SoftwareFeatureInfo<*, *>>,
     private val softwareFeatureApplicator: SoftwareFeatureApplicator
 ) : ObjectConversionComponent {
     override fun runtimeCustomAccessors(): List<RuntimeCustomAccessors> = listOf(
-        RuntimeModelTypeAccessors(softwareFeatureApplicator, softwareTypeImplementations)
+        RuntimeModelTypeAccessors(softwareFeatureApplicator, softwareFeatureImplementations)
     )
 }
 
+
+private class SoftwareFeatureSchemaBindingIndex(
+    val bindingToDefinition: Map<KClass<*>, List<SoftwareFeatureInfo<*, *>>>,
+    val bindingByModelType: Map<KClass<*>, List<SoftwareFeatureInfo<*, *>>>
+) {
+    val allFeatures = (bindingByModelType.values + bindingToDefinition.values).flatten()
+}
+
+private
+fun buildSoftwareFeatureInfo(
+    softwareFeatureRegistry: SoftwareFeatureRegistry,
+    mapPluginTypeToSchemaType: (KClass<*>) -> KClass<*>
+): SoftwareFeatureSchemaBindingIndex {
+    val featureImplementations = softwareFeatureRegistry.getSoftwareFeatureImplementations().values.groupBy { it.targetDefinitionType }
+
+    val featuresBoundToDefinition = featureImplementations.entries.mapNotNull { (key, value) -> if (key is DefinitionTargetTypeInformation) key to value else null }.toMap()
+    val featuresBoundToModel = featureImplementations.entries.mapNotNull { (key, value) -> if (key is BuildModelTargetTypeInformation<*>) key to value else null }.toMap()
+
+    return SoftwareFeatureSchemaBindingIndex(
+        featuresBoundToDefinition.mapKeys { mapPluginTypeToSchemaType(it.key.definitionType.kotlin) }
+            .mapValues { (_, value) -> value.map { SoftwareFeatureInfo(it, SOFTWARE_TYPE_ACCESSOR_PREFIX) } },
+        featuresBoundToModel.mapKeys { mapPluginTypeToSchemaType(it.key.buildModelType.kotlin) }
+            .mapValues { (_, value) -> value.map { SoftwareFeatureInfo(it, SOFTWARE_TYPE_ACCESSOR_PREFIX) } }
+    )
+}
+
+
 private
 fun buildSoftwareTypeInfo(
-    softwareTypeRegistry: SoftwareTypeRegistry,
-    schemaTypeToExtend: KClass<*>
-): List<SoftwareTypeInfo<*>> = softwareTypeRegistry.getSoftwareTypeImplementations().values.map {
-    SoftwareTypeInfo(it, schemaTypeToExtend, SOFTWARE_TYPE_ACCESSOR_PREFIX)
+    softwareFeatureRegistry: SoftwareFeatureRegistry,
+    pluginTypeToSchemaClassMapping: (KClass<*>) -> KClass<*>
+): SoftwareFeatureSchemaBindingIndex {
+    val softwareTypeInfo = softwareFeatureRegistry.getSoftwareFeatureImplementations().values.mapNotNull {
+        it.targetDefinitionType.run {
+            if (this is DefinitionTargetTypeInformation && definitionType == Project::class.java)
+                SoftwareFeatureInfo(it, SOFTWARE_TYPE_ACCESSOR_PREFIX)
+            else null
+        }
+    }
+    return SoftwareFeatureSchemaBindingIndex(
+        softwareTypeInfo.groupBy { pluginTypeToSchemaClassMapping((it.targetDefinitionType as DefinitionTargetTypeInformation).definitionType.kotlin) },
+        emptyMap()
+    )
 }
 
+
 private
-fun buildSoftwareTypeInfoWithoutResolution(
-    softwareTypeRegistry: SoftwareTypeRegistry,
-    schemaTypeToExtend: KClass<*>
-): List<SoftwareTypeInfo<*>> = softwareTypeRegistry.getSoftwareTypeImplementations().values.map {
-    SoftwareTypeInfo(it, schemaTypeToExtend, SOFTWARE_TYPE_ACCESSOR_PREFIX)
+fun replaceProjectWithSchemaTopLevelType(bindingType: KClass<*>, rootSchemaType: KClass<*>): KClass<*> {
+    return when (bindingType) {
+        Project::class -> rootSchemaType
+        else -> bindingType
+    }
 }
 
 
 private
-data class SoftwareTypeInfo<T : Any>(
-    val delegate: SoftwareTypeImplementation<T>,
-    val schemaTypeToExtend: KClass<*>,
-    val accessorIdPrefix: String,
-) : SoftwareTypeImplementation<T> by delegate {
-    val customAccessorId = "$accessorIdPrefix:${delegate.softwareType}"
+data class SoftwareFeatureInfo<T : Any, V : Any>(
+    val delegate: SoftwareFeatureImplementation<T, V>,
+    val accessorIdPrefix: String
+) : SoftwareFeatureImplementation<T, V> by delegate {
+    val customAccessorId = "$accessorIdPrefix:${delegate.featureName}"
 
-    fun schemaFunction(host: SchemaBuildingHost) = host.withTag(softwareConfiguringFunctionTag(delegate.softwareType)) {
+    fun schemaFunction(host: SchemaBuildingHost, schemaTypeToExtend: KClass<*>) = host.withTag(softwareConfiguringFunctionTag(delegate.featureName)) {
+        val receiverTypeRef = host.containerTypeRef(schemaTypeToExtend)
         DefaultDataMemberFunction(
-            host.containerTypeRef(schemaTypeToExtend),
-            delegate.softwareType,
+            receiverTypeRef,
+            delegate.featureName,
             emptyList(),
             isDirectAccessOnly = true,
             semantics = FunctionSemanticsInternal.DefaultAccessAndConfigure(
-                accessor = ConfigureAccessorInternal.DefaultCustom(host.containerTypeRef(modelPublicType.kotlin), customAccessorId),
+                accessor = ConfigureAccessorInternal.DefaultCustom(host.containerTypeRef(definitionPublicType.kotlin), customAccessorId),
                 FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
                 FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
-            )
+            ),
+            metadata = listOf(DefaultSoftwareFeatureOrigin(
+                delegate.featureName,
+                delegate.pluginClass.name,
+                delegate.registeringPluginClass.name,
+                delegate.registeringPluginId,
+                (delegate.targetDefinitionType as? DefinitionTargetTypeInformation)?.definitionType?.name,
+                (delegate.targetDefinitionType as? BuildModelTargetTypeInformation<*>)?.buildModelType?.name,
+            ))
         )
     }
 
-    private fun softwareConfiguringFunctionTag(name: String) = SchemaBuildingContextElement.TagContextElement("configuring function for '$name' software type")
+    private fun softwareConfiguringFunctionTag(name: String) = SchemaBuildingContextElement.TagContextElement("configuring function for '$name' software feature")
 }
 
 
 private
-fun softwareTypeConfiguringFunctions(typeToExtend: KClass<*>, softwareTypeImplementations: Iterable<SoftwareTypeInfo<*>>): FunctionExtractor = object : FunctionExtractor {
-    override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
-        if (kClass == typeToExtend) softwareTypeImplementations.map { it.schemaFunction(host) } else emptyList()
+fun softwareFeatureConfiguringFunctions(softwareFeatureImplementations: SoftwareFeatureSchemaBindingIndex): FunctionExtractor = object : FunctionExtractor {
+    override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> {
+        val classWithSupertypes = listOf(kClass.starProjectedType) + kClass.allSupertypes
+
+        val featureImplementations = buildSet {
+            classWithSupertypes.forEach { supertype ->
+                softwareFeatureImplementations.bindingToDefinition[supertype.classifier]?.let(::addAll)
+                if (supertype.classifier == HasBuildModel::class) {
+                    val buildModelWithSupertypes = supertype.arguments.single().type.let { listOf(it) + (it?.classifier as? KClass<*>)?.allSupertypes.orEmpty() }
+                    buildModelWithSupertypes.forEach { buildModelSupertype ->
+                        softwareFeatureImplementations.bindingByModelType[buildModelSupertype?.classifier]?.let(::addAll)
+                    }
+                }
+            }
+        }
+
+        return featureImplementations.map { it.schemaFunction(host, kClass) }
+    }
 
     override fun constructors(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
 
@@ -161,23 +239,38 @@ fun softwareTypeConfiguringFunctions(typeToExtend: KClass<*>, softwareTypeImplem
 }
 
 
-private
-class RuntimeModelTypeAccessors(
+private class RuntimeModelTypeAccessors(
     private val softwareFeatureApplicator: SoftwareFeatureApplicator,
-    info: List<SoftwareTypeInfo<*>>
+    info: List<SoftwareFeatureInfo<*, *>>
 ) : RuntimeCustomAccessors {
 
     val modelTypeById = info.associate { it.customAccessorId to it.delegate }
 
     override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): InstanceAndPublicType {
-        val softwareType = modelTypeById[accessor.customAccessorIdentifier]
+        val softwareFeature = modelTypeById[accessor.customAccessorIdentifier]
             ?: return InstanceAndPublicType.NULL
-        return InstanceAndPublicType.of(applySoftwareTypePlugin(receiverObject, softwareType, softwareFeatureApplicator), softwareType.modelPublicType.kotlin)
+        return InstanceAndPublicType.of(applySoftwareFeaturePlugin(receiverObject, softwareFeature, softwareFeatureApplicator), softwareFeature.definitionPublicType.kotlin)
     }
 
-    private
-    fun applySoftwareTypePlugin(receiverObject: Any, softwareType: SoftwareTypeImplementation<*>, softwareFeatureApplicator: SoftwareFeatureApplicator): Any {
-        require(receiverObject is ProjectInternal) { "unexpected receiver, expected a ProjectInternal instance, got $receiverObject" }
-        return softwareFeatureApplicator.applyFeatureTo(receiverObject, softwareType)
+    private fun applySoftwareFeaturePlugin(receiverObject: Any, softwareFeature: SoftwareFeatureImplementation<*, *>, softwareFeatureApplicator: SoftwareFeatureApplicator): Any {
+        require(receiverObject is ExtensionAware) { "unexpected receiver, expected a ExtensionAware instance, got $receiverObject" }
+        require(isValidBindingType(softwareFeature.targetDefinitionType, receiverObject::class.java)) {
+            "unexpected receiver; software feature ${softwareFeature.featureName} binds to '${softwareFeature.targetDefinitionType}', got '$receiverObject' definition"
+        }
+        return softwareFeatureApplicator.applyFeatureTo(receiverObject, softwareFeature)
     }
+
+    private fun isValidBindingType(expectedTargetDefinitionType: TargetTypeInformation<*>, actualTargetDefinitionType: Class<*>): Boolean =
+        when (expectedTargetDefinitionType) {
+            is DefinitionTargetTypeInformation ->
+                expectedTargetDefinitionType.definitionType.isAssignableFrom(actualTargetDefinitionType)
+
+            is BuildModelTargetTypeInformation<*> ->
+                HasBuildModel::class.java.isAssignableFrom(actualTargetDefinitionType) &&
+                    actualTargetDefinitionType.kotlin.allSupertypes.find { it.classifier == HasBuildModel::class }
+                        ?.let { (it.arguments.singleOrNull()?.type?.classifier as? KClass<*>)?.java?.let(expectedTargetDefinitionType.buildModelType::isAssignableFrom) }
+                    ?: false
+
+            else -> true
+        }
 }
