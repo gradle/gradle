@@ -1,0 +1,226 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[gradle_directories]]
+= Anatomy of a Gradle Build
+
+A Gradle build is made up of several key components that work together to automate tasks like compiling code, running tests, and packaging artifacts.
+
+image::gradle-basic-1.png[]
+
+At a high level, a build includes:
+
+- *Projects*, which represent things you’re building (like apps or libraries)
+- *Tasks*, which define the work to do (like compiling or testing)
+- *Build scripts*, which configure the projects and tasks
+- *Plugins*, which extend the build with reusable logic
+
+Let's first quickly review the directories in a simple Gradle project to better understand the components of a build:
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+gradle-project          // <1>
+├── app
+│   ├── build.gradle.kts    // <2>
+│   └── ...
+├── settings.gradle.kts     // <3>
+├── gradle                  // <4>
+│   └── ...
+├── gradlew             // <5>
+└── gradlew.bat         // <5>
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+gradle-project      // <1>
+├── app
+│   ├── build.gradle    // <2>
+│   └── ...
+├── settings.gradle     // <3>
+├── gradle              // <4>
+│   └── ...
+├── gradlew                 // <5>
+└── gradlew.bat             // <5>
+----
+=====
+====
+<1> *Root Directory* - Gradle Project
+<2> *Build Script* - Project-level configuration
+<3> *Settings File* - Project inclusion and build identity
+<4> *Gradle Files* -  Wrapper executables and version pinning
+<5> *Gradle Wrapper* - Script that automatically downloads and runs the correct Gradle version for a project
+
+This basic Gradle build has a *root project* called `gradle-project` and contains one *subproject* called `app`.
+
+The *settings file* in the root directory lets Gradle know about the structure of the build.
+
+The *build file* in the `app` directory contains build logic specific to the `app` subproject such as declaring dependencies and applying *plugins*.
+
+[[dir:build_dir]]
+== Build Directory
+
+The `build/` directory is the *default output directory* at the **root of each project ** where Gradle places all generated files during a build.
+
+It is created automatically when you run tasks like `build`, `assemble`, `test`, or others that produce outputs:
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+gradle-project
+├── app
+│   ├── build.gradle.kts
+│   └── ...
+├── settings.gradle.kts
+├── gradle
+│   └── ...
+├── build                   // <1>
+├── gradlew
+└── gradlew.bat
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+gradle-project
+├── app
+│   ├── build.gradle
+│   └── ...
+├── settings.gradle
+├── gradle
+│   └── ...
+├── build                   // <1>
+├── gradlew
+└── gradlew.bat
+----
+=====
+====
+<1> *Build directory*
+
+To remove the entire `build/` directory and all its contents, use:
+
+[source,bash]
+----
+$ ./gradlew clean
+----
+
+This is useful when you want to ensure a fresh build with no leftover outputs.
+
+WARNING: Gradle creates the `build` directory by default, so it must be writable. If a custom build directory is specified, it must exist and also be writable.
+
+Gradle uses two main directories to perform and manage its work: the <<#gradle_user_home>> and the <<#project_root>>.
+
+image::author-gradle-2.png[]
+
+[[project_root]]
+== Project Root Directory
+
+The *Project Root Directory* contains all source files from your project.
+
+It also contains files and directories Gradle generates, such as `.gradle` and `build`, as well as the Gradle configuration directory: `gradle`.
+
+TIP: The `gradle` and `.gradle` directories are different.
+
+While `gradle` is usually checked into source control, `build` and `.gradle` directories contain the output of your builds, caches, and other transient files Gradle uses to support features like incremental builds.
+
+In this case, `./gradle-project` is the project root directory:
+
+[source,text]
+----
+gradle-project  // <1>
+├── .gradle         // <2>
+│   ├── 4.8             // <3>
+│   ├── 4.9             // <3>
+│   └── ⋮
+├── build           // <4>
+├── gradle
+│   └── wrapper // <5>
+├── gradle.properties   // <6>
+├── gradlew         // <7>
+├── gradlew.bat     // <7>
+├── settings.gradle(.kts)   // <8>
+├── subproject-one              // <9>
+|   └── build.gradle(.kts)  // <10>
+├── subproject-two              // <9>
+|   └── build.gradle(.kts)  // <10>
+└── ⋮
+----
+<1> *Root Project*
+<2> Project-specific cache directory generated by Gradle.
+<3> Version-specific caches (e.g., to support incremental builds).
+<4> The build directory of this project.
+<5> Contains the JAR file and configuration of the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>>.
+<6> Project-specific <<build_environment.adoc#sec:gradle_configuration_properties,Gradle configuration properties>>.
+<7> Scripts for executing builds using the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>>.
+<8> The project's <<settings_file_basics.adoc#sec:settings_file_script, settings file>> where the list of subprojects is defined.
+<9> Usually, a project is organized into one or multiple subprojects.
+<10> Each subproject has its own Gradle build script.
+
+[[gradle_user_home]]
+== Gradle User Home Directory
+
+By default, the *Gradle User Home* (`~/.gradle` or `C:\Users\<USERNAME>\.gradle`) stores global configuration properties, initialization scripts, caches, and log files.
+
+It can be set with the environment variable `GRADLE_USER_HOME`.
+Note that this directory is often abbreviated as `GUH`.
+
+WARNING: `GRADLE_USER_HOME` is not to be confused with the `GRADLE_HOME`, the optional installation directory for Gradle.
+
+It is roughly structured as follows:
+
+[source,text]
+----
+~/.gradle   // <1>
+├── caches      // <2>
+│   ├── 4.8     // <3>
+│   ├── 4.9     // <3>
+│   ├── ⋮
+│   ├── jars-3      // <4>
+│   └── modules-2   // <4>
+├── daemon              // <5>
+│   ├── ⋮
+│   ├── 4.8
+│   └── 4.9
+├── init.d                  // <6>
+│   └── my-setup.gradle
+├── jdks                    // <7>
+│   ├── ⋮
+│   └── jdk-14.0.2+12
+├── wrapper
+│   └── dists                   // <8>
+│       ├── ⋮
+│       ├── gradle-4.8-bin
+│       ├── gradle-4.9-all
+│       └── gradle-4.9-bin
+└── gradle.properties           // <9>
+----
+<1> *Gradle User Home*
+<2> Global cache directory (for everything that is not project-specific).
+<3> Version-specific caches (e.g., to support incremental builds).
+<4> Shared caches (e.g., for artifacts of dependencies).
+<5> Registry and logs of the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>>.
+<6> Global <<init_scripts.adoc#init_scripts, initialization scripts>>.
+<7> JDKs downloaded by the <<toolchains.adoc#sec:provisioning, toolchain support>>.
+<8> Distributions downloaded by the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>>.
+<9> Global <<build_environment.adoc#sec:gradle_configuration_properties,Gradle configuration properties>>.
+
+[.text-right]
+**Next Step:** <<multi_project_builds_intermediate.adoc#intro_multi_project_builds,Learn how to structure Multi-Project Builds>> >>

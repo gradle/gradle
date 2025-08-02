@@ -20,7 +20,7 @@ For migrating from Gradle 5.x, see the <<upgrading_version_5.adoc#upgrading_vers
 
 We recommend the following steps for all users:
 
-. Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
+. Try running `gradle help --scan` and view the https://docs.gradle.com/develocity/get-started/#identifying_deprecated_gradle_functionality[deprecations view] of the generated Build Scan.
 +
 image::deprecations.png[Deprecations View in a Build Scan]
 +
@@ -360,7 +360,7 @@ Gradle no longer supports discovering the settings file in a directory named `ma
 If your build still uses this deprecated feature, consider refactoring the build to have the root directory match the physical root of the project hierarchy.
 You can find more information about <<multi_project_builds.adoc#multi_project_builds,how to structure a Gradle build>> in the user manual.
 Alternatively, you can still run tasks in builds like this by invoking the build from the `master` directory only using a
-<<intro_multi_project_builds.adoc#sec:executing_tasks_by_fully_qualified_name,fully qualified path to the task>>.
+<<multi_project_builds_intermediate.adoc#sec:executing_tasks_by_fully_qualified_name,fully qualified path to the task>>.
 
 ==== `modularity.inferModulePath` defaults to 'true'
 
@@ -540,7 +540,7 @@ Gradle will emit a deprecation warning when your build relies on finding the set
 If your build uses this feature, consider refactoring the build to have the root directory match the physical root of the project hierarchy.
 
 Alternatively, you can still run tasks in builds like this by invoking the build from the `master` directory only using a
-<<intro_multi_project_builds.adoc#sec:executing_tasks_by_fully_qualified_name,fully qualified path to the task>>.
+<<multi_project_builds_intermediate.adoc#sec:executing_tasks_by_fully_qualified_name,fully qualified path to the task>>.
 
 [[using_NamedDomainObjectContainer_invoke_kotlin_Function1]]
 ==== Using method `NamedDomainObjectContainer<T>.invoke(kotlin.Function1)`

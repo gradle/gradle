@@ -28,67 +28,64 @@
 
 toc::[leveloffset=+2]
 
-[[part:about_gradle]]
-== **OVERVIEW**
-
-include::userguide.adoc[leveloffset=+2]
-
-'''
-
 [[part:releases]]
-== **RELEASES**
+== RELEASES
 
 include::installation.adoc[leveloffset=+2]
 include::compatibility.adoc[leveloffset=+2]
 include::feature_lifecycle.adoc[leveloffset=+2]
 
-== UPGRADING
+[[part:reference]]
+== RUNTIME AND CONFIGURATION
 
-include::upgrading_version_9.adoc[leveloffset=+2]
-
-[[part:running_builds]]
-== **RUNNING GRADLE BUILDS**
-
-== CORE CONCEPTS
-
-include::gradle_basics.adoc[leveloffset=+2]
-include::gradle_wrapper_basics.adoc[leveloffset=+2]
-include::command_line_interface_basics.adoc[leveloffset=+2]
-include::settings_file_basics.adoc[leveloffset=+2]
-include::build_file_basics.adoc[leveloffset=+2]
-include::dependency_management_basics.adoc[leveloffset=+2]
-include::task_basics.adoc[leveloffset=+2]
-include::plugin_basics.adoc[leveloffset=+2]
-include::gradle_optimizations.adoc[leveloffset=+2]
-include::build_scans.adoc[leveloffset=+2]
-
-[[part:authoring_builds]]
-== **AUTHORING GRADLE BUILDS**
-
-== CORE CONCEPTS
-
-include::gradle_directories.adoc[leveloffset=+2]
-include::intro_multi_project_builds.adoc[leveloffset=+2]
+include::command_line_interface.adoc[leveloffset=+2]
+include::logging.adoc[leveloffset=+2]
+include::gradle_wrapper.adoc[leveloffset=+2]
+include::gradle_daemon.adoc[leveloffset=+2]
+include::directory_layout.adoc[leveloffset=+2]
+include::build_environment.adoc[leveloffset=+2]
 include::build_lifecycle.adoc[leveloffset=+2]
-include::writing_settings_files.adoc[leveloffset=+2]
-include::writing_build_scripts.adoc[leveloffset=+2]
-include::tutorial_using_tasks.adoc[leveloffset=+2]
-include::writing_tasks.adoc[leveloffset=+2]
-include::plugins.adoc[leveloffset=+2]
-include::writing_plugins.adoc[leveloffset=+2]
+include::inspect.adoc[leveloffset=+2]
+include::continuous_builds.adoc[leveloffset=+2]
+include::file_system_watching.adoc[leveloffset=+2]
+
+== DSL AND APIS
+
+include::groovy_build_script_primer.adoc[leveloffset=+2]
+include::kotlin_dsl.adoc[leveloffset=+2]
+include::default_script_imports.adoc[leveloffset=+2]
+
+== BEST PRACTICES
+
+include::best_practices.adoc[leveloffset=+2]
+include::best_practices_index.adoc[leveloffset=+2]
+include::best_practices_general.adoc[leveloffset=+2]
+include::best_practices_structuring_builds.adoc[leveloffset=+2]
+include::best_practices_dependencies.adoc[leveloffset=+2]
+include::best_practices_tasks.adoc[leveloffset=+2]
+include::best_practices_performance.adoc[leveloffset=+2]
+include::best_practices_security.adoc[leveloffset=+2]
+
+== CORE PLUGINS
+
+include::plugin_reference.adoc[leveloffset=2]
 
 == GRADLE TYPES
 
+include::lazy_eager_evaluation.adoc[leveloffset=+2]
 include::properties_providers.adoc[leveloffset=+2]
 include::collections.adoc[leveloffset=+2]
 include::service_injection.adoc[leveloffset=+2]
+include::working_with_files.adoc[leveloffset=+2]
 
 == STRUCTURING BUILDS
 
+include::organizing_gradle_projects.adoc[leveloffset=+2]
 include::multi_project_builds.adoc[leveloffset=+2]
 include::sharing_build_logic_between_subprojects.adoc[leveloffset=+2]
 include::composite_builds.adoc[leveloffset=+2]
 include::multi_project_configuration_and_execution.adoc[leveloffset=+2]
+include::isolated_projects.adoc[leveloffset=+2]
 
 == DEVELOPING TASKS
 
@@ -113,27 +110,17 @@ include::reporting_problems.adoc[leveloffset=+2]
 
 == OTHER TOPICS
 
-include::working_with_files.adoc[leveloffset=+2]
 include::init_scripts.adoc[leveloffset=+2]
 include::dataflow_actions.adoc[leveloffset=+2]
 include::test_kit.adoc[leveloffset=+2]
 include::ant.adoc[leveloffset=+2]
 
 [[part:optimizing_build_times]]
-== **OPTIMIZING BUILD PERFORMANCE**
+== OPTIMIZING BUILD PERFORMANCE
 
-include::build_environment.adoc[leveloffset=+2]
-include::directory_layout.adoc[leveloffset=+2]
-include::logging.adoc[leveloffset=+2]
-include::config_gradle.adoc[leveloffset=+2]
 include::performance.adoc[leveloffset=+2]
-include::configuration_cache.adoc[leveloffset=+2]
-include::continuous_builds.adoc[leveloffset=+2]
-include::inspect.adoc[leveloffset=+2]
-include::isolated_projects.adoc[leveloffset=+2]
-include::file_system_watching.adoc[leveloffset=+2]
 
-== THE BUILD CACHE
+== BUILD CACHE
 
 include::build_cache.adoc[leveloffset=+2]
 include::build_cache_use_cases.adoc[leveloffset=+2]
@@ -144,19 +131,15 @@ include::caching_android_projects.adoc[leveloffset=+2]
 include::build_cache_debugging.adoc[leveloffset=+2]
 include::common_caching_problems.adoc[leveloffset=+2]
 
+== CONFIGURATION CACHE
+
+include::configuration_cache.adoc[leveloffset=+2]
+include::configuration_cache_enabling.adoc[leveloffset=+2]
+include::configuration_cache_requirements.adoc[leveloffset=+2]
+include::configuration_cache_debugging.adoc[leveloffset=+2]
+include::configuration_cache_status.adoc[leveloffset=+2]
+
 [[part:dependency_management]]
-== **DEPENDENCY MANAGEMENT**
-
-== CORE CONCEPTS
-
-include::declaring_dependencies.adoc[leveloffset=+2]
-include::dependency_configurations.adoc[leveloffset=+2]
-include::declaring_repositories.adoc[leveloffset=+2]
-include::centralizing_dependencies.adoc[leveloffset=+2]
-include::dependency_constraints_conflicts.adoc[leveloffset=+2]
-include::dependency_resolution.adoc[leveloffset=+2]
-include::variant_aware_resolution.adoc[leveloffset=+2]
-
 == DECLARING DEPENDENCIES
 
 include::declaring_dependencies_basics.adoc[leveloffset=+2]
@@ -164,6 +147,8 @@ include::viewing_debugging_dependencies.adoc[leveloffset=+2]
 include::dependency_versions.adoc[leveloffset=+2]
 include::dependency_constraints.adoc[leveloffset=+2]
 include::declaring_configurations.adoc[leveloffset=+2]
+include::gradle_dependencies.adoc[leveloffset=+2]
+include::dependency_verification.adoc[leveloffset=+2]
 
 == DECLARING REPOSITORIES
 
@@ -187,15 +172,12 @@ include::resolution_rules.adoc[leveloffset=+2]
 include::component_metadata_rules.adoc[leveloffset=+2]
 include::dependency_caching.adoc[leveloffset=+2]
 
-== UNDERSTANDING DEPENDENCY RESOLUTION
-
-include::component_capabilities.adoc[leveloffset=+2]
-include::variant_attributes.adoc[leveloffset=+2]
-
 == CONTROLLING DEPENDENCY RESOLUTION
 
-include::graph_resolution.adoc[leveloffset=+2]
-include::artifact_resolution.adoc[leveloffset=+2]
+include::dependency_resolution_consistency.adoc[leveloffset=+2]
+include::resolving_specific_artifacts.adoc[leveloffset=+2]
+include::component_capabilities.adoc[leveloffset=+2]
+include::variant_attributes.adoc[leveloffset=+2]
 include::artifact_views.adoc[leveloffset=+2]
 include::artifact_transforms.adoc[leveloffset=+2]
 
@@ -208,15 +190,7 @@ include::publishing_customization.adoc[leveloffset=+2]
 include::publishing_maven.adoc[leveloffset=+2]
 include::publishing_ivy.adoc[leveloffset=+2]
 
-== OTHER TOPICS
-
-include::dependency_verification.adoc[leveloffset=+2]
-include::how_to_align_dependency_versions.adoc[leveloffset=+2]
-include::how_to_create_feature_variants_of_a_library.adoc[leveloffset=+2]
-
 [[part:platforms]]
-== **PLATFORMS**
-
 [[part:jvm_projects]]
 == JVM BUILDS
 
@@ -238,32 +212,12 @@ include::groovy_plugin.adoc[leveloffset=+2]
 include::scala_plugin.adoc[leveloffset=+2]
 
 [[part:integration]]
-== **INTEGRATION**
+== INTEGRATION
 
 include::third_party_integration.adoc[leveloffset=2]
 include::tooling_api.adoc[leveloffset=2]
 include::test_reporting_api.adoc[leveloffset=2]
 
-[[part:reference]]
-== **REFERENCE**
-
-include::gradle_wrapper.adoc[leveloffset=+2]
-include::gradle_daemon.adoc[leveloffset=+2]
-include::command_line_interface.adoc[leveloffset=+2]
-
-== GRADLE DSL/API
-
-include::groovy_build_script_primer.adoc[leveloffset=+2]
-include::kotlin_dsl.adoc[leveloffset=+2]
-
-== CORE PLUGINS
-
-include::plugin_reference.adoc[leveloffset=2]
-
-== HOW TO GUIDES
-
-include::how_to_share_outputs_between_projects.adoc[leveloffset=2]
-
-== **LICENSE INFORMATION**
+== LICENSE INFORMATION
 
 include::licenses.adoc[leveloffset=+2]

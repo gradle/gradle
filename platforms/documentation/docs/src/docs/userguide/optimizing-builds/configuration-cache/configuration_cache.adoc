@@ -22,14 +22,14 @@
 // ./gradlew :docs:docsTest --tests="ExemplarExternalSamplesFunctionalTest.snippet-configuration-cache-*"
 // ./gradlew :docs:docsTest --tests="ExemplarExternalSamplesFunctionalTest.snippet-value-providers-*"
 
-The Configuration Cache improves build performance by caching the result of the <<build_lifecycle#build_lifecycle,configuration phase>> and reusing it for subsequent builds.
+The Configuration Cache improves build performance by caching the result of the <<build_lifecycle_intermediate.adoc#build_lifecycle,configuration phase>> and reusing it for subsequent builds.
 
 image::configuration-cache-4.png[]
 
 [[config_cache:intro]]
 == Configuration Cache Basics
 
-The <<build_lifecycle.adoc#build_lifecycle, Gradle Build Lifecycle>> consists of three phases: **initialization**, **configuration**, and **execution**.
+The <<build_lifecycle_intermediate.adoc#build_lifecycle, Gradle Build Lifecycle>> consists of three phases: **initialization**, **configuration**, and **execution**.
 
 1. The **initialization** phase determines the structure of the build.
 2. The **configuration** phase evaluates what work needs to be done.

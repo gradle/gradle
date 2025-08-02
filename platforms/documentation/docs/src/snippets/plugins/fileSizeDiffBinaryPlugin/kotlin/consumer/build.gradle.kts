@@ -1,0 +1,8 @@
+plugins {
+    id("org.example.filesizediff")
+}
+
+fileSizeDiff {
+    file1 = file("a.txt")
+    file2 = file("b.txt")
+}
