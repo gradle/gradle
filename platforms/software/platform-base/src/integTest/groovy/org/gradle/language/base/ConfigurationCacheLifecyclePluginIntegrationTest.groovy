@@ -14,17 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl
+package org.gradle.language.base
 
 
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class ConfigurationCacheLifecyclePluginIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheLifecyclePluginIntegrationTest extends AbstractIntegrationSpec {
+    def configurationCache = newConfigurationCacheFixture()
+
+    @Override
+    void setupExecuter() {
+        super.setupExecuter()
+        executer.withConfigurationCacheEnabled()
+    }
 
     def 'buildDirectory is finalized when writing to the cache'() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
         def buildDirName = 'my-build-dir'
         def buildDir = file(buildDirName)
         buildFile """
@@ -52,7 +59,7 @@ class ConfigurationCacheLifecyclePluginIntegrationTest extends AbstractConfigura
 
         when:
         buildDir.mkdir()
-        configurationCacheRun 'clean'
+        run 'clean'
 
         then:
         configurationCache.assertStateStored()
@@ -62,7 +69,7 @@ class ConfigurationCacheLifecyclePluginIntegrationTest extends AbstractConfigura
 
         when:
         buildDir.mkdir()
-        configurationCacheRun 'clean'
+        run 'clean'
 
         then:
         configurationCache.assertStateLoaded()
