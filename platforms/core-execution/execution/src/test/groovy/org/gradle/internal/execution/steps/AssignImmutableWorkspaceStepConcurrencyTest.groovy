@@ -177,6 +177,21 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
                 }
 
                 @Override
+                boolean isStale() {
+                    return false
+                }
+
+                @Override
+                boolean isWorkCompleted() {
+                    return false
+                }
+
+                @Override
+                void completeWork() {
+
+                }
+
+                @Override
                 <T> T withWorkspaceLock(Supplier<T> supplier) {
                     immutableWorkspace.mkdirs()
                     immutableWorkspace.file(immutableWorkspace.name + ".lock").createFile()

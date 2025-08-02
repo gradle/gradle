@@ -34,6 +34,7 @@ import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -144,10 +145,22 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
     @Override
     public LockingImmutableWorkspace getLockingWorkspace(String path) {
         File workspaceBaseDir = new File(baseDirectory, path);
+        File staleFile = new File(workspaceBaseDir, "workspace.stale");
+        File workCompletedFile = new File(workspaceBaseDir, "work.done");
         fileAccessTracker.markAccessed(workspaceBaseDir);
         // We use a subdirectory for the workspace to avoid snapshotting of a file lock
         File workspace = new File(workspaceBaseDir, "workspace");
         return new LockingImmutableWorkspace() {
+
+            @Override
+            public boolean isStale() {
+                return staleFile.exists();
+            }
+
+            @Override
+            public boolean isWorkCompleted() {
+                return workCompletedFile.exists();
+            }
 
             @Override
             public File getImmutableLocation() {
@@ -164,6 +177,15 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
                     return supplier.get();
                 } finally {
                     inProcessLock.unlock();
+                }
+            }
+
+            @Override
+            public void completeWork() {
+                try {
+                    workCompletedFile.createNewFile();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
             }
         };

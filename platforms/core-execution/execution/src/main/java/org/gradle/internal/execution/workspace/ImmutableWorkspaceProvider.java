@@ -39,6 +39,12 @@ public interface ImmutableWorkspaceProvider {
      */
     interface LockingImmutableWorkspace extends ImmutableWorkspace {
 
+        boolean isStale();
+
+        boolean isWorkCompleted();
+
+        void completeWork();
+
         /**
          * Executes the given action under the global scoped lock.
          */

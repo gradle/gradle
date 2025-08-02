@@ -140,11 +140,11 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
 
         if (lockingStrategy == LockingStrategy.WORKSPACE_LOCK) {
             LockingImmutableWorkspace workspace = workspaceProvider.getLockingWorkspace(uniqueId);
-            return loadImmutableWorkspaceIfExists(work, workspace).orElseGet(() ->
+            return loadImmutableWorkspaceIfNotStale(work, workspace).orElseGet(() ->
                 workspace.withWorkspaceLock(() -> loadImmutableWorkspaceIfExists(work, workspace)
                     .orElseGet(() -> {
                         deleteStaleFiles(workspace.getImmutableLocation());
-                        return executeInWorkspace(work, context, workspace.getImmutableLocation());
+                        return executeInWorkspace(work, context, workspace.getImmutableLocation(), workspace);
                     })
                 ));
         } else {
@@ -160,6 +160,13 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    private Optional<WorkspaceResult> loadImmutableWorkspaceIfNotStale(UnitOfWork work, LockingImmutableWorkspace workspace) {
+        if (workspace.isStale() || !workspace.isWorkCompleted()) {
+            return Optional.empty();
+        }
+        return loadImmutableWorkspaceIfExists(work, workspace);
     }
 
     private Optional<WorkspaceResult> loadImmutableWorkspaceIfExists(UnitOfWork work, ImmutableWorkspace workspace) {
@@ -244,7 +251,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             immutableLocation);
     }
 
-    private WorkspaceResult executeInWorkspace(UnitOfWork work, C context, File workspace) {
+    private WorkspaceResult executeInWorkspace(UnitOfWork work, C context, File workspace, ImmutableWorkspace workspaceWork) {
         WorkspaceContext workspaceContext = new WorkspaceContext(context, workspace, null, true);
 
         // We don't need to invalidate the workspace, as there is surely nothing there yet,
@@ -264,6 +271,9 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             ImmutableListMultimap<String, HashCode> outputHashes = calculateOutputHashes(executionOutputState.getOutputFilesProducedByWork());
             ImmutableWorkspaceMetadata metadata = new ImmutableWorkspaceMetadata(executionOutputState.getOriginMetadata(), outputHashes);
             workspaceMetadataStore.storeWorkspaceMetadata(workspace, metadata);
+            if (workspaceWork instanceof LockingImmutableWorkspace) {
+                ((LockingImmutableWorkspace) workspaceWork).completeWork();
+            }
 
             return new WorkspaceResult(delegateResult, workspace);
         } else {
@@ -274,7 +284,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
 
     private WorkspaceResult executeInTemporaryWorkspace(UnitOfWork work, C context, AtomicMoveImmutableWorkspace workspace) {
         return workspace.withTemporaryWorkspace(temporaryWorkspace -> {
-            WorkspaceResult result = executeInWorkspace(work, context, temporaryWorkspace);
+            WorkspaceResult result = executeInWorkspace(work, context, temporaryWorkspace, workspace);
             if (result.getExecution().isSuccessful()) {
                 return moveTemporaryWorkspaceToImmutableLocation(workspace,
                     new WorkspaceMoveHandler(work, workspace, temporaryWorkspace, result));
