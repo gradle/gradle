@@ -57,6 +57,10 @@ public class BuildOperationScriptPlugin implements ScriptPlugin {
     @Override
     public void apply(final Object target) {
         TextResource resource = getSource().getResource();
+//        collect data?
+//        if ((target instanceof Settings)) {
+//            gradle
+//        }
         if (resource.isContentCached() && resource.getHasEmptyContent()) {
             //no operation, if there is no script code provided
             decorated.apply(target);

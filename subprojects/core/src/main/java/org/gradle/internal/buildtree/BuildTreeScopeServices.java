@@ -84,6 +84,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.problems.buildtree.ProblemReporter;
 
@@ -112,7 +113,7 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         registration.add(GradleEnterprisePluginManager.class);
         registration.add(BuildLifecycleControllerFactory.class, DefaultBuildLifecycleControllerFactory.class);
         registration.add(BuildOptionBuildOperationProgressEventsEmitter.class);
-        registration.add(BuildInclusionCoordinator.class);
+//        registration.add(BuildInclusionCoordinator.class);
         registration.add(ProjectStateRegistry.class, DefaultProjectStateRegistry.class);
         registration.add(ConfigurationTimeBarrier.class, DefaultConfigurationTimeBarrier.class);
         registration.add(ProblemReporter.class, DeprecationsReporter.class);
@@ -124,6 +125,15 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         registration.add(TaskIdentityFactory.class);
         registration.add(BuildLogicBuildQueue.class, DefaultBuildLogicBuildQueue.class);
         modelServices.applyServicesTo(registration);
+    }
+
+    @Provides
+    BuildInclusionCoordinator createBuildInclusionCoordinator(
+        GlobalDependencySubstitutionRegistry substitutionRegistry,
+        WorkerLeaseService workerLeaseService,
+        BuildModelParameters modelParameters
+    ) {
+        return new BuildInclusionCoordinator(substitutionRegistry, workerLeaseService);
     }
 
     @Provides

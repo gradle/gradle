@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.internal.problems.failure.Failure;
 
 import java.io.File;
 
@@ -36,4 +37,8 @@ public interface IncludedBuildState extends NestedBuildState, CompositeBuildPart
     Action<? super DependencySubstitutions> getRegisteredDependencySubstitutions();
 
     <T> T withState(Transformer<T, ? super GradleInternal> action);
+
+    default Failure getFailure() {
+        return null;
+    }
 }

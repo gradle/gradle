@@ -16,25 +16,41 @@
 
 package org.gradle.integtests.tooling
 
-
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.gradle.GradleBuild
-import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 class CustomModelAction implements BuildAction<MyCustomModel>, Serializable {
 
     @Override
     public MyCustomModel execute(BuildController controller) {
-        GradleBuild build = controller.getModel(GradleBuild.class);
+        GradleBuild build
+        try {
 
-        KotlinDslScriptsModel buildScriptModel = controller.getModel(KotlinDslScriptsModel.class);
+         build = controller.getModel(GradleBuild.class);
+        }
+        catch (Exception e) {
+            System.err.println(e.toString());
+        }
+
+        if(build.didItFail()){
+            System.err.println("Build failed: " + build.failure);
+        }
+
+
+        if(build.includedBuilds.size() > 0) {
+            GradleBuild b = build.includedBuilds.getAt(0)
+            if(b.didItFail()){
+                System.err.println("Build failed: " + b.failure.description);
+            }
+        }
+//        KotlinDslScriptsModel buildScriptModel = controller.getModel(KotlinDslScriptsModel.class);
 
 
         def paths = build.projects.collect{project ->
             project.buildTreePath
         }
-        build.includedBuilds.each {b -> b.projects.each {project ->
+        build.includedBuilds.each {gb -> gb.projects.each {project ->
             paths << project.buildTreePath
         }}
 
@@ -44,9 +60,10 @@ class CustomModelAction implements BuildAction<MyCustomModel>, Serializable {
 
         // Build your custom model
         return new MyCustomModel(
-            buildScriptModel.scriptModels,
+            [:],
             identifier,
-            paths
+            paths,
+            build
         );
     }
 }

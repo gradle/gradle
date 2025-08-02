@@ -23,7 +23,6 @@ import org.gradle.initialization.SettingsState;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -34,7 +33,10 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
 
     private final BuildIncluder buildIncluder;
 
-    public ChildBuildRegisteringSettingsLoader(SettingsLoader delegate, BuildIncluder buildIncluder) {
+    public ChildBuildRegisteringSettingsLoader(
+        SettingsLoader delegate,
+        BuildIncluder buildIncluder
+    ) {
         this.delegate = delegate;
         this.buildIncluder = buildIncluder;
     }
@@ -45,19 +47,15 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
 
         // Add included builds defined in settings
         List<IncludedBuildSpec> includedBuilds = state.getSettings().getIncludedBuilds();
-        if (!includedBuilds.isEmpty()) {
-            Set<IncludedBuildInternal> children = new LinkedHashSet<>(includedBuilds.size());
-            for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
-                CompositeBuildParticipantBuildState includedBuild = buildIncluder.includeBuild(includedBuildSpec);
-                children.add(includedBuild.getModel());
-            }
-
-            // Set the visible included builds
-            gradle.setIncludedBuilds(children);
-        } else {
-            gradle.setIncludedBuilds(Collections.emptyList());
+        Set<IncludedBuildInternal> children = new LinkedHashSet<>(includedBuilds.size());
+        for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
+            CompositeBuildParticipantBuildState includedBuild = buildIncluder.includeBuild(includedBuildSpec);
+            IncludedBuildInternal model = includedBuild.getModel();
+            children.add(model);
         }
 
+        // Set the visible included builds
+        gradle.setIncludedBuilds(children);
         return state;
     }
 

@@ -88,6 +88,8 @@ public interface BuildStateRegistry {
      */
     IncludedBuildState addIncludedBuild(BuildDefinition buildDefinition, BuildState referrer);
 
+    void replaceIncludedBuild(IncludedBuildState newState, IncludedBuildState old);
+
     /**
      * Creates an included build. An included build is-a nested build whose projects and outputs are treated as part of the composite build.
      *
