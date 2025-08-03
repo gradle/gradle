@@ -306,6 +306,17 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     text("Gradle property ").reference(propertyName).text(" has changed")
                 }
             }
+
+            is ConfigurationCacheFingerprint.GradlePropertiesPrefixedBy -> input.run {
+                // TODO:wip
+//                ifOrNull(snapshot != host.gradlePropertiesPrefixedBy(propertyScope, prefix)) {
+                ifOrNull(false) {
+                    text("the set of Gradle properties prefixed by ")
+                        .reference(prefix)
+                        .text(" has changed")
+//                        .text(detailedMessageForChanges(snapshot, current))
+                }
+            }
         }
     }
 

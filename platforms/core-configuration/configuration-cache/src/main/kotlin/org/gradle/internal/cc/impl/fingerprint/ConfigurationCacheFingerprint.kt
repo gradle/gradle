@@ -152,6 +152,12 @@ sealed class ConfigurationCacheFingerprint {
         val propertyName: String,
         val propertyValue: Any?
     ) : ConfigurationCacheFingerprint()
+
+    class GradlePropertiesPrefixedBy(
+        val propertyScope: GradlePropertiesAccessListener.PropertyScope,
+        val prefix: String,
+        val snapshot: Map<String, String?>
+    ) : ConfigurationCacheFingerprint()
 }
 
 

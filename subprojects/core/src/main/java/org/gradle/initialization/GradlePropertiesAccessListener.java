@@ -22,6 +22,8 @@ import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Map;
+
 /**
  * Allows registering Gradle property access as build configuration inputs.
  *
@@ -58,4 +60,12 @@ public interface GradlePropertiesAccessListener {
         @Nullable Object propertyValue
     );
 
+    /**
+     * Tracks prefixed property access.
+     */
+    void onGradlePropertiesByPrefix(
+        PropertyScope propertyScope,
+        String prefix,
+        Map<String, String> snapshot
+    );
 }

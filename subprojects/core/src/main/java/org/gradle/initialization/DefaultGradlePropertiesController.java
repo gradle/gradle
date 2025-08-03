@@ -121,12 +121,15 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
         @Override
         public Map<String, String> getProperties() {
+            // TODO:wip track property access
             return gradleProperties().getProperties();
         }
 
         @Override
         public Map<String, String> getPropertiesWithPrefix(String prefix) {
-            return gradleProperties().getPropertiesWithPrefix(prefix);
+            Map<String, String> snapshot = gradleProperties().getPropertiesWithPrefix(prefix);
+            listener.onGradlePropertiesByPrefix(propertyScope, prefix, snapshot);
+            return snapshot;
         }
     }
 

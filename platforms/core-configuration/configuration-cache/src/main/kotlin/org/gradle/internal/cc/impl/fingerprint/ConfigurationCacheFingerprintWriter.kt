@@ -88,6 +88,7 @@ import java.util.EnumSet
 import java.util.concurrent.ConcurrentHashMap
 
 
+@Suppress("LargeClass")
 @ParallelListener
 internal
 class ConfigurationCacheFingerprintWriter(
@@ -184,6 +185,9 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     val gradleProperties = ConcurrentHashMap<GradlePropertiesAccessListener.PropertyScope, MutableSet<String>>()
+
+    private
+    val gradlePropertiesByPrefix = ConcurrentHashMap<GradlePropertiesAccessListener.PropertyScope, MutableSet<String>>()
 
     init {
         buildScopedSink.initScripts(host.allInitScripts)
@@ -929,6 +933,26 @@ class ConfigurationCacheFingerprintWriter(
         fileObserved(scriptFile)
     }
 
+    override fun onGradlePropertiesByPrefix(
+        propertyScope: GradlePropertiesAccessListener.PropertyScope,
+        prefix: String,
+        snapshot: Map<String, String>
+    ) {
+        if (isInputTrackingDisabled()) {
+            return
+        }
+        if (gradlePropertiesByPrefix.computeIfAbsent(propertyScope) { newConcurrentHashSet() }.add(prefix)) {
+            sink().write(
+                ConfigurationCacheFingerprint.GradlePropertiesPrefixedBy(
+                    propertyScope,
+                    prefix,
+                    snapshot
+                )
+            )
+            reportGradlePropertiesByPrefixInput(propertyScope, prefix)
+        }
+    }
+
     override fun onGradlePropertyAccess(
         propertyScope: GradlePropertiesAccessListener.PropertyScope,
         propertyName: String,
@@ -967,6 +991,23 @@ class ConfigurationCacheFingerprintWriter(
         reportInput(scopedLocation(propertyScope, location), null) {
             text("Gradle property ")
             reference(propertyName)
+        }
+    }
+
+    private
+    fun reportGradlePropertiesByPrefixInput(
+        propertyScope: GradlePropertiesAccessListener.PropertyScope,
+        prefix: String,
+        consumer: String? = null
+    ) {
+        val location = locationFor(consumer)
+        if (location === PropertyTrace.Unknown || location === PropertyTrace.Gradle) {
+            // Don't include property accesses coming from the Gradle runtime itself (e.g., sysProp.*)
+            return
+        }
+        reportInput(scopedLocation(propertyScope, location), null) {
+            text("Gradle property ") // To avoid introducing a separate subtree in the report
+            reference("$prefix.*")
         }
     }
 
