@@ -31,6 +31,7 @@ import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.graph.GraphNodeRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.util.internal.IncubationLogger;
 
 import java.util.Collection;
 import java.util.List;
@@ -63,6 +64,7 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
 
         // The task sub-graph from an included build will be traversed and printed from the root build as well
         if (gradle.isRootBuild()) {
+            IncubationLogger.incubatingFeatureUsed("Task graph printing");
             renderTaskGraph(gradle, plan);
         }
 
