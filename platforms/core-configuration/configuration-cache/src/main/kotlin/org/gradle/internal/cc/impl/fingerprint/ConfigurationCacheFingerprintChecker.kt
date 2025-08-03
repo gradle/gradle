@@ -287,7 +287,10 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     it != ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy.IGNORED
                 }
                 ifOrNull(currentWithoutIgnored != snapshotWithoutIgnored) {
-                    text("the set of system properties prefixed by ").reference(prefix).text(" has changed: ").text(detailedMessageForChanges(snapshotWithoutIgnored, currentWithoutIgnored))
+                    text("the set of system properties prefixed by ")
+                        .reference(prefix)
+                        .text(" has changed: ")
+                        .text(detailedMessageForChanges(snapshotWithoutIgnored, currentWithoutIgnored))
                 }
             }
 
