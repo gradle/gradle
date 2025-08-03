@@ -751,6 +751,9 @@ Refresh the <<dependency_caching.adoc#sec:controlling-dependency-caching-command
 Run Gradle with all task actions disabled. Use this to show which task would have executed.
 
 `--task-graph`::
+_Incubating._
+_Since Gradle 9.1.0_
++
 Run Gradle with all task actions disabled and print the task dependency graph.
 
 `-t`, `--continuous`::
