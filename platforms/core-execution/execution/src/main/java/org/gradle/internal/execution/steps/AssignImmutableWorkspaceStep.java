@@ -50,6 +50,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.FileSystemException;
+import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Map;
@@ -164,7 +165,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
     }
 
     private Optional<WorkspaceResult> loadImmutableWorkspaceIfNotStale(UnitOfWork work, ImmutableWorkspace workspace) {
-        if (new File(workspace.getImmutableLocation(), ".stale").exists()) {
+        if (Files.exists(workspace.getImmutableLocation().toPath().resolve(".stale"))) {
             return Optional.empty();
         }
         return loadImmutableWorkspaceIfExists(work, workspace);
