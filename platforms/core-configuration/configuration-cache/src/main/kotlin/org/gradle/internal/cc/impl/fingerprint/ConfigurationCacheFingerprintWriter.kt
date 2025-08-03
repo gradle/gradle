@@ -955,7 +955,15 @@ class ConfigurationCacheFingerprintWriter(
         propertyName: String,
         consumer: String? = null
     ) {
+        if (propertyName.startsWith("org.gradle.")) {
+            // Don't include builtin Gradle properties in the report
+            return
+        }
         val location = locationFor(consumer)
+        if (location === PropertyTrace.Unknown || location === PropertyTrace.Gradle) {
+            // Don't include property accesses coming from the Gradle runtime itself (e.g., version, group, buildDir, etc.)
+            return
+        }
         reportInput(scopedLocation(propertyScope, location), null) {
             text("Gradle property ")
             reference(propertyName)
