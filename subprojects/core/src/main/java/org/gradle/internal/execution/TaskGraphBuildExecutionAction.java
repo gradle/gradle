@@ -18,6 +18,7 @@ package org.gradle.internal.execution;
 import com.google.common.collect.Streams;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
@@ -62,22 +63,28 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
 
         // The task sub-graph from an included build will be traversed and printed from the root build as well
         if (gradle.isRootBuild()) {
-            StyledTextOutput output = textOutputFactory.create(TaskGraphBuildExecutionAction.class);
-
-            plan.getContents().getScheduledNodes().visitNodes((nodes, entryNodes) -> {
-                String invocation = gradle
-                    .getStartParameter()
-                    .getTaskRequests()
-                    .stream()
-                    .map(TaskExecutionRequest::getArgs)
-                    .flatMap(List::stream)
-                    .collect(Collectors.joining(" "));
-
-                DirectedGraphRenderer<TaskInfo> renderer = new DirectedGraphRenderer<>(new NodeRenderer(), new NodesGraph());
-                renderer.renderTo(new RootNode(entryNodes, invocation), output);
-            });
+            renderTaskGraph(gradle, plan);
         }
+
         return ExecutionResult.succeeded();
+    }
+
+    private void renderTaskGraph(GradleInternal gradle, FinalizedExecutionPlan plan) {
+        plan.getContents().getScheduledNodes().visitNodes((nodes, entryNodes) -> {
+            String invocation = renderRequestedTasks(gradle.getStartParameter());
+            StyledTextOutput output = textOutputFactory.create(TaskGraphBuildExecutionAction.class);
+            DirectedGraphRenderer<TaskInfo> renderer = new DirectedGraphRenderer<>(new NodeRenderer(), new NodesGraph());
+            renderer.renderTo(new RootNode(entryNodes, invocation), output);
+        });
+    }
+
+    private static String renderRequestedTasks(StartParameterInternal startParameter) {
+        return startParameter
+            .getTaskRequests()
+            .stream()
+            .map(TaskExecutionRequest::getArgs)
+            .flatMap(List::stream)
+            .collect(Collectors.joining(" "));
     }
 
     private static class NodeRenderer implements GraphNodeRenderer<TaskInfo> {
