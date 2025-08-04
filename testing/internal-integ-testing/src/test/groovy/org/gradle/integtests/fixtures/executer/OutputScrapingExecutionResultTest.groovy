@@ -513,7 +513,7 @@ post build
             '''))
 
         when:
-        result.assertTasksExecuted()
+        result.assertAllTasksSkipped()
 
         then:
         def e12 = thrown(IllegalArgumentException)

@@ -84,7 +84,7 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
 
         then:
         succeeds('test').assertTasksExecuted(':compileJava', ':classes', ':test')
-        succeeds('test').assertTasksExecuted()
+        succeeds('test').assertAllTasksSkipped()
 
         when:
         // Change a test class
@@ -99,7 +99,7 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
 
         then:
         succeeds('test').assertTasksExecuted(':compileTestJava', ':testClasses', ':test')
-        succeeds('test').assertTasksExecuted()
+        succeeds('test').assertAllTasksSkipped()
     }
 
     def executesTestsWhenTestFrameworkChanges() {
@@ -157,7 +157,7 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
 
         result.assertTestClassesExecuted('TestNGTest') //previous result still present in the dir
 
-        succeeds('test').assertTasksExecuted()
+        succeeds('test').assertAllTasksSkipped()
     }
 
     def "test up-to-date status respects test name patterns"() {

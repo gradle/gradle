@@ -56,7 +56,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         then:
         assertStateLoaded()
         result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        result.assertTasksExecuted() // everything is up-to-date
+        result.assertAllTasksSkipped() // everything is up-to-date
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF")
 
         when:
@@ -138,7 +138,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         then:
         assertStateLoaded()
         result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        result.assertTasksExecuted() // everything should be up-to-date
+        result.assertAllTasksSkipped() // everything should be up-to-date
         classFile.isFile()
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class")
 
@@ -165,7 +165,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         then:
         assertStateLoaded()
         result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        result.assertTasksExecuted() // everything should be up-to-date
+        result.assertAllTasksSkipped() // everything should be up-to-date
         classFile.isFile()
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class")
 
@@ -229,7 +229,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         then:
         assertStateLoaded()
         result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        result.assertTasksExecuted() // everything should be up-to-date
+        result.assertAllTasksSkipped() // everything should be up-to-date
         classFile.isFile()
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt", "META-INF/some.Service")
 
@@ -259,7 +259,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         then:
         assertStateLoaded()
         result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        result.assertTasksExecuted() // everything should be up-to-date
+        result.assertAllTasksSkipped() // everything should be up-to-date
         classFile.isFile()
         new ZipTestFixture(jarFile).with {
             hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt", "META-INF/some.Service")
@@ -428,7 +428,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         then:
         assertStateLoaded()
         result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
-        result.assertTasksExecuted() // everything should be up-to-date
+        result.assertAllTasksSkipped() // everything should be up-to-date
         classFile.isFile()
         testClassFile.isFile()
         testResults.isDirectory()
@@ -485,7 +485,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         then:
         assertStateLoaded()
         result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":startScripts", ":distTar", ":distZip", ":assemble", ":check", ":build")
-        result.assertTasksExecuted() // everything should be up-to-date
+        result.assertAllTasksSkipped() // everything should be up-to-date
         classFile.isFile()
         jarFile.isFile()
 

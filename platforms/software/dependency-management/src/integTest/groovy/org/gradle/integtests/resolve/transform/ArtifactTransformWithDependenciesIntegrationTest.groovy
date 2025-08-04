@@ -819,7 +819,7 @@ project(':common') {
         run ":app:resolveGreen"
 
         then: // no changes, should be up-to-date
-        result.assertTasksExecuted()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
@@ -836,7 +836,7 @@ project(':common') {
         run ":app:resolveGreen", "-DcommonOutputDir=out"
 
         then: // no changes, should be up-to-date
-        result.assertTasksExecuted()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
@@ -853,7 +853,7 @@ project(':common') {
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // no changes, should be up-to-date
-        result.assertTasksExecuted()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
@@ -922,7 +922,7 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
         run ":app:resolveGreen"
 
         then: // no changes, should be up-to-date
-        result.assertTasksExecuted()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
@@ -947,7 +947,7 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // no changes, should be up-to-date
-        result.assertTasksExecuted()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
@@ -1018,7 +1018,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         run ":app:resolveGreen"
 
         then: // no changes, should be up-to-date
-        result.assertTasksExecuted()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
@@ -1043,7 +1043,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // no changes, should be up-to-date
-        result.assertTasksExecuted()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:

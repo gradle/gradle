@@ -185,7 +185,7 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         run("merge")
 
         then:
-        result.assertTasksExecuted()
+        result.assertAllTasksSkipped()
 
         when:
         file("file1-source.txt").text = "new-file1"
@@ -252,7 +252,7 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         run("merge")
 
         then:
-        result.assertTasksExecuted()
+        result.assertAllTasksSkipped()
 
         when:
         file("file-source.txt").text = "new-file1"
@@ -322,7 +322,7 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         run("merge")
 
         then:
-        result.assertTasksExecuted()
+        result.assertAllTasksSkipped()
 
         when:
         file("dir1-source.txt").text = "new-dir1"
@@ -390,7 +390,7 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         run("merge")
 
         then:
-        result.assertTasksExecuted()
+        result.assertAllTasksSkipped()
 
         when:
         file("dir-source.txt").text = "new-dir1"
@@ -464,7 +464,7 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         run("merge")
 
         then:
-        result.assertTasksExecuted()
+        result.assertAllTasksSkipped()
 
         when:
         file("file1-source.txt").text = "new-file1"
