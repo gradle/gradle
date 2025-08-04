@@ -42,7 +42,13 @@ class ConfigurationCacheStartParameter internal constructor(
     private val modelParameters: BuildModelParameters,
     private val loggingParameters: ConfigurationCacheLoggingParameters,
 ) {
+    /**
+     * Internal Configuration Cache options.
+     */
     object Options {
+        /**
+         * See [org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter.customReportOutputDirectory].
+         */
         const val REPORT_OUTPUT_DIR = "org.gradle.configuration-cache.internal.report-output-directory"
     }
 
