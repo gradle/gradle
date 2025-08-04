@@ -68,6 +68,9 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
     }
 
     private static void reportMultipleCandidates(File dir, File selectedCandidate, List<File> ignoredCandidates) {
+        // Unfortunately, we have to use the emitter holder here
+        // Reason is that this class is used in a utility fashion rather as a service, and makes injection virtually impossible.
+        // See the StartParameter for an example.
         ProblemsProgressEventEmitterHolder.get().getReporter().report(
             ProblemId.create("multiple-candidates", "Multiple script candidates", GradleCoreProblemGroup.script()),
             spec -> {
