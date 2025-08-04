@@ -15,7 +15,8 @@
 [[build_lifecycle]]
 = Gradle Build Lifecycle
 
-The build lifecycle is the sequence of phases Gradle executes to turn your build scripts into completed work, from initializing the build environment to configuring projects and finally executing tasks.
+The build lifecycle is the sequence of phases Gradle executes to turn your build scripts, source code, and more, into completed work.
+From initializing the build environment to configuring projects and finally executing tasks.
 
 image::gradle-basic-10.png[]
 
@@ -39,6 +40,7 @@ Gradle runs these phases in order:
 - Creates a link:{groovyDslPath}/org.gradle.api.Project.html[`*Project*`] instance *for every project*
 
 | - Evaluates the *build files of every project* participating in the build +
+- Evaluates the *configuration* (input/output) of *tasks* +
 - Creates a *task graph* for requested tasks
 
 | - Schedules and *executes* the selected *tasks*
@@ -53,8 +55,8 @@ include::sample[dir="snippets/buildlifecycle/basic/kotlin",files="settings.gradl
 include::sample[dir="snippets/buildlifecycle/basic/groovy",files="settings.gradle[];build.gradle[]"]
 ====
 
-The following command executes the `test` and `testBoth` tasks specified above.
-Because Gradle only configures requested tasks and their dependencies, the `configured` task never configures:
+The following command executes the `test` task and `testBoth` task specified above.
+Because Gradle only configures the tasks that are required to run (i.e., the requested task and its dependencies), the `configured` task will not be configured or executed:
 
 [source.multi-language-sample,kotlin]
 ----
@@ -99,7 +101,7 @@ Gradle can execute tasks in parallel.
 As a build author, you write build logic by defining tasks and declaring how they depend on one another.
 Gradle uses this information to construct a **task graph** during the *configuration phase* that models the relationships between these tasks.
 
-For example, if your project includes tasks such as `build`, `assemble`, and `createDocs`, and you declare that `assemble` depends on `build`, and `createDocs` depends on `assemble`, Gradle constructs a graph with this order: `build` → `assemble` → `createDocs`.
+For example, if your project includes tasks such as `buildHtml`, `assembleDocs`, and `createDocs`, and you declare that `assembleDocs` depends on `buildHtml`, and `createDocs` depends on `assembleDocs`, Gradle constructs a graph with this order: `buildHtml` → `assembleDocs` → `createDocs`.
 
 Gradle builds the task graph *before* executing any task(s).
 

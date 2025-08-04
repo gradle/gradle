@@ -104,7 +104,7 @@ The extension defines the plugin’s configurable inputs, two file properties in
 include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/kotlin/plugin/src/main/java/org/example/FileSizeDiffExtension.java[]
 ----
 
-The two properties representing the input files are of the `RegularFileProperty` type which extends `Property` and are therefore lazy.
+The two properties representing the input files are of the `RegularFileProperty` type which extends `Property` and are therefore <<lazy_eager_evaluation.adoc#lazy_evaluation,lazy>>.
 
 == 2. Task
 

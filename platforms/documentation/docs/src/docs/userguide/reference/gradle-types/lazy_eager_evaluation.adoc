@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+[[lazy_evaluation]]
 = Lazy vs Eager Evaluation
 
 Understanding **when** values in your build are computed is crucial for writing fast and reliable build logic.

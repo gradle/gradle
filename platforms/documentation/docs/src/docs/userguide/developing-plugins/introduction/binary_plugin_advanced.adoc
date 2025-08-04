@@ -15,7 +15,7 @@
 [[binary_plugins_advanced]]
 = Binary Plugin
 
-If Gradle or the Gradle community does not offer the specific capabilities your project needs, creating your own custom plugin could be a solution.
+Creating your own custom plugin might be a great solution when Gradle doesn't offer the specific capabilities your project needs.
 This is where binary plugins come in.
 
 A binary plugin is a plugin that is implemented in a compiled language and is packaged as a JAR file.
@@ -82,8 +82,7 @@ void apply(Project project) {
 =====
 ====
 
-This is a very rudimentary example of a plugin.
-Let's take a look at a more realistic example.
+Let's take a look at a more realistic example next.
 
 [.text-right]
 **Next Step:** <<developing_binary_plugin_advanced.adoc#develop_binary_plugins_advanced,Learn how to develop Binary Plugins>> >>
