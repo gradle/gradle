@@ -7,8 +7,6 @@ import org.gradle.api.tasks.TaskProvider;
 public class FileSizeDiffPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
-        System.out.println("FileSizeDiff plugin applied");
-
         // Register the extension
         FileSizeDiffExtension extension = project.getExtensions().create("fileSizeDiff", FileSizeDiffExtension.class);
 
