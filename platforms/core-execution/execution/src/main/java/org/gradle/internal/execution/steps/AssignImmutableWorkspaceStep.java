@@ -165,7 +165,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
     }
 
     private Optional<WorkspaceResult> loadImmutableWorkspaceIfNotStale(UnitOfWork work, ImmutableWorkspace workspace) {
-        if (Files.exists(workspace.getImmutableLocation().toPath().resolve(".stale"))) {
+        if (new File(workspace.getImmutableLocation(), ".stale").exists()) {
             return Optional.empty();
         }
         return loadImmutableWorkspaceIfExists(work, workspace);
