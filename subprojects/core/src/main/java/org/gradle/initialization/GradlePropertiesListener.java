@@ -33,11 +33,6 @@ import java.util.Map;
 public interface GradlePropertiesListener {
 
     /* sealed */ interface PropertyScope {
-        /**
-         * Source for system properties by property name prefix.
-         */
-        interface SystemPropertiesSource extends PropertyScope {
-        }
 
         interface Build extends PropertyScope {
             BuildIdentifier getBuildIdentifier();

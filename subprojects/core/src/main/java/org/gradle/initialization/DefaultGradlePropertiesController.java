@@ -205,7 +205,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
                     fromBuildRoot,
                     fromGradleUserHome
                 ));
-                // These should be tracked from the user-home scope
+                // TODO:wip consider whether to track property access from here (perhaps tracking system property consumers is enough?)
                 systemPropertiesInstaller.setSystemPropertiesFrom(systemPropertiesSource, isRootBuild);
             }
 
