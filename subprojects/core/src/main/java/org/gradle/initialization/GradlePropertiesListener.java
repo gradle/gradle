@@ -30,7 +30,7 @@ import java.util.Map;
  * @see org.gradle.api.internal.properties.GradleProperties
  */
 @EventScope(Scope.BuildTree.class)
-public interface GradlePropertiesAccessListener {
+public interface GradlePropertiesListener {
 
     /* sealed */ interface PropertyScope {
         /**

@@ -35,7 +35,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
     private final GradlePropertiesLoader gradlePropertiesLoader;
     private final SystemPropertiesInstaller systemPropertiesInstaller;
-    private final GradlePropertiesAccessListener listener;
+    private final GradlePropertiesListener listener;
 
     private final ConcurrentMap<BuildIdentifier, BuildScopedGradleProperties> buildProperties = new ConcurrentHashMap<>();
     private final ConcurrentMap<ProjectIdentity, ProjectScopedGradleProperties> projectProperties = new ConcurrentHashMap<>();
@@ -43,7 +43,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
     public DefaultGradlePropertiesController(
         GradlePropertiesLoader gradlePropertiesLoader,
         SystemPropertiesInstaller systemPropertiesInstaller,
-        GradlePropertiesAccessListener listener
+        GradlePropertiesListener listener
     ) {
         this.gradlePropertiesLoader = gradlePropertiesLoader;
         this.systemPropertiesInstaller = systemPropertiesInstaller;
@@ -92,12 +92,12 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
     private static abstract class ScopedGradleProperties implements GradleProperties {
 
-        private final GradlePropertiesAccessListener.PropertyScope propertyScope;
-        private final GradlePropertiesAccessListener listener;
+        private final GradlePropertiesListener.PropertyScope propertyScope;
+        private final GradlePropertiesListener listener;
 
         protected ScopedGradleProperties(
-            GradlePropertiesAccessListener.PropertyScope propertyScope,
-            GradlePropertiesAccessListener listener
+            GradlePropertiesListener.PropertyScope propertyScope,
+            GradlePropertiesListener listener
         ) {
             this.propertyScope = propertyScope;
             this.listener = listener;
@@ -156,7 +156,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
             GradlePropertiesLoader loader,
             SystemPropertiesInstaller systemPropertiesInstaller,
             BuildIdentifier buildId,
-            GradlePropertiesAccessListener listener
+            GradlePropertiesListener listener
         ) {
             super(new BuildPropertyScope(buildId), listener);
             this.loader = loader;
@@ -289,7 +289,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         private ProjectScopedGradleProperties(
             GradlePropertiesLoader loader,
             ProjectIdentity projectId,
-            GradlePropertiesAccessListener listener
+            GradlePropertiesListener listener
         ) {
             super(new ProjectPropertyScope(projectId), listener);
             this.loader = loader;
@@ -344,7 +344,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         return builder.buildKeepingLast();
     }
 
-    private static class BuildPropertyScope implements GradlePropertiesAccessListener.PropertyScope.Build {
+    private static class BuildPropertyScope implements GradlePropertiesListener.PropertyScope.Build {
         private final BuildIdentifier buildId;
 
         public BuildPropertyScope(BuildIdentifier buildId) {
@@ -362,7 +362,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         }
     }
 
-    private static class ProjectPropertyScope implements GradlePropertiesAccessListener.PropertyScope.Project {
+    private static class ProjectPropertyScope implements GradlePropertiesListener.PropertyScope.Project {
         private final ProjectIdentity projectId;
 
         public ProjectPropertyScope(ProjectIdentity projectId) {

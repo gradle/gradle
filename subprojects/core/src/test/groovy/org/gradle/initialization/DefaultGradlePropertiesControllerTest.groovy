@@ -32,7 +32,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
 
     private final GradlePropertiesLoader gradlePropertiesLoader = Mock(GradlePropertiesLoader)
     private final SystemPropertiesInstaller systemPropertiesInstaller = Mock(SystemPropertiesInstaller)
-    private final GradlePropertiesAccessListener listener = Mock(GradlePropertiesAccessListener)
+    private final GradlePropertiesListener listener = Mock(GradlePropertiesListener)
 
     def "attached GradleProperties #method fails before loading build properties"() {
         given:

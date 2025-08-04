@@ -46,7 +46,7 @@ import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceListener
-import org.gradle.initialization.GradlePropertiesAccessListener
+import org.gradle.initialization.GradlePropertiesListener
 import org.gradle.initialization.buildsrc.BuildSrcDetector
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildoption.FeatureFlag
@@ -114,7 +114,7 @@ class ConfigurationCacheFingerprintWriter(
     FeatureFlagListener,
     FileCollectionObservationListener,
     ScriptSourceListener,
-    GradlePropertiesAccessListener,
+    GradlePropertiesListener,
     ConfigurationCacheEnvironment.Listener {
 
     interface Host {
@@ -184,10 +184,10 @@ class ConfigurationCacheFingerprintWriter(
     var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
 
     private
-    val gradleProperties = ConcurrentHashMap<GradlePropertiesAccessListener.PropertyScope, MutableSet<String>>()
+    val gradleProperties = ConcurrentHashMap<GradlePropertiesListener.PropertyScope, MutableSet<String>>()
 
     private
-    val gradlePropertiesByPrefix = ConcurrentHashMap<GradlePropertiesAccessListener.PropertyScope, MutableSet<String>>()
+    val gradlePropertiesByPrefix = ConcurrentHashMap<GradlePropertiesListener.PropertyScope, MutableSet<String>>()
 
     init {
         buildScopedSink.initScripts(host.allInitScripts)
@@ -934,7 +934,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun onGradlePropertiesByPrefix(
-        propertyScope: GradlePropertiesAccessListener.PropertyScope,
+        propertyScope: GradlePropertiesListener.PropertyScope,
         prefix: String,
         snapshot: Map<String, String>
     ) {
@@ -954,7 +954,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun onGradlePropertyAccess(
-        propertyScope: GradlePropertiesAccessListener.PropertyScope,
+        propertyScope: GradlePropertiesListener.PropertyScope,
         propertyName: String,
         propertyValue: Any?
     ) {
@@ -975,7 +975,7 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun reportGradlePropertyInput(
-        propertyScope: GradlePropertiesAccessListener.PropertyScope,
+        propertyScope: GradlePropertiesListener.PropertyScope,
         propertyName: String,
         consumer: String? = null
     ) {
@@ -996,7 +996,7 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun reportGradlePropertiesByPrefixInput(
-        propertyScope: GradlePropertiesAccessListener.PropertyScope,
+        propertyScope: GradlePropertiesListener.PropertyScope,
         prefix: String,
         consumer: String? = null
     ) {
@@ -1013,12 +1013,12 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun scopedLocation(
-        propertyScope: GradlePropertiesAccessListener.PropertyScope,
+        propertyScope: GradlePropertiesListener.PropertyScope,
         location: PropertyTrace
     ) = PropertyTrace.Project(
         path = when (propertyScope) {
-            is GradlePropertiesAccessListener.PropertyScope.Project -> propertyScope.projectIdentity.buildTreePath.toString()
-            is GradlePropertiesAccessListener.PropertyScope.Build -> propertyScope.buildIdentifier.buildPath
+            is GradlePropertiesListener.PropertyScope.Project -> propertyScope.projectIdentity.buildTreePath.toString()
+            is GradlePropertiesListener.PropertyScope.Build -> propertyScope.buildIdentifier.buildPath
             else -> error("Unexpected property scope $propertyScope")
         },
         trace = location
