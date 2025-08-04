@@ -116,7 +116,7 @@ org.gradle.configuration-cache.parallel=true
 [WARNING]
 ====
 The parallel configuration caching feature is _incubating_, and some builds may not work correctly.
-A common symptom of incompatibility is `ConcurrentModificationException` errors during the <<build_lifecycle.adoc#sec:configuration,configuration phase>>.
+A common symptom of incompatibility is `ConcurrentModificationException` errors during the <<build_lifecycle_intermediate.adoc#sec:configuration,configuration phase>>.
 However, this feature is expected to work well for <<multi_project_configuration_and_execution.adoc#sec:decoupled_projects,decoupled>> multi-project builds.
 ====
 

@@ -4176,6 +4176,10 @@ body.dark-theme {
 		margin: 0;
 	}
 
+    #header {
+    	padding-right: 260px;
+    }
+
 	/* #toc here must be referenced as #header #toc
             since we don't want to change single page #toc */
 	#header #toc {
@@ -4256,6 +4260,7 @@ body.dark-theme {
 
 	#header {
 		margin: 0 auto;
+		padding-right: 0;
 	}
 
 	#content {

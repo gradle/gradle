@@ -1,0 +1,164 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[develop_binary_plugins_advanced]]
+= Binary Plugin Development
+
+When creating a plugin in Gradle, you will most likely offer tasks users can run and DSL blocks that users can use to configure your plugin.
+
+Let's create a binary plugin that offers both.
+
+When you write a plugin in Gradle, if you want to share it between multiple projects then the best option is to create the plugin in a separate repository.
+This way, you can publish it to a private or public Maven repository, and then apply it in whatever project you need.
+
+== Components of a Plugin
+
+First, let's review the three components of a plugin:
+
+image::plugin-1.png[]
+
+[cols="1,1,2", options="header"]
+|===
+|Component |Role |Description
+
+|*Plugin Class*
+|Entry point
+|Defines what happens when the plugin is applied. Typically, this involves registering tasks or modifying the project configuration.
+
+|*Extension Class*
+|Configuration
+|Holds configuration data provided by users via the build script.
+
+|*Task Class*
+|Behavior
+|Implements logic that is executed when the task is run. The plugin will typically register a task and wire it up with values from the extension.
+|===
+
+Our simple plugin compares the size of two files.
+It is called `FileSizeDiff`.
+Here's the suggested directory structure:
+
+====
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+.
+└── plugin
+    ├── settings.gradle.kts
+    ├── build.gradle.kts
+    └── src
+       └── main
+           └── java/org/example
+               ├── FileSizeDiffTask.java
+               ├── FileSizeDiffPlugin.java
+               └── FileSizeDiffExtension.java
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+└── plugin
+    ├── settings.gradle
+    ├── build.gradle
+    └── src
+       └── main
+           └── java/org/example
+               ├── FileSizeDiffTask.java
+               ├── FileSizeDiffPlugin.java
+               └── FileSizeDiffExtension.java
+----
+=====
+====
+
+This `build.gradle(.kts)` for this `filesizediff` plugin looks as follows:
+
+====
+include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/kotlin", files="plugin/build.gradle.kts[tags=simple]"]
+include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/groovy", files="plugin/build.gradle[tags=simple]"]
+====
+<1> `java-gradle-plugin` - Sets up various configurations you need to do plugin development in Java
+<2> `junit` testing framework - A popular Java testing framework
+<3> Plugin configuration - Sets an id of `org.example.filesizediff` which we can use to reference the plugin
+
+== 1. Extension
+
+The extension defines the plugin’s configurable inputs, two file properties in this case:
+
+.src/main/java/org/example/FileSizeDiffExtension.java
+[source,java]
+----
+include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/kotlin/plugin/src/main/java/org/example/FileSizeDiffExtension.java[]
+----
+
+The two properties representing the input files are of the `RegularFileProperty` type which extends `Property` and are therefore <<lazy_eager_evaluation.adoc#lazy_evaluation,lazy>>.
+
+== 2. Task
+
+The task does the bulk of the work:
+
+.src/main/java/org/example/FileSizeDiffTask.java
+[source,java]
+----
+include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/kotlin/plugin/src/main/java/org/example/FileSizeDiffTask.java[]
+----
+
+The task defines two input file properties and one output file property:
+
+* The **input files** represent the files to compare.
+* The **output file** is where the plugin writes the diff result, defaulting to `build/diff-result.txt`.
+
+The `@InputFile` and `@OutputFile` annotations tell Gradle to track these properties for **incremental builds** and **caching**, so the task will only re-run if the inputs or outputs change.
+
+The plugin is responsible for **mapping the user-defined values** from the extension to the task’s input properties.
+
+The task logic is implemented in a method annotated with `@TaskAction`, which:
+
+* Compares the size of the two input files.
+* Generates a descriptive text result.
+* Writes that result to the output file and prints it to standard output.
+
+== 3. Plugin
+
+This class wires up the extension and task when the plugin is applied:
+
+.src/main/java/org/example/FileSizeDiffPlugin.java
+[source,java]
+----
+include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/kotlin/plugin/src/main/java/org/example/FileSizeDiffPlugin.java[]
+----
+
+In the plugin class, we override the `apply` method, which is invoked when the plugin is applied to a project via `build.gradle(.kts)`.
+
+Within this method, the plugin does two things:
+
+1. **Creates an extension named `filesizediff`:**
+This allows users to configure the plugin using a `fileSizeDiff { ... }` block in their build script.
+The configuration values are stored in an instance of `FileSizeDiffExtension`.
+
+2. **Registers a task of type `FileSizeDiffTask`:**
+The task is given the name `fileSizeDiff`, and its properties (`file1` and `file2`) are mapped from the corresponding properties in the `fileSizeDiff` extension.
+This ensures the task uses the values provided by the user in their build script.
+
+This enables the following usage in a `build.gradle(.kts)` file:
+
+====
+include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/kotlin", files="consumer/build.gradle.kts"]
+include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/groovy", files="consumer/build.gradle"]
+====
+
+[.text-right]
+**Next Step:** <<testing_binary_plugin_advanced.adoc#test_binary_plugins_advanced,Learn how to test Binary Plugins>> >>

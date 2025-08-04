@@ -332,7 +332,7 @@ include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",fil
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=ad-hoc-task]"]
 ====
 
-For more details, see the <<incremental_build.adoc#incremental_build,incremental build documentation>> and the <<writing_tasks.adoc#task_inputs_and_outputs,writing tasks tutorial>>.
+For more details, see the <<incremental_build.adoc#incremental_build,incremental build documentation>> and the <<writing_tasks_intermediate.adoc#task_inputs_and_outputs,writing tasks tutorial>>.
 
 When leveraging incremental builds on our reference project, the build (`./gradlew clean build build`) time is *5 seconds*:
 
@@ -390,7 +390,7 @@ For more details, see the <<config_gradle.adoc#sec:configuring_jvm_memory,JVM Me
 [[optimize_configuration]]
 == 9. Optimize Configuration
 
-As described in <<build_lifecycle.adoc#build_lifecycle,the build lifecycle chapter>>, a Gradle build goes through three phases: *initialization, configuration, and execution*.
+As described in <<build_lifecycle_intermediate.adoc#build_lifecycle,the build lifecycle chapter>>, a Gradle build goes through three phases: *initialization, configuration, and execution*.
 The *configuration phase* always executes, regardless of which tasks run.
 Any expensive operations during this phase slow down every build, including simple commands like `gradle help` and `gradle tasks`.
 
