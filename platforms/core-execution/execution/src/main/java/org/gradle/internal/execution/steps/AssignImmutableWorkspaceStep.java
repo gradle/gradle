@@ -50,7 +50,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.FileSystemException;
-import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Map;
@@ -141,14 +140,13 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
 
         if (lockingStrategy == LockingStrategy.WORKSPACE_LOCK) {
             LockingImmutableWorkspace workspace = workspaceProvider.getLockingWorkspace(uniqueId);
-            return loadImmutableWorkspaceIfNotStale(work, workspace).orElseGet(() ->
-                workspace.withWorkspaceLock(() ->
-                    loadImmutableWorkspaceIfExists(work, workspace)
-                        .orElseGet(() -> {
-                            deleteStaleFiles(workspace.getImmutableLocation());
-                            return executeInWorkspace(work, context, workspace.getImmutableLocation());
-                        })
-                ));
+            return workspace.withWorkspaceLock(() ->
+                loadImmutableWorkspaceIfExists(work, workspace)
+                    .orElseGet(() -> {
+                        deleteStaleFiles(workspace.getImmutableLocation());
+                        return executeInWorkspace(work, context, workspace.getImmutableLocation());
+                    })
+            );
         } else {
             AtomicMoveImmutableWorkspace workspace = workspaceProvider.getAtomicMoveWorkspace(uniqueId);
             return loadImmutableWorkspaceIfExists(work, workspace)
@@ -162,13 +160,6 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    private Optional<WorkspaceResult> loadImmutableWorkspaceIfNotStale(UnitOfWork work, ImmutableWorkspace workspace) {
-        if (new File(workspace.getImmutableLocation(), ".stale").exists()) {
-            return Optional.empty();
-        }
-        return loadImmutableWorkspaceIfExists(work, workspace);
     }
 
     private Optional<WorkspaceResult> loadImmutableWorkspaceIfExists(UnitOfWork work, ImmutableWorkspace workspace) {
