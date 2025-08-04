@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.classpath.ClassPath
@@ -67,7 +68,7 @@ import java.lang.reflect.InvocationTargetException
  * @see ResidualProgramCompiler
  */
 internal
-class Interpreter(val host: Host) {
+class Interpreter(val host: Host, val problems: InternalProblems) {
 
     interface Host {
 
@@ -334,6 +335,7 @@ class Interpreter(val host: Host) {
                     compileBuildOperationRunner = host::runCompileBuildOperation,
                     stage1BlocksAccessorsClassPath = stage1BlocksAccessorsClassPath,
                     packageName = residualProgram.packageName,
+                    problems
                 ).compile(residualProgram.document)
             }
         }
@@ -357,7 +359,7 @@ class Interpreter(val host: Host) {
             origin = ClassLoaderScopeOrigin.Script(scriptSource.fileName, scriptSource.longDisplayName, scriptSource.shortDisplayName),
             accessorsClassPath = accessorsClassPath,
             location = classesDir,
-            className = "Program"
+            className = PROGRAM_CLASS_NAME
         )
     }
 
@@ -489,7 +491,8 @@ class Interpreter(val host: Host) {
                                     host.implicitImports,
                                     interpreterLogger,
                                     scriptHost.temporaryFileProvider,
-                                    host::runCompileBuildOperation
+                                    host::runCompileBuildOperation,
+                                    problems = problems
                                 ).emitStage2ProgramFor(
                                     scriptFile,
                                     originalScriptPath

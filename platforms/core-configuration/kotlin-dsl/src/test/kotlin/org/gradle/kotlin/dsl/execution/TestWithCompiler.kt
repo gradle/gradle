@@ -58,7 +58,7 @@ abstract class TestWithCompiler : TestWithTempFiles() {
         outputDir().let { outputDir ->
             compileProgramTo(outputDir, program, sourceHash, programKind, programTarget)
             withClassLoaderFor(outputDir) {
-                val executableProgram = loadClass("Program").getDeclaredConstructor().newInstance()
+                val executableProgram = loadClass(PROGRAM_CLASS_NAME).getDeclaredConstructor().newInstance()
                 action(executableProgram as ExecutableProgram)
             }
         }
@@ -79,7 +79,8 @@ abstract class TestWithCompiler : TestWithTempFiles() {
             sourceHash,
             programKind,
             programTarget,
-            temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory)
+            temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory),
+            problems = mock()
         ).compile(program)
     }
 

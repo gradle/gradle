@@ -94,6 +94,7 @@ class KotlinScriptCompilerTest : TestWithTempFiles() {
             },
             scriptDefinition,
             testRuntimeClassPath.asFiles,
+            mock(),
             mock()
         ) { it }
     }
