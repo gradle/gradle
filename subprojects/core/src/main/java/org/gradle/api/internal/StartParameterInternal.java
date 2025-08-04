@@ -42,6 +42,7 @@ public class StartParameterInternal extends StartParameter {
     private int configurationCacheMaxProblems = 512;
     private @Nullable String configurationCacheIgnoredFileSystemCheckInputs = null;
     private boolean configurationCacheParallel;
+    private boolean configurationCacheReadOnly;
     private boolean configurationCacheRecreateCache;
     private boolean configurationCacheQuiet;
     private int configurationCacheEntriesPerKey = 1;
@@ -82,6 +83,7 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheIgnoreUnsupportedBuildEventsListeners = configurationCacheIgnoreUnsupportedBuildEventsListeners;
         p.configurationCacheDebug = configurationCacheDebug;
         p.configurationCacheParallel = configurationCacheParallel;
+        p.configurationCacheReadOnly = configurationCacheReadOnly;
         p.configurationCacheRecreateCache = configurationCacheRecreateCache;
         p.configurationCacheQuiet = configurationCacheQuiet;
         p.configurationCacheEntriesPerKey = configurationCacheEntriesPerKey;
@@ -198,6 +200,14 @@ public class StartParameterInternal extends StartParameter {
 
     public void setConfigurationCacheParallel(boolean parallel) {
         this.configurationCacheParallel = parallel;
+    }
+
+    public boolean isConfigurationCacheReadOnly() {
+        return configurationCacheReadOnly;
+    }
+
+    public void setConfigurationCacheReadOnly(boolean readOnly) {
+        this.configurationCacheReadOnly = readOnly;
     }
 
     public int getConfigurationCacheEntriesPerKey() {
