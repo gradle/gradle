@@ -41,7 +41,6 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.tasks.util.internal.PatternSetFactory
 import org.gradle.composite.internal.BuildTreeWorkGraphController
-import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.execution.InputFingerprinter
@@ -173,7 +172,6 @@ class DefaultConfigurationCacheCodecs(
     fileResolver: FileResolver,
     instantiator: Instantiator,
     fileSystemOperations: FileSystemOperations,
-    val taskNodeFactory: TaskNodeFactory,
     inputFingerprinter: InputFingerprinter,
     buildOperationRunner: BuildOperationRunner,
     classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
@@ -343,7 +341,7 @@ class DefaultConfigurationCacheCodecs(
     override fun internalTypesCodec(): Codec<Any?> = internalTypesBindings.append {
         val userTypesCodec = userTypesCodec()
 
-        bind(TaskNodeCodec(userTypesCodec, taskNodeFactory))
+        bind(TaskNodeCodec(userTypesCodec))
         bind(DelegatingCodec<TransformStepNode>(userTypesCodec))
         bind(org.gradle.internal.serialize.codecs.core.ActionNodeCodec(userTypesCodec))
         bind(OrdinalNodeCodec)
