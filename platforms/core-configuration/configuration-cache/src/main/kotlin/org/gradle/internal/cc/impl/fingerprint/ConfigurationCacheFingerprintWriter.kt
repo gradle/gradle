@@ -938,10 +938,7 @@ class ConfigurationCacheFingerprintWriter(
         prefix: String,
         snapshot: Map<String, String>
     ) {
-        if (isInputTrackingDisabled()) {
-            return
-        }
-        if (gradlePropertiesByPrefix.computeIfAbsent(propertyScope) { newConcurrentHashSet() }.add(prefix)) {
+        if (shouldTrackGradlePropertyInput(gradlePropertiesByPrefix, propertyScope, prefix)) {
             sink().write(
                 ConfigurationCacheFingerprint.GradlePropertiesPrefixedBy(
                     propertyScope,
@@ -958,10 +955,7 @@ class ConfigurationCacheFingerprintWriter(
         propertyName: String,
         propertyValue: Any?
     ) {
-        if (isInputTrackingDisabled()) {
-            return
-        }
-        if (gradleProperties.computeIfAbsent(propertyScope) { newConcurrentHashSet() }.add(propertyName)) {
+        if (shouldTrackGradlePropertyInput(gradleProperties, propertyScope, propertyName)) {
             sink().write(
                 ConfigurationCacheFingerprint.GradleProperty(
                     propertyScope,
@@ -972,6 +966,17 @@ class ConfigurationCacheFingerprintWriter(
             reportGradlePropertyInput(propertyScope, propertyName)
         }
     }
+
+    private
+    fun shouldTrackGradlePropertyInput(
+        keysPerScope: ConcurrentHashMap<GradlePropertiesListener.PropertyScope, MutableSet<String>>,
+        propertyScope: GradlePropertiesListener.PropertyScope,
+        propertyKey: String
+    ): Boolean =
+        !isInputTrackingDisabled()
+            && keysPerScope
+            .computeIfAbsent(propertyScope) { newConcurrentHashSet() }
+            .add(propertyKey)
 
     private
     fun reportGradlePropertyInput(
@@ -1002,7 +1007,7 @@ class ConfigurationCacheFingerprintWriter(
     ) {
         val location = locationFor(consumer)
         if (location === PropertyTrace.Unknown || location === PropertyTrace.Gradle) {
-            // Don't include property accesses coming from the Gradle runtime itself (e.g., sysProp.*)
+            // Don't include property accesses coming from the Gradle runtime itself (e.g., systemProp.*)
             return
         }
         reportInput(scopedLocation(propertyScope, location), null) {
@@ -1017,7 +1022,7 @@ class ConfigurationCacheFingerprintWriter(
         location: PropertyTrace
     ) = PropertyTrace.Project(
         path = when (propertyScope) {
-            is GradlePropertiesListener.PropertyScope.Project -> propertyScope.projectIdentity.buildTreePath.toString()
+            is GradlePropertiesListener.PropertyScope.Project -> propertyScope.projectIdentity.buildTreePath.path
             is GradlePropertiesListener.PropertyScope.Build -> propertyScope.buildIdentifier.buildPath
             else -> error("Unexpected property scope $propertyScope")
         },
