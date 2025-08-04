@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.classloading;
+package org.gradle.internal.groovyloader;
 
 import org.gradle.api.GradleException;
+import org.gradle.internal.Cast;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +27,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Iterator;
+import java.util.Objects;
 
 public class ClassInfoCleaningGroovySystemLoader implements GroovySystemLoader {
 
@@ -34,8 +37,8 @@ public class ClassInfoCleaningGroovySystemLoader implements GroovySystemLoader {
     private final Method globalClassSetIteratorMethod;
     private final Object globalClassValue;
     private final Object globalClassSetItems;
-    private Field clazzField;
-    private Field classRefField;
+    private @Nullable Field clazzField;
+    private @Nullable Field classRefField;
     private final ClassLoader leakingLoader;
 
     public ClassInfoCleaningGroovySystemLoader(ClassLoader leakingLoader) throws Exception {
@@ -77,10 +80,12 @@ public class ClassInfoCleaningGroovySystemLoader implements GroovySystemLoader {
             while (it.hasNext()) {
                 Object classInfo = it.next();
                 if (classInfo != null) {
-                    Class clazz = getClazz(classInfo);
-                    removeFromGlobalClassValue.invoke(globalClassValue, clazz);
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Removed ClassInfo from {} loaded by {}", clazz.getName(), clazz.getClassLoader());
+                    Class<?> clazz = getClazz(classInfo);
+                    if (clazz != null) {
+                        removeFromGlobalClassValue.invoke(globalClassValue, clazz);
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Removed ClassInfo from {} loaded by {}", clazz.getName(), clazz.getClassLoader());
+                        }
                     }
                 }
             }
@@ -99,7 +104,7 @@ public class ClassInfoCleaningGroovySystemLoader implements GroovySystemLoader {
             while (it.hasNext()) {
                 Object classInfo = it.next();
                 if (classInfo != null) {
-                    Class clazz = getClazz(classInfo);
+                    Class<?> clazz = getClazz(classInfo);
                     if (clazz != null && clazz.getClassLoader() == classLoader) {
                         removeFromGlobalClassValue.invoke(globalClassValue, clazz);
                         if (LOG.isDebugEnabled()) {
@@ -113,15 +118,15 @@ public class ClassInfoCleaningGroovySystemLoader implements GroovySystemLoader {
         }
     }
 
-    private Class getClazz(Object classInfo) throws IllegalAccessException {
+    private @Nullable Class<?> getClazz(Object classInfo) throws IllegalAccessException {
         if (classRefField != null) {
-            return (Class) ((WeakReference) classRefField.get(classInfo)).get();
+            return Cast.<WeakReference<Class<?>>>uncheckedNonnullCast(classRefField.get(classInfo)).get();
         } else {
-            return (Class) clazzField.get(classInfo);
+            return (Class<?>) Objects.requireNonNull(clazzField).get(classInfo);
         }
     }
 
     private Iterator<?> globalClassSetIterator() throws IllegalAccessException, InvocationTargetException {
-        return (Iterator) globalClassSetIteratorMethod.invoke(globalClassSetItems);
+        return (Iterator<?>) globalClassSetIteratorMethod.invoke(globalClassSetItems);
     }
 }

@@ -82,6 +82,7 @@ val core = platform("core") {
         subproject("functional")
         subproject("gradle-cli-main")
         subproject("gradle-cli")
+        subproject("groovy-loader")
         subproject("installation-beacon")
         subproject("instrumentation-agent")
         subproject("instrumentation-agent-services")
