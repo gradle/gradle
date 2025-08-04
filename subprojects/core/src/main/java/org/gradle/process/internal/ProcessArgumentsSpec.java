@@ -18,6 +18,7 @@ package org.gradle.process.internal;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GUtil;
@@ -25,6 +26,7 @@ import org.gradle.util.internal.GUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 public class ProcessArgumentsSpec {
@@ -74,7 +76,8 @@ public class ProcessArgumentsSpec {
         for (CommandLineArgumentProvider argumentProvider : argumentProviders) {
             Iterables.addAll(allArgs, CollectionUtils.toStringList(argumentProvider.asArguments()));
         }
-        return allArgs;
+
+        return escapeQuotes(allArgs);
     }
 
     public ProcessArgumentsSpec args(Object... args) {
@@ -113,4 +116,14 @@ public class ProcessArgumentsSpec {
     public List<CommandLineArgumentProvider> getArgumentProviders() {
         return argumentProviders;
     }
+
+    private static List<String> escapeQuotes(List<String> allArgs) {
+        if (OperatingSystem.current().isWindows()) {
+            return allArgs.stream().map(listItem ->
+                listItem.replaceAll("\"", "\\\\\"")).collect(Collectors.toList());
+        } else {
+            return allArgs; // No escaping needed on non-Windows systems
+        }
+    }
+
 }

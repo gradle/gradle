@@ -112,15 +112,6 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return allArgs;
     }
 
-    private static List<String> escapeQuotes(List<String> allArgs) {
-        if (OperatingSystem.current().isWindows()) {
-            return allArgs.stream().map(listItem ->
-                listItem.replaceAll("\"", "\\\\\"")).collect(Collectors.toList());
-        } else {
-            return allArgs; // No escaping needed on non-Windows systems
-        }
-    }
-
     private void addClassicJavaRunArgs(FileCollection classpath, List<String> allArgs) {
         if (!mainClass.isPresent()) {
             if (classpath != null && classpath.getFiles().size() == 1) {
@@ -378,7 +369,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     private List<String> getAllArguments(FileCollection realClasspath) {
         List<String> arguments = new ArrayList<>(getAllJvmArgs(realClasspath));
         arguments.addAll(execHandleBuilder.getAllArguments());
-        return escapeQuotes(arguments);
+        return arguments;
     }
 
     public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
