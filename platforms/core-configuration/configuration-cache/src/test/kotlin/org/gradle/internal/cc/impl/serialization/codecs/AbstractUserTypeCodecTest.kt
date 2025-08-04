@@ -19,9 +19,11 @@ package org.gradle.internal.cc.impl.serialization.codecs
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.cc.base.problems.AbstractProblemsListener
 import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.cc.impl.serialize.Codecs
+import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
 import org.gradle.internal.cc.impl.serialize.DefaultClassDecoder
 import org.gradle.internal.cc.impl.serialize.DefaultClassEncoder
+import org.gradle.internal.cc.impl.serialize.DefaultConfigurationCacheCodecs
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -45,6 +47,7 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
+import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -177,7 +180,8 @@ abstract class AbstractUserTypeCodecTest {
     fun userTypesCodec() = codecs().userTypesCodec()
 
     internal
-    fun codecs() = Codecs(
+    fun codecs(): ConfigurationCacheCodecs = DefaultConfigurationCacheCodecs(
+        startParameter(),
         directoryFileTreeFactory = mock(),
         fileCollectionFactory = mock(),
         artifactSetConverter = mock(),
@@ -187,8 +191,6 @@ abstract class AbstractUserTypeCodecTest {
         fileResolver = mock(),
         instantiator = mock(),
         fileSystemOperations = mock(),
-        taskNodeFactory = mock(),
-        ordinalGroupFactory = mock(),
         inputFingerprinter = mock(),
         buildOperationRunner = mock(),
         classLoaderHierarchyHasher = mock(),
@@ -197,7 +199,6 @@ abstract class AbstractUserTypeCodecTest {
         parameterScheme = mock(),
         actionScheme = mock(),
         attributesFactory = mock(),
-        valueSourceProviderFactory = mock(),
         calculatedValueContainerFactory = mock(),
         patternSetFactory = mock(),
         fileOperations = mock(),
@@ -206,10 +207,15 @@ abstract class AbstractUserTypeCodecTest {
         buildStateRegistry = mock(),
         documentationRegistry = mock(),
         javaSerializationEncodingLookup = JavaSerializationEncodingLookup(),
-        flowProviders = mock(),
         transformStepNodeFactory = mock(),
         problems = mock(),
         attributeDesugaring = mock(),
         taskDependencyFactory = mock()
     )
+
+    private
+    fun startParameter(): ConfigurationCacheStartParameter = mock {
+        on { isParallelStore } doReturn false
+        on { isParallelLoad } doReturn false
+    }
 }

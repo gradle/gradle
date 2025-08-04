@@ -56,6 +56,7 @@ import org.gradle.internal.serialize.graph.readCollectionInto
 import org.gradle.internal.serialize.graph.readEnum
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.readPropertyValue
+import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.serialize.graph.withDebugFrame
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.withPropertyTrace
@@ -66,8 +67,7 @@ import org.gradle.util.internal.DeferredUtil
 
 
 class TaskNodeCodec(
-    private val userTypesCodec: Codec<Any?>,
-    private val taskNodeFactory: TaskNodeFactory
+    private val userTypesCodec: Codec<Any?>
 ) : Codec<LocalTaskNode> {
 
     override suspend fun WriteContext.encode(value: LocalTaskNode) {
@@ -77,6 +77,7 @@ class TaskNodeCodec(
 
     override suspend fun ReadContext.decode(): LocalTaskNode {
         val task = readTask()
+        val taskNodeFactory = isolate.owner.serviceOf<TaskNodeFactory>()
         val node = taskNodeFactory.getOrCreateNode(task) as LocalTaskNode
         node.isolated()
         return node
