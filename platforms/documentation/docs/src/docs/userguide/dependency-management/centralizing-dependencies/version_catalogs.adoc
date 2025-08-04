@@ -268,7 +268,7 @@ include::sample[dir="snippets/dependencyManagement/catalogs-versionCatalogPlugin
 include::sample[dir="snippets/dependencyManagement/catalogs-versionCatalogPlugin/groovy",files="build.gradle[tags=catalog_spec]"]
 ====
 
-The plugin must be created programmatically, see <<sec:programmatic-catalog-versions,Programming catalogs>> for details.
+The catalog must be created programmatically, see <<sec:programmatic-catalog-versions,Programming catalogs>> for details.
 
 Such a catalog can then be published by applying either the `maven-publish` or `ivy-publish` plugin and configuring the publication to use the `versionCatalog` component:
 

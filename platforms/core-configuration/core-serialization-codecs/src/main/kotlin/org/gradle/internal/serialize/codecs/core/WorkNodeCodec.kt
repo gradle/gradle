@@ -81,7 +81,6 @@ interface IsolateContextSource {
 class WorkNodeCodec(
     private val owner: GradleInternal,
     private val internalTypesCodec: Codec<Any?>,
-    private val ordinalGroups: OrdinalGroupFactory,
     private val contextSource: IsolateContextSource,
     /** Should we store work nodes in parallel? */
     private val parallelStore: Boolean,
@@ -478,6 +477,7 @@ class WorkNodeCodec(
     private
     fun ReadContext.readOrdinal(): OrdinalGroup {
         val ordinal = readSmallInt()
+        val ordinalGroups = isolate.owner.serviceOf<OrdinalGroupFactory>()
         return ordinalGroups.group(ordinal)
     }
 
@@ -623,7 +623,7 @@ data class OperationInfo(
 
 
 private
-class OperationException(message: String, cause: Throwable): RuntimeException(message, cause)
+class OperationException(message: String, cause: Throwable) : RuntimeException(message, cause)
 
 
 private
