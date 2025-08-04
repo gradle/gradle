@@ -63,7 +63,7 @@ public interface BuildModelParameters {
     boolean isModelAsProjectDependency();
 
     /**
-     * Returns true if the model building is resilient so some failures in model building.
+     * Returns true if the model building is resilient to some failures in model building.
      * @return true if the model building is resilient, false otherwise
      */
     boolean isResilientModelBuilding();

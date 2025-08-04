@@ -22,6 +22,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.internal.properties.GradleProperties
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
@@ -53,7 +54,10 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
     val implicitImports: ImplicitImports,
 
     private
-    val gradleProperties: GradleProperties
+    val gradleProperties: GradleProperties,
+
+    private
+    val problems: InternalProblems
 
 ) : DefaultTask(), SharedAccessorsPackageAware {
 
@@ -105,6 +109,7 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
                     ),
                     classPathFiles.filter { it.exists() },
                     logger,
+                    problems
                 ) { it } // TODO: translate paths
         }
     }
