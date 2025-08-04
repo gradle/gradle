@@ -122,7 +122,13 @@ class ConfigurationCacheStartParameter internal constructor(
     /**
      * Whether we should skip creating an entry in case of a cache miss.
      */
-    val isReadOnlyCache = options.getInternalFlag("org.gradle.configuration-cache.internal.read-only", false)
+    val isReadOnlyCache : Boolean by lazy {
+        startParameter.isConfigurationCacheReadOnly.also { enabled ->
+            if (enabled) {
+                IncubationLogger.incubatingFeatureUsed("Read-only Configuration Cache")
+            }
+        }
+    }
 
     val isIntegrityCheckEnabled: Boolean
         get() = startParameter.isConfigurationCacheIntegrityCheckEnabled

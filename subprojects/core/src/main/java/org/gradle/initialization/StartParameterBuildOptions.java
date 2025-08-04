@@ -77,6 +77,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigurationCacheIgnoredFileSystemCheckInputs(),
         new ConfigurationCacheDebugOption(),
         new ConfigurationCacheParallelOption(),
+        new ConfigurationCacheReadOnlyOption(),
         new ConfigurationCacheRecreateOption(),
         new ConfigurationCacheQuietOption(),
         new ConfigurationCacheIntegrityCheckOption(),
@@ -612,6 +613,20 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheParallel(value);
+        }
+    }
+
+    public static class ConfigurationCacheReadOnlyOption extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.read-only";
+
+        public ConfigurationCacheReadOnlyOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheReadOnly(value);
         }
     }
 
