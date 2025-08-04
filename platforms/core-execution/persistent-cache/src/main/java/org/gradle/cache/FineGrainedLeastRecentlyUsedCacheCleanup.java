@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal;
+package org.gradle.cache;
 
-import org.gradle.cache.CleanableStore;
-import org.gradle.cache.HasCleanupAction;
-
-/**
- * A visitor to a cache instance.  See {@link CacheFactory#visitCaches(CacheVisitor)}.
- */
-public interface CacheVisitor {
-    <T extends CleanableStore & HasCleanupAction> void visit(T cache);
+public interface FineGrainedLeastRecentlyUsedCacheCleanup extends CleanupAction {
 }
