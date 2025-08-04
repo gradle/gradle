@@ -16,7 +16,7 @@
 = Gradle Plugin Development Plugin
 
 The Java Gradle Plugin development plugin can be used to assist in the development of Gradle plugins.
-It automatically applies the <<java_library_plugin.adoc#java_library_plugin,Java Library (`java-library`)>> plugin, adds the `gradleApi()` dependency to the `api` configuration and performs validation of plugin metadata during `jar` task execution.
+It automatically applies the <<java_library_plugin.adoc#java_library_plugin,Java Library (`java-library`)>> plugin, adds the `gradleApi()` dependency to the `compileOnly` configuration and performs validation of plugin metadata during `jar` task execution.
 
 The plugin also integrates with <<test_kit.adoc#test_kit,TestKit>>, a library that aids in writing and executing functional tests for plugin code.
 It automatically adds the `gradleTestKit()` dependency to the `testImplementation` configuration and generates a plugin classpath manifest file consumed by a `GradleRunner` instance if found.
