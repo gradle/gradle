@@ -58,8 +58,8 @@ class PmdCoverage {
         VERSION_COVERAGE[11],
         VERSION_COVERAGE[17],
         VERSION_COVERAGE[21],
-        // Latest JVM that Gradle runs on
-        VERSION_COVERAGE[24],
+        // Latest JVM that Gradle supports toolchains on
+        VERSION_COVERAGE[25],
         LATEST_PMD_VERSION
     ]
 
