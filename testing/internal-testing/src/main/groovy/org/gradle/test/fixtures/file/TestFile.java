@@ -21,6 +21,8 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.file.PathUtils;
+import org.apache.commons.io.file.StandardDeleteOption;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Zip;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
@@ -46,11 +48,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.DosFileAttributeView;
-import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -720,13 +721,16 @@ public class TestFile extends File {
      */
     public TestFile forceDeleteDir() throws IOException {
         Path path = toPath();
-        if (Files.isDirectory(path)) {
+        if (!Files.exists(path, LinkOption.NOFOLLOW_LINKS)) {
+            return this;
+        }
+        if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
             List<IOException> errors = new ArrayList<>();
             Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                     try {
-                        deleteWithForceWriteable(file);
+                        PathUtils.deleteFile(file, StandardDeleteOption.OVERRIDE_READ_ONLY);
                     } catch (IOException e) {
                         errors.add(e);
                     }
@@ -736,34 +740,11 @@ public class TestFile extends File {
                 @Override
                 public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
                     try {
-                        deleteWithForceWriteable(dir);
+                        PathUtils.deleteDirectory(dir, StandardDeleteOption.OVERRIDE_READ_ONLY);
                     } catch (IOException e) {
                         errors.add(e);
                     }
                     return FileVisitResult.CONTINUE;
-                }
-
-                private void deleteWithForceWriteable(Path file) throws IOException {
-                    // Try to delete the file.
-                    try {
-                        Files.deleteIfExists(file);
-                    } catch (IOException e) {
-                        // If unable, try to set the file to be writable and delete it again
-                        // This replicates old Java File.delete() behavior
-
-                        // Windows/NTFS:
-                        DosFileAttributeView dosAttrs = Files.getFileAttributeView(file, DosFileAttributeView.class);
-                        if (dosAttrs != null && dosAttrs.readAttributes().isReadOnly()) {
-                            dosAttrs.setReadOnly(false);
-                        }
-                        // Linux:
-                        PosixFileAttributeView posixAttrs = Files.getFileAttributeView(file.getParent(), PosixFileAttributeView.class);
-                        if (posixAttrs != null && !posixAttrs.readAttributes().permissions().containsAll(ALLOW_ALL)) {
-                            posixAttrs.setPermissions(ALLOW_ALL);
-                        }
-
-                        Files.deleteIfExists(file);
-                    }
                 }
             });
             if (!errors.isEmpty()) {
@@ -774,7 +755,7 @@ public class TestFile extends File {
                 throw ex;
             }
         } else {
-            Files.deleteIfExists(path);
+            PathUtils.deleteFile(path, StandardDeleteOption.OVERRIDE_READ_ONLY);
         }
         return this;
     }
