@@ -22,6 +22,7 @@ import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher
 import org.gradle.api.internal.properties.GradleProperties
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.internal.buildoption.InternalOptions
@@ -110,7 +111,8 @@ object BuildServices : ServiceRegistrationProvider {
         gradleProperties: GradleProperties,
         transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy,
         gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
-        propertyUpgradeReportConfig: PropertyUpgradeReportConfig
+        propertyUpgradeReportConfig: PropertyUpgradeReportConfig,
+        problems: InternalProblems
     ): KotlinScriptEvaluator =
 
         StandardKotlinScriptEvaluator(
@@ -136,7 +138,8 @@ object BuildServices : ServiceRegistrationProvider {
             gradleProperties,
             transformFactoryForLegacy,
             gradleCoreTypeRegistry,
-            propertyUpgradeReportConfig
+            propertyUpgradeReportConfig,
+            problems
         )
 
     @Provides

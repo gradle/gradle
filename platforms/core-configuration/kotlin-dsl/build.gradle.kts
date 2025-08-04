@@ -24,6 +24,7 @@ dependencies {
     api(projects.kotlinDslToolingModels)
     api(projects.loggingApi)
     api(projects.persistentCache)
+    api(projects.problemsApi)
     api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
 

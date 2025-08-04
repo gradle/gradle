@@ -17,8 +17,10 @@
 package org.gradle.kotlin.dsl.fixtures
 
 import org.gradle.api.Project
+import org.gradle.api.problems.internal.InternalProblems
 
 import org.gradle.internal.classpath.ClassPath
+import org.mockito.Mockito.mock
 
 import java.io.File
 
@@ -46,6 +48,7 @@ abstract class AbstractDslTest : TestWithTempFiles() {
         script: String,
         baseCacheDir: File = kotlinDslEvalBaseCacheDir,
         baseTempDir: File = kotlinDslEvalBaseTempDir,
+        problems: InternalProblems = mock(),
         scriptCompilationClassPath: ClassPath = testRuntimeClassPath,
         scriptRuntimeClassPath: ClassPath = ClassPath.EMPTY
     ) =
@@ -54,6 +57,7 @@ abstract class AbstractDslTest : TestWithTempFiles() {
             this,
             baseCacheDir,
             baseTempDir,
+            problems,
             scriptCompilationClassPath,
             scriptRuntimeClassPath
         )
@@ -83,6 +87,7 @@ class DslTestFixture(private val testDirectory: File) {
         target: Any,
         baseCacheDir: File = kotlinDslEvalBaseCacheDir,
         baseTempDir: File = kotlinDslEvalBaseTempDir,
+        problems: InternalProblems = mock(),
         scriptCompilationClassPath: ClassPath = testRuntimeClassPath,
         scriptRuntimeClassPath: ClassPath = ClassPath.EMPTY
     ) =
@@ -91,6 +96,7 @@ class DslTestFixture(private val testDirectory: File) {
             target,
             baseCacheDir,
             baseTempDir,
+            problems,
             scriptCompilationClassPath,
             scriptRuntimeClassPath
         )

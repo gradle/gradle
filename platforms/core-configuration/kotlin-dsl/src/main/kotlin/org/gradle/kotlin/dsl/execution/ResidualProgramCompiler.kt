@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.execution
 
 import org.gradle.api.Project
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -76,6 +77,8 @@ internal
 typealias CompileBuildOperationRunner = (String, String, () -> String) -> String
 
 
+const val PROGRAM_CLASS_NAME = "Program"
+
 /**
  * Compiles the given [residual program][ResidualProgram] to an [ExecutableProgram] subclass named `Program`
  * stored in the given [outputDir].
@@ -95,6 +98,7 @@ class ResidualProgramCompiler(
     private val compileBuildOperationRunner: CompileBuildOperationRunner = { _, _, action -> action() },
     private val stage1BlocksAccessorsClassPath: ClassPath = ClassPath.EMPTY,
     private val packageName: String? = null,
+    private val problems: InternalProblems
 ) {
 
     fun compile(program: ResidualProgram) = when (program) {
@@ -667,8 +671,8 @@ class ResidualProgramCompiler(
     private
     fun program(superName: InternalName, classBody: ClassWriter.() -> Unit = {}) {
         writeFile(
-            "Program.class",
-            publicClass(InternalName("Program"), superName, null) {
+            "${PROGRAM_CLASS_NAME}.class",
+            publicClass(InternalName(PROGRAM_CLASS_NAME), superName, null) {
                 publicDefaultConstructor(superName)
                 classBody()
             }
@@ -716,7 +720,8 @@ class ResidualProgramCompiler(
                 scriptFile,
                 scriptDefinition,
                 compileClassPath.asFiles,
-                logger
+                logger,
+                problems
             ) { path ->
                 if (path == scriptFile.path) originalPath
                 else path

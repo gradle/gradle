@@ -79,5 +79,5 @@ class SimplifiedKotlinScriptEvaluatorTest : TestWithTempFiles() {
 
     private
     fun eval(script: String, target: Any): Any =
-        eval(script, target, baseCacheDir = file("cache"), baseTempDir = file("temp"))
+        eval(script, target, problems = mock(), baseCacheDir = file("cache"), baseTempDir = file("temp"))
 }

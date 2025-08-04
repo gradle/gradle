@@ -47,6 +47,7 @@ dependencies {
     implementation(projects.pluginsJavaBase)
     implementation(projects.pluginsJvmTestFixtures)
     implementation(projects.pluginsJvmTestSuite)
+    implementation(projects.problemsApi)
     implementation(projects.scala)
     implementation(projects.serviceLookup)
     implementation(projects.testSuitesBase)

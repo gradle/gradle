@@ -20,6 +20,9 @@ import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.JavaVersion
 import org.gradle.api.SupportsKotlinAssignmentOverloading
+import org.gradle.api.problems.ProblemId
+import org.gradle.api.problems.internal.GradleCoreProblemGroup
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.logging.ConsoleRenderer
@@ -110,7 +113,8 @@ fun compileKotlinScriptModuleForPrecompiledScriptPluginsTo(
     scriptDef: ScriptDefinition,
     classPath: Iterable<File>,
     logger: Logger,
-    pathTranslation: (String) -> String
+    problems: InternalProblems,
+    pathTranslation: (String) -> String,
 ) = compileKotlinScriptModuleForPrecompiledScriptPluginsTo(
     outputDirectory,
     compilerOptions,
@@ -118,7 +122,8 @@ fun compileKotlinScriptModuleForPrecompiledScriptPluginsTo(
     scriptFiles,
     scriptDef,
     classPath,
-    LoggingMessageCollector(logger, onCompilerWarningsFor(compilerOptions.allWarningsAsErrors), pathTranslation)
+    LoggingMessageCollector(logger, onCompilerWarningsFor(compilerOptions.allWarningsAsErrors), pathTranslation),
+    problems
 )
 
 
@@ -133,7 +138,8 @@ fun compileKotlinScriptModuleForPrecompiledScriptPluginsTo(
     scriptFiles: Collection<String>,
     scriptDef: ScriptDefinition,
     classPath: Iterable<File>,
-    messageCollector: LoggingMessageCollector
+    messageCollector: LoggingMessageCollector,
+    problems: InternalProblems
 ) {
     withRootDisposable {
         withCompilationExceptionHandler(messageCollector) {
@@ -147,7 +153,10 @@ fun compileKotlinScriptModuleForPrecompiledScriptPluginsTo(
             }
 
             compileBunchOfSources(kotlinCoreEnvironmentFor(configuration))
-                || throw ScriptCompilationException(messageCollector.errors)
+                || throw problems.internalReporter.throwing(ScriptCompilationException(messageCollector.errors),
+                ProblemId.create("kotlin-dsl-script-compilation-failure", "Kotlin DSL script compilation failure", GradleCoreProblemGroup.compilation().kotlinDsl())){
+
+            }
         }
     }
 }
@@ -186,6 +195,7 @@ fun compileKotlinScriptToDirectory(
     scriptDef: ScriptDefinition,
     classPath: List<File>,
     logger: Logger,
+    problems: InternalProblems,
     pathTranslation: (String) -> String
 ): String {
 
@@ -196,7 +206,8 @@ fun compileKotlinScriptToDirectory(
         listOf(scriptFile.path),
         scriptDef,
         classPath,
-        messageCollectorFor(logger, compilerOptions.allWarningsAsErrors, pathTranslation)
+        messageCollectorFor(logger, compilerOptions.allWarningsAsErrors, pathTranslation),
+        problems
     )
 
     return NameUtils.getScriptNameForFile(scriptFile.name).asString()
@@ -211,7 +222,8 @@ fun compileKotlinScriptModuleTo(
     scriptFiles: Collection<String>,
     scriptDef: ScriptDefinition,
     classPath: Iterable<File>,
-    messageCollector: LoggingMessageCollector
+    messageCollector: LoggingMessageCollector,
+    problems: InternalProblems
 ) {
     withRootDisposable {
         withCompilationExceptionHandler(messageCollector) {
@@ -235,14 +247,14 @@ fun compileKotlinScriptModuleTo(
             scriptFiles.forEach {
                 val script = File(it).toScriptSource()
                 host.eval(script, compilationConfiguration, scriptDef.evaluationConfiguration)
-                    .reportToMessageCollectorAndThrowOnErrors(script, messageCollector)
+                    .reportToMessageCollectorAndThrowOnErrors(script, messageCollector, problems)
             }
         }
     }
 }
 
 
-private fun ResultWithDiagnostics<*>.reportToMessageCollectorAndThrowOnErrors(script: SourceCode, messageCollector: MessageCollector): ResultWithDiagnostics<*> = also {
+private fun ResultWithDiagnostics<*>.reportToMessageCollectorAndThrowOnErrors(script: SourceCode, messageCollector: MessageCollector, problems: InternalProblems): ResultWithDiagnostics<*> = also {
     val lines = if (it.reports.isEmpty()) null else script.text.lines()
     val scriptErrors = ArrayList<ScriptCompilationError>()
     for (report in it.reports) {
@@ -266,7 +278,11 @@ private fun ResultWithDiagnostics<*>.reportToMessageCollectorAndThrowOnErrors(sc
         )
     }
     if (it is ResultWithDiagnostics.Failure || (messageCollector.hasErrors() && scriptErrors.isNotEmpty())) {
-        throw ScriptCompilationException(scriptErrors)
+        // Use problems for reporting if needed
+         throw problems.internalReporter.throwing(ScriptCompilationException(scriptErrors),
+             ProblemId.create("kotlin-dsl-script-compilation-failure", "Kotlin DSL script compilation failure", GradleCoreProblemGroup.compilation().kotlinDsl())){
+
+         }
     }
 }
 

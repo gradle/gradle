@@ -25,6 +25,7 @@ import org.gradle.api.internal.plugins.PluginAwareInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.cache.CacheOpenException
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
@@ -117,7 +118,8 @@ class StandardKotlinScriptEvaluator(
     private val gradleProperties: GradleProperties,
     private val transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy,
     private val gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
-    private val propertyUpgradeReportConfig: PropertyUpgradeReportConfig
+    private val propertyUpgradeReportConfig: PropertyUpgradeReportConfig,
+    private val problems: InternalProblems
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -162,8 +164,8 @@ class StandardKotlinScriptEvaluator(
     private
     val interpreter by lazy {
         when (propertyUpgradeReportConfig.isEnabled) {
-            true -> Interpreter(InterpreterHostWithoutInMemoryCache(gradleProperties))
-            false -> Interpreter(InterpreterHost(gradleProperties))
+            true -> Interpreter(InterpreterHostWithoutInMemoryCache(gradleProperties), problems)
+            false -> Interpreter(InterpreterHost(gradleProperties), problems)
         }
     }
 
