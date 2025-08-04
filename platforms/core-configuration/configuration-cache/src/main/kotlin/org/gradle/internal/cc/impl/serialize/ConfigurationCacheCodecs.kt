@@ -17,7 +17,6 @@
 package org.gradle.internal.cc.impl.serialize
 
 import org.gradle.api.file.FileSystemOperations
-import org.gradle.api.flow.FlowProviders
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
@@ -36,7 +35,6 @@ import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.provider.PropertyFactory
-import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.tasks.util.internal.PatternSetFactory
@@ -181,7 +179,6 @@ class DefaultConfigurationCacheCodecs(
     actionScheme: TransformActionScheme,
     attributesFactory: AttributesFactory,
     attributeDesugaring: AttributeDesugaring,
-    valueSourceProviderFactory: ValueSourceProviderFactory,
     calculatedValueContainerFactory: CalculatedValueContainerFactory,
     patternSetFactory: PatternSetFactory,
     fileOperations: FileOperations,
@@ -191,7 +188,6 @@ class DefaultConfigurationCacheCodecs(
     documentationRegistry: DocumentationRegistry,
     taskDependencyFactory: TaskDependencyFactory,
     val javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
-    flowProviders: FlowProviders,
     transformStepNodeFactory: TransformStepNodeFactory,
     problems: InternalProblems
 ) : ConfigurationCacheCodecs {
@@ -292,9 +288,7 @@ class DefaultConfigurationCacheCodecs(
                 propertyFactory,
                 filePropertyFactory,
                 nestedProviderCodec(
-                    valueSourceProviderFactory,
-                    buildStateRegistry,
-                    flowProviders
+                    buildStateRegistry
                 )
             )
         }
@@ -304,7 +298,6 @@ class DefaultConfigurationCacheCodecs(
                 propertyFactory,
                 filePropertyFactory,
                 nestedProviderCodecForFingerprint(
-                    valueSourceProviderFactory
                 )
             )
         }
@@ -330,7 +323,7 @@ class DefaultConfigurationCacheCodecs(
     val internalTypesBindings = Bindings.of {
         baseTypes()
 
-        providerTypes(propertyFactory, filePropertyFactory, nestedProviderCodec(valueSourceProviderFactory, buildStateRegistry, flowProviders))
+        providerTypes(propertyFactory, filePropertyFactory, nestedProviderCodec(buildStateRegistry))
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory, fileLookup, taskDependencyFactory)
 
         bind(TaskInAnotherBuildCodec(includedTaskGraph))
@@ -369,14 +362,12 @@ class DefaultConfigurationCacheCodecs(
      */
     private
     fun nestedProviderCodec(
-        valueSourceProviderFactory: ValueSourceProviderFactory,
-        buildStateRegistry: BuildStateRegistry,
-        flowProviders: FlowProviders
+        buildStateRegistry: BuildStateRegistry
     ) = FixedValueReplacingProviderCodec(
         defaultCodecForProviderWithChangingValue(
-            ValueSourceProviderCodec(valueSourceProviderFactory),
+            ValueSourceProviderCodec,
             BuildServiceProviderCodec(buildStateRegistry),
-            FlowProvidersCodec(flowProviders)
+            FlowProvidersCodec
         )
     )
 
@@ -384,11 +375,9 @@ class DefaultConfigurationCacheCodecs(
      * Returns a Codec for Provider implementations supported in the fingerprinting context. For example, BuildServiceProviders are not supported.
      */
     private
-    fun nestedProviderCodecForFingerprint(
-        valueSourceProviderFactory: ValueSourceProviderFactory
-    ) = FixedValueReplacingProviderCodec(
+    fun nestedProviderCodecForFingerprint() = FixedValueReplacingProviderCodec(
         defaultCodecForProviderWithChangingValue(
-            ValueSourceProviderCodec(valueSourceProviderFactory),
+            ValueSourceProviderCodec,
             UnsupportedFingerprintBuildServiceProviderCodec,
             UnsupportedFingerprintFlowProviders
         )
