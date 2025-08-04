@@ -20,20 +20,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.internal.component.model.VariantIdentifier;
-import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -49,12 +47,11 @@ import java.util.Optional;
 
 @ServiceScope(Scope.BuildTree.class)
 public class ArtifactSetToFileCollectionFactory {
+
     private final BuildOperationExecutor buildOperationExecutor;
-    private final TaskDependencyFactory taskDependencyFactory;
     private final InternalProblems problemsService;
 
-    public ArtifactSetToFileCollectionFactory(TaskDependencyFactory taskDependencyFactory, BuildOperationExecutor buildOperationExecutor, InternalProblems problemsService) {
-        this.taskDependencyFactory = taskDependencyFactory;
+    public ArtifactSetToFileCollectionFactory(BuildOperationExecutor buildOperationExecutor, InternalProblems problemsService) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.problemsService = problemsService;
     }
@@ -64,13 +61,13 @@ public class ArtifactSetToFileCollectionFactory {
     }
 
     /**
-     * Presents the contents of the given artifacts as a partial {@link FileCollectionInternal} implementation.
+     * Presents the contents of the given artifacts as a partial {@link SelectedArtifactSet} implementation.
      *
      * <p>This produces only a minimal implementation to use for artifact sets loaded from the configuration cache
      * Over time, this should be merged with the FileCollection implementation in DefaultConfiguration
      */
-    public ResolutionBackedFileCollection asFileCollection(String displayName, boolean lenient, List<?> elements) {
-        return new ResolutionBackedFileCollection(new PartialSelectedArtifactSet(elements, buildOperationExecutor), lenient, new NameBackedResolutionHost(problemsService, displayName), taskDependencyFactory);
+    public SelectedArtifactSet getSelectedArtifacts(List<?> elements) {
+        return new PartialSelectedArtifactSet(elements, buildOperationExecutor);
     }
 
     public ResolvedArtifactSet asResolvedArtifactSet(Throwable failure) {
@@ -283,4 +280,5 @@ public class ArtifactSetToFileCollectionFactory {
             // No dependencies
         }
     }
+
 }
