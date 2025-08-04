@@ -28,6 +28,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -357,6 +358,20 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         }
 
         @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof BuildPropertyScope)) {
+                return false;
+            }
+            BuildPropertyScope that = (BuildPropertyScope) o;
+            return Objects.equals(buildId, that.buildId);
+        }
+
+        @Override
+        public int hashCode() {
+            return buildId.hashCode();
+        }
+
+        @Override
         public String toString() {
             return "BuildPropertyScope{" + buildId + '}';
         }
@@ -372,6 +387,20 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         @Override
         public ProjectIdentity getProjectIdentity() {
             return projectId;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof ProjectPropertyScope)) {
+                return false;
+            }
+            ProjectPropertyScope that = (ProjectPropertyScope) o;
+            return Objects.equals(projectId, that.projectId);
+        }
+
+        @Override
+        public int hashCode() {
+            return projectId.hashCode();
         }
 
         @Override

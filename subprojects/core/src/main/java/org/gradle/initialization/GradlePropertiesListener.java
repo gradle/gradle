@@ -32,7 +32,21 @@ import java.util.Map;
 @EventScope(Scope.BuildTree.class)
 public interface GradlePropertiesListener {
 
+    /**
+     * Scope of the property.
+     *
+     * Can be used as map keys.
+     */
     /* sealed */ interface PropertyScope {
+
+        @Override
+        boolean equals(@Nullable Object o);
+
+        @Override
+        int hashCode();
+
+        @Override
+        String toString();
 
         interface Build extends PropertyScope {
             BuildIdentifier getBuildIdentifier();
