@@ -989,7 +989,7 @@ class ConfigurationCacheFingerprintWriter(
             return
         }
         reportInput(scopedLocation(propertyScope, location), null) {
-            text("Gradle property ")
+            text("gradle property ")
             reference(propertyName)
         }
     }
@@ -1006,7 +1006,7 @@ class ConfigurationCacheFingerprintWriter(
             return
         }
         reportInput(scopedLocation(propertyScope, location), null) {
-            text("Gradle property ") // To avoid introducing a separate subtree in the report
+            text("gradle property ") // To avoid introducing a separate subtree in the report
             reference("$prefix.*")
         }
     }
