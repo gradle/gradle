@@ -34,10 +34,13 @@ import org.gradle.api.internal.plugins.CorePluginRegistryProvider;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.cache.CacheCleanupStrategyFactory;
+import org.gradle.cache.FineGrainedCacheCleanupStrategyFactory;
 import org.gradle.cache.GlobalCache;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.DefaultFileContentCacheFactory;
+import org.gradle.cache.internal.DefaultFineGrainedCacheCleanupStrategyFactory;
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
 import org.gradle.cache.internal.DefaultGlobalCacheLocations;
 import org.gradle.cache.internal.FileContentCacheFactory;
@@ -73,6 +76,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.LongIdGenerator;
@@ -280,6 +284,11 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
     @Provides
     FileAccessTimeJournal createFileAccessTimeJournal(GlobalScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
         return new DefaultFileAccessTimeJournal(cacheBuilderFactory, cacheDecoratorFactory);
+    }
+
+    @Provides
+    FineGrainedCacheCleanupStrategyFactory createFineGrainedCacheCleanupStrategyFactory(CacheCleanupStrategyFactory cacheCleanupStrategyFactory, FileAccessTimeJournal fileAccessTimeJournal, Deleter deleter) {
+        return new DefaultFineGrainedCacheCleanupStrategyFactory(cacheCleanupStrategyFactory, fileAccessTimeJournal, deleter);
     }
 
     @Provides

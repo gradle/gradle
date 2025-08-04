@@ -18,6 +18,7 @@ package org.gradle.cache.internal;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.FineGrainedPersistentCache;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
@@ -37,10 +38,12 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class DefaultCacheFactory implements CacheFactory, Closeable {
-    private final Map<File, DirCacheReference> dirCaches = new HashMap<>();
+    private final Map<File, DirCacheReference> singleLockCaches = new HashMap<>();
+    private final Map<File, FineGrainedPersistentCache> multiLockCaches = new HashMap<>();
     private final FileLockManager lockManager;
     private final ExecutorFactory executorFactory;
     private final Lock lock = new ReentrantLock();
@@ -67,17 +70,35 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
     }
 
     @Override
+    public FineGrainedPersistentCache openFineGrained(File cacheDir, String displayName, int numberOfLocks, Function<FineGrainedPersistentCache, CacheCleanupStrategy> cacheCleanupStrategy) throws CacheOpenException {
+        lock.lock();
+        try {
+            if (multiLockCaches.containsKey(cacheDir)) {
+                throw new CacheOpenException(String.format("Cache for '%s' is already open with displayName: '%s'", cacheDir, multiLockCaches.get(cacheDir).getDisplayName()));
+            }
+            FineGrainedPersistentCache cache = new DefaultFineGrainedPersistentCache(cacheDir, displayName, lockManager, numberOfLocks, cacheCleanupStrategy);
+            cache.open();
+            return cache;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
     public void visitCaches(CacheVisitor visitor) {
-        dirCaches.values().stream().map(dirCacheReference -> dirCacheReference.cache).forEach(visitor::visit);
+        singleLockCaches.values().stream().map(dirCacheReference -> dirCacheReference.cache).forEach(visitor::visit);
+        multiLockCaches.values().forEach(visitor::visit);
     }
 
     @Override
     public void close() {
         lock.lock();
         try {
-            CompositeStoppable.stoppable(dirCaches.values()).stop();
+            CompositeStoppable.stoppable(singleLockCaches.values()).stop();
+            CompositeStoppable.stoppable(multiLockCaches.values()).stop();
         } finally {
-            dirCaches.clear();
+            singleLockCaches.clear();
+            multiLockCaches.clear();
             lock.unlock();
         }
     }
@@ -90,7 +111,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         @Nullable Consumer<? super PersistentCache> initializer,
         CacheCleanupStrategy cacheCleanupStrategy
     ) {
-        DirCacheReference dirCacheReference = dirCaches.get(cacheDir);
+        DirCacheReference dirCacheReference = singleLockCaches.get(cacheDir);
         if (dirCacheReference == null) {
             ReferencablePersistentCache cache;
             if (!properties.isEmpty() || initializer != null) {
@@ -101,7 +122,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
             }
             cache.open();
             dirCacheReference = new DirCacheReference(cache, properties, lockOptions);
-            dirCaches.put(cacheDir, dirCacheReference);
+            singleLockCaches.put(cacheDir, dirCacheReference);
         } else {
             if (!lockOptions.equals(dirCacheReference.lockOptions)) {
                 throw new IllegalStateException(String.format("Cache '%s' is already open with different lock options.", cacheDir));
@@ -144,7 +165,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         @Override
         public void close() {
             onClose(cache);
-            dirCaches.values().remove(this);
+            singleLockCaches.values().remove(this);
             references.clear();
             cache.close();
         }
