@@ -382,7 +382,7 @@ task useDirProviderApi {
         run("merge")
 
         then:
-        result.assertTasksExecuted()
+        result.assertAllTasksSkipped()
 
         when:
         file("file-source.txt").text = "new-file1"
@@ -439,7 +439,7 @@ task useDirProviderApi {
         run("merge")
 
         then:
-        result.assertTasksExecuted()
+        result.assertAllTasksSkipped()
 
         when:
         file("file-source.txt").text = "new-file1"
@@ -494,7 +494,7 @@ task useDirProviderApi {
         run("merge")
 
         then:
-        result.assertTasksExecuted()
+        result.assertAllTasksSkipped()
 
         when:
         file("file-source.txt").text = "new-file1"
@@ -551,7 +551,7 @@ task useDirProviderApi {
         run("merge")
 
         then:
-        result.assertTasksExecuted()
+        result.assertAllTasksSkipped()
     }
 
     def "can wire the output directory of a task as input to another task using property"() {
@@ -608,7 +608,7 @@ task useDirProviderApi {
         run("merge")
 
         then:
-        result.assertTasksExecuted()
+        result.assertAllTasksSkipped()
 
         when:
         file("dir-source.txt").text = "new-dir1"
@@ -664,7 +664,7 @@ task useDirProviderApi {
         run("merge")
 
         then:
-        result.assertTasksExecuted()
+        result.assertAllTasksSkipped()
     }
 
     def "can wire the output of a task as a dependency of another task via #fileMethod"() {

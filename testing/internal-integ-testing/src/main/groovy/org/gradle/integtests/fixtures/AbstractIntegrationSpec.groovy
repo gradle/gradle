@@ -503,7 +503,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
 
     protected void allSkipped() {
         assertHasResult()
-        result.assertTasksExecuted()
+        result.assertAllTasksSkipped()
     }
 
     protected void skipped(String... tasks) {

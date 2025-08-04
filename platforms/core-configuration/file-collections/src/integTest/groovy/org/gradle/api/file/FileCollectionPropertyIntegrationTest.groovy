@@ -539,7 +539,7 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         run("merge")
 
         then:
-        result.assertTasksExecuted()
+        result.assertAllTasksSkipped()
 
         when:
         file("dir1-source.txt").text = "new-dir1"

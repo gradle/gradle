@@ -411,8 +411,9 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     @Override
     public ExecutionResult assertTasksExecuted(Object... taskPaths) {
         if (taskPaths == null || taskPaths.length == 0) {
-            throw new IllegalArgumentException("taskPaths cannot be empty. To check no tasks in the task graph, use assertNoTasksScheduled() instead." +
-                " To check that at least one task was executed, use assertAnyTasksExecuted() instead.");
+            throw new IllegalArgumentException("taskPaths cannot be empty. To check no tasks in the task graph, use assertNoTasksScheduled().\n" +
+                "To check that at least one task was executed, use assertAnyTasksExecuted()\n +" +
+                "To check that tasks are in the task graph but were skipped, use assertAllTasksSkipped().");
         }
         Set<String> expectedTasks = new TreeSet<>(flattenTaskPaths(taskPaths));
         Set<String> notSkippedTasks = new TreeSet<>(getNotSkippedTasks());
