@@ -90,7 +90,7 @@ class TaskNodeCodec(
             writeClass(taskType)
             writeProjectRef(task.project)
             writeString(taskName)
-            writeLong(task.taskIdentity.uniqueId)
+            writeLong(task.taskIdentity.id)
             writeNullableString(task.reasonTaskIsIncompatibleWithConfigurationCache.orElse(null))
 
             withDebugFrame({ taskType.name }) {
