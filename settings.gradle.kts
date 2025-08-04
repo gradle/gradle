@@ -16,7 +16,6 @@ pluginManagement {
                 includeVersionByRegex("com.gradle", "develocity-gradle-plugin", rcAndMilestonesPattern)
             }
         }
-        mavenLocal()
         gradlePluginPortal()
     }
     includeBuild("build-logic-settings")
