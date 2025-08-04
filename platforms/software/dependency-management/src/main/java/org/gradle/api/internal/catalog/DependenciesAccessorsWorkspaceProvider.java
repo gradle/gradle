@@ -16,8 +16,7 @@
 package org.gradle.api.internal.catalog;
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
-import org.gradle.cache.CacheCleanupStrategyFactory;
-import org.gradle.cache.UnscopedCacheBuilderFactory;
+import org.gradle.cache.FineGrainedCacheCleanupStrategyFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.CacheBasedImmutableWorkspaceProvider;
@@ -35,17 +34,15 @@ public class DependenciesAccessorsWorkspaceProvider implements ImmutableWorkspac
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         CacheConfigurationsInternal cacheConfigurations,
-        CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
-        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
+        FineGrainedCacheCleanupStrategyFactory cacheCleanupStrategyFactory
     ) {
         this.delegate = CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(
             cacheBuilderFactory
-                .createCacheBuilder("dependencies-accessors")
+                .createFineGrainedCacheBuilder("dependencies-accessors")
                 .withDisplayName("dependencies-accessors"),
             fileAccessTimeJournal,
             cacheConfigurations,
-            cacheCleanupStrategyFactory,
-            unscopedCacheBuilderFactory
+            cacheCleanupStrategyFactory
         );
     }
 
