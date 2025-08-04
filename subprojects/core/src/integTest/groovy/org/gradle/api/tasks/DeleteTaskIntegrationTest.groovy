@@ -19,7 +19,6 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
@@ -150,13 +149,6 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
         succeeds "clean"
         then: "clean is marked as UP-TO-DATE"
         result.groupedOutput.task(":clean").outcome == "UP-TO-DATE"
-
-        // A first CC build may produce build/reports, which renders `clean` out-of-date
-        if (GradleContextualExecuter.isConfigCache()) {
-            def build = testDirectory.file("build")
-            assert build.listFiles().size() == 1 && build.file("reports").exists()
-            build.deleteDir()
-        }
 
         when: "clean is executed again without any changes"
         executer.withArgument("--no-problems-report")

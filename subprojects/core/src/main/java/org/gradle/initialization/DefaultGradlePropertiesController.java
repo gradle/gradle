@@ -28,6 +28,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -35,16 +36,19 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
     private final GradlePropertiesLoader gradlePropertiesLoader;
     private final SystemPropertiesInstaller systemPropertiesInstaller;
+    private final GradlePropertiesListener listener;
 
     private final ConcurrentMap<BuildIdentifier, BuildScopedGradleProperties> buildProperties = new ConcurrentHashMap<>();
     private final ConcurrentMap<ProjectIdentity, ProjectScopedGradleProperties> projectProperties = new ConcurrentHashMap<>();
 
     public DefaultGradlePropertiesController(
         GradlePropertiesLoader gradlePropertiesLoader,
-        SystemPropertiesInstaller systemPropertiesInstaller
+        SystemPropertiesInstaller systemPropertiesInstaller,
+        GradlePropertiesListener listener
     ) {
         this.gradlePropertiesLoader = gradlePropertiesLoader;
         this.systemPropertiesInstaller = systemPropertiesInstaller;
+        this.listener = listener;
     }
 
     @Override
@@ -79,15 +83,69 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
     private BuildScopedGradleProperties getOrCreateGradleProperties(BuildIdentifier buildId) {
         return buildProperties.computeIfAbsent(buildId, id ->
-            new BuildScopedGradleProperties(gradlePropertiesLoader, systemPropertiesInstaller, id));
+            new BuildScopedGradleProperties(gradlePropertiesLoader, systemPropertiesInstaller, id, listener));
     }
 
     private ProjectScopedGradleProperties getOrCreateGradleProperties(ProjectIdentity projectId) {
         return projectProperties.computeIfAbsent(projectId, id ->
-            new ProjectScopedGradleProperties(gradlePropertiesLoader, id));
+            new ProjectScopedGradleProperties(gradlePropertiesLoader, id, listener));
     }
 
-    private static class BuildScopedGradleProperties implements GradleProperties {
+    private static abstract class ScopedGradleProperties implements GradleProperties {
+
+        private final GradlePropertiesListener.PropertyScope propertyScope;
+        private final GradlePropertiesListener listener;
+
+        protected ScopedGradleProperties(
+            GradlePropertiesListener.PropertyScope propertyScope,
+            GradlePropertiesListener listener
+        ) {
+            this.propertyScope = propertyScope;
+            this.listener = listener;
+        }
+
+        protected abstract GradleProperties gradleProperties();
+
+        @Override
+        public @Nullable String find(String propertyName) {
+            String value = gradleProperties().find(propertyName);
+            onGradleProperty(propertyName, value);
+            return value;
+        }
+
+        @Override
+        public @Nullable Object findUnsafe(String propertyName) {
+            Object value = gradleProperties().findUnsafe(propertyName);
+            onGradleProperty(propertyName, value);
+            return value;
+        }
+
+        @Override
+        public Map<String, String> getProperties() {
+            Map<String, String> snapshot = gradleProperties().getProperties();
+            onGradleProperties(snapshot);
+            return snapshot;
+        }
+
+        @Override
+        public Map<String, String> getPropertiesWithPrefix(String prefix) {
+            Map<String, String> snapshot = gradleProperties().getPropertiesWithPrefix(prefix);
+            listener.onGradlePropertiesByPrefix(propertyScope, prefix, snapshot);
+            return snapshot;
+        }
+
+        private void onGradleProperties(Map<String, String> snapshot) {
+            for (Map.Entry<String, String> entry : snapshot.entrySet()) {
+                onGradleProperty(entry.getKey(), entry.getValue());
+            }
+        }
+
+        private void onGradleProperty(String propertyName, @Nullable Object value) {
+            listener.onGradlePropertyAccess(propertyScope, propertyName, value);
+        }
+    }
+
+    private static class BuildScopedGradleProperties extends ScopedGradleProperties {
 
         private final GradlePropertiesLoader loader;
         private final SystemPropertiesInstaller systemPropertiesInstaller;
@@ -98,34 +156,17 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         private BuildScopedGradleProperties(
             GradlePropertiesLoader loader,
             SystemPropertiesInstaller systemPropertiesInstaller,
-            BuildIdentifier buildId
+            BuildIdentifier buildId,
+            GradlePropertiesListener listener
         ) {
+            super(new BuildPropertyScope(buildId), listener);
             this.loader = loader;
             this.systemPropertiesInstaller = systemPropertiesInstaller;
             this.buildId = buildId;
         }
 
         @Override
-        public @Nullable String find(String propertyName) {
-            return gradleProperties().find(propertyName);
-        }
-
-        @Override
-        public Map<String, String> getProperties() {
-            return gradleProperties().getProperties();
-        }
-
-        @Override
-        public Map<String, String> getPropertiesWithPrefix(String prefix) {
-            return gradleProperties().getPropertiesWithPrefix(prefix);
-        }
-
-        @Override
-        public @Nullable Object findUnsafe(String propertyName) {
-            return gradleProperties().findUnsafe(propertyName);
-        }
-
-        private GradleProperties gradleProperties() {
+        protected GradleProperties gradleProperties() {
             return checkLoaded().gradleProperties;
         }
 
@@ -165,6 +206,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
                     fromBuildRoot,
                     fromGradleUserHome
                 ));
+                // TODO:configuration-cache consider whether to track property access from here (perhaps tracking system property consumers is enough?)
                 systemPropertiesInstaller.setSystemPropertiesFrom(systemPropertiesSource, isRootBuild);
             }
 
@@ -238,39 +280,25 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         }
     }
 
-    private static class ProjectScopedGradleProperties implements GradleProperties {
+    private static class ProjectScopedGradleProperties extends ScopedGradleProperties {
 
         private final GradlePropertiesLoader loader;
         private final ProjectIdentity projectId;
         @Nullable
         private volatile GradleProperties loaded;
 
-        private ProjectScopedGradleProperties(GradlePropertiesLoader loader, ProjectIdentity projectId) {
+        private ProjectScopedGradleProperties(
+            GradlePropertiesLoader loader,
+            ProjectIdentity projectId,
+            GradlePropertiesListener listener
+        ) {
+            super(new ProjectPropertyScope(projectId), listener);
             this.loader = loader;
             this.projectId = projectId;
         }
 
         @Override
-        public @Nullable String find(String propertyName) {
-            return gradleProperties().find(propertyName);
-        }
-
-        @Override
-        public Map<String, String> getProperties() {
-            return gradleProperties().getProperties();
-        }
-
-        @Override
-        public Map<String, String> getPropertiesWithPrefix(String prefix) {
-            return gradleProperties().getPropertiesWithPrefix(prefix);
-        }
-
-        @Override
-        public @Nullable Object findUnsafe(String propertyName) {
-            return gradleProperties().findUnsafe(propertyName);
-        }
-
-        private GradleProperties gradleProperties() {
+        protected GradleProperties gradleProperties() {
             GradleProperties loaded = this.loaded;
             if (loaded == null) {
                 throw new IllegalStateException(String.format("GradleProperties for %s have not been loaded yet.", projectId));
@@ -315,5 +343,69 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
             builder.putAll(map);
         }
         return builder.buildKeepingLast();
+    }
+
+    private static class BuildPropertyScope implements GradlePropertiesListener.PropertyScope.Build {
+        private final BuildIdentifier buildId;
+
+        public BuildPropertyScope(BuildIdentifier buildId) {
+            this.buildId = buildId;
+        }
+
+        @Override
+        public BuildIdentifier getBuildIdentifier() {
+            return buildId;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof BuildPropertyScope)) {
+                return false;
+            }
+            BuildPropertyScope that = (BuildPropertyScope) o;
+            return Objects.equals(buildId, that.buildId);
+        }
+
+        @Override
+        public int hashCode() {
+            return buildId.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return "BuildPropertyScope{" + buildId + '}';
+        }
+    }
+
+    private static class ProjectPropertyScope implements GradlePropertiesListener.PropertyScope.Project {
+        private final ProjectIdentity projectId;
+
+        public ProjectPropertyScope(ProjectIdentity projectId) {
+            this.projectId = projectId;
+        }
+
+        @Override
+        public ProjectIdentity getProjectIdentity() {
+            return projectId;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof ProjectPropertyScope)) {
+                return false;
+            }
+            ProjectPropertyScope that = (ProjectPropertyScope) o;
+            return Objects.equals(projectId, that.projectId);
+        }
+
+        @Override
+        public int hashCode() {
+            return projectId.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return "ProjectPropertyScope{" + projectId + '}';
+        }
     }
 }

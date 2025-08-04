@@ -51,6 +51,7 @@ import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter;
 import org.gradle.initialization.DefaultGradlePropertiesController;
 import org.gradle.initialization.Environment;
 import org.gradle.initialization.EnvironmentChangeTracker;
+import org.gradle.initialization.GradlePropertiesListener;
 import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.initialization.exception.DefaultExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionCollector;
@@ -206,8 +207,13 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     protected GradlePropertiesController createGradlePropertiesController(
         StartParameterInternal startParameter,
         Environment environment,
-        SystemPropertiesInstaller systemPropertiesInstaller
+        SystemPropertiesInstaller systemPropertiesInstaller,
+        ListenerManager listenerManager
     ) {
-        return new DefaultGradlePropertiesController(new DefaultGradlePropertiesLoader(startParameter, environment), systemPropertiesInstaller);
+        return new DefaultGradlePropertiesController(
+            new DefaultGradlePropertiesLoader(startParameter, environment),
+            systemPropertiesInstaller,
+            listenerManager.getBroadcaster(GradlePropertiesListener.class)
+        );
     }
 }

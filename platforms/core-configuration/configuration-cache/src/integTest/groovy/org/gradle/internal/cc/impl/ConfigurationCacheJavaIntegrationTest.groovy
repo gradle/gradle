@@ -316,7 +316,8 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateStored()
-        !file("build").exists()
+        // CC report is still generated since the build script looks up the property `sourceSets`
+        file("build").list().toList() == ['reports']
 
         when:
         configurationCacheRun "assemble"
@@ -494,7 +495,8 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         assertStateStored()
-        !file("build").exists()
+        // CC report is still generated since the build script looks up the property `application`
+        file("build").list().toList() == ['reports']
 
         when:
         configurationCacheRun "build"

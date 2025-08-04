@@ -32,10 +32,11 @@ class DefaultGradlePropertiesControllerTest extends Specification {
 
     private final GradlePropertiesLoader gradlePropertiesLoader = Mock(GradlePropertiesLoader)
     private final SystemPropertiesInstaller systemPropertiesInstaller = Mock(SystemPropertiesInstaller)
+    private final GradlePropertiesListener listener = Mock(GradlePropertiesListener)
 
     def "attached GradleProperties #method fails before loading build properties"() {
         given:
-        def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, systemPropertiesInstaller)
+        def controller = newDefaultGradlePropertiesController()
         def properties = controller.getGradleProperties(rootBuildId)
         0 * controller.loadGradleProperties(_, _, _)
 
@@ -52,7 +53,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
 
     def "attached GradleProperties #method fails before loading project properties"() {
         given:
-        def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, systemPropertiesInstaller)
+        def controller = newDefaultGradlePropertiesController()
         def properties = controller.getGradleProperties(rootProjectId)
         0 * controller.loadGradleProperties(_, _)
 
@@ -69,7 +70,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
 
     def "attached GradleProperties methods succeed after loading"() {
         given:
-        def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, systemPropertiesInstaller)
+        def controller = newDefaultGradlePropertiesController()
         def properties = controller.getGradleProperties(rootBuildId)
         1 * gradlePropertiesLoader.loadFromGradleHome() >> [:]
         1 * gradlePropertiesLoader.loadFrom(buildRootDir) >> [:]
@@ -90,7 +91,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         given:
         // use a different File instance for each call to ensure it is compared by value
         def currentDir = { new File('.') }
-        def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, systemPropertiesInstaller)
+        def controller = newDefaultGradlePropertiesController()
 
         when: "calling the method multiple times with the same value"
         controller.loadGradleProperties(rootBuildId, currentDir(), false)
@@ -108,7 +109,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
     def "loading build-scoped properties second time from another location fails"() {
         given:
         def settingsDir = new File('a')
-        def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, systemPropertiesInstaller)
+        def controller = newDefaultGradlePropertiesController()
         1 * gradlePropertiesLoader.loadFromGradleHome() >> [:]
         1 * gradlePropertiesLoader.loadFrom(settingsDir) >> [:]
         1 * gradlePropertiesLoader.loadFromGradleUserHome() >> [:]
@@ -127,7 +128,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
     def "gradle properties are composed from multiple sources"() {
         given:
         def projectDir = new File("projectDir")
-        def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, systemPropertiesInstaller)
+        def controller = newDefaultGradlePropertiesController()
 
         1 * gradlePropertiesLoader.loadFromGradleHome() >> ["gradleHomeProp": "gradleHomeValue", "commonProp": "gradleHomeValue"]
         1 * gradlePropertiesLoader.loadFrom(buildRootDir) >> ["buildRootProp": "buildRootValue", "commonProp": "buildRootValue"]
@@ -171,7 +172,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
 
     def "build-scoped properties from #observedSource take precedence over #shadowedSource properties"() {
         given:
-        def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, systemPropertiesInstaller)
+        def controller = newDefaultGradlePropertiesController()
 
         def propOrEmpty = { value -> value ? [prop: value] : [:] }
 
@@ -201,7 +202,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
     def "project-scoped properties from #observedSource take precedence over #shadowedSource properties"() {
         given:
         def projectDir = new File("projectDir")
-        def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, systemPropertiesInstaller)
+        def controller = newDefaultGradlePropertiesController()
 
         def propOrEmpty = { value -> value ? [prop: value] : [:] }
 
@@ -233,7 +234,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
 
     def "system properties are installed from multiple sources as part of loading build-scoped properties"() {
         given:
-        def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, systemPropertiesInstaller)
+        def controller = newDefaultGradlePropertiesController()
 
         1 * gradlePropertiesLoader.loadFromGradleHome() >> ["gradleHomeProp": "gradleHomeValue", "commonProp": "gradleHomeValue"]
         1 * gradlePropertiesLoader.loadFrom(buildRootDir) >> ["buildRootProp": "buildRootValue", "commonProp": "buildRootValue"]
@@ -261,7 +262,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
 
     def "system properties installed from #observedSource take precedence over #shadowedSource properties"() {
         given:
-        def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, systemPropertiesInstaller)
+        def controller = newDefaultGradlePropertiesController()
 
         def propOrEmpty = { value -> value ? [prop: value] : [:] }
 
@@ -290,7 +291,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
     def "each build loads own gradle properties"() {
         given:
         def includedDir = new File(buildRootDir, "included")
-        def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, systemPropertiesInstaller)
+        def controller = newDefaultGradlePropertiesController()
 
         def rootBuildId = this.rootBuildId
         def includedBuildId = new DefaultBuildIdentifier(Path.path(":included"))
@@ -320,7 +321,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
 
     def "supports unloading build-scoped properties"() {
         given:
-        def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, systemPropertiesInstaller)
+        def controller = newDefaultGradlePropertiesController()
 
         1 * gradlePropertiesLoader.loadFromGradleHome() >> [:]
         1 * gradlePropertiesLoader.loadFrom(buildRootDir) >> [prop: "value"]
@@ -350,7 +351,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
     def "unloading build-scoped properties fails if project properties have been loaded"() {
         given:
         def projectDir = new File("projectDir")
-        def controller = new DefaultGradlePropertiesController(gradlePropertiesLoader, systemPropertiesInstaller)
+        def controller = newDefaultGradlePropertiesController()
 
         1 * gradlePropertiesLoader.loadFromGradleHome() >> [:]
         1 * gradlePropertiesLoader.loadFrom(buildRootDir) >> [:]
@@ -370,5 +371,9 @@ class DefaultGradlePropertiesControllerTest extends Specification {
 
         then:
         thrown(IllegalStateException)
+    }
+
+    private DefaultGradlePropertiesController newDefaultGradlePropertiesController() {
+        new DefaultGradlePropertiesController(gradlePropertiesLoader, systemPropertiesInstaller, listener)
     }
 }

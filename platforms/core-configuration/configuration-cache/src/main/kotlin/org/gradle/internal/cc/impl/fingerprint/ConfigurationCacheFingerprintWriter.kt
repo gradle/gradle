@@ -46,6 +46,7 @@ import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceListener
+import org.gradle.initialization.GradlePropertiesListener
 import org.gradle.initialization.buildsrc.BuildSrcDetector
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildoption.FeatureFlag
@@ -87,6 +88,7 @@ import java.util.EnumSet
 import java.util.concurrent.ConcurrentHashMap
 
 
+@Suppress("LargeClass")
 @ParallelListener
 internal
 class ConfigurationCacheFingerprintWriter(
@@ -112,6 +114,7 @@ class ConfigurationCacheFingerprintWriter(
     FeatureFlagListener,
     FileCollectionObservationListener,
     ScriptSourceListener,
+    GradlePropertiesListener,
     ConfigurationCacheEnvironment.Listener {
 
     interface Host {
@@ -179,6 +182,12 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
+
+    private
+    val gradleProperties = ConcurrentHashMap<GradlePropertiesListener.PropertyScope, MutableSet<String>>()
+
+    private
+    val gradlePropertiesByPrefix = ConcurrentHashMap<GradlePropertiesListener.PropertyScope, MutableSet<String>>()
 
     init {
         buildScopedSink.initScripts(host.allInitScripts)
@@ -923,6 +932,102 @@ class ConfigurationCacheFingerprintWriter(
     override fun onScriptFileResolved(scriptFile: File) {
         fileObserved(scriptFile)
     }
+
+    override fun onGradlePropertiesByPrefix(
+        propertyScope: GradlePropertiesListener.PropertyScope,
+        prefix: String,
+        snapshot: Map<String, String>
+    ) {
+        if (shouldTrackGradlePropertyInput(gradlePropertiesByPrefix, propertyScope, prefix)) {
+            sink().write(
+                ConfigurationCacheFingerprint.GradlePropertiesPrefixedBy(
+                    propertyScope,
+                    prefix,
+                    snapshot
+                )
+            )
+            reportGradlePropertiesByPrefixInput(propertyScope, prefix)
+        }
+    }
+
+    override fun onGradlePropertyAccess(
+        propertyScope: GradlePropertiesListener.PropertyScope,
+        propertyName: String,
+        propertyValue: Any?
+    ) {
+        if (shouldTrackGradlePropertyInput(gradleProperties, propertyScope, propertyName)) {
+            sink().write(
+                ConfigurationCacheFingerprint.GradleProperty(
+                    propertyScope,
+                    propertyName,
+                    propertyValue
+                )
+            )
+            reportGradlePropertyInput(propertyScope, propertyName)
+        }
+    }
+
+    private
+    fun shouldTrackGradlePropertyInput(
+        keysPerScope: ConcurrentHashMap<GradlePropertiesListener.PropertyScope, MutableSet<String>>,
+        propertyScope: GradlePropertiesListener.PropertyScope,
+        propertyKey: String
+    ): Boolean =
+        !isInputTrackingDisabled()
+            && keysPerScope
+            .computeIfAbsent(propertyScope) { newConcurrentHashSet() }
+            .add(propertyKey)
+
+    private
+    fun reportGradlePropertyInput(
+        propertyScope: GradlePropertiesListener.PropertyScope,
+        propertyName: String,
+        consumer: String? = null
+    ) {
+        if (propertyName.startsWith("org.gradle.")) {
+            // Don't include builtin Gradle properties in the report
+            return
+        }
+        val location = locationFor(consumer)
+        if (location === PropertyTrace.Unknown || location === PropertyTrace.Gradle) {
+            // Don't include property accesses coming from the Gradle runtime itself (e.g., version, group, buildDir, etc.)
+            return
+        }
+        reportInput(scopedLocation(propertyScope, location), null) {
+            text("gradle property ")
+            reference(propertyName)
+        }
+    }
+
+    private
+    fun reportGradlePropertiesByPrefixInput(
+        propertyScope: GradlePropertiesListener.PropertyScope,
+        prefix: String,
+        consumer: String? = null
+    ) {
+        val location = locationFor(consumer)
+        if (location === PropertyTrace.Unknown || location === PropertyTrace.Gradle) {
+            // Don't include property accesses coming from the Gradle runtime itself (e.g., systemProp.*)
+            return
+        }
+        reportInput(scopedLocation(propertyScope, location), null) {
+            text("gradle property ") // To avoid introducing a separate subtree in the report
+            reference("$prefix*")
+        }
+    }
+
+    private
+    fun scopedLocation(
+        propertyScope: GradlePropertiesListener.PropertyScope,
+        location: PropertyTrace
+    ) = PropertyTrace.Project(
+        path = when (propertyScope) {
+            is GradlePropertiesListener.PropertyScope.Project -> propertyScope.projectIdentity.buildTreePath.path
+            is GradlePropertiesListener.PropertyScope.Build -> propertyScope.buildIdentifier.buildPath
+            else -> error("Unexpected property scope $propertyScope")
+        },
+        trace = location
+    )
 }
 
 
