@@ -1007,7 +1007,7 @@ class ConfigurationCacheFingerprintWriter(
         }
         reportInput(scopedLocation(propertyScope, location), null) {
             text("gradle property ") // To avoid introducing a separate subtree in the report
-            reference("$prefix.*")
+            reference("$prefix*")
         }
     }
 
