@@ -108,21 +108,22 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         @Override
         public @Nullable String find(String propertyName) {
             String value = gradleProperties().find(propertyName);
-            listener.onGradlePropertyAccess(propertyScope, propertyName, value);
+            onGradleProperty(propertyName, value);
             return value;
         }
 
         @Override
         public @Nullable Object findUnsafe(String propertyName) {
             Object value = gradleProperties().findUnsafe(propertyName);
-            listener.onGradlePropertyAccess(propertyScope, propertyName, value);
+            onGradleProperty(propertyName, value);
             return value;
         }
 
         @Override
         public Map<String, String> getProperties() {
-            // TODO:wip track property access
-            return gradleProperties().getProperties();
+            Map<String, String> snapshot = gradleProperties().getProperties();
+            onGradleProperties(snapshot);
+            return snapshot;
         }
 
         @Override
@@ -130,6 +131,16 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
             Map<String, String> snapshot = gradleProperties().getPropertiesWithPrefix(prefix);
             listener.onGradlePropertiesByPrefix(propertyScope, prefix, snapshot);
             return snapshot;
+        }
+
+        private void onGradleProperties(Map<String, String> snapshot) {
+            for (Map.Entry<String, String> entry : snapshot.entrySet()) {
+                onGradleProperty(entry.getKey(), entry.getValue());
+            }
+        }
+
+        private void onGradleProperty(String propertyName, @Nullable Object value) {
+            listener.onGradlePropertyAccess(propertyScope, propertyName, value);
         }
     }
 
