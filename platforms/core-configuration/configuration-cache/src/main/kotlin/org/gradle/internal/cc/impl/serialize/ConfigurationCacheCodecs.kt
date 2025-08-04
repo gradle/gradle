@@ -41,7 +41,6 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.tasks.util.internal.PatternSetFactory
 import org.gradle.composite.internal.BuildTreeWorkGraphController
-import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
@@ -175,7 +174,6 @@ class DefaultConfigurationCacheCodecs(
     instantiator: Instantiator,
     fileSystemOperations: FileSystemOperations,
     val taskNodeFactory: TaskNodeFactory,
-    val ordinalGroupFactory: OrdinalGroupFactory,
     inputFingerprinter: InputFingerprinter,
     buildOperationRunner: BuildOperationRunner,
     classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
@@ -348,7 +346,7 @@ class DefaultConfigurationCacheCodecs(
         bind(TaskNodeCodec(userTypesCodec, taskNodeFactory))
         bind(DelegatingCodec<TransformStepNode>(userTypesCodec))
         bind(org.gradle.internal.serialize.codecs.core.ActionNodeCodec(userTypesCodec))
-        bind(OrdinalNodeCodec(ordinalGroupFactory))
+        bind(OrdinalNodeCodec)
 
         bind(NotImplementedCodec)
     }.build()
@@ -422,5 +420,5 @@ class DefaultConfigurationCacheCodecs(
     }
 
     override fun workNodeCodecFor(gradle: GradleInternal, contextSource: IsolateContextSource) =
-        WorkNodeCodec(gradle, internalTypesCodec(), ordinalGroupFactory, contextSource, parallelStore, parallelLoad)
+        WorkNodeCodec(gradle, internalTypesCodec(), contextSource, parallelStore, parallelLoad)
 }
