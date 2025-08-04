@@ -85,7 +85,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         try {
             Class.forName("org.junit.platform.launcher.core.LauncherFactory");
         } catch (ClassNotFoundException e) {
-            throw new TestFrameworkNotAvailableException("Failed to load JUnit Platform.  Please ensure that the JUnit Platform is available on the test runtime classpath.");
+            throw new TestFrameworkNotAvailableException("Failed to load JUnit Platform.  Please ensure that all JUnit Platform dependencies are available on the test's runtime classpath, including the JUnit Platform launcher.");
         }
     }
 

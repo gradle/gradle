@@ -745,6 +745,14 @@ This update reworks how Gradle configures JGit for SSH operations and introduces
 
 == Removed APIs and features
 
+=== Removal of deprecated `jcenter()`
+
+The `jcenter()` repository API has been removed in Gradle 9.0.0. The API was deprecated in Gradle 7.0.
+
+The JCenter repository was link:https://jfrog.com/blog/jcenter-sunset/[redirected to Maven Central in August 2024].
+
+link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html#org.gradle.api.artifacts.dsl.RepositoryHandler:mavenCentral()[`RepositoryHandler.mavenCentral()`] is the closest direct replacement.
+
 === Removal of deprecated `JvmVendorSpec.IBM_SEMERU`
 
 The deprecated `JvmVendorSpec.IBM_SEMERU` constant has been removed.

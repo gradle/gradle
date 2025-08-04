@@ -554,6 +554,19 @@ For information on how to determine code coverage for tests in additional source
 [[sec:java_testing_troubleshooting]]
 == Troubleshooting common problems
 
+=== Test process starts but test dependencies are missing
+
+Once the test process starts, it may fail to find its required dependencies if they are missing from the test runtime classpath.
+
+Test dependencies need to be declared on the appropriate configuration.
+The <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>> plugin automatically configures all necessary dependencies, but if you are manually creating a `Test` task or using the built-in `test` task, you need to ensure that all required dependencies are declared on the appropriate configuration.
+
+* For JUnit Jupiter-based tests, you need to declare dependencies on the JUnit Jupiter, JUnit Platform and JUnit Platform launcher libraries.
+* For JUnit4-based tests, you need to declare a dependency on a single JUnit 4.x library.
+* For TestNG-based tests, you need to declare a dependency on a single TestNG library.
+
+Prior to Gradle 9.0.0, Gradle <<upgrading_version_8#test_framework_implementation_dependencies,leaked internal dependencies>> into the test's runtime classpath which may have masked missing dependencies.
+
 === Tests are not detected or executed
 
 If no tests are detected, Gradle will skip the `Test` task entirely.
@@ -576,19 +589,6 @@ For instance, if the Java executable does not exist or an invalid JVM argument i
 
 Similarly, if a test requires changes to the environment that are not compatible with Gradle's test worker process, the test process may fail to start.
 For example, tests that rely on modifying the link:{javaApi}/java/lang/SecurityManager.html[`SecurityManager`] may interfere with Gradle's internal messaging communication between the build and test worker.
-
-=== Test process starts but test dependencies are missing
-
-Once the test process starts, it may fail to find its required dependencies if they are missing from the test runtime classpath.
-
-Test dependencies need to be declared on the appropriate configuration.
-The <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>> plugin automatically configures all necessary dependencies, but if you are manually configuring a `Test` task, you need to ensure that all required dependencies are declared on the appropriate configuration.
-
-For JUnit4-based tests, you need to declare a dependency on a single JUnit 4.x library.
-For TestNG-based tests, you need to declare a dependency on a single TestNG library.
-For JUnit Jupiter-based tests, you need to declare dependencies on the JUnit Jupiter and JUnit platform libraries.
-
-Prior to Gradle 9.0.0, Gradle <<upgrading_version_8#test_framework_implementation_dependencies,leaked internal dependencies>> into the test runtime classpath which may have masked missing dependencies.
 
 === Test process fails with unusual exit code
 
