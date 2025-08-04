@@ -346,6 +346,12 @@ tasks.withType(ValidatePlugins).configureEach {
 
 If the specified Java version is **not** compatible with the Gradle daemon, you must update it to a <<compatibility.adoc#java_runtime,compatible version>>.
 
+==== The `java-gradle-plugin` plugin now adds the `gradleApi()` dependency to the `compileOnlyApi` scope
+
+The dependency on `gradleApi()` added by the `java-gradle-plugin` will be added to the `compileOnlyApi` scope instead of `api`.
+
+For most plugin projects, this change should be transparent and without any side effects.
+
 === Deprecations
 
 [[project_container_methods]]
