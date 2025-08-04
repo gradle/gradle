@@ -44,6 +44,7 @@ import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.isolation.IsolatableFactory
@@ -141,12 +142,29 @@ import org.gradle.internal.serialize.graph.codecs.DelegatingCodec
 import org.gradle.internal.serialize.graph.codecs.NotImplementedCodec
 import org.gradle.internal.serialize.graph.codecs.ServicesCodec
 import org.gradle.internal.serialize.graph.reentrant
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.state.ManagedFactoryRegistry
+
+
+@ServiceScope(Scope.Build::class)
+interface ConfigurationCacheCodecs {
+
+    fun userTypesCodec(): Codec<Any?>
+
+    fun fingerprintTypesCodec(): Codec<Any?>
+
+    fun internalTypesCodec(): Codec<Any?>
+
+    fun workNodeCodecFor(gradle: GradleInternal, contextSource: IsolateContextSource): WorkNodeCodec
+
+}
 
 
 @Suppress("LongParameterList")
 internal
-class Codecs(
+class DefaultConfigurationCacheCodecs(
+    configurationCacheStartParameter: ConfigurationCacheStartParameter,
     directoryFileTreeFactory: DirectoryFileTreeFactory,
     fileCollectionFactory: FileCollectionFactory,
     artifactSetConverter: ArtifactSetToFileCollectionFactory,
@@ -179,10 +197,15 @@ class Codecs(
     val javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
     flowProviders: FlowProviders,
     transformStepNodeFactory: TransformStepNodeFactory,
-    val parallelStore: Boolean = true,
-    val parallelLoad: Boolean = true,
     problems: InternalProblems
-) {
+) : ConfigurationCacheCodecs {
+
+    private
+    val parallelStore: Boolean = configurationCacheStartParameter.isParallelStore
+
+    private
+    val parallelLoad: Boolean = configurationCacheStartParameter.isParallelLoad
+
     private
     val userTypesBindings: Bindings
 
@@ -303,9 +326,9 @@ class Codecs(
         bind(reentrant(BeanCodec))
     }.build()
 
-    fun userTypesCodec(): Codec<Any?> = userTypesBindings.completeWithStatefulCodecs()
+    override fun userTypesCodec(): Codec<Any?> = userTypesBindings.completeWithStatefulCodecs()
 
-    fun fingerprintTypesCodec(): Codec<Any?> = fingerprintUserTypesBindings.completeWithStatefulCodecs()
+    override fun fingerprintTypesCodec(): Codec<Any?> = fingerprintUserTypesBindings.completeWithStatefulCodecs()
 
     private
     val internalTypesBindings = Bindings.of {
@@ -319,7 +342,7 @@ class Codecs(
         bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
     }
 
-    fun internalTypesCodec(): Codec<Any?> = internalTypesBindings.append {
+    override fun internalTypesCodec(): Codec<Any?> = internalTypesBindings.append {
         val userTypesCodec = userTypesCodec()
 
         bind(TaskNodeCodec(userTypesCodec, taskNodeFactory))
@@ -398,6 +421,6 @@ class Codecs(
         bind(PatternSetCodec(patternSetFactory))
     }
 
-    fun workNodeCodecFor(gradle: GradleInternal, contextSource: IsolateContextSource) =
+    override fun workNodeCodecFor(gradle: GradleInternal, contextSource: IsolateContextSource) =
         WorkNodeCodec(gradle, internalTypesCodec(), ordinalGroupFactory, contextSource, parallelStore, parallelLoad)
 }
