@@ -77,7 +77,7 @@ abstract class AbstractJUnitAbortedTestClassIntegrationTest extends AbstractTest
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.SkippingRuleTests')
         result.testClass('org.gradle.SkippingRuleTests')
-            .assertTestCount(3, 0, 0)
+            .assertTestCount(3, 0)
             .assertTestsExecuted('a', 'c')
             .assertTestsSkipped('b')
     }

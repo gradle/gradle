@@ -128,11 +128,11 @@ class JUnitJupiterCategoriesOrTagsCoverageIntegrationTest extends AbstractJUnitC
         then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('TagATests', 'TagADTests', 'MixedTests')
-        result.testClass("TagATests").assertTestCount(4, 0, 0)
+        result.testClass("TagATests").assertTestCount(4, 0)
         result.testClass("TagATests").assertTestsExecuted('tagAOk1', 'tagAOk2', 'tagAOk3', 'tagAOk4')
-        result.testClass("TagADTests").assertTestCount(3, 0, 0)
+        result.testClass("TagADTests").assertTestCount(3, 0)
         result.testClass("TagADTests").assertTestsExecuted('tagAOk1', 'tagAOk2', 'tagDOk4')
-        result.testClass("MixedTests").assertTestCount(2, 0, 0)
+        result.testClass("MixedTests").assertTestCount(2, 0)
         result.testClass("MixedTests").assertTestsExecuted('tagAOk1')
         result.testClass("MixedTests").assertTestsSkipped('ignoredWithTagA')
     }
@@ -254,7 +254,7 @@ class JUnitJupiterCategoriesOrTagsCoverageIntegrationTest extends AbstractJUnitC
         then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('SomeLocaleTests')
-        result.testClass("SomeLocaleTests").assertTestCount(3, 0, 0)
+        result.testClass("SomeLocaleTests").assertTestCount(3, 0)
         result.testClass("SomeLocaleTests").assertTestsExecuted(
             result.testCase('ok1(Locale)[1]', 'French'),
             result.testCase('ok1(Locale)[2]', 'German'),
@@ -338,9 +338,9 @@ class JUnitJupiterCategoriesOrTagsCoverageIntegrationTest extends AbstractJUnitC
         then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('NestedTestsWithTags$TagOnMethodNoParam', 'NestedTestsWithTags$TagOnMethod', 'NestedTestsWithTags$TagOnClass')
-        result.testClass('NestedTestsWithTags$TagOnMethodNoParam').assertTestCount(1, 0, 0)
-        result.testClass('NestedTestsWithTags$TagOnMethod').assertTestCount(1, 0, 0)
-        result.testClass('NestedTestsWithTags$TagOnClass').assertTestCount(1, 0, 0)
+        result.testClass('NestedTestsWithTags$TagOnMethodNoParam').assertTestCount(1, 0)
+        result.testClass('NestedTestsWithTags$TagOnMethod').assertTestCount(1, 0)
+        result.testClass('NestedTestsWithTags$TagOnClass').assertTestCount(1, 0)
     }
 
     @Override

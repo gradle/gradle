@@ -48,6 +48,7 @@ public abstract class TabbedPageRenderer<T> extends ReportRenderer<T, HtmlPageBu
     public void render(final T model, HtmlPageBuilder<SimpleHtmlWriter> builder) throws IOException {
         this.model = model;
 
+        String title = getTitle();
         String baseStyleLink = builder.requireResource(BASE_STYLE_URL);
         String reportJsLink = builder.requireResource(REPORT_JS_URL);
         String styleLink = builder.requireResource(getStyleUrl());
@@ -64,8 +65,10 @@ public abstract class TabbedPageRenderer<T> extends ReportRenderer<T, HtmlPageBu
         .endElement();
 
         htmlWriter.startElement("body")
-            .startElement("div").attribute("id", "content")
-                .startElement("h1").characters(getTitle()).endElement();
+            .startElement("div").attribute("id", "content");
+                if (!title.isEmpty()) {
+                    htmlWriter.startElement("h1").characters(title).endElement();
+                }
 
                 getHeaderRenderer().render(model, htmlWriter);
                 getContentRenderer().render(model, htmlWriter);

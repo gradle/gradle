@@ -76,9 +76,9 @@ abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilter
         def result = new DefaultTestExecutionResult(testDirectory)
 
         result.assertTestClassesExecuted('FooTest', 'BarTest')
-        result.testClass('FooTest').assertTestCount(1, 0, 0)
+        result.testClass('FooTest').assertTestCount(1, 0)
         result.testClass('FooTest').assertTestOutcomes(passedTestOutcome, 'pass')
-        result.testClass('BarTest').assertTestCount(1, 0, 0)
+        result.testClass('BarTest').assertTestCount(1, 0)
         result.testClass('BarTest').assertTestOutcomes(passedTestOutcome, 'pass')
     }
 
@@ -102,9 +102,9 @@ abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilter
         def result = new DefaultTestExecutionResult(testDirectory)
 
         result.assertTestClassesExecuted('FooTest', 'BarTest')
-        result.testClass('FooTest').assertTestCount(1, 0, 0)
+        result.testClass('FooTest').assertTestCount(1, 0)
         result.testClass('FooTest').assertTestOutcomes(passedTestOutcome, 'pass')
-        result.testClass('BarTest').assertTestCount(1, 0, 0)
+        result.testClass('BarTest').assertTestCount(1, 0)
         result.testClass('BarTest').assertTestOutcomes(passedTestOutcome, 'pass')
     }
 }

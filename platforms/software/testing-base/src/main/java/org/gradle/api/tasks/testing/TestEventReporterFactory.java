@@ -18,6 +18,7 @@ package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -28,6 +29,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  */
 @ServiceScope(Scope.Build.class)
 @Incubating
+@HasInternalProtocol
 public interface TestEventReporterFactory {
     /**
      * Returns an object that can be used to report test events.

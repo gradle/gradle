@@ -61,7 +61,7 @@ abstract class AbstractJUnitClassLevelFilteringIntegrationTest extends AbstractT
         new DefaultTestExecutionResult(testDirectory)
             .assertTestClassesExecuted('SubClass')
             .testClass('SubClass')
-            .assertTestCount(1, 0, 0)
+            .assertTestCount(1, 0)
             .assertTestPassed('superTest')
     }
 }

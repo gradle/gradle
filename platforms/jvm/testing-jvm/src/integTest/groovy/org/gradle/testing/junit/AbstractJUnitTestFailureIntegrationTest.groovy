@@ -272,7 +272,7 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMu
             'org.gradle.UnserializableException')
         result.testClass('org.gradle.ClassWithBrokenRunnerOrExtension').assertTestFailed(initializationErrorTestName, equalTo('java.lang.UnsupportedOperationException: broken'))
         result.testClass('org.gradle.BrokenTest')
-            .assertTestCount(2, 2, 0)
+            .assertTestCount(2, 2)
             .assertTestFailed('failure', equalTo(failureAssertionError('failed')))
             .assertTestFailed('broken', equalTo('java.lang.IllegalStateException: html: <> cdata: ]]>'))
         result.testClass('org.gradle.BrokenBeforeClass').assertTestFailed(beforeClassErrorTestName, equalTo(failureAssertionError('failed')))
