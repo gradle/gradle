@@ -162,7 +162,8 @@ class KnownProblemIds {
         'dependency-variant-resolution:incompatible-multiple-nodes' : ['Incompatible nodes of a single component were selected'],
         'dependency-variant-resolution:unknown-resolution-failure' : ['Unknown resolution failure'],
 
-        'scripts:multiple-candidates': 'Multiple script candidates',
+        // scripts (build, setting, etc.) problems
+        'scripts:multiple-candidates': ['Multiple script candidates'],
 
         // integration test problems
         'deprecation:some-indirect-deprecation': ['Some indirect deprecation has been deprecated.'],
