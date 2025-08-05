@@ -16,7 +16,6 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.cache.internal.CacheVersion;
-import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
 
@@ -35,11 +34,6 @@ public interface GradleDistribution {
      * Returns the version of this distribution.
      */
     GradleVersion getVersion();
-
-    /**
-     * Creates an executer which will use this distribution.
-     */
-    GradleExecuter executer(TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext);
 
     /**
      * Returns true if this distribution's client supports the given JVM version.

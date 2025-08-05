@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.fixture
+package org.gradle.internal.cc.impl.fixtures
 
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController

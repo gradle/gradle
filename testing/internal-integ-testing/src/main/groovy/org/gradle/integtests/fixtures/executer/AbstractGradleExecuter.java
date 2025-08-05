@@ -25,22 +25,18 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
-import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.WarningMode;
+import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil;
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
-import org.gradle.integtests.fixtures.validation.ValidationServicesFixture;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.buildprocess.BuildProcessState;
-import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
-import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.SupportedJavaVersionsExpectations;
@@ -48,27 +44,24 @@ import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
-import org.gradle.internal.logging.LoggingManagerFactory;
-import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.console.TestOverrideConsoleDetector;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.scripts.ScriptFileUtil;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.launcher.cli.WelcomeMessageAction;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
-import org.gradle.process.internal.ClientExecHandleBuilderFactory;
+import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.test.fixtures.ResettableExpectations;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
-import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GFileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -89,6 +82,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executors;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -113,16 +107,21 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private static final String PROFILE_SYSPROP = "org.gradle.integtest.profile";
     private static final String ALLOW_INSTRUMENTATION_AGENT_SYSPROP = "org.gradle.integtest.agent.allowed";
 
-    protected static final ServiceRegistry GLOBAL_SERVICES = new BuildProcessState(
-        true,
-        AgentStatus.of(isAgentInstrumentationEnabled()),
-        ClassPath.EMPTY,
-        newCommandLineProcessLogging(),
-        NativeServicesTestFixture.getInstance(),
-        ValidationServicesFixture.getServices()
-    ).getServices();
-
-    private static final JvmVersionDetector JVM_VERSION_DETECTOR = new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(new DefaultJvmMetadataDetector(GLOBAL_SERVICES.get(ClientExecHandleBuilderFactory.class), GLOBAL_SERVICES.get(TemporaryFileProvider.class))));
+    private static final JvmVersionDetector JVM_VERSION_DETECTOR =
+        new DefaultJvmVersionDetector(
+            new CachingJvmMetadataDetector(
+                new DefaultJvmMetadataDetector(
+                    DefaultClientExecHandleBuilderFactory.of(
+                        new IdentityFileResolver(),
+                        Executors.newCachedThreadPool(),
+                        new DefaultBuildCancellationToken()
+                    ),
+                    new GradleUserHomeTemporaryFileProvider(
+                        IntegrationTestBuildContext.INSTANCE::getGradleUserHomeDir
+                    )
+                )
+            )
+        );
 
     protected final static Set<String> PROPAGATED_SYSTEM_PROPERTIES = new HashSet<>();
     protected boolean debugMode = false;
@@ -212,18 +211,18 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private DurationMeasurement durationMeasurement;
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
-        this(distribution, testDirectoryProvider, GradleVersion.current());
+        this(distribution, testDirectoryProvider, distribution.getVersion(), IntegrationTestBuildContext.INSTANCE);
     }
 
-    protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion) {
-        this(distribution, testDirectoryProvider, gradleVersion, IntegrationTestBuildContext.INSTANCE);
+    protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
+        this(distribution, testDirectoryProvider, distribution.getVersion(), buildContext);
     }
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
         this.distribution = distribution;
         this.testDirectoryProvider = testDirectoryProvider;
         this.gradleVersion = gradleVersion;
-        this.logger = Logging.getLogger(getClass());
+        this.logger = LoggerFactory.getLogger(getClass());
         this.buildContext = buildContext;
         this.gradleUserHomeDir = buildContext.getGradleUserHomeDir();
         this.daemonBaseDir = buildContext.getDaemonBaseDir();
@@ -1640,13 +1639,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     protected DurationMeasurement getDurationMeasurement() {
         return durationMeasurement;
-    }
-
-    private static ServiceRegistry newCommandLineProcessLogging() {
-        ServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
-        LoggingManagerInternal rootLoggingManager = loggingServices.get(LoggingManagerFactory.class).getRoot();
-        rootLoggingManager.attachSystemOutAndErr();
-        return loggingServices;
     }
 
     @Override
