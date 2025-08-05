@@ -41,6 +41,7 @@ import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.serviceOf
 import java.io.File
 
 
@@ -81,10 +82,10 @@ private
 class GeneratedTreeSpec(val spec: GeneratedSingletonFileTree.Spec) : FileTreeSpec()
 
 
+// TODO: should the remaining dependencies be taken from from the isolate too?
 class FileTreeCodec(
     private val fileCollectionFactory: FileCollectionFactory,
-    private val directoryFileTreeFactory: DirectoryFileTreeFactory,
-    private val fileOperations: FileOperations
+    private val directoryFileTreeFactory: DirectoryFileTreeFactory
 ) : Codec<FileTreeInternal> {
 
     override suspend fun WriteContext.encode(value: FileTreeInternal) {
@@ -96,7 +97,8 @@ class FileTreeCodec(
     override suspend fun ReadContext.decode(): FileTreeInternal? =
         decodePreservingIdentity { id ->
             val specs = readNonNull<List<FileTreeSpec>>()
-            val fileTrees = specs.map(::fromSpec)
+            val fileOperations = isolate.owner.serviceOf<FileOperations>()
+            val fileTrees = specs.map { spec -> fromSpec(spec, fileOperations) }
             val tree = fileCollectionFactory.treeOf(fileTrees)
             isolate.identities.putInstance(id, tree)
             tree
@@ -120,10 +122,12 @@ class FileTreeCodec(
                     false
                 } ?: true
             }
+
             fileCollection is FileCollectionBackedFileTree -> {
                 roots.add(WrappedFileCollectionTreeSpec(fileCollection.collection))
                 false
             }
+
             fileCollection is FilteredFileTree -> {
                 when {
                     // Optimize a common case, where fileCollection.asFileTree.matching(emptyPatterns) is used,
@@ -132,12 +136,14 @@ class FileTreeCodec(
                     fileCollection.patterns.isEmpty -> {
                         fileCollection.tree.visitStructure(this)
                     }
+
                     else -> {
                         roots.add(FilteredFileTreeSpec(fileCollection.tree, fileCollection.patterns))
                     }
                 }
                 false
             }
+
             else -> {
                 true
             }
@@ -156,15 +162,16 @@ class FileTreeCodec(
     }
 
     private
-    fun fromSpec(spec: FileTreeSpec): FileTreeInternal = when (spec) {
+    fun fromSpec(spec: FileTreeSpec, fileOperations: FileOperations): FileTreeInternal = when (spec) {
         is AdaptedFileTreeSpec -> fileCollectionFactory.treeOf(spec.tree)
         is FilteredFileTreeSpec -> spec.tree.matching(spec.patterns)
-        is FilteredMinimalFileTreeSpec -> fromSpec(spec.tree).matching(spec.patterns)
+        is FilteredMinimalFileTreeSpec -> fromSpec(spec.tree, fileOperations).matching(spec.patterns)
         is WrappedFileCollectionTreeSpec -> spec.collection.asFileTree
         is DirectoryTreeSpec -> fileCollectionFactory.treeOf(directoryFileTreeFactory.create(spec.file, spec.patterns))
         is GeneratedTreeSpec -> spec.spec.run {
             fileCollectionFactory.generated(tmpDir, fileName, fileGenerationListener, contentGenerator)
         }
+
         is ZipTreeSpec -> fileOperations.zipTree(spec.file) as FileTreeInternal
         is TarTreeSpec -> fileOperations.tarTree(spec.file) as FileTreeInternal
     }
