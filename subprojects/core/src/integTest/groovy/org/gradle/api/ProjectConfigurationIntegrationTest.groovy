@@ -22,19 +22,6 @@ import spock.lang.Issue
 
 class ProjectConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
-    def "accessing the task by path from containing project is safe"() {
-        buildFile << """
-            task foobar
-            println "the name: " + tasks.getByPath(":foobar").name
-        """
-
-        when:
-        run()
-
-        then:
-        output.contains "the name: foobar"
-    }
-
     @ToBeFixedForIsolatedProjects(because = "allprojects, evaluationDependsOn")
     def "shows deprecation warning when calling Project#afterEvaluate(Closure) after the project was evaluated"() {
         buildFile << '''

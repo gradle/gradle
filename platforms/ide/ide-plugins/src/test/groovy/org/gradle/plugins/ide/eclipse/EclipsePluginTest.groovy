@@ -36,7 +36,7 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
         eclipsePlugin.apply(project)
 
         then:
-        project.tasks.findByPath(':eclipseClasspath') == null
+        project.tasks.findByName('eclipseClasspath') == null
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject)
         checkEclipseProjectTask([], [])
     }

@@ -32,14 +32,7 @@ public class DefaultTaskDependencyFactory implements TaskDependencyFactory {
         return new DefaultTaskDependencyFactory(null, null);
     }
 
-    public static TaskDependencyFactory forProject(
-        TaskResolver taskResolver,
-        @Nullable TaskDependencyUsageTracker taskDependencyUsageTracker
-    ) {
-        return new DefaultTaskDependencyFactory(taskResolver, taskDependencyUsageTracker);
-    }
-
-    private DefaultTaskDependencyFactory(@Nullable TaskResolver taskResolver, @Nullable TaskDependencyUsageTracker taskDependencyUsageTracker) {
+    public DefaultTaskDependencyFactory(@Nullable TaskResolver taskResolver, @Nullable TaskDependencyUsageTracker taskDependencyUsageTracker) {
         this.taskResolver = taskResolver;
         this.taskDependencyUsageTracker = taskDependencyUsageTracker;
     }

@@ -16,7 +16,27 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Task;
+import org.gradle.util.Path;
 
+/**
+ * Resolves a {@link Path} to a task to the task itself.
+ * <p>
+ * Note: This resolver is not IP-safe, as it finds and exposes mutable task
+ * instances from other mutable project instances. Avoid this resolver if possible.
+ */
 public interface TaskResolver {
-    Task resolveTask(String path);
+
+    /**
+     * Get the task with the given path.
+     * <p>
+     * Implementations may choose whether relative paths are permitted,
+     * and how those relative paths are resolved to absolute task paths.
+     *
+     * @throws RuntimeException If the given path is not a valid task path, the requested
+     * project does not exist, the requested task does not exist within the requested project,
+     * or the given path is not absolute and the resolver does not support resolving relative
+     * task paths.
+     */
+    Task resolveTask(Path path);
+
 }

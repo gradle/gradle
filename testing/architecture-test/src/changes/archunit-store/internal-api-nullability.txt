@@ -1555,7 +1555,6 @@ Class <org.gradle.internal.composite.DefaultBuildIncluder> is not annotated (dir
 Class <org.gradle.internal.composite.DefaultConfigurableIncludedBuild> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultConfigurableIncludedBuild.java:0)
 Class <org.gradle.internal.composite.DefaultConfigurableIncludedPluginBuild> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultConfigurableIncludedPluginBuild.java:0)
 Class <org.gradle.internal.composite.IncludedBuildInternal> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (IncludedBuildInternal.java:0)
-Class <org.gradle.internal.composite.IncludedRootBuild$IncludedRootBuildTaskReference> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (IncludedRootBuild.java:0)
 Class <org.gradle.internal.composite.IncludedRootBuild> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (IncludedRootBuild.java:0)
 Class <org.gradle.internal.configurationcache.options.ConfigurationCacheSettingsFinalizedProgressDetails> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ConfigurationCacheSettingsFinalizedProgressDetails.java:0)
 Class <org.gradle.internal.credentials.DefaultAwsCredentials> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultAwsCredentials.java:0)

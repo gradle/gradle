@@ -24,9 +24,8 @@ import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
 
@@ -46,11 +45,11 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
         // Add included builds defined in settings
         List<IncludedBuildSpec> includedBuilds = state.getSettings().getIncludedBuilds();
         if (!includedBuilds.isEmpty()) {
-            Set<IncludedBuildInternal> children = new LinkedHashSet<>(includedBuilds.size());
-            for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
-                CompositeBuildParticipantBuildState includedBuild = buildIncluder.includeBuild(includedBuildSpec);
-                children.add(includedBuild.getModel());
-            }
+            List<IncludedBuildInternal> children = includedBuilds.stream()
+                .map(buildIncluder::includeBuild)
+                .distinct()
+                .map(CompositeBuildParticipantBuildState::getModel)
+                .collect(Collectors.toList());
 
             // Set the visible included builds
             gradle.setIncludedBuilds(children);

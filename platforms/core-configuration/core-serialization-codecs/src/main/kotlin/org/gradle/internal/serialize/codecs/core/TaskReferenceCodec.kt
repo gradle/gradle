@@ -18,14 +18,14 @@ package org.gradle.internal.serialize.codecs.core
 
 import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses.unpackType
-import org.gradle.api.internal.tasks.TaskContainerInternal
+import org.gradle.api.tasks.TaskContainer
 import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.serialize.graph.logUnsupportedBaseType
 import org.gradle.internal.configuration.problems.DocumentationSection.RequirementsTaskAccess
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.logUnsupported
+import org.gradle.internal.serialize.graph.logUnsupportedBaseType
 import org.gradle.internal.serialize.graph.readEnum
 import org.gradle.internal.serialize.graph.writeEnum
 
@@ -77,7 +77,7 @@ object TaskReferenceCodec : Codec<Task> {
 
         ReferenceType.TASK_REF -> {
             val taskName = readString()
-            isolate.owner.service(TaskContainerInternal::class.java).resolveTask(taskName)
+            isolate.owner.service(TaskContainer::class.java).getByName(taskName)
         }
 
         ReferenceType.PROHIBITED -> {
