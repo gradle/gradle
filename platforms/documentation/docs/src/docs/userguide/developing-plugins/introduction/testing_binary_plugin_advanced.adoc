@@ -130,7 +130,7 @@ include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/groovy", files="p
 
 == Consumer Project
 
-You can optionally create a consumer project that consumes your plugin:
+You can optionally create a consumer project that uses your plugin:
 
 ====
 [.multi-language-sample]
@@ -138,9 +138,9 @@ You can optionally create a consumer project that consumes your plugin:
 [source, kotlin]
 ----
 .
-├── consumer
-│   ├── settings.gradle.kts // Include custom plugin
-│   └── build.gradle.kts    // Applies custom plugin
+├── settings.gradle.kts // Include custom plugin
+├── build.gradle.kts    // Applies custom plugin
+│ 
 └── plugin
     ├── settings.gradle.kts
     ├── build.gradle.kts
@@ -153,9 +153,9 @@ You can optionally create a consumer project that consumes your plugin:
 [source, groovy]
 ----
 .
-├── consumer
-│   ├── settings.gradle // Include custom plugin
-│   └── build.gradle    // Applies custom plugin
+├── settings.gradle.kts // Include custom plugin
+├── build.gradle.kts    // Applies custom plugin
+│ 
 └── plugin
     ├── settings.gradle
     ├── build.gradle
@@ -185,11 +185,7 @@ In the `consumer` project, you can create dummy `a.txt` and `b.txt` files and ru
 ----
 $ ./gradlew fileSizeDiff
 
-> Task :fileSizeDiff
-Files have the same size: 0 bytes
-Wrote diff result to /Users/lkassovic/Documents/Repositories/temp/plugin/consumer/build/diff-result.txt
-
-BUILD SUCCESSFUL in 134ms
+include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/tests/fileSizeDiff.out[]
 ----
 
 [.text-right]

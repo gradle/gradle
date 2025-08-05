@@ -8,11 +8,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
+import java.nio.file.Files;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class FileSizeDiffPluginFunctionalTest {
     // Temporary directory for each test, automatically cleaned up after the test run
@@ -34,16 +34,18 @@ public class FileSizeDiffPluginFunctionalTest {
     void setup() throws IOException {
         // Empty settings.gradle
         writeString(getSettingsFile(), "");
+
         // Apply the plugin and configure the extension in build.gradle
-        writeString(getBuildFile(),
-                "plugins {\n" +
-                        "  id('org.example.filesizediff')\n" +
-                        "}\n" +
-                        "\n" +
-                        "fileSizeDiff {\n" +
-                        "  file1 = file('a.txt')\n" +
-                        "  file2 = file('b.txt')\n" +
-                        "}");
+        writeString(getBuildFile(), """
+            plugins {
+                id("org.example.filesizediff")
+            }
+            diff {
+                file1 = file("a.txt")
+                file2 = file("b.txt")
+            }
+        """
+        );
     }
 
     // Test case: both input files have the same size (empty)
@@ -87,9 +89,7 @@ public class FileSizeDiffPluginFunctionalTest {
     }
 
     // Helper method to write string content to a file
-    private void writeString(File file, String string) throws IOException {
-        try (Writer writer = new FileWriter(file)) {
-            writer.write(string);
-        }
+    private static void writeString(File file, String string) throws IOException {
+        Files.writeString(file.toPath(), string);
     }
 }

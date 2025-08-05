@@ -146,11 +146,11 @@ In the plugin class, we override the `apply` method, which is invoked when the p
 Within this method, the plugin does two things:
 
 1. **Creates an extension named `filesizediff`:**
-This allows users to configure the plugin using a `fileSizeDiff { ... }` block in their build script.
+This allows users to configure the plugin using a `diff { ... }` block in their build script.
 The configuration values are stored in an instance of `FileSizeDiffExtension`.
 
 2. **Registers a task of type `FileSizeDiffTask`:**
-The task is given the name `fileSizeDiff`, and its properties (`file1` and `file2`) are mapped from the corresponding properties in the `fileSizeDiff` extension.
+The task is given the name `fileSizeDiff`, and its properties (`file1` and `file2`) are mapped from the corresponding properties in the `diff` extension.
 This ensures the task uses the values provided by the user in their build script.
 
 This enables the following usage in a `build.gradle(.kts)` file:

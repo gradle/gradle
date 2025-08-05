@@ -8,15 +8,13 @@ public class FileSizeDiffPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         // Register the extension
-        FileSizeDiffExtension extension = project.getExtensions().create("fileSizeDiff", FileSizeDiffExtension.class);
+        FileSizeDiffExtension extension = project.getExtensions().create("diff", FileSizeDiffExtension.class);
 
-        // Register the task
-        TaskProvider<FileSizeDiffTask> taskProvider = project.getTasks().register("fileSizeDiff", FileSizeDiffTask.class);
-
-        // Configure the task
-        taskProvider.configure( task -> {
-            task.getFile1().set(extension.getFile1());
-            task.getFile2().set(extension.getFile2());
+        // Register and configure the task
+        project.getTasks().register("fileSizeDiff", FileSizeDiffTask.class, task -> {
+            task.getFile1().convention(extension.getFile1());
+            task.getFile2().convention(extension.getFile2());
+            task.getResultFile().convention(project.getLayout().getBuildDirectory().file("diff-result.txt"));
         });
     }
 }
