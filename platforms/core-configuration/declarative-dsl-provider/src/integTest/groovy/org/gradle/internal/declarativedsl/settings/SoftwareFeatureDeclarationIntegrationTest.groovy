@@ -55,7 +55,7 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
 
         settingsFile() << pluginsFromIncludedBuild
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareFeature
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration",":printTestSoftwareFeatureConfiguration")
@@ -93,7 +93,7 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
 
         settingsFile() << kotlinPluginsFromIncludedBuild
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareFeature
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration",":printTestSoftwareFeatureConfiguration")
