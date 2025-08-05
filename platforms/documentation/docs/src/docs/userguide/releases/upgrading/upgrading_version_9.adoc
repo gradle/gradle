@@ -282,3 +282,11 @@ tasks.register('nestedBuild', GradleBuild) {
 ====
 
 === Potential breaking changes
+
+==== Upgrade to ASM 9.8
+
+ASM was upgraded from 9.7.1 to https://asm.ow2.io/versions.html[9.8] to ensure earlier compatibility for Java 25.
+
+==== Upgrade to Groovy 4.0.28
+
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-4.0.28.html[Groovy 4.0.28].
