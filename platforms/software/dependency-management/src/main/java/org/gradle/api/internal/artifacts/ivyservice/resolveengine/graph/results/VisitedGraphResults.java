@@ -16,8 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.UnresolvedDependency;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 
 import java.util.Set;
 import java.util.function.Consumer;
@@ -51,4 +54,10 @@ public interface VisitedGraphResults {
      * Returns the root of the dependency graph.
      */
     MinimalResolutionResult getResolutionResult();
+
+    /**
+     * Returns all components that were resolved during the graph resolution, mapped by their ID.
+     */
+    ImmutableMap<ComponentIdentifier, ComponentGraphResolveState> getResolvedComponents();
+
 }

@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
@@ -137,7 +138,11 @@ public class ShortCircuitingResolutionExecutor {
             rootVariant.getName(),
             attributeDesugaring
         );
-        return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet());
+        return new DefaultVisitedGraphResults(
+            emptyResult,
+            Collections.emptySet(),
+            ImmutableMap.of(rootComponent.getId(), rootComponent)
+        );
     }
 
     private static ImmutableCapabilities getCapabilities(

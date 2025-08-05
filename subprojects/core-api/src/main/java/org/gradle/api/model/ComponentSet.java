@@ -16,32 +16,22 @@
 
 package org.gradle.api.model;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.api.provider.Provider;
+
+import java.util.Collection;
 
 /**
- * A container of data models exposed by a project.
+ * A set of components that can provide models.
  *
  * @since 9.1.0
  */
 @Incubating
-@ServiceScope(Scope.Project.class)
-public interface ModelContainer {
+public interface ComponentSet {
 
     /**
-     * Register a data model of the given type in this container.
-     * <p>
-     * Gradle will create an instance of the model type and configure it using the provided action.
-     *
-     * @param type the type of the model to register
-     * @param configureAction the action to configure the model instance
-     *
-     * @param <T> the type of the model
-     *
-     * @since 9.1.0
+     * Selects a model of the given type from all components in this set.
      */
-    <T> void register(Class<T> type, Action<T> configureAction);
+    <T> Provider<Collection<ComponentModel<T>>> selectModel(Class<T> modelType);
 
 }

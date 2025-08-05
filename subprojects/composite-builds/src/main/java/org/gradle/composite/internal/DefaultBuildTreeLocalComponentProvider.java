@@ -126,7 +126,7 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
         );
 
         ConfigurationsProvider configurations = (DefaultConfigurationContainer) project.getConfigurations();
-        ModelContainerInternal dataModels = (ModelContainerInternal) project.getModels();
+        ModelContainerInternal dataModels = project.getModels();
         return resolveStateFactory.stateFor(projectState, metadata, configurations, dataModels);
     }
 
