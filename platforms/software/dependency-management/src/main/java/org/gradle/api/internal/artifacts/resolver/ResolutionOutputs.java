@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.model.ComponentSet;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -56,5 +57,10 @@ public interface ResolutionOutputs {
      * graph to adjacent artifacts.
      */
     ArtifactView artifactView(Action<? super ArtifactView.ViewConfiguration> action);
+
+    /**
+     * Return a {@link ComponentSet} containing all components that are included in the resolved graph.
+     */
+    ComponentSet asComponentSet();
 
 }

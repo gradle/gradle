@@ -16,8 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.UnresolvedDependency;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 
 import java.util.Set;
 import java.util.function.Consumer;
@@ -29,13 +32,16 @@ public class DefaultVisitedGraphResults implements VisitedGraphResults {
 
     private final MinimalResolutionResult resolutionResult;
     private final Set<UnresolvedDependency> unresolvedDependencies;
+    private final ImmutableMap<ComponentIdentifier, ComponentGraphResolveState> resolvedComponents;
 
     public DefaultVisitedGraphResults(
         MinimalResolutionResult resolutionResult,
-        Set<UnresolvedDependency> unresolvedDependencies
+        Set<UnresolvedDependency> unresolvedDependencies,
+        ImmutableMap<ComponentIdentifier, ComponentGraphResolveState> resolvedComponents
     ) {
         this.resolutionResult = resolutionResult;
         this.unresolvedDependencies = unresolvedDependencies;
+        this.resolvedComponents = resolvedComponents;
     }
 
     @Override
@@ -60,4 +66,8 @@ public class DefaultVisitedGraphResults implements VisitedGraphResults {
         return unresolvedDependencies;
     }
 
+    @Override
+    public ImmutableMap<ComponentIdentifier, ComponentGraphResolveState> getResolvedComponents() {
+        return resolvedComponents;
+    }
 }

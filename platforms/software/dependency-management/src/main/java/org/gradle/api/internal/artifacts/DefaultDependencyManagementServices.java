@@ -260,7 +260,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(ArtifactTypeRegistry.class);
             registration.add(GlobalDependencyResolutionRules.class);
             registration.add(PublishArtifactNotationParserFactory.class);
-            registration.add(ModelContainer.class, ModelContainerInternal.class, DefaultModelContainer.class);
+        }
+
+        @Provides({ModelContainer.class, ModelContainerInternal.class})
+        DefaultModelContainer createModelContainer(ObjectFactory objectFactory) {
+            // We use object factory to generate Closure-accepting methods
+            return objectFactory.newInstance(DefaultModelContainer.class);
         }
 
         @Provides

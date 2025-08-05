@@ -38,7 +38,7 @@ public class DefaultModelContainer implements ModelContainerInternal {
     private final Map<String, ModelRegistration<?>> registrations = new HashMap<>();
 
     @Inject
-    private DefaultModelContainer(
+    public DefaultModelContainer(
         ObjectFactory objectFactory,
         IsolatableFactory isolatableFactory
     ) {
@@ -68,7 +68,7 @@ public class DefaultModelContainer implements ModelContainerInternal {
     private <T> Isolatable<T> instantiate(ModelRegistration<T> registration) {
         T instance = objectFactory.newInstance(registration.getType());
         registration.getConfigureAction().execute(instance);
-        return isolatableFactory.isolate(instance);
+        return isolatableFactory.isolate(instance); // TODO: Is isolatable really what we want? How do task dependencies work?
     }
 
     private static class ModelRegistration<T> {
