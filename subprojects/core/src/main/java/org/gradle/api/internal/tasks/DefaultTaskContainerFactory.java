@@ -63,7 +63,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     private final TaskStatistics statistics;
     private final BuildOperationRunner buildOperationRunner;
     private final CrossProjectConfigurator crossProjectConfigurator;
-    private final ProjectRegistry<ProjectInternal> projectRegistry;
+    private final ProjectRegistry projectRegistry;
 
     public DefaultTaskContainerFactory(
         Instantiator instantiator,
@@ -74,7 +74,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
         BuildOperationRunner buildOperationRunner,
         CrossProjectConfigurator crossProjectConfigurator,
         CollectionCallbackActionDecorator callbackDecorator,
-        ProjectRegistry<ProjectInternal> projectRegistry
+        ProjectRegistry projectRegistry
     ) {
         this.instantiator = instantiator;
         this.taskIdentityFactory = taskIdentityFactory;
