@@ -15,22 +15,16 @@
  */
 package org.gradle.api.internal.project;
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.specs.Spec;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.util.Path;
-import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-@ServiceScope(Scope.Build.class)
 public class DefaultProjectRegistry implements ProjectRegistry, HoldsProjectState {
+
     private final Map<String, ProjectInternal> projects = new HashMap<>();
     private final Map<String, Set<ProjectInternal>> subProjects = new HashMap<>();
 
@@ -42,18 +36,6 @@ public class DefaultProjectRegistry implements ProjectRegistry, HoldsProjectStat
         }
         subProjects.put(project.getPath(), new HashSet<>());
         addProjectToParentSubProjects(project);
-    }
-
-    public ProjectInternal removeProject(String path) {
-        ProjectInternal project = projects.remove(path);
-        assert project != null;
-        subProjects.remove(path);
-        ProjectIdentifier loopProject = project.getParentIdentifier();
-        while (loopProject != null) {
-            subProjects.get(loopProject.getPath()).remove(project);
-            loopProject = loopProject.getParentIdentifier();
-        }
-        return project;
     }
 
     @Override
@@ -71,38 +53,8 @@ public class DefaultProjectRegistry implements ProjectRegistry, HoldsProjectStat
     }
 
     @Override
-    public int size() {
-        return projects.size();
-    }
-
-    @Override
-    public Set<ProjectInternal> getAllProjects() {
-        return new HashSet<>(projects.values());
-    }
-
-    @Override
-    public ProjectInternal getRootProject() {
-        return getProject(Path.ROOT.getPath());
-    }
-
-    @Override
     public @Nullable ProjectInternal getProject(String path) {
         return projects.get(path);
-    }
-
-    @Override
-    public ProjectInternal getProject(final File projectDir) {
-        Set<ProjectInternal> projects = findAll(new Spec<ProjectInternal>() {
-            @Override
-            public boolean isSatisfiedBy(ProjectInternal element) {
-                return element.getProjectDir().equals(projectDir);
-            }
-        });
-        if (projects.size() > 1) {
-            throw new InvalidUserDataException(String.format("Found multiple projects with project directory '%s': %s",
-                projectDir, projects));
-        }
-        return projects.size() == 1 ? projects.iterator().next() : null;
     }
 
     @Override
@@ -111,22 +63,13 @@ public class DefaultProjectRegistry implements ProjectRegistry, HoldsProjectStat
         if (projects.get(path) != null) {
             result.add(projects.get(path));
         }
-        return result;
+        return Collections.unmodifiableSet(result);
     }
 
     @Override
     public Set<ProjectInternal> getSubProjects(String path) {
-        return GUtil.getOrDefault(subProjects.get(path), HashSet::new);
+        Set<ProjectInternal> subprojects = subProjects.get(path);
+        return subprojects != null && !subprojects.isEmpty() ? Collections.unmodifiableSet(subprojects) : Collections.emptySet();
     }
 
-    @Override
-    public Set<ProjectInternal> findAll(Spec<? super ProjectInternal> constraint) {
-        Set<ProjectInternal> matches = new HashSet<>();
-        for (ProjectInternal project : projects.values()) {
-            if (constraint.isSatisfiedBy(project)) {
-                matches.add(project);
-            }
-        }
-        return matches;
-    }
 }
