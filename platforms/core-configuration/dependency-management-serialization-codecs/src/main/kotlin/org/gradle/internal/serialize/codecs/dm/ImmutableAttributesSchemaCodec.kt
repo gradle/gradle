@@ -62,7 +62,9 @@ class ImmutableAttributesSchemaCodec(
 }
 
 
+private
 const val INSTANTIATING_ACTION_TYPE = 0
+private
 const val OPAQUE_ACTION_TYPE = 1
 
 
@@ -143,7 +145,8 @@ suspend fun ReadContext.readSchema(instantiator: Instantiator, schemaFactory: Im
 }
 
 
-private suspend fun <T : Any> ReadContext.readStrategy(
+private
+suspend fun <T : Any> ReadContext.readStrategy(
     attribute: Attribute<T>,
     instantiator: Instantiator
 ): Pair<Attribute<T>, ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<T>> {
@@ -183,7 +186,8 @@ suspend fun <T : Any> ReadContext.readDisambiguationInstantiatingAction(instanti
 }
 
 
-private suspend fun <T : Any> ReadContext.readConfigurableRule(): ConfigurableRule<T> {
+private
+suspend fun <T : Any> ReadContext.readConfigurableRule(): ConfigurableRule<T> {
     val ruleClass = readClass().uncheckedCast<Class<Action<T>>>()
     val ruleParams = readNonNull<Isolatable<Array<Any>>>()
     return DefaultConfigurableRule.of(ruleClass, ruleParams)
