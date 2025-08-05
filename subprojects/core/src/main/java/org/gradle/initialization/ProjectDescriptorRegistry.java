@@ -15,11 +15,9 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.api.specs.Spec;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
 import java.util.Set;
 
 public interface ProjectDescriptorRegistry {
@@ -31,17 +29,9 @@ public interface ProjectDescriptorRegistry {
 
     @Nullable DefaultProjectDescriptor getProject(String path);
 
-    @Nullable DefaultProjectDescriptor getProject(File projectDir);
-
     int size();
 
     Set<DefaultProjectDescriptor> getAllProjects();
-
-    Set<DefaultProjectDescriptor> getAllProjects(String path);
-
-    Set<DefaultProjectDescriptor> getSubProjects(String path);
-
-    Set<DefaultProjectDescriptor> findAll(Spec<? super DefaultProjectDescriptor> constraint);
 
     void changeDescriptorPath(Path oldPath, Path newPath);
 
