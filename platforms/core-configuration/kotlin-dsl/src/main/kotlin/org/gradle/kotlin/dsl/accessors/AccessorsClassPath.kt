@@ -737,7 +737,8 @@ private fun Hasher.putSoftwareFeatureEntries(entries: List<SoftwareFeatureEntry<
     putInt(entries.size)
     entries.forEach { entry ->
         putString(entry.softwareFeatureName)
-        putString(entry.modelType.kotlinString)
+        putString(entry.ownDefinitionType.kotlinString)
+        putString(entry.targetDefinitionType.kotlinString)
     }
 }
 

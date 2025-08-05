@@ -113,9 +113,10 @@ data class ContainerElementFactoryEntry<out T>(
 
 data class SoftwareFeatureEntry<out T>(
     val softwareFeatureName: String,
-    val modelType: T,
+    val ownDefinitionType: T,
+    val targetDefinitionType: T,
 ) : Serializable {
 
     fun <U> map(f: (T) -> U) =
-        SoftwareFeatureEntry(softwareFeatureName, f(modelType))
+        SoftwareFeatureEntry(softwareFeatureName, f(ownDefinitionType), f(targetDefinitionType))
 }

@@ -20,6 +20,8 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.internal.plugins.HasBuildModel
+import org.gradle.api.internal.plugins.TargetTypeInformation
 import org.gradle.api.reflect.TypeOf
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.declarative.dsl.schema.ContainerElementFactory
@@ -138,7 +140,12 @@ internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector 
 
     override fun collectSoftwareTypes(softwareFeatureRegistry: SoftwareFeatureRegistry): List<SoftwareFeatureEntry<TypeOf<*>>> =
         softwareFeatureRegistry.softwareFeatureImplementations.entries.map { (name, implementation) ->
-            SoftwareFeatureEntry(name, TypeOf.typeOf(implementation.definitionPublicType))
+            val targetType = when (val target = implementation.targetDefinitionType) {
+                is TargetTypeInformation.DefinitionTargetTypeInformation ->  TypeOf.typeOf(target.definitionType)
+                is TargetTypeInformation.BuildModelTargetTypeInformation<*> -> parameterizedTypeOfRawGenericClass(listOf(target.buildModelType), HasBuildModel::class.java)
+                else -> error("Unexpected target type $target")
+            }
+            SoftwareFeatureEntry(name, TypeOf.typeOf(implementation.definitionPublicType), targetType)
         }
 
     /**

@@ -43,7 +43,8 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         _ * it.getLocalClassLoader() >> getClass().classLoader
     }
     def objectFactory = Mock(ObjectFactory)
-    def applicator = new DefaultSoftwareFeatureApplicator(modelDefaultsApplicator, inspectionScheme, problems, pluginManager, classLoaderScope, objectFactory)
+    def softwareFeatureRegistry = Mock(SoftwareFeatureRegistry)
+    def applicator = new DefaultSoftwareFeatureApplicator(softwareFeatureRegistry, modelDefaultsApplicator, inspectionScheme, problems, pluginManager, classLoaderScope, objectFactory)
     def plugin = Mock(Plugin)
     def plugins = Mock(PluginContainer)
     def propertyWalker = Mock(PropertyWalker)

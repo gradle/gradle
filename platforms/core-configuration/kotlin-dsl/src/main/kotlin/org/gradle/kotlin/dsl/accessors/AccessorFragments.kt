@@ -17,7 +17,7 @@ package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.Action
 import org.gradle.api.Incubating
-import org.gradle.api.Project
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.deprecation.ConfigurationDeprecationType
 import org.gradle.internal.hash.Hashing.hashString
@@ -80,10 +80,10 @@ fun fragmentsFor(accessor: Accessor): Fragments = when (accessor) {
 private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragments = accessor.run {
     val className = "${accessor.spec.softwareFeatureName.original.uppercaseFirstChar()}ContainerElementFactoriesKt"
     val functionName = spec.softwareFeatureName.original
-    val (kotlinProjectType, jvmProjectType) = accessibleTypesFor(TypeAccessibility.Accessible(SchemaType.of<Project>(), emptyList()))
     val (kotlinModelType, _) = accessibleTypesFor(accessor.spec.modelType)
-    val deprecation = accessor.spec.modelType.deprecation()
-    val annotations = "${maybeDeprecationAnnotations(deprecation)}${maybeOptInAnnotationSource(accessor.spec.modelType)}"
+    val (kotlinTargetType, jvmTargetType) = accessibleTypesFor(accessor.spec.targetType)
+    val deprecation = highestDeprecationByLevel(accessor.spec.modelType.deprecation(), accessor.spec.targetType.deprecation())
+    val annotations = "${maybeDeprecationAnnotations(deprecation)}${maybeOptInAnnotationSource(accessor.spec.modelType, accessor.spec.targetType)}"
 
     className to sequenceOf(
         AccessorFragment(
@@ -92,13 +92,13 @@ private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragme
             |         * Applies the "$functionName" software type to the project and configures the model with the [configure] action.
             |         */
             |        @Incubating
-            |        ${annotations}fun Project.`${functionName}`(configure: Action<in ${spec.modelType.type.kotlinString}>) {
+            |        ${annotations}fun ${spec.targetType.type.kotlinString}.`${functionName}`(configure: Action<in ${spec.modelType.type.kotlinString}>) {
             |            applySoftwareType(this, "$functionName", configure)
             |        }
             """.trimMargin(),
             signature = JvmMethodSignature(
                 functionName,
-                "(L$jvmProjectType;Lorg/gradle/api/Action;)V"
+                "(L$jvmTargetType;Lorg/gradle/api/Action;)V"
             ),
             bytecode = {
                 publicStaticMethod(signature, annotations = {
@@ -106,16 +106,17 @@ private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragme
                 }) {
                     maybeWithDeprecation(deprecation)
                     ALOAD(0)
+                    CHECKCAST(ExtensionAware::class.internalName)
                     LDC(functionName)
                     ALOAD(1)
-                    invokeRuntime("applySoftwareFeature", "(L${Project::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V")
+                    invokeRuntime("applySoftwareFeature", "(L${ExtensionAware::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V")
                     RETURN()
                 }
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
                     functionAttributes = publicFunctionWithAnnotationsAttributes, // has @Incubating and maybe deprecations
-                    receiverType = kotlinProjectType,
+                    receiverType = kotlinTargetType,
                     valueParameters = listOf(
                         newValueParameterOf("configure", newClassTypeOf(Action::class.java.name.replace(".", "/"), KmTypeProjection(KmVariance.IN, kotlinModelType)))
                     ),
@@ -1127,6 +1128,9 @@ internal fun TypeAccessibility.deprecation(): Deprecated? =
 
         else -> null
     }
+
+internal fun highestDeprecationByLevel(deprecated: Deprecated?, other: Deprecated?): Deprecated? =
+    listOfNotNull(deprecated, other).maxByOrNull { it.level }
 
 internal fun TypeAccessibility.requiredOptIns(): List<AnnotationRepresentation>? =
     when (this) {
