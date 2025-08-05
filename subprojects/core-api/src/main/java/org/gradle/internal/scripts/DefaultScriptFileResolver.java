@@ -24,6 +24,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static org.gradle.internal.FileUtils.hasExtension;
@@ -79,17 +80,12 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
                     String.format("Multiple script candidates were found in directory '%s'", dir.getAbsolutePath())
                 );
                 spec.fileLocation(dir.getAbsolutePath());
-
-                StringBuilder detailsMessage = new StringBuilder();
-                detailsMessage.append(" - Selected candidate: ")
-                    .append(selectedCandidate.getAbsolutePath())
-                    .append(System.lineSeparator());
-                for (File ignoredCandidate : ignoredCandidates) {
-                    detailsMessage.append(" - Ignored candidate: ")
-                        .append(ignoredCandidate.getAbsolutePath())
-                        .append(System.lineSeparator());
-                }
-                spec.details(detailsMessage.toString());
+                spec.details(
+                    " - Selected candidate: '" + selectedCandidate.getAbsolutePath() + "'" + System.lineSeparator() +
+                        ignoredCandidates.stream()
+                            .map(f -> " - Ignored candidate: '" + f.getAbsolutePath() + "'")
+                            .collect(Collectors.joining(System.lineSeparator()))
+                );
                 spec.solution("Remove the ignored script files or rename them");
             }
         );
