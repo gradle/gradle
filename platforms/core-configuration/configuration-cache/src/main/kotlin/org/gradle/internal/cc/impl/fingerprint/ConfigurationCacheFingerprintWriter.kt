@@ -51,7 +51,6 @@ import org.gradle.initialization.buildsrc.BuildSrcDetector
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildoption.FeatureFlag
 import org.gradle.internal.buildoption.FeatureFlagListener
-import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.cc.impl.CoupledProjectsListener
 import org.gradle.internal.cc.impl.InputTrackingState
 import org.gradle.internal.cc.impl.UndeclaredBuildInputListener
@@ -98,7 +97,6 @@ class ConfigurationCacheFingerprintWriter(
     private val fileCollectionFactory: FileCollectionFactory,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
     private val workExecutionTracker: WorkExecutionTracker,
-    private val environmentChangeTracker: ConfigurationCacheEnvironmentChangeTracker,
     private val inputTrackingState: InputTrackingState,
     private val buildStateRegistry: BuildStateRegistry,
 ) : ValueSourceProviderFactory.ValueListener,
@@ -310,6 +308,18 @@ class ConfigurationCacheFingerprintWriter(
         reportUniqueFileSystemEntryInput(file, consumer)
     }
 
+    override fun systemPropertyChanged(key: Any, value: Any?, consumer: String?) {
+        sink().systemPropertyChanged(key, value, locationFor(consumer))
+    }
+
+    override fun systemPropertyRemoved(key: Any, consumer: String?) {
+        sink().systemPropertyRemoved(key)
+    }
+
+    override fun systemPropertiesCleared(consumer: String?) {
+        sink().systemPropertiesCleared()
+    }
+
     override fun systemPropertyRead(key: String, value: Any?, consumer: String?) {
         if (isInputTrackingDisabled()) {
             return
@@ -319,22 +329,7 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun addSystemPropertyToFingerprint(key: String, value: Any?, consumer: String? = null) {
-        if (isSystemPropertyMutated(key)) {
-            // Mutated values of the system properties are not part of the fingerprint, as their value is
-            // set at the configuration time. Everything that reads a mutated property value should be saved
-            // as a fixed value.
-            return
-        }
-        val propertyValue =
-            if (isSystemPropertyLoaded(key)) {
-                // Loaded values of the system properties are loaded from gradle.properties but never mutated.
-                // Thus, as a configuration input is an old value of property at load moment.
-                environmentChangeTracker.getLoadedPropertyOldValue(key)
-            } else {
-                value
-            }
-
-        sink().systemPropertyRead(key, propertyValue)
+        sink().systemPropertyRead(key, value)
         reportUniqueSystemPropertyInput(key, consumer)
     }
 
@@ -354,7 +349,7 @@ class ConfigurationCacheFingerprintWriter(
     override fun fileOpened(file: File, consumer: String?) {
         if (isInputTrackingDisabled() || isExecutingWork()) {
             // Ignore files that are read as part of the task actions. These should really be task
-            // inputs. Otherwise, we risk fingerprinting files such as:
+            // inputs. Otherwise, we risk fingerprinting files such as
             // - temporary files that will be gone at the end of the build.
             // - files in the output directory, for incremental tasks or tasks that remove stale outputs
             return
@@ -384,14 +379,7 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun addSystemPropertiesPrefixedByToFingerprint(prefix: String, snapshot: Map<String, String?>) {
-        val filteredSnapshot = snapshot.mapValues { e ->
-            if (isSystemPropertyMutated(e.key)) {
-                ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy.IGNORED
-            } else {
-                e.value
-            }
-        }
-        buildScopedSink.write(ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy(prefix, filteredSnapshot))
+        buildScopedSink.write(ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy(prefix, snapshot))
     }
 
     override fun envVariablesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
@@ -460,17 +448,28 @@ class ConfigurationCacheFingerprintWriter(
 
             is SystemPropertiesPrefixedByValueSource.Parameters -> {
                 val prefix = parameters.prefix.get()
-                addSystemPropertiesPrefixedByToFingerprint(prefix, obtainedValue.value.get()?.uncheckedCast() ?: emptyMap())
+                addSystemPropertiesPrefixedByToFingerprint(
+                    prefix,
+                    obtainedValue.value.get()?.uncheckedCast()
+                        ?: emptyMap()
+                )
                 reportUniqueSystemPropertiesPrefixedByInput(prefix)
             }
 
             is EnvironmentVariableValueSource.Parameters -> {
-                addEnvVariableToFingerprint(parameters.variableName.get(), obtainedValue.value.get() as? String)
+                addEnvVariableToFingerprint(
+                    parameters.variableName.get(),
+                    obtainedValue.value.get() as? String
+                )
             }
 
             is EnvironmentVariablesPrefixedByValueSource.Parameters -> {
                 val prefix = parameters.prefix.get()
-                addEnvVariablesPrefixedByToFingerprint(prefix, obtainedValue.value.get()?.uncheckedCast() ?: emptyMap())
+                addEnvVariablesPrefixedByToFingerprint(
+                    prefix,
+                    obtainedValue.value.get()?.uncheckedCast()
+                        ?: emptyMap()
+                )
                 reportUniqueEnvironmentVariablesPrefixedByInput(prefix)
             }
 
@@ -500,16 +499,6 @@ class ConfigurationCacheFingerprintWriter(
             is Describable -> displayName
             else -> null
         }
-
-    private
-    fun isSystemPropertyLoaded(key: String): Boolean {
-        return environmentChangeTracker.isSystemPropertyLoaded(key)
-    }
-
-    private
-    fun isSystemPropertyMutated(key: String): Boolean {
-        return environmentChangeTracker.isSystemPropertyMutated(key)
-    }
 
     override fun onScriptClassLoaded(source: ScriptSource, scriptClass: Class<*>) {
         source.resource.file?.let {
@@ -867,6 +856,21 @@ class ConfigurationCacheFingerprintWriter(
             }
         }
 
+        fun systemPropertyChanged(key: Any, value: Any?, trace: PropertyTrace) {
+            undeclaredSystemProperties.remove(key)
+            write(ConfigurationCacheFingerprint.SystemPropertyChanged(key, value), trace)
+        }
+
+        fun systemPropertyRemoved(key: Any) {
+            undeclaredSystemProperties.remove(key)
+            write(ConfigurationCacheFingerprint.SystemPropertyRemoved(key))
+        }
+
+        fun systemPropertiesCleared() {
+            undeclaredSystemProperties.clear()
+            write(ConfigurationCacheFingerprint.SystemPropertiesCleared)
+        }
+
         fun envVariableRead(key: String, value: String?) {
             if (undeclaredEnvironmentVariables.add(key)) {
                 write(ConfigurationCacheFingerprint.UndeclaredEnvironmentVariable(key, value))
@@ -948,6 +952,18 @@ class ConfigurationCacheFingerprintWriter(
             )
             reportGradlePropertiesByPrefixInput(propertyScope, prefix)
         }
+    }
+
+    override fun onGradlePropertiesLoaded(
+        propertyScope: GradlePropertiesListener.PropertyScope,
+        propertiesDir: File
+    ) {
+        buildScopedSink.write(
+            ConfigurationCacheFingerprint.GradlePropertiesLoaded(
+                propertyScope,
+                propertiesDir
+            )
+        )
     }
 
     override fun onGradlePropertyAccess(

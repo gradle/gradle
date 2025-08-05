@@ -17,7 +17,6 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
@@ -814,10 +813,8 @@ class DefaultConfigurationCache internal constructor(
             return CheckedFingerprint.Invalid(buildPath(), classLoaderScopesInvalidationReason)
         }
 
-        loadGradleProperties()
-
         return checkFingerprintAgainstLoadedProperties(candidateEntry).also { result ->
-            if (result !is CheckedFingerprint.Valid) {
+            if (result !is CheckedFingerprint.Valid || result.invalidProjects != null) {
                 // Force Gradle properties to be reloaded so the Gradle properties files
                 // along with any Gradle property defining system properties and environment variables
                 // are added to the new fingerprint.
@@ -890,15 +887,8 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun loadGradleProperties() {
-        val rootBuildId = DefaultBuildIdentifier.ROOT
-        gradlePropertiesController.loadGradleProperties(rootBuildId, startParameter.buildTreeRootDirectory, true)
-    }
-
-    private
     fun unloadGradleProperties() {
-        val rootBuildId = DefaultBuildIdentifier.ROOT
-        gradlePropertiesController.unloadGradleProperties(rootBuildId)
+        gradlePropertiesController.unloadAll();
     }
 
     private

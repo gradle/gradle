@@ -18,7 +18,6 @@ package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.initialization.properties.DefaultGradleProperties;
@@ -49,6 +48,14 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         this.gradlePropertiesLoader = gradlePropertiesLoader;
         this.systemPropertiesInstaller = systemPropertiesInstaller;
         this.listener = listener;
+    }
+
+    @Override
+    public void unloadAll() {
+        projectProperties.clear();
+        for (BuildScopedGradleProperties entry : buildProperties.values()) {
+            entry.unload();
+        }
     }
 
     @Override
@@ -134,6 +141,10 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
             return snapshot;
         }
 
+        protected void onGradlePropertiesLoaded(File propertiesDir) {
+            listener.onGradlePropertiesLoaded(propertyScope, propertiesDir);
+        }
+
         private void onGradleProperties(Map<String, String> snapshot) {
             for (Map.Entry<String, String> entry : snapshot.entrySet()) {
                 onGradleProperty(entry.getKey(), entry.getValue());
@@ -191,6 +202,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
                 ));
             }
 
+            onGradlePropertiesLoaded(buildRootDir);
             this.loaded = loadNewState(buildRootDir, setSystemProperties);
         }
 
@@ -200,14 +212,13 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
             Map<String, String> fromGradleUserHome = loader.loadFromGradleUserHome();
 
             if (setSystemProperties) {
-                boolean isRootBuild = DefaultBuildIdentifier.ROOT.equals(buildId);
                 GradleProperties systemPropertiesSource = new DefaultGradleProperties(mergeMaps(
                     fromGradleHome,
                     fromBuildRoot,
                     fromGradleUserHome
                 ));
                 // TODO:configuration-cache consider whether to track property access from here (perhaps tracking system property consumers is enough?)
-                systemPropertiesInstaller.setSystemPropertiesFrom(systemPropertiesSource, isRootBuild);
+                systemPropertiesInstaller.setSystemPropertiesFrom(systemPropertiesSource);
             }
 
             Map<String, String> fromEnvVariables = loader.loadFromEnvironmentVariables();
@@ -314,6 +325,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
                 ));
             }
 
+            onGradlePropertiesLoaded(projectDir);
             this.loaded = loadNewState(loadedBuildProperties, projectDir);
         }
 
