@@ -241,7 +241,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get(CrossProjectModelAccess) >> new DefaultCrossProjectModelAccess(projectRegistry)
         serviceRegistryMock.get(GradleLifecycleActionExecutor) >> gradleLifecycleActionExecutor
         serviceRegistryMock.get(ObjectFactory) >> objectFactory
-        serviceRegistryMock.get(TaskDependencyFactory) >> DefaultTaskDependencyFactory.forProject(taskContainerMock, Mock(TaskDependencyUsageTracker))
+        serviceRegistryMock.get(TaskDependencyFactory) >> DefaultTaskDependencyFactory.withNoAssociatedProject()
         serviceRegistryMock.get(SoftwareTypeRegistry) >> Stub(SoftwareTypeRegistry)
         serviceRegistryMock.get(SoftwareFeatureApplicator) >> Stub(SoftwareFeatureApplicator)
         pluginManager.getPluginContainer() >> pluginContainer

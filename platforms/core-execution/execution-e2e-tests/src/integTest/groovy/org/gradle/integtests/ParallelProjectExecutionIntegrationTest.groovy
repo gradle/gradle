@@ -91,10 +91,14 @@ allprojects {
     }
 
     def "tasks are executed when they are ready and not necessarily alphabetically"() {
-        buildFile << """
-            tasks.getByPath(':b:pingA').dependsOn(':a:pingA')
-            tasks.getByPath(':b:pingC').dependsOn([':b:pingA', ':b:pingB'])
-        """
+        buildFile("b/build.gradle", """
+            tasks.named("pingA") {
+                dependsOn(":a:pingA")
+            }
+            tasks.named("pingC") {
+                dependsOn(["pingA", "pingB"])
+            }
+        """)
 
         expect:
         //project a and b are both executed even though alphabetically more important task is blocked
@@ -106,10 +110,16 @@ allprojects {
     }
 
     def "finalizer tasks are run in parallel"() {
-        buildFile << """
-            tasks.getByPath(':c:ping').dependsOn ":a:ping", ":b:ping"
-            tasks.getByPath(':d:ping').finalizedBy ":c:ping"
-        """
+        buildFile("c/build.gradle", """
+            tasks.named("ping") {
+                dependsOn(":a:ping", ":b:ping")
+            }
+        """)
+        buildFile("d/build.gradle", """
+            tasks.named("ping") {
+                finalizedBy(":c:ping")
+            }
+        """)
 
         expect:
         blockingServer.expect(':d:ping')
@@ -120,10 +130,16 @@ allprojects {
     }
 
     void 'tasks with should run after ordering rules are preferred when running over an idle worker thread'() {
-        buildFile << """
-            tasks.getByPath(':a:pingA').shouldRunAfter(':b:pingB')
-            tasks.getByPath(':b:pingB').dependsOn(':b:pingA')
-        """
+        buildFile("a/build.gradle", """
+            tasks.named("pingA") {
+                shouldRunAfter(":b:pingB")
+            }
+        """)
+        buildFile("b/build.gradle", """
+            tasks.named("pingB") {
+                dependsOn("pingA")
+            }
+        """)
 
         expect:
         blockingServer.expectConcurrent(':a:pingA', ':b:pingA')

@@ -32,7 +32,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskFactory
@@ -42,6 +41,7 @@ import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.service.ServiceRegistry
@@ -82,7 +82,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
             "project"
         )
     } as ProjectInternal
-    private final projectRegistry = Mock(ProjectRegistry)
+    private final buildProjectRegistry = Mock(BuildProjectRegistry)
     private container = new DefaultTaskContainerFactory(
         DirectInstantiator.INSTANCE,
         taskIdentityFactory,
@@ -92,7 +92,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         buildOperationRunner,
         new BuildOperationCrossProjectConfigurator(buildOperationRunner),
         callbackActionDecorator,
-        projectRegistry
+        buildProjectRegistry
     ).create()
 
     boolean supportsBuildOperations = true
@@ -471,6 +471,8 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     }
 
     void "finds tasks"() {
+        TestUtil.initDeprecationLogger("Testing deprecated method")
+
         when:
         def task = addTask("task")
 
@@ -481,6 +483,8 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     }
 
     void "finds task by relative path"() {
+        TestUtil.initDeprecationLogger("Testing deprecated method")
+
         when:
         Task task = task("task")
         expectTaskLookupInOtherProject("sub", "task", task)
@@ -490,6 +494,8 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     }
 
     void "finds tasks by absolute path"() {
+        TestUtil.initDeprecationLogger("Testing deprecated method")
+
         when:
         Task task = task("task")
         expectTaskLookupInOtherProject(":", "task", task)
@@ -499,6 +505,8 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     }
 
     void "does not find tasks from unknown projects"() {
+        TestUtil.initDeprecationLogger("Testing deprecated method")
+
         when:
         project.findProject(":unknown") >> null
 
@@ -507,6 +515,8 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     }
 
     void "does not find unknown tasks by path"() {
+        TestUtil.initDeprecationLogger("Testing deprecated method")
+
         when:
         expectTaskLookupInOtherProject(":other", "task", null)
 
@@ -515,6 +525,8 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     }
 
     void "gets task by path"() {
+        TestUtil.initDeprecationLogger("Testing deprecated method")
+
         when:
         Task task = addTask("task")
         expectTaskLookupInOtherProject(":a:b:c", "task", task)
@@ -524,6 +536,8 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     }
 
     void "get by path fails for unknown task"() {
+        TestUtil.initDeprecationLogger("Testing deprecated method")
+
         when:
         container.getByPath("unknown")
 
@@ -533,20 +547,24 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     }
 
     void "resolve locates by name"() {
+        TestUtil.initDeprecationLogger("Testing deprecated method")
+
         when:
         Task task = addTask("1")
 
         then:
-        container.resolveTask("1") == task
+        container.getByPath("1") == task
     }
 
     void "resolve locates by path"() {
+        TestUtil.initDeprecationLogger("Testing deprecated method")
+
         when:
         Task task = addTask("task")
         expectTaskLookupInOtherProject(":", "task", task)
 
         then:
-        container.resolveTask(":task") == task
+        container.getByPath(":task") == task
     }
 
     void "realizes task graph"() {
@@ -1622,11 +1640,12 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     private ProjectInternal expectTaskLookupInOtherProject(final String projectPath, final String taskName, def task) {
         def otherProject = Mock(ProjectInternal)
         def otherTaskContainer = Mock(TaskContainerInternal)
-        def otherProjectState = Mock(ProjectState)
+        def otherProjectState = Mock(ProjectState) {
+            getMutableModel() >> otherProject
+        }
 
-        projectRegistry.getProject(_) >> otherProject
+        buildProjectRegistry.findProject(project.projectIdentity.projectPath.absolutePath(Path.path(projectPath))) >> otherProjectState
 
-        otherProject.owner >> otherProjectState
         1 * otherProjectState.ensureTasksDiscovered()
         otherProject.tasks >> otherTaskContainer
 
