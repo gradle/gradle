@@ -39,7 +39,6 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
     private final String configurationDescription;
     private final String buildPath;
     private final String projectPath;
-    private final boolean isConfigurationVisible;
     private final boolean isConfigurationTransitive;
     private final List<Repository> repositories;
 
@@ -49,7 +48,6 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
         @Nullable String configurationDescription,
         String buildPath,
         @Nullable String projectPath,
-        boolean isConfigurationVisible,
         boolean isConfigurationTransitive,
         List<ResolutionAwareRepository> repositories
     ) {
@@ -58,7 +56,6 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
         this.configurationDescription = configurationDescription;
         this.buildPath = buildPath;
         this.projectPath = projectPath;
-        this.isConfigurationVisible = isConfigurationVisible;
         this.isConfigurationTransitive = isConfigurationTransitive;
         this.repositories = RepositoryImpl.transform(repositories);
     }
@@ -90,11 +87,6 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
     }
 
     @Override
-    public boolean isConfigurationVisible() {
-        return isConfigurationVisible;
-    }
-
-    @Override
     public boolean isConfigurationTransitive() {
         return isConfigurationTransitive;
     }
@@ -112,7 +104,6 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
         model.put("configurationDescription", configurationDescription);
         model.put("buildPath", buildPath);
         model.put("projectPath", projectPath);
-        model.put("configurationVisible", isConfigurationVisible);
         model.put("configurationTransitive", isConfigurationTransitive);
         ImmutableList.Builder<Object> repoBuilder = new ImmutableList.Builder<>();
         for (Repository repository : repositories) {

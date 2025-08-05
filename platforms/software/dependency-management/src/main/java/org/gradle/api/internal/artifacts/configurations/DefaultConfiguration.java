@@ -183,7 +183,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final boolean isDetached;
     private final DefaultConfigurationPublications outgoing;
 
-    private boolean visible = true;
     private boolean transitive = true;
     private Set<Configuration> extendsFrom = new LinkedHashSet<>();
     private @Nullable String description;
@@ -339,25 +338,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         } else {
             return State.UNRESOLVED;
         }
-    }
-
-    @Override
-    @Deprecated
-    public boolean isVisible() {
-        DeprecationLogger.deprecateMethod(Configuration.class, "isVisible")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "deprecate-visible-property")
-            .nagUser();
-        return visible;
-    }
-
-    @Override
-    @Deprecated
-    public Configuration setVisible(boolean visible) {
-        validateMutation(MutationType.BASIC_STATE);
-        // TODO: Create a deprecation warning once https://youtrack.jetbrains.com/issue/KT-78754 is resolved
-        this.visible = visible;
-        return this;
     }
 
     @Override
@@ -716,7 +696,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                         getDescription(),
                         domainObjectContext.getBuildPath().getPath(),
                         projectPathString,
-                        visible,
                         isTransitive(),
                         resolver.getAllRepositories()
                     ));
@@ -1124,7 +1103,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, Set<DependencyConstraint> dependencyConstraints) {
         DefaultConfiguration copiedConfiguration = copyAsDetached();
 
-        copiedConfiguration.visible = visible;
         copiedConfiguration.transitive = transitive;
         copiedConfiguration.description = description;
 
