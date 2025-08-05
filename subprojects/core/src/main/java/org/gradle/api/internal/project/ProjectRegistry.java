@@ -21,6 +21,13 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
+/**
+ * A registry of all projects in a build, accessible by path.
+ * <p>
+ * <strong>This type should be avoided if possible.</strong> Prefer {@link ProjectStateRegistry} or
+ * {@link org.gradle.internal.build.BuildProjectRegistry}, which operate on {@link ProjectState}
+ * instances instead of raw {@link ProjectInternal} instances.
+ */
 @ServiceScope(Scope.Build.class)
 public interface ProjectRegistry extends HoldsProjectState {
 
