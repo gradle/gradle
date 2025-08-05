@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.configurations
 
+import com.google.common.collect.ImmutableMap
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserCodeException
@@ -971,7 +972,7 @@ This method is only meant to be called on configurations which allow the (non-de
         def resolvedComponentResult = Mock(ResolvedComponentResultInternal)
         Supplier<ResolvedComponentResultInternal> rootSource = () -> resolvedComponentResult
         def result = new MinimalResolutionResult(0, rootSource, ImmutableAttributes.EMPTY)
-        def graphResults = new DefaultVisitedGraphResults(result, [] as Set)
+        def graphResults = new DefaultVisitedGraphResults(result, [] as Set, ImmutableMap.of())
 
         resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(graphResults, visitedArtifacts(), Mock(ResolverResults.LegacyResolverResults))
 
@@ -1552,7 +1553,7 @@ This method is only meant to be called on configurations which allow the (non-de
 
     private ResolverResults buildDependenciesResolved() {
         def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set)
+        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, ImmutableMap.of())
         DefaultResolverResults.buildDependenciesResolved(visitedGraphResults, visitedArtifacts([] as Set), Mock(ResolverResults.LegacyResolverResults))
     }
 
@@ -1562,7 +1563,7 @@ This method is only meant to be called on configurations which allow the (non-de
             getProblem() >> failure
         }
 
-        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [unresolved] as Set)
+        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [unresolved] as Set, ImmutableMap.of())
 
         def visitedArtifactSet = Stub(VisitedArtifactSet) {
             select(_) >> selectedArtifacts(failure)
@@ -1579,7 +1580,7 @@ This method is only meant to be called on configurations which allow the (non-de
 
     private ResolverResults graphResolved(Set<File> files = []) {
         def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set)
+        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, ImmutableMap.of())
 
         def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
             Mock(ResolvedConfiguration)
