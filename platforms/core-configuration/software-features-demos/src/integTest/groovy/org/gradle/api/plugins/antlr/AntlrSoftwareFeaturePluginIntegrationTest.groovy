@@ -17,7 +17,10 @@
 package org.gradle.api.plugins.antlr
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
+@Requires(IntegTestPreconditions.IsEmbeddedExecutor)
 class AntlrSoftwareFeaturePluginIntegrationTest extends AbstractIntegrationSpec {
     def "can apply the AntlrSoftwareFeaturePlugin"() {
         given:
