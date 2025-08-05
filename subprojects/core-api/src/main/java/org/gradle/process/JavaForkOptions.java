@@ -76,7 +76,9 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @return The default character encoding. Returns null if the {@link java.nio.charset.Charset#defaultCharset() default character encoding of this JVM} should be used.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     String getDefaultCharacterEncoding();
 
     /**
@@ -88,7 +90,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @param defaultCharacterEncoding The default character encoding. Use null to use {@link java.nio.charset.Charset#defaultCharset() this JVM's default charset}
      */
-     void setDefaultCharacterEncoding(@Nullable String defaultCharacterEncoding);
+    void setDefaultCharacterEncoding(@Nullable String defaultCharacterEncoding);
 
     /**
      * Returns the minimum heap size for the process, if any.
@@ -96,7 +98,9 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @return The minimum heap size. Returns null if the default minimum heap size should be used.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     String getMinHeapSize();
 
     /**
@@ -113,7 +117,9 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @return The maximum heap size. Returns null if the default maximum heap size should be used.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     String getMaxHeapSize();
 
     /**
@@ -131,7 +137,9 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @return The immutable list of arguments. Returns an empty list if there are no arguments.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     List<String> getJvmArgs();
 
     /**
@@ -267,6 +275,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @since 8.10
      */
     @Incubating
+    @Optional
     @Input
     Property<Boolean> getEnablePreview();
 

@@ -18,6 +18,9 @@ package org.gradle.process.internal;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.process.JavaExecSpec;
+
+import java.util.List;
 
 @ServiceScope(Scope.Global.class)
 public interface ExecActionFactory {
@@ -32,4 +35,6 @@ public interface ExecActionFactory {
      * If you need to make the action visible to the DSL, use {@link org.gradle.process.ExecOperations} instead.
      */
     JavaExecAction newJavaExecAction();
+
+    JavaExecAction newJavaExecAction(JavaExecSpec javaExecSpec, List<String> jvmArguments);
 }

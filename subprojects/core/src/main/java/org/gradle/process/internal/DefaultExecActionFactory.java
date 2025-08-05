@@ -167,8 +167,8 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
         DefaultFileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), nonCachingPatternSetFactory, PropertyHost.NO_OP, FileSystems.getDefault());
         JavaForkOptionsInternal copy = new DefaultJavaForkOptions(fileResolver, objectFactory, fileCollectionFactory, new DefaultJavaDebugOptions());
         options.copyTo(copy);
-        copy.getEnablePreview().finalizeValue();
-        return new ImmutableJavaForkOptions(copy);
+//        copy.getEnablePreview().finalizeValue(); // why finalize?
+        return new ImmutableJavaForkOptions(copy); // TODO: are the debug options immutable?
     }
 
     public JavaExecAction newDecoratedJavaExecAction() {
@@ -178,6 +178,14 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
     @Override
     public JavaExecAction newJavaExecAction() {
         return new DefaultJavaExecAction(fileResolver, fileCollectionFactory, objectFactory, executor, buildCancellationToken, temporaryFileProvider, javaModuleDetector, newJavaForkOptions());
+    }
+
+    @Override
+    public JavaExecAction newJavaExecAction(JavaExecSpec javaExecSpec, List<String> jvmArguments) {
+        JavaExecAction javaExecAction = newJavaExecAction();
+        ((DefaultJavaExecSpec) javaExecSpec).setExtraJvmArgs(jvmArguments);
+        javaExecSpec.copyTo(javaExecAction);
+        return javaExecAction;
     }
 
     @Override
@@ -192,6 +200,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public ExecResult javaexec(Action<? super JavaExecSpec> action) {
+        // TODO: create a new spec, and configure it with the [action]
         JavaExecAction execAction = newDecoratedJavaExecAction();
         action.execute(execAction);
         return execAction.execute();
@@ -199,6 +208,7 @@ public abstract class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public ExecResult exec(Action<? super ExecSpec> action) {
+        // TODO: create a new spec, and configure it with the [action]
         ExecAction execAction = newDecoratedExecAction();
         action.execute(execAction);
         return execAction.execute();

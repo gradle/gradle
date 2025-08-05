@@ -22,8 +22,10 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.model.InstantiatorBackedObjectFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.internal.ArgumentsSplitter;
@@ -83,7 +85,7 @@ public class JvmOptions {
         this.objectFactory = objectFactory;
         this.debugOptions = debugOptions;
         this.fileCollectionFactory = fileCollectionFactory;
-        enablePreview = objectFactory.property(Boolean.class).convention(false);
+        enablePreview = objectFactory.property(Boolean.class);
         immutableSystemProperties.put(FILE_ENCODING_KEY, Charset.defaultCharset().name());
         immutableSystemProperties.put(USER_LANGUAGE_KEY, DEFAULT_LOCALE.getLanguage());
         immutableSystemProperties.put(USER_COUNTRY_KEY, DEFAULT_LOCALE.getCountry());
@@ -92,6 +94,14 @@ public class JvmOptions {
 
     public JvmOptions(ObjectFactory objectFactory, FileCollectionFactory fileCollectionFactory) {
         this(objectFactory, fileCollectionFactory, new DefaultJavaDebugOptions());
+    }
+
+    public JvmOptions(FileCollectionFactory fileCollectionFactory, JavaDebugOptions debugOptions) {
+        this(new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE), fileCollectionFactory, debugOptions);
+    }
+
+    public JvmOptions(FileCollectionFactory fileCollectionFactory) {
+        this(new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE), fileCollectionFactory, new DefaultJavaDebugOptions());
     }
 
     /**
@@ -159,7 +169,7 @@ public class JvmOptions {
             args.add(getDebugArgument());
         }
 
-        if (enablePreview.get()) {
+        if (enablePreview.isPresent() && enablePreview.get()) {
             args.add("--enable-preview");
         }
 
