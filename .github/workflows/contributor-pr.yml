@@ -74,7 +74,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: build-receipt.properties
           path: incoming-distributions/build-receipt.properties
@@ -108,7 +108,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: build-receipt.properties
           path: incoming-distributions/build-receipt.properties
