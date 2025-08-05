@@ -44,8 +44,9 @@ import javax.inject.Inject
  * An integration test which executes builds using the Tooling API.
  * <p>
  * <strong>Prefer {@link org.gradle.integtests.tooling.fixture.ToolingApiSpecification}, as this class
- * serves a very similar purpose, but is less advanced. We should eventually migrate all usages of this
- * class to the other one.</strong>
+ * serves a very similar purpose, but is less advanced.</strong>
+ * <p>
+ * TODO #34559: We should eventually migrate all usages of this class to ToolingApiSpecification.
  */
 @SelfType(AbstractIntegrationSpec)
 trait ToolingApiSpec {
@@ -185,7 +186,7 @@ trait ToolingApiSpec {
 
             class MyModelBuilder implements ToolingModelBuilder {
                 boolean canBuild(String modelName) {
-                    return modelName == "${ SomeToolingModel.class.name}"
+                    return modelName == "$SomeToolingModel.class.name"
                 }
                 Object buildAll(String modelName, Project project) {
                     println("creating model for \$project")
