@@ -17,9 +17,12 @@
 package org.gradle.api.model.internal;
 
 import org.gradle.api.model.ModelContainer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Internal counterpart of {@link ModelContainer}.
  */
+@ServiceScope(Scope.Project.class)
 public interface ModelContainerInternal extends ModelContainer, DataModelProvider {
 }

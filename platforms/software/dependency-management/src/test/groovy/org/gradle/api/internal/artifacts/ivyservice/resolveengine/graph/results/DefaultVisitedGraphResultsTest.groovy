@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results
 
-
+import com.google.common.collect.ImmutableMap
 import org.gradle.api.artifacts.UnresolvedDependency
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
 import org.gradle.api.internal.attributes.ImmutableAttributes
@@ -33,8 +33,8 @@ class DefaultVisitedGraphResultsTest extends Specification {
 
     def "hasResolutionFailure returns true if there is a failure"() {
         given:
-        def results1 = new DefaultVisitedGraphResults(resolutionResult, Collections.emptySet())
-        def results2 = new DefaultVisitedGraphResults(resolutionResult, Collections.singleton(Mock(UnresolvedDependency)))
+        def results1 = new DefaultVisitedGraphResults(resolutionResult, Collections.emptySet(), ImmutableMap.of())
+        def results2 = new DefaultVisitedGraphResults(resolutionResult, Collections.singleton(Mock(UnresolvedDependency)), ImmutableMap.of())
 
         expect:
         !results1.hasAnyFailure()
@@ -48,8 +48,8 @@ class DefaultVisitedGraphResultsTest extends Specification {
             getProblem() >> throwable
         }
 
-        def results1 = new DefaultVisitedGraphResults(resolutionResult, Collections.emptySet())
-        def results2 = new DefaultVisitedGraphResults(resolutionResult, Collections.singleton(unresolved))
+        def results1 = new DefaultVisitedGraphResults(resolutionResult, Collections.emptySet(), ImmutableMap.of())
+        def results2 = new DefaultVisitedGraphResults(resolutionResult, Collections.singleton(unresolved), ImmutableMap.of())
 
         expect:
         visitFailures(results1) == []
@@ -59,7 +59,7 @@ class DefaultVisitedGraphResultsTest extends Specification {
     def "getters return the values passed to the constructor"() {
         given:
         def unresolved = Mock(UnresolvedDependency)
-        def results = new DefaultVisitedGraphResults(resolutionResult, Collections.singleton(unresolved))
+        def results = new DefaultVisitedGraphResults(resolutionResult, Collections.singleton(unresolved), ImmutableMap.of())
 
         expect:
         results.resolutionResult == resolutionResult

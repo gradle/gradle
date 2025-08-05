@@ -64,6 +64,7 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ResolutionParameters;
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
+import org.gradle.api.model.ComponentSet;
 import org.gradle.api.internal.artifacts.resolver.DefaultResolutionOutputs;
 import org.gradle.api.internal.artifacts.resolver.ResolutionAccess;
 import org.gradle.api.internal.artifacts.resolver.ResolutionOutputsInternal;
@@ -1692,6 +1693,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         public AttributeContainer getAttributes() {
             return configuration.configurationAttributes;
         }
+
+        @VisibleForTesting
+        public ComponentSet asComponentSet() {
+            return configuration.resolutionAccess.getPublicView().asComponentSet();
+        }
+
     }
 
     private class AllArtifactsProvider implements PublishArtifactSetProvider {
