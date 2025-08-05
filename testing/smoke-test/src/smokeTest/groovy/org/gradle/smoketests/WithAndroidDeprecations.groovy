@@ -81,15 +81,19 @@ trait WithAndroidDeprecations {
     void expectMultiStringNotationDeprecation(String agpVersion) {
         String lintVersion = null
         String aapt2Version = null
+        // TODO: derive these versions from the AGP version, write aapt2Version to AGP.versions
         if (agpVersion == "8.11.0") {
             lintVersion = "31.11.0"
             aapt2Version = "8.11.0-12782657"
-        } else if (agpVersion == "8.12.0-alpha08") {
-            lintVersion = "31.12.0-alpha08"
-            aapt2Version = "8.12.0-alpha08-13700139"
-        } else if (agpVersion == "8.12.0-dev") {
-            lintVersion = "31.12.0-dev"
-            aapt2Version = "8.12.0-dev-13700139"
+        } else if (agpVersion == "8.12.0") {
+            lintVersion = "31.12.0"
+            aapt2Version = "8.12.0-13700139"
+        } else if (agpVersion == "8.13.0-alpha03") {
+            lintVersion = "31.13.0-alpha03"
+            aapt2Version = "8.13.0-alpha03-13719691"
+        } else if (agpVersion == "8.13.0-dev") {
+            lintVersion = "31.13.0-dev"
+            aapt2Version = "8.13.0-dev-13719691"
         }
 
         String platform
