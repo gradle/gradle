@@ -190,6 +190,7 @@ abstract class AbstractUserTypeCodecTest {
         filePropertyFactory = mock(),
         fileResolver = mock(),
         instantiator = mock(),
+        instantiatorFactory = mock(),
         fileSystemOperations = mock(),
         inputFingerprinter = mock(),
         buildOperationRunner = mock(),

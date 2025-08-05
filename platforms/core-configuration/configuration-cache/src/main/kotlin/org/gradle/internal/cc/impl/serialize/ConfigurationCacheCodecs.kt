@@ -44,6 +44,7 @@ import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationRunner
@@ -171,6 +172,7 @@ class DefaultConfigurationCacheCodecs(
     filePropertyFactory: FilePropertyFactory,
     fileResolver: FileResolver,
     instantiator: Instantiator,
+    instantiatorFactory: InstantiatorFactory,
     fileSystemOperations: FileSystemOperations,
     inputFingerprinter: InputFingerprinter,
     buildOperationRunner: BuildOperationRunner,
@@ -233,7 +235,7 @@ class DefaultConfigurationCacheCodecs(
             bind(ArtifactCollectionCodec(calculatedValueContainerFactory, artifactSetConverter, attributeDesugaring, taskDependencyFactory))
             bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
             bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
-            bind(ImmutableAttributesSchemaCodec(instantiator, attributeSchemaFactory))
+            bind(ImmutableAttributesSchemaCodec(instantiatorFactory, attributeSchemaFactory))
             bind(ComponentVariantIdentifierCodec)
             bind(InitialTransformStepNodeCodec(transformStepNodeFactory, buildOperationRunner, calculatedValueContainerFactory))
             bind(ChainedTransformStepNodeCodec(transformStepNodeFactory, buildOperationRunner, calculatedValueContainerFactory))

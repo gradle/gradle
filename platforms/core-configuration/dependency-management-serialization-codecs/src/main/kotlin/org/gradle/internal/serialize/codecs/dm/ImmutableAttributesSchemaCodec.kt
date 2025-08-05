@@ -30,6 +30,7 @@ import org.gradle.internal.action.ConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.isolation.Isolatable
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.graph.Codec
@@ -42,7 +43,7 @@ import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.writeCollection
 
 class ImmutableAttributesSchemaCodec(
-    private val instantiator: Instantiator,
+    private val instantiatorFactory: InstantiatorFactory,
     private val schemaFactory: ImmutableAttributesSchemaFactory
 ) : Codec<ImmutableAttributesSchema> {
 
@@ -55,7 +56,7 @@ class ImmutableAttributesSchemaCodec(
 
     override suspend fun ReadContext.decode(): ImmutableAttributesSchema {
         return decodePreservingSharedIdentity {
-            readSchema(instantiator, schemaFactory)
+            readSchema(instantiatorFactory.inject(), schemaFactory)
         }
     }
 }
