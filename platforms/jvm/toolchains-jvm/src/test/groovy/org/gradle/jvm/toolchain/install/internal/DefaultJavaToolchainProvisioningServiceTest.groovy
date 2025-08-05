@@ -50,7 +50,7 @@ import java.util.stream.IntStream
 class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
     private static final String ARCHIVE_NAME = 'ibm-11-x64-hotspot-linux.zip'
-    private static final String UPDATED_ARCHIVE_NAME = 'ibm-11-x64-hotspot-linux-Eclipse#20Temurin-11.zip'
+    private static final String UPDATED_ARCHIVE_NAME = 'ibm-11-x64-hotspot-linux-Eclipse-Temurin-11.zip'
 
     private static final JavaToolchainDownload DOWNLOAD = JavaToolchainDownload.fromUri(URI.create('https://server/whatever'))
 
