@@ -120,6 +120,34 @@ A common symptom of incompatibility is `ConcurrentModificationException` errors 
 However, this feature is expected to work well for <<multi_project_configuration_and_execution.adoc#sec:decoupled_projects,decoupled>> multi-project builds.
 ====
 
+[[config_cache:usage:read_only]]
+=== Making the Configuration Cache Read-Only
+
+In some builds, such as continuous integration builds in ephemeral environments, it may be desirable that Gradle only runs
+in Configuration Cache mode in case of a configuration cache hit. In case of a miss, there would be no benefit in
+caching the configuration, because the state in disk is not going to be preserved across builds.
+
+To enable read-only configuration caching at build time, use:
+
+[source,text]
+----
+❯ ./gradlew -Dorg.gradle.configuration-cache.read-only=true
+----
+
+Or persistently in a `gradle.properties` file:
+
+[source,properties]
+----
+org.gradle.configuration-cache.read-only=true
+----
+
+Note that enabling it persistently would require disabling it on the command-line in order for configuration to ever be cached.
+
+[WARNING]
+====
+The read-only configuration caching feature is _incubating_.
+====
+
 [[config_cache:stable]]
 == Enabling the Configuration Cache Feature Flag
 
