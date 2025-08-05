@@ -73,6 +73,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
             addProvider(RemoteScriptUpToDateCheckerProvider)
             addProvider(ExecutionAccessCheckerProvider)
             addProvider(ConfigurationCacheReportProvider)
+            add(ConfigurationCacheCodecs::class.java, DefaultConfigurationCacheCodecs::class.java)
         }
     }
 
@@ -81,7 +82,6 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
             add(RelevantProjectsRegistry::class.java)
             addProvider(TaskExecutionAccessCheckerProvider)
             add(ConfigurationCacheHost::class.java, DefaultConfigurationCacheHost::class.java)
-            add(ConfigurationCacheCodecs::class.java, DefaultConfigurationCacheCodecs::class.java)
             add(
                 ConfigurationCacheBuildTreeIO::class.java,
                 ConfigurationCacheIncludedBuildIO::class.java,

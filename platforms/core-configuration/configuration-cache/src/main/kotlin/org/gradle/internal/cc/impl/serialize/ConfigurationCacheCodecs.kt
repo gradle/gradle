@@ -141,7 +141,7 @@ import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.state.ManagedFactoryRegistry
 
 
-@ServiceScope(Scope.Build::class)
+@ServiceScope(Scope.BuildTree::class)
 interface ConfigurationCacheCodecs {
 
     fun userTypesCodec(): Codec<Any?>
