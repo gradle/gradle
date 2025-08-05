@@ -17,6 +17,7 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.api.file.BuildLayout;
@@ -60,6 +61,8 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.time.Instant.now;
 import static org.apache.commons.lang3.ArrayUtils.contains;
@@ -156,8 +159,16 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Override
-    public DefaultProjectDescriptor findProject(File projectDir) {
-        return getProjectDescriptorRegistry().getProject(projectDir);
+    public @Nullable DefaultProjectDescriptor findProject(File projectDir) {
+        Set<DefaultProjectDescriptor> matches = getProjectDescriptorRegistry().getAllProjects().stream()
+            .filter(project -> project.getProjectDir().equals(projectDir))
+            .collect(Collectors.toSet());
+
+        if (matches.size() > 1) {
+            throw new InvalidUserDataException(String.format("Found multiple projects with project directory '%s': %s", projectDir, matches));
+        }
+
+        return matches.size() == 1 ? matches.iterator().next() : null;
     }
 
     @Override
@@ -171,7 +182,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Override
     public DefaultProjectDescriptor project(File projectDir) {
-        DefaultProjectDescriptor projectDescriptor = getProjectDescriptorRegistry().getProject(projectDir);
+        DefaultProjectDescriptor projectDescriptor = findProject(projectDir);
         if (projectDescriptor == null) {
             throw new UnknownProjectException(String.format("Project with path '%s' could not be found.", projectDir));
         }

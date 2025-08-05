@@ -16,7 +16,7 @@
 
 package org.gradle.initialization
 
-
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.initialization.Settings
@@ -185,4 +185,18 @@ class DefaultSettingsTest extends DefaultSettingsCommonTest {
         IllegalArgumentException exception = thrown()
         exception.getMessage() == 'There is no feature named UNKNOWN_FEATURE'
     }
+
+    def cannotLocateProjectsWithAmbiguousProjectDir() {
+        settings.include(":foo")
+        settings.include(":bar")
+        settings.project(":bar").projectDir = settings.project(":foo").projectDir
+
+        when:
+        settings.project(settings.project(":foo").projectDir)
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message.startsWith("Found multiple projects with project directory ")
+    }
+
 }

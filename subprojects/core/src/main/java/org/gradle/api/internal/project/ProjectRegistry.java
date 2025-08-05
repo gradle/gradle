@@ -15,30 +15,21 @@
  */
 package org.gradle.api.internal.project;
 
-import org.gradle.api.specs.Spec;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
 import java.util.Set;
 
+@ServiceScope(Scope.Build.class)
 public interface ProjectRegistry extends HoldsProjectState {
 
     void addProject(ProjectInternal project);
 
-    @Nullable ProjectInternal getRootProject();
-
     @Nullable ProjectInternal getProject(String path);
-
-    @Nullable ProjectInternal getProject(File projectDir);
-
-    int size();
-
-    Set<ProjectInternal> getAllProjects();
 
     Set<ProjectInternal> getAllProjects(String path);
 
     Set<ProjectInternal> getSubProjects(String path);
-
-    Set<ProjectInternal> findAll(Spec<? super ProjectInternal> constraint);
 
 }
