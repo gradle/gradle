@@ -23,8 +23,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.integtests.fixtures.polyglot.SkipDsl
+import org.gradle.internal.declarativedsl.DeclarativeTestUtils
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 @PolyglotDslTest
 class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture, PolyglotTestFixture {
@@ -43,6 +46,12 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
         pluginBuilder.file("src/main/java/org/gradle/test/FeatureModel.java") << softwareFeatureBuildModelContents
         pluginBuilder.file("src/main/java/org/gradle/test/SoftwareTypeRegistrationPlugin.java").text = getSettingsPluginThatRegistersSoftwareType(["SoftwareTypeImplPlugin", "SoftwareFeatureImplPlugin"])
         pluginBuilder.prepareToExecute()
+        pluginBuilder.buildFile << "\n" + """
+            tasks.withType(JavaCompile).configureEach {
+                sourceCompatibility = "1.8"
+                targetCompatibility = "1.8"
+            }
+        """
 
         settingsFile() << pluginsFromIncludedBuild
 
@@ -60,9 +69,16 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
         outputContains("Binding FeatureDefinition")
     }
 
+    @Requires(UnitTestPreconditions.Jdk23OrEarlier) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
     @SkipDsl(dsl = GradleDsl.GROOVY, because = "software features are not supported in Groovy yet")
     def "can declare and configure a custom software feature in Kotlin"() {
         PluginBuilder pluginBuilder = withSoftwareTypePlugins()
+        pluginBuilder.buildFile << "\n" + """
+            tasks.withType(JavaCompile).configureEach {
+                sourceCompatibility = "1.8"
+                targetCompatibility = "1.8"
+            }
+        """
         pluginBuilder.prepareToExecute()
 
         def kotlinPluginDir = file("kotlinPlugins").createDir()
@@ -246,6 +262,8 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
 
     static String getKotlinPluginBuildFile() {
         return """
+            import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
             plugins {
                 // Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins
                 `java-gradle-plugin`
@@ -271,6 +289,17 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
 
             dependencies {
                 implementation("org.gradle.test:plugins:1.0")
+            }
+
+            kotlin {
+                compilerOptions {
+                    jvmTarget = JvmTarget.JVM_1_8
+                }
+            }
+
+            tasks.compileJava {
+                targetCompatibility = "1.8"
+                sourceCompatibility = "1.8"
             }
         """
     }
