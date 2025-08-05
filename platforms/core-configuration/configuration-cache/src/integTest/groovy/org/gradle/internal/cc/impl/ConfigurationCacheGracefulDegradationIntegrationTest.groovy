@@ -23,7 +23,7 @@ import javax.inject.Inject
 class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     public static final String CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER = "Some tasks or features in this build are not compatible with the configuration cache."
     public static final String CONFIGURATION_CACHE_DISABLED_REASON = "Configuration cache disabled because incompatible"
-    public static final String CONFIGURATION_CACHE_DISCARDED_READ_ONLY_REASON = "Configuration cache entry discarded as cache is in read-only mode."
+    public static final String CONFIGURATION_CACHE_DISABLED_READ_ONLY_REASON = "Configuration cache disabled as cache is in read-only mode."
 
     def "a compatible build does not print degradation reasons"() {
         buildFile """
@@ -43,6 +43,86 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def configurationCache = newConfigurationCacheFixture()
+
+    def "should not fail evaluating lazy properties in Groovy in graceful degradation mode"() {
+        def configurationCache = newConfigurationCacheFixture()
+
+        given:
+        // any way to trigger graceful degradation will do
+        settingsFile """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:sourceModule") {
+                        from(GitVersionControlSpec) {
+                            url = "some-repo"
+                        }
+                    }
+                }
+            }
+        """
+        buildFile """
+        class TaskWithLazyProperty extends DefaultTask {
+            private String value
+            @Input
+            String getLazyValue() {
+                if (value == null) {
+                    value = project.name
+                }
+                return value
+            }
+        }
+        tasks.register("lazy", TaskWithLazyProperty) { task ->
+           doLast {
+               println("Value is " + task.lazyValue)
+           }
+        }
+        """
+
+        when:
+        configurationCacheRun("lazy")
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+        result.assertTaskExecuted(":lazy")
+    }
+
+    def "should not fail evaluating lazy properties in Kotlin in graceful degradation mode"() {
+        def configurationCache = newConfigurationCacheFixture()
+
+        given:
+        // any way to trigger graceful degradation will do
+        settingsKotlinFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:sourceModule") {
+                        from(GitVersionControlSpec::class) {
+                            url = uri("some-repo")
+                        }
+                    }
+                }
+            }
+        """
+        buildKotlinFile """
+        abstract class TaskWithLazyProperty: DefaultTask() {
+            @get:Input
+            val lazyValue: String by lazy {
+                this.project.name
+            }
+        }
+        tasks.register("lazy", TaskWithLazyProperty::class) {
+            doLast {
+                println("Value is " + lazyValue)
+            }
+        }
+        """
+
+        when:
+        configurationCacheRun("lazy")
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+        result.assertTaskExecuted(":lazy")
+    }
 
     def "a task can require CC degradation#mode"() {
         buildFile """
@@ -503,7 +583,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         outputContains(CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER)
         // but disablement reason is not about incompatible tasks, but read-only mode
         postBuildOutputDoesNotContain(CONFIGURATION_CACHE_DISABLED_REASON)
-        postBuildOutputContains(CONFIGURATION_CACHE_DISCARDED_READ_ONLY_REASON)
+        postBuildOutputContains(CONFIGURATION_CACHE_DISABLED_READ_ONLY_REASON)
     }
 
     def "CC report link is present even when no problems were reported"() {
