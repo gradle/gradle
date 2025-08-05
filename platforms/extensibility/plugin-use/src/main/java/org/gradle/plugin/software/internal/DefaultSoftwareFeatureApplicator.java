@@ -91,7 +91,7 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
         return Cast.uncheckedCast(target.getExtensions().getByName(softwareFeature.getFeatureName()));
     }
 
-    private static <T, V> T createDslObject(ExtensionAware target, SoftwareFeatureImplementation<T, V> softwareFeature) {
+    private <T, V> T createDslObject(ExtensionAware target, SoftwareFeatureImplementation<T, V> softwareFeature) {
         Class<? extends T> dslType = softwareFeature.getDefinitionImplementationType();
         if (Named.class.isAssignableFrom(dslType)) {
             if (Named.class.isAssignableFrom(target.getClass())) {
@@ -150,7 +150,10 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
         private final ExtensionAware target;
         private final DefaultTypeValidationContext validationContext;
 
-        public ExtensionAddingVisitor(ExtensionAware target, DefaultTypeValidationContext validationContext) {
+        public ExtensionAddingVisitor(
+            ExtensionAware target,
+            DefaultTypeValidationContext validationContext
+        ) {
             this.target = target;
             this.validationContext = validationContext;
         }
