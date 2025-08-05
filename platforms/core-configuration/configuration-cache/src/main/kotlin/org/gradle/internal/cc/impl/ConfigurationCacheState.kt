@@ -125,7 +125,7 @@ enum class StateType(val encryptable: Boolean = false) {
     Model(true),
 
     /**
-     * Contains the model objects queried by the IDE provided build action in order to calculate the model to send back.
+     * Contains the model objects queried by the IDE-provided build action in order to calculate the model to send back.
      */
     IntermediateModels(true),
 
@@ -165,7 +165,7 @@ interface ConfigurationCacheStateFile {
     fun inputStream(): InputStream
     fun delete()
 
-    // Replace the contents of this state file, by moving the given file to the location of this state file
+    // Replace the contents of this state file by moving the given file to the location of this state file
     fun moveFrom(file: File)
     fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile
     fun relatedStateFile(path: Path): ConfigurationCacheStateFile
@@ -759,7 +759,7 @@ class ConfigurationCacheState(
         gradle.settings.buildCache.let { buildCache ->
             buildCache.local = readNonNull()
             buildCache.remote = read() as BuildCache?
-            buildCache.registrations = readNonNull<MutableSet<BuildCacheServiceRegistration>>()
+            buildCache.registrations = readNonNull()
         }
         RootBuildCacheControllerSettingsProcessor.process(gradle)
     }
