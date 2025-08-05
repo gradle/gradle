@@ -21,6 +21,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.HashMap;
@@ -29,22 +30,22 @@ import java.util.Map;
 import java.util.Set;
 
 @ServiceScope(Scope.Build.class)
-public class DefaultProjectRegistry<T extends ProjectIdentifier> implements ProjectRegistry<T>, HoldsProjectState {
-    private final Map<String, T> projects = new HashMap<String, T>();
-    private final Map<String, Set<T>> subProjects = new HashMap<String, Set<T>>();
+public class DefaultProjectRegistry implements ProjectRegistry, HoldsProjectState {
+    private final Map<String, ProjectInternal> projects = new HashMap<>();
+    private final Map<String, Set<ProjectInternal>> subProjects = new HashMap<>();
 
     @Override
-    public void addProject(T project) {
-        T previous = projects.put(project.getPath(), project);
+    public void addProject(ProjectInternal project) {
+        ProjectInternal previous = projects.put(project.getPath(), project);
         if (previous != null) {
             throw new IllegalArgumentException(String.format("Multiple projects registered for path '%s'.", project.getPath()));
         }
-        subProjects.put(project.getPath(), new HashSet<T>());
+        subProjects.put(project.getPath(), new HashSet<>());
         addProjectToParentSubProjects(project);
     }
 
-    public T removeProject(String path) {
-        T project = projects.remove(path);
+    public ProjectInternal removeProject(String path) {
+        ProjectInternal project = projects.remove(path);
         assert project != null;
         subProjects.remove(path);
         ProjectIdentifier loopProject = project.getParentIdentifier();
@@ -61,7 +62,7 @@ public class DefaultProjectRegistry<T extends ProjectIdentifier> implements Proj
         subProjects.clear();
     }
 
-    private void addProjectToParentSubProjects(T project) {
+    private void addProjectToParentSubProjects(ProjectInternal project) {
         ProjectIdentifier loopProject = project.getParentIdentifier();
         while (loopProject != null) {
             subProjects.get(loopProject.getPath()).add(project);
@@ -75,25 +76,25 @@ public class DefaultProjectRegistry<T extends ProjectIdentifier> implements Proj
     }
 
     @Override
-    public Set<T> getAllProjects() {
-        return new HashSet<T>(projects.values());
+    public Set<ProjectInternal> getAllProjects() {
+        return new HashSet<>(projects.values());
     }
 
     @Override
-    public T getRootProject() {
+    public ProjectInternal getRootProject() {
         return getProject(Path.ROOT.getPath());
     }
 
     @Override
-    public T getProject(String path) {
+    public @Nullable ProjectInternal getProject(String path) {
         return projects.get(path);
     }
 
     @Override
-    public T getProject(final File projectDir) {
-        Set<T> projects = findAll(new Spec<T>() {
+    public ProjectInternal getProject(final File projectDir) {
+        Set<ProjectInternal> projects = findAll(new Spec<ProjectInternal>() {
             @Override
-            public boolean isSatisfiedBy(T element) {
+            public boolean isSatisfiedBy(ProjectInternal element) {
                 return element.getProjectDir().equals(projectDir);
             }
         });
@@ -105,8 +106,8 @@ public class DefaultProjectRegistry<T extends ProjectIdentifier> implements Proj
     }
 
     @Override
-    public Set<T> getAllProjects(String path) {
-        Set<T> result = new HashSet<T>(getSubProjects(path));
+    public Set<ProjectInternal> getAllProjects(String path) {
+        Set<ProjectInternal> result = new HashSet<>(getSubProjects(path));
         if (projects.get(path) != null) {
             result.add(projects.get(path));
         }
@@ -114,14 +115,14 @@ public class DefaultProjectRegistry<T extends ProjectIdentifier> implements Proj
     }
 
     @Override
-    public Set<T> getSubProjects(String path) {
+    public Set<ProjectInternal> getSubProjects(String path) {
         return GUtil.getOrDefault(subProjects.get(path), HashSet::new);
     }
 
     @Override
-    public Set<T> findAll(Spec<? super T> constraint) {
-        Set<T> matches = new HashSet<T>();
-        for (T project : projects.values()) {
+    public Set<ProjectInternal> findAll(Spec<? super ProjectInternal> constraint) {
+        Set<ProjectInternal> matches = new HashSet<>();
+        for (ProjectInternal project : projects.values()) {
             if (constraint.isSatisfiedBy(project)) {
                 matches.add(project);
             }

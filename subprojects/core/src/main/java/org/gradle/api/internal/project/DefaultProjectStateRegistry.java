@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.DefaultProjectDescriptor;
+import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factories;
@@ -66,7 +67,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
     }
 
     @Override
-    public void registerProjects(BuildState owner, ProjectRegistry<DefaultProjectDescriptor> projectRegistry) {
+    public void registerProjects(BuildState owner, ProjectDescriptorRegistry projectRegistry) {
         Set<DefaultProjectDescriptor> allProjects = projectRegistry.getAllProjects();
         synchronized (lock) {
             DefaultBuildProjectRegistry buildProjectRegistry = getBuildProjectRegistry(owner);

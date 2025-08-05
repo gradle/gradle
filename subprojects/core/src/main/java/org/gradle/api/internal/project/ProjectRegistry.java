@@ -21,22 +21,24 @@ import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.util.Set;
 
-public interface ProjectRegistry<T extends ProjectIdentifier> {
-    void addProject(T project);
+public interface ProjectRegistry extends HoldsProjectState {
 
-    @Nullable T getRootProject();
+    void addProject(ProjectInternal project);
 
-    @Nullable T getProject(String path);
+    @Nullable ProjectInternal getRootProject();
 
-    @Nullable T getProject(File projectDir);
+    @Nullable ProjectInternal getProject(String path);
+
+    @Nullable ProjectInternal getProject(File projectDir);
 
     int size();
 
-    Set<T> getAllProjects();
+    Set<ProjectInternal> getAllProjects();
 
-    Set<T> getAllProjects(String path);
+    Set<ProjectInternal> getAllProjects(String path);
 
-    Set<T> getSubProjects(String path);
+    Set<ProjectInternal> getSubProjects(String path);
 
-    Set<T> findAll(Spec<? super T> constraint);
+    Set<ProjectInternal> findAll(Spec<? super ProjectInternal> constraint);
+
 }

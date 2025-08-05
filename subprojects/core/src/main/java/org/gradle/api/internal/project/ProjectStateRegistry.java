@@ -19,6 +19,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.initialization.DefaultProjectDescriptor;
+import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
@@ -75,7 +76,7 @@ public interface ProjectStateRegistry {
     /**
      * Registers the projects of a build.
      */
-    void registerProjects(BuildState owner, ProjectRegistry<DefaultProjectDescriptor> projectRegistry);
+    void registerProjects(BuildState owner, ProjectDescriptorRegistry projectRegistry);
 
     /**
      * Registers a single project.

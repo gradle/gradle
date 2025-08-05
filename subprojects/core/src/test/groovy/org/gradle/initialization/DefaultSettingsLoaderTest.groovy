@@ -15,12 +15,10 @@
  */
 package org.gradle.initialization
 
-
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.plugins.internal.HelpBuiltInCommand
 import org.gradle.buildinit.plugins.internal.action.InitBuiltInCommand
 import org.gradle.groovy.scripts.ScriptSource
@@ -54,7 +52,7 @@ class DefaultSettingsLoaderTest extends Specification {
         getProjectDir() >> mockBuildLayout.settingsDir
         getBuildFile() >> new File(mockBuildLayout.settingsDir, "build.gradle")
     }
-    private mockProjectRegistry = Mock(ProjectRegistry) {
+    private mockProjectRegistry = Mock(ProjectDescriptorRegistry) {
         getAllProjects() >> Collections.singleton(mockProjectDescriptor)
     }
     private startParameterInternal = new StartParameterInternal()

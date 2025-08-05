@@ -24,7 +24,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
@@ -82,7 +81,7 @@ class InstantiatingBuildLoaderTest extends Specification {
             getServices() >> services
             getOwner() >> buildState
         }
-        def descriptorRegistry = Mock(ProjectRegistry) {
+        def descriptorRegistry = Mock(ProjectDescriptorRegistry) {
             getRootProject() >> rootDescriptor
         }
         settingsInternal = Mock(SettingsInternal) {

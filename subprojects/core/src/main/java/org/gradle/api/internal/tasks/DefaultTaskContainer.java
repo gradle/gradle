@@ -90,7 +90,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private final ITaskFactory taskFactory;
     private final NamedEntityInstantiator<Task> taskInstantiator;
     private final BuildOperationRunner buildOperationRunner;
-    private final ProjectRegistry<ProjectInternal> projectRegistry;
+    private final ProjectRegistry projectRegistry;
 
     private final TaskStatistics statistics;
     private final boolean eagerlyCreateLazyTasks;
@@ -106,7 +106,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         BuildOperationRunner buildOperationRunner,
         CrossProjectConfigurator crossProjectConfigurator,
         CollectionCallbackActionDecorator callbackDecorator,
-        ProjectRegistry<ProjectInternal> projectRegistry
+        ProjectRegistry projectRegistry
     ) {
         super(Task.class, instantiator, project, crossProjectConfigurator.getLazyBehaviorGuard(), callbackDecorator);
         this.taskIdentityFactory = taskIdentityFactory;

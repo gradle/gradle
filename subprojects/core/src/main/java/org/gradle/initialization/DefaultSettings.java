@@ -36,7 +36,6 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
-import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.toolchain.management.ToolchainManagement;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
@@ -277,7 +276,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     public abstract ScriptFileResolver getScriptFileResolver();
 
     @Override
-    public ProjectRegistry<DefaultProjectDescriptor> getProjectRegistry() {
+    public ProjectDescriptorRegistry getProjectRegistry() {
         return getProjectDescriptorRegistry();
     }
 

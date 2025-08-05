@@ -34,7 +34,6 @@ import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.problems.Problems;
@@ -42,6 +41,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DependenciesAccessors;
+import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.Cast;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.classpath.ClassPath;
@@ -167,7 +167,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         executeWork(new DependencyAccessorUnitOfWork(model));
     }
 
-    private void writeProjectAccessors(ProjectRegistry<? extends ProjectDescriptor> projectRegistry) {
+    private void writeProjectAccessors(ProjectDescriptorRegistry projectRegistry) {
         if (!assertCanGenerateAccessors(projectRegistry)) {
             return;
         }
@@ -195,7 +195,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         classLoaderScope.export(generatedClasses);
     }
 
-    private static boolean assertCanGenerateAccessors(ProjectRegistry<? extends ProjectDescriptor> projectRegistry) {
+    private static boolean assertCanGenerateAccessors(ProjectDescriptorRegistry projectRegistry) {
         List<String> errors = new ArrayList<>();
         projectRegistry.getAllProjects()
             .stream()
@@ -453,9 +453,9 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
     private class ProjectAccessorUnitOfWork extends AbstractAccessorUnitOfWork {
         private final static String IN_PROJECTS = "projects";
-        private final ProjectRegistry<? extends ProjectDescriptor> projectRegistry;
+        private final ProjectDescriptorRegistry projectRegistry;
 
-        public ProjectAccessorUnitOfWork(ProjectRegistry<? extends ProjectDescriptor> projectRegistry) {
+        public ProjectAccessorUnitOfWork(ProjectDescriptorRegistry projectRegistry) {
             this.projectRegistry = projectRegistry;
         }
 

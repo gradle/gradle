@@ -15,9 +15,34 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.specs.Spec;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
-public interface ProjectDescriptorRegistry extends ProjectRegistry<DefaultProjectDescriptor> {
+import java.io.File;
+import java.util.Set;
+
+public interface ProjectDescriptorRegistry {
+
+    void addProject(DefaultProjectDescriptor project);
+
+    @Nullable
+    DefaultProjectDescriptor getRootProject();
+
+    @Nullable DefaultProjectDescriptor getProject(String path);
+
+    @Nullable DefaultProjectDescriptor getProject(File projectDir);
+
+    int size();
+
+    Set<DefaultProjectDescriptor> getAllProjects();
+
+    Set<DefaultProjectDescriptor> getAllProjects(String path);
+
+    Set<DefaultProjectDescriptor> getSubProjects(String path);
+
+    Set<DefaultProjectDescriptor> findAll(Spec<? super DefaultProjectDescriptor> constraint);
+
     void changeDescriptorPath(Path oldPath, Path newPath);
+
 }

@@ -49,7 +49,7 @@ class VisualStudioPluginRules {
         @Mutate
         public static void ensureSubprojectsAreRealized(TaskContainer tasks, ProjectIdentifier projectIdentifier, ServiceRegistry serviceRegistry) {
             ProjectModelResolver projectModelResolver = serviceRegistry.get(ProjectModelResolver.class);
-            ProjectRegistry<ProjectInternal> projectRegistry = Cast.uncheckedCast(serviceRegistry.get(DefaultProjectRegistry.class));
+            ProjectRegistry projectRegistry = Cast.uncheckedCast(serviceRegistry.get(DefaultProjectRegistry.class));
 
             for (ProjectInternal subproject : projectRegistry.getSubProjects(projectIdentifier.getPath())) {
                 projectModelResolver.resolveProjectModel(subproject.getPath()).find("visualStudio", VisualStudioExtension.class);

@@ -17,7 +17,6 @@ package org.gradle.initialization
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.project.ProjectIdentifier
-import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -92,14 +91,14 @@ public class ProjectDirectoryProjectSpecTest extends Specification {
         e.message == "Project directory '" + dir + "' is not a directory."
     }
 
-    private ProjectRegistry<ProjectIdentifier> registry(final ProjectIdentifier... projects) {
-        final ProjectRegistry<ProjectIdentifier> registry = Stub(ProjectRegistry)
+    private ProjectDescriptorRegistry registry(final DefaultProjectDescriptor... projects) {
+        final ProjectDescriptorRegistry registry = Stub(ProjectDescriptorRegistry)
         registry.getAllProjects() >> toSet(projects)
         return registry
     }
 
-    private ProjectIdentifier project(final File projectDir) {
-        final ProjectIdentifier projectIdentifier = Mock(ProjectIdentifier)
+    private DefaultProjectDescriptor project(final File projectDir) {
+        final ProjectIdentifier projectIdentifier = Mock(DefaultProjectDescriptor)
         projectIdentifier.projectDir >> projectDir
         return projectIdentifier
     }
