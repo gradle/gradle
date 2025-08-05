@@ -54,6 +54,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
  * combination.
  */
 public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicator {
+    private final SoftwareFeatureRegistry softwareFeatureRegistry;
     private final ModelDefaultsApplicator modelDefaultsApplicator;
     private final InspectionScheme inspectionScheme;
     private final InternalProblems problems;
@@ -62,7 +63,8 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
     private final ClassLoaderScope classLoaderScope;
     private final ObjectFactory objectFactory;
 
-    public DefaultSoftwareFeatureApplicator(ModelDefaultsApplicator modelDefaultsApplicator, InspectionScheme inspectionScheme, InternalProblems problems, PluginManagerInternal pluginManager, ClassLoaderScope classLoaderScope, ObjectFactory objectFactory) {
+    public DefaultSoftwareFeatureApplicator(SoftwareFeatureRegistry softwareFeatureRegistry, ModelDefaultsApplicator modelDefaultsApplicator, InspectionScheme inspectionScheme, InternalProblems problems, PluginManagerInternal pluginManager, ClassLoaderScope classLoaderScope, ObjectFactory objectFactory) {
+        this.softwareFeatureRegistry = softwareFeatureRegistry;
         this.modelDefaultsApplicator = modelDefaultsApplicator;
         this.inspectionScheme = inspectionScheme;
         this.problems = problems;
@@ -95,12 +97,16 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
         Class<? extends T> dslType = softwareFeature.getDefinitionImplementationType();
         if (Named.class.isAssignableFrom(dslType)) {
             if (Named.class.isAssignableFrom(target.getClass())) {
-                return target.getExtensions().create(softwareFeature.getFeatureName(), dslType, ((Named) target).getName());
+                T result = target.getExtensions().create(softwareFeature.getFeatureName(), dslType, ((Named) target).getName());
+                SoftwareFeatureSupportInternal.registerContextIfAbsent((ExtensionAware) result, this, softwareFeatureRegistry);
+                return result;
             } else {
                 throw new IllegalArgumentException("Cannot infer a name for " + dslType.getSimpleName() + " because the parent object of type " + target.getClass().getSimpleName() + " does not implement Named.");
             }
         } else {
-            return target.getExtensions().create(softwareFeature.getFeatureName(), dslType);
+            T result = target.getExtensions().create(softwareFeature.getFeatureName(), dslType);
+            SoftwareFeatureSupportInternal.registerContextIfAbsent((ExtensionAware) result, this, softwareFeatureRegistry);
+            return result;
         }
     }
 
@@ -119,7 +125,7 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
 
     private <T, V> void applyAndMaybeRegisterExtension(ExtensionAware target, SoftwareFeatureImplementation<T, V> softwareFeature, Plugin<?> plugin) {
         DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(softwareFeature.getPluginClass(), false, problems);
-        ExtensionAddingVisitor<T> extensionAddingVisitor = new ExtensionAddingVisitor<>(target, typeValidationContext);
+        ExtensionAddingVisitor<T> extensionAddingVisitor = new ExtensionAddingVisitor<>(target, typeValidationContext, softwareFeatureRegistry, this);
         inspectionScheme.getPropertyWalker().visitProperties(
             plugin,
             typeValidationContext,
@@ -149,13 +155,19 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
     public static class ExtensionAddingVisitor<T> implements PropertyVisitor {
         private final ExtensionAware target;
         private final DefaultTypeValidationContext validationContext;
+        private final SoftwareFeatureApplicator applicator;
+        private final SoftwareFeatureRegistry softwareFeatureRegistry;
 
         public ExtensionAddingVisitor(
             ExtensionAware target,
-            DefaultTypeValidationContext validationContext
+            DefaultTypeValidationContext validationContext,
+            SoftwareFeatureRegistry softwareFeatureRegistry,
+            SoftwareFeatureApplicator applicator
         ) {
             this.target = target;
             this.validationContext = validationContext;
+            this.softwareFeatureRegistry = softwareFeatureRegistry;
+            this.applicator = applicator;
         }
 
         /**
@@ -166,6 +178,10 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
         @Override
         public void visitSoftwareTypeProperty(String propertyName, PropertyValue value, Class<?> declaredPropertyType, SoftwareType softwareType) {
             T publicModelObject = Cast.uncheckedNonnullCast(Objects.requireNonNull(value.call()));
+
+            if (publicModelObject instanceof ExtensionAware) {
+                SoftwareFeatureSupportInternal.registerContextIfAbsent((ExtensionAware) publicModelObject, applicator, softwareFeatureRegistry);
+            }
 
             if (softwareType.disableModelManagement()) {
                 Object extension = target.getExtensions().findByName(softwareType.name());

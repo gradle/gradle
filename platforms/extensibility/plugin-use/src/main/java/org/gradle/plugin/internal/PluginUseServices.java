@@ -211,6 +211,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
     private static class ProjectScopeServices implements ServiceRegistrationProvider {
         @Provides
         SoftwareFeatureApplicator createSoftwareFeatureApplicator(
+            SoftwareFeatureRegistry softwareFeatureRegistry,
             ModelDefaultsApplicator modelDefaultsApplicator,
             PluginScheme pluginScheme,
             InternalProblems problems,
@@ -218,6 +219,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
             ProjectInternal project
         ) {
             return new DefaultSoftwareFeatureApplicator(
+                softwareFeatureRegistry,
                 modelDefaultsApplicator,
                 pluginScheme.getInspectionScheme(),
                 problems,

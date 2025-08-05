@@ -378,7 +378,8 @@ data class TypedAccessorSpec(
 internal
 data class TypedSoftwareFeatureEntry(
     val softwareFeatureName: AccessorNameSpec,
-    val modelType: TypeAccessibility
+    val modelType: TypeAccessibility,
+    val targetType: TypeAccessibility
 )
 
 internal

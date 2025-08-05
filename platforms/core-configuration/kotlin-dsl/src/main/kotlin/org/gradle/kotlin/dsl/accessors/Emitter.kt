@@ -174,7 +174,7 @@ fun importsRequiredBy(accessor: Accessor): List<String> = accessor.run {
         is Accessor.ForTask -> importsRequiredBy(spec.type)
         is Accessor.ForContainerElement -> importsRequiredBy(spec.receiver, spec.type)
         is Accessor.ForModelDefault -> importsRequiredBy(spec.receiver, spec.type)
-        is Accessor.ForSoftwareType -> importsRequiredBy(spec.modelType) + listOf(Incubating::class.java.name, Project::class.java.name)
+        is Accessor.ForSoftwareType -> importsRequiredBy(spec.modelType) + importsRequiredBy(spec.targetType) + listOf(Incubating::class.java.name, Project::class.java.name)
         is Accessor.ForContainerElementFactory -> importsRequiredBy(spec.receiverType, spec.elementType) + listOf(Incubating::class.java.name)
         else -> emptyList()
     }
@@ -242,7 +242,7 @@ fun configurationAccessorSpec(nameSpec: AccessorNameSpec) =
 private fun typedSoftwareType(softwareFeatureEntry: SoftwareFeatureEntry<TypeAccessibility>) : TypedSoftwareFeatureEntry? {
     val name = AccessorNameSpec.createOrNull(softwareFeatureEntry.softwareFeatureName)
     return name?.let {
-        TypedSoftwareFeatureEntry(name, softwareFeatureEntry.modelType)
+        TypedSoftwareFeatureEntry(name, softwareFeatureEntry.ownDefinitionType, softwareFeatureEntry.targetDefinitionType)
     }
 }
 
