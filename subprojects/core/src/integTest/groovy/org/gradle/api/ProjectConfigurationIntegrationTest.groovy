@@ -29,6 +29,7 @@ class ProjectConfigurationIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The TaskContainer.getByPath(String) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the getByName(String) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_task_by_path")
         run()
 
         then:

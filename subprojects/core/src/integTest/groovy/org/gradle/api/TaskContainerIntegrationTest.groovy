@@ -127,4 +127,25 @@ class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrat
         expect:
         succeeds "help"
     }
+
+    def "findByPath is deprecated"() {
+        buildFile("""
+            tasks.findByPath("someTask")
+        """)
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The TaskContainer.findByPath(String) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the findByName(String) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_task_by_path")
+        succeeds("help")
+    }
+
+    def "getByPath is deprecated"() {
+        buildFile("""
+            tasks.register("someTask")
+            tasks.getByPath("someTask")
+        """)
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The TaskContainer.getByPath(String) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the getByName(String) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_task_by_path")
+        succeeds("help")
+    }
 }

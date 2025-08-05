@@ -41,6 +41,29 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Deprecations
 
+[[deprecated_task_by_path]]
+==== Deprecated `TaskContainer#getByPath(String)` and `TaskContainer#findByPath(String)`
+
+The following two methods have been deprecated and will be removed in Gradle 10.0.0:
+- link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#getByPath(java.lang.String)[`TaskContainer.getByPath(String)`]
+- link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#findByPath(java.lang.String)[`TaskContainer.findByPath(String)`]
+
+These methods permit accessing tasks from other projects, which is discouraged.
+
+If necessary, tasks from other projects can be accessed using a project reference:
+
+[source,kotlin]
+----
+// Instead of accessing a task by path:
+val otherTaskByPath = tasks.getByPath(":otherProject:someTask")
+
+// Use a project reference to access the task:
+// NOTE: Leveraging this behavior is highly discouraged.
+evaluationDependsOn(":otherProject")
+val otherProject = project(":otherProject")
+val otherTask = otherProject.tasks.getByName("someTask")
+----
+
 === Potential breaking changes
 
 ==== Removed incubating method `ObjectFactory#dependencyCollector()`

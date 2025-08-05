@@ -44,8 +44,11 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      *
      * @param path the path of the task to be returned
      * @return The task. Returns null if so such task exists.
+     *
+     * @deprecated This method will be removed in Gradle 10. Use {@link #findByName(String)} instead.
      */
     @Nullable
+    @Deprecated
     Task findByPath(String path);
 
     /**
@@ -56,7 +59,10 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param path the path of the task to be returned
      * @return The task. Never returns null
      * @throws UnknownTaskException If no task with the given path exists.
+     *
+     * @deprecated This method will be removed in Gradle 10. Use {@link #getByName(String)} instead.
      */
+    @Deprecated
     Task getByPath(String path) throws UnknownTaskException;
 
     /**

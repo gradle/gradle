@@ -19,6 +19,7 @@ package org.gradle.internal.composite;
 import com.google.common.base.Preconditions;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskReference;
@@ -50,8 +51,9 @@ public class IncludedRootBuild implements IncludedBuildInternal {
     }
 
     @Override
-    public TaskReference task(String path) {
-        Preconditions.checkArgument(path.startsWith(":"), "Task path '%s' is not a qualified task path (e.g. ':task' or ':project:task').", path);
+    public TaskReference task(String pathStr) {
+        Path path = Path.path(pathStr);
+        Preconditions.checkArgument(path.isAbsolute(), "Task path '%s' is not a qualified task path (e.g. ':task' or ':project:task').", pathStr);
         return new IncludedRootBuildTaskReference(rootBuild, path);
     }
 
@@ -61,17 +63,17 @@ public class IncludedRootBuild implements IncludedBuildInternal {
     }
 
     private static class IncludedRootBuildTaskReference implements TaskReference, TaskDependencyContainer {
-        private final String taskPath;
+        private final Path absoluteTaskPath;
         private final CompositeBuildParticipantBuildState rootBuildState;
 
-        public IncludedRootBuildTaskReference(CompositeBuildParticipantBuildState rootBuildState, String taskPath) {
+        public IncludedRootBuildTaskReference(CompositeBuildParticipantBuildState rootBuildState, Path absoluteTaskPath) {
             this.rootBuildState = rootBuildState;
-            this.taskPath = taskPath;
+            this.absoluteTaskPath = absoluteTaskPath;
         }
 
         @Override
         public String getName() {
-            return Path.path(taskPath).getName();
+            return absoluteTaskPath.getName();
         }
 
         public BuildIdentifier getBuildIdentifier() {
@@ -85,7 +87,10 @@ public class IncludedRootBuild implements IncludedBuildInternal {
 
         private Task resolveTask() {
             rootBuildState.ensureProjectsConfigured();
-            return rootBuildState.getMutableModel().getRootProject().getTasks().getByPath(taskPath);
+            Path projectPath = absoluteTaskPath.getParent();
+            ProjectState projectState = rootBuildState.getProjects().getProject(projectPath == null ? Path.ROOT : projectPath);
+            projectState.ensureTasksDiscovered();
+            return projectState.getMutableModel().getTasks().getByName(absoluteTaskPath.getName());
         }
     }
 }

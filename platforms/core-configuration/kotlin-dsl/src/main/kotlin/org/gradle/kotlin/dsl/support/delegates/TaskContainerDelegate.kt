@@ -125,6 +125,8 @@ abstract class TaskContainerDelegate : TaskContainer {
     override fun removeAll(elements: Collection<Task>): Boolean =
         delegate.removeAll(elements)
 
+    @Suppress("DEPRECATION")
+    @Deprecated("Use getByName instead.")
     override fun getByPath(path: String): Task =
         delegate.getByPath(path)
 
@@ -221,6 +223,8 @@ abstract class TaskContainerDelegate : TaskContainer {
     override fun maybeCreate(name: String): Task =
         delegate.maybeCreate(name)
 
+    @Suppress("DEPRECATION")
+    @Deprecated("Use findByName instead.")
     override fun findByPath(path: String): Task? =
         delegate.findByPath(path)
 
