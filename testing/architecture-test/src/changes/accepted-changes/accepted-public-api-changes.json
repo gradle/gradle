@@ -1,14 +1,6 @@
 {
     "acceptedApiChanges": [
         {
-            "type": "org.gradle.api.tasks.compile.AbstractCompile",
-            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.getDestinationDirectory()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
             "type": "org.gradle.api.tasks.compile.GroovyCompile",
             "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getAstTransformationClasspath()",
             "acceptation": "Replaced with abstract getter",

@@ -44,6 +44,7 @@ Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getDestinationDirector
 Method <org.gradle.api.tasks.bundling.War.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.bundling.War.getWebAppDirectory()> is not abstract
 Method <org.gradle.api.tasks.compile.AbstractCompile.getClasspath()> is not abstract
+Method <org.gradle.api.tasks.compile.AbstractCompile.getDestinationDirectory()> is not abstract
 Method <org.gradle.api.tasks.compile.GroovyCompile.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.compile.GroovyCompile.getGroovyClasspath()> is not abstract
 Method <org.gradle.api.tasks.compile.GroovyCompile.getSource()> is not abstract
