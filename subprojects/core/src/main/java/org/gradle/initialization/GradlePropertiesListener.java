@@ -22,6 +22,7 @@ import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
 import org.jspecify.annotations.Nullable;
 
+import java.io.File;
 import java.util.Map;
 
 /**
@@ -56,6 +57,11 @@ public interface GradlePropertiesListener {
             ProjectIdentity getProjectIdentity();
         }
     }
+
+    /**
+     * Tracks property loading.
+     */
+    void onGradlePropertiesLoaded(PropertyScope propertyScope, File propertiesDir);
 
     /**
      * Tracks property access.

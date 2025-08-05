@@ -127,4 +127,12 @@ public interface GradlePropertiesController {
      */
     void loadGradleProperties(ProjectIdentity projectId, File projectDir);
 
+    /**
+     * Unloads all project-scoped and build-scoped properties.
+     * <p>
+     * Subsequent calls to {@link #loadGradleProperties(BuildIdentifier, File, boolean)} will
+     * reload properties and re-evaluate system property assignments.
+     */
+    void unloadAll();
+
 }

@@ -21,6 +21,7 @@ import org.gradle.api.internal.GeneratedSubclasses.unpackType
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
+import org.gradle.initialization.GradlePropertiesListener
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.RenderingUtils.oxfordListOf
 import org.gradle.internal.RenderingUtils.quotedOxfordListOf
@@ -65,6 +66,8 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>
         fun isRemoteScriptUpToDate(uri: URI): Boolean
         fun hasValidBuildSrc(candidateBuildSrc: File): Boolean
+        fun loadProperties(propertyScope: GradlePropertiesListener.PropertyScope, propertiesDir: File)
+        fun gradleProperty(propertyScope: GradlePropertiesListener.PropertyScope, propertyName: String): Any?
     }
 
     private
@@ -225,6 +228,21 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 reason?.let { message(it) }
             }
 
+            is ConfigurationCacheFingerprint.SystemPropertyChanged -> input.run {
+                System.getProperties()[key] = value
+                null
+            }
+
+            is ConfigurationCacheFingerprint.SystemPropertyRemoved -> input.run {
+                System.getProperties().remove(key)
+                null
+            }
+
+            is ConfigurationCacheFingerprint.SystemPropertiesCleared -> input.run {
+                System.getProperties().clear()
+                null
+            }
+
             is ConfigurationCacheFingerprint.UndeclaredSystemProperty -> input.run {
                 ifOrNull(System.getProperty(key) != value) {
                     text("system property ").reference(key).text(" has changed")
@@ -302,10 +320,13 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 }
             }
 
+            is ConfigurationCacheFingerprint.GradlePropertiesLoaded -> input.run {
+                host.loadProperties(propertyScope, propertiesDir)
+                null
+            }
+
             is ConfigurationCacheFingerprint.GradleProperty -> input.run {
-                // TODO:configuration-cache
-//                ifOrNull(propertyValue != host.gradleProperty(propertyScope, propertyName)) {
-                ifOrNull(false) {
+                ifOrNull(propertyValue != host.gradleProperty(propertyScope, propertyName)) {
                     text("Gradle property ").reference(propertyName).text(" has changed")
                 }
             }

@@ -47,7 +47,7 @@ class DefaultSystemPropertiesInstallerTest extends Specification {
 
     def "set system properties"() {
         when:
-        systemPropertiesInstaller.setSystemPropertiesFrom(loadedGradleProperties, true)
+        systemPropertiesInstaller.setSystemPropertiesFrom(loadedGradleProperties)
 
         then:
         "userSystemValue" == System.getProperty("userSystemProp")
@@ -56,18 +56,10 @@ class DefaultSystemPropertiesInstallerTest extends Specification {
 
     def "track loaded properties"() {
         when:
-        systemPropertiesInstaller.setSystemPropertiesFrom(loadedGradleProperties, isRootBuild)
+        systemPropertiesInstaller.setSystemPropertiesFrom(loadedGradleProperties)
 
         then:
-        if (isRootBuild) {
-            0 * environmentChangeTracker.systemPropertyLoaded(_)
-        } else {
-            1 * environmentChangeTracker.systemPropertyLoaded("userSystemProp", "userSystemValue", null)
-            1 * environmentChangeTracker.systemPropertyLoaded("userSystemProp2", "userSystemValue2", null)
-        }
-
-        where:
-        isRootBuild << [true, false]
+        0 * environmentChangeTracker.systemPropertyLoaded(_)
     }
 
     def "track override properties"() {
@@ -75,7 +67,7 @@ class DefaultSystemPropertiesInstallerTest extends Specification {
         startParameterSystemProperties = [("overrideSystemProp"): "overrideSystemValue"]
 
         when:
-        systemPropertiesInstaller.setSystemPropertiesFrom(loadedGradleProperties, true)
+        systemPropertiesInstaller.setSystemPropertiesFrom(loadedGradleProperties)
 
         then:
         1 * environmentChangeTracker.systemPropertyOverridden("overrideSystemProp")

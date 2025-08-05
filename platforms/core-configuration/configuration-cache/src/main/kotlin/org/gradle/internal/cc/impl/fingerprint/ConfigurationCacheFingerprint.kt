@@ -86,6 +86,18 @@ sealed class ConfigurationCacheFingerprint {
         val obtainedValue: ObtainedValue
     ) : ConfigurationCacheFingerprint()
 
+    data class SystemPropertyChanged(
+        val key: Any,
+        val value: Any?
+    ) : ConfigurationCacheFingerprint()
+
+    data class SystemPropertyRemoved(
+        val key: Any,
+    ) : ConfigurationCacheFingerprint()
+
+    object SystemPropertiesCleared
+        : ConfigurationCacheFingerprint()
+
     data class UndeclaredSystemProperty(
         val key: String,
         val value: Any?
@@ -147,13 +159,18 @@ sealed class ConfigurationCacheFingerprint {
         val snapshot: Map<String, String?>
     ) : ConfigurationCacheFingerprint()
 
-    class GradleProperty(
+    data class GradlePropertiesLoaded(
+        val propertyScope: GradlePropertiesListener.PropertyScope,
+        val propertiesDir: File
+    ) : ConfigurationCacheFingerprint()
+
+    data class GradleProperty(
         val propertyScope: GradlePropertiesListener.PropertyScope,
         val propertyName: String,
         val propertyValue: Any?
     ) : ConfigurationCacheFingerprint()
 
-    class GradlePropertiesPrefixedBy(
+    data class GradlePropertiesPrefixedBy(
         val propertyScope: GradlePropertiesListener.PropertyScope,
         val prefix: String,
         val snapshot: Map<String, String?>

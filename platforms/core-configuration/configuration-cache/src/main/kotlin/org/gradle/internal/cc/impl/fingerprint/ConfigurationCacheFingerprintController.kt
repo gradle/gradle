@@ -24,10 +24,11 @@ import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
+import org.gradle.initialization.GradlePropertiesController
+import org.gradle.initialization.GradlePropertiesListener
 import org.gradle.initialization.buildsrc.BuildSrcDetector
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildModelParameters
-import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.cc.impl.ConfigurationCacheStateFile
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore.StateFile
 import org.gradle.internal.cc.impl.InputTrackingState
@@ -88,7 +89,6 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val report: CommonReport,
     private val problemFactory: ProblemFactory,
     private val workExecutionTracker: WorkExecutionTracker,
-    private val environmentChangeTracker: ConfigurationCacheEnvironmentChangeTracker,
     private val inputTrackingState: InputTrackingState,
     private val scriptFileResolverListeners: ScriptFileResolverListeners,
     private val remoteScriptUpToDateChecker: RemoteScriptUpToDateChecker,
@@ -97,6 +97,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val encryptionService: EncryptionService,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val buildStateRegistry: BuildStateRegistry,
+    private val propertiesController: GradlePropertiesController,
 ) : Stoppable, ProjectScopedScriptResolution {
 
     interface Host {
@@ -161,7 +162,6 @@ class ConfigurationCacheFingerprintController internal constructor(
                 fileCollectionFactory,
                 directoryFileTreeFactory,
                 workExecutionTracker,
-                environmentChangeTracker,
                 inputTrackingState,
                 buildStateRegistry
             )
@@ -494,6 +494,45 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override fun hasValidBuildSrc(candidateBuildSrc: File): Boolean {
             return BuildSrcDetector.isValidBuildSrcBuild(candidateBuildSrc)
+        }
+
+        override fun loadProperties(propertyScope: GradlePropertiesListener.PropertyScope, propertiesDir: File) {
+            when (propertyScope) {
+                is GradlePropertiesListener.PropertyScope.Build -> {
+                    propertiesController.loadGradleProperties(
+                        propertyScope.buildIdentifier,
+                        propertiesDir,
+                        true
+                    )
+                }
+
+                is GradlePropertiesListener.PropertyScope.Project -> {
+                    propertiesController.loadGradleProperties(
+                        propertyScope.projectIdentity,
+                        propertiesDir,
+                    )
+                }
+
+                else -> error("Unsupported propertyScope $propertyScope")
+            }
+        }
+
+        override fun gradleProperty(propertyScope: GradlePropertiesListener.PropertyScope, propertyName: String): Any? {
+            return when (propertyScope) {
+                is GradlePropertiesListener.PropertyScope.Build -> {
+                    propertiesController
+                        .getGradleProperties(propertyScope.buildIdentifier)
+                        .findUnsafe(propertyName)
+                }
+
+                is GradlePropertiesListener.PropertyScope.Project -> {
+                    propertiesController
+                        .getGradleProperties(propertyScope.projectIdentity)
+                        .findUnsafe(propertyName)
+                }
+
+                else -> error("Unsupported propertyScope $propertyScope")
+            }
         }
     }
 
