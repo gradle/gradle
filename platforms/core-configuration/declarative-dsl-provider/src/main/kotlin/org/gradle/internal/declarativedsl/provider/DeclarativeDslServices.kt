@@ -16,6 +16,9 @@
 
 package org.gradle.internal.declarativedsl.provider
 
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.initialization.SharedModelDefaults
+import org.gradle.api.initialization.internal.SharedModelDefaultsInternal
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.model.ObjectFactory
 import org.gradle.initialization.layout.BuildLayoutFactory
@@ -25,6 +28,7 @@ import org.gradle.internal.declarativedsl.interpreter.GradleProcessInterpretatio
 import org.gradle.internal.declarativedsl.interpreter.MemoizedInterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.interpreter.StoringInterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.interpreter.defaultDeclarativeScriptEvaluator
+import org.gradle.internal.declarativedsl.interpreter.defaults.ActionBasedModelDefaultsHandler
 import org.gradle.internal.declarativedsl.interpreter.defaults.DeclarativeModelDefaultsHandler
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.Provides
@@ -39,6 +43,10 @@ import java.io.File
 class DeclarativeDslServices : AbstractGradleModuleServices() {
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.addProvider(BuildServices)
+    }
+
+    override fun registerProjectServices(registration: ServiceRegistration) {
+        registration.addProvider(ProjectServices)
     }
 }
 
@@ -81,4 +89,20 @@ object BuildServices : ServiceRegistrationProvider {
     private
     fun BuildLayoutFactory.settingsDir(gradle: GradleInternal): File =
         getLayoutFor(gradle.startParameter.toBuildLayoutConfiguration()).settingsDir
+}
+
+internal object ProjectServices : ServiceRegistrationProvider {
+
+    @Provides
+    fun createActionBasedModelDefaultsHandler(
+        sharedModelDefaults: SharedModelDefaults,
+        projectLayout: ProjectLayout,
+        softwareFeatureRegistry: SoftwareFeatureRegistry
+    ): ModelDefaultsHandler {
+        return ActionBasedModelDefaultsHandler(
+            sharedModelDefaults as SharedModelDefaultsInternal,
+            projectLayout,
+            softwareFeatureRegistry,
+        )
+    }
 }
