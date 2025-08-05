@@ -31,10 +31,17 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         """
 
         when:
-        MyCustomModel model = runBuildActionFails(new CustomModelAction())
+        executeResilient()
+        MyCustomModel model = runBuildAction(new CustomModelAction())
 
         then:
-        failureDescriptionContains("Script compilation error")
+        model.paths == []
+        model.build != null
+
+//        def inlcudedBuild = model.build.includedBuilds.getAt(0)
+//        inlcudedBuild != null
+//        inlcudedBuild.failure == null
+//        failureDescriptionContains("Script compilation error")
     }
 
     def "basic project - broken root build file with build action"() {
@@ -47,6 +54,7 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         """
 
         when:
+        executeResilient()
         executer.withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
         MyCustomModel model = runBuildAction(new CustomModelAction())
 
@@ -70,11 +78,80 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         """
 
         when:
-        executer.withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
+        executeResilient()
         MyCustomModel model = runBuildAction(new CustomModelAction())
 
         then:
         model.paths == [":", ":included"]
+        model.build != null
+
+        def inlcudedBuild = model.build.includedBuilds.getAt(0)
+        inlcudedBuild != null
+        inlcudedBuild.failure == null
+    }
+
+    def GradleExecuter executeResilient() {
+        executer.withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+    }
+
+    def "basic project w/ included build in pluginManagement - broken included build build file - build action"() {
+        given:
+        settingsKotlinFile << """
+        pluginManagement {
+            includeBuild("included-plugin")
+        }
+        rootProject.name = "root"
+    """
+
+        def includedPlugin = testDirectory.createDir("included-plugin")
+        includedPlugin.file("settings.gradle.kts") << """
+        rootProject.name = "included-plugin"
+    """
+        includedPlugin.file("build.gradle.kts") << """
+        blow up !!!
+    """
+
+        when:
+        executeResilient()
+        MyCustomModel model = runBuildAction(new CustomModelAction())
+
+        then:
+        model.paths == [":", ":included-plugin"]
+    }
+
+    def "basic project w/ included build in pluginManagement - broken included build settings file - strict mode - build action"() {
+        given:
+        settingsKotlinFile << """
+        pluginManagement {
+            includeBuild("included-plugin")
+        }
+        rootProject.name = "root"
+    """
+
+        def includedPlugin = testDirectory.createDir("included-plugin")
+        includedPlugin.file("settings.gradle.kts") << """
+        boom !!!
+    """
+        includedPlugin.file("build.gradle.kts") << """
+        plugins {
+            `kotlin-dsl`
+        }
+    """
+
+        when:
+        executeResilient()
+        MyCustomModel model = runBuildAction(new CustomModelAction())
+
+        then:
+        model.paths == [":"]
+        model.build != null
+
+        def inlcudedBuild = model.build.includedBuilds.getAt(0)
+        inlcudedBuild != null
+        inlcudedBuild.failure != null
+        inlcudedBuild.failure.message.contains("Script compilation error")
+
+//        failureDescriptionContains("Script compilation error")
     }
 
     def "basic project w/ included build - broken included build settings file and build script - strict mode - build action"() {
@@ -93,10 +170,17 @@ class FailedSyncIntegrationTest extends AbstractIntegrationSpec implements Tooli
         """
 
         when:
-        MyCustomModel model = runBuildActionFails(new CustomModelAction())
+        executeResilient()
+        MyCustomModel model = runBuildAction(new CustomModelAction())
 
         then:
-        failureDescriptionContains("Script compilation error")
+        model.paths == [":"]
+        model.build != null
+
+        def inlcudedBuild = model.build.includedBuilds.getAt(0)
+        inlcudedBuild != null
+        inlcudedBuild.failure != null
+        inlcudedBuild.failure.message.contains("Script compilation error")
     }
 
 

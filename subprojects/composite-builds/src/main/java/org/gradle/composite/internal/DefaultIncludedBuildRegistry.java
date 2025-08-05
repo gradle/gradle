@@ -114,6 +114,19 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
+    public void replaceIncludedBuild(IncludedBuildState newState, IncludedBuildState old) {
+        if (newState.getBuildIdentifier().equals(old.getBuildIdentifier())) {
+            includedBuildsByRootDir.put(newState.getBuildRootDir(), newState);
+            nestedBuildsByRootDir.put(newState.getBuildRootDir(), newState);
+            buildsByIdentifier.put(newState.getBuildIdentifier(), newState);
+            pendingIncludedBuilds.remove(old);
+            pendingIncludedBuilds.add(newState);
+        } else {
+            throw new IllegalArgumentException("Cannot replace included build with different identifier: " + newState.getBuildIdentifier());
+        }
+    }
+
+    @Override
     public IncludedBuildState addIncludedBuild(BuildDefinition buildDefinition, Path buildPath) {
         return registerBuild(buildDefinition, false, buildPath);
     }

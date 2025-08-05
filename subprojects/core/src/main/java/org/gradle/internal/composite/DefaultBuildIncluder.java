@@ -36,8 +36,8 @@ import java.util.stream.Collectors;
 
 public class DefaultBuildIncluder implements BuildIncluder {
 
-    private final BuildStateRegistry buildRegistry;
-    private final BuildInclusionCoordinator coordinator;
+    protected final BuildStateRegistry buildRegistry;
+    protected final BuildInclusionCoordinator coordinator;
     private final PublicBuildPath publicBuildPath;
     private final Instantiator instantiator;
     private final GradleInternal gradle;
@@ -61,9 +61,13 @@ public class DefaultBuildIncluder implements BuildIncluder {
             return rootBuild;
         } else {
             IncludedBuildState build = buildRegistry.addIncludedBuild(buildDefinition, gradle.getOwner());
-            coordinator.prepareForInclusion(build, buildDefinition.isPluginBuild());
-            return build;
+            return prepareBuildState(build, buildDefinition);
         }
+    }
+
+    protected IncludedBuildState prepareBuildState(IncludedBuildState build, BuildDefinition buildDefinition) {
+        coordinator.prepareForInclusion(build, buildDefinition.isPluginBuild());
+        return build;
     }
 
     @Override
@@ -97,4 +101,5 @@ public class DefaultBuildIncluder implements BuildIncluder {
         gradle.getOwner().assertCanAdd(includedBuildSpec);
         return includedBuildSpec.toBuildDefinition(gradle.getStartParameter(), publicBuildPath, instantiator);
     }
+
 }

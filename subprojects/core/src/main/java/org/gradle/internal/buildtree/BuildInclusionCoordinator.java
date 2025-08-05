@@ -81,11 +81,15 @@ public class BuildInclusionCoordinator {
         if (loadedBuilds.add(build)) {
             // Load projects (e.g. by running the settings script, etc.) only the first time the build is included by another build.
             // This is to deal with cycles and the build being included multiple times in the tree
-            build.ensureProjectsLoaded();
+            ensureProjectsLoaded(build);
         }
         if (!asPlugin && !libraryBuilds.contains(build)) {
             libraryBuilds.add(build);
         }
+    }
+
+    protected void ensureProjectsLoaded(IncludedBuildState build) {
+        build.ensureProjectsLoaded();
     }
 
     public void prepareRootBuildForInclusion() {

@@ -25,6 +25,7 @@ dependencies {
 
     implementation(projects.baseServicesGroovy)
     implementation(projects.ear)
+    implementation(projects.kotlinDsl)
     implementation(projects.languageJava)
     implementation(projects.loggingApi)
     implementation(projects.platformBase)
@@ -37,6 +38,9 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
+
+    implementation(projects.buildEvents)
+    implementation(projects.problemsApi)
 
     runtimeOnly(projects.languageJvm)
     runtimeOnly(projects.testingBase)
