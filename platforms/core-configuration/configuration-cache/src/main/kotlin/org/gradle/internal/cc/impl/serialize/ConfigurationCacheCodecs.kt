@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl.serialize
 
-import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
@@ -30,7 +29,6 @@ import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileFactory
 import org.gradle.api.internal.file.FileLookup
-import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
@@ -169,7 +167,6 @@ class DefaultConfigurationCacheCodecs(
     filePropertyFactory: FilePropertyFactory,
     fileResolver: FileResolver,
     instantiator: Instantiator,
-    fileSystemOperations: FileSystemOperations,
     inputFingerprinter: InputFingerprinter,
     buildOperationRunner: BuildOperationRunner,
     classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
@@ -181,7 +178,6 @@ class DefaultConfigurationCacheCodecs(
     attributeDesugaring: AttributeDesugaring,
     calculatedValueContainerFactory: CalculatedValueContainerFactory,
     patternSetFactory: PatternSetFactory,
-    fileOperations: FileOperations,
     fileFactory: FileFactory,
     includedTaskGraph: BuildTreeWorkGraphController,
     buildStateRegistry: BuildStateRegistry,
@@ -219,7 +215,7 @@ class DefaultConfigurationCacheCodecs(
             bind(DefaultContextAwareTaskLoggerCodec)
             bind(LoggerCodec)
 
-            fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory, fileLookup, taskDependencyFactory)
+            fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileFactory, patternSetFactory, fileLookup, taskDependencyFactory)
 
             bind(org.gradle.internal.serialize.codecs.core.ApiTextResourceAdapterCodec)
 
@@ -251,7 +247,7 @@ class DefaultConfigurationCacheCodecs(
             bind(WorkNodeActionCodec)
             bind(CapabilitySerializer())
 
-            bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, propertyFactory, instantiator, fileSystemOperations))
+            bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, propertyFactory, instantiator))
             bind(DestinationRootCopySpecCodec(fileResolver))
 
             bind(TaskReferenceCodec)
@@ -324,7 +320,7 @@ class DefaultConfigurationCacheCodecs(
         baseTypes()
 
         providerTypes(propertyFactory, filePropertyFactory, nestedProviderCodec(buildStateRegistry))
-        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory, fileLookup, taskDependencyFactory)
+        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileFactory, patternSetFactory, fileLookup, taskDependencyFactory)
 
         bind(TaskInAnotherBuildCodec(includedTaskGraph))
 
@@ -388,7 +384,6 @@ class DefaultConfigurationCacheCodecs(
         directoryFileTreeFactory: DirectoryFileTreeFactory,
         fileCollectionFactory: FileCollectionFactory,
         artifactSetConverter: ArtifactSetToFileCollectionFactory,
-        fileOperations: FileOperations,
         fileFactory: FileFactory,
         patternSetFactory: PatternSetFactory,
         fileLookup: FileLookup,
@@ -398,7 +393,7 @@ class DefaultConfigurationCacheCodecs(
         bind(DirectoryCodec(fileFactory))
         bind(RegularFileCodec(fileFactory))
         bind(ConfigurableFileTreeCodec(fileCollectionFactory))
-        bind(FileTreeCodec(fileCollectionFactory, directoryFileTreeFactory, fileOperations))
+        bind(FileTreeCodec(fileCollectionFactory, directoryFileTreeFactory))
         val fileCollectionCodec = FileCollectionCodec(fileCollectionFactory, artifactSetConverter, taskDependencyFactory)
         bind(ConfigurableFileCollectionCodec(fileCollectionCodec, fileCollectionFactory))
         bind(fileCollectionCodec)
