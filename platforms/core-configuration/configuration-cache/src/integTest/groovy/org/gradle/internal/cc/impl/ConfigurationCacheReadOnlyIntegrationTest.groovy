@@ -19,6 +19,9 @@ package org.gradle.internal.cc.impl
 import org.gradle.initialization.StartParameterBuildOptions
 
 class ConfigurationCacheReadOnlyIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    public static final String CONFIGURATION_CACHE_DISABLED_READ_ONLY_REASON = "Configuration cache disabled as cache is in read-only mode."
+
     def "should not create an entry on a cache miss if in read-only mode"() {
         def configurationCache = newConfigurationCacheFixture()
 
@@ -31,7 +34,7 @@ class ConfigurationCacheReadOnlyIntegrationTest extends AbstractConfigurationCac
         then:
         configurationCache.assertNoConfigurationCache()
 
-        postBuildOutputContains("Configuration cache entry discarded as cache is in read-only mode.")
+        postBuildOutputContains(CONFIGURATION_CACHE_DISABLED_READ_ONLY_REASON)
     }
 
     def "should not create an entry on a cache miss when using #options if in read-only mode"() {
@@ -52,7 +55,7 @@ class ConfigurationCacheReadOnlyIntegrationTest extends AbstractConfigurationCac
         then:
         configurationCache.assertNoConfigurationCache()
 
-        postBuildOutputContains("Configuration cache entry discarded as cache is in read-only mode.")
+        postBuildOutputContains(CONFIGURATION_CACHE_DISABLED_READ_ONLY_REASON)
 
         where:
         options << [
@@ -74,9 +77,40 @@ class ConfigurationCacheReadOnlyIntegrationTest extends AbstractConfigurationCac
 
         then:
         configurationCache.assertStateStored()
+        outputDoesNotContain("Read-only Configuration Cache is an incubating feature.")
 
         when:
         configurationCacheRun("help", ENABLE_READ_ONLY_CACHE)
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("Read-only Configuration Cache is an incubating feature.")
+    }
+
+    def "should be able to disable read-only CC via command-line and get a cache hit"() {
+        def configurationCache = newConfigurationCacheFixture()
+        def disableReadOnlyCache = "-D${StartParameterBuildOptions.ConfigurationCacheReadOnlyOption.PROPERTY_NAME}=false"
+
+        given:
+        settingsFile << ""
+        file("gradle.properties") << """
+            org.gradle.configuration-cache.read-only=true
+        """
+
+        when:
+        configurationCacheRun("help")
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+
+        when:
+        configurationCacheRun("help", disableReadOnlyCache)
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun("help")
 
         then:
         configurationCache.assertStateLoaded()
@@ -99,7 +133,7 @@ class ConfigurationCacheReadOnlyIntegrationTest extends AbstractConfigurationCac
 
         then:
         configurationCache.assertNoConfigurationCache()
-        outputContains("Configuration cache entry discarded as cache is in read-only mode.")
+        outputContains(CONFIGURATION_CACHE_DISABLED_READ_ONLY_REASON)
 
         // ensure report is produced
         problems.assertResultHtmlReportHasProblems(failure) {
