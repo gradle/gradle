@@ -17,12 +17,12 @@
 package org.gradle.integtests.fixtures.executer
 
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheParallelOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheParallelOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheQuietOption
+import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.GradleVersion
-
 
 class ConfigurationCacheGradleExecuter extends DaemonGradleExecuter {
 
@@ -31,6 +31,7 @@ class ConfigurationCacheGradleExecuter extends DaemonGradleExecuter {
         "-D${ConfigurationCacheQuietOption.PROPERTY_NAME}=true",
         "-D${ConfigurationCacheParallelOption.PROPERTY_NAME}=true",
         "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=0",
+        "-D${ConfigurationCacheStartParameter.Options.REPORT_OUTPUT_DIR}=.gradle/configuration-cache/reports"
     ].collect { it.toString() }
 
     ConfigurationCacheGradleExecuter(

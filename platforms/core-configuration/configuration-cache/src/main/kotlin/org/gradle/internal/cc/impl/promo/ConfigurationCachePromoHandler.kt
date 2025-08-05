@@ -23,6 +23,7 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.RootBuildLifecycleListener
+import org.gradle.initialization.layout.ResolvedBuildLayout
 import org.gradle.internal.Factory
 import org.gradle.internal.InternalBuildAdapter
 import org.gradle.internal.build.BuildStateRegistry
@@ -32,19 +33,19 @@ import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.internal.extensions.core.serviceOf
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 
 /**
  * This class handles configuration cache promo message at the end of the build.
- * <p>
+ *
  * The promo is shown unless:
- * <ul>
- *     <li>An incompatible API is used at configuration time (in other words, if a CC problem would be emitted by it).</li>
- *     <li>A {@code noCompatibleWithConfigurationCache} task is present in the main task graph.</li>
- *     <li>Graceful degradation is requested.</li>
- *     <li>Build fails.</li>
- * </ul>
+ *   - An incompatible API is used at configuration time (in other words, if a CC problem would be emitted by it).
+ *   - A `noCompatibleWithConfigurationCache` task is present in the main task graph.
+ *   - Graceful degradation is requested.
+ *   - Build fails.
+ *   - Build runs without a project (`gradle init` or `gradle help` outside project directory)
  *
  * Instances of this class are thread-safe.
  */
@@ -67,6 +68,8 @@ internal class ConfigurationCachePromoHandler(
         }
     }
 
+    private lateinit var rootBuildLayout: ResolvedBuildLayout
+
     override fun afterStart() {
         // We can't reach out to the task graph when the build is finished.
         // We cannot collect the state of the tasks in the whenReady callback to avoid racing with user-specified ones, which may modify the compatibility state.
@@ -80,6 +83,8 @@ internal class ConfigurationCachePromoHandler(
                 problems.addIfNeeded(result.failure != null)
             }
         })
+
+        rootBuildLayout = rootBuildGradle.serviceOf<ResolvedBuildLayout>()
     }
 
     private fun onRootBuildTaskGraphIsAboutToExecute(graph: TaskExecutionGraph) {
@@ -91,8 +96,7 @@ internal class ConfigurationCachePromoHandler(
             // Collecting degradation reasons uses Task.project call internally, which is deprecated at execution time.
             // We disable deprecations for the computation until we'll have a proper build lifecycle callback.
                 Factory {
-                    degradationController.collectDegradationReasons()
-                    degradationController.hasDegradationReasons
+                    degradationController.degradationDecision.shouldDegrade
                 }
             ) ?: false
             problems.addIfNeeded(hasDegradationReasons)
@@ -104,8 +108,11 @@ internal class ConfigurationCachePromoHandler(
         }
     }
 
-    override fun beforeComplete() {
-        if (problems.arePresent()) {
+    override fun beforeComplete(failure: Throwable?) {
+        // Order of checks is somewhat important.
+        // With an infra failure, it is unsafe to check the build definition presence, as the Settings may not be initialized.
+        // We don't show the promo if there is any failure, so we don't need to know the build definition anyway.
+        if (failure != null || problems.arePresent() || runWithoutBuildDefinition()) {
             return
         }
 
@@ -129,4 +136,6 @@ internal class ConfigurationCachePromoHandler(
     override fun onExecutionTimeProblem(problem: PropertyProblem) = onProblem(problem)
 
     private fun TaskExecutionGraph.hasIncompatibleTasks() = allTasks.any { !(it as TaskInternal).isCompatibleWithConfigurationCache }
+
+    private fun runWithoutBuildDefinition() = rootBuildLayout.isBuildDefinitionMissing
 }

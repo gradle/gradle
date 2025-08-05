@@ -5,7 +5,11 @@ plugins {
 description = "A Java compiler plugin used by Gradle's incremental compiler"
 
 jvmCompile {
-    usesJdkInternals = true
+    compilations {
+        named("main") {
+            usesJdkInternals = true
+        }
+    }
 }
 
 tasks.withType<Test>().configureEach {

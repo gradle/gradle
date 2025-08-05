@@ -21,7 +21,7 @@ For migrating within Gradle 8.x, see the <<upgrading_version_8.adoc#upgrading_ve
 
 We recommend the following steps for all users:
 
-. Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
+. Try running `gradle help --scan` and view the https://docs.gradle.com/develocity/get-started/#identifying_deprecated_gradle_functionality[deprecations view] of the generated Build Scan.
 +
 image::deprecations.png[Deprecations View in a Build Scan]
 +
@@ -744,6 +744,14 @@ Eclipse JGit has been updated from 5.13.3 to link:https://projects.eclipse.org/p
 This update reworks how Gradle configures JGit for SSH operations and introduces support for using the SSH Agent, leveraging the new capabilities available in link:https://github.com/eclipse-jgit/jgit/blob/v7.2.1.202505142326-r/org.eclipse.jgit.ssh.apache.agent/README.md[JGit’s] SSH agent integration.
 
 == Removed APIs and features
+
+=== Removal of deprecated `jcenter()`
+
+The `jcenter()` repository API has been removed in Gradle 9.0.0. The API was deprecated in Gradle 7.0.
+
+The JCenter repository was link:https://jfrog.com/blog/jcenter-sunset/[redirected to Maven Central in August 2024].
+
+link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html#org.gradle.api.artifacts.dsl.RepositoryHandler:mavenCentral()[`RepositoryHandler.mavenCentral()`] is the closest direct replacement.
 
 === Removal of deprecated `JvmVendorSpec.IBM_SEMERU`
 

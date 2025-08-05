@@ -91,7 +91,6 @@ class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
 
         then:
         def configuration = project.configurations.getByName(JvmConstants.JAVADOC_ELEMENTS_CONFIGURATION_NAME)
-        !configuration.visible
         !configuration.canBeResolved
         configuration.canBeConsumed
         (configuration.attributes.getAttribute(Usage.USAGE_ATTRIBUTE) as Usage).name == Usage.JAVA_RUNTIME
@@ -111,7 +110,6 @@ class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
 
         then:
         def configuration = project.configurations.getByName(JvmConstants.SOURCES_ELEMENTS_CONFIGURATION_NAME)
-        !configuration.visible
         !configuration.canBeResolved
         configuration.canBeConsumed
         (configuration.attributes.getAttribute(Usage.USAGE_ATTRIBUTE) as Usage).name == Usage.JAVA_RUNTIME

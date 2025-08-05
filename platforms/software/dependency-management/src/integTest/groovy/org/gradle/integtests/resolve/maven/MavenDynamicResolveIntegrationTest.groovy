@@ -34,8 +34,8 @@ repositories {
 configurations { compile }
 
 dependencies {
-    compile group: "org.test", name: "projectA", version: "1.+"
-    compile group: "org.test", name: "projectB", version: "1.+"
+    compile("org.test:projectA:1.+")
+    compile("org.test:projectB:1.+")
 }
 
 task retrieve(type: Sync) {

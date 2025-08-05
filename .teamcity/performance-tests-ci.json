@@ -1,18 +1,5 @@
 {
   "performanceTests" : [ {
-    "testId" : "org.gradle.performance.experiment.buildcache.LocalTaskOutputCacheCrossBuildPerformanceTest.assemble with local cache (build comparison)",
-    "groups" : [ {
-      "testProject" : "largeJavaMultiProject",
-      "coverage" : {
-        "per_week" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "largeMonolithicJavaProject",
-      "coverage" : {
-        "per_week" : [ "linux" ]
-      }
-    } ]
-  }, {
     "testId" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslFirstUsePerformanceTest.clean checkout",
     "groups" : [ {
       "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
@@ -34,112 +21,6 @@
       "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
       "coverage" : {
         "per_day" : [ "linux", "macOs", "windows" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.experiment.java.ParallelBuildPerformanceTest.clean assemble with 4 parallel workers",
-    "groups" : [ {
-      "testProject" : "largeJavaMultiProject",
-      "coverage" : {
-        "per_week" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "largeMonolithicJavaProject",
-      "coverage" : {
-        "per_week" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest.assemble for non-abi change (Gradle vs Maven)",
-    "groups" : [ {
-      "testProject" : "mediumJavaMultiProject",
-      "coverage" : {
-        "per_week" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "mediumMonolithicJavaProject",
-      "coverage" : {
-        "per_week" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest.clean assemble (Gradle vs Maven)",
-    "groups" : [ {
-      "testProject" : "mediumJavaMultiProject",
-      "coverage" : {
-        "per_week" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "mediumMonolithicJavaProject",
-      "coverage" : {
-        "per_week" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest.clean test (Gradle vs Maven)",
-    "groups" : [ {
-      "testProject" : "mediumJavaMultiProject",
-      "coverage" : {
-        "per_week" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "mediumMonolithicJavaProject",
-      "coverage" : {
-        "per_week" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest.test for non-abi change (Gradle vs Maven)",
-    "groups" : [ {
-      "testProject" : "mediumJavaMultiProject",
-      "coverage" : {
-        "per_week" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "mediumMonolithicJavaProject",
-      "coverage" : {
-        "per_week" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.experiment.nativeplatform.NativeParallelPerformanceTest.clean assemble with parallel workers",
-    "groups" : [ {
-      "testProject" : "bigNative",
-      "coverage" : {
-        "per_week" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "mediumNative",
-      "coverage" : {
-        "per_week" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "multiNative",
-      "coverage" : {
-        "per_week" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "smallNative",
-      "coverage" : {
-        "per_week" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.experiment.nativeplatform.NativePreCompiledHeaderPerformanceTest.clean assemble with precompiled headers",
-    "groups" : [ {
-      "testProject" : "bigPCHNative",
-      "coverage" : {
-        "per_week" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "mediumPCHNative",
-      "coverage" : {
-        "per_week" : [ "linux" ]
-      }
-    }, {
-      "testProject" : "smallPCHNative",
-      "coverage" : {
-        "per_week" : [ "linux" ]
       }
     } ]
   }, {
@@ -904,7 +785,7 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionPerformanceTest.assemble for non-abi change with reproducible archives",
+    "testId" : "org.gradle.performance.regression.java.JavaIncrementalExecutionPerformanceTest.assemble for non-abi change with file system sensitive archives",
     "groups" : [ {
       "testProject" : "largeJavaMultiProject",
       "coverage" : {

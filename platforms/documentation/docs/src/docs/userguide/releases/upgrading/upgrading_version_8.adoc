@@ -21,7 +21,7 @@ For migrating from Gradle 7.x, see the <<upgrading_version_7.adoc#upgrading_vers
 
 We recommend the following steps for all users:
 
-. Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
+. Try running `gradle help --scan` and view the https://docs.gradle.com/develocity/get-started/#identifying_deprecated_gradle_functionality[deprecations view] of the generated Build Scan.
 +
 image::deprecations.png[Deprecations View in a Build Scan]
 +
@@ -1111,7 +1111,7 @@ buildCache {
 }
 ----
 
-Add a file like this in `~/.gradle/init.d`:
+Add a file like this in `~/.gradle/init.d/cache.init.gradle.kts`:
 
 [source,kotlin]
 ----
@@ -3084,7 +3084,7 @@ Starting in Gradle 9.0, this method will be removed without replacement.
 [[test_task_default_classpath]]
 ==== Relying on conventions for custom Test tasks
 
-By default, when applying the link:java_plugin.html[`java`] plugin, the `testClassesDirs`and `classpath` of all `Test` tasks have the same convention.
+By default, when applying the link:java_plugin.html[`java`] plugin, the `testClassesDirs` and `classpath` of all `Test` tasks have the same convention.
 Unless otherwise changed, the default behavior is to execute the tests from the default `test` link:jvm_test_suite_plugin.html[`TestSuite`] by configuring the task with the `classpath` and `testClassesDirs` from the `test` suite.
 This behavior will be removed in Gradle 9.0.
 

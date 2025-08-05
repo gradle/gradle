@@ -429,7 +429,7 @@ class ArtifactCacheUnusedEntryCleanupIntegrationTest extends AbstractHttpDepende
                 custom
             }
             dependencies {
-                custom group: '${module.groupId}', name: '${module.artifactId}', version: '${module.version}'
+                custom("${module.groupId}:${module.artifactId}:${module.version}")
             }
             task resolve {
                 def files = configurations.custom

@@ -456,6 +456,9 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         when: "the build fails"
+        // archives is now deprecated for all usages, so the error contains the word "deprecated", so we disable deprecation checks to avoid
+        // a post-execution error that a deprecation warning may appear in the output
+        executer.noDeprecationChecks()
         fails 'help'
 
         then:
@@ -487,6 +490,9 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         when: "the build fails because the configuration is not allowed to change"
+        // archives is now deprecated for all usages, so the error contains the word "deprecated", so we disable deprecation checks to avoid
+        // a post-execution error that a deprecation warning may appear in the output
+        executer.noDeprecationChecks()
         fails 'help'
 
         then:

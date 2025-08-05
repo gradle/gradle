@@ -154,14 +154,14 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         skipped(":compileGroovy")
     }
 
-    @Requires(IntegTestPreconditions.Java11HomeAvailable)
+    @Requires(IntegTestPreconditions.Java21HomeAvailable)
     def 'source and target compatibility override toolchain (source #source, target #target) for Groovy '() {
-        def jdk11 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
+        def jdk21 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_21)
 
         buildFile << """
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
+                    languageVersion = JavaLanguageVersion.of(21)
                 }
             }
 
@@ -180,38 +180,52 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         """
 
         when:
-        withInstallations(jdk11).run(":compileGroovy")
+        withInstallations(jdk21).run(":compileGroovy")
 
         then:
         executedAndNotSkipped(":compileGroovy")
 
-        outputContains("project.sourceCompatibility = 11")
-        outputContains("project.targetCompatibility = 11")
+        outputContains("project.sourceCompatibility = 21")
+        outputContains("project.targetCompatibility = 21")
         outputContains("task.sourceCompatibility = $sourceOut")
         outputContains("task.targetCompatibility = $targetOut")
         JavaVersion.forClass(groovyClassFile("JavaThing.class").bytes) == JavaVersion.toVersion(targetOut)
-        JavaVersion.forClass(groovyClassFile("GroovyBar.class").bytes) == JavaVersion.toVersion(targetOut)
+        JavaVersion.forClass(groovyClassFile("GroovyBar.class").bytes) == GroovyCoverage.getEffectiveTarget(versionNumber, JavaVersion.toVersion(targetOut))
 
         where:
         source | target | sourceOut | targetOut
-        '9'    | '10'   | '9'       | '10'
-        '9'    | 'none' | '9'       | '9'
-        'none' | 'none' | '11'      | '11'
+        '17'   | '20'   | '17'      | '20'
+        '17'   | 'none' | '17'      | '17'
+        'none' | 'none' | '21'      | '21'
     }
 
     def "can compile source and run tests using Java #javaVersion for Groovy "() {
+        // This condition can't be part of the `where` block because that is only evaluated for the first Groovy version
+        Assume.assumeTrue(
+            "groovy must support the Java version to test",
+            GroovyCoverage.supportsJavaVersion(version, javaVersion)
+        )
         def jdk = AvailableJavaHomes.getJdk(javaVersion)
         Assume.assumeTrue(jdk != null)
 
         configureJavaPluginToolchainVersion(jdk)
 
-        buildFile << """
+        buildFile("""
             dependencies {
                 testImplementation "${GroovyDependencyUtil.spockModuleDependency("spock-core", versionNumber)}"
             }
 
             testing.suites.test.useJUnitJupiter()
-        """
+        """)
+
+        if (versionNumber.major > 4) {
+            // Spock doesn't target Groovy 5.x yet
+            buildFile("""
+                tasks.compileTestGroovy.configure {
+                    groovyOptions.forkOptions.jvmArgs += ["-Dspock.iKnowWhatImDoing.disableGroovyVersionCheck=true"]
+                }
+            """)
+        }
 
         file("src/test/groovy/GroovySpec.groovy") << """
             class GroovySpec extends spock.lang.Specification {
@@ -237,7 +251,7 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         JavaVersion.forClass(classFile("groovy", "test", "GroovySpec.class").bytes) == groovyTarget
 
         where:
-        javaVersion << JavaVersion.values().findAll { JavaVersion.VERSION_1_8 <= it && GroovyCoverage.supportsJavaVersion("$versionNumber", it) }
+        javaVersion << JavaVersion.values().findAll { it >= JavaVersion.VERSION_1_8 }
     }
 
     private TestFile configureTool(Jvm jdk) {

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.cc.impl.isolated
 
-import org.gradle.internal.cc.impl.fixtures.SomeToolingModel
+import org.gradle.integtests.tooling.fixture.SomeToolingModel
 
 class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def setup() {

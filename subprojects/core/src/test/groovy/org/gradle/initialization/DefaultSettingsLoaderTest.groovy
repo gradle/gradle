@@ -44,7 +44,7 @@ class DefaultSettingsLoaderTest extends Specification {
         file.deleteOnExit()
         FileUtils.canonicalize(file)
     }
-    private mockBuildLayout = new BuildLayout(null, projectRootDir, null, Stub(ScriptFileResolver))
+    private mockBuildLayout = new BuildLayout(projectRootDir, null, Stub(ScriptFileResolver))
     @SuppressWarnings('GroovyAssignabilityCheck')
     private mockBuildLayoutFactory = Mock(BuildLayoutFactory) {
         getLayoutFor(_) >> mockBuildLayout

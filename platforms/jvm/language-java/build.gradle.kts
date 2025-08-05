@@ -2,10 +2,14 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "Source for JavaCompile, JavaExec and Javadoc tasks, it also contains logic for incremental Java compilation"
+description = "Source for JavaCompile and JavaExec tasks, it also contains logic for incremental Java compilation"
 
 jvmCompile {
-    usesJdkInternals = true
+    compilations {
+        named("main") {
+            usesJdkInternals = true
+        }
+    }
 }
 
 errorprone {
@@ -50,7 +54,6 @@ dependencies {
 
     api(libs.asm)
     api(libs.fastutil)
-    api(libs.groovy)
     api(libs.guava)
     api(libs.jspecify)
     api(libs.inject)
@@ -122,10 +125,7 @@ strictCompile {
 packageCycles {
     // These public packages have classes that are tangled with the corresponding internal package.
     excludePatterns.add("org/gradle/api/tasks/**")
-    excludePatterns.add("org/gradle/external/javadoc/**")
 }
-
-integTest.usesJavadocCodeSnippets = true
 
 tasks.javadoc {
     options {

@@ -31,6 +31,7 @@ dependencies {
 
     implementation(projects.dependencyManagement)
     implementation(projects.fileCollections)
+    implementation(projects.logging)
     implementation(projects.modelCore)
     implementation(projects.platformBase)
 
@@ -45,7 +46,6 @@ dependencies {
     }
 }
 
-integTest.usesJavadocCodeSnippets = true
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

@@ -60,7 +60,6 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         val ignoreInputsDuringConfigurationCacheStore: Boolean
         val instrumentationAgentUsed: Boolean
         val ignoredFileSystemCheckInputs: String?
-        fun gradleProperty(propertyName: String): String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOfDirectoryContent(file: File): HashCode?
         fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>
@@ -288,7 +287,10 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     it != ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy.IGNORED
                 }
                 ifOrNull(currentWithoutIgnored != snapshotWithoutIgnored) {
-                    text("the set of system properties prefixed by ").reference(prefix).text(" has changed: ").text(detailedMessageForChanges(snapshotWithoutIgnored, currentWithoutIgnored))
+                    text("the set of system properties prefixed by ")
+                        .reference(prefix)
+                        .text(" has changed: ")
+                        .text(detailedMessageForChanges(snapshotWithoutIgnored, currentWithoutIgnored))
                 }
             }
 
@@ -297,6 +299,25 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 ifOrNull(hasBuildSrc) {
                     text("a buildSrc build at ").reference(displayNameOf(buildSrcDir))
                         .text(" has been added")
+                }
+            }
+
+            is ConfigurationCacheFingerprint.GradleProperty -> input.run {
+                // TODO:configuration-cache
+//                ifOrNull(propertyValue != host.gradleProperty(propertyScope, propertyName)) {
+                ifOrNull(false) {
+                    text("Gradle property ").reference(propertyName).text(" has changed")
+                }
+            }
+
+            is ConfigurationCacheFingerprint.GradlePropertiesPrefixedBy -> input.run {
+                // TODO:configuration-cache
+//                ifOrNull(snapshot != host.gradlePropertiesPrefixedBy(propertyScope, prefix)) {
+                ifOrNull(false) {
+                    text("the set of Gradle properties prefixed by ")
+                        .reference(prefix)
+                        .text(" has changed")
+//                        .text(detailedMessageForChanges(snapshot, current))
                 }
             }
         }

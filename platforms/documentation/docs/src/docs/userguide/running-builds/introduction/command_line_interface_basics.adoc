@@ -129,7 +129,5 @@ Here's how you can pass a custom option:
 gradle taskName --exampleOption=exampleValue
 ----
 
-For more details, see the complete <<command_line_interface.adoc#command_line_interface_reference, Gradle CLI reference>>.
-
 [.text-right]
 **Next Step:** <<settings_file_basics.adoc#settings_file_basics,Learn about the Settings file>> >>

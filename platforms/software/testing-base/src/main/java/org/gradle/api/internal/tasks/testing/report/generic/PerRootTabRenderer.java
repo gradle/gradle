@@ -37,6 +37,9 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
+
+import static org.gradle.reporting.HtmlWriterTools.addClipboardCopyButton;
 
 public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, SimpleHtmlWriter> {
     protected final int rootIndex;
@@ -144,7 +147,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             return TimeFormatting.formatDurationVeryTerse(testResult.getDuration());
         }
 
-        private static void renderLeafDetails(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
+        private void renderLeafDetails(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
             if (info.getResult().getResultType() != TestResult.ResultType.SUCCESS && !info.getResult().getFailures().isEmpty()) {
                 htmlWriter.startElement("div").attribute("class", "result-details");
 
@@ -152,15 +155,16 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                     info.getResult().getResultType() == TestResult.ResultType.FAILURE ? "Failure details" : "Skip details"
                 ).endElement();
 
+                String failureOutputId = "root-" + rootIndex + "-test-failure-" + info.getResult().getName();
                 htmlWriter.startElement("span").attribute("class", "code")
                     .startElement("pre")
+                    .attribute("id", failureOutputId)
                     .characters("");
                 for (SerializableFailure failure : info.getResult().getFailures()) {
                     htmlWriter.characters(failure.getStackTrace() + "\n");
                 }
-                htmlWriter.endElement()
-                    .endElement();
-
+                htmlWriter.endElement();
+                addClipboardCopyButton(htmlWriter, failureOutputId);
                 htmlWriter.endElement();
             }
         }
@@ -251,14 +255,17 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
 
         @Override
         protected void render(TestTreeModel.PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
+            String outputId = "root-" + rootIndex + "-test-" + destination.name().toLowerCase(Locale.ROOT) + "-" + info.getResult().getName();
             htmlWriter.startElement("span").attribute("class", "code")
                 .startElement("pre")
+                .attribute("id", outputId)
                 .characters("");
             try (Reader reader = outputReader.getOutput(info.getOutputId(), destination)) {
                 CharStreams.copy(reader, htmlWriter);
             }
-            htmlWriter.endElement()
-                .endElement();
+            htmlWriter.endElement();
+            addClipboardCopyButton(htmlWriter, outputId);
+            htmlWriter.endElement();
         }
     }
 

@@ -24,6 +24,8 @@ import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.attributes.matching.AttributeMatcher
+import org.gradle.api.internal.attributes.matching.AttributeMatchingCandidate
+import org.gradle.api.internal.attributes.matching.ImmutableAttributesBackedMatchingCandidate
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
@@ -118,9 +120,11 @@ class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
     }
 
     private static ImmutableAttributes requested(String highestValue, String middleValue, String lowestValue) {
-        return candidate(highestValue, middleValue, lowestValue)
+        return candidate(highestValue, middleValue, lowestValue).attributes
     }
-    private static ImmutableAttributes candidate(String highestValue, String middleValue, String lowestValue) {
-        return AttributeTestUtil.attributes([highest: highestValue, middle: middleValue, lowest: lowestValue])
+
+    private static AttributeMatchingCandidate candidate(String highestValue, String middleValue, String lowestValue) {
+        def attributes = AttributeTestUtil.attributes([highest: highestValue, middle: middleValue, lowest: lowestValue])
+        new ImmutableAttributesBackedMatchingCandidate(attributes)
     }
 }

@@ -21,8 +21,9 @@ import org.gradle.api.internal.ConfigurationCacheDegradationController
 import javax.inject.Inject
 
 class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-    public static final String CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_FOOTER = "Some tasks in this build are not compatible with the configuration cache."
-    public static final String CONFIGURATION_CACHE_DISABLED_REASON = "Configuration cache disabled because incompatible task"
+    public static final String CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER = "Some tasks or features in this build are not compatible with the configuration cache."
+    public static final String CONFIGURATION_CACHE_DISABLED_REASON = "Configuration cache disabled because incompatible"
+    public static final String CONFIGURATION_CACHE_DISCARDED_READ_ONLY_REASON = "Configuration cache entry discarded as cache is in read-only mode."
 
     def "a compatible build does not print degradation reasons"() {
         buildFile """
@@ -41,8 +42,9 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         assertNoConfigurationCacheDegradation()
     }
 
-    def "a task can require CC degradation"() {
-        def configurationCache = newConfigurationCacheFixture()
+    def configurationCache = newConfigurationCacheFixture()
+
+    def "a task can require CC degradation#mode"() {
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("a", DegradingTask) { task ->
@@ -54,7 +56,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         """
 
         when:
-        configurationCacheRun "a"
+        configurationCacheRun("a", *args)
 
         then:
         configurationCache.assertNoConfigurationCache()
@@ -70,10 +72,14 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         and:
         outputContains("Project path is :")
         assertConfigurationCacheDegradation()
+
+        where:
+        mode               | args
+        ""                 | []
+        " with IP enabled" | ["-Dorg.gradle.unsafe.isolated-projects=true"]
     }
 
     def "a task can require CC degradation for multiple reasons"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("a", DegradingTask) { task ->
@@ -121,8 +127,37 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         ["-DaccessTaskProject=true", "-DaccessTaskDependencies=true"] | ["Task's project accessed!", "Task's dependencies accessed!"] | "Project access, TaskDependencies access."
     }
 
+    def "features may cause CC degradation"() {
+        settingsFile """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:sourceModule") {
+                        from(GitVersionControlSpec) {
+                            url = "some-repo"
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("help")
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+
+        and:
+        problems.assertResultConsoleSummaryHasNoProblems(result)
+        problems.assertResultHtmlReportHasProblems(result) {
+            totalProblemsCount = 1
+            withProblem("Feature 'source dependencies' is incompatible with the configuration cache.")
+        }
+
+        and:
+        assertConfigurationCacheDegradation()
+    }
+
     def "CC problems in warning mode are not hidden by CC degradation"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("foo", DegradingTask) { task ->
@@ -159,7 +194,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def "a task in included build can require CC degradation"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile("included/build.gradle", """
             ${taskWithInjectedDegradationController()}
             tasks.register("foo", DegradingTask) { task ->
@@ -193,7 +227,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def "a buildSrc internal task that requires CC degradation does not introduce root build CC degradation"() {
-        def configurationCache = newConfigurationCacheFixture()
         file("buildSrc/src/main/java/MyClass.java") << "class MyClass {}"
         buildFile("buildSrc/build.gradle", """
             ${taskWithInjectedDegradationController()}
@@ -215,13 +248,10 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         configurationCache.assertStateStored()
 
         and:
-        result.assertTaskExecuted(":buildSrc:compileJava")
-        result.assertTaskExecuted(":buildSrc:foo")
-        result.assertTaskExecuted(":help")
+        executed(":buildSrc:compileJava", ":buildSrc:foo", ":help")
     }
 
     def "depending on a CC degrading task from included build introduces CC degradation"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile("included/build.gradle", """
             ${taskWithInjectedDegradationController()}
             tasks.register("foo", DegradingTask) { task ->
@@ -263,8 +293,45 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         assertConfigurationCacheDegradation()
     }
 
+    def "a dependency task in #build build can require CC degradation for the non-root build"() {
+        buildFile("$build/build.gradle", """
+            ${taskWithInjectedDegradationController()}
+
+            def fooTask = tasks.register("foo", DegradingTask) { task ->
+                getDegradationController().requireConfigurationCacheDegradation(task, provider { "Because reasons" })
+            }
+
+            tasks.register("bar") {
+                dependsOn(fooTask)
+            }
+        """)
+        settingsFile """
+            $settingsConfiguration
+        """
+
+        when:
+        configurationCacheRun ":$build:bar"
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+
+        and:
+        problems.assertResultConsoleSummaryHasNoProblems(result)
+        problems.assertResultHtmlReportHasProblems(result) {
+            totalProblemsCount = 0
+            withIncompatibleTask(":$build:foo", "Because reasons.")
+        }
+
+        and:
+        assertConfigurationCacheDegradation()
+
+        where:
+        build      | settingsConfiguration
+        "buildSrc" | ""
+        "included" | "include('included')"
+    }
+
     def "no CC degradation if incompatible task is not presented in the task graph"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("a", DegradingTask) { task ->
@@ -296,7 +363,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def "ignore CC degradation requests at execution time"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("foo", DegradingTask) { task ->
@@ -318,7 +384,6 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def "tasks instantiated during execution have degradation requests ignored"() {
-        def configurationCache = newConfigurationCacheFixture()
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("a", DegradingTask) { task ->
@@ -336,7 +401,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         and:
         outputContains("Should be configured")
-        result.assertTaskNotExecuted(":a")
+        notExecuted ":a"
     }
 
     def "user code exceptions in degradation reasons evaluation are surfaced"() {
@@ -388,21 +453,61 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
             tasks.register("foo", DegradingTask) { task ->
                 getDegradationController().requireConfigurationCacheDegradation(task, provider { "Because reasons" })
                 doLast {
-                    println("Hello")
+                    println("Hello from " + project.path)
                 }
             }
         """
+        executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. This will fail with an error in Gradle 10. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
 
         when:
         run ":foo"
 
         then:
-        result.assertTaskExecuted(":foo")
+        executed ":foo"
+
+        and:
+        assertNoConfigurationCacheDegradation()
+    }
+
+    def "degradation works in read-only mode"() {
+        given:
+        buildFile """
+            ${taskWithInjectedDegradationController()}
+
+            tasks.register("foo", DegradingTask) { task ->
+                getDegradationController().requireConfigurationCacheDegradation(task, provider { "Because reasons" })
+                doLast {
+                    println("Hello from " + project.path)
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun(":foo", ENABLE_READ_ONLY_CACHE)
+
+        then:
+        executed ":foo"
+
+        and:
+        // no problems on the console
+        problems.assertResultConsoleSummaryHasNoProblems(result)
+        // but problems should be in CC report
+        problems.assertResultHtmlReportHasProblems(result) {
+            totalProblemsCount = 1
+            withProblem("Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
+            withIncompatibleTask(":foo", "Because reasons.")
+        }
+
+        and:
+        // expect link to CC report
+        outputContains(CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER)
+        // but disablement reason is not about incompatible tasks, but read-only mode
+        postBuildOutputDoesNotContain(CONFIGURATION_CACHE_DISABLED_REASON)
+        postBuildOutputContains(CONFIGURATION_CACHE_DISCARDED_READ_ONLY_REASON)
     }
 
     def "CC report link is present even when no problems were reported"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
         buildFile """
             ${taskWithInjectedDegradationController()}
             tasks.register("foo", DegradingTask) { task ->
@@ -427,7 +532,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         }
 
         and:
-        result.assertTaskExecuted(":foo")
+        executed ":foo"
         assertConfigurationCacheDegradation()
     }
 
@@ -451,7 +556,50 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         configurationCacheRunLenient("foo", "bar")
 
         then:
+        configurationCache.assertNoConfigurationCache()
+
+        and:
         assertConfigurationCacheDegradation(true)
+    }
+
+    def "CC incompatible tasks and requested CC degradation are correctly reported"() {
+        buildFile """
+            ${taskWithInjectedDegradationController()}
+
+            def fooTask = tasks.register("foo", DegradingTask) { task ->
+                getDegradationController().requireConfigurationCacheDegradation(task, provider { "Because reasons" })
+            }
+
+            tasks.register("bar") {
+                dependsOn(fooTask)
+                notCompatibleWithConfigurationCache("Project access")
+                doLast {
+                    project.path
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "bar"
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+        assertConfigurationCacheDegradation(true)
+
+        and:
+        executed(":foo", ":bar")
+
+        and:
+        problems.assertResultHasConsoleSummary(result) {
+            totalProblemsCount = 1
+            withProblem("Build file 'build.gradle': line 17: invocation of 'Task.project' at execution time is unsupported with the configuration cache")
+        }
+        problems.assertResultHtmlReportHasProblems(result) {
+            totalProblemsCount = 1
+            withProblem("Build file 'build.gradle': line 17: invocation of 'Task.project' at execution time is unsupported.")
+            withIncompatibleTask(":bar", "Project access.")
+            withIncompatibleTask(":foo", "Because reasons.")
+        }
     }
 
     private static String taskWithInjectedDegradationController() {
@@ -465,15 +613,15 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
     private void assertConfigurationCacheDegradation(boolean hasOtherProblems = false) {
         if (hasOtherProblems) {
-            outputDoesNotContain(CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_FOOTER)
+            outputDoesNotContain(CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER)
         } else {
-            outputContains(CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_FOOTER)
+            outputContains(CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER)
         }
         postBuildOutputContains(CONFIGURATION_CACHE_DISABLED_REASON)
     }
 
     private void assertNoConfigurationCacheDegradation() {
-        outputDoesNotContain(CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_FOOTER)
+        outputDoesNotContain(CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER)
         postBuildOutputDoesNotContain(CONFIGURATION_CACHE_DISABLED_REASON)
     }
 }

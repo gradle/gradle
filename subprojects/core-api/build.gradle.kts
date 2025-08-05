@@ -17,6 +17,7 @@ dependencies {
 
     api(projects.stdlibJavaExtensions)
     api(projects.buildCacheSpi)
+    api(projects.buildDiscoveryApi)
     api(projects.loggingApi)
     api(projects.baseServices)
     api(projects.files)
@@ -33,7 +34,6 @@ dependencies {
     implementation(projects.io)
     implementation(projects.baseServicesGroovy)
     implementation(projects.logging)
-    implementation(projects.buildProcessServices)
 
     implementation(libs.commonsLang)
     implementation(libs.jsr305)
@@ -59,7 +59,8 @@ strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
 
-integTest.usesJavadocCodeSnippets = true
+// AutoTestedSamplesCoreApiIntegrationTest includes customized test logic, so automatic auto testing samples generation is not needed (and would fail) in this project
+integTest.generateDefaultAutoTestedSamplesTest = false
 testFilesCleanup.reportOnly = true
 tasks.isolatedProjectsIntegTest {
     enabled = false

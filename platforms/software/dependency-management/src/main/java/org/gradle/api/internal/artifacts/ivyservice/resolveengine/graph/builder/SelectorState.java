@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -62,10 +63,11 @@ import static org.gradle.util.internal.TextUtil.getPluralEnding;
  * 3. The selector was part of resolution to a particular module version.
  * In this case {@link #resolved} will be `true` and {@link ModuleResolveState#getSelected()} will point to the selected component.
  */
-class SelectorState implements DependencyGraphSelector, ResolvableSelectorState {
+public class SelectorState implements DependencyGraphSelector, ResolvableSelectorState {
 
     private final DependencyState dependencyState;
     private final DependencyToComponentIdResolver resolver;
+    private final ResolveState resolveState;
     private final ResolvedVersionConstraint versionConstraint;
     private final List<ComponentSelectionDescriptorInternal> dependencyReasons = new ArrayList<>(4);
     private final boolean isProjectSelector;
@@ -93,6 +95,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
     SelectorState(DependencyState dependencyState, DependencyToComponentIdResolver resolver, ResolveState resolveState, ModuleIdentifier targetModuleId, boolean versionByAncestor) {
         this.resolver = resolver;
+        this.resolveState = resolveState;
         this.targetModule = resolveState.getModule(targetModuleId);
         if (versionByAncestor) {
             dependencyReasons.add(ComponentSelectionReasons.BY_ANCESTOR);
@@ -185,7 +188,8 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
             } else {
                 IvyArtifactName firstArtifact = getFirstDependencyArtifact();
                 ComponentOverrideMetadata overrideMetadata = DefaultComponentOverrideMetadata.forDependency(changing, firstArtifact);
-                resolver.resolve(dependencyState.getDependency().getSelector(), overrideMetadata, selector, rejector, idResolveResult);
+                ImmutableAttributes requestAttributes = resolveState.getAttributesFactory().concat(resolveState.getConsumerAttributes(), targetModule.getMergedConstraintAttributes());
+                resolver.resolve(dependencyState.getDependency().getSelector(), overrideMetadata, selector, rejector, idResolveResult, requestAttributes);
             }
 
             if (idResolveResult.getFailure() != null) {
@@ -334,6 +338,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     @Override
+    @Nullable
     public ResolvedVersionConstraint getVersionConstraint() {
         return versionConstraint;
     }

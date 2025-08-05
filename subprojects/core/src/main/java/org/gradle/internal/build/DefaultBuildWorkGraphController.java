@@ -264,7 +264,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         }
 
         @Override
-        public TaskInternal getTask() {
+        public TaskNode getTaskNode() {
             synchronized (lock) {
                 if (taskNode == null) {
                     TaskInternal task = findTaskNode(taskPath);
@@ -273,8 +273,13 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
                     }
                     taskNode = taskNodeFactory.getOrCreateNode(task);
                 }
-                return taskNode.getTask();
+                return taskNode;
             }
+        }
+
+        @Override
+        public TaskInternal getTask() {
+            return getTaskNode().getTask();
         }
 
         @Override

@@ -8,7 +8,7 @@ dependencies {
             ivyPattern(projectDir.absolutePath + '/[module]-[revision]-ivy.xml')
         }
     }
-    compile group: 'test', name: 'projectA', version: '1.+'
+    compile("test:projectA:1.+")
 }
 
 file("projectA-1.2.jar").text = ''

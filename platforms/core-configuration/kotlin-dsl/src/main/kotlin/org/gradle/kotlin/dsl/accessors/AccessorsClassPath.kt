@@ -23,8 +23,8 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -73,6 +73,7 @@ import org.jetbrains.org.objectweb.asm.signature.SignatureReader
 import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
 import java.io.Closeable
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 
 
@@ -86,19 +87,28 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
     private val asyncIO: AsyncIOScopeFactory,
 ) {
 
-    fun projectAccessorsClassPath(scriptTarget: ExtensionAware, classPath: ClassPath): AccessorsClassPath =
-        scriptTarget.getOrCreateProperty("gradleKotlinDsl.accessorsClassPath") {
-            buildAccessorsClassPathFor(scriptTarget, classPath)
+    private
+    val classPathCache = ConcurrentHashMap<ClassLoaderScope, AccessorsClassPath>()
+
+    fun projectAccessorsClassPath(scriptTarget: ExtensionAware, classPath: ClassPath): AccessorsClassPath {
+        val classLoaderScope = classLoaderScopeOf(scriptTarget)
+        if (classLoaderScope == null) {
+            return AccessorsClassPath.empty
+        }
+        return classPathCache.computeIfAbsent(classLoaderScope) {
+            buildAccessorsClassPathFor(classLoaderScope, scriptTarget, classPath)
                 ?: AccessorsClassPath.empty
         }
-
+    }
 
     private
-    fun buildAccessorsClassPathFor(scriptTarget: Any, classPath: ClassPath): AccessorsClassPath? =
-        classLoaderScopeOf(scriptTarget)
-            ?.let { classLoaderScope ->
-                configuredProjectSchemaOf(scriptTarget, classLoaderScope)
-            }?.let { scriptTargetSchema ->
+    fun buildAccessorsClassPathFor(
+        classLoaderScope: ClassLoaderScope,
+        scriptTarget: Any,
+        classPath: ClassPath
+    ): AccessorsClassPath? =
+        configuredProjectSchemaOf(scriptTarget, classLoaderScope)
+            ?.let { scriptTargetSchema ->
                 val work = GenerateProjectAccessors(
                     scriptTarget,
                     scriptTargetSchema,
@@ -127,8 +137,8 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
 
 fun isDclEnabledForScriptTarget(target: Any): Boolean {
     val gradleProperties = when (target) {
-        is Project -> target.serviceOf<GradlePropertiesController>()
-        is Settings -> target.serviceOf<GradlePropertiesController>()
+        is Project -> target.serviceOf<GradleProperties>()
+        is Settings -> target.serviceOf<GradleProperties>()
         else -> null
     }
     return gradleProperties?.let { getBooleanKotlinDslOption(it, DCL_ENABLED_PROPERTY_NAME, false) } ?: false
@@ -305,6 +315,7 @@ private fun importsRequiredByOptInAnnotations(accessibleTypes: List<TypeAccessib
             when (annotationValueRepresentation) {
                 is AnnotationValueRepresentation.PrimitiveValue,
                 is AnnotationValueRepresentation.ValueArray -> Unit
+
                 is AnnotationValueRepresentation.AnnotationValue -> visitAnnotation(annotationValueRepresentation.representation)
                 is AnnotationValueRepresentation.EnumValue -> addTypeName(annotationValueRepresentation.type.kotlinString)
                 is AnnotationValueRepresentation.ClassValue -> addTypeName(annotationValueRepresentation.type.kotlinString)

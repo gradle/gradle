@@ -25,7 +25,8 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import java.io.File
-
+import org.junit.experimental.categories.Category
+import org.gradle.test.fixtures.Flaky
 
 /**
  * Assert that the cross-version protocol between `:kotlin-dsl-plugins` and `:kotlin-dsl-provider-plugins` is not broken.
@@ -64,7 +65,8 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
 
         expectConfigurationCacheRequestedDeprecation()
 
-        build("help").apply {
+        // Suppress CC problem caused by the outdated KGP version. Can be removed when KGP 2.0+ is used.
+        build("help", "-Dorg.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners=true").apply {
 
             assertThat(
                 output,

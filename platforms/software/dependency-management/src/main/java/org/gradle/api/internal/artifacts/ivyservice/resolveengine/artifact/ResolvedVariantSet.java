@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.transform.VariantDefinition;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
-import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -30,10 +29,10 @@ import java.util.List;
  * Used to select the artifacts given a particular variant selected during graph resolution.
  */
 public interface ResolvedVariantSet {
+
     /**
      * Returns the component identifier for the component that this set of artifacts belongs to.
      */
-    @Nullable
     ComponentIdentifier getComponentIdentifier();
 
     Describable asDescribable();
@@ -63,4 +62,5 @@ public interface ResolvedVariantSet {
         ResolvedVariant sourceVariant,
         VariantDefinition variantDefinition
     );
+
 }

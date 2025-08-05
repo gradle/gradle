@@ -21,7 +21,11 @@ plugins {
 description = "Configuration Cache serialization codecs for :core (and family) types"
 
 jvmCompile {
-    usesFutureStdlib = true
+    compilations {
+        named("main") {
+            usesFutureStdlib = true
+        }
+    }
 }
 
 dependencies {
@@ -45,6 +49,7 @@ dependencies {
     implementation(projects.baseServicesGroovy)
     implementation(projects.beanSerializationServices)
     implementation(projects.buildOperations)
+    implementation(projects.buildDiscoveryApi)
     implementation(projects.configurationProblemsBase)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.execution)

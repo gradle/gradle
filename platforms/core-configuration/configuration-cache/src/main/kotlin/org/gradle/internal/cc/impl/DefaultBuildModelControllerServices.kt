@@ -34,7 +34,6 @@ import org.gradle.configuration.project.LifecycleProjectEvaluator
 import org.gradle.configuration.project.PluginsProjectConfigureActions
 import org.gradle.configuration.project.ProjectEvaluator
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.initialization.Environment
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.TaskExecutionPreparer
 import org.gradle.initialization.VintageBuildModelController
@@ -47,8 +46,6 @@ import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.IntermediateBuildActionRunner
 import org.gradle.internal.cc.base.services.ProjectRefResolver
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
-import org.gradle.internal.cc.impl.services.ConfigurationCacheEnvironment
-import org.gradle.internal.cc.impl.services.DefaultEnvironment
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.event.ListenerManager
@@ -72,18 +69,16 @@ import org.gradle.tooling.provider.model.internal.ToolingModelProjectDependencyL
 class DefaultBuildModelControllerServices(
     private val buildModelParameters: BuildModelParameters,
 ) : BuildModelControllerServices {
-    override fun servicesForBuild(buildDefinition: BuildDefinition, owner: BuildState, parentBuild: BuildState?): BuildModelControllerServices.Supplier {
+    override fun servicesForBuild(buildDefinition: BuildDefinition, buildState: BuildState): BuildModelControllerServices.Supplier {
         return BuildModelControllerServices.Supplier { registration, buildScopeServices ->
             registration.add(BuildDefinition::class.java, buildDefinition)
-            registration.add(BuildState::class.java, owner)
-            registration.addProvider(ServicesProvider(buildDefinition, parentBuild, buildScopeServices))
+            registration.add(BuildState::class.java, buildState)
+            registration.addProvider(ServicesProvider(buildDefinition, buildState, buildScopeServices))
             if (buildModelParameters.isConfigurationCache) {
                 registration.addProvider(ConfigurationCacheBuildControllerProvider())
-                registration.add(ConfigurationCacheEnvironment::class.java)
                 registration.add(ProjectRefResolver::class.java)
             } else {
                 registration.addProvider(VintageBuildControllerProvider())
-                registration.add(Environment::class.java, DefaultEnvironment::class.java)
             }
             if (buildModelParameters.isIsolatedProjects) {
                 registration.addProvider(ConfigurationCacheIsolatedProjectsProvider())
@@ -101,14 +96,14 @@ class DefaultBuildModelControllerServices(
     private
     class ServicesProvider(
         private val buildDefinition: BuildDefinition,
-        private val parentBuild: BuildState?,
+        private val buildState: BuildState,
         private val buildScopeServices: ServiceRegistry
     ) : ServiceRegistrationProvider {
         @Provides
         fun createGradleModel(instantiator: Instantiator, serviceRegistryFactory: ServiceRegistryFactory): GradleInternal? {
             return instantiator.newInstance(
                 DefaultGradle::class.java,
-                parentBuild,
+                buildState,
                 buildDefinition.startParameter,
                 serviceRegistryFactory
             )

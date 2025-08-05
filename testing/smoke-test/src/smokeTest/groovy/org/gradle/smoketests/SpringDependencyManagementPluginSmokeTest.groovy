@@ -33,7 +33,7 @@ class SpringDependencyManagementPluginSmokeTest extends AbstractPluginValidating
             dependencyManagement {
                 dependencies {
                     dependency 'org.springframework:spring-core:4.0.3.RELEASE'
-                    dependency group: 'commons-logging', name: 'commons-logging', version: '1.1.2'
+                    dependency("commons-logging:commons-logging:1.1.2")
                 }
             }
 

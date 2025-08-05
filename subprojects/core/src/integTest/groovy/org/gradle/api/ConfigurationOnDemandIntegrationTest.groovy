@@ -158,7 +158,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
 allprojects { apply plugin: 'java-library' }
 project(':impl') {
-    dependencies { implementation project(path: ':api', configuration: 'archives') }
+    dependencies { implementation project(':api') }
 }
 project(':api') {
     dependencies { runtimeOnly project(':impl') }

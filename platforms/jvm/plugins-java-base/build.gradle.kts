@@ -45,14 +45,15 @@ dependencies {
 
     implementation(projects.fileCollections)
     implementation(projects.fileOperations)
+    implementation(projects.javadoc)
     implementation(projects.jvmServices)
     implementation(projects.logging)
     implementation(projects.platformBase)
     implementation(projects.reporting)
+    implementation(projects.serviceLookup)
     implementation(projects.testingBase)
     implementation(projects.testingJvm)
     implementation(projects.toolchainsJvm)
-    implementation(projects.serviceLookup)
 
     implementation(libs.commonsLang)
 
@@ -67,5 +68,3 @@ dependencies {
 packageCycles {
     excludePatterns.add("org/gradle/api/plugins/**")
 }
-
-integTest.usesJavadocCodeSnippets.set(true)

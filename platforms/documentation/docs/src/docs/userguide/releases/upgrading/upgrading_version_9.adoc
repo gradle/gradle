@@ -1,0 +1,284 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[upgrading_version_9]]
+
+= Upgrading within Gradle 9.x.y
+
+This chapter provides the information you need to migrate your Gradle 9.x.y builds to the latest.
+For migrating to Gradle 9.0.0, see the <<upgrading_major_version_9.adoc#upgrading_major_version_9, older migration guide>> first.
+
+We recommend the following steps for all users:
+
+. Try running `gradle help --scan` and view the https://docs.gradle.com/develocity/get-started/#identifying_deprecated_gradle_functionality[deprecations view] of the generated Build Scan.
++
+image::deprecations.png[Deprecations View of a Gradle Build Scan]
++
+This lets you see any deprecation warnings that apply to your build.
++
+Alternatively, you can run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
+. Update your plugins.
++
+Some plugins will break with this new version of Gradle because they use internal APIs that have been removed or changed.
+The previous step will help you identify potential problems by issuing deprecation warnings when a plugin tries to use a deprecated part of the API.
++
+. Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
+. Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
+
+[[changes_9.1]]
+== Upgrading from 9.0 and earlier
+
+=== Deprecations
+
+[[dependency_multi_string_notation]]
+==== Deprecated multi-string dependency notation
+
+In an effort to simplify and standardize the Gradle API, the multi-string dependency notation used in dependency management has been deprecated and will no longer be permitted in Gradle 10.
+Gradle will primarily accept dependency declarations in the form of a single string, with each dependency coordinate separated by a colon.
+
+Below are examples of the deprecated multi-string notation:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    implementation(group = "org", name = "foo", version = "1.0")
+    implementation(group = "org", name = "foo", version = "1.0", configuration = "conf")
+    implementation(group = "org", name = "foo", version = "1.0", classifier = "classifier")
+    implementation(group = "org", name = "foo", version = "1.0", ext = "ext")
+}
+
+testing.suites.named<JvmTestSuite>("test") {
+    dependencies {
+        implementation(module(group = "org", name = "foo", version = "1.0"))
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+dependencies {
+    implementation(group: 'org', name: 'foo', version: '1.0')
+    implementation(group: 'org', name: 'foo', version: '1.0', configuration: 'conf')
+    implementation(group: 'org', name: 'foo', version: '1.0', classifier: 'classifier')
+    implementation(group: 'org', name: 'foo', version: '1.0', ext: 'ext')
+}
+
+testing.suites.test {
+    dependencies {
+        implementation(module(group: 'org', name: 'foo', version: '1.0'))
+    }
+}
+----
+=====
+====
+
+These declarations should be replaced with the single-string notation:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    implementation("org:foo:1.0")
+    implementation("org:foo:1.0") {
+        targetConfiguration = "conf"
+    }
+    implementation("org:foo:1.0:classifier")
+    implementation("org:foo:1.0@ext")
+}
+
+testing.suites.named<JvmTestSuite>("test") {
+    dependencies {
+        implementation("org:foo:1.0")
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+dependencies {
+    implementation("org:foo:1.0")
+    implementation("org:foo:1.0") {
+        targetConfiguration = "conf"
+    }
+    implementation("org:foo:1.0:classifier")
+    implementation("org:foo:1.0@ext")
+}
+
+testing.suites.test {
+    dependencies {
+        implementation("org:foo:1.0")
+    }
+}
+----
+=====
+====
+
+In some cases, a complete single-string notation may not be known up front.
+Instead of concatenating the coordinates into a new string, it is possible to use a link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyFactory.html[`DependencyFactory`] to create `Dependency` instances directly from the individual components:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+val group = "org"
+val artifactId = "foo"
+val version = "1.0"
+
+configurations.dependencyScope("implementation") {
+    dependencies.add(project.dependencyFactory.create(group, artifactId, version))
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+def group = "org"
+def artifactId = "foo"
+def version = "1.0"
+
+configurations.dependencyScope("implementation") {
+    dependencies.add(project.dependencyFactory.create(group, artifactId, version))
+}
+----
+=====
+====
+
+[[reporting_extension_file]]
+==== Deprecation of `ReportingExtension.file(String)`
+
+The link:{javadocPath}/org/gradle/api/reporting/ReportingExtension.html#file(String)[`file()` method] on `ReportingExtension` has been deprecated and will be removed in Gradle 10.0.0.
+
+Use `ReportingExtension.getBaseDirectory()` with `file(String)` or `dir(String)` instead.
+
+[[reporting_extension_api_doc_title]]
+==== Deprecation of `ReportingExtension.getApiDocTitle()`
+
+The link:{javadocPath}/org/gradle/api/reporting/ReportingExtension.html#getApiDocTitle()[`getApiDocTitle()` method] on `ReportingExtension` has been deprecated and will be removed in Gradle 10.0.0.
+
+There is no direct replacement for this method.
+
+[[set-all-jvm-args]]
+==== Deprecation of `JavaForkOptions.setAllJvmArgs()`
+
+The link:{javadocPath}/org/gradle/process/JavaForkOptions.html#setAllJvmArgs(java.util.List)[`setAllJvmArgs()` method] on `JavaForkOptions` has been deprecated and will be removed in Gradle 10.0.0.
+
+Instead, use one of the following:
+
+* `JavaForkOptions.jvmArgs()`
+* `JavaForkOptions.setJvmArgs()`
+* Provide a <<incremental_build.adoc#sec:task_input_nested_inputs,`CommandLineArgumentProvider`>> to add arguments via `JavaForkOptions.getJvmArgumentProviders()`.
+
+[[archives-configuration]]
+==== Deprecated `archives` configuration
+
+The `archives` configuration added by the <<base_plugin.adoc#base_plugin,`base` plugin>> has been deprecated and will be removed in Gradle 10.0.0.
+Adding artifacts to the `archives` configuration will now result in a deprecation warning.
+
+If you want the artifact to be built when running the `assemble` task, add the artifact (or the task that produces it) as a dependency on `assemble`:
+
+.build.gradle.kts
+[source,kotlin]
+----
+val specialJar = tasks.register<Jar>("specialJar") {
+    archiveBaseName.set("special")
+    from("build/special")
+}
+
+tasks.named("assemble") {
+    dependsOn(specialJar)
+}
+----
+
+[[deprecate-visible-property]]
+==== Deprecated `Configuration.visible` property
+
+Prior to Gradle 9.0.0, any configuration with `isVisible()` returning `true` would implicitly trigger artifact creation when running the `assemble` task.
+This behavior was removed in Gradle 9.0.0, and the `Configuration.visible` property no longer has any effect.
+The property is now deprecated and will be removed in Gradle 10.0.0.
+You can safely remove any usage of `visible`.
+
+If you want the artifacts of a configuration to be built when running the `assemble` task, add an explicit task dependency on `assemble`:
+
+.build.gradle.kts
+[source,kotlin]
+----
+val specialJar = tasks.register<Jar>("specialJar") {
+    archiveBaseName.set("special")
+    from("build/special")
+}
+
+configurations {
+    consumable("special") {
+        outgoing.artifact(specialJar)
+    }
+}
+
+tasks.named("assemble") {
+    dependsOn(specialJar)
+}
+----
+
+[[deprecated-gradle-build-non-string-properties]]
+==== Non-String project properties in `GradleBuild` task
+The `GradleBuild` task now deprecates using non-String values in `startParameter.projectProperties`.
+While the type is declared as `Map<String, String>`, there was no strict enforcement, allowing non-String values to be set.
+This deprecated behavior will be removed in Gradle 10.0.0.
+
+If you are using non-String values in project properties, convert them to String representation:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+val myIntProp = 42
+
+tasks.register<GradleBuild>("nestedBuild") {
+    startParameter.projectProperties.put("myIntProp", "$myIntProp") // Convert int to String
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+def myIntProp = 42
+
+tasks.register('nestedBuild', GradleBuild) {
+    startParameter.projectProperties.put('myIntProp', "$myIntProp") // Convert int to String
+}
+----
+=====
+====
+
+=== Potential breaking changes

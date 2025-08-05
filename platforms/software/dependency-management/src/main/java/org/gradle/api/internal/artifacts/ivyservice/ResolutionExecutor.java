@@ -59,9 +59,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Composit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolutionFailureCollector;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationDependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AdhocHandlingComponentResultSerializer;
@@ -289,8 +287,6 @@ public class ResolutionExecutor {
         BinaryStore oldModelStore = stores.nextBinaryStore();
         Store<TransientConfigurationResults> oldModelCache = stores.oldModelCache();
         TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache, moduleIdentifierFactory, buildOperationExecutor, params.getResolutionHost());
-        DefaultResolvedConfigurationBuilder oldModelBuilder = new DefaultResolvedConfigurationBuilder(oldTransientModelBuilder);
-        ResolvedConfigurationDependencyGraphVisitor oldModelVisitor = new ResolvedConfigurationDependencyGraphVisitor(oldModelBuilder);
 
         BinaryStore newModelStore = stores.nextBinaryStore();
         Store<ResolvedComponentResultInternal> newModelCache = stores.newModelCache();
@@ -313,7 +309,7 @@ public class ResolutionExecutor {
 
         ComponentResolvers resolvers = getResolvers(params, legacyParams, repositories);
         CompositeDependencyArtifactsVisitor artifactVisitors = new CompositeDependencyArtifactsVisitor(ImmutableList.of(
-            oldModelVisitor, artifactsBuilder
+            oldTransientModelBuilder, artifactsBuilder
         ));
         graphVisitors.add(artifactVisitorFor(artifactVisitors, params.getArtifactTypeRegistry()));
 
@@ -461,16 +457,15 @@ public class ResolutionExecutor {
         }
         resolvers.add(projectDependencyResolver);
 
+        // TODO: We should reuse these resolvers for all resolutions instead of creating
+        // a new one each time we resolve a graph. This means we should not pass any
+        // state to `createResolvers` that is specific to this resolution.
         resolvers.add(externalResolverFactory.createResolvers(
             repositories,
             componentMetadataProcessorFactory,
             legacyParams.getComponentSelectionRules(),
             params.isDependencyVerificationEnabled(),
             params.getCacheExpirationControl(),
-            // We should not need to know _what_ we're resolving in order to construct a resolver for a set of repositories.
-            // The request attributes and schema are used to support filtering components by attributes when using dynamic versions.
-            // We should consider just removing that feature and making dynamic version selection dumber.
-            params.getRootVariant().getAttributes(),
             params.getRootComponent().getMetadata().getAttributesSchema()
         ));
 

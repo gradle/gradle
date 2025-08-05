@@ -16,11 +16,15 @@
 package org.gradle.api.tasks.diagnostics;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSetMultimap;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
-import org.gradle.api.internal.project.ProjectState;
-import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.ProjectIdentity;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectTaskLister;
+import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.TaskAction;
@@ -31,19 +35,22 @@ import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.RuleDetails;
 import org.gradle.api.tasks.diagnostics.internal.SingleProjectTaskReportModel;
 import org.gradle.api.tasks.diagnostics.internal.TaskDetails;
-import org.gradle.api.tasks.diagnostics.internal.TaskDetailsFactory;
+import org.gradle.api.tasks.diagnostics.internal.TaskReportModel;
 import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.Try;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
+import org.gradle.util.Path;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 
@@ -62,14 +69,14 @@ public abstract class TaskReportTask extends ConventionReportTask {
     private final Property<Boolean> showTypes = getProject().getObjects().property(Boolean.class);
     private String group;
     private List<String> groups;
-    private final Cached<TaskReportModel> model = Cached.of(this::computeTaskReportModel);
+    private final Cached<ComputedTaskReportModel> model = Cached.of(this::computeTaskReportModel);
     private transient TaskReportRenderer renderer;
 
     @Override
     @ToBeReplacedByLazyProperty
     public ReportRenderer getRenderer() {
         if (renderer == null) {
-            renderer = new TaskReportRenderer();
+            renderer = new TaskReportRenderer(getClientMetaData());
         }
         return renderer;
     }
@@ -172,8 +179,8 @@ public abstract class TaskReportTask extends ConventionReportTask {
         );
     }
 
-    private TaskReportModel computeTaskReportModel() {
-        return new TaskReportModel(computeProjectModels());
+    private ComputedTaskReportModel computeTaskReportModel() {
+        return new ComputedTaskReportModel(computeProjectModels());
     }
 
     private List<Try<ProjectReportModel>> computeProjectModels() {
@@ -184,10 +191,10 @@ public abstract class TaskReportTask extends ConventionReportTask {
         return result;
     }
 
-    private static class TaskReportModel {
+    private static class ComputedTaskReportModel {
         final List<Try<ProjectReportModel>> projects;
 
-        public TaskReportModel(List<Try<ProjectReportModel>> projects) {
+        public ComputedTaskReportModel(List<Try<ProjectReportModel>> projects) {
             this.projects = projects;
         }
     }
@@ -245,44 +252,63 @@ public abstract class TaskReportTask extends ConventionReportTask {
 
     private DefaultGroupTaskReportModel taskReportModelFor(Project project, boolean detail) {
         final AggregateMultiProjectTaskReportModel aggregateModel = new AggregateMultiProjectTaskReportModel(!detail, detail, getDisplayGroup(), getDisplayGroups());
-        final TaskDetailsFactory taskDetailsFactory = new TaskDetailsFactory(project);
 
-        final SingleProjectTaskReportModel projectTaskModel = buildTaskReportModelFor(taskDetailsFactory, project);
-        aggregateModel.add(projectTaskModel);
+        ProjectIdentity relativeProjectIdentity = ((ProjectInternal) project).getProjectIdentity();
 
-        for (final Project subproject : project.getSubprojects()) {
-            aggregateModel.add(buildTaskReportModelFor(taskDetailsFactory, subproject));
-        }
+        Stream.concat(Stream.of(project), project.getSubprojects().stream())
+            .map(p -> buildTaskReportModelFor(relativeProjectIdentity, p))
+            .forEach(aggregateModel::add);
 
         aggregateModel.build();
 
         return DefaultGroupTaskReportModel.of(aggregateModel);
     }
 
-    private SingleProjectTaskReportModel buildTaskReportModelFor(
-        final TaskDetailsFactory taskDetailsFactory,
-        final Project subproject
-    ) {
-        return projectStateFor(subproject).fromMutableState(
-            project -> SingleProjectTaskReportModel.forTasks(
-                getProjectTaskLister().listProjectTasks(project),
-                taskDetailsFactory
-            )
-        );
-    }
+    private SingleProjectTaskReportModel buildTaskReportModelFor(ProjectIdentity relativeProjectIdentity, Project p) {
+        return ((ProjectInternal) p).getOwner().fromMutableState(project -> {
+            ImmutableSetMultimap.Builder<String, TaskDetails> groups = ImmutableSetMultimap.<String, TaskDetails>builder()
+                .orderKeysBy(String::compareToIgnoreCase)
+                .orderValuesBy(Comparator.comparing(TaskDetails::getPath));
 
-    private ProjectState projectStateFor(Project subproject) {
-        return getProjectStateRegistry().stateFor(subproject);
+            for (Task task : getProjectTaskLister().listProjectTasks(project)) {
+                groups.put(
+                    getGroupFor(task),
+                    TaskDetails.of(getPathFor(relativeProjectIdentity, task), task)
+                );
+            }
+
+            return new SingleProjectTaskReportModel(groups.build());
+        });
     }
 
     /**
-     * Injects a {@code ProjectStateRegistry} service.
-     *
-     * @since 5.0
+     * Determines the path of this task, relative to the given project ID.
      */
-    @Inject
-    protected abstract ProjectStateRegistry getProjectStateRegistry();
+    private static Path getPathFor(ProjectIdentity relativeProjectIdentity, Task task) {
+        TaskIdentity<?> taskId = ((TaskInternal) task).getTaskIdentity();
+        ProjectIdentity taskProjectIdentity = taskId.getProjectIdentity();
+
+        boolean isParentProject = taskProjectIdentity.getBuildTreePath()
+            .startsWith(relativeProjectIdentity.getBuildTreePath());
+
+        return isParentProject
+            ? relativeProjectIdentity.getProjectPath().relativePath(taskId.getPath())
+            : taskId.getPath();
+    }
+
+    /**
+     * Determines which group this task should be displayed under in the report.
+     */
+    private static String getGroupFor(Task task) {
+        String group = task.getGroup();
+        if (group != null && !group.isEmpty()) {
+            return group;
+        }
+
+        return TaskReportModel.DEFAULT_GROUP;
+    }
 
     @Inject
     protected abstract ProjectTaskLister getProjectTaskLister();
+
 }

@@ -38,7 +38,6 @@ fun KotlinCompile.configureKotlinCompilerForGradleBuild() {
         allWarningsAsErrors = true
         apiVersion = KotlinVersion.KOTLIN_2_2
         languageVersion = KotlinVersion.KOTLIN_2_2
-        jvmTarget = JvmTarget.JVM_1_8
         freeCompilerArgs.addAll(
             "-Xjsr305=strict",
             "-Xjspecify-annotations=strict",

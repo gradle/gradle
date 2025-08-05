@@ -47,7 +47,6 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

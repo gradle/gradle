@@ -30,11 +30,12 @@ dependencies {
 
     implementation(projects.classloaders)
     implementation(projects.concurrent)
-    implementation(projects.serviceLookup)
     implementation(projects.fileCollections)
     implementation(projects.fileTemp)
+    implementation(projects.groovyLoader)
     implementation(projects.logging)
     implementation(projects.loggingApi)
+    implementation(projects.serviceLookup)
 
     implementation(libs.groovy)
     implementation(libs.guava)
@@ -51,6 +52,7 @@ dependencies {
     testFixturesImplementation(projects.internalIntegTesting)
     testFixturesImplementation(testFixtures(projects.modelReflect))
     testFixturesImplementation(libs.guava)
+    testFixturesImplementation(testFixtures(projects.core))
 
     integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(libs.commonsLang)

@@ -14,6 +14,7 @@
 
 [[build_cache]]
 = Build Cache
+:keywords: build cache, build-cache
 
 ++++
 <div class="badge-wrapper">

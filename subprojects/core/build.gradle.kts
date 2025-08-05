@@ -31,6 +31,12 @@ dependencyAnalysis {
         ignoreSourceSet(testInterceptors.name)
     }
 }
+jvmCompile {
+    addCompilationFrom(testInterceptors) {
+        // By default, test interceptors compile to the same JVM version as the production code.
+        targetJvmVersion = compilations.named("main").flatMap { it.targetJvmVersion }
+    }
+}
 
 val testInterceptorsImplementation: Configuration by configurations.getting {
     extendsFrom(configurations.implementation.get())
@@ -63,6 +69,8 @@ dependencies {
     api(projects.buildCacheLocal)
     api(projects.buildCachePackaging)
     api(projects.buildCacheSpi)
+    api(projects.buildDiscovery)
+    api(projects.buildDiscoveryApi)
     api(projects.buildInitSpecs)
     api(projects.buildOperations)
     api(projects.buildOption)
@@ -120,8 +128,9 @@ dependencies {
     api(libs.nativePlatform)
 
     implementation(projects.buildOperationsTrace)
-    implementation(projects.io)
+    implementation(projects.groovyLoader)
     implementation(projects.inputTracking)
+    implementation(projects.io)
     implementation(projects.modelGroovy)
     implementation(projects.problemsRendering)
     implementation(projects.serviceRegistryBuilder)
@@ -140,7 +149,6 @@ dependencies {
         // Used for its nullability annotations, not needed at runtime
         exclude("org.checkerframework", "checker-qual")
     }
-    implementation(libs.xmlApis)
 
     compileOnly(libs.kotlinStdlib) {
         because("it needs to forward calls from instrumented code to the Kotlin standard library")
@@ -308,5 +316,4 @@ tasks.compileTestGroovy {
     }
 }
 
-integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true

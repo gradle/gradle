@@ -16,11 +16,12 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.streams.SafeStreams
 import org.gradle.test.fixtures.ConcurrentTestUtil
-
+import org.jspecify.annotations.Nullable
 
 class ProcessFixture {
     final Long pid;
@@ -30,40 +31,112 @@ class ProcessFixture {
     }
 
     /**
-     * Forcefully kills this daemon.
+     * Forcefully kills this process.
      */
     void kill(boolean killTree) {
         println "Killing process with pid: $pid"
         if (pid == null) {
             throw new RuntimeException("Unable to force kill the process because provided pid is null!")
         }
+
+        if (JavaVersion.current().isJava9Compatible()) {
+            killJava9(killTree)
+            return
+        }
+
         if (!(OperatingSystem.current().unix || OperatingSystem.current().windows)) {
-            throw new RuntimeException("This implementation does not know how to forcefully kill a process on os: " + OperatingSystem.current())
+            throw new RuntimeException("This implementation does not know how to forcefully kill a process on os: " + OperatingSystem.current() + " and Java version: " + JavaVersion.current())
         }
         execute(killArgs(pid, killTree), killScript(pid, killTree))
     }
 
-    // Only supported on *nix platforms
+    private void killJava9(boolean killTree) {
+        def processHandle = getProcessHandle()
+        if (processHandle) {
+            if (killTree) {
+                processHandle.descendants().forEach { it.destroyForcibly() }
+            }
+            processHandle.destroyForcibly()
+        }
+    }
+
     String[] getChildProcesses() {
         if (pid == null) {
             throw new RuntimeException("Unable to get child processes because provided pid is null!")
         }
+
+        if (JavaVersion.current().isJava9Compatible()) {
+            return getChildrenJava9()
+        }
+
         if (!(OperatingSystem.current().unix)) {
-            throw new RuntimeException("This implementation does not know how to get child processes on os: " + OperatingSystem.current())
+            throw new RuntimeException("This implementation does not know how to get child processes on os: " + OperatingSystem.current() + " and Java version: " + JavaVersion.current())
         }
         String result = bash("ps -o pid,ppid -ax | awk '{ if ( \$2 == ${pid} ) { print \$1 }}'").trim()
         return result == "" ? [] : result.split("\\n")
     }
 
-    // Only supported on *nix platforms
-    String[] getProcessInfo(String[] pids) {
+    private String[] getChildrenJava9() {
+        def processHandle = getProcessHandle()
+        if (processHandle) {
+            return processHandle.children()
+                .map { it.pid().toString() }
+                .toList()
+                .toArray(new String[0])
+        }
+        return new String[0]
+    }
+
+    /**
+     * Works only on Java 9 or later.
+     */
+    String[] getDescendants() {
+        def processHandle = getProcessHandle()
+        if (processHandle) {
+            return processHandle.descendants()
+                .map { it.pid().toString() }
+                .toList()
+                .toArray(new String[0])
+        }
+        return new String[0]
+    }
+
+    static String[] getProcessInfo(String[] pids) {
         if (pids == null || pids.size() == 0) {
             throw new RuntimeException("Unable to get process info because provided pids are null or empty!")
         }
+
+        if (JavaVersion.current().isJava9Compatible()) {
+            return getProcessInfoJava9(pids)
+        }
+
         if (!(OperatingSystem.current().unix)) {
-            throw new RuntimeException("This implementation does not know how to get process info on os: " + OperatingSystem.current())
+            throw new RuntimeException("This implementation does not know how to get process info on os: " + OperatingSystem.current() + " and Java version: " + JavaVersion.current())
         }
         return bash("ps -o pid,ppid,args -p ${pids.join(' -p ')}").split("\\n")
+    }
+
+    private static String[] getProcessInfoJava9(String[] pids) {
+        def processHandles = pids.collect { pid ->
+            getProcessHandle(pid as Long)
+        }
+        return ["PID PPID ARGS"] as String[] + processHandles.collect {
+            // ProcessHandle.info() can return commandLine, but on Windows we often get no value
+            def command = it.info().command().orElse("<unknown command>")
+            def args = it.info().arguments().orElse([]).join(" ")
+            "${it.pid()} ${it.parent().map { it.pid() }.orElse(0)} ${command} ${args}" as String
+        }.toArray(new String[0])
+    }
+
+    boolean isAlive() {
+        if (pid == null) {
+            return false
+        }
+        if (JavaVersion.current().isJava9Compatible()) {
+            def processHandle = getProcessHandle()
+            return processHandle ? processHandle.isAlive() : false
+        }
+        throw new RuntimeException("ProcessFixture.isAlive() is only supported on Java 9 or later.")
     }
 
     /**
@@ -86,11 +159,11 @@ class ProcessFixture {
         }
     }
 
-    private String bash(String commands) {
+    private static String bash(String commands) {
         return execute(["bash"] as Object[], new ByteArrayInputStream(commands.getBytes()))
     }
 
-    private String execute(Object[] commandLine, InputStream input) {
+    private static String execute(Object[] commandLine, InputStream input) {
         def output = new ByteArrayOutputStream()
         def e = TestFiles.execHandleFactory().newExecHandleBuilder()
                 .commandLine(commandLine)
@@ -121,6 +194,23 @@ class ProcessFixture {
         } else {
             throw new IllegalStateException()
         }
+    }
+
+    @Nullable
+    private def getProcessHandle() {
+        return getProcessHandle(pid)
+    }
+
+    @Nullable
+    private static def getProcessHandle(Long pid) {
+        if (!JavaVersion.current().isJava9Compatible()) {
+            throw new RuntimeException("Java 9 or later is required to get process handle.")
+        }
+        if (pid == null) {
+            throw new RuntimeException("Unable to get process handle because provided pid is null!")
+        }
+        def processHandleOptional = Class.forName("java.lang.ProcessHandle").getMethod("of", long.class).invoke(null, pid)
+        return processHandleOptional.orElse(null)
     }
 
     private static InputStream killScript(Long pid, boolean killTree) {

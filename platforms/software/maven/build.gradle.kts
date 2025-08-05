@@ -82,7 +82,6 @@ packageCycles {
     excludePatterns.add("org/gradle/api/artifacts/maven/**")
 }
 
-integTest.usesJavadocCodeSnippets = true
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

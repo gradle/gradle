@@ -7,6 +7,15 @@ plugins {
 
 description = "Collection of test fixtures for integration tests, internal use only"
 
+jvmCompile {
+    compilations {
+        named("main") {
+            // These test fixtures are used by the tooling API tests, which still run on JVM 8
+            targetJvmVersion = 8
+        }
+    }
+}
+
 sourceSets {
     main {
         // Incremental Groovy joint-compilation doesn't work with the Error Prone annotation processor
@@ -42,10 +51,6 @@ dependencies {
     api(projects.daemonProtocol)
     api(projects.serviceLookup)
 
-    api(testFixtures(projects.core)) {
-        because("HttpServer leaks PortAllocator to spock AST transformer")
-    }
-
     api(libs.gson)
     api(libs.groovy)
     api(libs.groovyXml)
@@ -74,13 +79,14 @@ dependencies {
     api(libs.samplesDiscovery)
     api(libs.servletApi)
     api(libs.slf4jApi)
-    api(libs.socksProxy)
     api(libs.spock) {
         because("Part of the public API")
     }
 
     implementation(projects.baseServicesGroovy)
     implementation(projects.buildCache)
+    implementation(projects.buildDiscovery)
+    implementation(projects.buildDiscoveryApi)
     implementation(projects.buildEvents)
     implementation(projects.buildOption)
     implementation(projects.buildProcessServices)
@@ -111,6 +117,7 @@ dependencies {
 
     implementation(testFixtures(projects.buildOperations))
     implementation(testFixtures(projects.buildProcessServices))
+    implementation(testFixtures(projects.core))
 
     implementation(libs.ansiControlSequenceUtil)
     implementation(libs.commonsCompress)
@@ -124,6 +131,7 @@ dependencies {
     implementation(libs.jetty)
     implementation(libs.jettyServlet)
     implementation(libs.littleproxy)
+    implementation(libs.jspecify)
     implementation(libs.mavenResolverSupplier) {
         because("For ApiMavenResolver. Wires together implementation for maven-resolver-api")
     }
@@ -133,6 +141,7 @@ dependencies {
     implementation(libs.nativePlatform)
     implementation(libs.netty)
     implementation(libs.opentest4j)
+    implementation(libs.socksProxy)
     // we depend on both: sshd platforms and libraries
     implementation(libs.sshdCore)
     implementation(platform(libs.sshdCore))

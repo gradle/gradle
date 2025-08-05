@@ -17,8 +17,8 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.project.ProjectIdentity
-import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
@@ -33,6 +33,7 @@ import org.gradle.configurationcache.withModelStoreOperation
 import org.gradle.configurationcache.withWorkGraphLoadOperation
 import org.gradle.configurationcache.withWorkGraphStoreOperation
 import org.gradle.initialization.GradlePropertiesController
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildTreeModelSideEffect
@@ -41,6 +42,10 @@ import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.serialize.HostServiceProvider
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.service
+import org.gradle.internal.cc.impl.ConfigurationCacheAction.Load
+import org.gradle.internal.cc.impl.ConfigurationCacheAction.SkipStore
+import org.gradle.internal.cc.impl.ConfigurationCacheAction.Store
+import org.gradle.internal.cc.impl.ConfigurationCacheAction.Update
 import org.gradle.internal.cc.impl.extensions.withMostRecentEntry
 import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
@@ -186,15 +191,17 @@ class DefaultConfigurationCache internal constructor(
         get() = host.service()
 
     override val isLoaded: Boolean
-        get() = cacheAction is ConfigurationCacheAction.Load
+        get() = cacheAction is Load
 
     override fun initializeCacheEntry() {
         val (cacheAction, cacheActionDescription) = determineCacheAction()
         this.cacheAction = cacheAction
         this.entryId = when (cacheAction) {
-            is ConfigurationCacheAction.Load -> cacheAction.entryId
-            is ConfigurationCacheAction.Update -> cacheAction.entryId
-            ConfigurationCacheAction.Store -> UUID.randomUUID().toString()
+            is Load -> cacheAction.entryId
+            is Update -> cacheAction.entryId
+            Store -> UUID.randomUUID().toString()
+            // no cache entry key in this case
+            SkipStore -> ""
         }
         initializeCacheEntrySideEffects(cacheAction)
         problems.action(cacheAction, cacheActionDescription)
@@ -203,20 +210,22 @@ class DefaultConfigurationCache internal constructor(
     private
     fun initializeCacheEntrySideEffects(cacheAction: ConfigurationCacheAction) {
         when (cacheAction) {
-            is ConfigurationCacheAction.Load -> {
+            is Load -> {
                 val entryDetails = readEntryDetails()
                 val sideEffects = buildTreeModelSideEffects.restoreFromCacheEntry(entryDetails.sideEffects)
                 loadedSideEffects += sideEffects
             }
 
-            is ConfigurationCacheAction.Update -> {
+            is Update -> {
                 val invalidProjects = cacheAction.invalidProjects
                 val entryDetails = readEntryDetails()
                 intermediateModels.restoreFromCacheEntry(entryDetails.intermediateModels, invalidProjects)
                 projectMetadata.restoreFromCacheEntry(entryDetails.projectMetadata, invalidProjects)
             }
 
-            ConfigurationCacheAction.Store -> {}
+            Store -> {}
+
+            SkipStore -> {}
         }
         // TODO:isolated find a way to avoid this late binding
         modelSideEffectExecutor.sideEffectStore = buildTreeModelSideEffects
@@ -233,23 +242,41 @@ class DefaultConfigurationCache internal constructor(
         graphBuilder: BuildTreeWorkGraphBuilder?,
         scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph
     ): BuildTreeConfigurationCache.WorkGraphResult {
-        return if (isLoaded) {
-            val finalizedGraph = loadWorkGraph(graph, graphBuilder, false)
-            BuildTreeConfigurationCache.WorkGraphResult(
-                finalizedGraph,
-                wasLoadedFromCache = true,
-                entryDiscarded = false
-            )
-        } else {
-            runWorkThatContributesToCacheEntry {
-                val finalizedGraph = scheduler(graph)
-                degradeGracefullyOr { saveWorkGraph() }
-                crossConfigurationTimeBarrier()
+        return when (cacheAction) {
+            is Load -> {
+                val finalizedGraph = loadWorkGraph(graph, graphBuilder, false)
+                BuildTreeConfigurationCache.WorkGraphResult(
+                    finalizedGraph,
+                    wasLoadedFromCache = true,
+                    entryDiscarded = false
+                )
+            }
+            SkipStore -> {
+                // build work graph without contributing to a cache entry
+                val finalizedGraph = runAtConfigurationTime {
+                    val result = scheduler(graph)
+                    // force computation of degradation reasons at configuration time as it shouldn't be attempted at execution time
+                    problems.shouldDegradeGracefully()
+                    result
+                }
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
                     wasLoadedFromCache = false,
-                    entryDiscarded = problems.shouldDiscardEntry
+                    entryDiscarded = true
                 )
+            }
+            Store, is Update -> {
+                runWorkThatContributesToCacheEntry {
+                    val finalizedGraph = scheduler(graph)
+                    val rootBuild = buildStateRegistry.rootBuild
+                    degradeGracefullyOr { saveWorkGraph(rootBuild) }
+                    crossConfigurationTimeBarrier()
+                    BuildTreeConfigurationCache.WorkGraphResult(
+                        finalizedGraph,
+                        wasLoadedFromCache = false,
+                        entryDiscarded = problems.shouldDiscardEntry
+                    )
+                }
             }
         }
     }
@@ -310,16 +337,23 @@ class DefaultConfigurationCache internal constructor(
     }
 
     override fun finalizeCacheEntry() {
-        if (problems.shouldDiscardEntry) {
-            discardEntry()
-            cacheEntryRequiresCommit = false
-        } else if (cacheEntryRequiresCommit) {
-            val projectUsage = collectProjectUsage()
-            commitCacheEntry(projectUsage.reused)
-            problems.projectStateStats(projectUsage.reused.size, projectUsage.updated.size)
-            cacheEntryRequiresCommit = false
-            // Can reuse the cache entry for the rest of this build invocation
-            cacheAction = ConfigurationCacheAction.Load(entryId)
+        when {
+            cacheAction == SkipStore -> {
+                // nothing to do
+                require(!cacheEntryRequiresCommit)
+            }
+            problems.shouldDiscardEntry -> {
+                discardEntry()
+                cacheEntryRequiresCommit = false
+            }
+            cacheEntryRequiresCommit -> {
+                val projectUsage = collectProjectUsage()
+                commitCacheEntry(projectUsage.reused)
+                problems.projectStateStats(projectUsage.reused.size, projectUsage.updated.size)
+                cacheEntryRequiresCommit = false
+                // Can reuse the cache entry for the rest of this build invocation
+                cacheAction = Load(entryId)
+            }
         }
         try {
             cacheFingerprintController.stop()
@@ -367,11 +401,21 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun determineCacheAction(): Pair<ConfigurationCacheAction, StructuredMessage> = when {
+    fun determineCacheAction(): DescribedAction {
+        val basicAction = determineBasicCacheAction()
+        if (startParameter.isReadOnlyCache && !basicAction.action.isReadOnly) {
+            // fall back to [SkipStore] if we are in read-only mode
+            return SkipStore.withDescription(basicAction.description)
+        }
+        return basicAction
+    }
+
+    private
+    fun determineBasicCacheAction(): DescribedAction = when {
         startParameter.recreateCache -> {
             val description = StructuredMessage.forText("Recreating configuration cache")
             logBootstrapSummary(description)
-            ConfigurationCacheAction.Store to description
+            Store.withDescription(description)
         }
 
         startParameter.isRefreshDependencies -> {
@@ -381,7 +425,7 @@ class DefaultConfigurationCache internal constructor(
                 "--refresh-dependencies"
             )
             logBootstrapSummary(description)
-            ConfigurationCacheAction.Store to description
+            Store.withDescription(description)
         }
 
         startParameter.isWriteDependencyLocks -> {
@@ -391,7 +435,7 @@ class DefaultConfigurationCache internal constructor(
                 "--write-locks"
             )
             logBootstrapSummary(description)
-            ConfigurationCacheAction.Store to description
+            Store.withDescription(description)
         }
 
         startParameter.isUpdateDependencyLocks -> {
@@ -401,7 +445,7 @@ class DefaultConfigurationCache internal constructor(
                 "--update-locks"
             )
             logBootstrapSummary(description)
-            ConfigurationCacheAction.Store to description
+            Store.withDescription(description)
         }
 
         else -> {
@@ -413,7 +457,7 @@ class DefaultConfigurationCache internal constructor(
                         buildActionModelRequirements.configurationCacheKeyDisplayName.displayName
                     )
                     logBootstrapSummary(description)
-                    ConfigurationCacheAction.Store to description
+                    Store.withDescription(description)
                 }
 
                 is CheckedFingerprint.Invalid -> {
@@ -423,7 +467,7 @@ class DefaultConfigurationCache internal constructor(
                         checkedFingerprint.reason.render()
                     )
                     logBootstrapSummary(description)
-                    ConfigurationCacheAction.Store to description
+                    Store.withDescription(description)
                 }
 
                 is CheckedFingerprint.Valid -> {
@@ -431,7 +475,7 @@ class DefaultConfigurationCache internal constructor(
                         null -> {
                             val description = StructuredMessage.forText("Reusing configuration cache.")
                             logBootstrapSummary(description)
-                            ConfigurationCacheAction.Load(checkedFingerprint.entryId) to description
+                            Load(checkedFingerprint.entryId).withDescription(description)
                         }
 
                         else -> {
@@ -441,7 +485,7 @@ class DefaultConfigurationCache internal constructor(
                                 invalid.first.reason.render()
                             )
                             logBootstrapSummary(description)
-                            ConfigurationCacheAction.Update(checkedFingerprint.entryId, invalid) to description
+                            Update(checkedFingerprint.entryId, invalid).withDescription(description)
                         }
                     }
                 }
@@ -627,7 +671,7 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun saveWorkGraph() {
+    fun saveWorkGraph(rootBuild: BuildState) {
         cacheEntryRequiresCommit = true
 
         if (startParameter.isIgnoreInputsDuringStore) {
@@ -636,7 +680,7 @@ class DefaultConfigurationCache internal constructor(
 
         buildOperationRunner.withWorkGraphStoreOperation(cacheKey.string) {
             val stateStoreResult = runAndStore(stateType = StateType.Work) { stateFile: ConfigurationCacheStateFile ->
-                writeConfigurationCacheState(stateFile)
+                writeConfigurationCacheState(rootBuild, stateFile)
             }
             WorkGraphStoreResult(stateStoreResult.accessedFiles, stateStoreResult.value)
         }
@@ -721,8 +765,8 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun writeConfigurationCacheState(stateFile: ConfigurationCacheStateFile) =
-        cacheIO.writeRootBuildStateTo(stateFile)
+    fun writeConfigurationCacheState(rootBuild: BuildState, stateFile: ConfigurationCacheStateFile) =
+        cacheIO.writeRootBuildStateTo(rootBuild, stateFile)
 
     private
     fun ConfigurationCacheRepository.Layout.writeConfigurationCacheFingerprint(reusedProjects: Set<Path>) {
@@ -832,8 +876,6 @@ class DefaultConfigurationCache internal constructor(
                 action(object : ConfigurationCacheFingerprintController.Host {
                     override val valueSourceProviderFactory: ValueSourceProviderFactory
                         get() = host.service()
-                    override val gradleProperties: GradleProperties
-                        get() = gradlePropertiesController.gradleProperties
                 })
             }
         }
@@ -849,12 +891,14 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun loadGradleProperties() {
-        gradlePropertiesController.loadGradlePropertiesFrom(startParameter.settingsDirectory, true)
+        val rootBuildId = DefaultBuildIdentifier.ROOT
+        gradlePropertiesController.loadGradleProperties(rootBuildId, startParameter.buildTreeRootDirectory, true)
     }
 
     private
     fun unloadGradleProperties() {
-        gradlePropertiesController.unloadGradleProperties()
+        val rootBuildId = DefaultBuildIdentifier.ROOT
+        gradlePropertiesController.unloadGradleProperties(rootBuildId)
     }
 
     private

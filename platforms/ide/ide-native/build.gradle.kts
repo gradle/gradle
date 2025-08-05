@@ -65,7 +65,6 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsNative)
 }
 
-integTest.usesJavadocCodeSnippets = true
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

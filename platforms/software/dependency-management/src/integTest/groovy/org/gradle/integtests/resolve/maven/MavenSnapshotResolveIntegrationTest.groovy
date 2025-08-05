@@ -550,7 +550,7 @@ task retrieve(type: Sync) {
             }
 
             dependencies {
-                compile group: "group", name: "projectA", version: "1.1-SNAPSHOT"
+                compile("group:projectA:1.1-SNAPSHOT")
             }
 
             task retrieve(type: Copy) {

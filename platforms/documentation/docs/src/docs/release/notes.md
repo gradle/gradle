@@ -1,4 +1,4 @@
-<meta property="og:image" content="https://gradle.org/whats-new/gradle-9/opengraph.png" />
+<meta property="og:image" content="https://gradle.org/images/releases/gradle-default.png" />
 <meta property="og:type"  content="article" />
 <meta property="og:title" content="Gradle @version@ Release Notes" />
 <meta property="og:site_name" content="Gradle Release Notes">
@@ -7,249 +7,363 @@
 <meta name="twitter:site" content="@gradle">
 <meta name="twitter:creator" content="@gradle">
 <meta name="twitter:title" content="Gradle @version@ Release Notes">
-<meta name="twitter:description" content="We are excited to announce major Gradle @version@.">
-<meta name="twitter:image" content="https://gradle.org/whats-new/gradle-9/opengraph.png">
+<meta name="twitter:description" content="We are excited to announce Gradle @version@.">
+<meta name="twitter:image" content="https://gradle.org/images/releases/gradle-default.png">
 
-The Gradle team is excited to announce Gradle @version@, a new major release (released [@releaseDate@](https://gradle.org/releases/)).
-For an overview of the changes between Gradle 8.0 and @version@, along with demos and videos, see [What’s New in Gradle 9](https://gradle.org/whats-new/gradle-9/).
+We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
-This release makes [Configuration Cache](#config-cache) the preferred execution mode and introduces several enhancements to improve its behavior.
+This release features [1](), [2](), ... [n](), and more.
 
-Gradle @version@ requires [Java 17+ to run](#jvm-17), uses [Kotlin 2](#kotlin-2) and [Groovy 4](#groovy-4), and adopts [Semantic Versioning](#sem-ver) (SemVer) with version numbers in the format `MAJOR.MINOR.PATCH`.
+<!--
+Include only their name, impactful features should be called out separately below.
+ [Some person](https://github.com/some-person)
 
-It also introduces several improvements for [build authors](#build-authoring), including much better Kotlin DSL script compilation avoidance, updates to the Gradle API, reproducible archive outputs, and a new dependency graph root type that allows detached configurations to resolve project dependencies.
-
-Gradle @version@ includes numerous bug fixes and general improvements.
-As a major release, it also introduces changes to deprecated APIs and behaviors.
-For details on what has been removed or updated, refer to the [Gradle 9.0.0 upgrade guide](userguide/upgrading_major_version_9.html).
+ THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
+-->
 
 We would like to thank the following community members for their contributions to this release of Gradle:
-[Aaron Matthis](https://github.com/rapus95),
-[Adam E](https://github.com/adam-enko),
-[Adam S](https://github.com/aSemy),
-[Björn Kautler](https://github.com/Vampire),
-[Daniel Lacasse](https://github.com/lacasseio),
-[Eng Zer Jun](https://github.com/Juneezee),
-[EunHyunsu](https://github.com/ehs208),
-[FlorianMichael](https://github.com/FlorianMichael),
-[Francisco Prieto](https://github.com/priettt),
-[Gaëtan Muller](https://github.com/MGaetan89),
-[Jake Wharton](https://github.com/JakeWharton),
-[Kengo TODA](https://github.com/KengoTODA),
-[Kent Kaseda](https://github.com/kaseken),
-[Madalin Valceleanu](https://github.com/vmadalin),
-[Marc Philipp](https://github.com/marcphilipp),
-[Mark S. Lewis](https://github.com/bestbeforetoday),
-[Matthew Haughton](https://github.com/3flex),
-[Mycroft Wong](https://github.com/MycroftWong),
-[Na Minhyeok](https://github.com/NaMinhyeok),
-[Nelson Osacky](https://github.com/runningcode),
-[Olivier "Oli" Dagenais](https://github.com/olivierdagenais),
-[ploober](https://github.com/ploober),
-[Radai Rosenblatt](https://github.com/radai-rosenblatt),
-[Róbert Papp](https://github.com/TWiStErRob),
-[Sebastian Schuberth](https://github.com/sschuberth),
-[Victor Merkulov](https://github.com/urdak).
 
-Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
+Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
 ## Upgrade instructions
 
 Switch your build to use Gradle @version@ by updating the [wrapper](userguide/gradle_wrapper.html) in your project:
 
-```
+```text
 ./gradlew wrapper --gradle-version=@version@ && ./gradlew wrapper
 ```
 
-See the [Gradle 9.0.0 upgrade guide](userguide/upgrading_major_version_9.html) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
+See the [Gradle 9.x upgrade guide](userguide/upgrading_version_9.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
+For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 ## New features and usability improvements
 
-<a name="config-cache"></a>
-### Configuration Cache improvements
+<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
-Gradle's [Configuration Cache](userguide/configuration_cache.html) improves build performance by caching and reusing the result of the configuration phase.
+<!--
 
-#### Configuration Cache as the preferred execution mode
+================== TEMPLATE ==============================
 
-The Configuration Cache is the preferred mode of execution.
-While not yet required, Gradle encourages adoption by prompting users and gradually phasing out incompatible APIs to prepare for a future where it becomes the only supported mode.
+<a name="FILL-IN-KEY-AREA"></a>
+### FILL-IN-KEY-AREA improvements
 
-#### Prompt to enable Configuration Cache
+<<<FILL IN CONTEXT FOR KEY AREA>>>
+Example:
+> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
+> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
+> nothing that affects the build configuration has changed.
 
-If your build has no known Configuration Cache incompatibilities but doesn't yet have the [Configuration Cache enabled](userguide/configuration_cache_enabling.html#config_cache:usage:enable), Gradle will suggest enabling it at the end of the build:
+#### FILL-IN-FEATURE
+> HIGHLIGHT the use case or existing problem the feature solves
+> EXPLAIN how the new release addresses that problem or use case
+> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
+> LINK to the full documentation for more details
 
-![Configuration Cache prompt to enable](release-notes-assets/config_cache_enable_prompt.png)
+To embed videos, use the macros below.
+You can extract the URL from YouTube by clicking the "Share" button.
+For Wistia, contact Gradle's Video Team.
+@youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
+@wistia(Summary,a5izazvgit)@
 
-Some issues can only be detected when the Configuration Cache is active, so additional refinements may still be needed to fully [adopt](userguide/configuration_cache_enabling.html#config_cache:adoption) it.
+================== END TEMPLATE ==========================
 
-If you're not ready to invest time in this yet, you can suppress the suggestion by explicitly disabling the feature in your `gradle.properties` file:
 
+==========================================================
+ADD RELEASE FEATURES BELOW
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
+
+
+<a name="ear-plugin"></a>
+### Ear Plugin
+
+It is now possible to generate valid deployment descriptors for Jakarta EE 11
+by specifying the corresponding version in the `deploymentDescriptor` instead of having to use a custom descriptor file.
+
+```kotlin
+tasks.ear {
+    deploymentDescriptor {  // custom entries for application.xml:
+        version = "11"
+    }
+}
 ```
-org.gradle.configuration-cache=false
+
+<a name="cli"></a>
+### CLI improvements
+
+#### Off-screen lines reported in rich console
+
+This release adds a status line to the `rich` console that reports the number of in-progress events not currently visible on screen.
+
+```console
+> (2 lines not showing)
 ```
 
-#### Graceful fallback from Configuration Cache mode
+This occurs when there are more ongoing events than the console has lines available to display them.
 
-Gradle falls back to non-Configuration Cache mode automatically when encountering unsupported features, instead of failing the build.
+![this recording](release-notes-assets/off-screen-lines.gif)
 
-This includes:
+#### Plain console with colors
 
-- [Core plugins](userguide/configuration_cache_status.html#config_cache:plugins:core) with limited support (such as Maven Publish and Ivy Publish)
-- Unsupported or incompatible IDE plugins (such as Eclipse and IDEA)
-- Features not yet supported (such as [Source Dependencies](userguide/configuration_cache_status.html#config_cache:not_yet_implemented:source_dependencies))
+This release adds a new value for the `--console` command line option called `colored`, which enables color output for the console while omitting rich features such as progress bars.
 
-After running a build, the reason for the fallback can be found in the [Configuration Cache report](userguide/reporting_problems.html#reporting_problems).
-
-#### Other notable Configuration Cache updates
-
-Additional updates for the [Configuration Cache](userguide/configuration_cache.html) include:
-
-- Tasks marked as incompatible prevent cache hits in [warning mode](userguide/configuration_cache_debugging.html#enable_warning_mode), ensuring correctness. Warning mode should only be used during migration or troubleshooting. [Marking tasks as incompatible](userguide/configuration_cache_debugging.html#config_cache:task_opt_out) remains a recommended strategy for gradual adoption.
-- Task execution will abort immediately when a Configuration Cache problem is encountered, avoiding undefined behavior and ensuring affected tasks are neither marked up-to-date nor cached.
-- The [Configuration Cache report](userguide/configuration_cache_debugging.html#config_cache:troubleshooting) includes more detailed errors, such as serialization issues, unsafe concurrent access, and Groovy DSL closures capturing script state.
-
-<a name="jvm-17"></a>
-### Gradle requires Java Virtual Machine (JVM) version 17 or higher to run
-
-Gradle requires a Java Virtual Machine (JVM) version [17 or higher](userguide/upgrading_major_version_9.html#jvm-17) to start the Gradle daemon.
-
-If you need to build with older JVM versions, you can specify a separate JDK toolchain in the build definition by using [toolchains](userguide/toolchains.html).  
-Gradle still supports compiling, testing and running other JVM-based tools with Java 8 and higher.
-
-See the [Compatibility Matrix](userguide/compatibility.html) for more information.
-
-<a name="kotlin-2"></a>
-### Update to Kotlin 2
-
-Gradle embeds the latest stable release of [Kotlin 2.2.x](userguide/compatibility.html#kotlin) runtime and uses [Kotlin language version 2.2](userguide/compatibility.html#kotlin).
-This marks a shift from Gradle 8.x, which embedded Kotlin 2.0 starting in 8.11 but continued to use Kotlin language version 1.8 for compatibility.
-
-For a comprehensive overview of what’s new, see the [Kotlin 2.2.0](https://kotlinlang.org/docs/whatsnew22.html), [Kotlin 2.1.0](https://kotlinlang.org/docs/whatsnew21.html) and [Kotlin 2.0.0](https://kotlinlang.org/docs/whatsnew20.html) release notes.
-
-Gradle uses Kotlin for build logic, which includes:
-
-- Build scripts written in the Kotlin DSL (`.gradle.kts` files)
-- Plugins
-
-As a result, some behavior has changed, most notably the new K2 compiler and [nullability annotations on APIs](#jspecify).
-If you're upgrading, review the [Gradle 9.0.0 upgrade guide](userguide/upgrading_major_version_9.html#kotlin-2) for migration details.
-
-<a name="groovy-4"></a>
-### Update to Groovy 4
-
-Gradle embeds the latest stable release of [Groovy 4.0](userguide/compatibility.html#groovy), a major upgrade from the Groovy 3.0 version used in Gradle 7 and 8.
-
-This update introduces a range of new features and improvements to the Groovy language.
-For a comprehensive overview of what’s new, see the [Groovy 4.0 release notes](https://groovy-lang.org/releasenotes/groovy-4.0.html) for full details.
-
-Gradle uses Groovy for build logic, which includes:
-* Build scripts written in the Groovy DSL (`.gradle` files)
-* Ant integration
-* Plugins
-
-Some behavior has changed between Groovy 3.0 and 4.0. If you're upgrading, review the [Gradle 9.0.0 upgrade guide](userguide/upgrading_major_version_9.html#groovy-4) for migration details.
-
-<a name="sem-ver"></a>
-### Semantic Versioning for Gradle releases
-
-Starting with Gradle 9, all Gradle releases follow the [Semantic Versioning (SemVer)](https://semver.org/spec/v2.0.0.html) specification.
-
-Version numbers are expressed as `MAJOR.MINOR.PATCH`, whereas previous minor releases omitted the patch segment (e.g., `8.5` instead of `8.5.0`).
-
-This change only applies to new releases and does not retroactively affect older versions or backports.
-Additionally, internal code and features marked with `@Incubating` are not considered part of the public API and may [change in minor releases](userguide/feature_lifecycle.html#sec:incubating_state).
+![this recording](release-notes-assets/colored-console.gif)
 
 <a name="build-authoring"></a>
 ### Build authoring improvements
 
-Gradle provides rich APIs for plugin authors and build engineers to develop custom build logic.
+#### Introduce `AttributeContainer#addAllLater`
 
-<a name="compilation-avoidance"></a>
-#### Kotlin build script compilation avoidance
+This release introduces a new API on `AttributeContainer` allowing all attributes from one attribute container to be lazily added to another.
 
-Gradle speeds up feedback loops when editing build logic by avoiding unnecessary recompilation of [Kotlin DSL](userguide/kotlin_dsl.html) (`.kts`) build scripts.
-This reduces build times and improves developer productivity.
+Consider the following example demonstrating the new API's behavior:
 
-The improvement comes from significantly better detection of ABI (Application Binary Interface) changes, made possible by using Kotlin’s built-in ABI fingerprinting instead of Gradle’s previous internal mechanism.
-This brings major performance benefits, especially in builds that use inline functions, which were not handled efficiently before.
+```kotlin
+val color = Attribute.of("color", String::class.java)
+val shape = Attribute.of("shape", String::class.java)
 
-For example, in the [Gradle build](https://github.com/gradle/gradle) itself, non-ABI changes to build logic result in up to a 60% reduction in configuration time by avoiding unnecessary script recompilation.
+val foo = configurations.create("foo").attributes
+foo.attribute(color, "green")
 
-![Reduction in unnecessary script recompilation](release-notes-assets/help_after_nonABI_change_in_buildSrc.png)
+val bar = configurations.create("bar").attributes
+bar.attribute(color, "red")
+bar.attribute(shape, "square")
+assert(bar.getAttribute(color) == "red")    // `color` is originally red
 
-<a name="jspecify"></a>
-#### Gradle API uses JSpecify Nullability annotations
+bar.addAllLater(foo)
+assert(bar.getAttribute(color) == "green")  // `color` gets overwritten
+assert(bar.getAttribute(shape) == "square") // `shape` does not
 
-Since Gradle 5.0 we've been using annotations from [JSR-305](https://jcp.org/en/jsr/detail?id=305) to make the nullness of type usages explicit for the Gradle API.
-Starting with Gradle 9, the Gradle API is annotated using [JSpecify](https://jspecify.dev/) instead.
+foo.attribute(color, "purple")
+bar.getAttribute(color) == "purple"         // addAllLater is lazy
 
-Kotlin 2.1, when combined with JSpecify annotations in the Gradle API, introduces stricter nullability handling.
-For more details and potential breakages, see the dedicated [upgrading guide section](userguide/upgrading_major_version_9.html#jspecify).
-
-<a name="sem-ver-wrapper"></a>
-#### Support for major and minor version specification in Gradle Wrapper
-
-Gradle supports specifying only a major or minor version when configuring the [wrapper](userguide/gradle_wrapper.html).
-
-For example, the following resolves to the latest `9.x.y` release:
-
-```
-./gradlew wrapper --gradle-version=9
+bar.attribute(color, "orange")
+assert(bar.getAttribute(color) == "orange") // `color` gets overwritten again
+assert(bar.getAttribute(shape) == "square") // `shape` remains the same
 ```
 
-While the following resolves to the latest `9.1.x` release:
+#### Accessors for `compileOnly` plugin dependencies in precompiled Kotlin scripts
+
+Previously, it was not possible to use a plugin coming from a `compileOnly` dependency in a [precompiled Kotlin script](userguide/implementing_gradle_plugins_precompiled.html).
+Now it is supported, and [​type-safe accessors​]​(​userguide/kotlin_dsl.html#type-safe-accessors​) for plugins from such dependencies are available in the precompiled Kotlin scripts.
+
+As an example, the following `buildSrc/build.gradle.kts` build script declares a `compileOnly` dependency to a third party plugin:
+```kotlin
+plugins {
+    `kotlin-dsl`
+}
+dependencies {
+    compileOnly("com.android.tools.build:gradle:x.y.z")
+}
+```
+And a convention precompiled Kotlin script in `buildSrc/src/main/kotlin/my-convention-plugin.gradle.kts` applies it, and can now use type-safe accessors to configure the third party plugin:
+```kotlin
+plugins {
+    id("com.android.application")
+}
+android {
+    // The accessor to the `android` extension registered by the Android plugin is available
+}
+```
+
+#### Introduce `Gradle#getBuildPath`
+
+This release introduces a new API on the [Gradle](javadoc/org/gradle/api/invocation/Gradle.html) type that returns the path of the build represented by the `Gradle` instance, relative to the root of the build tree.
+For the root build, this will return `:`.
+For included builds, this will return the path of the included build relative to the root build.
+
+This is the same path returned by `BuildIdentifier#getBuildPath`, but it is now available directly on the `Gradle` instance.
+This enables build authors to obtain the path of a build, similar to how they can already obtain the path of a project.
+
+The following example demonstrates how to determine the path of the build which owns a given project:
+
+```kotlin
+val project: Project = getProjectInstance()
+val buildPath: String = project.gradle.buildPath
+```
+
+#### Build initialization now uses the `kotlin-test` dependency for Kotlin projects
+In previous versions of Gradle, the [`init` task](userguide/build_init_plugin.html) generated build scripts with the `org.jetbrains.kotlin:kotlin-test-junit5` dependency for kotlin projects.
+The `init` task now generates build scripts with the `org.jetbrains.kotlin:kotlin-test` dependency instead.
+The appropriate test framework variant will be inferred automatically based on the test runner configured.
+For more information, refer to the [Kotlin Gradle Configuration documentation](https://kotlinlang.org/docs/gradle-configure-project.html#set-dependencies-on-test-libraries) or
+the `[kotlin-test](https://kotlinlang.org/api/core/kotlin-test/)` api documentation.
+
+### Configuration improvements
+
+#### Simpler target package configuration for Antlr 4
+The AntlrTask class now supports explicitly setting the target package for generated code when using Antlr 4.
+Previously, setting the "-package" argument also required setting the output directory in order to generate classes into the proper package-specific directory structure.
+This release introduces a `packageName` property that allows you to set the target package without needing to also set the output directory properly.
+Setting this property will set the "-package" argument for the Antlr tool, and will also set the generated class directory to match the package.
+
+Explicitly setting the "-package" argument is now deprecated, and will become an error in Gradle 10.
+
+This option is not available for versions before Antlr 4 and will result in an error if this property is set.
+
+```kotlin
+tasks.named("generateGrammarSource").configure {
+    // Set the target package for generated code
+    packageName = "com.example.generated"
+}
+```
+
+#### Antlr generated sources are automatically tracked
+In previous versions of Gradle, the Antlr-generated sources were added to a java source set for compilation, but if the generated sources directory was changed, this change was not reflected in the source set.
+This required manually updating the source set to include the new generated sources directory any time it was changed.
+In this release, the generated sources directory is automatically tracked and updates the source set accordingly.
+A task dependency is also created between the source generation task and the source set, ensuring that tasks that consume the source set as an input will automatically create a task dependency on the source generation task.
+
+#### Specify the Repository in MavenPublication.distributionManagement
+
+For a Maven publication, it is now possible to specify the repository used for distribution in the published POM file.
+
+For example, to specify the GitHub Packages repository in the POM file, use this code:
+```kotlin
+plugins {
+  id("maven-publish")
+}
+
+publications.withType<MavenPublication>().configureEach {
+  pom {
+    distributionManagement {
+      repository {
+        id = "github"
+        name = "GitHub OWNER Apache Maven Packages"
+        url = "https://maven.pkg.github.com/OWNER/REPOSITORY"
+      }
+    }
+  }
+}
+```
+
+### Error and warning reporting improvements
+
+#### Improved error message for Version Constraint Conflicts
+
+In previous versions of Gradle when a version constraint conflict occurred the error message was extremely verbose and included extraneous information.
+It also was formatted in a way that was difficult to comprehend, especially when constraints involved in the conflict were added by transitive dependencies.
 
 ```
-./gradlew wrapper --gradle-version=9.1
+> Could not resolve org:foo:3.2.
+  Required by:
+      root project 'test'
+   > Cannot find a version of 'org:foo' that satisfies the version constraints:
+        Dependency path: 'root project :' (conf) --> 'org:bar:2.0' (runtime) --> 'org:foo:3.1'
+        Constraint path: 'root project :' (conf) --> 'org:platform:1.1' (platform) --> 'org:foo:{strictly 3.1.1; reject 3.1 & 3.2}'
+        Constraint path: 'root project :' (conf) --> 'org:foo:3.2'
+        Constraint path: 'root project :' (conf) --> 'org:baz:3.0' (runtime) --> 'org:foo:3.3'
+        Constraint path: 'root project :' (conf) --> 'org:other:3.0' (runtime) --> 'org:foo:3.3'
 ```
 
-This feature requires Gradle 9.0.0 or later.
-Earlier versions don’t follow full semantic versioning and may misinterpret partial versions (e.g., `8.12` might refer to `8.12` (because it's an exact version) and `8.12.1` (semantically the latest version for `8.12`).
+The new message focuses attention on the conflicting versions required by the constraints involved in the conflict.
 
-Gradle’s [version information endpoint](https://services.gradle.org/versions/) has been extended to support this behavior. For instance, [https://services.gradle.org/versions/9](https://services.gradle.org/versions/9) lists all versions of Gradle with major version 9.
+```
+> Could not resolve org:foo.
+  Required by:
+      root project 'mec0k'
+   > Component is the target of multiple version constraints with conflicting requirements:
+     3.1.1 - directly in 'org:platform:1.1' (platform)
+     3.2
+     3.3 - transitively via 'org:baz:3.0' (runtime) (1 other path to this version)
+```
 
-#### Archive tasks produce reproducible archives by default
+This makes it clearer by:
+- Immediately stating that there is a conflict in version constraints for a component, and not merely a failure to _find_ a suitable candidate in the searched repositories when resolving dependencies
+- Clearly showing each constrained version involved in the conflict
+- Showing where the conflicting constraints are declared (either the project doing resolution, its direct dependencies, its transitive dependencies, or dependency locking) _without_ showing the complete dependency paths, which can be long and hard to read and are available in the dependency insight report
+- Showing how many paths to each constraint exist in the dependency graph, but only printing the first one, which is usually sufficient to understand the conflict
 
-Archive tasks such as `Jar`, `Ear`, `War`, `Zip`, `Tar`, and `AbstractArchiveTask` produce [reproducible archives by default](userguide/working_with_files.html#sec:reproducible_archives).
-This means that generated archives have reproducible file order and preconfigured file timestamps and permissions.
-As a result archives generated from the same inputs will be identical byte-for-byte.
+It also avoids showing non-strict dependency declarations, like the first line in the old version, which are irrelevant to understanding the conflict.
 
-This change may affect builds that rely on non-deterministic archive characteristics like file order, file system timestamps, or file system permissions, or file executable bit.
+A suggestion message at the end of the build will also provide the exact syntax for running `dependencyInsight` on the failing configuration, to further investigate it by viewing comprehensive dependency resolution information.
 
-For more information, see the [upgrading guide section](userguide/upgrading_major_version_9.html#reproducible_archives_by_default).
+<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ADD RELEASE FEATURES ABOVE
+==========================================================
 
-#### Detached configurations can resolve dependencies on their own project
+-->
 
-[Detached configurations](javadoc/org/gradle/api/artifacts/ConfigurationContainer.html#detachedConfiguration(org.gradle.api.artifacts.Dependency...)) are able to resolve dependencies that reference their own project.
+### Task graph diagnostic
 
-To do this, Gradle introduces a new subtype of [`ComponentIdentifier`](javadoc/org/gradle/api/artifacts/component/ComponentIdentifier.html) called [`RootComponentIdentifier`](javadoc/org/gradle/api/artifacts/component/RootComponentIdentifier.html), which represents the root node of a [resolved dependency graph](userguide/graph_resolution.html#dependency_graph).
+A new task dependency graph is available to visualize the dependencies between tasks without executing them.
+You can enable it using the `--task-graph` option on the command line. For example:
+```
+./gradlew root r2 --task-graph
+```
+This prints a visual representation of the task graph for the specified tasks:
+```
+Tasks graph for: root r2
++--- :root (org.gradle.api.DefaultTask)
+|    \--- :middle (org.gradle.api.DefaultTask)
+|         +--- :leaf1 (org.gradle.api.DefaultTask)
+|         \--- :leaf2 (org.gradle.api.DefaultTask, disabled)
+\--- :root2 (org.gradle.api.DefaultTask)
+    +--- :leaf1 (*)
+    |--- other build task :included:fromIncluded (org.gradle.api.DefaultTask)
+    \--- :leaf4 (org.gradle.api.DefaultTask, finalizer)
+         \--- :leaf3 (org.gradle.api.DefaultTask)
 
-When a configuration is resolved, it is first transformed into a synthetic variant. This variant is owned by a synthetic root component, which is identified using `RootComponentIdentifier`. The root component itself exists only to own the root variant.
+(*) - details omitted (listed previously)
+```
 
-Dependency graphs resolved from detached configurations and `buildscript` configurations will have a component identified by a `RootComponentIdentifier` at the root of their graph. This lets Gradle differentiate between a detached configuration and the project it lives in.
+This feature provides a quick overview of the task graph, helping users understand the dependencies between tasks without running them.
+You can iterate by diving into a subgraph by adjusting an invocation.
 
-[Resolved project configurations](userguide/declaring_configurations.html) will continue to have their root component live within the project's component and identified by a [`ProjectComponentIdentifier`](javadoc/org/gradle/api/artifacts/component/ProjectComponentIdentifier.html). In future Gradle versions, all configurations, including those declared inside projects (non-detached), will be owned by a synthetic root component identified by a `RootComponentIdentifier`.
+This feature is incubating and may change in future releases.
+#### Fixed `--dry-run` behavior in composite builds
 
-#### `JAVA_HOME` environment variable used for toolchain auto-detection
+Gradle now correctly respects `--dry-run` in composite builds, ensuring that tasks are not executed during the execution phase of included builds.
 
-Gradle's [toolchain support](userguide/toolchains.html) allows provisioning and selection of specific JDK versions for building projects—compiling code, running tests, and even running Gradle itself.
+Note that tasks from some included builds may still be executed during configuration time, as part of their configuration logic.
 
-This release adds support for using the `JAVA_HOME` environment variable as a source for [toolchain auto-detection](userguide/toolchains.html#sec:auto_detection).
-This change improves consistency between toolchains detected from the command line and those detected by IDEs, which previously did not consider `JAVA_HOME`.
+This restores expected behavior and makes `--dry-run` safer for previewing task execution plans across composite builds.
 
-<a name="documentation"></a>
-### Documentation improvements
+### Project report updated
 
-#### Gradle Best Practices
+The [Project Report](userguide/project_report_plugin.html) has been updated to show projects' physical locations in the file system, as well as their logical build paths.
 
-In partnership with JetBrains and Google, we've launched a new [Gradle Best Practices guide](userguide/best_practices.html) to help you avoid common pitfalls and write more maintainable, performant builds.
-These recommendations consolidate community knowledge and Gradle team insights into a single, growing resource.
-The current version covers best practices in dependency declarations, build structure, task authoring, and more.
+```
+------------------------------------------------------------
+Root project 'avoidEmptyProjects-do'
+------------------------------------------------------------
 
-For more information, check out the [Gradle Best Practices](https://blog.gradle.org/gradle-best-practices) blog post.
+Location: /usr/jsmith/projects/avoidEmptyProjects-do
+Description: Example project to demonstrate Gradle's project hierarchy and locations
+
+Project hierarchy:
+
+Root project 'avoidEmptyProjects-do'
++--- Project ':app'
+\--- Project ':my-web-module'
+
+Project locations:
+
+project ':app' - /app
+project ':my-web-module' - /subs/web/my-web-module
+
+To see a list of the tasks of a project, run gradle <project-path>:tasks
+For example, try running gradle :app:tasks
+```
+
+This will help authors better understand the structure of hierarchical builds that use non-standard project directories.
+
+<a name="config-cache"></a>
+### Configuration cache improvements
+
+Gradle's [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of the configuration phase. Gradle uses the configuration cache to skip the configuration phase entirely when nothing that affects the build configuration has changed.
+
+#### Encryption honors the JVM's default keystore type
+
+Previously, Gradle always used the PKCS12 keystore type for its encryption keystore (currently used only by the Configuration Cache), regardless of the JVM's default.
+Starting with this release, Gradle will honor the JVM’s default keystore type, provided it supports storing symmetric keys.
+If the default keystore type is a known format that only supports asymmetric keys, Gradle will fall back to `PKCS12`.
+
+<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ADD RELEASE FEATURES ABOVE
+==========================================================
+
+-->
 
 ## Promoted features
 
@@ -258,35 +372,7 @@ See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecy
 
 The following are the features that have been promoted in this Gradle release.
 
-### Promoted features in the Kotlin DSL
-
-The following operator functions in [`DependencyHandlerScope`](kotlin-dsl/gradle/org.gradle.kotlin.dsl/-dependency-handler-scope/index.html) are considered stable:
-* `NamedDomainObjectProvider<Configuration>.invoke(dependencyNotation: Any): Dependency?`
-* `NamedDomainObjectProvider<Configuration>.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency`
-* `NamedDomainObjectProvider<Configuration>.invoke(group: String, name: String, version: String?, configuration: String?, classifier: String?, ext: String?): ExternalModuleDependency`
-* `NamedDomainObjectProvider<Configuration>.invoke(group: String, name: String, version: String?, configuration: String?, classifier: String?, ext: String?, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency`
-* `<T : Any> Configuration.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
-* `<T : Any> Configuration.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
-* `<T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: Provider<T>)`
-* `<T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: ProviderConvertible<T>)`
-* `<T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
-* `<T : Any> NamedDomainObjectProvider<Configuration>.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
-* `<T : Any> String.invoke(dependency: Provider<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
-* `<T : Any> String.invoke(dependency: ProviderConvertible<T>, dependencyConfiguration: ExternalModuleDependency.() -> Unit)`
-* `<T : ModuleDependency> NamedDomainObjectProvider<Configuration>.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T`
-
-The following operator functions in [`DependencyConstraintHandlerScope`](kotlin-dsl/gradle/org.gradle.kotlin.dsl/-dependency-constraint-handler-scope/index.html) are considered stable:
-* `NamedDomainObjectProvider<Configuration>.invoke(dependencyConstraintNotation: Any): DependencyConstraint`
-* `NamedDomainObjectProvider<Configuration>.invoke(dependencyConstraintNotation: String, configuration: DependencyConstraint.() -> Unit): DependencyConstraint`
-
-The following top-level functions in [`DependencyHandlerExtensions`](kotlin-dsl/gradle/org.gradle.api.artifacts.dsl/-dependency-handler/index.html) are considered stable:
-* `DependencyHandler.create(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency`
-
-The following top-level functions in [`KotlinDependencyExtensions`](kotlin-dsl/gradle/org.gradle.api.artifacts.dsl/-dependency-handler/index.html) are considered stable:
-* `PluginDependenciesSpec.embeddedKotlin(module: String): PluginDependencySpec`
-
-The following functions are considered stable:
-* `GroovyBuilderScope.hasProperty(name: String): Boolean`
+* [`getDependencyFactory()`](javadoc/org/gradle/api/Project.html) in `Project`
 
 ## Fixed issues
 

@@ -20,7 +20,6 @@ import org.gradle.api.Incubating
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.PluginAware
-import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForGradle
@@ -28,11 +27,10 @@ import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.baseClass
 import kotlin.script.experimental.api.filePathPattern
 import kotlin.script.experimental.api.implicitReceivers
-import kotlin.script.templates.ScriptTemplateDefinition
 
 
 class KotlinGradleScriptTemplateCompilationConfiguration : KotlinDslStandaloneScriptCompilationConfiguration({
-    filePathPattern.put("(?:.+\\.)?init\\.gradle\\.kts")
+    filePathPattern.put(".*/(?:.+\\.)?init\\.gradle\\.kts")
     baseClass(KotlinGradleScriptTemplate::class)
     implicitReceivers(Gradle::class)
 })
@@ -46,9 +44,6 @@ class KotlinGradleScriptTemplateCompilationConfiguration : KotlinDslStandaloneSc
 @Incubating
 @KotlinScript(
     compilationConfiguration = KotlinGradleScriptTemplateCompilationConfiguration::class
-)
-@ScriptTemplateDefinition(
-    resolver = KotlinBuildScriptDependenciesResolver::class,
 )
 abstract class KotlinGradleScriptTemplate(
     private val host: KotlinScriptHost<Gradle>

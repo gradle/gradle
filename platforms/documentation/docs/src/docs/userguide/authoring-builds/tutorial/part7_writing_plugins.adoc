@@ -219,7 +219,11 @@ public class App {
 Congratulations, you have completed the tutorial!
 
 == Step 4. Next steps
-We recommend going through each section of the User Manual.
+
+If you haven’t read the <<gradle_directories_intermediate.adoc#gradle_directories,Beyond the Basics>> section yet, we recommend starting there to learn important mid-level topics.
+
+Already comfortable with intermediate concepts? Great — you’re ready to move on to the advanced concepts next.
 
 [.text-right]
-**Next Step:** <<multi_project_builds.adoc#multi_project_builds,Structuring Builds>> >>
+**Next Step:** <<getting_started_auth.adoc#plugin_introduction,Deep Dive Into Gradle>> >>
+

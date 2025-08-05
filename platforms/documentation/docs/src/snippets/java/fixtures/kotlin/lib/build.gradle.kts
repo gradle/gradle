@@ -15,10 +15,12 @@ repositories {
     mavenCentral()
 }
 
+// tag::java-block[]
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
+// end::java-block[]
 
 // tag::test_fixtures_deps[]
 dependencies {

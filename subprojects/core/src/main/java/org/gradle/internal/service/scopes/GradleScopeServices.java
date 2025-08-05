@@ -19,7 +19,6 @@ import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
@@ -27,6 +26,7 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginTargetType;
+import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.cache.GlobalCacheLocations;
@@ -64,6 +64,7 @@ import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.TaskGraphBuildExecutionAction;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -92,11 +93,22 @@ public class GradleScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    BuildWorkExecutor createBuildExecuter(StyledTextOutputFactory textOutputFactory, BuildOperationRunner buildOperationRunner) {
-        return new BuildOperationFiringBuildWorkerExecutor(
-            new DryRunBuildExecutionAction(textOutputFactory,
-                new SelectedTaskExecutionAction()),
-            buildOperationRunner);
+    BuildWorkExecutor createBuildExecuter(
+        GradleInternal gradle,
+        StyledTextOutputFactory textOutputFactory,
+        BuildOperationRunner buildOperationRunner,
+        ConfigurationTimeBarrier configurationTimeBarrier
+    ) {
+        BuildWorkExecutor delegate = new SelectedTaskExecutionAction();
+        BuildWorkExecutor executor;
+        if (gradle.getStartParameter().isDryRun()) {
+            executor = new DryRunBuildExecutionAction(delegate, textOutputFactory, configurationTimeBarrier);
+        } else if (gradle.getStartParameter().isTaskGraph()) {
+            executor = new TaskGraphBuildExecutionAction(delegate, textOutputFactory, configurationTimeBarrier);
+        } else {
+            executor = delegate;
+        }
+        return new BuildOperationFiringBuildWorkerExecutor(executor, buildOperationRunner);
     }
 
     @Provides
@@ -107,11 +119,6 @@ public class GradleScopeServices implements ServiceRegistrationProvider {
     @Provides
     TaskExecutionPreparer createTaskExecutionPreparer(BuildTaskScheduler buildTaskScheduler, BuildOperationRunner buildOperationRunner, BuildModelParameters buildModelParameters) {
         return new DefaultTaskExecutionPreparer(buildTaskScheduler, buildOperationRunner, buildModelParameters);
-    }
-
-    @Provides
-    ProjectFinder createProjectFinder(final GradleInternal gradle) {
-        return new DefaultProjectFinder(gradle::getRootProject);
     }
 
     @Provides

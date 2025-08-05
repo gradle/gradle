@@ -21,6 +21,8 @@ import org.gradle.api.Task
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
@@ -69,6 +71,12 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         _ * project.identityPath >> (parent == null ? Path.ROOT : Path.ROOT.child(name))
         _ * project.projectPath(_) >> { taskName -> Path.ROOT.child(taskName) }
         _ * project.identityPath(_) >> { taskName -> (parent == null ? Path.ROOT : Path.ROOT.child(name)).child(taskName) }
+        _ * project.projectIdentity >> new ProjectIdentity(
+            DefaultBuildIdentifier.ROOT,
+            project.identityPath,
+            project.identityPath,
+            name
+        )
         _ * project.gradle >> thisBuild
         _ * project.owner >> projectState
         _ * project.services >> backing.services

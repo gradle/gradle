@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ArtifactSelectionDetailsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
@@ -162,6 +163,11 @@ public class NodeState implements DependencyGraphNode {
     }
 
     @Override
+    public VariantIdentifier getId() {
+        return variantState.getMetadata().getId();
+    }
+
+    @Override
     public ComponentGraphResolveState getComponentResolveState() {
         return getComponent().getResolveState();
     }
@@ -206,15 +212,11 @@ public class NodeState implements DependencyGraphNode {
 
     @Override
     public String toString() {
-        return String.format("%s(%s)", component, metadata.getName());
+        return getDisplayName();
     }
 
-    public String getSimpleName() {
-        return component.getId().toString();
-    }
-
-    public String getNameWithVariant() {
-        return component.getId() + " variant " + metadata.getName();
+    public String getDisplayName() {
+        return String.format("'%s' (%s)", component.getComponentId().getDisplayName(), metadata.getDisplayName());
     }
 
     public boolean isTransitive() {
@@ -1285,14 +1287,14 @@ public class NodeState implements DependencyGraphNode {
 
     private String computePathToRoot() {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node(getSimpleName());
+        formatter.node(getDisplayName());
         NodeState from = this;
         int depth = 0;
         do {
             from = getFromNode(from);
             if (from != null) {
                 formatter.startChildren();
-                formatter.node(from.getSimpleName());
+                formatter.node(getDisplayName());
                 depth++;
             }
         } while (from != null && !(from instanceof RootNode));

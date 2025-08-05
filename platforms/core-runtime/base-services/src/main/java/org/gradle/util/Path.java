@@ -362,4 +362,33 @@ public class Path implements Comparable<Path> {
             }
         };
     }
+
+    /**
+     * Determines if this path starts with the given path.
+     *
+     * @param other The path to check if this path starts with.
+     *
+     * @return True if this path starts with the given path, false otherwise. Returns
+     *         false if one path is absolute and the other is not.
+     *
+     * @since 9.1.0
+     */
+    @Incubating
+    public boolean startsWith(Path other) {
+        if (other.absolute != absolute) {
+            return false;
+        }
+
+        if (other.segments.length > segments.length) {
+            return false;
+        }
+
+        for (int i = 0; i < other.segments.length; i++) {
+            if (!other.segments[i].equals(segments[i])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

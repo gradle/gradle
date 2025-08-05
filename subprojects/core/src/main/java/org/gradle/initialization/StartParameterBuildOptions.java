@@ -77,13 +77,15 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigurationCacheIgnoredFileSystemCheckInputs(),
         new ConfigurationCacheDebugOption(),
         new ConfigurationCacheParallelOption(),
+        new ConfigurationCacheReadOnlyOption(),
         new ConfigurationCacheRecreateOption(),
         new ConfigurationCacheQuietOption(),
         new ConfigurationCacheIntegrityCheckOption(),
         new ConfigurationCacheEntriesPerKeyOption(),
         new IsolatedProjectsOption(),
         new ProblemReportGenerationOption(),
-        new PropertyUpgradeReportOption()
+        new PropertyUpgradeReportOption(),
+        new TaskGraphOption()
     );
 
     @Override
@@ -614,6 +616,20 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
+    public static class ConfigurationCacheReadOnlyOption extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.read-only";
+
+        public ConfigurationCacheReadOnlyOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheReadOnly(value);
+        }
+    }
+
     public static class ConfigurationCacheEntriesPerKeyOption extends IntegerBuildOption<StartParameterInternal> {
 
         public static final String PROPERTY_NAME = "org.gradle.configuration-cache.entries-per-key";
@@ -702,6 +718,20 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.enableProblemReportGeneration(value);
+        }
+    }
+
+    public static class TaskGraphOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+
+        public static final String LONG_OPTION = "task-graph";
+
+        public TaskGraphOption() {
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "(Experimental) Print task graph instead of executing tasks."));
+        }
+
+        @Override
+        public void applyTo(StartParameterInternal settings, Origin origin) {
+            settings.setTaskGraph(true);
         }
     }
 }

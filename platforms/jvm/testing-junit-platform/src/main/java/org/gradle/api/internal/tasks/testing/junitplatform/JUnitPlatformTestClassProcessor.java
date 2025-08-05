@@ -85,7 +85,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         try {
             Class.forName("org.junit.platform.launcher.core.LauncherFactory");
         } catch (ClassNotFoundException e) {
-            throw new TestFrameworkNotAvailableException("Failed to load JUnit Platform.  Please ensure that the JUnit Platform is available on the test runtime classpath.");
+            throw new TestFrameworkNotAvailableException("Failed to load JUnit Platform.  Please ensure that all JUnit Platform dependencies are available on the test's runtime classpath, including the JUnit Platform launcher.");
         }
     }
 
@@ -306,15 +306,28 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
 
         private boolean classMatch(TestDescriptor descriptor) {
+            TestDescriptor current = descriptor;
+            String methodName = null;
             while (true) {
-                Optional<TestDescriptor> parent = descriptor.getParent();
+
+                Optional<TestDescriptor> parent = current.getParent();
                 if (!parent.isPresent()) {
                     break;
                 }
-                if (className(descriptor).filter(className -> matcher.matchesTest(className, null)).isPresent()) {
+
+                // If the current descriptor is a class, check if it matches the test selection criteria
+                Optional<String> className = className(current);
+                if (className.isPresent() && matcher.matchesTest(className.get(), methodName)) {
                     return true;
                 }
-                descriptor = parent.get();
+
+                // If the descriptor is a MethodSource, capture the method name to use when checking against parent class names
+                // (for instance, if the method is in a nested class).
+                if (current.getSource().isPresent() && current.getSource().get() instanceof MethodSource) {
+                    methodName = ((MethodSource) current.getSource().get()).getMethodName();
+                }
+
+                current = parent.get();
             }
             return false;
         }

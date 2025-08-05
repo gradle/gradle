@@ -99,8 +99,6 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
             documentationRegistry,
             true
         );
-
-        setVisible(false);
     }
 
 }

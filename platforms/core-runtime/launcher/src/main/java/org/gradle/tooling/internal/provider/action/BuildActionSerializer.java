@@ -146,6 +146,7 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isConfigurationCacheDebug());
             encoder.writeBoolean(startParameter.isConfigurationCacheRecreateCache());
             encoder.writeBoolean(startParameter.isConfigurationCacheParallel());
+            encoder.writeBoolean(startParameter.isConfigurationCacheReadOnly());
             encoder.writeBoolean(startParameter.isConfigurationCacheQuiet());
             encoder.writeBoolean(startParameter.isConfigurationCacheIntegrityCheckEnabled());
             encoder.writeSmallInt(startParameter.getConfigurationCacheEntriesPerKey());
@@ -162,6 +163,7 @@ public class BuildActionSerializer {
             encoder.writeString(startParameter.getWelcomeMessageConfiguration().getWelcomeMessageDisplayMode().name());
             encoder.writeBoolean(startParameter.isPropertyUpgradeReportEnabled());
             encoder.writeBoolean(startParameter.isProblemReportGenerationEnabled());
+            encoder.writeBoolean(startParameter.isTaskGraph());
         }
 
         private void writeTaskRequests(Encoder encoder, List<TaskExecutionRequest> taskRequests) throws Exception {
@@ -236,6 +238,7 @@ public class BuildActionSerializer {
             startParameter.setConfigurationCacheDebug(decoder.readBoolean());
             startParameter.setConfigurationCacheRecreateCache(decoder.readBoolean());
             startParameter.setConfigurationCacheParallel(decoder.readBoolean());
+            startParameter.setConfigurationCacheReadOnly(decoder.readBoolean());
             startParameter.setConfigurationCacheQuiet(decoder.readBoolean());
             startParameter.setConfigurationCacheIntegrityCheckEnabled(decoder.readBoolean());
             startParameter.setConfigurationCacheEntriesPerKey(decoder.readSmallInt());
@@ -255,6 +258,7 @@ public class BuildActionSerializer {
             startParameter.setWelcomeMessageConfiguration(new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.valueOf(decoder.readString())));
             startParameter.setPropertyUpgradeReportEnabled(decoder.readBoolean());
             startParameter.enableProblemReportGeneration(decoder.readBoolean());
+            startParameter.setTaskGraph(decoder.readBoolean());
 
             return startParameter;
         }

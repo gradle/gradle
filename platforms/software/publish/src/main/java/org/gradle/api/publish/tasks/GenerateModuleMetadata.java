@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
@@ -88,10 +89,8 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 public abstract class GenerateModuleMetadata extends DefaultTask {
     private final Transient<Property<Publication>> publication;
     private final Transient<ListProperty<Publication>> publications;
-    private final RegularFileProperty outputFile;
     private final FileCollection variantFiles;
     private final Cached<InputState> inputState = Cached.of(this::computeInputState);
-    private final SetProperty<String> suppressedValidationErrors;
 
     private final DependencyCoordinateResolverFactory dependencyCoordinateResolverFactory;
 
@@ -103,11 +102,9 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
         publication = Transient.of(objectFactory.property(Publication.class));
         publications = Transient.of(objectFactory.listProperty(Publication.class));
 
-        outputFile = objectFactory.fileProperty();
-
         variantFiles = getFileCollectionFactory().create(new VariantFiles(((ProjectInternal) getProject()).getTaskDependencyFactory()));
 
-        suppressedValidationErrors = objectFactory.setProperty(String.class).convention(Collections.emptySet());
+        getSuppressedValidationErrors().convention(Collections.emptySet());
 
         // TODO - should be incremental
         getOutputs().upToDateWhen(Specs.satisfyNone());
@@ -178,9 +175,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
      * Returns the output file location.
      */
     @OutputFile
-    public RegularFileProperty getOutputFile() {
-        return outputFile;
-    }
+    public abstract RegularFileProperty getOutputFile();
 
     /**
      * Returns the set of suppressed validation errors
@@ -188,9 +183,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
      * @since 7.0
      */
     @Input
-    public SetProperty<String> getSuppressedValidationErrors() {
-        return suppressedValidationErrors;
-    }
+    public abstract SetProperty<String> getSuppressedValidationErrors();
 
     @TaskAction
     void run() {
@@ -204,10 +197,11 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
     }
 
     private void writeModuleMetadata(ModuleMetadataSpec moduleMetadataSpec) {
-        try (Writer writer = bufferedWriterFor(outputFile.get().getAsFile())) {
+        RegularFile outputFile = getOutputFile().get();
+        try (Writer writer = bufferedWriterFor(outputFile.getAsFile())) {
             moduleMetadataWriter().writeTo(writer, moduleMetadataSpec);
         } catch (IOException e) {
-            throw new UncheckedIOException("Could not generate metadata file " + outputFile.get(), e);
+            throw new UncheckedIOException("Could not generate metadata file " + outputFile, e);
         }
     }
 
@@ -243,7 +237,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
 
     private ModuleMetadataSpec computeModuleMetadataSpec() {
         PublicationInternal<?> publication = publication();
-        InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName(), getPath(), suppressedValidationErrors.get());
+        InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName(), getPath(), getSuppressedValidationErrors().get());
         ModuleMetadataSpec spec = new ModuleMetadataSpecBuilder(
             publication,
             publications(),

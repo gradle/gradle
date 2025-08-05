@@ -119,6 +119,20 @@
     "crossVersionTests": false
   },
   {
+    "name": "build-discovery",
+    "path": "platforms/core-runtime/build-discovery",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "build-discovery-api",
+    "path": "platforms/core-runtime/build-discovery-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-events",
     "path": "subprojects/build-events",
     "unitTests": true,
@@ -386,14 +400,14 @@
   },
   {
     "name": "distributions-basics",
-    "path": "platforms/core-runtime/distributions-basics",
+    "path": "testing/distributions-basics",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "distributions-core",
-    "path": "platforms/core-runtime/distributions-core",
+    "path": "testing/distributions-core",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -602,6 +616,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "groovy-loader",
+    "path": "platforms/core-runtime/groovy-loader",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "guava-serialization-codecs",
     "path": "platforms/core-configuration/guava-serialization-codecs",
     "unitTests": false,
@@ -763,6 +784,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "java-api-extractor",
+    "path": "platforms/core-configuration/java-api-extractor",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "java-compiler-plugin",
     "path": "platforms/jvm/java-compiler-plugin",
     "unitTests": true,
@@ -773,6 +801,13 @@
     "name": "java-platform",
     "path": "platforms/jvm/java-platform",
     "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "javadoc",
+    "path": "platforms/jvm/javadoc",
+    "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },

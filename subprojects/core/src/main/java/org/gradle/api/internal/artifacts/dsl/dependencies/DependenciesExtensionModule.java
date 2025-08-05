@@ -92,7 +92,10 @@ public class DependenciesExtensionModule {
      *
      * @param map a map of configuration parameters for the dependency
      * @return the dependency
+     *
+     * @deprecated This method will be removed in Gradle 10. Use single-string notation instead.
      */
+    @Deprecated
     public static ExternalModuleDependency module(Dependencies self, Map<String, CharSequence> map) {
         if (!MODULE_LEGAL_MAP_KEYS.containsAll(map.keySet())) {
             CollectionUtils.SetDiff<String> diff = CollectionUtils.diffSetsBy(MODULE_LEGAL_MAP_KEYS, map.keySet(), k -> k);

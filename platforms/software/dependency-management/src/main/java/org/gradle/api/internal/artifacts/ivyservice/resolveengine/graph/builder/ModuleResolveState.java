@@ -23,12 +23,12 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -52,6 +52,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Resolution state for a given module.
@@ -77,7 +81,7 @@ public class ModuleResolveState implements CandidateModule {
     private ComponentState selected;
     private ImmutableAttributes mergedConstraintAttributes = ImmutableAttributes.EMPTY;
 
-    private AttributeMergingException attributeMergingError;
+    private @Nullable AttributeMergingException attributeMergingError;
     private VirtualPlatformState platformState;
     private boolean overriddenSelection;
     private Set<VirtualPlatformState> platformOwners;
@@ -255,7 +259,7 @@ public class ModuleResolveState implements CandidateModule {
         assert this.selected == null;
         assert selected != null;
 
-        if (!selected.getId().getModule().equals(getId())) {
+        if (!selected.getModule().getId().equals(getId())) {
             this.overriddenSelection = true;
         }
         this.selected = selected;
@@ -270,7 +274,7 @@ public class ModuleResolveState implements CandidateModule {
 
     private boolean computeReplaced(ComponentState selected) {
         // This module might be resolved to a different module, through replacedBy
-        return !selected.getId().getModule().equals(getId());
+        return !selected.getModule().getId().equals(getId());
     }
 
     private void doRestart(ComponentState selected) {
@@ -346,15 +350,11 @@ public class ModuleResolveState implements CandidateModule {
         return unattachedEdges;
     }
 
-    ImmutableAttributes mergedConstraintsAttributes(AttributeContainer append) throws AttributeMergingException {
+    ImmutableAttributes getMergedConstraintAttributes() {
         if (attributeMergingError != null) {
             throw new IllegalStateException(IncompatibleDependencyAttributesMessageBuilder.buildMergeErrorMessage(this, attributeMergingError));
         }
-        ImmutableAttributes attributes = ((AttributeContainerInternal) append).asImmutable();
-        if (mergedConstraintAttributes.isEmpty()) {
-            return attributes;
-        }
-        return attributesFactory.safeConcat(mergedConstraintAttributes.asImmutable(), attributes);
+        return mergedConstraintAttributes;
     }
 
     private ImmutableAttributes appendAttributes(ImmutableAttributes dependencyAttributes, SelectorState selectorState) {
@@ -370,6 +370,14 @@ public class ModuleResolveState implements CandidateModule {
             attributeMergingError = e;
         }
         return dependencyAttributes;
+    }
+
+    public List<ComponentSelectionReasonInternal> getSelectionReasons() {
+        return StreamSupport.stream(
+                Spliterators.spliteratorUnknownSize(selectors.iterator(), Spliterator.ORDERED),
+                false
+            ).map(SelectorState::getSelectionReason)
+            .collect(Collectors.toList());
     }
 
     Set<EdgeState> getIncomingEdges() {
@@ -518,5 +526,25 @@ public class ModuleResolveState implements CandidateModule {
         }
 
         return null;
+    }
+
+    /* package */ Set<EdgeState> getAllEdges() {
+        Set<EdgeState> allEdges = new LinkedHashSet<>();
+        allEdges.addAll(getIncomingEdges());
+        allEdges.addAll(getUnattachedEdges());
+        return allEdges;
+    }
+
+    public Map<SelectorState, List<List<String>>> getSegmentedPathsBySelectors() {
+        return getAllEdges().stream()
+            .collect(Collectors.toMap(
+                EdgeState::getSelector,
+                MessageBuilderHelper::segmentedPathsTo,
+                (a, b) -> {
+                    List<List<String>> combined = new ArrayList<>(a);
+                    combined.addAll(b);
+                    return combined;
+                }
+            ));
     }
 }

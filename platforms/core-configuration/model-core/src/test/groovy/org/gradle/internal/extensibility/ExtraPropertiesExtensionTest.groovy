@@ -120,14 +120,14 @@ abstract class ExtraPropertiesExtensionTest<T extends ExtraPropertiesExtension> 
         thrown(MissingMethodException)
     }
 
-    def "can get properties as a detached map"() {
+    def "can get properties as a mutable detached map"() {
         given:
         extension.p1 = 1
         extension.p2 = 2
         extension.p3 = 3
 
         and:
-        def props = extension.properties.sort()
+        def props = extension.properties
 
         expect:
         props == [p1: 1, p2: 2, p3: 3]

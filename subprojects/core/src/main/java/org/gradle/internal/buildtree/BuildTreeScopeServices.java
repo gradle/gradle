@@ -48,10 +48,18 @@ import org.gradle.execution.TaskSelector;
 import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.execution.selection.DefaultBuildTaskSelector;
 import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter;
+import org.gradle.initialization.DefaultGradlePropertiesController;
+import org.gradle.initialization.Environment;
+import org.gradle.initialization.EnvironmentChangeTracker;
+import org.gradle.initialization.GradlePropertiesListener;
+import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.initialization.exception.DefaultExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionCollector;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
+import org.gradle.initialization.properties.DefaultGradlePropertiesLoader;
+import org.gradle.initialization.properties.DefaultSystemPropertiesInstaller;
+import org.gradle.initialization.properties.SystemPropertiesInstaller;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.DefaultBuildLifecycleControllerFactory;
@@ -184,6 +192,28 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         return new PropertyUpgradeReportConfig(
             reportCollector,
             startParameter.isPropertyUpgradeReportEnabled()
+        );
+    }
+
+    @Provides
+    protected SystemPropertiesInstaller createSystemPropertiesInstaller(
+        EnvironmentChangeTracker environmentChangeTracker,
+        StartParameterInternal startParameter
+    ) {
+        return new DefaultSystemPropertiesInstaller(environmentChangeTracker, startParameter);
+    }
+
+    @Provides
+    protected GradlePropertiesController createGradlePropertiesController(
+        StartParameterInternal startParameter,
+        Environment environment,
+        SystemPropertiesInstaller systemPropertiesInstaller,
+        ListenerManager listenerManager
+    ) {
+        return new DefaultGradlePropertiesController(
+            new DefaultGradlePropertiesLoader(startParameter, environment),
+            systemPropertiesInstaller,
+            listenerManager.getBroadcaster(GradlePropertiesListener.class)
         );
     }
 }

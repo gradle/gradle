@@ -95,6 +95,30 @@ class DependencyStringNotationConverterTest extends Specification {
         }
     }
 
+    def "with classifier and no version"() {
+        when:
+        def d = parse(parser, 'org.gradle:gradle-core::jdk-1.4')
+
+        then:
+        d.name == 'gradle-core'
+        d.group == 'org.gradle'
+        d.version == null
+        d.versionConstraint.requiredVersion == ''
+        d.versionConstraint.preferredVersion == ''
+        d.versionConstraint.strictVersion == ''
+        d.versionConstraint.rejectedVersions == []
+        d.transitive
+
+        !d.force
+        !d.changing
+
+        d.artifacts.size() == 1
+        d.artifacts.find {
+            it.name == 'gradle-core' && it.classifier == 'jdk-1.4' &&
+                it.type == DependencyArtifact.DEFAULT_TYPE && it.extension == DependencyArtifact.DEFAULT_TYPE
+        }
+    }
+
     def "with 3-element GString"() {
         when:
         def descriptor = 'org.gradle:gradle-core:1.0'

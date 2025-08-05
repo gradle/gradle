@@ -70,10 +70,10 @@ import org.gradle.internal.Describables
 import org.gradle.internal.Factories
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.component.external.model.ImmutableCapabilities
+import org.gradle.internal.component.model.VariantIdentifier
 import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.AttributeTestUtil
@@ -100,7 +100,7 @@ class DefaultConfigurationSpec extends Specification {
     def projectStateRegistry = Mock(ProjectStateRegistry)
     def domainObjectCollectionCallbackActionDecorator = Mock(CollectionCallbackActionDecorator)
     def userCodeApplicationContext = Mock(UserCodeApplicationContext)
-    def calculatedValueContainerFactory = Mock(CalculatedValueContainerFactory)
+    def calculatedValueContainerFactory = TestUtil.calculatedValueContainerFactory()
 
     def setup() {
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new AnonymousListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener, Stub(Dispatch)) }
@@ -115,7 +115,6 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         configuration.name == "name"
-        configuration.visible
         configuration.extendsFrom.empty
         configuration.transitive
         configuration.description == null
@@ -142,12 +141,10 @@ class DefaultConfigurationSpec extends Specification {
 
         when:
         configuration.setDescription("description")
-        configuration.setVisible(false)
         configuration.setTransitive(false)
 
         then:
         configuration.description == "description"
-        !configuration.visible
         !configuration.transitive
     }
 
@@ -621,6 +618,8 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     void "deprecations are passed to copies when corresponding role is #baseRole"() {
+        TestUtil.initDeprecationLogger("conf configuration emits a deprecation warning")
+
         ConfigurationRole role = new DefaultConfigurationRole("test", baseRole.consumable, baseRole.resolvable, baseRole.declarable, baseRole.consumptionDeprecated, baseRole.resolutionDeprecated, baseRole.declarationAgainstDeprecated)
         def configuration = prepareConfigurationForCopyTest(conf("conf", ":", ":", role))
         def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
@@ -649,7 +648,7 @@ class DefaultConfigurationSpec extends Specification {
             ConfigurationRoles.ALL,
             ConfigurationRoles.RESOLVABLE,
             ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
-        ] + ConfigurationRolesForMigration.ALL
+        ] + ConfigurationRolesForMigration.ALL - ConfigurationRolesForMigration.CONSUMABLE_TO_RETIRED
     }
 
     void "fails to copy non-resolvable configuration (#role)"() {
@@ -781,7 +780,6 @@ This method is only meant to be called on configurations which allow the (non-de
 
     private void checkCopiedConfiguration(Configuration original, Configuration copy, def resolutionStrategyInCopy, int copyCount = 1) {
         assert copy.name == original.name + "Copy${copyCount > 1 ? copyCount : ''}"
-        assert copy.visible == original.visible
         assert copy.transitive == original.transitive
         assert copy.description == original.description
         assert copy.allArtifacts as Set == original.allArtifacts as Set
@@ -1241,11 +1239,6 @@ This method is only meant to be called on configurations which allow the (non-de
         thrown(InvalidUserCodeException)
 
         when:
-        configuration.setVisible(false)
-        then:
-        thrown(InvalidUserCodeException)
-
-        when:
         configuration.extendsFrom(conf("other"))
         then:
         thrown(InvalidUserCodeException)
@@ -1414,7 +1407,7 @@ This method is only meant to be called on configurations which allow the (non-de
 
         then:
         UnsupportedOperationException t = thrown()
-        t.message == "Mutation of attributes is not allowed"
+        t.message == "This container is immutable and cannot be mutated."
     }
 
     def "copied configuration has independent listeners"() {
@@ -1582,11 +1575,12 @@ This method is only meant to be called on configurations which allow the (non-de
     }
 
     private SelectedArtifactSet selectedArtifacts(Set<File> files = []) {
+        VariantIdentifier sourceVariantId = Mock()
         return new SelectedArtifactSet() {
             @Override
             void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
                 files.each { file ->
-                    visitor.visitArtifact(Describables.of(file.getName()), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, resolvableArtifact(file))
+                    visitor.visitArtifact(Describables.of(file.getName()), sourceVariantId, ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, resolvableArtifact(file))
                 }
                 visitor.endVisitCollection(null)
             }
