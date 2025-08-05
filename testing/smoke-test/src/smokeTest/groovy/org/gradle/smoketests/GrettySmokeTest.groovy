@@ -18,8 +18,6 @@ package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Ignore
@@ -31,7 +29,6 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
     because = "The Gretty plugin does not support configuration caching"
 )
 @Ignore("https://github.com/gretty-gradle-plugin/gretty/pull/316")
-@Requires(UnitTestPreconditions.Jdk11OrLater)
 class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
 
     // There is no version of Gretty compatible with 9.0

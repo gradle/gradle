@@ -19,7 +19,6 @@ package org.gradle.testing.junit
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.hamcrest.Matcher
 import spock.lang.Issue
@@ -434,7 +433,7 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMu
         results.testClass("ExceptionTest").assertTestFailed("testThrow", equalTo('ExceptionTest$BadlyBehavedException: Broken readObject()'))
     }
 
-    @Requires([UnitTestPreconditions.Jdk14OrLater, IntegTestPreconditions.NotEmbeddedExecutor])
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     def "useful NPE messages are transported to the daemon"() {
         buildFile << """
             apply plugin:'java-library'

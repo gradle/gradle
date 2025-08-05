@@ -18,8 +18,7 @@ package org.gradle.internal.configuration.inputs
 
 import com.google.common.io.ByteStreams
 import com.google.common.io.CharStreams
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+
 
 import javax.annotation.Nullable
 import java.util.function.BiConsumer
@@ -701,7 +700,7 @@ class AccessTrackingPropertiesTest extends AbstractAccessTrackingMapTest {
         0 * onRemove._
     }
 
-    @Requires(value = UnitTestPreconditions.Jdk9OrLater, reason = "Properties.remove(entry(null, null)) throws NPE in Java 8")
+    
     def "entrySet().remove(entry(null, null)) is not tracked and doesn't throw"() {
         when:
         def result = getMapUnderTestToWrite().entrySet().remove(entry(null, null))

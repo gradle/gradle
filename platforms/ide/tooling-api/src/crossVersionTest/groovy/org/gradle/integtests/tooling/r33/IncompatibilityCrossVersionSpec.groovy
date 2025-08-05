@@ -16,19 +16,13 @@
 
 package org.gradle.integtests.tooling.r33
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
-import spock.lang.Ignore
 
-@Requires(
-    value = UnitTestPreconditions.Jdk8OrEarlier,
-    reason = "tests against old Gradle version that can only work with Java versions up to 8"
-)
 @ToolingApiVersion("current")
 class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
     def buildPluginWith(String gradleVersion) {
@@ -38,7 +32,7 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
         println "Building plugin with $gradleDist"
         def pluginDir = file("plugin")
         def pluginJar = pluginDir.file("plugin.jar")
-        def builder = new GradleBackedArtifactBuilder(new NoDaemonGradleExecuter(gradleDist, temporaryFolder).withWarningMode(null), pluginDir)
+        def builder = new GradleBackedArtifactBuilder(new NoDaemonGradleExecuter(gradleDist, temporaryFolder).withWarningMode(null).withJvm(AvailableJavaHomes.getJdk8()), pluginDir)
         builder.sourceFile("com/example/MyTask.java") << """
             package com.example;
 
@@ -71,15 +65,6 @@ class IncompatibilityCrossVersionSpec extends ToolingApiSpecification {
     def "can use plugin built with Gradle 3.0 with"() {
         expect:
         buildPluginWith("3.0")
-        assertWorks()
-    }
-
-    // Gradle 3.2 and 3.2.1 leaked internal types that fail when used with
-    // newer versions of Gradle.
-    @Ignore
-    def "can use plugin built with Gradle 3.2.1 with"() {
-        expect:
-        buildPluginWith("3.2.1")
         assertWorks()
     }
 

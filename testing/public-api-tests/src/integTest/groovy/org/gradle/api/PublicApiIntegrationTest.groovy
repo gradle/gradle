@@ -21,11 +21,8 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
 
 @Requires([
-    // We compile and execute build-logic with Java 17
-    UnitTestPreconditions.Jdk17OrLater,
     // Because of TestKit
     IntegTestPreconditions.NotEmbeddedExecutor
 ])

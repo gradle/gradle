@@ -75,7 +75,7 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
         result.assertTaskSkipped(":test")
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    
     def "compiles and executes a Java 9 test suite"() {
         given:
         buildFile << java9Build()
@@ -93,7 +93,7 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
 
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    
     def "compiles and executes a Java 9 test suite even if a module descriptor is on classpath"() {
         given:
         buildFile << java9Build()

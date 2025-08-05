@@ -28,7 +28,7 @@ import java.nio.file.Paths
 class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncrementalCompilationIntegrationTest {
     CompiledLanguage language = CompiledLanguage.JAVA
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    
     def "recompiles when module info changes"() {
         given:
         source("""
@@ -57,7 +57,7 @@ class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncr
         result.assertHasErrorOutput("package java.util.logging is not visible")
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    
     def "recompiles when module info is added"() {
         given:
         source("""
@@ -129,7 +129,7 @@ class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncr
         outputs.recompiledClasses('MyClass', 'Other')
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    
     def "recompiles all when constant used by annotation on module-info is changed"() {
         given:
         source("""

@@ -23,8 +23,6 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.GFileUtils
 import org.junit.Rule
 
@@ -58,8 +56,6 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         executer.withArguments('help', '--continuous', '-i').run().assertTasksExecuted(':help')
     }
 
-    //Java 9 and above needs --add-opens to make environment variable mutation work
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
     def "should capture basic data when a foreground daemon runs multiple builds"() {
         given:
         buildFile << """

@@ -16,19 +16,26 @@
 
 package org.gradle.testkit.runner
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil
 
+// These cannot run in embedded/debug mode because older versions of TestKit cannot embed newer versions of Gradle and vice versa when running on unsupported JDKs
+@NoDebug
 @NonCrossVersion
 @Requires(
-    value = [IntegTestPreconditions.NotEmbeddedExecutor, UnitTestPreconditions.Jdk15OrEarlier],
+    value = [IntegTestPreconditions.NotEmbeddedExecutor, IntegTestPreconditions.Java11HomeAvailable, IntegTestPreconditions.Java17HomeAvailable],
     reason = "Gradle 6.8.3 uses Groovy 2 and this does not support JDK16+"
 )
 class GradleRunnerCrossGroovyVersionIntegrationTest extends BaseGradleRunnerIntegrationTest {
+
+    def setup() {
+        propertiesFile.writeProperties("org.gradle.java.home": AvailableJavaHomes.getJdk11().javaHome.canonicalPath)
+    }
 
     def "current TestKit can run build with old Gradle version that uses Groovy 2"() {
         given:
@@ -67,14 +74,17 @@ class BuildLogicFunctionalTest extends Specification {
     @Rule public TemporaryFolder testProjectDir = new TemporaryFolder();
     File settingsFile
     File buildFile
+    File propertiesFile
 
     def setup() {
         settingsFile = new File(testProjectDir.getRoot(), 'settings.gradle')
         buildFile = new File(testProjectDir.getRoot(), 'build.gradle')
+        propertiesFile = new File(testProjectDir.getRoot(), 'gradle.properties')
     }
 
     def "capture groovy version"() {
         given:
+            propertiesFile << "org.gradle.java.home = ${TextUtil.escapeString(AvailableJavaHomes.getJdk17().javaHome.canonicalPath)}"
         settingsFile << "rootProject.name = 'hello-world'"
         buildFile << '''
             task testGroovyVersion {
@@ -89,7 +99,6 @@ class BuildLogicFunctionalTest extends Specification {
             .withProjectDir(testProjectDir.getRoot())
             .withArguments('testGroovyVersion', '--stacktrace', '--info')
             .withGradleInstallation(new File("${TextUtil.normaliseFileSeparators(buildContext.gradleHomeDir.absolutePath)}"))
-            .withDebug($debug)
             .build()
 
         then:

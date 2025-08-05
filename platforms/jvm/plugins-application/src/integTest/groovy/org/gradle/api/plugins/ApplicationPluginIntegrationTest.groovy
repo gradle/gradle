@@ -59,7 +59,7 @@ class ApplicationPluginIntegrationTest extends WellBehavedPluginTest {
         assertGeneratedWindowsStartScript()
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    
     def "can generate start scripts with module path"() {
         given:
         configureMainModule()
@@ -697,7 +697,7 @@ rootProject.name = 'sample'
         executed(':compileJava', ':processResources', ':classes', ':run')
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    
     def "runs the jar for modular applications"() {
         given:
         configureMainModule()
