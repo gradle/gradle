@@ -16,7 +16,6 @@
 
 package org.gradle.process.internal.worker
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.internal.TextUtil
 
@@ -24,8 +23,10 @@ class DefaultWorkerProcessBuilderIntegrationTest extends AbstractIntegrationSpec
 
     def "test classpath does not contain nonexistent entries"() {
         given:
-        def existingDir = TextUtil.escapeString(createDir("existing").absolutePath)
-        def nonExistingDir = TextUtil.escapeString(new File(existingDir, "Non exist path").absolutePath)
+        def existingDir = createDir("existing")
+
+        def pathToExistingDir = TextUtil.escapeString(existingDir.absolutePath)
+        def pathToNonExistingDir = TextUtil.escapeString(new File(testDirectory, "Non exist path").absolutePath)
 
         javaFile("src/test/java/ClasspathTest.java", """
             import org.junit.Test;
@@ -37,8 +38,8 @@ class DefaultWorkerProcessBuilderIntegrationTest extends AbstractIntegrationSpec
             import static org.junit.Assert.*;
 
             public class ClasspathTest {
-                private static final File EXISTING_DIR = new File("$existingDir");
-                private static final File NON_EXISTING_DIR = new File("$nonExistingDir");
+                private static final File EXISTING_DIR = new File("$pathToExistingDir");
+                private static final File NON_EXISTING_DIR = new File("$pathToNonExistingDir");
 
                 @Test
                 public void test() {
@@ -47,10 +48,12 @@ class DefaultWorkerProcessBuilderIntegrationTest extends AbstractIntegrationSpec
                         ).map(File::new)
                         .collect(Collectors.toList());
 
-                    runtimeClasspath.forEach(System.out::println);  // Help debugging
+                    System.out.println("CLASSPATH = ");
+                    runtimeClasspath.forEach(System.out::println);  // Helps debugging
 
                     assertTrue("Must contain existing dir: " + EXISTING_DIR, runtimeClasspath.contains(EXISTING_DIR));
                     assertTrue("Must contain existing dir with star: " + EXISTING_DIR, runtimeClasspath.contains(new File(EXISTING_DIR, "*")));
+
                     assertFalse("Must not contain non-existent path: " + NON_EXISTING_DIR, runtimeClasspath.contains(NON_EXISTING_DIR));
                     assertFalse("Must not contain non-existent path with star: " + NON_EXISTING_DIR, runtimeClasspath.contains(new File(NON_EXISTING_DIR, "*")));
                 }
@@ -63,7 +66,7 @@ class DefaultWorkerProcessBuilderIntegrationTest extends AbstractIntegrationSpec
             }
 
             repositories {
-                mavenCentral()
+                ${mavenCentralRepository()}
             }
 
             dependencies {
@@ -78,8 +81,8 @@ class DefaultWorkerProcessBuilderIntegrationTest extends AbstractIntegrationSpec
                     exceptionFormat = "full"
                 }
 
-                def existingDir = new File("$existingDir")
-                def nonExistingDir = new File("$nonExistingDir")
+                def existingDir = new File("$pathToExistingDir")
+                def nonExistingDir = new File("$pathToNonExistingDir")
 
                 def extraClasspath = files(
                     existingDir,
@@ -92,8 +95,13 @@ class DefaultWorkerProcessBuilderIntegrationTest extends AbstractIntegrationSpec
             }
         """
 
-        expect:
+        when:
         succeeds("test")
+
+        then:
+        // Verify that the test has run
+        outputContains("CLASSPATH = ")
+        outputContains(existingDir.absolutePath)
     }
 
 }
