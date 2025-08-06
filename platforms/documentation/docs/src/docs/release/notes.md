@@ -14,14 +14,26 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 
 This release features [1](), [2](), ... [n](), and more.
 
-<!--
-Include only their name, impactful features should be called out separately below.
- [Some person](https://github.com/some-person)
-
- THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
--->
-
 We would like to thank the following community members for their contributions to this release of Gradle:
+[Eng Zer Jun](https://github.com/Juneezee),
+[EunHyunsu](https://github.com/ehs208),
+[HeeChul Yang](https://github.com/yangchef1),
+[Jendrik Johannes](https://github.com/jjohannes),
+[Johnny Lim](https://github.com/izeye),
+[Junho Lee](https://github.com/junstory),
+[Kirill Gavrilov](https://github.com/gavvvr),
+[Matthew Haughton](https://github.com/3flex),
+[Na Minhyeok](https://github.com/NaMinhyeok),
+[Philip Wedemann](https://github.com/hfhbd),
+[Philipp Schneider](https://github.com/p-schneider),
+[Pradyumna C](https://github.com/pradyumnac26),
+[r-a-sattarov](https://github.com/r-a-sattarov),
+[Ryszard Perkowski](https://github.com/usultis),
+[Sebastian Schuberth](https://github.com/sschuberth),
+[SebastianHeil](https://github.com/SebastianHeil),
+[Staffan Al-Kadhimi](https://github.com/stafak),
+[winfriedgerlach](https://github.com/winfriedgerlach),
+[Xin Wang](https://github.com/scaventz).
 
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
