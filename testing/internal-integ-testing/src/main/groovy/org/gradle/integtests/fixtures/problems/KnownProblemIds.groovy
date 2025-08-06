@@ -153,14 +153,16 @@ class KnownProblemIds {
         'dependency-variant-resolution:ambiguous-variants': ['Multiple variants exist that would match the request'],
         'dependency-variant-resolution:no-compatible-variants': ['No variants exist that would match the request'],
         'dependency-variant-resolution:no-variants-with-matching-capabilities': ['No variants exist with capabilities that would match the request'],
-'dependency-variant-resolution:no-version-satisfies' : ['No version satisfies the constraints'],
+        'dependency-variant-resolution:no-version-satisfies' : ['No version satisfies the constraints'],
 
         'dependency-variant-resolution:ambiguous-artifact-transform': ['Multiple artifacts transforms exist that would satisfy the request'],
         'dependency-variant-resolution:no-compatible-artifact': ['No artifacts exist that would match the request'],
         'dependency-variant-resolution:ambiguous-artifacts': ['Multiple artifacts exist that would match the request'],
         'dependency-variant-resolution:unknown-artifact-selection-failure': ['Unknown artifact selection failure'],
-        'dependency-variant-resolution:incompatible-multiple-nodes' : ['Incompatible nodes of a single component were selected'],
-        'dependency-variant-resolution:unknown-resolution-failure' : ['Unknown resolution failure'],
+
+        'dependency-variant-resolution:incompatible-multiple-nodes': ['Incompatible nodes of a single component were selected'],
+
+        'dependency-variant-resolution:unknown-resolution-failure': ['Unknown resolution failure'],
 
         // scripts (build, setting, etc.) problems
         'scripts:multiple-candidates': ['Multiple script candidates'],
