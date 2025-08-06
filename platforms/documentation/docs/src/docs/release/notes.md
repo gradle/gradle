@@ -110,7 +110,7 @@ It returns the path of the build relative to the root of the build tree:
 * For the root build, it returns `:`.
 * For included builds, it returns their path relative to the root build (e.g., `:my-included-build`).
 
-This is equivalent to what [`BuildIdentifier.getBuildPath()`](javadoc/org/gradle/api/initialization/BuildIdentifier.html#getBuildPath--) provides, but it’s now available directly from the `Gradle` instance, making it easier to determine which build a given project belongs to.
+This is equivalent to what [`BuildIdentifier.getBuildPath()`](javadoc/org/gradle/api/artifacts/component/BuildIdentifier.html#getBuildPath()) provides, but it’s now available directly from the `Gradle` instance, making it easier to determine which build a given project belongs to.
 
 For example, to get the build path for a project:
 
