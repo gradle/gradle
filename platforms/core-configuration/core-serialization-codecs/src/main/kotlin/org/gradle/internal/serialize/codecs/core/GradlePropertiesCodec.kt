@@ -17,28 +17,33 @@
 package org.gradle.internal.serialize.codecs.core
 
 import org.gradle.api.internal.properties.GradleProperties
-import org.gradle.initialization.properties.DefaultGradleProperties
-import org.gradle.internal.Cast.uncheckedNonnullCast
+import org.gradle.initialization.DefaultGradlePropertiesController
+import org.gradle.initialization.GradlePropertiesController
+import org.gradle.initialization.GradlePropertiesListener
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.decodePreservingSharedIdentity
 import org.gradle.internal.serialize.graph.encodePreservingSharedIdentityOf
-import org.gradle.internal.serialize.graph.readMapInto
-import org.gradle.internal.serialize.graph.writeMap
+import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.serviceOf
 
 
 object GradlePropertiesCodec : Codec<GradleProperties> {
+
     override suspend fun WriteContext.encode(value: GradleProperties) {
+        require(value is DefaultGradlePropertiesController.ScopedGradleProperties)
         encodePreservingSharedIdentityOf(value) {
-            writeMap(value.properties)
+            write(value.propertyScope)
         }
     }
 
-    override suspend fun ReadContext.decode(): GradleProperties? {
+    override suspend fun ReadContext.decode(): GradleProperties {
         return decodePreservingSharedIdentity {
-            val properties = readMapInto { mutableMapOf() }
-            DefaultGradleProperties(uncheckedNonnullCast(properties))
+            val propertyScope = readNonNull<GradlePropertiesListener.PropertyScope>()
+            isolate.owner
+                .serviceOf<GradlePropertiesController>()
+                .getGradleProperties(propertyScope)
         }
     }
 }

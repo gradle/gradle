@@ -165,7 +165,7 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         then:
         outputContains '2!'
         configurationCache.assertStateStored()
-        outputContains "because the set of Gradle properties has changed: the value of 'gradleProp' was changed and 'unusedProperty' was removed."
+        outputContains "because Gradle property 'gradleProp' has changed."
 
         where:
         dynamicPropertyExpression << [

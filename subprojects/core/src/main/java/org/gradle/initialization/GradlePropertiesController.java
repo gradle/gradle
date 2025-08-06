@@ -88,6 +88,11 @@ public interface GradlePropertiesController {
     GradleProperties getGradleProperties(ProjectIdentity projectId);
 
     /**
+     * Returns the {@link GradleProperties} associated with the given scope.
+     */
+    GradleProperties getGradleProperties(GradlePropertiesListener.PropertyScope propertyScope);
+
+    /**
      * Loads build-scoped {@link GradleProperties} from the specified build root directory.
      * <p>
      * See {@link #getGradleProperties(BuildIdentifier) build-scoped properties} on which sources are considered.

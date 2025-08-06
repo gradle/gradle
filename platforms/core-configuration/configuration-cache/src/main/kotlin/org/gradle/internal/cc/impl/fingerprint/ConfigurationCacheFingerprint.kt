@@ -32,7 +32,6 @@ sealed class ConfigurationCacheFingerprint {
     data class GradleEnvironment(
         val gradleUserHomeDir: File,
         val jvm: String,
-        val startParameterProperties: Map<String, Any?>,
         /**
          * Whether to exclude from input tracking the undeclared inputs accessed
          * while resolving and storing work graph or while building the model result of the build action.
