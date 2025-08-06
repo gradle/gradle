@@ -51,6 +51,7 @@ dependencies {
     implementation(projects.buildOperations)
     implementation(projects.buildDiscoveryApi)
     implementation(projects.configurationProblemsBase)
+    implementation(projects.coreFlowServicesApi)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.execution)
     implementation(projects.functional)
