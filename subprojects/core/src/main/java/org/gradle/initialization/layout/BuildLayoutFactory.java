@@ -15,8 +15,9 @@
  */
 package org.gradle.initialization.layout;
 
+import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.initialization.BuildLogicFiles;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.scopes.Scope;
@@ -29,6 +30,7 @@ import java.io.File;
 @ServiceScope(Scope.Global.class)
 public class BuildLayoutFactory {
 
+    private static final String DEFAULT_SETTINGS_FILE_BASENAME = "settings";
     private final ScriptFileResolver scriptFileResolver;
 
     @Inject
@@ -61,7 +63,7 @@ public class BuildLayoutFactory {
 
     @Nullable
     public File findExistingSettingsFileIn(File directory) {
-        return scriptFileResolver.resolveScriptFile(directory, BuildLogicFiles.SETTINGS_FILE_BASENAME);
+        return scriptFileResolver.resolveScriptFile(directory, DEFAULT_SETTINGS_FILE_BASENAME);
     }
 
     @Nullable
@@ -83,7 +85,7 @@ public class BuildLayoutFactory {
     }
 
     private BuildLayout getLayoutWithDefaultSettingsFile(File dir) {
-        return layout(dir, new File(dir, BuildLogicFiles.DEFAULT_SETTINGS_FILE));
+        return layout(dir, new File(dir, Settings.DEFAULT_SETTINGS_FILE));
     }
 
     private BuildLayout layout(File rootDir, @Nullable File settingsFile) {
@@ -92,6 +94,6 @@ public class BuildLayoutFactory {
     }
 
     private static boolean isBuildSrc(File dir) {
-        return dir.getName().equals(BuildLogicFiles.BUILD_SOURCE_DIRECTORY);
+        return dir.getName().equals(SettingsInternal.BUILD_SRC);
     }
 }

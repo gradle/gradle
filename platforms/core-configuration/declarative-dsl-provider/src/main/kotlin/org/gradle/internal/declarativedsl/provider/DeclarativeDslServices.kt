@@ -18,14 +18,15 @@ package org.gradle.internal.declarativedsl.provider
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.model.ObjectFactory
+import org.gradle.initialization.layout.BuildLayoutConfiguration
 import org.gradle.initialization.layout.BuildLayoutFactory
-import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.interpreter.DeclarativeKotlinScriptEvaluator
 import org.gradle.internal.declarativedsl.interpreter.GradleProcessInterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.interpreter.MemoizedInterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.interpreter.StoringInterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.interpreter.defaultDeclarativeScriptEvaluator
 import org.gradle.internal.declarativedsl.interpreter.defaults.DeclarativeModelDefaultsHandler
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSchemaBuilder
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
@@ -80,5 +81,5 @@ object BuildServices : ServiceRegistrationProvider {
 
     private
     fun BuildLayoutFactory.settingsDir(gradle: GradleInternal): File =
-        getLayoutFor(gradle.startParameter.toBuildLayoutConfiguration()).settingsDir
+        getLayoutFor(BuildLayoutConfiguration(gradle.startParameter)).settingsDir
 }

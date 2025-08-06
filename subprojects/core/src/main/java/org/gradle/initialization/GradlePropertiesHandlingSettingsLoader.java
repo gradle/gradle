@@ -18,6 +18,7 @@ package org.gradle.initialization;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 
 public class GradlePropertiesHandlingSettingsLoader implements SettingsLoader {
@@ -33,7 +34,7 @@ public class GradlePropertiesHandlingSettingsLoader implements SettingsLoader {
 
     @Override
     public SettingsState findAndLoadSettings(GradleInternal gradle) {
-        SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(gradle.getStartParameter().toBuildLayoutConfiguration());
+        SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(gradle.getStartParameter()));
         BuildIdentifier buildId = gradle.getOwner().getBuildIdentifier();
         gradlePropertiesController.loadGradleProperties(buildId, settingsLocation.getSettingsDir(), true);
         return delegate.findAndLoadSettings(gradle);
