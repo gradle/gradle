@@ -679,4 +679,60 @@ Artifacts
         expect:
         succeeds("help")
     }
+
+    // This test fails with IP and intermediate model caching enabled
+    def "dependency graphs carry task dependencies"() {
+        settingsFile("""
+            include("producer")
+        """)
+
+        buildFile("""
+            plugins {
+                id("application")
+            }
+
+            application {
+                mainClass = "com.example.Consumer"
+            }
+
+            dependencies {
+                implementation(project(":producer"))
+            }
+        """)
+
+        file("src/main/java/com/example/Consumer.java") << """
+            package com.example;
+
+            import com.example.Producer;
+
+            public class Consumer {
+                public static void main(String[] args) {
+                    Producer producer = new Producer();
+                    System.out.println(producer.produce());
+                }
+            }
+        """
+
+        buildFile("producer/build.gradle", """
+            plugins {
+                id("java-library")
+            }
+        """)
+
+        file("producer/src/main/java/com/example/Producer.java") << """
+            package com.example;
+
+            public class Producer {
+                public String produce() {
+                    return "Produced";
+                }
+            }
+        """
+
+        when:
+        succeeds(":run")
+
+        then:
+        outputContains("Produced")
+    }
 }

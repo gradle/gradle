@@ -147,7 +147,7 @@ class ConfigurationCacheKeyTest {
                     configureOnDemand = false,
                     configurationCache = true,
                     isolatedProjects = startParameter.isolatedProjects.get(),
-                    intermediateModelCache = false,
+                    intermediateModelCache = startParameter.isolatedProjects.get(),
                     parallelToolingApiActions = false,
                     invalidateCoupledProjects = false,
                     modelAsProjectDependency = false,
