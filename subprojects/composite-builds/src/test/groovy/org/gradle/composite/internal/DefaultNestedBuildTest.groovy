@@ -16,7 +16,6 @@
 
 package org.gradle.composite.internal
 
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
@@ -45,7 +44,6 @@ class DefaultNestedBuildTest extends Specification {
     def action = Mock(Function)
     def services = new DefaultServiceRegistry()
     def buildDefinition = Mock(BuildDefinition)
-    def buildIdentifier = Mock(BuildIdentifier)
     def exceptionAnalyzer = Mock(ExceptionAnalyser)
     def buildTreeController = Mock(BuildTreeLifecycleController)
     def buildTreeControllerFactory = Mock(BuildTreeLifecycleControllerFactory)
@@ -70,7 +68,7 @@ class DefaultNestedBuildTest extends Specification {
             buildTreeController
         }
 
-        return new DefaultNestedBuild(buildIdentifier, Path.path(":a:b:c"), buildDefinition, owningBuild, tree)
+        return new DefaultNestedBuild(Path.path(":a:b:c"), buildDefinition, owningBuild, tree)
     }
 
     def "runs action and does not finish build"() {

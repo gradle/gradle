@@ -918,7 +918,7 @@ class ConfigurationCacheFingerprintWriter(
             writer.write(
                 ProjectSpecificFingerprint.ProjectIdentity(
                     project.buildTreePath,
-                    Path.path(project.buildIdentifier.buildPath),
+                    project.buildPath,
                     project.projectPath
                 )
             )

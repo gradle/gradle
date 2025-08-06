@@ -711,8 +711,11 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
     }
 
     ProjectComponentIdentifier projectId(String name) {
-        def path = name == ':' ? Path.ROOT : Path.ROOT.child(name)
-        return new DefaultProjectComponentIdentifier(DefaultBuildIdentifier.ROOT, path, path, name)
+        def id = name == ':'
+            ? ProjectIdentity.forRootProject(Path.ROOT, "root")
+            : ProjectIdentity.forSubproject(Path.ROOT, Path.ROOT.child(name))
+
+        return new DefaultProjectComponentIdentifier(id)
     }
 
     ProjectInternal project(String name) {
@@ -736,7 +739,6 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         build.loadedSettings >> settings
         build.buildIdentifier >> DefaultBuildIdentifier.ROOT
         build.identityPath >> Path.ROOT
-        build.calculateIdentityPathForProject(_) >> { Path path -> path }
         def services = new DefaultServiceRegistry()
         services.add(projectFactory)
         services.add(TestUtil.stateTransitionControllerFactory())
