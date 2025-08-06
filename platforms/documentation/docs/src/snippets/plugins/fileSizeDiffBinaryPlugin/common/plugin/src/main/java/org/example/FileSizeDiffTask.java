@@ -2,13 +2,12 @@ package org.example;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
-import javax.inject.Inject;
+import java.nio.file.Files;
 import java.io.File;
 import java.io.IOException;
 
@@ -22,11 +21,6 @@ public abstract class FileSizeDiffTask extends DefaultTask {
 
     @OutputFile
     public abstract RegularFileProperty getResultFile();
-
-    @Inject
-    public FileSizeDiffTask(ObjectFactory objects) {
-        getResultFile().set(getProject().getLayout().getBuildDirectory().file("diff-result.txt"));
-    }
 
     @TaskAction
     public void diff() throws IOException {
@@ -43,16 +37,9 @@ public abstract class FileSizeDiffTask extends DefaultTask {
         }
 
         File result = getResultFile().get().getAsFile();
-        result.getParentFile().mkdirs();
-        writeText(result, output);
+        Files.writeString(result.toPath(), output);
 
         System.out.println(output);
         System.out.println("Wrote diff result to " + result.getAbsolutePath());
-    }
-
-    private void writeText(File file, String content) throws IOException {
-        try (java.io.FileWriter writer = new java.io.FileWriter(file)) {
-            writer.write(content);
-        }
     }
 }

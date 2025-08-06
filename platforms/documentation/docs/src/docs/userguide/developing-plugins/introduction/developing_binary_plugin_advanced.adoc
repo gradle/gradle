@@ -101,7 +101,7 @@ The extension defines the plugin’s configurable inputs, two file properties in
 .src/main/java/org/example/FileSizeDiffExtension.java
 [source,java]
 ----
-include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/kotlin/plugin/src/main/java/org/example/FileSizeDiffExtension.java[]
+include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/common/plugin/src/main/java/org/example/FileSizeDiffExtension.java[]
 ----
 
 The two properties representing the input files are of the `RegularFileProperty` type which extends `Property` and are therefore <<lazy_eager_evaluation.adoc#lazy_evaluation,lazy>>.
@@ -113,7 +113,7 @@ The task does the bulk of the work:
 .src/main/java/org/example/FileSizeDiffTask.java
 [source,java]
 ----
-include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/kotlin/plugin/src/main/java/org/example/FileSizeDiffTask.java[]
+include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/common/plugin/src/main/java/org/example/FileSizeDiffTask.java[]
 ----
 
 The task defines two input file properties and one output file property:
@@ -138,7 +138,7 @@ This class wires up the extension and task when the plugin is applied:
 .src/main/java/org/example/FileSizeDiffPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/kotlin/plugin/src/main/java/org/example/FileSizeDiffPlugin.java[]
+include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/common/plugin/src/main/java/org/example/FileSizeDiffPlugin.java[]
 ----
 
 In the plugin class, we override the `apply` method, which is invoked when the plugin is applied to a project via `build.gradle(.kts)`.
@@ -146,18 +146,18 @@ In the plugin class, we override the `apply` method, which is invoked when the p
 Within this method, the plugin does two things:
 
 1. **Creates an extension named `filesizediff`:**
-This allows users to configure the plugin using a `fileSizeDiff { ... }` block in their build script.
+This allows users to configure the plugin using a `diff { ... }` block in their build script.
 The configuration values are stored in an instance of `FileSizeDiffExtension`.
 
 2. **Registers a task of type `FileSizeDiffTask`:**
-The task is given the name `fileSizeDiff`, and its properties (`file1` and `file2`) are mapped from the corresponding properties in the `fileSizeDiff` extension.
+The task is given the name `fileSizeDiff`, and its properties (`file1` and `file2`) are mapped from the corresponding properties in the `diff` extension.
 This ensures the task uses the values provided by the user in their build script.
 
 This enables the following usage in a `build.gradle(.kts)` file:
 
 ====
-include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/kotlin", files="consumer/build.gradle.kts"]
-include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/groovy", files="consumer/build.gradle"]
+include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/kotlin", files="build.gradle.kts"]
+include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/groovy", files="build.gradle"]
 ====
 
 [.text-right]
