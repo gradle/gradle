@@ -16,19 +16,22 @@
 
 package org.gradle.internal.scripts;
 
-import org.gradle.internal.initialization.BuildLogicFiles;
 import org.gradle.scripts.ScriptingLanguage;
 
 import java.util.List;
 
 public class ScriptFileUtil {
 
+    public static final String SETTINGS_FILE_BASE_NAME = "settings";
+
+    public static final String BUILD_FILE_BASE_NAME = "build";
+
     public static String[] getValidSettingsFileNames() {
-        return getFileNames(BuildLogicFiles.SETTINGS_FILE_BASENAME);
+        return getFileNames(SETTINGS_FILE_BASE_NAME);
     }
 
     public static String[] getValidBuildFileNames() {
-        return getFileNames(BuildLogicFiles.BUILD_FILE_BASENAME);
+        return getFileNames(BUILD_FILE_BASE_NAME);
     }
 
     public static String[] getValidExtensions() {

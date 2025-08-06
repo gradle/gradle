@@ -17,7 +17,6 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildSessionScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
@@ -41,7 +40,9 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.initialization.layout.BuildTreeLocations;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildLayoutValidator;
 import org.gradle.internal.buildevents.BuildStartedTime;
@@ -49,7 +50,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.DefaultChecksumService;
-import org.gradle.internal.initialization.BuildTreeLocations;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.InMemoryCacheFactory;
@@ -104,7 +104,7 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
 
     @Provides
     BuildTreeLocations createBuildTreeLocations(BuildLayoutFactory buildLayoutFactory, StartParameter startParameter) {
-        BuildLayout rootBuildLayout = buildLayoutFactory.getLayoutFor(((StartParameterInternal) startParameter).toBuildLayoutConfiguration());
+        BuildLayout rootBuildLayout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
         return new BuildTreeLocations(rootBuildLayout);
     }
 

@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.initialization;
+package org.gradle.initialization.layout;
 
-import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
