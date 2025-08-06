@@ -17,6 +17,7 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
+import org.gradle.util.DebugUtil;
 import org.gradle.util.GradleVersion;
 
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NO_DAEMON;
@@ -74,6 +75,6 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
 
     @Override
     protected boolean isDebuggerAttached() {
-        return isDebuggerAttachedImpl();
+        return DebugUtil.isDebuggerAttached();
     }
 }
