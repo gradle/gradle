@@ -27,6 +27,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
+import org.gradle.api.internal.classpath.RuntimeApiInfo;
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -240,8 +241,14 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     }
 
     @Provides
-    protected ImportsReader createImportsReader() {
-        return new DefaultImportsReader();
+    protected RuntimeApiInfo createRuntimeApiInfo(ModuleRegistry moduleRegistry) {
+        ClassPath apiInfoClasspath = moduleRegistry.getModule("gradle-runtime-api-info").getImplementationClasspath();
+        return RuntimeApiInfo.create(apiInfoClasspath);
+    }
+
+    @Provides
+    protected ImportsReader createImportsReader(RuntimeApiInfo runtimeApiInfo) {
+        return new DefaultImportsReader(runtimeApiInfo);
     }
 
     @Provides
@@ -345,8 +352,8 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     }
 
     @Provides
-    PluginModuleRegistry createPluginModuleRegistry(ModuleRegistry moduleRegistry) {
-        return new DefaultPluginModuleRegistry(moduleRegistry);
+    PluginModuleRegistry createPluginModuleRegistry(ModuleRegistry moduleRegistry, RuntimeApiInfo runtimeApiInfo) {
+        return new DefaultPluginModuleRegistry(moduleRegistry, runtimeApiInfo);
     }
 
     @Provides
