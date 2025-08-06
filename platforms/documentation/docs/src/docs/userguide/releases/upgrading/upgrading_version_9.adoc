@@ -37,9 +37,7 @@ The previous step will help you identify potential problems by issuing deprecati
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
 [[changes_9.2]]
-== Upgrading from 9.1 and earlier
-
-=== Deprecations
+== Upgrading from 9.1.0 and earlier
 
 === Potential breaking changes
 
@@ -47,6 +45,22 @@ The previous step will help you identify potential problems by issuing deprecati
 
 The incubating `ObjectFactory#dependencyCollector()` method has been removed.
 DependencyCollectors can still be instantiated within Gradle <<properties_providers.adoc#managed_types, managed types>>.
+
+=== Deprecations
+
+[[dependency_management_rules]]
+==== RuleSource-based dependency management APIs have been deprecated
+
+The link:{javadocPath}/org/gradle/model/RuleSource.html[`RuleSource`] based dependency management APIs have been deprecated and will be removed in Gradle 10.0.0.
+
+These APIs include:
+
+- link:{javadocPath}/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html#all(java.lang.Object)[`ComponentMetadataHandler.all(Object)`]
+- link:{javadocPath}/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html#all(java.lang.Object)[`ComponentMetadataHandler.withModule(Object,Object)`]
+- link:{javadocPath}/org/gradle/api/artifacts/ComponentSelectionRules.html#all(java.lang.Object)[`ComponentSelectionRules.all(Object)`]
+- link:{javadocPath}/org/gradle/api/artifacts/ComponentSelectionRules.html#withModule(java.lang.Object,java.lang.Object)[`ComponentSelectionRules.withModule(Object,Object)`]
+
+Instead of using these APIs, you should use the alternative methods that take a `ComponentMetadataRule` class or an `Action`.
 
 [[changes_9.1.0]]
 == Upgrading from 9.0.0 and earlier

@@ -522,6 +522,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         }
 
         then:
+        executer.expectDocumentedDeprecationWarning("The ComponentSelectionRules.all(Object) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_management_rules")
         checkDependencies()
 
     }
