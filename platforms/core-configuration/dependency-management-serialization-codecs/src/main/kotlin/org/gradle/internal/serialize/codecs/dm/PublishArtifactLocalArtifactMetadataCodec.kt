@@ -23,7 +23,6 @@ import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 
-
 /**
  * This class exists because PublishArtifactLocalArtifactMetadata is used as its own id, and so when serialized as an id causes
  * a lot of unnecessary and unserializable state to be dragged in.
@@ -37,6 +36,9 @@ object PublishArtifactLocalArtifactMetadataCodec : Codec<PublishArtifactLocalArt
     override suspend fun WriteContext.encode(value: PublishArtifactLocalArtifactMetadata) {
         write(value.componentIdentifier)
         value.publishArtifact.run {
+            // TODO: We need to also serialize the TaskDependencyContainer of the publish artifact.
+            // Otherwise, the artifacts that we load in the ProjectMetdataController are not able
+            // to be used by dependency resolution to build task dependency graphs.
             write(ImmutablePublishArtifact(name, extension, type, classifier, file))
         }
     }
