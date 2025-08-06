@@ -90,7 +90,7 @@ Precompiled script plugins are typically placed in either:
 
 === 2. Using a Composite Build
 
-**Precompiled script plugins** or **convention plugins** will often be found in a composite build with a name similar to `build-logic`:
+**Precompiled script plugins** or **convention plugins** will often be found in a <<composite_builds.adoc#efining_composite_builds,Composite Build>> with a name similar to `build-logic`:
 
 ====
 [.multi-language-sample]

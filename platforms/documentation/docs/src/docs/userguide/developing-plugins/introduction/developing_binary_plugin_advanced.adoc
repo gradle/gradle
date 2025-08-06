@@ -146,7 +146,7 @@ In the plugin class, we override the `apply` method, which is invoked when the p
 Within this method, the plugin does two things:
 
 1. **Creates an extension named `filesizediff`:**
-This allows users to configure the plugin using a `diff { ... }` block in their build script.
+This allows users to configure the plugin using a `diff {}` block in their build script.
 The configuration values are stored in an instance of `FileSizeDiffExtension`.
 
 2. **Registers a task of type `FileSizeDiffTask`:**
