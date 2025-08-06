@@ -380,9 +380,6 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val gradleUserHomeDir: File
             get() = startParameter.gradleUserHomeDir
 
-        override val startParameterProperties: Map<String, Any?>
-            get() = startParameter.gradleProperties
-
         override val allInitScripts: List<File>
             get() = startParameter.allInitScripts
 
@@ -456,9 +453,6 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val allInitScripts: List<File>
             get() = startParameter.allInitScripts
 
-        override val startParameterProperties: Map<String, Any?>
-            get() = startParameter.gradleProperties
-
         override val buildStartTime: Long
             get() = buildCommencedTimeProvider.currentTime
 
@@ -517,23 +511,19 @@ class ConfigurationCacheFingerprintController internal constructor(
             }
         }
 
-        override fun gradleProperty(propertyScope: GradlePropertiesListener.PropertyScope, propertyName: String): Any? {
-            return when (propertyScope) {
-                is GradlePropertiesListener.PropertyScope.Build -> {
-                    propertiesController
-                        .getGradleProperties(propertyScope.buildIdentifier)
-                        .findUnsafe(propertyName)
-                }
+        override fun gradleProperty(
+            propertyScope: GradlePropertiesListener.PropertyScope,
+            propertyName: String
+        ): Any? = propertiesController
+            .getGradleProperties(propertyScope)
+            .findUnsafe(propertyName)
 
-                is GradlePropertiesListener.PropertyScope.Project -> {
-                    propertiesController
-                        .getGradleProperties(propertyScope.projectIdentity)
-                        .findUnsafe(propertyName)
-                }
-
-                else -> error("Unsupported propertyScope $propertyScope")
-            }
-        }
+        override fun gradlePropertiesPrefixedBy(
+            propertyScope: GradlePropertiesListener.PropertyScope,
+            prefix: String
+        ): Map<String, String> = propertiesController
+            .getGradleProperties(propertyScope)
+            .getPropertiesWithPrefix(prefix)
     }
 
     private

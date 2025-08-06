@@ -37,8 +37,6 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource
 import org.gradle.api.internal.provider.sources.EnvironmentVariablesPrefixedByValueSource
 import org.gradle.api.internal.provider.sources.FileContentValueSource
-import org.gradle.api.internal.provider.sources.GradlePropertiesPrefixedByValueSource
-import org.gradle.api.internal.provider.sources.GradlePropertyValueSource
 import org.gradle.api.internal.provider.sources.SystemPropertiesPrefixedByValueSource
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource
 import org.gradle.api.internal.provider.sources.process.ProcessOutputValueSource
@@ -120,7 +118,6 @@ class ConfigurationCacheFingerprintWriter(
         val encryptionKeyHashCode: HashCode
         val gradleUserHomeDir: File
         val allInitScripts: List<File>
-        val startParameterProperties: Map<String, Any?>
         val buildStartTime: Long
         val cacheIntermediateModels: Boolean
         val modelAsProjectDependency: Boolean
@@ -193,7 +190,6 @@ class ConfigurationCacheFingerprintWriter(
             ConfigurationCacheFingerprint.GradleEnvironment(
                 host.gradleUserHomeDir,
                 jvmFingerprint(),
-                host.startParameterProperties,
                 host.ignoreInputsDuringConfigurationCacheStore,
                 host.instrumentationAgentUsed,
                 host.ignoredFileSystemCheckInputs
@@ -432,14 +428,6 @@ class ConfigurationCacheFingerprintWriter(
                     captureFile(file)
                     reportUniqueFileInput(file)
                 }
-            }
-
-            is GradlePropertyValueSource.Parameters -> {
-                // The set of Gradle properties is already an input
-            }
-
-            is GradlePropertiesPrefixedByValueSource.Parameters -> {
-                // The set of Gradle properties is already an input
             }
 
             is SystemPropertyValueSource.Parameters -> {
@@ -937,23 +925,6 @@ class ConfigurationCacheFingerprintWriter(
         fileObserved(scriptFile)
     }
 
-    override fun onGradlePropertiesByPrefix(
-        propertyScope: GradlePropertiesListener.PropertyScope,
-        prefix: String,
-        snapshot: Map<String, String>
-    ) {
-        if (shouldTrackGradlePropertyInput(gradlePropertiesByPrefix, propertyScope, prefix)) {
-            sink().write(
-                ConfigurationCacheFingerprint.GradlePropertiesPrefixedBy(
-                    propertyScope,
-                    prefix,
-                    snapshot
-                )
-            )
-            reportGradlePropertiesByPrefixInput(propertyScope, prefix)
-        }
-    }
-
     override fun onGradlePropertiesLoaded(
         propertyScope: GradlePropertiesListener.PropertyScope,
         propertiesDir: File
@@ -966,13 +937,32 @@ class ConfigurationCacheFingerprintWriter(
         )
     }
 
+    override fun onGradlePropertiesByPrefix(
+        propertyScope: GradlePropertiesListener.PropertyScope,
+        prefix: String,
+        snapshot: Map<String, String>
+    ) {
+        if (shouldTrackGradlePropertyInput(gradlePropertiesByPrefix, propertyScope, prefix)) {
+            // TODO:isolated consider tracking per project
+            buildScopedSink.write(
+                ConfigurationCacheFingerprint.GradlePropertiesPrefixedBy(
+                    propertyScope,
+                    prefix,
+                    snapshot
+                )
+            )
+            reportGradlePropertiesByPrefixInput(propertyScope, prefix)
+        }
+    }
+
     override fun onGradlePropertyAccess(
         propertyScope: GradlePropertiesListener.PropertyScope,
         propertyName: String,
         propertyValue: Any?
     ) {
         if (shouldTrackGradlePropertyInput(gradleProperties, propertyScope, propertyName)) {
-            sink().write(
+            // TODO:isolated could tracking per project
+            buildScopedSink.write(
                 ConfigurationCacheFingerprint.GradleProperty(
                     propertyScope,
                     propertyName,
@@ -1010,7 +1000,7 @@ class ConfigurationCacheFingerprintWriter(
             return
         }
         reportInput(scopedLocation(propertyScope, location), null) {
-            text("gradle property ")
+            text("Gradle property ")
             reference(propertyName)
         }
     }
@@ -1027,7 +1017,7 @@ class ConfigurationCacheFingerprintWriter(
             return
         }
         reportInput(scopedLocation(propertyScope, location), null) {
-            text("gradle property ") // To avoid introducing a separate subtree in the report
+            text("Gradle property ") // To avoid introducing a separate subtree in the report
             reference("$prefix*")
         }
     }

@@ -82,6 +82,17 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
     }
 
     @Override
+    public GradleProperties getGradleProperties(GradlePropertiesListener.PropertyScope propertyScope) {
+        if (propertyScope instanceof GradlePropertiesListener.PropertyScope.Build) {
+            return getGradleProperties(((GradlePropertiesListener.PropertyScope.Build) propertyScope).getBuildIdentifier());
+        }
+        if (propertyScope instanceof GradlePropertiesListener.PropertyScope.Project) {
+            return getGradleProperties(((GradlePropertiesListener.PropertyScope.Project) propertyScope).getProjectIdentity());
+        }
+        throw new IllegalArgumentException("Unsupported scope " + propertyScope);
+    }
+
+    @Override
     public void loadGradleProperties(ProjectIdentity projectId, File projectDir) {
         LoadedBuildScopedState loadedBuildProperties = getOrCreateGradleProperties(projectId.getBuildIdentifier())
             .checkLoaded();
@@ -98,7 +109,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
             new ProjectScopedGradleProperties(gradlePropertiesLoader, id, listener));
     }
 
-    private static abstract class ScopedGradleProperties implements GradleProperties {
+    public static abstract class ScopedGradleProperties implements GradleProperties {
 
         private final GradlePropertiesListener.PropertyScope propertyScope;
         private final GradlePropertiesListener listener;
@@ -112,6 +123,10 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         }
 
         protected abstract GradleProperties gradleProperties();
+
+        public GradlePropertiesListener.PropertyScope getPropertyScope() {
+            return propertyScope;
+        }
 
         @Override
         public @Nullable String find(String propertyName) {

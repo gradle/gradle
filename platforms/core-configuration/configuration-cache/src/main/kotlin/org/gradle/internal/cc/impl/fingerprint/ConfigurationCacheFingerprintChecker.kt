@@ -55,7 +55,6 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         val encryptionKeyHashCode: HashCode
         val gradleUserHomeDir: File
         val allInitScripts: List<File>
-        val startParameterProperties: Map<String, Any?>
         val buildStartTime: Long
         val invalidateCoupledProjects: Boolean
         val ignoreInputsDuringConfigurationCacheStore: Boolean
@@ -68,6 +67,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         fun hasValidBuildSrc(candidateBuildSrc: File): Boolean
         fun loadProperties(propertyScope: GradlePropertiesListener.PropertyScope, propertiesDir: File)
         fun gradleProperty(propertyScope: GradlePropertiesListener.PropertyScope, propertyName: String): Any?
+        fun gradlePropertiesPrefixedBy(propertyScope: GradlePropertiesListener.PropertyScope, prefix: String): Map<String, String>
     }
 
     private
@@ -271,8 +271,6 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 when {
                     host.gradleUserHomeDir != gradleUserHomeDir -> text("Gradle user home directory has changed")
                     jvmFingerprint() != jvm -> text("JVM has changed")
-                    host.startParameterProperties != startParameterProperties ->
-                        text("the set of Gradle properties has changed: ").text(detailedMessageForChanges(startParameterProperties, host.startParameterProperties))
 
                     host.ignoreInputsDuringConfigurationCacheStore != ignoreInputsDuringConfigurationCacheStore ->
                         text("the value of ignored configuration inputs flag (${StartParameterBuildOptions.ConfigurationCacheIgnoreInputsDuringStore.PROPERTY_NAME}) has changed")
@@ -332,13 +330,12 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             }
 
             is ConfigurationCacheFingerprint.GradlePropertiesPrefixedBy -> input.run {
-                // TODO:configuration-cache
-//                ifOrNull(snapshot != host.gradlePropertiesPrefixedBy(propertyScope, prefix)) {
-                ifOrNull(false) {
+                val current = host.gradlePropertiesPrefixedBy(propertyScope, prefix)
+                ifOrNull(snapshot != current) {
                     text("the set of Gradle properties prefixed by ")
                         .reference(prefix)
-                        .text(" has changed")
-//                        .text(detailedMessageForChanges(snapshot, current))
+                        .text(" has changed: ")
+                        .text(detailedMessageForChanges(snapshot, current))
                 }
             }
         }
