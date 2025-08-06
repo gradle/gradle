@@ -42,7 +42,7 @@ The previous step will help you identify potential problems by issuing deprecati
 === Deprecations
 
 [[dependency_multi_string_notation]]
-==== Deprecated multi-string dependency notation
+==== Deprecation of multi-string dependency notation
 
 In an effort to simplify and standardize the Gradle API, the multi-string dependency notation used in dependency management has been deprecated and will no longer be permitted in Gradle 10.
 Gradle will primarily accept dependency declarations in the form of a single string, with each dependency coordinate separated by a colon.
@@ -176,7 +176,7 @@ configurations.dependencyScope("implementation") {
 
 The link:{javadocPath}/org/gradle/api/reporting/ReportingExtension.html#file(String)[`file()` method] on `ReportingExtension` has been deprecated and will be removed in Gradle 10.0.0.
 
-Use `ReportingExtension.getBaseDirectory()` with `file(String)` or `dir(String)` instead.
+Instead, use `ReportingExtension.getBaseDirectory()` with `file(String)` or `dir(String)`.
 
 [[reporting_extension_api_doc_title]]
 ==== Deprecation of `ReportingExtension.getApiDocTitle()`
@@ -197,7 +197,7 @@ Instead, use one of the following:
 * Provide a <<incremental_build.adoc#sec:task_input_nested_inputs,`CommandLineArgumentProvider`>> to add arguments via `JavaForkOptions.getJvmArgumentProviders()`.
 
 [[archives-configuration]]
-==== Deprecated `archives` configuration
+==== Deprecation of `archives` configuration
 
 The `archives` configuration added by the <<base_plugin.adoc#base_plugin,`base` plugin>> has been deprecated and will be removed in Gradle 10.0.0.
 Adding artifacts to the `archives` configuration will now result in a deprecation warning.
@@ -218,7 +218,7 @@ tasks.named("assemble") {
 ----
 
 [[deprecate-visible-property]]
-==== Deprecated `Configuration.visible` property
+==== Deprecation of the `Configuration.visible` property
 
 Prior to Gradle 9.0.0, any configuration with `isVisible()` returning `true` would implicitly trigger artifact creation when running the `assemble` task.
 This behavior was removed in Gradle 9.0.0, and the `Configuration.visible` property no longer has any effect.
@@ -247,12 +247,13 @@ tasks.named("assemble") {
 ----
 
 [[deprecated-gradle-build-non-string-properties]]
-==== Non-String project properties in `GradleBuild` task
+==== Deprecation of non-string `projectProperties` in `GradleBuild` task
+
 The `GradleBuild` task now deprecates using non-String values in `startParameter.projectProperties`.
 While the type is declared as `Map<String, String>`, there was no strict enforcement, allowing non-String values to be set.
 This deprecated behavior will be removed in Gradle 10.0.0.
 
-If you are using non-String values in project properties, convert them to String representation:
+If you are using non-String values in project properties, convert them to `String` representation:
 
 ====
 [.multi-language-sample]
