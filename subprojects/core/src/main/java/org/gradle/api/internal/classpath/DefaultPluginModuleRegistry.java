@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.classpath;
 
-import org.gradle.internal.classloader.DefaultClassLoaderFactory;
-import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,23 +25,22 @@ import java.util.Set;
 public class DefaultPluginModuleRegistry implements PluginModuleRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPluginModuleRegistry.class);
     private final ModuleRegistry moduleRegistry;
-    private final ClassLoader runtimeApiInfoClassloader;
+    private final RuntimeApiInfo runtimeApiInfo;
 
-    public DefaultPluginModuleRegistry(ModuleRegistry moduleRegistry) {
+    public DefaultPluginModuleRegistry(ModuleRegistry moduleRegistry, RuntimeApiInfo runtimeApiInfo) {
         this.moduleRegistry = moduleRegistry;
-        this.runtimeApiInfoClassloader = new DefaultClassLoaderFactory()
-            .createIsolatedClassLoader("runtime-api-info", moduleRegistry.getModule("gradle-runtime-api-info").getImplementationClasspath());
+        this.runtimeApiInfo = runtimeApiInfo;
     }
 
     @Override
     public Set<Module> getApiModules() {
-        Properties properties = loadPluginProperties("gradle-plugins.properties");
+        Properties properties = runtimeApiInfo.getGradlePluginsProperties();
         return loadModules(properties);
     }
 
     @Override
     public Set<Module> getImplementationModules() {
-        Properties properties = loadPluginProperties("gradle-implementation-plugins.properties");
+        Properties properties = runtimeApiInfo.getGradleImplementationPluginsProperties();
         return loadModules(properties);
     }
 
@@ -58,9 +55,5 @@ public class DefaultPluginModuleRegistry implements PluginModuleRegistry {
             }
         }
         return modules;
-    }
-
-    private Properties loadPluginProperties(String resource) {
-        return GUtil.loadProperties(runtimeApiInfoClassloader.getResource(resource));
     }
 }
