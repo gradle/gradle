@@ -54,8 +54,8 @@ class JavaCompileToolchainCrossVersionTest extends ToolingApiSpecification imple
             it.newBuild().setEnvironmentVariables(System.getenv() + ["OTHER_JAVA_HOME": otherJvm.javaHome.absolutePath])
                 .forTasks(":compileJava").withArguments(
                     "--info",
-                    "-Porg.gradle.java.installations.fromEnv=OTHER_JAVA_HOME",
-                    "-Porg.gradle.java.installations.auto-detect=false",
+                    "-Dorg.gradle.java.installations.fromEnv=OTHER_JAVA_HOME",
+                    "-Dorg.gradle.java.installations.auto-detect=false",
             ).run()
         }
 

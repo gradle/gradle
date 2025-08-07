@@ -46,7 +46,7 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds("show", "-Porg.gradle.java.installations.auto-detect=false")
+        succeeds("show", "-Dorg.gradle.java.installations.auto-detect=false")
     }
 
     @Requires(IntegTestPreconditions.MoreThanOneJavaHomeAvailable)
@@ -74,8 +74,8 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
         when:
         result = executer
             .withEnvironmentVars([JDK1: new File("/unknown/env").absolutePath, JDK2: firstJavaHome])
-            .withArgument("-Porg.gradle.java.installations.paths=${new File("/unknown/path").absolutePath}," + secondJavaHome)
-            .withArgument("-Porg.gradle.java.installations.fromEnv=JDK1,JDK2")
+            .withArgument("-Dorg.gradle.java.installations.paths=${new File("/unknown/path").absolutePath}," + secondJavaHome)
+            .withArgument("-Dorg.gradle.java.installations.fromEnv=JDK1,JDK2")
             .withArgument("--info")
             .withTasks("show")
             .run()
@@ -88,8 +88,8 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
         when:
         result = executer
             .withEnvironmentVars([JDK1: new File("/unknown/env").absolutePath, JDK2: firstJavaHome])
-            .withArgument("-Porg.gradle.java.installations.paths=${new File("/other/path").absolutePath}," + secondJavaHome)
-            .withArgument("-Porg.gradle.java.installations.fromEnv=JDK1,JDK2")
+            .withArgument("-Dorg.gradle.java.installations.paths=${new File("/other/path").absolutePath}," + secondJavaHome)
+            .withArgument("-Dorg.gradle.java.installations.fromEnv=JDK1,JDK2")
             .withTasks("show")
             .run()
         then:
@@ -163,7 +163,7 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         result = executer
-                .withArgument("-Porg.gradle.java.installations.paths=" + relativePath(rootProject, javaHome))
+                .withArgument("-Dorg.gradle.java.installations.paths=" + relativePath(rootProject, javaHome))
                 .withTasks("show")
                 .inDirectory(new File(rootProject, subproject))
                 .run()

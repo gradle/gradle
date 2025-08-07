@@ -98,7 +98,7 @@ class DaemonJavaCompilerIntegrationTest extends AbstractJavaCompilerIntegrationS
         """
 
         expect:
-        executer.withArgument("-Porg.gradle.java.installations.paths=" + jdk.javaHome.absolutePath)
+        executer.withArgument("-Dorg.gradle.java.installations.paths=" + jdk.javaHome.absolutePath)
         succeeds("compileJava")
     }
 
