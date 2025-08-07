@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl
+package org.gradle.integtests.resolve
 
-class ConfigurationCacheDependencyResolutionFailuresIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+class ConfigurationCacheDependencyResolutionFailuresIntegrationTest extends AbstractIntegrationSpec {
 
     def 'nested dependency resolution failures are surfaced to the top'() {
         given:
@@ -52,7 +54,8 @@ class ConfigurationCacheDependencyResolutionFailuresIntegrationTest extends Abst
         '''
 
         when:
-        configurationCacheFails 'test'
+        executer.withConfigurationCacheEnabled()
+        fails 'test'
 
         then:
         failure.assertHasFailure("Configuration cache state could not be cached: field `files` of `Bean` bean found in field `__bean__` of task `:test` of type `Test`: error writing value of type 'org.gradle.api.internal.artifacts.configurations.DefaultLegacyConfiguration'") {

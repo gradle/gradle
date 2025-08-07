@@ -195,6 +195,10 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
         getBuildFile(KOTLIN)
     }
 
+    TestFile buildKotlinFile(@Language(value = "kotlin") String script) {
+        buildKotlinFile << script
+    }
+
     TestFile getBuildFile(GradleDsl dsl, Object... path) {
         testDirectory.file(*path, dsl.fileNameFor("build"))
     }
