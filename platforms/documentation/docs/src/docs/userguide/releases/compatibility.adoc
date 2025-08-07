@@ -56,7 +56,7 @@ See the table below for the Java version supported by a specific Gradle release:
 | 22| 8.7 | 8.8 and after
 | 23| 8.10 | 8.10 and after
 | 24| 8.14 | 8.14 and after
-| 25| 9.1.0 | N/A
+| 25| 9.1.0 | 9.1.0 and after
 | 26| N/A | N/A
 |===
 
