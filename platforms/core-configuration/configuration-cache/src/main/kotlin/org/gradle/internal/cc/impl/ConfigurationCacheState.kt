@@ -41,7 +41,6 @@ import org.gradle.initialization.BuildStructureOperationProject
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.initialization.ProjectsIdentifiedProgressDetails
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor
-import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Actions
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
@@ -72,6 +71,7 @@ import org.gradle.internal.extensions.core.serviceOf
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.file.FileSystemDefaultExcludesProvider
 import org.gradle.internal.flow.services.BuildFlowScope
+import org.gradle.internal.initialization.BuildLocations
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.serialize.codecs.core.IsolateContextSource
@@ -397,12 +397,12 @@ class ConfigurationCacheState(
 
     private
     fun GradleInternal.loadGradleProperties() {
-        val settingDir = serviceOf<BuildLayout>().settingsDir
+        val buildRootDir = serviceOf<BuildLocations>().buildRootDirectory
         val buildId = this.owner.buildIdentifier
         // Load Gradle properties from a file but skip applying system properties defined here.
         // System properties from the file may be mutated by the build logic, and the execution-time values are already restored by the EnvironmentChangeTracker.
         // Applying properties from file overwrites these modifications.
-        serviceOf<GradlePropertiesController>().loadGradleProperties(buildId, settingDir, false)
+        serviceOf<GradlePropertiesController>().loadGradleProperties(buildId, buildRootDir, false)
     }
 
     private

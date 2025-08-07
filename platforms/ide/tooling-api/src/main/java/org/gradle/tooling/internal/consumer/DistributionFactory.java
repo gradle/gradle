@@ -17,10 +17,10 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.initialization.BuildDiscoveryParameters;
+import org.gradle.internal.initialization.BuildLocator;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.time.Clock;
 import org.gradle.tooling.BuildCancelledException;
@@ -51,8 +51,8 @@ public class DistributionFactory {
      * Returns the default distribution to use for the specified project.
      */
     public Distribution getDefaultDistribution(File projectDir, boolean searchUpwards) {
-        BuildLayout layout = new BuildLayoutFactory().getLayoutFor(projectDir, searchUpwards);
-        WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(layout.getRootDirectory());
+        File buildRootDir = new BuildLocator().findBuildRootDirectory(new BuildDiscoveryParameters(projectDir, searchUpwards, false));
+        WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(buildRootDir);
         if (wrapper.getDistribution() != null) {
             return new ZippedDistribution(wrapper.getConfiguration(), clock);
         }

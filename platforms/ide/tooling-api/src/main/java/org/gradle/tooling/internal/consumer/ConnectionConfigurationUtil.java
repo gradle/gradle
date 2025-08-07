@@ -16,7 +16,8 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.initialization.BuildDiscoveryParameters;
+import org.gradle.internal.initialization.BuildLocator;
 import org.gradle.wrapper.GradleUserHomeLookup;
 import org.gradle.wrapper.PropertiesFileHandler;
 import org.jspecify.annotations.NullMarked;
@@ -51,10 +52,15 @@ public class ConnectionConfigurationUtil {
     }
 
     public static File determineRootDir(ConnectionParameters connectionParameters) {
-        return new BuildLayoutFactory().getLayoutFor(
+        return new BuildLocator().findBuildRootDirectory(buildDiscoveryParameters(connectionParameters));
+    }
+
+    private static BuildDiscoveryParameters buildDiscoveryParameters(ConnectionParameters connectionParameters) {
+        return new BuildDiscoveryParameters(
             connectionParameters.getProjectDir(),
-            connectionParameters.isSearchUpwards() != null ? connectionParameters.isSearchUpwards() : true
-        ).getRootDirectory();
+            connectionParameters.isSearchUpwards() != null ? connectionParameters.isSearchUpwards() : true,
+            false
+        );
     }
 
     public static File determineRealUserHomeDir(ConnectionParameters connectionParameters) {

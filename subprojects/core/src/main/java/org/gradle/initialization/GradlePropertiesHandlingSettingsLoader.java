@@ -18,24 +18,26 @@ package org.gradle.initialization;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.initialization.BuildLocator;
+
+import java.io.File;
 
 public class GradlePropertiesHandlingSettingsLoader implements SettingsLoader {
     private final SettingsLoader delegate;
-    private final BuildLayoutFactory buildLayoutFactory;
+    private final BuildLocator buildLocator;
     private final GradlePropertiesController gradlePropertiesController;
 
-    public GradlePropertiesHandlingSettingsLoader(SettingsLoader delegate, BuildLayoutFactory buildLayoutFactory, GradlePropertiesController gradlePropertiesController) {
+    public GradlePropertiesHandlingSettingsLoader(SettingsLoader delegate, BuildLocator buildLocator, GradlePropertiesController gradlePropertiesController) {
         this.delegate = delegate;
-        this.buildLayoutFactory = buildLayoutFactory;
+        this.buildLocator = buildLocator;
         this.gradlePropertiesController = gradlePropertiesController;
     }
 
     @Override
     public SettingsState findAndLoadSettings(GradleInternal gradle) {
-        SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(gradle.getStartParameter().toBuildLayoutConfiguration());
+        File buildRootDir = buildLocator.findBuildRootDirectory(gradle.getStartParameter().toBuildDiscoveryParameters());
         BuildIdentifier buildId = gradle.getOwner().getBuildIdentifier();
-        gradlePropertiesController.loadGradleProperties(buildId, settingsLocation.getSettingsDir(), true);
+        gradlePropertiesController.loadGradleProperties(buildId, buildRootDir, true);
         return delegate.findAndLoadSettings(gradle);
     }
 }
