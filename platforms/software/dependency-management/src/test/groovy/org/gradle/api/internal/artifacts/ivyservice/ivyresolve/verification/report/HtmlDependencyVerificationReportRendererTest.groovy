@@ -106,12 +106,9 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         bodyContainsExact("Second section 0 error")
     }
 
-    def "reports sticky tip on error"() {
+    def "reports sticky tip"() {
         given:
         renderer.startNewSection(":someConfiguration")
-        renderer.startNewArtifact(artifact()) {
-            renderer.reportFailure(checksumFailure())
-        }
 
         when:
         generateReport()
