@@ -75,7 +75,7 @@ The directory of our plugin looks as follows:
 
 == 1. Unit Test
 
-Unit tests validate the internal behavior of your plugin in a lightweight, isolated project.
+*Unit tests* validate the internal behavior of your plugin in a lightweight, isolated project.
 These tests simulate applying your plugin without needing a full Gradle execution.
 
 They test:
@@ -97,7 +97,7 @@ Unit tests are fast and useful for verifying the basic mechanics of your plugin 
 
 == 2. Functional Test
 
-Functional tests (also known as end-to-end plugin tests) use Gradle's <<test_kit.adoc#test_kit,`TestKit`>> to launch real Gradle builds in a temporary directory.
+*Functional tests* (also known as end-to-end plugin tests) use Gradle's <<test_kit.adoc#test_kit,`TestKit`>> to launch real Gradle builds in a temporary directory.
 This is how you verify your plugin works correctly in real-world usage.
 
 They test:
@@ -140,7 +140,7 @@ You can optionally create a consumer project that uses your plugin:
 .
 ├── settings.gradle.kts // Include custom plugin
 ├── build.gradle.kts    // Applies custom plugin
-│ 
+│
 └── plugin
     ├── settings.gradle.kts
     ├── build.gradle.kts
@@ -155,7 +155,7 @@ You can optionally create a consumer project that uses your plugin:
 .
 ├── settings.gradle.kts // Include custom plugin
 ├── build.gradle.kts    // Applies custom plugin
-│ 
+│
 └── plugin
     ├── settings.gradle
     ├── build.gradle
