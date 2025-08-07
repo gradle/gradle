@@ -47,6 +47,7 @@ class DefaultGradleDistribution implements GradleDistribution {
         22: "8.8",
         23: "8.10",
         24: "8.14",
+        25: "9.1.0",
     ]
 
     /**
