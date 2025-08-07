@@ -19,8 +19,6 @@ package org.gradle.internal.cc.impl
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import spock.lang.Issue
 
-import static org.junit.Assume.assumeFalse
-
 class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements ValidationMessageChecker {
 
     def setup() {
@@ -29,12 +27,6 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
     @Issue("https://github.com/gradle/gradle/issues/13333")
     def "absent #operator orElse #orElseKind used as task input"() {
-
-        assumeFalse(
-            'task dependency inference for orElse(taskOutput) not implemented yet!',
-            orElseKind == 'task output'
-        )
-
         given:
         def configurationCache = newConfigurationCacheFixture()
         buildKotlinFile """
