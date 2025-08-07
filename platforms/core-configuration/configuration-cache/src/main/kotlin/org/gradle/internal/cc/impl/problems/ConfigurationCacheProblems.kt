@@ -182,7 +182,11 @@ class ConfigurationCacheProblems(
     }
 
     override fun onExecutionTimeProblem(problem: PropertyProblem) {
-        val severity = if (isWarningMode) ProblemSeverity.Deferred else ProblemSeverity.Interrupting
+        val severity = when {
+            isWarningMode -> ProblemSeverity.Deferred
+            cacheAction == SkipStore || degradationDecision.shouldDegrade -> ProblemSeverity.SuppressedSilently
+            else -> ProblemSeverity.Interrupting
+        }
         onProblem(problem, severity)
     }
 
