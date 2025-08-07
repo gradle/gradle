@@ -950,7 +950,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         );
     }
 
-    private static Problem toProblem(InternalBasicProblemDetailsVersion3 basicProblemDetails) {
+    public static Problem toProblem(InternalBasicProblemDetailsVersion3 basicProblemDetails) {
         List<InternalLocation> originLocations;
         List<InternalLocation> contextualLocations;
         if (basicProblemDetails instanceof InternalBasicProblemDetailsVersion4) {
@@ -1252,7 +1252,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     @Nullable
-    private static Failure toFailure(InternalFailure origFailure) {
+    public static Failure toFailure(InternalFailure origFailure) {
         if (origFailure == null) {
             return null;
         }

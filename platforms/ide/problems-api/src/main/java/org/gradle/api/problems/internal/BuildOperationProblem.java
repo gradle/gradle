@@ -26,7 +26,6 @@ import org.gradle.operations.problems.ProblemDefinition;
 import org.gradle.operations.problems.ProblemGroup;
 import org.gradle.operations.problems.ProblemLocation;
 import org.gradle.operations.problems.ProblemSeverity;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -84,7 +83,6 @@ public class BuildOperationProblem implements Problem {
         return convertProblemLocations(problem.getContextualLocations());
     }
 
-    @NonNull
     private ImmutableList<ProblemLocation> convertProblemLocations(List<org.gradle.api.problems.ProblemLocation> locations) {
         ImmutableList.Builder<ProblemLocation> builder = ImmutableList.builder();
         for (org.gradle.api.problems.ProblemLocation location : locations) {
@@ -111,7 +109,6 @@ public class BuildOperationProblem implements Problem {
         throw new IllegalArgumentException("Unknown location type: " + location.getClass() + ", location: '" + location + "'");
     }
 
-    @NonNull
     private static FileLocation convertToBuildOperationFileLocation(org.gradle.api.problems.ProblemLocation location) {
         if (location instanceof org.gradle.api.problems.LineInFileLocation) {
             return new BuildOperationLineInFileLocation((org.gradle.api.problems.LineInFileLocation) location);

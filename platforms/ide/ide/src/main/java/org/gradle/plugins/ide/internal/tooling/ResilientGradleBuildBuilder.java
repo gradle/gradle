@@ -20,7 +20,6 @@ import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
-import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.event.types.DefaultFailure;
@@ -29,13 +28,18 @@ import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.plugins.ide.internal.tooling.model.BasicGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleBuild;
+import org.gradle.tooling.events.problems.Problem;
+import org.gradle.tooling.internal.consumer.parameters.BuildProgressListenerAdapter;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.protocol.InternalFailure;
+import org.gradle.tooling.internal.provider.runner.ProblemsProgressEventUtils;
 import org.jspecify.annotations.NullMarked;
 
-import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static java.util.stream.Collectors.toList;
 
 @NullMarked
 public class ResilientGradleBuildBuilder extends GradleBuildBuilder {
@@ -83,23 +87,32 @@ public class ResilientGradleBuildBuilder extends GradleBuildBuilder {
         // Make sure the project tree has been loaded and can be queried (but not necessarily configured)
         ensureProjectsLoaded(targetBuild);
 
-//        what to do with broken brokenSettings?
         Failure failure = brokenBuilds.get(targetBuild);
         if (failure != null) {
             @SuppressWarnings("unused")
-            Collection<InternalProblem> problems = problemRegistry.getProblemLocator().findInHierachy(failure.getOriginal());
+            List<Problem> problems = problemRegistry.getProblemLocator()
+                .findInHierachy(failure.getOriginal())
+                .stream()
+                .map(problem -> BuildProgressListenerAdapter.toProblem(ProblemsProgressEventUtils.createDefaultProblemDetails(problem)))
+                .collect(toList());
             InternalFailure internalFailure = DefaultFailure.fromFailure(failure, unused -> null);
-            model.setFailure(internalFailure);
+            org.gradle.tooling.Failure tapiFailure = BuildProgressListenerAdapter.toFailure(internalFailure);
+            model.setFailure(tapiFailure);
+            model.setProblems(problems);
         } else if (!brokenSettings.isEmpty()) {
             Map.Entry<SettingsInternal, Failure> settingsEntry = brokenSettings.entrySet().iterator().next();
             ProjectDescriptor rootProject = settingsEntry.getKey().getRootProject();
             BasicGradleProject root = convertRoot(targetBuild, rootProject);
             model.setRootProject(root);
             model.addProject(root);
-//            model.setBuildIdentifier(new DefaultBuildIdentifier(settingsEntry.getKey().getRootDir()));
             @SuppressWarnings("unused")
-            Collection<InternalProblem> problems = problemRegistry.getProblemLocator().findInHierachy(settingsEntry.getValue().getOriginal());
-            model.setFailure(DefaultFailure.fromFailure(settingsEntry.getValue(), unused -> null));
+            List<Problem> problems = problemRegistry.getProblemLocator()
+                .findInHierachy(settingsEntry.getValue().getOriginal())
+                .stream()
+                .map(problem -> BuildProgressListenerAdapter.toProblem(ProblemsProgressEventUtils.createDefaultProblemDetails(problem)))
+                .collect(toList());
+            model.setProblems(problems);
+            model.setFailure(BuildProgressListenerAdapter.toFailure(DefaultFailure.fromFailure(settingsEntry.getValue(), unused -> null)));
         }
 
         GradleInternal gradle = targetBuild.getMutableModel();
