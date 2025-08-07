@@ -57,7 +57,8 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         model.build.failure != null
         model.build.failure.message.contains("Script compilation error")
         model.build.problems.size() == 1
-        model.build.problems.get(0).message.contains("Script compilation error")
+        model.build.problems.get(0).definition.id.displayName.contains("Kotlin DSL script compilation")
+//            .message.contains("Script compilation error")
     }
 
     def "basic project - broken root build file with build action"() {

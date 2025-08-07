@@ -20,11 +20,12 @@ import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.problems.Problem;
 
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.io.StringWriter;
 import java.util.Collections;
 import java.util.List;
 
-public class DefaultFailure implements Failure {
+public class DefaultFailure implements Failure, Serializable {
 
     private final String message;
     private final String description;

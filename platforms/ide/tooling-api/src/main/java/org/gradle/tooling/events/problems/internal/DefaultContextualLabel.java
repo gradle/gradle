@@ -20,8 +20,10 @@ import org.gradle.tooling.events.problems.ContextualLabel;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import java.io.Serializable;
+
 @NullMarked
-public class DefaultContextualLabel implements ContextualLabel {
+public class DefaultContextualLabel implements ContextualLabel, Serializable {
 
     private final String contextualLabel;
 

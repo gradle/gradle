@@ -21,10 +21,11 @@ import org.gradle.tooling.FileComparisonTestAssertionFailure;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.List;
 
 @NullMarked
-public class DefaultFileComparisonTestAssertionFailure extends DefaultTestAssertionFailure implements FileComparisonTestAssertionFailure {
+public class DefaultFileComparisonTestAssertionFailure extends DefaultTestAssertionFailure implements FileComparisonTestAssertionFailure, Serializable {
 
     private final byte[] expectedContent;
     private final byte[] actualContent;

@@ -19,9 +19,10 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.TestFrameworkFailure;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class DefaultTestFrameworkFailure extends DefaultFailure implements TestFrameworkFailure {
+public class DefaultTestFrameworkFailure extends DefaultFailure implements TestFrameworkFailure, Serializable {
 
     private final String className;
     private final String stacktrace;

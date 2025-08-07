@@ -20,10 +20,11 @@ import org.gradle.tooling.events.problems.ProblemGroup;
 import org.gradle.tooling.events.problems.ProblemId;
 import org.jspecify.annotations.NullMarked;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 @NullMarked
-public class DefaultProblemId implements ProblemId {
+public class DefaultProblemId implements ProblemId, Serializable {
 
     private final String name;
     private final String displayName;

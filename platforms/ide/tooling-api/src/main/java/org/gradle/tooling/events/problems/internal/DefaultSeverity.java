@@ -21,7 +21,9 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.gradle.tooling.events.problems.Severity;
 
-public class DefaultSeverity implements Severity {
+import java.io.Serializable;
+
+public class DefaultSeverity implements Severity, Serializable {
 
     private final int severity;
     private final boolean known;

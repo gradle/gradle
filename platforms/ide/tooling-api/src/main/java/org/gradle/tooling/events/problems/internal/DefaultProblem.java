@@ -27,10 +27,11 @@ import org.gradle.tooling.events.problems.Solution;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.List;
 
 @NullMarked
-public class DefaultProblem implements Problem {
+public class DefaultProblem implements Problem, Serializable {
     private final ProblemDefinition problemDefinition;
     private final ContextualLabel contextualLabel;
     private final Details details;

@@ -18,7 +18,9 @@ package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.tooling.events.problems.LineInFileLocation;
 
-public class DefaultLineInFileLocation extends DefaultFileLocation implements LineInFileLocation {
+import java.io.Serializable;
+
+public class DefaultLineInFileLocation extends DefaultFileLocation implements LineInFileLocation, Serializable {
     private final int line;
     private final int column;
     private final int length;

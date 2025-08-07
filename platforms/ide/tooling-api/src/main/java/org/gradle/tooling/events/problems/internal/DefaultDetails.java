@@ -19,8 +19,10 @@ package org.gradle.tooling.events.problems.internal;
 import org.gradle.tooling.events.problems.Details;
 import org.jspecify.annotations.NullMarked;
 
+import java.io.Serializable;
+
 @NullMarked
-public class DefaultDetails implements Details {
+public class DefaultDetails implements Details, Serializable {
 
     private final String details;
 

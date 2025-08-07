@@ -18,7 +18,9 @@ package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.tooling.events.problems.OffsetInFileLocation;
 
-public class DefaultOffsetInFileLocation extends DefaultFileLocation implements OffsetInFileLocation {
+import java.io.Serializable;
+
+public class DefaultOffsetInFileLocation extends DefaultFileLocation implements OffsetInFileLocation, Serializable {
     private final int offset;
     private final int length;
 

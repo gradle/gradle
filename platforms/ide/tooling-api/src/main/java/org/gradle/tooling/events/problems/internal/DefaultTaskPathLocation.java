@@ -18,7 +18,9 @@ package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.tooling.events.problems.TaskPathLocation;
 
-public class DefaultTaskPathLocation implements TaskPathLocation {
+import java.io.Serializable;
+
+public class DefaultTaskPathLocation implements TaskPathLocation, Serializable {
 
     private final String buildTreePath;
 

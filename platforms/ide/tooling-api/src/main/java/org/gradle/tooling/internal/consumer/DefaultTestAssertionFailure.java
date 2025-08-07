@@ -19,9 +19,10 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.TestAssertionFailure;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class DefaultTestAssertionFailure extends DefaultFailure implements TestAssertionFailure {
+public class DefaultTestAssertionFailure extends DefaultFailure implements TestAssertionFailure, Serializable {
     private final String expected;
     private final String actual;
     private final String stacktrace;
