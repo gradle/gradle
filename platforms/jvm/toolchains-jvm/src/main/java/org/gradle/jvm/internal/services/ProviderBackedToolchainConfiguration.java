@@ -70,15 +70,16 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
                     );
                 }
             } else {
-                emitDeprecatedWarning(propertyName);
+                emitDeprecatedWarning(propertyName, startParameter.getProjectProperties().get(propertyName));
             }
         }
 
         return Optional.ofNullable(providerFactory.gradleProperty(propertyName).getOrElse(System.getProperty(propertyName)));
     }
 
-    private static void emitDeprecatedWarning(String propertyName) {
-        DeprecationLogger.deprecateAction("Specifying '" + propertyName + "' as a project property")
+    private static void emitDeprecatedWarning(String propertyName, String value) {
+        DeprecationLogger.deprecateAction("Specifying '" + propertyName + "' as a project property on the command line")
+            .withAdvice("Instead, specify it as a Gradle property, i.e. `-D" + propertyName + "=" + value + "`.")
             .willBecomeAnErrorInGradle10()
             .withUpgradeGuideSection(9, "toolchain-project-properties")
             .nagUser();

@@ -30,9 +30,10 @@ class ToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executer.expectDocumentedDeprecationWarning(
-            "Specifying 'org.gradle.java.installations.auto-detect' as a project property has been deprecated. " +
-                "This will fail with an error in Gradle 10. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#toolchain-project-properties"
+            "Specifying 'org.gradle.java.installations.auto-detect' as a project property on the command line has been deprecated." +
+                " This will fail with an error in Gradle 10." +
+                " Instead, specify it as a Gradle property, i.e. `-Dorg.gradle.java.installations.auto-detect=false`." +
+                " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#toolchain-project-properties"
         )
         executer.withToolchainDetectionEnabled()
         succeeds("printProperty")
@@ -53,9 +54,10 @@ class ToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executer.expectDocumentedDeprecationWarning(
-            "Specifying 'org.gradle.java.installations.auto-detect' as a project property has been deprecated. " +
-                "This will fail with an error in Gradle 10. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#toolchain-project-properties"
+            "Specifying 'org.gradle.java.installations.auto-detect' as a project property on the command line has been deprecated." +
+                " This will fail with an error in Gradle 10." +
+                " Instead, specify it as a Gradle property, i.e. `-Dorg.gradle.java.installations.auto-detect=false`." +
+                " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#toolchain-project-properties"
         )
         executer.withToolchainDetectionEnabled()
         succeeds("printProperty")
