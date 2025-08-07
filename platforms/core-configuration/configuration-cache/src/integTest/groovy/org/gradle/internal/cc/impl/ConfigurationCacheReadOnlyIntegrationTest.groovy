@@ -143,4 +143,57 @@ class ConfigurationCacheReadOnlyIntegrationTest extends AbstractConfigurationCac
         failure.assertHasCause("Invocation of 'Task.project' by task ':broken' at execution time is unsupported with the configuration cache.")
         failure.assertHasFailures(1)
     }
+
+    def "should not fail on CC problems while evaluating lazy properties in Groovy in read-only mode"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile """
+        class TaskWithLazyProperty extends DefaultTask {
+            private String value
+            @Input
+            String getLazyValue() {
+                if (value == null) {
+                    value = project.name
+                }
+                return value
+            }
+        }
+        tasks.register("lazy", TaskWithLazyProperty) { task ->
+           doLast {
+               println("Value is " + task.lazyValue)
+           }
+        }
+        """
+
+        when:
+        configurationCacheRun("lazy", ENABLE_READ_ONLY_CACHE)
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+        result.assertTaskExecuted(":lazy")
+    }
+
+    def "should not fail on CC problems while evaluating lazy properties in Kotlin in read-only mode"() {
+        def configurationCache = newConfigurationCacheFixture()
+
+        buildKotlinFile """
+        abstract class TaskWithLazyProperty: DefaultTask() {
+            @get:Input
+            val lazyValue: String by lazy {
+                this.project.name
+            }
+        }
+        tasks.register("lazy", TaskWithLazyProperty::class) {
+            doLast {
+                println("Value is " + lazyValue)
+            }
+        }
+        """
+
+        when:
+        configurationCacheRun("lazy", ENABLE_READ_ONLY_CACHE)
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+        result.assertTaskExecuted(":lazy")
+    }
 }
