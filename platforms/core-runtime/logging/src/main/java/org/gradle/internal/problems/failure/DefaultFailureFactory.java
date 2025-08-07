@@ -21,8 +21,9 @@ import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.ProblemLocator;
-import org.gradle.internal.exceptions.MultiCauseException;
+import org.gradle.internal.InternalTransformer;
 import org.gradle.util.internal.CollectionUtils;
+import org.gradle.util.internal.MultiCauseExceptionUtil;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -116,7 +117,7 @@ public class DefaultFailureFactory implements FailureFactory {
 
         private static SuppressedAndCauses getSuppressedAndCauses(Throwable failure) {
             Throwable[] suppressed = getSuppressed(failure);
-            List<Throwable> causes = getCauses(failure);
+            List<Throwable> causes = MultiCauseExceptionUtil.getCauses(failure);
             return new SuppressedAndCauses(suppressed, causes);
         }
 
@@ -129,17 +130,6 @@ public class DefaultFailureFactory implements FailureFactory {
             }
 
             return parent.getSuppressed();
-        }
-
-        private static List<Throwable> getCauses(Throwable parent) {
-            ImmutableList.Builder<Throwable> causes = new ImmutableList.Builder<Throwable>();
-            if (parent instanceof MultiCauseException) {
-                causes.addAll(((MultiCauseException) parent).getCauses());
-            } else if (parent.getCause() != null) {
-                causes.add(parent.getCause());
-            }
-
-            return causes.build();
         }
 
         private List<Failure> convertSuppressed(SuppressedAndCauses suppressedAndCauses) {

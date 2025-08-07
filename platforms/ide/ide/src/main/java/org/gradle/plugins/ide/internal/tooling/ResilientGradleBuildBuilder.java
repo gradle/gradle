@@ -87,18 +87,9 @@ public class ResilientGradleBuildBuilder extends GradleBuildBuilder {
         Failure failure = brokenBuilds.get(targetBuild);
         if (failure != null) {
             @SuppressWarnings("unused")
-            Collection<InternalProblem> problems = problemRegistry.getProblemLocator().findAll(failure.getOriginal());
+            Collection<InternalProblem> problems = problemRegistry.getProblemLocator().findInHierachy(failure.getOriginal());
             InternalFailure internalFailure = DefaultFailure.fromFailure(failure, unused -> null);
             model.setFailure(internalFailure);
-//            problems.getInternalReporter().report(
-//                ProblemId.create("kotlin-dsl-script-compilation-failure", "Kotlin DSL script compilation failure", GradleCoreProblemGroup.compilation().kotlinDsl()), spec -> {
-////                spec.ProblemId.create();
-//
-////                internalFailure.getMessage(),
-////                internalFailure.getDescription(),
-////                internalFailure.getProblems()
-//                }
-//            );
         } else if (!brokenSettings.isEmpty()) {
             Map.Entry<SettingsInternal, Failure> settingsEntry = brokenSettings.entrySet().iterator().next();
             ProjectDescriptor rootProject = settingsEntry.getKey().getRootProject();
@@ -107,7 +98,7 @@ public class ResilientGradleBuildBuilder extends GradleBuildBuilder {
             model.addProject(root);
 //            model.setBuildIdentifier(new DefaultBuildIdentifier(settingsEntry.getKey().getRootDir()));
             @SuppressWarnings("unused")
-            Collection<InternalProblem> problems = problemRegistry.getProblemLocator().findAll(settingsEntry.getValue().getOriginal());
+            Collection<InternalProblem> problems = problemRegistry.getProblemLocator().findInHierachy(settingsEntry.getValue().getOriginal());
             model.setFailure(DefaultFailure.fromFailure(settingsEntry.getValue(), unused -> null));
         }
 
