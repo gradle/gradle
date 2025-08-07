@@ -25,7 +25,6 @@ import org.gradle.api.internal.configuration.DefaultBuildFeatures
 import org.gradle.api.logging.LogLevel
 import org.gradle.execution.selection.BuildTaskSelector
 import org.gradle.initialization.Environment
-import org.gradle.initialization.EnvironmentChangeTracker
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildoption.DefaultInternalOptions
@@ -41,7 +40,6 @@ import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.problems.IgnoringProblemsListener
-import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.cc.impl.barrier.BarrierAwareBuildTreeLifecycleControllerFactory
 import org.gradle.internal.cc.impl.barrier.VintageConfigurationTimeActionRunner
 import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
@@ -65,7 +63,6 @@ import org.gradle.internal.cc.impl.services.ConfigurationCacheEnvironment
 import org.gradle.internal.cc.impl.services.DefaultBuildModelParameters
 import org.gradle.internal.cc.impl.services.DefaultDeferredRootBuildGradle
 import org.gradle.internal.cc.impl.services.DefaultEnvironment
-import org.gradle.internal.cc.impl.services.VintageEnvironmentChangeTracker
 import org.gradle.internal.configuration.problems.DefaultProblemFactory
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
@@ -279,7 +276,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(ConfigurationCacheStartParameter::class.java)
             registration.add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
             registration.add(InjectedClasspathInstrumentationStrategy::class.java, ConfigurationCacheInjectedClasspathInstrumentationStrategy::class.java)
-            registration.add(ConfigurationCacheEnvironmentChangeTracker::class.java)
             registration.add(BuildTreeConfigurationCache::class.java, DefaultConfigurationCache::class.java)
             registration.add(InstrumentedExecutionAccessListenerRegistry::class.java)
             registration.add(ConfigurationCacheFingerprintController::class.java)
@@ -307,7 +303,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(InjectedClasspathInstrumentationStrategy::class.java, VintageInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(BuildTreeLifecycleControllerFactory::class.java, BarrierAwareBuildTreeLifecycleControllerFactory::class.java)
             registration.add(VintageConfigurationTimeActionRunner::class.java)
-            registration.add(EnvironmentChangeTracker::class.java, VintageEnvironmentChangeTracker::class.java)
             registration.add(ProjectScopedScriptResolution::class.java, ProjectScopedScriptResolution.NO_OP)
             registration.addProvider(VintageBuildTreeProvider())
             registration.add(BuildTreeModelSideEffectExecutor::class.java, DefaultBuildTreeModelSideEffectExecutor::class.java)
