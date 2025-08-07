@@ -20,6 +20,8 @@ import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
 
+import static org.gradle.util.internal.TextUtil.escapeString
+
 class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements TasksWithInputsAndOutputs {
     def "option also enables configuration cache"() {
         settingsFile << """
@@ -56,6 +58,44 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
 
         then:
         failure.assertHasDescription("The configuration cache cannot be disabled when isolated projects is enabled.")
+    }
+
+    def "can enable isolated projects via paths option #description"() {
+        file("gradle.properties") << """
+            org.gradle.unsafe.isolated-projects.enable.paths=${escapeString(optionFromTestDirectory(testDirectory))}
+        """
+        buildFile """
+            def buildFeatures = gradle.services.get(org.gradle.api.configuration.BuildFeatures)
+            println "isolatedProjects.active=" + buildFeatures.isolatedProjects.active.get()
+        """
+
+        when:
+        run "help"
+
+        then:
+        outputContains("isolatedProjects.active=true")
+
+        where:
+        description           | optionFromTestDirectory
+        "with root path"      | { td -> td.absolutePath }
+        "with parent path"    | { td -> td.parentFile.absolutePath }
+        "with multiple paths" | { td -> "${td.parentFile.file("some-other")} ; ${td.absolutePath}" }
+    }
+
+    def "isolated projects option takes precedence over enabling via paths option"() {
+        file("gradle.properties") << """
+            org.gradle.unsafe.isolated-projects.enable.paths=${escapeString(testDirectory.absolutePath)}
+        """
+        buildFile """
+            def buildFeatures = gradle.services.get(org.gradle.api.configuration.BuildFeatures)
+            println "isolatedProjects.active=" + buildFeatures.isolatedProjects.active.get()
+        """
+
+        when:
+        run "help", "-Dorg.gradle.unsafe.isolated-projects=false"
+
+        then:
+        outputContains("isolatedProjects.active=false")
     }
 
     @ToBeImplemented("when Isolated Projects becomes incremental for task execution")
