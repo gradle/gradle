@@ -47,65 +47,67 @@ However, if you are starting a project from scratch, and you need to install Gra
 
 == DPE University
 
-Want to get up and running with Gradle quickly? Take our free, self-paced Gradle Build Tool courses at DPE University:
+Want to get up and running with Gradle quickly? Take our free, self-paced Gradle Build Tool courses at link:https://dpeuniversity.gradle.com/[DPE University].
 
-++++
-<div class="badge-wrapper">
-    <a class="badge" href="https://dpeuniversity.gradle.com/" target="_blank">
-        <span class="badge-type button--blue">LEARN</span>
-        <span class="badge-text">Take courses on DPE University&nbsp;&nbsp;&nbsp;&gt;</span>
-    </a>
-</div>
-++++
-
-== For Software Developers
+== For Software Engineers and Developers
 
 For software developers that need to build, test, and publish their app, or add dependencies to their build, get started here:
 
-=== 1. Learning the Basics
+=== 1. Learn how to run Gradle Builds
 
 [sidebar]
 _Description_: *Learn how to invoke tasks and add dependencies.* +
 _Training level_: **Beginner** +
 _Reading time_: **25 minutes** +
-<<gradle_basics.adoc#gradle,-> Read Core Concepts >>
+<<gradle_basics.adoc#gradle,-> Read Beginner Concepts >>
 
-=== 2. Hands-on Beginner Tutorial
+=== 2. Beginner Tutorial
 
 [sidebar]
 _Description_: *Initialize a Gradle build for a basic Java App.* +
 _Training level_: **Beginner** +
 _Training time_: **45 minutes** +
-<<part1_gradle_init#part1_begin,-> Start the Tutorial >>
+<<part1_gradle_init.adoc#part1_begin,-> Start the Tutorial >>
 
 == For Build Engineers
 
-Build engineers that are ready to configure custom build logic or write their own plugins should start here:
+Build engineers that are ready to configure custom build logic should start here:
 
-=== 1. Beyond the Basics
+=== 1. Learn how to write Gradle scripts
 
 [sidebar]
-_Description_: *Learn to configure builds, create tasks, and write plugins.* +
+_Description_: *Learn to configure builds, create tasks, and apply plugins.* +
 _Training level_: **Intermediate** +
 _Reading time_: **35 minutes** +
-<<gradle_directories.adoc#gradle_directories,-> Read Core Concepts >>
+<<gradle_directories_intermediate.adoc#gradle_directories,-> Read Intermediate Concepts >>
 
-=== 2. Hands-on Advanced Tutorial
+=== 2. Intermediate Tutorial
 
 [sidebar]
-_Description_: *Initialize a Gradle project and create a basic plugin.* +
+_Description_: *Initialize a Gradle project and create a convention plugin.* +
 _Training level_: **Intermediate** +
 _Training time_: **55 minutes** +
-<<part1_gradle_init_project#part1_begin,-> Start the Tutorial >>
+<<part1_gradle_init_project.adoc#part1_begin,-> Start the Tutorial >>
 
-[[reference]]
-=== 3. API Reference
+== For Plugin Developers
 
-Gradle's API references can be found in the links below:
+Plugin authors that are ready to develop and publish their own plugins should start here:
 
-- link:{javadocPath}/index.html[Javadocs^]
-- link:{groovyDslPath}/index.html[Groovy DSL Reference^]
-- link:{kotlinDslPath}/index.html[Kotlin DSL Reference^]
+=== 1. Learn how to develop Gradle Plugins
+
+[sidebar]
+_Description_: *Learn to write and publish a plugin.* +
+_Training level_: **Advanced** +
+_Reading time_: **35 minutes** +
+<<plugin_introduction_advanced.adoc#plugin_introduction_advanced,-> Read Advanced Concepts >>
+
+=== 2. Advanced Tutorial
+
+[sidebar]
+_Description_: *Initialize a Gradle project, create a binary plugin, and publish it locally.* +
+_Training level_: **Advanced** +
+_Training time_: **55 minutes** +
+<<part1_gradle_init_plugin.adoc#part1_begin,-> Start the Tutorial >>
 
 == Support
 

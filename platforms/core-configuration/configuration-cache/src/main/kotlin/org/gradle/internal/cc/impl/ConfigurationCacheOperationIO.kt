@@ -16,7 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.internal.cc.impl.serialize.Codecs
+import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.graph.ReadContext
@@ -25,8 +25,8 @@ import org.gradle.internal.serialize.graph.WriteContext
 internal
 interface ConfigurationCacheOperationIO {
 
-    fun <T> runWriteOperation(encoder: Encoder, writeOperation: suspend WriteContext.(codecs: Codecs) -> T): T
+    fun <T> runWriteOperation(encoder: Encoder, writeOperation: suspend WriteContext.(codecs: ConfigurationCacheCodecs) -> T): T
 
-    fun <T> runReadOperation(decoder: Decoder, readOperation: suspend ReadContext.(codecs: Codecs) -> T): T
+    fun <T> runReadOperation(decoder: Decoder, readOperation: suspend ReadContext.(codecs: ConfigurationCacheCodecs) -> T): T
 
 }

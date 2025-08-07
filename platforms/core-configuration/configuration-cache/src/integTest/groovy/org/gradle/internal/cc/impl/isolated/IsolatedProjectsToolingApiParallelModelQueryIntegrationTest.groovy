@@ -16,7 +16,7 @@
 
 package org.gradle.internal.cc.impl.isolated
 
-import org.gradle.integtests.tooling.fixture.SomeToolingModel
+import org.gradle.internal.cc.impl.fixtures.SomeToolingModel
 
 class IsolatedProjectsToolingApiParallelModelQueryIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
 

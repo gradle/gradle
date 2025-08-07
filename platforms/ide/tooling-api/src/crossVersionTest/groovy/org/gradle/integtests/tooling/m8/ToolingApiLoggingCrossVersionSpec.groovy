@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.m8
 
 import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.tooling.fixture.TestOutputStream
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -148,7 +149,7 @@ project.logger.debug("debug logging");
     }
 
     private ExecutionResult runUsingCommandLine() {
-        def executer = targetDist.executer(temporaryFolder, getBuildContext())
+        def executer = new NoDaemonGradleExecuter(targetDist, temporaryFolder, getBuildContext())
             .withCommandLineGradleOpts("-Dorg.gradle.deprecation.trace=false") //suppress deprecation stack trace
             .noExtraLogging() // use default logging level, NoDaemonGradleExecuter sets --info otherwise
 

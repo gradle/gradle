@@ -1,0 +1,81 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[publish_binary_plugins_advanced]]
+= Binary Plugin Publishing
+
+Once your plugin is complete and tested, you may want to publish it so it can be reused across multiple builds or even shared with others.
+
+There are a number of plugins available to publish your plugin.
+For now, we will use the core `maven-publish` plugin.
+The `maven-publish` plugin lets you publish artifacts (like JARs, libraries, or plugins) to a Maven repository.
+
+== Apply the Maven Publish Plugin
+
+In your `plugin/build.gradle(.kts)`, apply the `maven-publish` plugin:
+
+[source,kotlin]
+----
+plugins {
+  `java-gradle-plugin`
+  `maven-publish`
+}
+----
+
+A lot of the information needed to publish the plugin - `group`, `version`, and `id` - is already in your build file:
+
+====
+include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/kotlin", files="plugin/build.gradle.kts[tags=plugin-id]"]
+include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/groovy", files="plugin/build.gradle[tags=plugin-id]"]
+====
+
+`group = "org.example"` sets the group ID of the plugin.
+
+`version = "1.0.0"` sets the version of the plugin artifact.
+
+The `gradlePlugin {}` block is part of the `java-gradle-plugin` and declares a binary plugin.
+It registers the full plugin name `org.example.filesizediff`, backed by a class called `FileDiffPlugin`.
+This is the class that implements `Plugin<Project>` and defines what happens when the plugin is applied.
+
+== Configure the Publishing Block
+
+In your `plugin/build.gradle(.kts)` file, configure the plugin for publication by defining where to publish it.
+Inside the `publishing {}` block, you specify the repository to publish to:
+
+[source,kotlin]
+----
+publishing {
+    repositories {
+        maven {
+            url = uri("${layout.projectDirectory}/publish")
+        }
+    }
+}
+----
+
+== Publish the Plugin
+
+To publish, run:
+
+[source,bash]
+----
+./gradlew publish
+----
+
+This will generate and install the plugin JAR and associated metadata (like `pom.xml`) into the specified Maven repository.
+
+Ready to build something? Start with the <<part1_gradle_init_plugin.adoc#part1_begin,Advanced Tutorial>>.
+
+[.text-right]
+**Next Step:** <<part1_gradle_init_plugin.adoc#part1_begin,Start the Tutorial>> >>

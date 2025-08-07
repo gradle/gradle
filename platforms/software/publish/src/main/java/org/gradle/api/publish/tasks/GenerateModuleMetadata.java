@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentVariant;
@@ -31,7 +30,6 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
@@ -92,17 +90,12 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
     private final FileCollection variantFiles;
     private final Cached<InputState> inputState = Cached.of(this::computeInputState);
 
-    private final DependencyCoordinateResolverFactory dependencyCoordinateResolverFactory;
-
     public GenerateModuleMetadata() {
-        Project project = getProject();
-        ObjectFactory objectFactory = project.getObjects();
-        this.dependencyCoordinateResolverFactory = ((ProjectInternal) project).getServices().get(DependencyCoordinateResolverFactory.class);
+        ObjectFactory objectFactory = getObjectFactory();
+        this.publication = Transient.of(objectFactory.property(Publication.class));
+        this.publications = Transient.of(objectFactory.listProperty(Publication.class));
 
-        publication = Transient.of(objectFactory.property(Publication.class));
-        publications = Transient.of(objectFactory.listProperty(Publication.class));
-
-        variantFiles = getFileCollectionFactory().create(new VariantFiles(((ProjectInternal) getProject()).getTaskDependencyFactory()));
+        this.variantFiles = getFileCollectionFactory().create(new VariantFiles(getTaskDependencyFactory()));
 
         getSuppressedValidationErrors().convention(Collections.emptySet());
 
@@ -242,7 +235,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
             publication,
             publications(),
             checker,
-            dependencyCoordinateResolverFactory
+            getDependencyCoordinateResolverFactory()
         ).build().get();
         checker.validate();
         return spec;
@@ -333,4 +326,14 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
     private List<PublicationInternal<?>> publications() {
         return Cast.uncheckedCast(publications.get().get());
     }
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
+    @Inject
+    protected abstract DependencyCoordinateResolverFactory getDependencyCoordinateResolverFactory();
+
+    @Inject
+    protected abstract TaskDependencyFactory getTaskDependencyFactory();
+
 }

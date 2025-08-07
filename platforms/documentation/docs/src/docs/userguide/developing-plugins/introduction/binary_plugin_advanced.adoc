@@ -1,0 +1,88 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[binary_plugins_advanced]]
+= Binary Plugin
+
+Creating your own custom plugin might be a great solution when Gradle doesn't offer the specific capabilities your project needs.
+This is where binary plugins come in.
+
+A binary plugin is a plugin that is implemented in a compiled language and is packaged as a JAR file.
+Binary plugins must implement the link:{javadocPath}/org/gradle/api/Plugin.html[`Plugin`] interface.
+
+== Implementing the Plugin Interface
+
+For example, this is a "hello world" *plugin*:
+
+====
+include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[tags=plugin]"]
+include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=plugin]"]
+====
+<1> Extend the `org.gradle.api.Plugin` interface.
+<2> Override the `apply` method.
+
+=== 1. Extend the `org.gradle.api.Plugin` interface
+
+Create a class that extends the `Plugin` interface:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source, kotlin]
+----
+abstract class SamplePlugin : Plugin<Project> {
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+class SamplePlugin implements Plugin<Project> {
+}
+----
+=====
+====
+
+=== 2. Override the `apply` method
+
+Add tasks and other logic in the `apply()` method:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source, kotlin]
+----
+override fun apply() {
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+void apply(Project project) {
+}
+----
+=====
+====
+
+Let's take a look at a more realistic example next.
+
+[.text-right]
+**Next Step:** <<developing_binary_plugin_advanced.adoc#develop_binary_plugins_advanced,Learn how to develop Binary Plugins>> >>

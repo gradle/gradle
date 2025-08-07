@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
@@ -95,7 +94,7 @@ public class DefaultLocalVariantGraphResolveState implements LocalVariantGraphRe
     }
 
     @Override
-    public List<? extends DependencyMetadata> getDependencies() {
+    public List<LocalOriginDependencyMetadata> getDependencies() {
         dependencies.finalizeIfNotAlready();
         return dependencies.get().dependencies;
     }

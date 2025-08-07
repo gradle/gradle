@@ -21,7 +21,6 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.tasks.TaskInstantiationException
@@ -38,12 +37,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
     def deserializeInstantiator = Mock(DeserializationInstantiator)
     ITaskFactory taskFactory
 
-    ProjectIdentity projectId = new ProjectIdentity(
-        DefaultBuildIdentifier.ROOT,
-        Path.ROOT,
-        Path.ROOT,
-        "root"
-    )
+    ProjectIdentity projectId = ProjectIdentity.forRootProject(Path.ROOT, "root")
 
     def setup() {
         taskFactory = new TaskFactory().createChild(project, instantiationScheme)

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -54,7 +54,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         when:
         def runner = GradleRunner.create()
         runner.withJvmArguments("-javaagent:${agentJar}")
-        if (!GradleContextualExecuter.embedded) {
+        if (!IntegrationTestBuildContext.embedded) {
             runner.withGradleInstallation(buildContext.gradleHomeDir)
         }
         runner.withArguments("--configuration-cache")
@@ -70,7 +70,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         when:
         runner = GradleRunner.create()
         runner.withJvmArguments("-javaagent:${agentJar}")
-        if (!GradleContextualExecuter.embedded) {
+        if (!IntegrationTestBuildContext.embedded) {
             runner.withGradleInstallation(buildContext.gradleHomeDir)
         }
         runner.forwardOutput()
@@ -117,7 +117,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
             .withArguments("--configuration-cache", "-Dmy.property=my.value", "-i")
             .forwardOutput()
             .withProjectDir(testDirectory)
-        if (!GradleContextualExecuter.embedded) {
+        if (!IntegrationTestBuildContext.embedded) {
             runner.withGradleInstallation(buildContext.gradleHomeDir)
         }
         def result = runner.build()

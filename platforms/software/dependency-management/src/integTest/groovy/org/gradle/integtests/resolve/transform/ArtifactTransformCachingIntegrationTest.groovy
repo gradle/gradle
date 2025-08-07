@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -107,7 +108,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         setupProjectInDir(projectDir2)
         executer.requireIsolatedDaemons()
         executer.beforeExecute {
-            if (!GradleContextualExecuter.embedded) {
+            if (!IntegrationTestBuildContext.embedded) {
                 executer.withArgument("-D$REUSE_USER_HOME_SERVICES=true")
             }
         }
@@ -2149,7 +2150,7 @@ resultsFile:
 
         and:
         executer.beforeExecute {
-            if (!GradleContextualExecuter.embedded) {
+            if (!IntegrationTestBuildContext.embedded) {
                 executer.withArgument("-D$REUSE_USER_HOME_SERVICES=true")
             }
         }

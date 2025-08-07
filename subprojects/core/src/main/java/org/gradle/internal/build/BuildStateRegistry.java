@@ -56,20 +56,30 @@ public interface BuildStateRegistry {
     Collection<? extends IncludedBuildState> getIncludedBuilds();
 
     /**
-     * Locates an included build by {@link BuildIdentifier}, if present. Fails if not an included build.
-     */
-    IncludedBuildState getIncludedBuild(BuildIdentifier buildIdentifier) throws IllegalArgumentException;
-
-    /**
      * Locates a build. Fails if not present.
+     * <p>
+     * Prefer {@link #getBuild(Path)}.
      */
     BuildState getBuild(BuildIdentifier buildIdentifier) throws IllegalArgumentException;
 
     /**
      * Finds a build. Returns null if there's no build with the given identifier.
+     * <p>
+     * Prefer {@link #findBuild(Path)}.
      */
     @Nullable
     BuildState findBuild(BuildIdentifier buildIdentifier);
+
+    /**
+     * Locates a build. Fails if not present.
+     */
+    BuildState getBuild(Path identityPath) throws IllegalArgumentException;
+
+    /**
+     * Finds a build. Returns null if there's no build with the given identifier.
+     */
+    @Nullable
+    BuildState findBuild(Path identityPath);
 
     /**
      * Notification that the settings have been loaded for the root build.

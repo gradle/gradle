@@ -26,6 +26,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -91,7 +92,7 @@ task check {
 }
         """
 
-                GradleExecuter executer = distribution.executer(workspace, IntegrationTestBuildContext.INSTANCE).
+                GradleExecuter executer = new NoDaemonGradleExecuter(distribution, workspace, IntegrationTestBuildContext.INSTANCE).
                         requireDaemon().requireIsolatedDaemons().
                         withGradleUserHomeDir(workspace.file("user-home"))
                 8.times {

@@ -1,0 +1,69 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[tags_reference]]
+= Tags Used in Best Practices
+
+Here you can find a brief explanation of all the tags used in the best practices documentation.
+
+[[tag:caching]]
+`#caching` :: Items that are related to using Gradle's various caching mechanisms, such as <<build_cache.adoc#sec:task_output_caching,caching tasks>>.
+
+[[tag:composite-builds]]
+`#composite-builds` :: Items that are related to using Gradle's <<composite_builds.adoc#defining_composite_builds,composite builds>> feature.
+
+[[tag:configurations]]
+`#configurations` :: Items that are related to using the link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[`Configuration`] type in Gradle.
+
+[[tag:dependencies]]
+`#dependencies` :: Items that are related to <<dependency_resolution.adoc#dependency-resolution-basics,dependency resolution>> in Gradle, including declaring dependencies, dependency management, and dependency resolution.
+
+[[tag:kotlin-dsl]]
+`#kotlin-dsl` :: Items that explain the benefits of using the <<kotlin_dsl.adoc#kotdsl:kotlin_dsl,Kotlin DSL>> and how to adopt it effectively.
+
+[[tag:inputs-and-outputs]]
+`#inputs-and-outputs`:: Items that are related to Gradle <<writing_tasks_intermediate.adoc#task_inputs_and_outputs,task inputs and outputs>>, the annotations used to declare them, and their proper use.
+
+[[tag:plugins]]
+`#plugins` :: Items that explain the proper way to <<custom_plugins.adoc#custom_plugins,write plugins>> in Gradle, and common footguns involved in plugin authoring.
+
+[[tag:properties]]
+`#properties` :: Items that explain the proper way to use <<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>>, and the appropriate usage of using particular properties.
+
+[[tag:repositories]]
+`#repositories` :: Items that explain how to declare and use <<declaring_repositories.adoc#three-declaring-repositories,dependency repositories>>.
+
+[[tag:settings]]
+`#settings` :: Items that explain how to use the <<settings_file_basics.adoc#settings_file_basics,settings file>> to configure multi-project builds, including how to structure projects and include them in the build.
+
+[[tag:structuring-builds]]
+`#structuring-builds` :: Items that explain how to organize build logic across different files and directories, and how to use multiple projects within a build.
+
+[[tag:task-configuration-avoidance]]
+`#task-configuration-avoidance` :: Items that are related to Gradle's <<task_configuration_avoidance.adoc#task_configuration_avoidance,task configuration avoidance>> APIs and how to use them effectively.
+
+[[tag:tasks]]
+`#tasks` :: Items that explain the proper way to <<writing_tasks_intermediate.adoc#sec:sample_task,write tasks>> in Gradle, and common footguns involved in task authoring.
+
+[[tag:up-to-date-checking]]
+`#up-to-date-checking` :: Items that are related to Gradle's <<incremental_build.adoc#sec:how_does_it_work,up-to-date checking>> mechanism, and how to ensure work avoidance behaves properly in your build.
+
+[[tag:upgrades]]
+`#upgrades` :: Items that are related to making Gradle version upgrades easier.
+
+[[tag:version-catalog]]
+`#version-catalog` :: Items that explain how to use <<version_catalogs.adoc#version-catalog,version catalogs>> to centralize dependency declarations.
+
+[[tag:wrapper]]
+`#wrapper` :: Items that explain how to use the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>> to configure and execute builds using a consistent Gradle version across environments.

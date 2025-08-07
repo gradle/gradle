@@ -42,7 +42,6 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
         expect:
         succeeds("help")
         assertDaemonUsedJvm(Jvm.current())
-        outputContains("Daemon JVM discovery is an incubating feature.")
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)

@@ -38,7 +38,7 @@ import spock.lang.TempDir
 class DaemonJavaToolchainProvisioningServiceTest extends Specification {
 
     private static final String ARCHIVE_NAME = 'ibm-11-x64-hotspot-linux.zip'
-    private static final String UPDATED_ARCHIVE_NAME = 'ibm-11-x64-hotspot-linux-Eclipse#20Temurin-11.zip'
+    private static final String UPDATED_ARCHIVE_NAME = 'ibm-11-x64-hotspot-linux-Eclipse-Temurin-11.zip'
     private static final URI DOWNLOAD_URL = URI.create('https://server.com')
 
     @TempDir

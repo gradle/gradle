@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r86
 
-import org.gradle.api.problems.Problems
 import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -38,7 +37,7 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
         """
             import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
             import org.gradle.tooling.provider.model.ToolingModelBuilder
-            import ${Problems.name}
+            import org.gradle.api.problems.Problems
             import javax.inject.Inject
 
             allprojects {

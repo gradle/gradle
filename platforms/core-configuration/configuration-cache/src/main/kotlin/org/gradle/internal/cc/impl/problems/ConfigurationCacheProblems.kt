@@ -399,7 +399,8 @@ class ConfigurationCacheProblems(
 
     private
     fun outputDirectoryFor(buildDir: File): File =
-        buildDir.resolve("reports/configuration-cache/$cacheKey")
+        startParameter.customReportOutputDirectory?.resolve(cacheKey.toString())
+            ?: buildDir.resolve("reports/configuration-cache/$cacheKey")
 
     private
     inner class PostBuildProblemsHandler : RootBuildLifecycleListener {

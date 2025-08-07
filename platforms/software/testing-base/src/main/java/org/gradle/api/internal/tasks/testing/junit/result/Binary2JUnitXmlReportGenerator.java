@@ -38,6 +38,8 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 
 public class Binary2JUnitXmlReportGenerator {
+    private static final String REPORT_FILE_PREFIX = "TEST-";
+    private static final String REPORT_FILE_EXTENSION = ".xml";
 
     private final File testResultsDir;
     private final TestResultsProvider testResultsProvider;
@@ -98,7 +100,7 @@ public class Binary2JUnitXmlReportGenerator {
     }
 
     private String getReportFileName(TestClassResult result) {
-        return "TEST-" + FileUtils.toSafeFileName(result.getClassName()) + ".xml";
+        return REPORT_FILE_PREFIX + FileUtils.toSafeFileName(result.getClassName()) + REPORT_FILE_EXTENSION;
     }
 
     private static class JUnitXmlReportFileGenerator implements RunnableBuildOperation {

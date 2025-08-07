@@ -19,6 +19,7 @@ package org.gradle.integtests.fixtures.executer
 
 import org.gradle.process.internal.JvmOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.GradleVersion
 import org.gradle.util.UsesNativeServices
 import org.junit.Assume
 import org.junit.Rule
@@ -29,7 +30,9 @@ class AbstractGradleExecuterTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass());
 
-    def gradleDistribution = Mock(GradleDistribution)
+    def gradleDistribution = Mock(GradleDistribution) {
+        getVersion() >> GradleVersion.current()
+    }
 
     AbstractGradleExecuter executer = new AbstractGradleExecuter(gradleDistribution, testDir) {
         @Override
