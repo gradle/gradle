@@ -93,6 +93,57 @@ public class Providers {
         return new ChangingProvider<>(value);
     }
 
+    public static <T> Provider<T> memoizing(ProviderInternal<T> provider) {
+        return new MemoizingProvider<>(provider);
+    }
+
+    public static class MemoizingProvider<T> extends AbstractMinimalProvider<T> {
+        private final ProviderInternal<T> provider;
+        @Nullable
+        private Value<? extends T> value;
+
+        public MemoizingProvider(ProviderInternal<T> provider) {
+            this.provider = provider;
+        }
+
+        @Override
+        public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+            if (value != null) {
+                return ExecutionTimeValue.value(value);
+            }
+            ExecutionTimeValue<? extends T> executionTimeValue = provider.calculateExecutionTimeValue();
+            if (executionTimeValue.isMissing()) {
+                return executionTimeValue;
+            }
+            if (executionTimeValue.hasFixedValue()) {
+                value = executionTimeValue.toValue();
+                return ExecutionTimeValue.value(value);
+            }
+            return ExecutionTimeValue.changingValue(this);
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            if (value != null) {
+                return ValueProducer.noProducer();
+            }
+            return provider.getProducer();
+        }
+
+        @Override
+        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+            if (value == null) {
+                value = provider.calculateValue(consumer);
+            }
+            return value;
+        }
+
+        @Override
+        public @Nullable Class<T> getType() {
+            return provider.getType();
+        }
+    }
+
     public static class FixedValueProvider<T> extends AbstractProviderWithValue<T> {
         protected final T value;
 
