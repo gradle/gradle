@@ -242,7 +242,7 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMul
     @Requires(IntegTestPreconditions.Java11HomeAvailable)
     def "can run tests with custom security manager"() {
         executer
-                .withArgument("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
+                .withArgument("-Dorg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
                 .withToolchainDetectionEnabled()
 
         given:
