@@ -17,8 +17,8 @@
 package org.gradle.tooling.model.gradle;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.problems.Problem;
 import org.gradle.tooling.Failure;
+import org.gradle.tooling.events.problems.Problem;
 import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.BuildModel;
 import org.gradle.tooling.model.DomainObjectSet;
