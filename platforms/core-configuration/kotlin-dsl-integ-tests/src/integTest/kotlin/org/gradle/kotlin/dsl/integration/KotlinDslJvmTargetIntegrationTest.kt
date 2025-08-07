@@ -118,7 +118,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
 
         gradleExecuterFor(arrayOf("check", "publish"), rootDir = file("plugin"))
             .withJvm(currentJvm)
-            .withArgument("-Porg.gradle.java.installations.paths=$installationPaths")
+            .withArgument("-Dorg.gradle.java.installations.paths=$installationPaths")
             .run()
 
         withSettingsIn("consumer", """
@@ -192,7 +192,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
 
         gradleExecuterFor(arrayOf("check", "publish"), rootDir = file("plugin"))
             .withJvm(currentJvm)
-            .withArgument("-Porg.gradle.java.installations.paths=$installationPaths")
+            .withArgument("-Dorg.gradle.java.installations.paths=$installationPaths")
             .run()
 
         withSettingsIn("consumer", """

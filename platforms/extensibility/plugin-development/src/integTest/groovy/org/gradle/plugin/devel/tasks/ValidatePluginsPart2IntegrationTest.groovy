@@ -823,7 +823,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
             public abstract class MyTask extends DefaultTask {
             }
         """
-        executer.withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
+        executer.withArgument("-Dorg.gradle.java.installations.paths=" + installationPaths)
         buildFile << """
             java {
                 toolchain {
