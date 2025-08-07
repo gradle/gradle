@@ -22,7 +22,6 @@ import org.gradle.internal.service.ServiceLookup;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.util.List;
 
@@ -55,14 +54,14 @@ interface ClassGenerator {
         /**
          * Creates a new instance, using the given services and parameters. Uses the given instantiator to create nested objects, if required.
          */
-        T newInstance(ServiceLookup services, InstanceGenerator nested) throws InvocationTargetException, IllegalAccessException, InstantiationException;
+        T newInstance(ServiceLookup services, InstanceGenerator nested) throws Throwable;
     }
 
     interface GeneratedConstructor<T> {
         /**
          * Creates a new instance, using the given services and parameters. Uses the given instantiator to create nested objects, if required.
          */
-        T newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException;
+        T newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws Throwable;
 
         /**
          * Does this constructor use the given service type?
