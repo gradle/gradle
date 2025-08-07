@@ -126,7 +126,7 @@ public class ProblemsProgressEventUtils {
             parentBuildOperationId);
     }
 
-    static DefaultProblemDetails createDefaultProblemDetails(InternalProblem problem) {
+    public static DefaultProblemDetails createDefaultProblemDetails(InternalProblem problem) {
         return new DefaultProblemDetails(
             toInternalDefinition(problem.getDefinition()),
             toInternalDetails(problem.getDetails()),

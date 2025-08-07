@@ -17,11 +17,14 @@
 package org.gradle.tooling.model.gradle;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.problems.Problem;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.BuildModel;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.Model;
+
+import java.util.List;
 
 /**
  * Provides information about the structure of a Gradle build.
@@ -93,4 +96,13 @@ public interface GradleBuild extends Model, BuildModel {
      */
     @Incubating
     Failure getFailure();
+
+    /**
+     * Returns problems associated with this build.
+     *
+     * @return The problems, or an empty list if there are no problems.
+     * @since 9.2.0
+     */
+    @Incubating
+    List<Problem> getProblems();
 }

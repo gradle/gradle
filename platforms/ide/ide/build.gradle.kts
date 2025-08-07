@@ -34,6 +34,7 @@ dependencies {
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)
     implementation(projects.serviceLookup)
+    implementation(projects.toolingApiBuilders)
     implementation(projects.war)
 
     implementation(libs.groovyXml)
