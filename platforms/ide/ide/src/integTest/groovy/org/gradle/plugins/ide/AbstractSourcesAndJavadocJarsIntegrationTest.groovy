@@ -125,6 +125,13 @@ dependencies {
         javadocArtifact.expectHead()
         javadocArtifact.expectGetBroken()
 
+        // Source and javadoc artifacts are queried twice because of their broken state.
+        sourceArtifact.expectHead()
+        sourceArtifact.expectGetBroken()
+
+        javadocArtifact.expectHead()
+        javadocArtifact.expectGetBroken()
+
         then:
         succeeds ideTask
         ideFileContainsNoSourcesAndJavadocEntry()
