@@ -388,7 +388,7 @@ class ManagedObjectRegistryTest extends Specification {
 
         then:
         def e = thrown(RuntimeException)
-        e.message == "Method MethodHandle()Thing for type class org.gradle.internal.instantiation.managed.ManagedObjectRegistryTest\$Thingconflicts with existing factory method MethodHandle(Class)Thing."
+        e.message == "Method MethodHandle()Object for type class org.gradle.internal.instantiation.managed.ManagedObjectRegistryTest\$Thingconflicts with existing factory method MethodHandle(Class)Object."
     }
 
     @ManagedObjectProvider
