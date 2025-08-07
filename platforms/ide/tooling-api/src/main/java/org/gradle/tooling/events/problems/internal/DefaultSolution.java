@@ -18,7 +18,9 @@ package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.tooling.events.problems.Solution;
 
-public class DefaultSolution implements Solution {
+import java.io.Serializable;
+
+public class DefaultSolution implements Solution, Serializable {
 
     private final String solution;
 
