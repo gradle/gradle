@@ -87,14 +87,15 @@ signing {
     }
 }
 
-configurations {
+/*configurations {
     gradleApiElements {
         outgoing {
             capability(gradleModule.identity.baseName.map { "$group:$it-internal:$version" })
         }
     }
-}
+}*/
 
+/*
 val testRepoElements = configurations.consumable("testRepoElements") {
     outgoing.artifact(testRepoLocation) {
         builtBy( "publishMavenPublicationToTestRepository")
@@ -102,8 +103,11 @@ val testRepoElements = configurations.consumable("testRepoElements") {
     // TODO: De-duplicate this. See publish-public-libraries
     attributes {
         attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named("gradle-local-repository"))
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("maven-repository"))
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named("maven-repository"))
     }
 }
+*/
 
 // TODO De-duplicate this
 /**
