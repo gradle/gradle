@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 public class LocationListInstallationSupplier implements InstallationSupplier {
 
     public static final String JAVA_INSTALLATIONS_PATHS_PROPERTY = "org.gradle.java.installations.paths";
+    public static final String FORWARDED_JAVA_INSTALLATIONS_PATHS_PROPERTY = JAVA_INSTALLATIONS_PATHS_PROPERTY + ".forwarded";
 
     private final ToolchainConfiguration buildOptions;
     private final FileResolver fileResolver;
