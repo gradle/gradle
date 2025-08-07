@@ -136,6 +136,11 @@ public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
             throw new IllegalArgumentException("Method " + instanceMethod + " annotated with @ManagedObjectCreator must not be static.");
         }
 
+        Class<?> returnType = declaredMethod.getReturnType();
+        if (returnType == void.class) {
+            throw new IllegalArgumentException("Method " + declaredMethod + " annotated with @ManagedObjectCreator must return a value.");
+        }
+
         MethodHandle handle = reflectionCache.unreflect(instanceMethod).bindTo(instance);
         validateFactoryMethod(instanceMethod, handle);
         return handle;
@@ -143,11 +148,6 @@ public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
 
     private static void validateFactoryMethod(Method method, MethodHandle handle) {
         MethodType type = handle.type();
-
-        Class<?> returnType = type.returnType();
-        if (returnType == void.class) {
-            throw new IllegalArgumentException("Method " + method + " annotated with @ManagedObjectCreator must return a value.");
-        }
 
         if (type.parameterCount() > 2) {
             // We only support max 2 arg factories.
@@ -183,7 +183,7 @@ public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
 
         if (factory != null) {
             try {
-                Object result = factory.invoke();
+                Object result = factory.invokeExact();
                 return type.cast(result);
             } catch (Throwable e) {
                 throw new RuntimeException("Could not create managed object.", e);
@@ -204,7 +204,7 @@ public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
 
         if (factory != null) {
             try {
-                Object result = factory.invoke(arg1);
+                Object result = factory.invokeExact(arg1);
                 return type.cast(result);
             } catch (Throwable e) {
                 throw new RuntimeException("Could not create managed object.", e);
@@ -225,7 +225,7 @@ public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
 
         if (factory != null) {
             try {
-                Object result = factory.invoke(arg1, arg2);
+                Object result = factory.invokeExact(arg1, arg2);
                 return type.cast(result);
             } catch (Throwable e) {
                 throw new RuntimeException("Could not create managed object.", e);
@@ -260,9 +260,9 @@ public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
          * @throws IllegalArgumentException if the method is not public or its declaring class is not public.
          */
         public MethodHandle unreflect(Method method) {
-            MethodHandle handle = unreflectionCache.get(method);
-            if (handle != null) {
-                return handle;
+            MethodHandle cached = unreflectionCache.get(method);
+            if (cached != null) {
+                return cached;
             }
 
             if (!Modifier.isPublic(method.getModifiers())) {
@@ -273,7 +273,8 @@ public class DefaultManagedObjectRegistry implements ManagedObjectRegistry {
 
             return unreflectionCache.computeIfAbsent(method, m -> {
                 try {
-                    return LOOKUP.unreflect(m);
+                    MethodHandle handle = LOOKUP.unreflect(m);
+                    return handle.asType(MethodType.methodType(Object.class, handle.type().parameterArray())); // Allows invokeExact
                 } catch (IllegalAccessException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
