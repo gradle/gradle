@@ -49,6 +49,8 @@ import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.bifunction;
+import static org.gradle.api.internal.provider.Providers.changing;
+import static org.gradle.api.internal.provider.Providers.memoizing;
 
 public class DefaultProviderFactory implements ProviderFactory {
     @Nullable
@@ -143,18 +145,16 @@ public class DefaultProviderFactory implements ProviderFactory {
     @Override
     public Provider<String> gradleProperty(String propertyName) {
         GradleProperties gradleProperties = getGradleProperties();
-        return Providers.memoizing(
-            Providers.changing(() -> gradleProperties.find(propertyName))
-        );
+        return memoizing(changing(() -> gradleProperties.find(propertyName)));
     }
 
     @Override
     public Provider<String> gradleProperty(Provider<String> propertyName) {
         GradleProperties gradleProperties = getGradleProperties();
-        return Providers.memoizing(
+        return memoizing(
             new BiProvider<>(
                 String.class,
-                Providers.changing(() -> gradleProperties),
+                changing(() -> gradleProperties),
                 propertyName,
                 bifunction(GradleProperties::find)
             )
@@ -164,18 +164,16 @@ public class DefaultProviderFactory implements ProviderFactory {
     @Override
     public Provider<Map<String, String>> gradlePropertiesPrefixedBy(String propertyNamePrefix) {
         GradleProperties gradleProperties = getGradleProperties();
-        return Providers.memoizing(
-            Providers.changing(() -> gradleProperties.getPropertiesWithPrefix(propertyNamePrefix))
-        );
+        return memoizing(changing(() -> gradleProperties.getPropertiesWithPrefix(propertyNamePrefix)));
     }
 
     @Override
     public Provider<Map<String, String>> gradlePropertiesPrefixedBy(Provider<String> propertyNamePrefix) {
         GradleProperties gradleProperties = getGradleProperties();
-        return Providers.memoizing(
+        return memoizing(
             new BiProvider<>(
                 new TypeOf<Map<String, String>>() {}.getConcreteClass(),
-                Providers.changing(() -> gradleProperties),
+                changing(() -> gradleProperties),
                 propertyNamePrefix,
                 bifunction(GradleProperties::getPropertiesWithPrefix)
             )
