@@ -88,9 +88,11 @@ See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecy
 
 The following are the features that have been promoted in this Gradle release.
 
-<!--
-### Example promoted
--->
+### Daemon toolchain is now stable
+
+Gradle introduced the [Daemon toolchain](userguide/gradle_daemon.html#sec:daemon_jvm_criteria) in Gradle 8.8 as an incubating feature.
+Since then the feature has been improved and stabilized.
+It is now considered stable and will no longer print an incubation warning when used.
 
 ## Fixed issues
 
