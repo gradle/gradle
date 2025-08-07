@@ -116,7 +116,7 @@ class ConfigurationCacheReadOnlyIntegrationTest extends AbstractConfigurationCac
         configurationCache.assertStateLoaded()
     }
 
-    def "problems are reported and fail the build when in read-only mode"() {
+    def "problems are reported and but do not fail the build when in read-only mode"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
 
@@ -129,19 +129,17 @@ class ConfigurationCacheReadOnlyIntegrationTest extends AbstractConfigurationCac
         """
 
         when:
-        configurationCacheFails 'broken', ENABLE_READ_ONLY_CACHE
+        configurationCacheRun 'broken', ENABLE_READ_ONLY_CACHE
 
         then:
         configurationCache.assertNoConfigurationCache()
-        outputContains(CONFIGURATION_CACHE_DISABLED_READ_ONLY_REASON)
+        postBuildOutputContains(CONFIGURATION_CACHE_DISABLED_READ_ONLY_REASON)
 
-        // ensure report is produced
-        problems.assertResultHtmlReportHasProblems(failure) {
-            withProblem("Execution failed for task ':broken'.")
+        problems.assertResultConsoleSummaryHasNoProblems(result)
+        problems.assertResultHtmlReportHasProblems(result) {
+            totalProblemsCount = 1
+            withProblem("invocation of Task.project at execution time is unsupported")
         }
-        failure.assertHasDescription("Execution failed for task ':broken'.")
-        failure.assertHasCause("Invocation of 'Task.project' by task ':broken' at execution time is unsupported with the configuration cache.")
-        failure.assertHasFailures(1)
     }
 
     def "should not fail on CC problems while evaluating lazy properties in Groovy in read-only mode"() {
