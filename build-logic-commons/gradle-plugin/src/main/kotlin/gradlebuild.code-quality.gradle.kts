@@ -1,3 +1,7 @@
+import gradlebuild.nullaway.NullawayAttributes
+import gradlebuild.nullaway.NullawayCompatibilityRule
+import gradlebuild.nullaway.NullawayState
+import gradlebuild.nullaway.NullawayStatusTask
 import groovy.lang.GroovySystem
 import net.ltgt.gradle.errorprone.CheckSeverity
 import net.ltgt.gradle.errorprone.errorprone
@@ -66,38 +70,10 @@ nullaway {
     annotatedPackages.add("org.gradle")
 }
 
-enum class NullawayState {
-    ENABLED, DISABLED
-}
-
-val nullawayAttribute = Attribute.of("org.gradle.build.nullaway", NullawayState::class.java)
-val nullawayAttributeValue = errorproneExtension.nullawayEnabled.map { if (it) NullawayState.ENABLED else NullawayState.DISABLED }
-
-class NullawayCompatibilityRule : AttributeCompatibilityRule<NullawayState> {
-    override fun execute(details: CompatibilityCheckDetails<NullawayState>) {
-        with(details) {
-            when {
-                // Nullaway-enabled targets must not depend on nullaway-disabled ones.
-                // They can depend on nullaway-undefined, which any external dependency is going to be.
-                producerValue == NullawayState.DISABLED && consumerValue == NullawayState.ENABLED -> incompatible()
-                else -> compatible()
-            }
-        }
-    }
-}
-
 dependencies {
     attributesSchema {
-        attribute(nullawayAttribute) {
+        attribute(NullawayAttributes.nullawayAttribute) {
             compatibilityRules.add(NullawayCompatibilityRule::class.java)
-        }
-    }
-}
-
-fun configureNullawayAttributes(confName: String) {
-    configurations.named(confName) {
-        attributes {
-            attributeProvider(nullawayAttribute, nullawayAttributeValue)
         }
     }
 }
@@ -116,14 +92,23 @@ project.plugins.withType<JavaBasePlugin> {
         }
 
         if (isMainSourceSet) {
+            val nullawayAttributeValue = errorproneExtension.nullawayEnabled.map { if (it) NullawayState.ENABLED else NullawayState.DISABLED }
+
             // We don't care about nullaway in test fixtures or tests, they're written in Groovy anyway.
-            configureNullawayAttributes(compileClasspathConfigurationName)
+            NullawayAttributes.addToConfiguration(configurations.named(compileClasspathConfigurationName), nullawayAttributeValue)
 
             project.plugins.withType<JavaLibraryPlugin> {
                 // Kotlin-only projects do not hit this, so they don't have nullaway attributes on the outgoing variants.
                 // Java project can in turn depend on Kotlin projects even if they have nullaway enabled.
-                configureNullawayAttributes(apiElementsConfigurationName)
-                configureNullawayAttributes(runtimeElementsConfigurationName)
+                NullawayAttributes.addToConfiguration(configurations.named(apiElementsConfigurationName), nullawayAttributeValue)
+                NullawayAttributes.addToConfiguration(configurations.named(runtimeElementsConfigurationName), nullawayAttributeValue)
+
+                tasks.register<NullawayStatusTask>("nullawayStatus") {
+                    nullawayEnabled = errorproneExtension.nullawayEnabled
+                    nullawayAwareDeps = configurations.named(compileClasspathConfigurationName).map {
+                        it.incoming.artifacts
+                    }
+                }
             }
         }
 
