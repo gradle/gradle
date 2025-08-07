@@ -15,10 +15,15 @@
  */
 package org.gradle.plugins.ide
 
+import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.DocsType
+import org.gradle.api.attributes.LibraryElements
+import org.gradle.api.attributes.Usage
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
+import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -30,7 +35,7 @@ import static org.gradle.util.internal.GroovyDependencyUtil.groovyGroupName
 
 abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeIntegrationSpec {
     @Rule
-    HttpServer server
+    public HttpServer server
 
     String groovyVersion = GroovyCoverage.CURRENT_STABLE
 
@@ -119,7 +124,6 @@ dependencies {
 
         javadocArtifact.expectHead()
         javadocArtifact.expectGetBroken()
-
 
         then:
         succeeds ideTask
@@ -496,6 +500,50 @@ dependencies {
         ideFileContainsEntry("groovy-${groovyVersion}.jar", ["groovy-${groovyVersion}-sources.jar"], [])
     }
 
+    def "correct sources and javadoc variants are selected from maven"() {
+        def repo = mavenHttpRepo
+        def art = repo.module('some', 'module', '1.0')
+        addClassesVariant(art, 'api-variant', Usage.JAVA_API, 'module-1.0-variant.jar', ['custom-attribute': 'variant'])
+        addClassesVariant(art, 'runtime-variant', Usage.JAVA_RUNTIME, 'module-1.0-variant.jar', ['custom-attribute': 'variant'])
+        addDocumentVariant(art, 'sources-variant', DocsType.SOURCES, null, ['custom-attribute': 'variant'])
+        addDocumentVariant(art, 'javadoc-variant', DocsType.JAVADOC, null, ['custom-attribute': 'variant'])
+        art
+            .withSourceAndJavadoc() // Default version
+            .withModuleMetadata()
+            .publish()
+
+        buildFile.text = buildScriptSnippet"""
+            apply plugin: 'java'
+            apply plugin: 'idea'
+            apply plugin: 'eclipse'
+
+            dependencies {
+                implementation('some:module:1.0') {
+                    attributes {
+                        attribute(Attribute.of('custom-attribute', String), 'variant')
+                    }
+                }
+            }
+
+            eclipse.classpath.downloadJavadoc = true
+            idea.module.downloadJavadoc = true
+        """
+
+        when:
+        useMavenRepo(repo)
+
+        and:
+        art.pom.expectGet()
+        art.moduleMetadata.expectGet()
+        art.artifact(classifier: 'variant').expectGet()
+        art.artifact(classifier: 'sources-variant').expectGet()
+        art.artifact(classifier: 'javadoc-variant').expectGet()
+
+        then:
+        succeeds ideTask
+        ideFileContainsEntry("module-1.0-variant.jar", "module-1.0-sources-variant.jar", "module-1.0-javadoc-variant.jar")
+    }
+
     void assertSourcesDirectoryDoesNotExistInDistribution() {
         gradleDistributionSrcDir().assertDoesNotExist()
     }
@@ -546,6 +594,35 @@ dependencies {
         // use uncommon sources and javadoc classifiers to prove that artifact names don't matter
         module.artifact(type: "source", classifier: "my-sources", ext: "jar", conf: "sources")
         module.artifact(type: "javadoc", classifier: "my-javadoc", ext: "jar", conf: "javadoc")
+    }
+
+    private static void addDocumentVariant(MavenHttpModule module, String name, String type, String filename = null, Map<String, String> attributes = [:]) {
+        module.withVariant(name) {
+            useDefaultArtifacts = false
+            attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
+            attribute(Category.CATEGORY_ATTRIBUTE.name, Category.DOCUMENTATION)
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE.name, type)
+            attributes.forEach(k, v) -> attribute(k, v)
+            if (filename == null) {
+                artifact(module.artifactId + '-' + module.version + '-' + name + '.jar')
+            } else {
+                artifact(filename)
+            }
+        }
+    }
+    private static void addClassesVariant(MavenHttpModule module, String name, String type, String filename = null, Map<String, String> attributes = [:]) {
+        module.withVariant(name) {
+            useDefaultArtifacts = false
+            attribute(Usage.USAGE_ATTRIBUTE.name, type)
+            attribute(Category.CATEGORY_ATTRIBUTE.name, Category.LIBRARY)
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name, LibraryElements.JAR)
+            attributes.forEach(k, v) -> attribute(k, v)
+            if (filename == null) {
+                artifact(module.artifactId + '-' + module.version + '-' + name + '.jar')
+            } else {
+                artifact(filename)
+            }
+        }
     }
 
     MavenHttpRepository getMavenHttpRepo() {
