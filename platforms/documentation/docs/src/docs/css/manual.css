@@ -1919,7 +1919,6 @@ details p {
 .listingblock pre:not(.highlight),
 .listingblock pre[class="highlight"],
 .listingblock pre[class^="highlight "],
-.listingblock pre.CodeRay,
 .listingblock pre.prettyprint {
 	background: var(--code-color);
 }
@@ -1928,7 +1927,6 @@ details p {
 .sidebarblock .listingblock pre:not(.highlight),
 .sidebarblock .listingblock pre[class="highlight"],
 .sidebarblock .listingblock pre[class^="highlight "],
-.sidebarblock .listingblock pre.CodeRay,
 .sidebarblock .listingblock pre.prettyprint {
 	background: #f2f1f1;
 }
