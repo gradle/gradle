@@ -74,13 +74,12 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY;
+import static org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier.FORWARDED_JAVA_INSTALLATIONS_PATHS_PROPERTY;
 
 /**
  * Allows the tests to get hold of an alternative Java installation when needed.
  */
 public abstract class AvailableJavaHomes {
-
     private static final Supplier<List<JvmInstallationMetadata>> INSTALLATIONS = Suppliers.memoize(AvailableJavaHomes::discoverLocalInstallations);
 
     private static final GradleDistribution DISTRIBUTION = new UnderDevelopmentGradleDistribution();
@@ -437,7 +436,7 @@ public abstract class AvailableJavaHomes {
             new AsdfInstallationSupplier(toolchainConfiguration),
             new BaseDirJvmLocator(SystemProperties.getInstance().getUserHome()),
             new CurrentInstallationSupplier(),
-            new ToolchainInstallatioinPathsSystemPropertyJvmLocator(),
+            new ToolchainInstallationPathsSystemPropertyJvmLocator(),
             new EnvVariableJvmLocator(),
             new IntellijInstallationSupplier(toolchainConfiguration),
             new JabbaInstallationSupplier(toolchainConfiguration),
@@ -473,18 +472,18 @@ public abstract class AvailableJavaHomes {
 
     /**
      * On CI we pass -Porg.gradle.java.installations.paths=X,Y,Z to the build, then "forward" it
-     * as system property to get deterministic results.
+     * as a system property (`-Dorg.gradle.java.installations.paths.forwarded`) to get deterministic results.
      */
-    private static class ToolchainInstallatioinPathsSystemPropertyJvmLocator implements InstallationSupplier {
+    private static class ToolchainInstallationPathsSystemPropertyJvmLocator implements InstallationSupplier {
 
         @Override
         public String getSourceName() {
-            return "System properties " + JAVA_INSTALLATIONS_PATHS_PROPERTY;
+            return "System properties " + FORWARDED_JAVA_INSTALLATIONS_PATHS_PROPERTY;
         }
 
         @Override
         public Set<InstallationLocation> get() {
-            final String property = System.getProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY);
+            final String property = System.getProperty(FORWARDED_JAVA_INSTALLATIONS_PATHS_PROPERTY);
             if (property != null) {
                 return Arrays.stream(property.split(","))
                     .filter(path -> !path.trim().isEmpty())
