@@ -978,11 +978,9 @@ class ConfigurationCacheFingerprintWriter(
         keysPerScope: ConcurrentHashMap<GradlePropertiesListener.PropertyScope, MutableSet<String>>,
         propertyScope: GradlePropertiesListener.PropertyScope,
         propertyKey: String
-    ): Boolean =
-        !isInputTrackingDisabled()
-            && keysPerScope
-            .computeIfAbsent(propertyScope) { newConcurrentHashSet() }
-            .add(propertyKey)
+    ): Boolean = keysPerScope
+        .computeIfAbsent(propertyScope) { newConcurrentHashSet() }
+        .add(propertyKey)
 
     private
     fun reportGradlePropertyInput(

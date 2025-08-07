@@ -143,34 +143,42 @@ public class DefaultProviderFactory implements ProviderFactory {
     @Override
     public Provider<String> gradleProperty(String propertyName) {
         GradleProperties gradleProperties = getGradleProperties();
-        return Providers.changing(() -> gradleProperties.find(propertyName));
+        return Providers.memoizing(
+            Providers.changing(() -> gradleProperties.find(propertyName))
+        );
     }
 
     @Override
     public Provider<String> gradleProperty(Provider<String> propertyName) {
         GradleProperties gradleProperties = getGradleProperties();
-        return new BiProvider<String, GradleProperties, String>(
-            String.class,
-            Providers.changing(() -> gradleProperties),
-            propertyName,
-            bifunction(GradleProperties::find)
+        return Providers.memoizing(
+            new BiProvider<>(
+                String.class,
+                Providers.changing(() -> gradleProperties),
+                propertyName,
+                bifunction(GradleProperties::find)
+            )
         );
     }
 
     @Override
     public Provider<Map<String, String>> gradlePropertiesPrefixedBy(String propertyNamePrefix) {
         GradleProperties gradleProperties = getGradleProperties();
-        return Providers.changing(() -> gradleProperties.getPropertiesWithPrefix(propertyNamePrefix));
+        return Providers.memoizing(
+            Providers.changing(() -> gradleProperties.getPropertiesWithPrefix(propertyNamePrefix))
+        );
     }
 
     @Override
     public Provider<Map<String, String>> gradlePropertiesPrefixedBy(Provider<String> propertyNamePrefix) {
         GradleProperties gradleProperties = getGradleProperties();
-        return new BiProvider<>(
-            new TypeOf<Map<String, String>>() {}.getConcreteClass(),
-            Providers.changing(() -> gradleProperties),
-            propertyNamePrefix,
-            bifunction(GradleProperties::getPropertiesWithPrefix)
+        return Providers.memoizing(
+            new BiProvider<>(
+                new TypeOf<Map<String, String>>() {}.getConcreteClass(),
+                Providers.changing(() -> gradleProperties),
+                propertyNamePrefix,
+                bifunction(GradleProperties::getPropertiesWithPrefix)
+            )
         );
     }
 
