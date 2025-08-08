@@ -1,0 +1,169 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[part2_add_extension]]
+= Part 2: Add an Extension
+
+Learn about extensions.
+
+****
+**In this section, you will:**
+
+- Understand Plugin Extensions
+- Add an Extension to the Slack Plugin
+****
+
+[[part2_begin]]
+== Step 0. Before you Begin
+
+1. You initialized your plugin in <<part1_gradle_init_plugin.adoc#part1_begin,part 1>>.
+
+== Step 1. Understanding Plugin Extensions
+
+A plugin extension is a block users can configure in their `build.gradle(.kts)` file to customize how the plugin behaves.
+It lets you expose settings like:
+
+[source,kotlin]
+----
+greeting {
+    message.set("Hi")
+    recipient.set("CI Server")
+}
+----
+
+Behind the scenes, this block maps to a Kotlin/Java class with properties.
+Gradle injects values set by the user into the plugin logic.
+
+== Step 2. Rename the Plugin Class
+
+First, let's rename the Plugin class of our 'Hello World' example from Gradle init:
+
+Rename the file `plugin/src/main/kotlin/org/example/DevelopingPluginPlugin.kt` to `plugin/src/main/kotlin/org/example/SlackPlugin.kt`.
+
+TIP: In an IDE, renaming the file should update the plugin class automatically.
+
+Then, take the existing code `class DevelopingPluginPlugin: Plugin<Project> {}` and update it to `abstract class SlackPlugin : Plugin<Project> {}` so it looks like this:
+
+[source,kotlin]
+----
+class SlackPlugin: Plugin<Project> {
+    override fun apply(project: Project) {
+        // Register a task
+        project.tasks.register("greeting") { task ->
+            task.doLast {
+                println("Hello from plugin 'org.example.greeting'")
+            }
+        }
+    }
+}
+----
+
+You also need to update the build file to reflect the name changes:
+
+[source,kotlin]
+----
+gradlePlugin {
+    // Define the plugin
+    plugins {
+        create("slack") {
+            id = "org.example.slack"
+            implementationClass = "org.example.SlackPlugin"
+        }
+    }
+}
+----
+
+== Step 3. Define the Extension Class
+
+This class holds user-configurable properties.
+Add it to `plugin/src/main/kotlin/org/example/SlackExtension.kt`:
+
+[source,kotlin]
+----
+package org.example
+
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
+import javax.inject.Inject
+
+/**
+ * The SlackExtension class defines a custom extension for the plugin.
+ * This allows users to configure the plugin in their build script via a DSL block, e.g.:
+ *
+ * slack {
+ *     token.set("...")
+ *     channel.set("#general")
+ *     message.set("Hello from Gradle!")
+ * }
+ */
+abstract class SlackExtension @Inject constructor(objects: ObjectFactory) {
+
+    // The Slack API token used to authenticate requests
+    val token: Property<String> = objects.property(String::class.java)
+
+    // The name or ID of the Slack channel to send the message to
+    val channel: Property<String> = objects.property(String::class.java)
+
+    // The message content to send to the channel
+    val message: Property<String> = objects.property(String::class.java)
+}
+----
+
+TIP: We're using Gradle’s `Property<T>` type for laziness and compatibility with the Configuration Cache.
+
+This code provides configuration for the plugin with a DSL block:
+
+[source,kotlin]
+----
+slack {
+    token.set("xoxb-your-slack-token")
+    channel.set("#build-notifications")
+    message.set("Hello from Gradle!")
+}
+----
+
+== Step 3. Register the Extension in the Plugin
+
+In order for the plugin to use the extension and provide the DSL block to users, it must *register* the extension.
+
+Add the following code and update your plugin class so it looks like this:
+
+[source,kotlin]
+----
+class SlackPlugin: Plugin<Project> {
+    override fun apply(project: Project) {
+        // Create the 'slack' extension so users can configure token, channel, and message
+        val extension = project.extensions.create("slack", SlackExtension::class.java)
+
+        // Register a task that uses the values from the extension
+        project.tasks.register("sendTestSlackMessage") {
+            it.doLast {
+                println("${extension.message.get()} to ${extension.channel.get()}")
+            }
+        }
+    }
+}
+----
+
+We've also updated the dummy `greeting` task so it is called `sendTestSlackMessage` and it prints out some of the variable values in the extension.
+
+== Step 4. Benefits of Using Extensions
+
+* Keeps plugin configuration clean and declarative
+* Integrates seamlessly into the build script DSL
+* Encourages reuse and convention-based configuration
+* Supports Gradle's lazy configuration and Configuration Cache
+
+[.text-right]
+**Next Step:** <<part3_create_custom_task#part3_create_custom_task,Create a Custom Task>> >>

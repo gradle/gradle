@@ -1,0 +1,108 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[part5_unit_test]]
+= Part 5: Writing a Unit Test
+
+Learn the basics of unit testing your plugin.
+
+****
+**In this section, you will:**
+
+- Write a Unit Test
+****
+
+[[part5_begin]]
+== Step 0. Before you Begin
+
+1. You initialized your plugin in <<part1_gradle_init_plugin.adoc#part1_begin,part 1>>.
+2. You added an extension to your plugin in <<part2_add_extension.adoc#part2_begin,part 2>>.
+3. You created a custom task in <<part3_create_custom_task.adoc#part3_begin, part3>>.
+4. You added a build listener in <<part4_add_build_listener.adoc#part4_begin,part 4>>.
+
+== Step 1. About Unit Tests
+
+Grade init provides a simple unit test that we can reuse.
+It is available in `src/test/kotlin/org/example/SlackPluginTest.kt`:
+
+[source,kotlin]
+----
+/**
+ * A simple unit test for the 'org.example.greeting' plugin.
+ */
+class DevelopingPluginPluginTest {
+    @Test fun `plugin registers task`() {
+        // Create a test project and apply the plugin
+        val project = ProjectBuilder.builder().build()
+        project.plugins.apply("org.example.greeting")
+
+        // Verify the result
+        assertNotNull(project.tasks.findByName("greeting"))
+    }
+}
+----
+
+It is quite simple, it applies the `greeting` plugin and verifies that the `greeting` task is available.
+
+== Step 2. Update the Test
+
+First, update the final name from `DevelopingPluginPluginTest.kt` to `SlackPluginTest.kt`.
+
+Second, update your test so it looks as follows:
+
+[source,kotlin]
+----
+class SlackPluginTest {
+    @Test fun `plugin registers task`() {
+        // Create a test project and apply the plugin
+        val project = ProjectBuilder.builder().build()
+        project.plugins.apply("org.example.slack")
+
+        // Verify the result
+        assertNotNull(project.tasks.findByName("sendTestSlackMessage"))
+    }
+}
+----
+
+== Step 3. Run the Test
+
+Then, you can run the `test` task and ensure it passes.
+[source,text]
+----
+$ ./gradlew :test
+
+Calculating task graph as no cached configuration is available for tasks: test
+> Task :plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :plugin:processTestResources NO-SOURCE
+> Task :plugin:pluginDescriptors UP-TO-DATE
+> Task :plugin:processResources UP-TO-DATE
+> Task :plugin:compileKotlin UP-TO-DATE
+> Task :plugin:compileJava NO-SOURCE
+> Task :plugin:classes UP-TO-DATE
+> Task :plugin:pluginUnderTestMetadata UP-TO-DATE
+> Task :plugin:jar UP-TO-DATE
+> Task :plugin:compileTestKotlin
+> Task :plugin:compileTestJava NO-SOURCE
+> Task :plugin:testClasses UP-TO-DATE
+> Task :plugin:test
+
+BUILD SUCCESSFUL in 1s
+7 actionable tasks: 2 executed, 5 up-to-date
+Configuration cache entry stored.
+----
+
+You can optionally add another test or change the existing test to get it to fail.
+
+[.text-right]
+**Next Step:** <<part6_add_build_service#part6_build_service,Add a Build Service>> >>
