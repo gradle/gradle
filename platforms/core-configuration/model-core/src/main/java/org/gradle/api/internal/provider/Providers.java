@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
+import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableSupplier;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
@@ -27,6 +29,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 public class Providers {
     private static final NoValueProvider<Object> NULL_PROVIDER = new NoValueProvider<>(ValueSupplier.Value.MISSING);
@@ -94,16 +97,28 @@ public class Providers {
     }
 
     public static <T> Provider<T> memoizing(ProviderInternal<T> provider) {
-        return new MemoizingProvider<>(provider);
+        return memoizing(provider, null);
+    }
+
+    public static <T> Provider<T> memoizing(ProviderInternal<T> provider, @Nullable SerializableSupplier<DisplayName> displayName) {
+        return new MemoizingProvider<>(provider, displayName);
     }
 
     public static class MemoizingProvider<T> extends AbstractMinimalProvider<T> {
         private final ProviderInternal<T> provider;
         @Nullable
         private Value<? extends T> value;
+        @Nullable
+        private final Supplier<DisplayName> displayName;
 
-        public MemoizingProvider(ProviderInternal<T> provider) {
+        public MemoizingProvider(ProviderInternal<T> provider, @Nullable Supplier<DisplayName> displayName) {
             this.provider = provider;
+            this.displayName = displayName;
+        }
+
+        @Override
+        protected @Nullable DisplayName getDeclaredDisplayName() {
+            return displayName != null ? displayName.get() : null;
         }
 
         @Override
