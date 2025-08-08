@@ -19,6 +19,7 @@ package org.gradle.cache.internal;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.math.IntMath;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.FileLockManager;
@@ -106,9 +107,16 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
 
     @Override
     public <T> T useCache(String key, Supplier<? extends T> action) {
-        // Make sure the key that is actually a path never ends with /, because we could lock the same path with different locks
-        checkArgument(!key.endsWith("/") && !key.endsWith("\\"), "Cache key '%s' must not end with a slash", key);
+        // Normalize the key since key can be a path,
+        // and we want to avoid issues with different path separators.
+        normalizeKey(key);
         return guard.guardByKey(key, () -> withFileLock(key, action));
+    }
+
+    private String normalizeKey(String key) {
+        key = FilenameUtils.separatorsToUnix(key);
+        checkArgument(!key.startsWith("/") && !key.endsWith("/"), "Cache key '%s' must not start or end with a slash", key);
+        return key;
     }
 
     @Override
