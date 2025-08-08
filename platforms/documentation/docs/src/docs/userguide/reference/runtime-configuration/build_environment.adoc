@@ -373,6 +373,28 @@ You can also control the JVM used to run Gradle itself using the <<gradle_daemon
 +
 _Default is derived from your environment (`JAVA_HOME` or the path to `java`) if the setting is unspecified._
 
+`org.gradle.java.installations.auto-detect=(true,false)`::
+When set to `true`, Gradle will automatically detect the JDK installations available on the system when locating <<toolchains#toolchains,Java toolchains>>.
++
+_Default is `true`._
+
+`org.gradle.java.installations.auto-download=(true,false)`::
+When set to `true`, Gradle will automatically download JDK installations when locating <<toolchains#toolchains,Java toolchains>>.
++
+_Default is `true`._
+
+`org.gradle.java.installations.paths=(list of JDK installations)`::
+When set, Gradle will use the specified paths to locate JDK installations when locating <<toolchains#toolchains,Java toolchains>>.
+This setting is a comma-separated list of paths to directories where JDK installations are located.
++
+_Default is empty, meaning Gradle will use the default locations to find JDK installations._
+
+`org.gradle.java.installations.fromEnv=(list of environment variables)`::
+When set, Gradle will use the JDK installations specified in the listed environment variables when locating <<toolchains#toolchains,Java toolchains>>.
+This setting is a comma-separated list of environment variable names.
++
+_Default is empty, meaning Gradle will not use any environment variables to find JDK installations._
+
 `org.gradle.jvmargs=(JVM arguments)`::
 Specifies the JVM arguments used for the Gradle Daemon.
 The setting is particularly useful for <<config_gradle.adoc#sec:configuring_jvm_memory,configuring JVM memory settings>> for build performance.
