@@ -24,7 +24,7 @@ import spock.lang.Specification
 class ReportingExtensionTest extends Specification {
 
     Project project = ProjectBuilder.builder().build()
-    ReportingExtension extension = TestUtil.newInstance(ReportingExtension.class, project)
+    ReportingExtension extension = TestUtil.newInstance(ReportingExtension.class)
 
     def "reports directory can be changed lazily"() {
         given:

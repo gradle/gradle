@@ -18,14 +18,7 @@ package org.gradle.api.reporting;
 import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
-import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.reporting.internal.ReportUtilities;
-import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-
-import javax.inject.Inject;
-import java.io.File;
 
 /**
  * A project extension named "reporting" that provides basic reporting settings and utilities.
@@ -62,57 +55,12 @@ public abstract class ReportingExtension {
      */
     public static final String DEFAULT_REPORTS_DIR_NAME = "reports";
 
-    private final Project project;
-
-    @Inject
-    public ReportingExtension(Project project) {
-        this.project = project;
-    }
-
     /**
      * Returns base directory property to use for all reports.
      *
      * @since 4.4
      */
     public abstract DirectoryProperty getBaseDirectory();
-
-    /**
-     * Creates a file object for the given path, relative to {@link #getBaseDirectory()}.
-     * <p>
-     * The reporting base dir can be changed, so users of this method should use it on demand where appropriate.
-     *
-     * @param path the relative path
-     * @return a file object at the given path relative to {@link #getBaseDirectory()}.
-     *
-     * @deprecated Use {@code getBaseDirectory().file(path)} or {@code getBaseDirectory().dir(path)} instead.
-     *
-     * @see DirectoryProperty#file(String)
-     * @see DirectoryProperty#dir(String)
-     */
-    @Deprecated
-    public File file(String path) {
-        DeprecationLogger.deprecateMethod(ReportingExtension.class, "file(String)")
-            .replaceWith("getBaseDirectory().file(String) or getBaseDirectory().dir(String)")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "reporting_extension_file")
-            .nagUser();
-        return getBaseDirectory().file(path).get().getAsFile();
-    }
-
-    /**
-     * Provides a default title for API documentation based on the project's name and version.
-     *
-     * @deprecated Use your own way of generating a title for API documentation.
-     */
-    @NotToBeReplacedByLazyProperty(because="this method is deprecated")
-    @Deprecated
-    public String getApiDocTitle() {
-        DeprecationLogger.deprecateMethod(ReportingExtension.class, "getApiDocTitle()")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "reporting_extension_api_doc_title")
-            .nagUser();
-        return ReportUtilities.getApiDocTitleFor(project);
-    }
 
     /**
      * Container for aggregation reports, which may be configured automatically in reaction to the presence of the jvm-test-suite plugin.
