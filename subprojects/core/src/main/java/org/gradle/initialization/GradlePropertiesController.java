@@ -19,6 +19,7 @@ package org.gradle.initialization;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.api.internal.properties.GradlePropertyScope;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -90,7 +91,7 @@ public interface GradlePropertiesController {
     /**
      * Returns the {@link GradleProperties} associated with the given scope.
      */
-    GradleProperties getGradleProperties(GradlePropertiesListener.PropertyScope propertyScope);
+    GradleProperties getGradleProperties(GradlePropertyScope propertyScope);
 
     /**
      * Loads build-scoped {@link GradleProperties} from the specified build root directory.

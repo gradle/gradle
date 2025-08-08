@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.api.internal.properties;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
 import org.jspecify.annotations.Nullable;
@@ -34,34 +32,9 @@ import java.util.Map;
 public interface GradlePropertiesListener {
 
     /**
-     * Scope of the property.
-     *
-     * Can be used as map keys.
-     */
-    /* sealed */ interface PropertyScope {
-
-        @Override
-        boolean equals(@Nullable Object o);
-
-        @Override
-        int hashCode();
-
-        @Override
-        String toString();
-
-        interface Build extends PropertyScope {
-            BuildIdentifier getBuildIdentifier();
-        }
-
-        interface Project extends PropertyScope {
-            ProjectIdentity getProjectIdentity();
-        }
-    }
-
-    /**
      * Tracks property loading.
      */
-    void onGradlePropertiesLoaded(PropertyScope propertyScope, File propertiesDir);
+    void onGradlePropertiesLoaded(GradlePropertyScope propertyScope, File propertiesDir);
 
     /**
      * Tracks property access.
@@ -70,7 +43,7 @@ public interface GradlePropertiesListener {
      * a lookup of missing property, which can happen when checking for property presence.
      */
     void onGradlePropertyAccess(
-        PropertyScope propertyScope,
+        GradlePropertyScope propertyScope,
         String propertyName,
         @Nullable Object propertyValue
     );
@@ -79,7 +52,7 @@ public interface GradlePropertiesListener {
      * Tracks prefixed property access.
      */
     void onGradlePropertiesByPrefix(
-        PropertyScope propertyScope,
+        GradlePropertyScope propertyScope,
         String prefix,
         Map<String, String> snapshot
     );
