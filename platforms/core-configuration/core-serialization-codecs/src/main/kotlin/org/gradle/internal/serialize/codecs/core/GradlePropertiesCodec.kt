@@ -19,7 +19,7 @@ package org.gradle.internal.serialize.codecs.core
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.initialization.DefaultGradlePropertiesController
 import org.gradle.initialization.GradlePropertiesController
-import org.gradle.initialization.GradlePropertiesListener
+import org.gradle.api.internal.properties.GradlePropertyScope
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
@@ -49,7 +49,7 @@ object GradlePropertiesCodec : Codec<GradleProperties> {
     override suspend fun ReadContext.decode(): GradleProperties {
         return decodePreservingSharedIdentity {
             if (readBoolean()) {
-                val propertyScope = readNonNull<GradlePropertiesListener.PropertyScope>()
+                val propertyScope = readNonNull<GradlePropertyScope>()
                 isolate.owner
                     .serviceOf<GradlePropertiesController>()
                     .getGradleProperties(propertyScope)

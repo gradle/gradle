@@ -44,7 +44,8 @@ import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceListener
-import org.gradle.initialization.GradlePropertiesListener
+import org.gradle.api.internal.properties.GradlePropertiesListener
+import org.gradle.api.internal.properties.GradlePropertyScope
 import org.gradle.initialization.buildsrc.BuildSrcDetector
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildoption.FeatureFlag
@@ -179,10 +180,10 @@ class ConfigurationCacheFingerprintWriter(
     var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
 
     private
-    val gradleProperties = ConcurrentHashMap<GradlePropertiesListener.PropertyScope, MutableSet<String>>()
+    val gradleProperties = ConcurrentHashMap<GradlePropertyScope, MutableSet<String>>()
 
     private
-    val gradlePropertiesByPrefix = ConcurrentHashMap<GradlePropertiesListener.PropertyScope, MutableSet<String>>()
+    val gradlePropertiesByPrefix = ConcurrentHashMap<GradlePropertyScope, MutableSet<String>>()
 
     init {
         buildScopedSink.initScripts(host.allInitScripts)
@@ -926,7 +927,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun onGradlePropertiesLoaded(
-        propertyScope: GradlePropertiesListener.PropertyScope,
+        propertyScope: GradlePropertyScope,
         propertiesDir: File
     ) {
         buildScopedSink.write(
@@ -938,7 +939,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun onGradlePropertiesByPrefix(
-        propertyScope: GradlePropertiesListener.PropertyScope,
+        propertyScope: GradlePropertyScope,
         prefix: String,
         snapshot: Map<String, String>
     ) {
@@ -956,10 +957,12 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun onGradlePropertyAccess(
-        propertyScope: GradlePropertiesListener.PropertyScope,
+        propertyScope: GradlePropertyScope,
         propertyName: String,
         propertyValue: Any?
     ) {
+        // TODO: may need to ignore some properties,
+        //  see `org.gradle.internal.cc.impl.Workarounds#isIgnoredStartParameterProperty`
         if (shouldTrackGradlePropertyInput(gradleProperties, propertyScope, propertyName)) {
             // TODO:isolated could tracking per project
             buildScopedSink.write(
@@ -975,8 +978,8 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun shouldTrackGradlePropertyInput(
-        keysPerScope: ConcurrentHashMap<GradlePropertiesListener.PropertyScope, MutableSet<String>>,
-        propertyScope: GradlePropertiesListener.PropertyScope,
+        keysPerScope: ConcurrentHashMap<GradlePropertyScope, MutableSet<String>>,
+        propertyScope: GradlePropertyScope,
         propertyKey: String
     ): Boolean = keysPerScope
         .computeIfAbsent(propertyScope) { newConcurrentHashSet() }
@@ -984,7 +987,7 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun reportGradlePropertyInput(
-        propertyScope: GradlePropertiesListener.PropertyScope,
+        propertyScope: GradlePropertyScope,
         propertyName: String,
         consumer: String? = null
     ) {
@@ -1005,7 +1008,7 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun reportGradlePropertiesByPrefixInput(
-        propertyScope: GradlePropertiesListener.PropertyScope,
+        propertyScope: GradlePropertyScope,
         prefix: String,
         consumer: String? = null
     ) {
@@ -1022,12 +1025,12 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun scopedLocation(
-        propertyScope: GradlePropertiesListener.PropertyScope,
+        propertyScope: GradlePropertyScope,
         location: PropertyTrace
     ) = PropertyTrace.Project(
         path = when (propertyScope) {
-            is GradlePropertiesListener.PropertyScope.Project -> propertyScope.projectIdentity.buildTreePath.path
-            is GradlePropertiesListener.PropertyScope.Build -> propertyScope.buildIdentifier.buildPath
+            is GradlePropertyScope.Project -> propertyScope.projectIdentity.buildTreePath.path
+            is GradlePropertyScope.Build -> propertyScope.buildIdentifier.buildPath
             else -> error("Unexpected property scope $propertyScope")
         },
         trace = location

@@ -25,7 +25,7 @@ import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.initialization.GradlePropertiesController
-import org.gradle.initialization.GradlePropertiesListener
+import org.gradle.api.internal.properties.GradlePropertyScope
 import org.gradle.initialization.buildsrc.BuildSrcDetector
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildModelParameters
@@ -490,9 +490,9 @@ class ConfigurationCacheFingerprintController internal constructor(
             return BuildSrcDetector.isValidBuildSrcBuild(candidateBuildSrc)
         }
 
-        override fun loadProperties(propertyScope: GradlePropertiesListener.PropertyScope, propertiesDir: File) {
+        override fun loadProperties(propertyScope: GradlePropertyScope, propertiesDir: File) {
             when (propertyScope) {
-                is GradlePropertiesListener.PropertyScope.Build -> {
+                is GradlePropertyScope.Build -> {
                     propertiesController.loadGradleProperties(
                         propertyScope.buildIdentifier,
                         propertiesDir,
@@ -500,7 +500,7 @@ class ConfigurationCacheFingerprintController internal constructor(
                     )
                 }
 
-                is GradlePropertiesListener.PropertyScope.Project -> {
+                is GradlePropertyScope.Project -> {
                     propertiesController.loadGradleProperties(
                         propertyScope.projectIdentity,
                         propertiesDir,
@@ -512,14 +512,14 @@ class ConfigurationCacheFingerprintController internal constructor(
         }
 
         override fun gradleProperty(
-            propertyScope: GradlePropertiesListener.PropertyScope,
+            propertyScope: GradlePropertyScope,
             propertyName: String
         ): Any? = propertiesController
             .getGradleProperties(propertyScope)
             .findUnsafe(propertyName)
 
         override fun gradlePropertiesPrefixedBy(
-            propertyScope: GradlePropertiesListener.PropertyScope,
+            propertyScope: GradlePropertyScope,
             prefix: String
         ): Map<String, String> = propertiesController
             .getGradleProperties(propertyScope)

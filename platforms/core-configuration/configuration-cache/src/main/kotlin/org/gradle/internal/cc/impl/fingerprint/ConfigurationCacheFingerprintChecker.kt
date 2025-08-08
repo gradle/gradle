@@ -21,7 +21,7 @@ import org.gradle.api.internal.GeneratedSubclasses.unpackType
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
-import org.gradle.initialization.GradlePropertiesListener
+import org.gradle.api.internal.properties.GradlePropertyScope
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.RenderingUtils.oxfordListOf
 import org.gradle.internal.RenderingUtils.quotedOxfordListOf
@@ -65,9 +65,9 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>
         fun isRemoteScriptUpToDate(uri: URI): Boolean
         fun hasValidBuildSrc(candidateBuildSrc: File): Boolean
-        fun loadProperties(propertyScope: GradlePropertiesListener.PropertyScope, propertiesDir: File)
-        fun gradleProperty(propertyScope: GradlePropertiesListener.PropertyScope, propertyName: String): Any?
-        fun gradlePropertiesPrefixedBy(propertyScope: GradlePropertiesListener.PropertyScope, prefix: String): Map<String, String>
+        fun loadProperties(propertyScope: GradlePropertyScope, propertiesDir: File)
+        fun gradleProperty(propertyScope: GradlePropertyScope, propertyName: String): Any?
+        fun gradlePropertiesPrefixedBy(propertyScope: GradlePropertyScope, prefix: String): Map<String, String>
     }
 
     private
