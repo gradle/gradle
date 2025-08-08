@@ -123,9 +123,8 @@ However, this feature is expected to work well for <<multi_project_configuration
 [[config_cache:usage:read_only]]
 === Making the Configuration Cache Read-Only
 
-In some builds, such as continuous integration builds in ephemeral environments, it may be desirable that Gradle only runs
-in Configuration Cache mode in case of a configuration cache hit. In case of a miss, there would be no benefit in
-caching the configuration, because the state in disk is not going to be preserved across builds.
+In some builds, such as CI builds running in ephemeral environments, it may be desirable for Gradle to use the Configuration Cache only when there's a cache hit.
+If there's a miss, caching offers no benefit since the disk state won't be preserved across builds.
 
 To enable read-only configuration caching at build time, use:
 
@@ -134,14 +133,14 @@ To enable read-only configuration caching at build time, use:
 ❯ ./gradlew -Dorg.gradle.configuration-cache.read-only=true
 ----
 
-Or persistently in a `gradle.properties` file:
+Or set it persistently in `gradle.properties`:
 
 [source,properties]
 ----
 org.gradle.configuration-cache.read-only=true
 ----
 
-Note that enabling it persistently would require disabling it on the command-line in order for configuration to ever be cached.
+Note that if you enable this persistently, you'll need to explicitly disable it via the command line in order for Gradle to ever write to the configuration cache.
 
 [WARNING]
 ====
