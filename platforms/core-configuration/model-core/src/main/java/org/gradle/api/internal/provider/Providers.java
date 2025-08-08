@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableSupplier;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
