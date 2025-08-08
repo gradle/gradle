@@ -813,12 +813,14 @@ class DefaultConfigurationCache internal constructor(
             return CheckedFingerprint.Invalid(buildPath(), classLoaderScopesInvalidationReason)
         }
 
+        val snapshot = System.getProperties().clone()
         return checkFingerprintAgainstLoadedProperties(candidateEntry).also { result ->
             if (result !is CheckedFingerprint.Valid || result.invalidProjects != null) {
                 // Force Gradle properties to be reloaded so the Gradle properties files
                 // along with any Gradle property defining system properties and environment variables
                 // are added to the new fingerprint.
                 unloadGradleProperties()
+                System.setProperties(snapshot.uncheckedCast())
             }
         }
     }
