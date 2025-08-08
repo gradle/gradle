@@ -40,12 +40,12 @@ include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/kotlin", files="p
 include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/groovy", files="plugin/build.gradle[tags=plugin-id]"]
 ====
 
-`group = "org.example"` sets the group ID of the plugin.
+`group = "org.example"` sets the *group* ID of the plugin.
 
-`version = "1.0.0"` sets the version of the plugin artifact.
+`version = "1.0.0"` sets the *version* of the plugin artifact.
 
 The `gradlePlugin {}` block is part of the `java-gradle-plugin` and declares a binary plugin.
-It registers the full plugin name `org.example.filesizediff`, backed by a class called `FileDiffPlugin`.
+It registers the full plugin *name* `org.example.filesizediff`, backed by a class called `FileDiffPlugin`.
 This is the class that implements `Plugin<Project>` and defines what happens when the plugin is applied.
 
 == Configure the Publishing Block

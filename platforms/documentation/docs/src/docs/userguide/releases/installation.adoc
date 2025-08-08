@@ -290,7 +290,7 @@ Build time:    2025-07-17 12:48:00 UTC
 Revision:      2db9560bb68c367a265b10516c856c840f9bed8d
 
 Kotlin:        2.2.0
-Groovy:        4.0.27
+Groovy:        4.0.28
 Ant:           Apache Ant(TM) version 1.10.15 compiled on August 25 2024
 Launcher JVM:  17.0.11 (Amazon.com Inc. 17.0.11+9-LTS)
 Daemon JVM:    Compatible with Java 17, any vendor, nativeImageCapable=false (from gradle/gradle-daemon-jvm.properties)

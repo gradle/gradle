@@ -61,8 +61,6 @@ val core = platform("core") {
         subproject("base-asm")
         subproject("base-services")
         subproject("build-configuration")
-        subproject("build-discovery")
-        subproject("build-discovery-api")
         subproject("build-operations")
         subproject("build-operations-trace")
         subproject("build-option")

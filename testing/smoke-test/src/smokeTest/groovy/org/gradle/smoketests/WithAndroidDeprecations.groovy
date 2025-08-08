@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import groovy.transform.SelfType
 import groovy.transform.TupleConstructor
+import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
@@ -79,19 +80,8 @@ trait WithAndroidDeprecations {
     }
 
     void expectMultiStringNotationDeprecation(String agpVersion) {
-        String lintVersion = null
-        String aapt2Version = null
-        if (agpVersion == "8.11.0") {
-            lintVersion = "31.11.0"
-            aapt2Version = "8.11.0-12782657"
-        } else if (agpVersion == "8.12.0-alpha08") {
-            lintVersion = "31.12.0-alpha08"
-            aapt2Version = "8.12.0-alpha08-13700139"
-        } else if (agpVersion == "8.12.0-dev") {
-            lintVersion = "31.12.0-dev"
-            aapt2Version = "8.12.0-dev-13700139"
-        }
-
+        String lintVersion = agpVersion.replaceAll("^8.", "31.")
+        String aapt2Version = AndroidGradlePluginVersions.aapt2Version(agpVersion)
         String platform
         if (OperatingSystem.current().isWindows()) {
             platform = "windows"
