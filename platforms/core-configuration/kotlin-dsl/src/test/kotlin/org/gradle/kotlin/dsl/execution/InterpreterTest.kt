@@ -175,7 +175,7 @@ class InterpreterTest : TestWithTempFiles() {
         try {
 
             val target = mock<Settings>()
-            val subject = Interpreter(host)
+            val subject = Interpreter(host, mock())
             assertStandardOutputOf("stage 1\nstage 2\n") {
                 subject.eval(
                     target,
@@ -203,12 +203,12 @@ class InterpreterTest : TestWithTempFiles() {
                     "kotlin-dsl:$scriptPath:$stage1TemplateId",
                     ClassLoaderScopeOrigin.Script(scriptPath, longScriptDisplayName, shortScriptDisplayName),
                     stage1CacheDir,
-                    "Program",
+                    PROGRAM_CLASS_NAME,
                     accessorsClassPath
                 )
 
                 verify(host).cache(
-                    DummyCompiledScript(classLoaders[0].loadClass("Program")),
+                    DummyCompiledScript(classLoaders[0].loadClass(PROGRAM_CLASS_NAME)),
                     stage1ProgramId
                 )
 
@@ -225,11 +225,11 @@ class InterpreterTest : TestWithTempFiles() {
                     "kotlin-dsl:$scriptPath:$stage2TemplateId",
                     ClassLoaderScopeOrigin.Script(scriptPath, longScriptDisplayName, shortScriptDisplayName),
                     stage2CacheDir,
-                    "Program",
+                    PROGRAM_CLASS_NAME,
                     accessorsClassPath
                 )
 
-                val specializedProgram = classLoaders[1].loadClass("Program")
+                val specializedProgram = classLoaders[1].loadClass(PROGRAM_CLASS_NAME)
                 verify(host).cache(
                     DummyCompiledScript(specializedProgram),
                     stage2ProgramId

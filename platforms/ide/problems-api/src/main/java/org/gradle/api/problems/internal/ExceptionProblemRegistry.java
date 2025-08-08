@@ -25,6 +25,7 @@ import com.google.common.collect.Multimaps;
 import org.gradle.api.Incubating;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.util.internal.MultiCauseExceptionUtil;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -100,6 +101,16 @@ public class ExceptionProblemRegistry {
             return throwable == null ? ImmutableList.<InternalProblem>of() : ImmutableList.copyOf(problemsForThrowables.get(throwable));
         }
 
+        @Override
+        public Collection<InternalProblem> findInHierachy(Throwable t) {
+            ImmutableList.Builder<InternalProblem> builder = ImmutableList.builder();
+            Collection<Throwable> causes = MultiCauseExceptionUtil.getCausesInHierachy(t);
+            for (Throwable cause : causes) {
+                builder.addAll(findAll(cause));
+            }
+            return builder.build();
+        }
+
         @Nullable
         private Throwable find(Throwable t) {
             try {
@@ -108,7 +119,7 @@ public class ExceptionProblemRegistry {
                 }
                 Collection<Throwable> candidates = exceptionLookup().get(key(t));
                 for (Throwable candidate : candidates) {
-                    if (deepEquals(candidate, t, new ArrayList<Throwable>())) {
+                    if (deepEquals(candidate, t, new ArrayList<>())) {
                         return candidate;
                     }
                 }

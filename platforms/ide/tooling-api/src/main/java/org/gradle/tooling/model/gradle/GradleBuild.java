@@ -16,10 +16,15 @@
 
 package org.gradle.tooling.model.gradle;
 
+import org.gradle.api.Incubating;
+import org.gradle.tooling.Failure;
+import org.gradle.tooling.events.problems.Problem;
 import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.BuildModel;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.Model;
+
+import java.util.List;
 
 /**
  * Provides information about the structure of a Gradle build.
@@ -73,4 +78,31 @@ public interface GradleBuild extends Model, BuildModel {
      * @since 4.10
      */
     DomainObjectSet<? extends GradleBuild> getEditableBuilds();
+
+    /**
+     * Returns whether the project has failed to load the full build.
+     *
+     * @return {@code true} if the project has failed, {@code false} otherwise.
+     * @since 9.2.0
+     */
+    @Incubating
+    boolean didItFail();
+
+    /**
+     * Returns the failure that caused the build to fail, if any.
+     *
+     * @return the failure, or {@code null} if the build did not fail.
+     * @since 9.2.0
+     */
+    @Incubating
+    Failure getFailure();
+
+    /**
+     * Returns problems associated with this build.
+     *
+     * @return The problems, or an empty list if there are no problems.
+     * @since 9.2.0
+     */
+    @Incubating
+    List<Problem> getProblems();
 }

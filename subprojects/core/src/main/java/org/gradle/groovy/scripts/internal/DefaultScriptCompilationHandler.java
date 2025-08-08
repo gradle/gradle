@@ -219,11 +219,12 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
         int lineNumber = syntaxError == null ? -1 : syntaxError.getLine();
         String message = String.format("Could not compile %s.", source.getDisplayName());
         ProblemId problemId = ProblemId.create(TextUtil.screamingSnakeToKebabCase("compilation-failed"), "Groovy DSL script compilation problem", GradleCoreProblemGroup.compilation().groovyDsl());
-        throw ((InternalProblems) getProblemsService()).getInternalReporter().throwing(new ScriptCompilationException(message, e, source, lineNumber), problemId, builder -> builder
+        Throwable exception = new ScriptCompilationException(message, e, source, lineNumber);
+        throw ((InternalProblems) getProblemsService()).getInternalReporter().throwing(exception, problemId, builder -> builder
             .contextualLabel(message)
             .lineInFileLocation(source.getFileName(), lineNumber)
             .severity(Severity.ERROR)
-            .withException(new ScriptCompilationException(message, e, source, lineNumber))
+            .withException(exception)
         );
     }
 

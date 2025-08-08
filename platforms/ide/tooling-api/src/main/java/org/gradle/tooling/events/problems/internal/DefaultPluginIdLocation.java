@@ -18,7 +18,9 @@ package org.gradle.tooling.events.problems.internal;
 
 import org.gradle.tooling.events.problems.PluginIdLocation;
 
-public class DefaultPluginIdLocation implements PluginIdLocation {
+import java.io.Serializable;
+
+public class DefaultPluginIdLocation implements PluginIdLocation, Serializable {
     private final String pluginId;
 
     public DefaultPluginIdLocation(String pluginId) {

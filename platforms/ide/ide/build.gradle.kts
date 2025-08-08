@@ -15,6 +15,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.modelCore)
     api(projects.platformJvm)
+    api(projects.problemsApi)
     api(projects.serviceProvider)
     api(projects.toolingApi)
 
@@ -24,13 +25,16 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.baseServicesGroovy)
+    implementation(projects.buildEvents)
     implementation(projects.ear)
+    implementation(projects.kotlinDsl)
     implementation(projects.languageJava)
     implementation(projects.loggingApi)
     implementation(projects.platformBase)
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)
     implementation(projects.serviceLookup)
+    implementation(projects.toolingApiBuilders)
     implementation(projects.war)
 
     implementation(libs.groovyXml)
