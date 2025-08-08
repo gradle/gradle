@@ -56,10 +56,10 @@ public interface ProviderFactory {
      * <p>This provider is always <a href="provider/Provider.html#configuration-cache">computed and its value is cached</a> by the Configuration Cache.
      * If this provider is created at configuration time, the {@link Callable} may call configuration-time only APIs and capture objects of arbitrary types.
      * <p>This can be useful when you need to lazily compute some value to use at execution time based on configuration-time only data. For example, you can compute an archive name based on the name
-     * of the project:
+     * and the version of the project:
      * <pre class='autoTested'>
      *   tasks.register("createArchive") {
-     *       def archiveNameProvider = providers.provider { project.name + ".jar" }
+     *       def archiveNameProvider = providers.provider { project.name + "-" + project.version + ".jar" }
      *       doLast {
      *           def archiveName = new File(archiveNameProvider.get())
      *           // ... create the archive and put in its contents.

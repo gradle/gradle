@@ -593,7 +593,7 @@ Set to `warn` to report problems without failing the build.
 +
 Set to `fail` to report problems and fail the build if there are any problems.
 
-`--configure-on-demand`, `--no-configure-on-demand`::
+`--configure-on-demand`, `--no-configure-on-demand` incubating-label:[]::
 Toggles configure-on-demand. Only relevant projects are configured in this build run. _Default is off_.
 
 `--max-workers`::
@@ -685,11 +685,13 @@ Set to `verbose` to enable color and other rich output like `rich` with output t
 [[sec:command_line_problems]]
 === Reporting problems
 
-`--no-problems-report`::
-Disable the generation of `build/reports/problems-report.html`, by default this report is generated with problems provided to the <<reporting_problems.adoc#sec:reporting_problems,Problems API>>.
+`--problems-report` (enabled by default) incubating-label:[]::
+Enable the generation of `build/reports/problems-report.html`.
+This is the default behaviour.
+The report is generated with problems provided to the <<reporting_problems.adoc#sec:reporting_problems,Problems API>>.
 
-`--problems-report`::
-Enable the generation of `build/reports/problems-report.html`. This is the default behaviour. The report is generated with problems provided to the <<reporting_problems.adoc#sec:reporting_problems,Problems API>>.
+`--no-problems-report` incubating-label:[]::
+Disable the generation of `build/reports/problems-report.html`, by default this report is generated with problems provided to the <<reporting_problems.adoc#sec:reporting_problems,Problems API>>.
 
 [[sec:command_line_warnings]]
 === Showing or hiding warnings
@@ -750,10 +752,7 @@ Refresh the <<dependency_caching.adoc#sec:controlling-dependency-caching-command
 `-m`, `--dry-run`::
 Run Gradle with all task actions disabled. Use this to show which task would have executed.
 
-`--task-graph`::
-_Incubating._
-_Since Gradle 9.1.0_
-+
+`--task-graph` since-gradle-label:9.1.0[] incubating-label:[]::
 Run Gradle with all task actions disabled and print the task dependency graph.
 
 `-t`, `--continuous`::

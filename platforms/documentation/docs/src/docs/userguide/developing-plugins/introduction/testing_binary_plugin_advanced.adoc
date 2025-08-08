@@ -75,7 +75,7 @@ The directory of our plugin looks as follows:
 
 == 1. Unit Test
 
-Unit tests validate the internal behavior of your plugin in a lightweight, isolated project.
+*Unit tests* validate the internal behavior of your plugin in a lightweight, isolated project.
 These tests simulate applying your plugin without needing a full Gradle execution.
 
 They test:
@@ -88,7 +88,7 @@ The unit test for the `filesizediff` plugin looks as follows:
 .src/test/java/org/example/FileSizeDiffPluginTest
 [source,java]
 ----
-include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/kotlin/plugin/src/test/java/org/example/FileSizeDiffPluginTest.java[]
+include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/common/plugin/src/test/java/org/example/FileSizeDiffPluginTest.java[]
 ----
 
 This test checks that the `org.example.filesizediff` plugin is applied and a `fileSizeDiff` task is added.
@@ -97,7 +97,7 @@ Unit tests are fast and useful for verifying the basic mechanics of your plugin 
 
 == 2. Functional Test
 
-Functional tests (also known as end-to-end plugin tests) use Gradle's <<test_kit.adoc#test_kit,`TestKit`>> to launch real Gradle builds in a temporary directory.
+*Functional tests* (also known as end-to-end plugin tests) use Gradle's <<test_kit.adoc#test_kit,`TestKit`>> to launch real Gradle builds in a temporary directory.
 This is how you verify your plugin works correctly in real-world usage.
 
 They test:
@@ -111,7 +111,7 @@ The functional test for the `filesizediff` plugin looks as follows:
 .src/functionalTest/java/org/example/FileSizeDiffPluginFunctionalTest.java
 [source,java]
 ----
-include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/kotlin/plugin/src/functionalTest/java/org/example/FileSizeDiffPluginFunctionalTest.java[]
+include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/common/plugin/src/functionalTest/java/org/example/FileSizeDiffPluginFunctionalTest.java[]
 ----
 
 `GradleRunner` is the core API provided by `TestKit` for executing builds in a test environment.
@@ -130,7 +130,7 @@ include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/groovy", files="p
 
 == Consumer Project
 
-You can optionally create a consumer project that consumes your plugin:
+You can optionally create a consumer project that uses your plugin:
 
 ====
 [.multi-language-sample]
@@ -138,9 +138,9 @@ You can optionally create a consumer project that consumes your plugin:
 [source, kotlin]
 ----
 .
-├── consumer
-│   ├── settings.gradle.kts // Include custom plugin
-│   └── build.gradle.kts    // Applies custom plugin
+├── settings.gradle.kts // Include custom plugin
+├── build.gradle.kts    // Applies custom plugin
+│
 └── plugin
     ├── settings.gradle.kts
     ├── build.gradle.kts
@@ -153,9 +153,9 @@ You can optionally create a consumer project that consumes your plugin:
 [source, groovy]
 ----
 .
-├── consumer
-│   ├── settings.gradle // Include custom plugin
-│   └── build.gradle    // Applies custom plugin
+├── settings.gradle.kts // Include custom plugin
+├── build.gradle.kts    // Applies custom plugin
+│
 └── plugin
     ├── settings.gradle
     ├── build.gradle
@@ -168,15 +168,15 @@ You can optionally create a consumer project that consumes your plugin:
 First you can point to the plugin as an included build in the `consumer` settings file:
 
 ====
-include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/kotlin", files="consumer/settings.gradle.kts[]"]
-include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/groovy", files="consumer/settings.gradle[]"]
+include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/kotlin", files="settings.gradle.kts[]"]
+include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/groovy", files="settings.gradle[]"]
 ====
 
 Then in the build file of the `consumer` project, you apply the plugin and test it:
 
 ====
-include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/kotlin", files="consumer/build.gradle.kts[]"]
-include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/groovy", files="consumer/build.gradle[]"]
+include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/groovy", files="build.gradle[]"]
 ====
 
 In the `consumer` project, you can create dummy `a.txt` and `b.txt` files and run `./gradlew fileSizeDiff`:
@@ -185,11 +185,7 @@ In the `consumer` project, you can create dummy `a.txt` and `b.txt` files and ru
 ----
 $ ./gradlew fileSizeDiff
 
-> Task :consumer:fileSizeDiff
-Files have the same size: 0 bytes
-Wrote diff result to /Users/lkassovic/Documents/Repositories/temp/plugin/consumer/build/diff-result.txt
-
-BUILD SUCCESSFUL in 134ms
+include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/tests/fileSizeDiff.out[]
 ----
 
 [.text-right]

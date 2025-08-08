@@ -33,13 +33,14 @@ import static org.gradle.util.internal.GFileUtils.forceDelete
 @IntegrationTestTimeout(240)
 class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec implements OtherGradleVersionFixture {
 
-    private final GradleExecuter mostRecentReleaseExecuter = new NoDaemonGradleExecuter(otherVersion, temporaryFolder, buildContext)
+    private GradleExecuter mostRecentReleaseExecuter
 
     def cleanup() {
-        mostRecentReleaseExecuter.cleanup()
+        mostRecentReleaseExecuter?.cleanup()
     }
 
     def setup() {
+        mostRecentReleaseExecuter = new NoDaemonGradleExecuter(otherVersion, temporaryFolder, buildContext)
         buildFile << "apply plugin: 'base'\n"
     }
 

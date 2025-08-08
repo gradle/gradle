@@ -119,20 +119,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "build-discovery",
-    "path": "platforms/core-runtime/build-discovery",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "name": "build-discovery-api",
-    "path": "platforms/core-runtime/build-discovery-api",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "build-events",
     "path": "subprojects/build-events",
     "unitTests": true,

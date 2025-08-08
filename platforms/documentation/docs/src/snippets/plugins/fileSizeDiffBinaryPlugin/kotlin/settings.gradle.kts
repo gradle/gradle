@@ -1,3 +1,3 @@
-rootProject.name = "root"
+rootProject.name = "consumer"
 
-includeBuild("consumer")
+includeBuild("plugin")

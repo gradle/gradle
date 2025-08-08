@@ -59,9 +59,8 @@ dependencies {
 
     api(libs.jspecify)
 
-    implementation(projects.buildDiscovery)
-    implementation(projects.buildProcessServices)
     implementation(projects.core)
+    implementation(projects.buildProcessServices)
     implementation(projects.logging)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)

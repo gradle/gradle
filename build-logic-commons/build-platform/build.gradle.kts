@@ -18,7 +18,7 @@ val isGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
 val codenarcVersion = if (isGroovy4) "3.6.0-groovy-4.0" else "3.6.0"
 val spockVersion = if (isGroovy4) "2.3-groovy-4.0" else "2.3-groovy-3.0"
 val groovyGroup = if (isGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
-val asmVersion = "9.7.1"
+val asmVersion = "9.8"
 // To try out newer kotlin versions
 val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
     .getOrElse(embeddedKotlinVersion)
