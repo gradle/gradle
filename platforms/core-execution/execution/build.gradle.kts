@@ -36,8 +36,6 @@ dependencies {
     }
 
     implementation(libs.commonsLang)
-    implementation(libs.commonsIo)
-    implementation(libs.jsr305)
 
     testImplementation(projects.native)
     testImplementation(projects.logging)
