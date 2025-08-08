@@ -38,6 +38,7 @@ import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
 import org.gradle.api.provider.ValueSourceSpec;
 import org.gradle.api.reflect.TypeOf;
+import org.gradle.internal.Describables;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.process.ExecOutput;
 import org.gradle.process.ExecSpec;
@@ -145,7 +146,10 @@ public class DefaultProviderFactory implements ProviderFactory {
     @Override
     public Provider<String> gradleProperty(String propertyName) {
         GradleProperties gradleProperties = getGradleProperties();
-        return memoizing(changing(() -> gradleProperties.find(propertyName)));
+        return memoizing(
+            changing(() -> gradleProperties.find(propertyName)),
+            () -> Describables.quoted("Gradle property", propertyName)
+        );
     }
 
     @Override
@@ -157,7 +161,8 @@ public class DefaultProviderFactory implements ProviderFactory {
                 changing(() -> gradleProperties),
                 propertyName,
                 bifunction(GradleProperties::find)
-            )
+            ),
+            () -> Describables.quoted("Gradle property", propertyName)
         );
     }
 
