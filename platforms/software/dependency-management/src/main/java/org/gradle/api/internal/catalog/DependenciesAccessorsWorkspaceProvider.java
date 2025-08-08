@@ -47,11 +47,6 @@ public class DependenciesAccessorsWorkspaceProvider implements ImmutableWorkspac
     }
 
     @Override
-    public AtomicMoveImmutableWorkspace getAtomicMoveWorkspace(String path) {
-        return delegate.getAtomicMoveWorkspace(path);
-    }
-
-    @Override
     public LockingImmutableWorkspace getLockingWorkspace(String path) {
         return delegate.getLockingWorkspace(path);
     }
