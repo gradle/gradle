@@ -45,7 +45,7 @@ trait RuntimePluginValidationTrait implements CommonPluginValidationTrait{
     @Override
     void assertValidationSucceeds() {
         succeeds "run"
-        result.assertTaskNotSkipped(":run")
+        result.assertTaskExecuted(":run")
     }
 
     void assertValidationFailsWith(List<AbstractPluginValidationIntegrationSpec.DocumentedProblem> messages) {

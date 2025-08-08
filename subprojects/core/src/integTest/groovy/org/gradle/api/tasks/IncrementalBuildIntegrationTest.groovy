@@ -141,7 +141,7 @@ apply from: 'changes.gradle'
         succeeds "b"
 
         then:
-        result.assertTasksNotSkipped(":a", ":b")
+        result.assertTasksExecuted(":a", ":b")
 
         when:
         TestFile.Snapshot aSnapshot = outputFileA.snapshot()
@@ -178,7 +178,7 @@ apply from: 'changes.gradle'
         succeeds "b"
 
         then:
-        result.assertTasksNotSkipped(":a", ":b")
+        result.assertTasksExecuted(":a", ":b")
 
         outputFileA.assertHasChangedSince(aSnapshot)
         outputFileB.assertHasChangedSince(bSnapshot)
@@ -197,7 +197,7 @@ apply from: 'changes.gradle'
         succeeds "b"
 
         then:
-        result.assertTasksNotSkipped(":a", ":b")
+        result.assertTasksExecuted(":a", ":b")
 
         outputFileA.assertHasChangedSince(aSnapshot)
         outputFileB.assertHasChangedSince(bSnapshot)
@@ -216,7 +216,7 @@ apply from: 'changes.gradle'
         succeeds "b"
 
         then:
-        result.assertTasksNotSkipped(":a")
+        result.assertTasksExecuted(":a")
         result.assertTasksSkipped(":b")
 
         outputFileA.text == '[new content]'
@@ -228,7 +228,7 @@ apply from: 'changes.gradle'
         succeeds "b"
 
         then:
-        result.assertTasksNotSkipped(":b")
+        result.assertTasksExecuted(":b")
         result.assertTasksSkipped(":a")
 
         outputFileA.text == '[new content]'
@@ -246,7 +246,7 @@ apply from: 'changes.gradle'
         succeeds "b"
 
         then:
-        result.assertTasksNotSkipped(":a")
+        result.assertTasksExecuted(":a")
         result.assertTasksSkipped(":b")
 
         outputFileA.text == '[new content]'
@@ -275,7 +275,7 @@ a.inputFile = file('new-a-input.txt')
         succeeds "b"
 
         then:
-        result.assertTasksNotSkipped(":a")
+        result.assertTasksExecuted(":a")
         result.assertTasksSkipped(":b")
         outputFileA.text == '[new content]'
 
@@ -295,7 +295,7 @@ b.outputFile = file('new-output.txt')
 
         then:
         result.assertTasksSkipped(":a")
-        result.assertTasksNotSkipped(":b")
+        result.assertTasksExecuted(":b")
 
         outputFileB.text == '[[new content]]'
 
@@ -315,7 +315,7 @@ b.inputFile = a.outputFile
         outputFileA = file('new-a-output.txt')
 
         then:
-        result.assertTasksNotSkipped(":a", ":b")
+        result.assertTasksExecuted(":a", ":b")
         outputFileA.text == '[new content]'
 
         when:
@@ -332,7 +332,7 @@ a.format = '- %s -'
         succeeds "b"
 
         then:
-        result.assertTasksNotSkipped(":a", ":b")
+        result.assertTasksExecuted(":a", ":b")
 
         outputFileA.text == '- new content -'
         outputFileB.text == '[- new content -]'
@@ -348,7 +348,7 @@ a.format = '- %s -'
         succeeds "b", "--rerun-tasks"
 
         then:
-        result.assertTasksNotSkipped(":a", ":b")
+        result.assertTasksExecuted(":a", ":b")
 
         // Output files already exist before using this version of Gradle
         // delete .gradle dir to simulate this
@@ -359,14 +359,14 @@ a.format = '- %s -'
         succeeds "b"
 
         then:
-        result.assertTasksNotSkipped(":a", ":b")
+        result.assertTasksExecuted(":a", ":b")
 
         when:
         outputFileB.delete()
         succeeds "b"
 
         then:
-        result.assertTasksNotSkipped(":b")
+        result.assertTasksExecuted(":b")
         result.assertTasksSkipped(":a")
 
         when:
@@ -396,7 +396,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         succeeds "b"
 
         then:
-        result.assertTasksNotSkipped(":a", ":b")
+        result.assertTasksExecuted(":a", ":b")
 
         when:
         TestFile outputAFile = file('build/a/file1.txt')
@@ -423,7 +423,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         succeeds "b"
 
         then:
-        result.assertTasksNotSkipped(":a", ":b")
+        result.assertTasksExecuted(":a", ":b")
 
         outputAFile.assertHasChangedSince(aSnapshot)
         outputBFile.assertHasChangedSince(bSnapshot)
@@ -442,7 +442,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         succeeds "b"
 
         then:
-        result.assertTasksNotSkipped(":a", ":b")
+        result.assertTasksExecuted(":a", ":b")
 
         outputAFile.assertHasChangedSince(aSnapshot)
         outputBFile.assertHasChangedSince(bSnapshot)
@@ -461,7 +461,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         succeeds "b"
 
         then:
-        result.assertTasksNotSkipped(":a", ":b")
+        result.assertTasksExecuted(":a", ":b")
 
         file('build/a/file2.txt').text == '[content2]'
         file('build/b/file2.txt').text == '[[content2]]'
@@ -478,7 +478,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         succeeds "b"
 
         then:
-        result.assertTasksNotSkipped(":a")
+        result.assertTasksExecuted(":a")
         result.assertTasksSkipped(":b")
 
         when:
@@ -493,7 +493,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         succeeds "b"
 
         then:
-        result.assertTasksNotSkipped(":a")
+        result.assertTasksExecuted(":a")
         result.assertTasksSkipped(":b")
         outputAFile.text == '[new content]'
 
@@ -509,7 +509,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         succeeds "b"
 
         then:
-        result.assertTasksNotSkipped(":a")
+        result.assertTasksExecuted(":a")
         result.assertTasksSkipped(":b")
         outputAFile.text == '[new content]'
 
@@ -528,14 +528,14 @@ task b(type: DirTransformerTask, dependsOn: a) {
         succeeds "b"
 
         then:
-        result.assertTasksNotSkipped(":a", ":b")
+        result.assertTasksExecuted(":a", ":b")
 
         when:
         file('build/b').deleteDir()
         succeeds "b"
 
         then:
-        result.assertTasksNotSkipped(":b")
+        result.assertTasksExecuted(":b")
         result.assertTasksSkipped(":a")
 
         when:
@@ -571,7 +571,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
             assert inputFile.length() == before
 
             succeeds("b")
-            result.assertTasksNotSkipped(":a", ":b")
+            result.assertTasksExecuted(":a", ":b")
         }
     }
 
@@ -615,7 +615,7 @@ task a(type: GeneratorTask) {
         succeeds "a", "-Ptext=text"
 
         then:
-        result.assertTasksNotSkipped(":a")
+        result.assertTasksExecuted(":a")
 
         when:
         succeeds "a", "-Ptext=text"
@@ -627,7 +627,7 @@ task a(type: GeneratorTask) {
         succeeds "a", "-Ptext=newtext"
 
         then:
-        result.assertTasksNotSkipped(":a")
+        result.assertTasksExecuted(":a")
     }
 
     def "multiple tasks can generate into overlapping output directories"() {
@@ -651,7 +651,7 @@ task b(type: DirTransformerTask) {
         succeeds "a", "b"
 
         then:
-        result.assertTasksNotSkipped(":a", ":b")
+        result.assertTasksExecuted(":a", ":b")
 
         // No changes
         when:
@@ -666,7 +666,7 @@ task b(type: DirTransformerTask) {
         succeeds "a", "b"
 
         then:
-        result.assertTasksNotSkipped(":a")
+        result.assertTasksExecuted(":a")
         result.assertTasksSkipped(":b")
 
         // Change an output file
@@ -675,7 +675,7 @@ task b(type: DirTransformerTask) {
         succeeds "a", "b"
 
         then:
-        result.assertTasksNotSkipped(":b")
+        result.assertTasksExecuted(":b")
         result.assertTasksSkipped(":a")
 
         // Output files already exist before using this version of Gradle
@@ -687,20 +687,20 @@ task b(type: DirTransformerTask) {
         succeeds "a", "b"
 
         then:
-        result.assertTasksNotSkipped(":a", ":b")
+        result.assertTasksExecuted(":a", ":b")
 
         when:
         file('build').deleteDir()
         succeeds "a"
 
         then:
-        result.assertTasksNotSkipped(":a")
+        result.assertTasksExecuted(":a")
 
         when:
         succeeds "b"
 
         then:
-        result.assertTasksNotSkipped(":b")
+        result.assertTasksExecuted(":b")
     }
 
     def "can use up-to-date predicate to force task to execute"() {
@@ -736,7 +736,7 @@ task nothing {
         succeeds "inputsAndOutputs"
 
         then:
-        result.assertTasksNotSkipped(":inputsAndOutputs")
+        result.assertTasksExecuted(":inputsAndOutputs")
 
         // Is up to date
 
@@ -752,21 +752,21 @@ task nothing {
         succeeds "inputsAndOutputs", '-Puptodate'
 
         then:
-        result.assertTasksNotSkipped(":inputsAndOutputs")
+        result.assertTasksExecuted(":inputsAndOutputs")
 
         // Predicate is false
         when:
         succeeds "inputsAndOutputs"
 
         then:
-        result.assertTasksNotSkipped(":inputsAndOutputs")
+        result.assertTasksExecuted(":inputsAndOutputs")
 
         // Task with input files and a predicate
         when:
         succeeds "noOutputs"
 
         then:
-        result.assertTasksNotSkipped(":noOutputs")
+        result.assertTasksExecuted(":noOutputs")
 
         // Is up to date
         when:
@@ -781,21 +781,21 @@ task nothing {
         succeeds "noOutputs", "-Puptodate"
 
         then:
-        result.assertTasksNotSkipped(":noOutputs")
+        result.assertTasksExecuted(":noOutputs")
 
         // Predicate is false
         when:
         succeeds "noOutputs"
 
         then:
-        result.assertTasksNotSkipped(":noOutputs")
+        result.assertTasksExecuted(":noOutputs")
 
         // Task a predicate only
         when:
         succeeds "nothing"
 
         then:
-        result.assertTasksNotSkipped(":nothing")
+        result.assertTasksExecuted(":nothing")
 
         // Is up to date
         when:
@@ -809,7 +809,7 @@ task nothing {
         succeeds "nothing"
 
         then:
-        result.assertTasksNotSkipped(":nothing")
+        result.assertTasksExecuted(":nothing")
     }
 
     def "lifecycle task is up-to-date when all dependencies are skipped"() {
@@ -828,7 +828,7 @@ task b(dependsOn: a)
         when:
         succeeds "b"
         then:
-        result.assertTasksNotSkipped(":a", ":b")
+        result.assertTasksExecuted(":a", ":b")
 
         when:
         succeeds "b"
@@ -859,12 +859,12 @@ task b(dependsOn: a)
         when:
         succeeds "transform"
         then:
-        result.assertTasksNotSkipped(":${testDirectory.name}:generate", ":otherBuild", ':transform')
+        result.assertTasksExecuted(":${testDirectory.name}:generate", ":otherBuild", ':transform')
 
         when:
         succeeds "transform"
         then:
-        result.assertTasksNotSkipped(":otherBuild")
+        result.assertTasksExecuted(":otherBuild")
         result.assertTasksSkipped(":${testDirectory.name}:generate", ":transform")
     }
 
@@ -888,7 +888,7 @@ task b(dependsOn: a)
         succeeds "a"
 
         then:
-        result.assertTasksNotSkipped(':a')
+        result.assertTasksExecuted(':a')
         def outputFile = file('output.txt')
         outputFile.text == 'output-file'
 
@@ -905,7 +905,7 @@ task b(dependsOn: a)
         succeeds "a"
 
         then:
-        result.assertTasksNotSkipped(':a')
+        result.assertTasksExecuted(':a')
         outputFile.text == 'output-file'
 
         when:
@@ -920,7 +920,7 @@ task b(dependsOn: a)
         succeeds "a"
 
         then:
-        result.assertTasksNotSkipped(':a')
+        result.assertTasksExecuted(':a')
         outputFile.text == 'output-file'
 
         when:
@@ -951,7 +951,7 @@ task b(dependsOn: a)
         succeeds "a"
 
         then:
-        result.assertTasksNotSkipped(':a')
+        result.assertTasksExecuted(':a')
         outputContains("file name: input.txt content: 'input-file'")
 
         // No changes
@@ -959,7 +959,7 @@ task b(dependsOn: a)
         succeeds "a"
 
         then:
-        result.assertTasksNotSkipped(':a')
+        result.assertTasksExecuted(':a')
         outputContains("file name: input.txt content: 'input-file'")
     }
 
@@ -1003,28 +1003,28 @@ task b(dependsOn: a)
         run "src1", "transform1", "src2", "transform2"
 
         then:
+        result.assertTasksScheduled(":src1", ":transform1", ":src2", ":transform2")
         result.assertTasksExecuted(":src1", ":transform1", ":src2", ":transform2")
-        result.assertTasksNotSkipped(":src1", ":transform1", ":src2", ":transform2")
 
         when:
         run "transform2"
 
         then:
-        result.assertTasksExecuted(":transform2")
+        result.assertTasksScheduled(":transform2")
         result.assertTasksSkipped(":transform2")
 
         when:
         run "transform1"
 
         then:
+        result.assertTasksScheduled(":transform1")
         result.assertTasksExecuted(":transform1")
-        result.assertTasksNotSkipped(":transform1")
 
         when:
         run "transform1", "transform2"
 
         then:
-        result.assertTasksExecuted(":transform1", ":transform2")
+        result.assertTasksScheduled(":transform1", ":transform2")
         result.assertTasksSkipped(":transform1", ":transform2")
     }
 
@@ -1067,7 +1067,7 @@ task b(dependsOn: a)
         succeeds "b", "b2"
 
         then:
-        result.assertTasksNotSkipped(':a', ':b', ':b2')
+        result.assertTasksExecuted(':a', ':b', ':b2')
         output.contains "Task 'b' file 'output.txt' with 'output-file'"
         output.contains "Task 'b2' file 'output.txt' with 'output-file'"
 
@@ -1076,7 +1076,7 @@ task b(dependsOn: a)
 
         then:
         result.assertTasksSkipped(':a')
-        result.assertTasksNotSkipped(':b', ':b2')
+        result.assertTasksExecuted(':b', ':b2')
         output.contains "Task 'b' file 'output.txt' with 'output-file'"
         output.contains "Task 'b2' file 'output.txt' with 'output-file'"
     }
@@ -1185,26 +1185,26 @@ task b(dependsOn: a)
         when:
         succeeds("customTask")
         then:
-        result.assertTasksExecuted(":customTask")
+        result.assertTasksScheduled(":customTask")
         file("build/output/file.txt").assertExists()
 
         when:
         file(".gradle").deleteDir()
         succeeds("customTask")
         then:
-        result.assertTasksExecuted(":customTask")
+        result.assertTasksScheduled(":customTask")
         file("build/output/file.txt").assertExists()
 
         when:
         succeeds("clean")
         then:
-        result.assertTasksExecuted(":clean")
+        result.assertTasksScheduled(":clean")
         file("build/output/file.txt").assertDoesNotExist()
 
         when:
         succeeds("customTask")
         then:
-        result.assertTasksExecuted(":customTask")
+        result.assertTasksScheduled(":customTask")
         file("build/output/file.txt").assertExists()
     }
 

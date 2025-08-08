@@ -265,7 +265,7 @@ project(':api') {
 
         then:
         fixture.assertProjectsConfigured(":", ":api")
-        result.assertTasksExecuted(':api:foo')
+        result.assertTasksScheduled(':api:foo')
     }
 
     @ToBeFixedForIsolatedProjects(because = "evaluationDependsOn is not IP compatible")
@@ -326,7 +326,7 @@ project(':api') {
 
         then:
         fixture.assertProjectsConfigured(":", ":impl", ":api")
-        result.assertTasksExecutedInOrder(":api:foo", ":impl:bar")
+        result.assertTasksScheduledInOrder(":api:foo", ":impl:bar")
     }
 
     def "supports buildSrc"() {
@@ -435,7 +435,7 @@ class SomeTask extends DefaultTask {
         run(":a:one", "--value", ":b:thing", "a:two", "--value", "unknown:unknown")
 
         then:
-        result.assertTasksExecuted(":a:one", ":a:two")
+        result.assertTasksScheduled(":a:one", ":a:two")
         fixture.assertProjectsConfigured(":", ":a")
     }
 
@@ -457,7 +457,7 @@ allprojects {
         run(":a:one", "-x", "two", "-x", "three")
 
         then:
-        result.assertTasksExecuted(":a:one")
+        result.assertTasksScheduled(":a:one")
         fixture.assertProjectsConfigured(":", ":a")
 
         when:
@@ -465,7 +465,7 @@ allprojects {
         run(":a:one", "-x", "two", "-x", "three")
 
         then:
-        result.assertTasksExecuted(":a:one")
+        result.assertTasksScheduled(":a:one")
         fixture.assertProjectsConfigured(":", ":a")
 
         when:
@@ -473,7 +473,7 @@ allprojects {
         run(":a:one", "-x", "two", "-x", "three")
 
         then:
-        result.assertTasksExecuted(":a:one")
+        result.assertTasksScheduled(":a:one")
         fixture.assertProjectsConfigured(":", ":a", ":b")
     }
 
@@ -496,7 +496,7 @@ project(':b') {
         run(":a:one", "-x", "two")
 
         then:
-        result.assertTasksExecuted(":a:one")
+        result.assertTasksScheduled(":a:one")
         fixture.assertProjectsConfigured(":", ":a")
 
         when:
@@ -525,7 +525,7 @@ allprojects {
         run(":a:one", "-x", "two")
 
         then:
-        result.assertTasksExecuted(":a:one")
+        result.assertTasksScheduled(":a:one")
         fixture.assertProjectsConfigured(":", ":a", ":b", ":c", ":c:child")
 
         when:
@@ -554,7 +554,7 @@ allprojects {
         run(":a:one", "-x", "tw")
 
         then:
-        result.assertTasksExecuted(":a:one")
+        result.assertTasksScheduled(":a:one")
         fixture.assertProjectsConfigured(":", ":a", ":b", ":c", ":b:child")
 
         when:
@@ -562,7 +562,7 @@ allprojects {
         run(":a:one", "-x", "tw")
 
         then:
-        result.assertTasksExecuted(":a:one")
+        result.assertTasksScheduled(":a:one")
         fixture.assertProjectsConfigured(":", ":a", ":b", ":b:child")
     }
 

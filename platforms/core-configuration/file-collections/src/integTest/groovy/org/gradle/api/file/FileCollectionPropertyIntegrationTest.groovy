@@ -178,21 +178,21 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createFile1", ":createFile2", ":merge")
+        result.assertTasksScheduled(":createFile1", ":createFile2", ":merge")
         file("output/merged.txt").text == 'file1,file2'
 
         when:
         run("merge")
 
         then:
-        result.assertTasksNotSkipped()
+        result.assertAllTasksSkipped()
 
         when:
         file("file1-source.txt").text = "new-file1"
         run("merge")
 
         then:
-        result.assertTasksNotSkipped(":createFile1", ":merge")
+        result.assertTasksExecuted(":createFile1", ":merge")
         file("output/merged.txt").text == 'new-file1,file2'
     }
 
@@ -245,21 +245,21 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createFiles", ":merge")
+        result.assertTasksScheduled(":createFiles", ":merge")
         file("output/merged.txt").text == 'file1,file1'
 
         when:
         run("merge")
 
         then:
-        result.assertTasksNotSkipped()
+        result.assertAllTasksSkipped()
 
         when:
         file("file-source.txt").text = "new-file1"
         run("merge")
 
         then:
-        result.assertTasksNotSkipped(":createFiles", ":merge")
+        result.assertTasksExecuted(":createFiles", ":merge")
         file("output/merged.txt").text == 'new-file1,new-file1'
     }
 
@@ -315,21 +315,21 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createDir1", ":createDir2", ":merge")
+        result.assertTasksScheduled(":createDir1", ":createDir2", ":merge")
         file("output/merged.txt").text == 'dir1,dir2'
 
         when:
         run("merge")
 
         then:
-        result.assertTasksNotSkipped()
+        result.assertAllTasksSkipped()
 
         when:
         file("dir1-source.txt").text = "new-dir1"
         run("merge")
 
         then:
-        result.assertTasksNotSkipped(":createDir1", ":merge")
+        result.assertTasksExecuted(":createDir1", ":merge")
         file("output/merged.txt").text == 'new-dir1,dir2'
     }
 
@@ -383,21 +383,21 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createDirs", ":merge")
+        result.assertTasksScheduled(":createDirs", ":merge")
         file("output/merged.txt").text == 'dir1,dir1'
 
         when:
         run("merge")
 
         then:
-        result.assertTasksNotSkipped()
+        result.assertAllTasksSkipped()
 
         when:
         file("dir-source.txt").text = "new-dir1"
         run("merge")
 
         then:
-        result.assertTasksNotSkipped(":createDirs", ":merge")
+        result.assertTasksExecuted(":createDirs", ":merge")
         file("output/merged.txt").text == 'new-dir1,new-dir1'
     }
 
@@ -457,21 +457,21 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createFile1", ":createFile2", ":merge")
+        result.assertTasksScheduled(":createFile1", ":createFile2", ":merge")
         file("output/merged.txt").text == 'file1,file2'
 
         when:
         run("merge")
 
         then:
-        result.assertTasksNotSkipped()
+        result.assertAllTasksSkipped()
 
         when:
         file("file1-source.txt").text = "new-file1"
         run("merge")
 
         then:
-        result.assertTasksNotSkipped(":createFile1", ":merge")
+        result.assertTasksExecuted(":createFile1", ":merge")
         file("output/merged.txt").text == 'new-file1,file2'
     }
 
@@ -532,21 +532,21 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         run("merge")
 
         then:
-        result.assertTasksExecuted(":createDir1", ":createDir2", ":merge")
+        result.assertTasksScheduled(":createDir1", ":createDir2", ":merge")
         file("output/merged.txt").text == 'dir1,dir2'
 
         when:
         run("merge")
 
         then:
-        result.assertTasksNotSkipped()
+        result.assertAllTasksSkipped()
 
         when:
         file("dir1-source.txt").text = "new-dir1"
         run("merge")
 
         then:
-        result.assertTasksNotSkipped(":createDir1", ":merge")
+        result.assertTasksExecuted(":createDir1", ":merge")
         file("output/merged.txt").text == 'new-dir1,dir2'
     }
 }

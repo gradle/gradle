@@ -191,7 +191,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         then:
         output.matches("(?s).*Re-downloading toolchain from URI .* because unpacking the existing archive .* failed with an exception.*")
-        result.assertTasksExecutedAndNotSkipped(":compileJava")
+        result.assertTasksExecuted(":compileJava")
         assertJdkWasDownloaded()
     }
 

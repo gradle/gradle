@@ -210,7 +210,7 @@ class FilteredConfigurationIntegrationTest extends AbstractDependencyResolutionT
 
         then:
         // Should not be including ':lib' as it's not required
-        result.assertTasksExecuted(":lib", ":child1:jar", ":child1:lib", ":verify")
+        result.assertTasksScheduled(":lib", ":child1:jar", ":child1:lib", ":verify")
     }
 
 }

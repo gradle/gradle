@@ -67,7 +67,7 @@ class SwiftBothLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationTes
         succeeds('assemble')
 
         then:
-        result.assertTasksExecuted(':compileDebugSharedSwift', ':linkDebugShared', ':assemble')
+        result.assertTasksScheduled(':compileDebugSharedSwift', ':linkDebugShared', ':assemble')
         sharedLibrary('build/lib/main/debug/shared/Foo').assertExists()
     }
 
@@ -83,14 +83,14 @@ class SwiftBothLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationTes
         succeeds('assembleDebugStatic')
 
         then:
-        result.assertTasksExecuted(':compileDebugStaticSwift', ':createDebugStatic', ':assembleDebugStatic')
+        result.assertTasksScheduled(':compileDebugStaticSwift', ':createDebugStatic', ':assembleDebugStatic')
         staticLibrary('build/lib/main/debug/static/Foo').assertExists()
 
         when:
         succeeds('assembleDebugShared')
 
         then:
-        result.assertTasksExecuted(':compileDebugSharedSwift', ':linkDebugShared', ':assembleDebugShared')
+        result.assertTasksScheduled(':compileDebugSharedSwift', ':linkDebugShared', ':assembleDebugShared')
         sharedLibrary('build/lib/main/debug/shared/Foo').assertExists()
     }
 }

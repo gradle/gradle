@@ -31,7 +31,7 @@ class WrapperIntegrationTest extends AbstractWrapperIntegrationSpec {
         def executer = wrapperExecuter.withGradleUserHomeDir(gradleUserHome)
         result = executer.withTasks("hello").run()
         then:
-        result.assertTaskExecuted(":hello")
+        result.assertTaskScheduled(":hello")
         executer.stop()
 
         when:
@@ -49,6 +49,6 @@ class WrapperIntegrationTest extends AbstractWrapperIntegrationSpec {
         then:
         deletedSomething
         result.assertHasErrorOutput("does not appear to contain a Gradle distribution.")
-        result.assertTaskExecuted(":hello")
+        result.assertTaskScheduled(":hello")
     }
 }

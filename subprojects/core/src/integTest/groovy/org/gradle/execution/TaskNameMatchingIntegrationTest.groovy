@@ -37,8 +37,8 @@ class TaskNameMatchingIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("Task name matched 'sanityCheck'")
         outputDoesNotContain("abbreviated")
-        result.assertTaskExecuted(":sanityCheck")
-        result.assertTaskNotExecuted(":safetyCheck")
+        result.assertTaskScheduled(":sanityCheck")
+        result.assertTasksNotScheduled(":safetyCheck")
     }
 
     def "logs info message for pattern match"() {
@@ -57,8 +57,8 @@ class TaskNameMatchingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("Abbreviated task name 'sanC' matched 'sanityCheck'")
-        result.assertTaskExecuted(":sanityCheck")
-        result.assertTaskNotExecuted(":safetyCheck")
+        result.assertTaskScheduled(":sanityCheck")
+        result.assertTasksNotScheduled(":safetyCheck")
     }
 
 }

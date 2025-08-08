@@ -89,7 +89,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_2.0", ":checkDeps")
 
         when:
         repoSettingsFile.replace("version = '2.0'", "version = '3.0'")
@@ -105,7 +105,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_3.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_3.0", ":checkDeps")
 
         when:
         repo.createBranch("ignore")
@@ -123,7 +123,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_3.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_3.0", ":checkDeps")
     }
 
     def "selects and builds from tag for static selector"() {
@@ -152,7 +152,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_2.0", ":checkDeps")
 
         when:
         repo.expectListVersions()
@@ -165,7 +165,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_2.0", ":checkDeps")
     }
 
     def "reports on and recovers from missing version for static selector"() {
@@ -206,7 +206,7 @@ Required by:
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_2.0", ":checkDeps")
 
         when:
         repo.expectListVersions()
@@ -219,7 +219,7 @@ Required by:
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_2.0", ":checkDeps")
     }
 
     def "selects and builds from highest tag that matches #selector selector"() {
@@ -248,7 +248,7 @@ Required by:
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_1.1", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_1.1", ":checkDeps")
 
         when:
         repoSettingsFile.replace("version = '2.0'", "version = '1.2'")
@@ -265,7 +265,7 @@ Required by:
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_1.2", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_1.2", ":checkDeps")
 
         where:
         selector    | _
@@ -310,7 +310,7 @@ Required by:
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_1.1", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_1.1", ":checkDeps")
 
         when:
         repo.expectListVersions()
@@ -323,7 +323,7 @@ Required by:
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_1.1", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_1.1", ":checkDeps")
 
         where:
         selector    | _
@@ -385,7 +385,7 @@ Required by:
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_2.0", ":checkDeps")
 
         when:
         repoSettingsFile.replace("version = '2.0'", "version = '3.0'")
@@ -401,7 +401,7 @@ Required by:
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_3.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_3.0", ":checkDeps")
 
         when:
         repo.expectListVersions()
@@ -414,7 +414,7 @@ Required by:
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_3.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_3.0", ":checkDeps")
     }
 
     def "reports on and recovers from missing branch"() {
@@ -456,7 +456,7 @@ Required by:
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_2.0", ":checkDeps")
 
         when:
         repo.expectListVersions()
@@ -469,6 +469,6 @@ Required by:
                 }
             }
         }
-        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
+        result.assertTasksScheduled(":dep:jar_2.0", ":checkDeps")
     }
 }

@@ -72,7 +72,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         run("transform")
 
         then:
-        result.assertTasksNotSkipped(":transform")
+        result.assertTasksExecuted(":transform")
 
         when:
         run("transform")
@@ -85,7 +85,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         run("transform")
 
         then:
-        result.assertTasksNotSkipped(":transform")
+        result.assertTasksExecuted(":transform")
     }
 
     def "task can use Path to represent input and output locations on ad hoc properties"() {
@@ -131,7 +131,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         run("transform")
 
         then:
-        result.assertTasksNotSkipped(":transform")
+        result.assertTasksExecuted(":transform")
 
         when:
         run("transform")
@@ -144,7 +144,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         run("transform")
 
         then:
-        result.assertTasksNotSkipped(":transform")
+        result.assertTasksExecuted(":transform")
     }
 
     def "task dependencies are inferred from contents of input FileCollection"() {
@@ -191,7 +191,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         run("doStuff")
 
         then:
-        result.assertTasksExecutedInOrder(any(':b:jar', ':b:otherJar'), ':a:doStuff')
+        result.assertTasksScheduledInOrder(any(':b:jar', ':b:otherJar'), ':a:doStuff')
     }
 
 }

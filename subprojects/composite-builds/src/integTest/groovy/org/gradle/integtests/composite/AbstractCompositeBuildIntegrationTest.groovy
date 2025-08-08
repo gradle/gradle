@@ -131,7 +131,7 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
 
     protected void executed(String... tasks) {
         for (String task : tasks) {
-            result.assertTaskExecuted(task)
+            result.assertTaskScheduled(task)
         }
     }
 

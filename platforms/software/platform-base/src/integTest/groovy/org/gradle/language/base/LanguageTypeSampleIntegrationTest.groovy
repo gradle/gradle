@@ -66,7 +66,7 @@ Binaries
         succeeds "assemble"
 
         then:
-        result.ignoreBuildSrc.assertTasksExecuted(":compileDocsExplodedReference", ":compileDocsExplodedUserguide", ":docsExploded", ":assemble")
+        result.ignoreBuildSrc.assertTasksScheduled(":compileDocsExplodedReference", ":compileDocsExplodedUserguide", ":docsExploded", ":assemble")
 
         and:
         languageTypeSample.dir.file("build/docs/exploded").assertHasDescendants(

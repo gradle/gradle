@@ -374,7 +374,7 @@ class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefin
         """
         expect:
         succeeds("foo")
-        result.assertTasksExecuted(":notByRule", ":bar", ":baz", ":foo")
+        result.assertTasksScheduled(":notByRule", ":bar", ":baz", ":foo")
     }
 
     @Requires(

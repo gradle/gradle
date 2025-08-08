@@ -38,21 +38,21 @@ class TaskSelectionIntegrationTest extends AbstractIntegrationSpec {
         run "thing"
 
         then:
-        result.assertTasksExecuted(":a:thing", ":b:thing", ":a:a:thing", ":b:b:thing")
+        result.assertTasksScheduled(":a:thing", ":b:thing", ":a:a:thing", ":b:b:thing")
 
         when:
         executer.inDirectory(file("a"))
         run "thing"
 
         then:
-        result.assertTasksExecuted(":a:thing", ":a:a:thing")
+        result.assertTasksScheduled(":a:thing", ":a:a:thing")
 
         // camel case matching
         when:
         run "th"
 
         then:
-        result.assertTasksExecuted(":a:thing", ":b:thing", ":a:a:thing", ":b:b:thing")
+        result.assertTasksScheduled(":a:thing", ":b:thing", ":a:a:thing", ":b:b:thing")
     }
 
     @ToBeFixedForIsolatedProjects(because = "subprojects")
@@ -74,21 +74,21 @@ class TaskSelectionIntegrationTest extends AbstractIntegrationSpec {
         run "thing"
 
         then:
-        result.assertTasksExecuted(":a:thing", ":b:thing", ":b:b:thing")
+        result.assertTasksScheduled(":a:thing", ":b:thing", ":b:b:thing")
 
         when:
         executer.inDirectory(file("a"))
         run "thing"
 
         then:
-        result.assertTasksExecuted(":a:thing")
+        result.assertTasksScheduled(":a:thing")
 
         // camel case matching
         when:
         run "th"
 
         then:
-        result.assertTasksExecuted(":a:thing", ":b:thing", ":b:b:thing")
+        result.assertTasksScheduled(":a:thing", ":b:thing", ":b:b:thing")
     }
 
     @ToBeFixedForIsolatedProjects(because = "allprojects")
@@ -103,7 +103,7 @@ allprojects { task thing }
         run "chi:chi:th"
 
         then:
-        result.assertTasksExecuted(":child:child:thing")
+        result.assertTasksScheduled(":child:child:thing")
     }
 
     def "can use camel case to match software model tasks"() {
@@ -119,7 +119,7 @@ allprojects { task thing }
         run "sHTU"
 
         then:
-        result.assertTasksExecuted(":sayHelloToUser")
+        result.assertTasksScheduled(":sayHelloToUser")
     }
 
     @ToBeFixedForIsolatedProjects(because = "allprojects")
@@ -139,6 +139,6 @@ allprojects { task thing }
         run()
 
         then:
-        result.assertTasksExecuted(":a", ":b", ":a:b")
+        result.assertTasksScheduled(":a", ":b", ":a:b")
     }
 }

@@ -45,9 +45,9 @@ class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         succeeds ":app:assemble"
 
         then:
-        result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+        result.assertTasksScheduled(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
-        result.assertTasksNotSkipped(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+        result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
 
@@ -56,9 +56,9 @@ class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         succeeds ":app:assemble"
 
         then:
-        result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+        result.assertTasksScheduled(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
-        result.assertTasksNotSkipped( ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+        result.assertTasksExecuted( ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":app:linkDebug", ":app:installDebug", ":app:assemble")
         installation("app/build/install/main/debug").exec().out == app.alternateLibraryOutput
 
@@ -66,7 +66,7 @@ class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         succeeds ":app:assemble"
 
         then:
-        result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksScheduled(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
         result.assertTasksSkipped(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
     }
 
@@ -94,9 +94,9 @@ class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         succeeds ":app:assemble"
 
         then:
-        result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+        result.assertTasksScheduled(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
-        result.assertTasksNotSkipped(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+        result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
 
@@ -105,9 +105,9 @@ class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         succeeds ":app:assemble"
 
         then:
-        result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+        result.assertTasksScheduled(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
-        result.assertTasksNotSkipped(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+        result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
         installation("app/build/install/main/debug").exec().out == app.alternateLibraryOutput
 
@@ -115,7 +115,7 @@ class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         succeeds ":app:assemble"
 
         then:
-        result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksScheduled(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
         result.assertTasksSkipped(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
     }
 
@@ -143,9 +143,9 @@ class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         succeeds ":app:assemble"
 
         then:
-        result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+        result.assertTasksScheduled(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
-        result.assertTasksNotSkipped(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+        result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
 
@@ -159,16 +159,16 @@ class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         succeeds ":app:assemble"
 
         then:
-        result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
+        result.assertTasksScheduled(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
-        result.assertTasksNotSkipped(":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksExecuted(":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
         installation("app/build/install/main/debug").exec().out == app.alternateLibraryOutput
 
         when:
         succeeds ":app:assemble"
 
         then:
-        result.assertTasksExecuted(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksScheduled(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
         result.assertTasksSkipped(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
     }
 }

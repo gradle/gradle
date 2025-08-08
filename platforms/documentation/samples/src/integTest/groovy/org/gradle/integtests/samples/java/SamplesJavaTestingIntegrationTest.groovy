@@ -48,7 +48,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
         def result = succeeds("test")
 
         then:
-        result.assertTaskExecuted(":test")
+        result.assertTaskScheduled(":test")
 
         and:
         def xmlResults = getTestResultsFileAsXml(dslDir, "org.gradle.PersonTest")
@@ -68,7 +68,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
         def result = succeeds("test")
 
         then: "the test task is executed"
-        result.assertTaskExecuted(":test")
+        result.assertTaskScheduled(":test")
 
         and: "both tests in SomeIntegTest run and pass"
         def xmlResults = getTestResultsFileAsXml(dslDir, "SomeIntegTest")
@@ -93,7 +93,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
         def result = fails("test")
 
         then: "the test task is executed"
-        result.assertTaskExecuted(":test")
+        result.assertTaskScheduled(":test")
 
         and: "the test results are in the custom directory"
         dslDir.file("build/my-test-results/test").directory
@@ -117,8 +117,8 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
         def result = succeeds("test", "testReport")
 
         then: "the test task is executed"
-        result.assertTaskExecuted(":core:test")
-        result.assertTaskExecuted(":util:test")
+        result.assertTaskScheduled(":core:test")
+        result.assertTaskScheduled(":util:test")
 
         and: "an aggregate report is created"
         dslDir.file("build/reports/allTests/index.html").assertExists()
@@ -141,7 +141,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
         def result = succeeds("test")
 
         then: "the test task is executed"
-        result.assertTaskExecuted(":test")
+        result.assertTaskScheduled(":test")
 
         and: "only the 'A' tests are run"
         def xmlResults = getTestResultsFileAsXml(dslDir, "org.gradle.junit.CategorizedJUnitTest")
@@ -162,7 +162,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
         def result = succeeds("test")
 
         then: "the test task is executed"
-        result.assertTaskExecuted(":test")
+        result.assertTaskScheduled(":test")
 
         and: "only the fast tests are run"
         def xmlResults = getTestResultsFileAsXml(dslDir, "org.gradle.junitplatform.TagTest")
@@ -183,7 +183,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
         def result = succeeds("test")
 
         then: "the test task is executed"
-        result.assertTaskExecuted(":test")
+        result.assertTaskScheduled(":test")
 
         and: "the unit tests are run"
         def xmlResults = getTestResultsFileAsXml(dslDir, "org.gradle.testng.SimpleUnitTest")
@@ -206,7 +206,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
         def result = succeeds("test")
 
         then: "the test task is executed"
-        result.assertTaskExecuted(":test")
+        result.assertTaskScheduled(":test")
 
         and: "the tests are run"
         def xmlResults = getTestResultsFileAsXml(dslDir, "org.gradle.junitplatform.JupiterTest")
@@ -227,7 +227,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
         def result = succeeds("test")
 
         then: "the test task is executed"
-        result.assertTaskExecuted(":test")
+        result.assertTaskScheduled(":test")
 
         and: "all the tests are run"
         assertTestsRunCount(
@@ -254,7 +254,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
         def result = succeeds("test")
 
         then: "the test task is executed"
-        result.assertTaskExecuted(":test")
+        result.assertTaskScheduled(":test")
 
         and: "only vintage tests are run"
         getTestResultsFile(dslDir, "org.gradle.junitplatform.JupiterTest").assertDoesNotExist()
@@ -276,7 +276,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
         def result = succeeds("test")
 
         then: "the test task is executed"
-        result.assertTaskExecuted(":test")
+        result.assertTaskScheduled(":test")
 
         // At this point, it seems too difficult to verify the order of the stdout
         // output, which is the only way to verify that the `preserveOrder` property
@@ -303,7 +303,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest im
         def result = succeeds("test")
 
         then: "the test task is executed"
-        result.assertTaskExecuted(":test")
+        result.assertTaskScheduled(":test")
 
         and: "both tests are run"
         def xmlResults = getTestResultsFileAsXml(dslDir, "org.gradle.testng.TestFactory")

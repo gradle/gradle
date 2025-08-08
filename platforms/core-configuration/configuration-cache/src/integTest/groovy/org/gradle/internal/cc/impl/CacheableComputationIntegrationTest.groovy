@@ -53,7 +53,7 @@ class CacheableComputationIntegrationTest extends AbstractConfigurationCacheInte
         succeeds("compatible")
 
         then:
-        result.assertTaskExecuted(":compatible")
+        result.assertTaskScheduled(":compatible")
         outputContains("project name: $projectName")
 
         where:

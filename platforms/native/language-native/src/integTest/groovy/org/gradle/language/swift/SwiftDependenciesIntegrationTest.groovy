@@ -95,7 +95,7 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
         if (buildType == "Release") {
             tasks << [ ":log:stripSymbols${buildType}", ":hello:stripSymbols${buildType}", ":app:stripSymbols${buildType}"]
         }
-        assert result.assertTasksExecuted(tasks)
+        assert result.assertTasksScheduled(tasks)
     }
 
     private void assertAppHasOutputFor(String buildType) {

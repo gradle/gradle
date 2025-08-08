@@ -64,7 +64,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(tasks.debug.allToLink, ":assemble")
+        result.assertTasksScheduled(tasks.debug.allToLink, ":assemble")
         // TODO - should skip the task as NO-SOURCE
         result.assertTasksSkipped(tasks.debug.allToLink, ":assemble")
     }
@@ -122,7 +122,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(tasks.debug.allToLink, ":assemble")
+        result.assertTasksScheduled(tasks.debug.allToLink, ":assemble")
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
@@ -142,7 +142,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         executer.withArgument("--info")
         succeeds tasks.release.assemble
 
-        result.assertTasksExecuted(tasks.release.allToLink, tasks.release.extract, tasks.release.assemble)
+        result.assertTasksScheduled(tasks.release.allToLink, tasks.release.extract, tasks.release.assemble)
         sharedLibrary("build/lib/main/release/hello").assertExists()
         sharedLibrary("build/lib/main/release/hello").assertHasStrippedDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
         output.contains('compiling with feature enabled')
@@ -150,7 +150,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         executer.withArgument("--info")
         succeeds tasks.debug.assemble
 
-        result.assertTasksExecuted(tasks.debug.allToLink, tasks.debug.assemble)
+        result.assertTasksScheduled(tasks.debug.allToLink, tasks.debug.assemble)
         sharedLibrary("build/lib/main/debug/hello").assertExists()
         sharedLibrary("build/lib/main/debug/hello").assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
         !output.contains('compiling with feature enabled')
@@ -173,7 +173,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
 
         expect:
         succeeds "assembleLinkDebug"
-        result.assertTasksExecuted(tasks.debug.allToLink, ":assembleLinkDebug")
+        result.assertTasksScheduled(tasks.debug.allToLink, ":assembleLinkDebug")
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
@@ -194,7 +194,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
 
         expect:
         succeeds "assembleRuntimeDebug"
-        result.assertTasksExecuted(tasks.debug.allToLink, ":assembleRuntimeDebug")
+        result.assertTasksScheduled(tasks.debug.allToLink, ":assembleRuntimeDebug")
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
@@ -215,7 +215,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
 
         expect:
         succeeds "compileDebug"
-        result.assertTasksExecuted(tasks.debug.compile, ":compileDebug")
+        result.assertTasksScheduled(tasks.debug.compile, ":compileDebug")
         objectFiles(lib.sources)*.assertExists()
         sharedLibrary("build/lib/main/debug/hello").assertDoesNotExist()
     }
@@ -244,7 +244,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(tasks.debug.allToLink, ":assemble")
+        result.assertTasksScheduled(tasks.debug.allToLink, ":assemble")
 
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
@@ -272,7 +272,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(tasks.debug.allToLink, ":assemble")
+        result.assertTasksScheduled(tasks.debug.allToLink, ":assemble")
 
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
@@ -291,7 +291,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(tasks.debug.allToLink, ":assemble")
+        result.assertTasksScheduled(tasks.debug.allToLink, ":assemble")
 
         !file("build").exists()
         file("output/obj/main/debug").assertIsDir()
@@ -319,7 +319,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(tasks.debug.allToLink, ":assemble")
+        result.assertTasksScheduled(tasks.debug.allToLink, ":assemble")
 
         file("build/object-files").assertIsDir()
         file("build/shared/main.bin").assertIsFile()
@@ -344,7 +344,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(tasks.debug.allToLink, ":assemble")
+        result.assertTasksScheduled(tasks.debug.allToLink, ":assemble")
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
@@ -376,14 +376,14 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         expect:
         succeeds tasks(':lib1').debug.assemble
 
-        result.assertTasksExecuted([':lib3', ':lib2'].collect { tasks(it).debug.allToLink }, tasks(':lib1').debug.allToAssemble)
+        result.assertTasksScheduled([':lib3', ':lib2'].collect { tasks(it).debug.allToLink }, tasks(':lib1').debug.allToAssemble)
         sharedLibrary("lib1/build/lib/main/debug/lib1").assertExists()
         sharedLibrary("lib2/build/lib/main/debug/lib2").assertExists()
         sharedLibrary("lib3/build/lib/main/debug/lib3").assertExists()
 
         succeeds tasks(':lib1').release.assemble
 
-        result.assertTasksExecuted([':lib3', ':lib2'].collect { tasks(it).release.allToLink }, tasks(':lib1').release.allToAssemble)
+        result.assertTasksScheduled([':lib3', ':lib2'].collect { tasks(it).release.allToLink }, tasks(':lib1').release.allToAssemble)
         sharedLibrary("lib1/build/lib/main/release/lib1").assertExists()
         sharedLibrary("lib2/build/lib/main/release/lib2").assertExists()
         sharedLibrary("lib3/build/lib/main/release/lib3").assertExists()
@@ -423,14 +423,14 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         expect:
         succeeds tasks(':lib1').debug.assemble
 
-        result.assertTasksExecuted([':lib3', ':lib2'].collect { tasks(it).debug.allToCreate }, tasks(':lib1').debug.allToAssemble)
+        result.assertTasksScheduled([':lib3', ':lib2'].collect { tasks(it).debug.allToCreate }, tasks(':lib1').debug.allToAssemble)
         sharedLibrary("lib1/build/lib/main/debug/lib1").assertExists()
         staticLibrary("lib2/build/lib/main/debug/lib2").assertExists()
         staticLibrary("lib3/build/lib/main/debug/lib3").assertExists()
 
         succeeds tasks(':lib1').release.assemble
 
-        result.assertTasksExecuted([':lib3', ':lib2'].collect { tasks(it).release.allToCreate }, tasks(':lib1').release.allToAssemble)
+        result.assertTasksScheduled([':lib3', ':lib2'].collect { tasks(it).release.allToCreate }, tasks(':lib1').release.allToAssemble)
         sharedLibrary("lib1/build/lib/main/release/lib1").assertExists()
         staticLibrary("lib2/build/lib/main/release/lib2").assertExists()
         staticLibrary("lib3/build/lib/main/release/lib3").assertExists()
@@ -543,7 +543,7 @@ project(':greeter') {
 
         expect:
         succeeds ":lib1:assemble"
-        result.assertTasksExecuted([':lib2', ':lib1'].collect { tasks(it).debug.allToLink }, ":lib1:assemble")
+        result.assertTasksScheduled([':lib2', ':lib1'].collect { tasks(it).debug.allToLink }, ":lib1:assemble")
         sharedLibrary("lib1/build/lib/main/debug/hello").assertExists()
         sharedLibrary("lib2/build/lib/main/debug/log").assertExists()
     }
@@ -571,7 +571,7 @@ project(':greeter') {
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(tasks.debug.allToLink, ":assemble")
+        result.assertTasksScheduled(tasks.debug.allToLink, ":assemble")
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 }
