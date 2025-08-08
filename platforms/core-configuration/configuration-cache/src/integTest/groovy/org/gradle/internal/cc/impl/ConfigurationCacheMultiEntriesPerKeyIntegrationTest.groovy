@@ -231,6 +231,6 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
     }
 
     private TestFile withMaxEntriesPerKey(int maxEntriesPerKey) {
-        file("gradle.properties") << "org.gradle.configuration-cache.entries-per-key=${maxEntriesPerKey}\n"
+        propertiesFile << "org.gradle.configuration-cache.entries-per-key=${maxEntriesPerKey}\n"
     }
 }

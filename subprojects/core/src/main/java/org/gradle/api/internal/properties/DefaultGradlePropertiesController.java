@@ -219,6 +219,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
             onGradlePropertiesLoaded(buildRootDir);
             this.loaded = loadNewState(buildRootDir, setSystemProperties);
+            getPropertiesWithPrefix("org.gradle."); // To ensure changes to Gradle options invalidate the cache
         }
 
         private LoadedBuildScopedState loadNewState(File buildRootDir, boolean setSystemProperties) {
