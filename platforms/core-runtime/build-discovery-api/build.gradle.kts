@@ -27,4 +27,7 @@ dependencies {
 
     implementation(projects.baseServices)
     implementation(projects.buildProcessServices)
+    implementation(projects.problemsApi)
+
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
