@@ -254,7 +254,6 @@ class DefaultConfigurationCacheCodecs(
             bind(DestinationRootCopySpecCodec(fileResolver))
 
             bind(TaskReferenceCodec)
-            bind(GradlePropertiesCodec)
 
             bind(IsolatedManagedValueCodec(managedFactoryRegistry))
             bind(IsolatedImmutableManagedValueCodec(managedFactoryRegistry))
@@ -271,6 +270,7 @@ class DefaultConfigurationCacheCodecs(
             bind(BooleanValueSnapshotCodec)
             bind(NullValueSnapshotCodec)
 
+            bind(GradlePropertiesCodec)
             bind(ServicesCodec)
 
             bind(ProxyCodec)
@@ -294,8 +294,7 @@ class DefaultConfigurationCacheCodecs(
             providerTypes(
                 propertyFactory,
                 filePropertyFactory,
-                nestedProviderCodecForFingerprint(
-                )
+                nestedProviderCodecForFingerprint()
             )
         }
     }
