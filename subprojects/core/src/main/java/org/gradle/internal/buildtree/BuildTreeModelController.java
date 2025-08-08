@@ -40,6 +40,10 @@ public interface BuildTreeModelController {
     @Nullable
     Object getModel(BuildTreeModelTarget target, String modelName, @Nullable Object parameter) throws UnknownModelException;
 
+    // ResilientResult<?> getResilientModel(BuildTreeModelTarget target, String modelName, @Nullable Object parameter) throws UnknownModelException;
+    // TODO: ResilientResult type is not accessible, and even if we solve that...
+    //   the Problem type it uses is tooling api specific
+
     boolean queryModelActionsRunInParallel();
 
     /**

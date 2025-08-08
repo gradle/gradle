@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Action;
+import org.gradle.tooling.ResilientResult;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
@@ -49,5 +50,10 @@ public class BuildControllerWithoutParameterSupport extends UnparameterizedBuild
     @Override
     protected BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) throws InternalUnsupportedModelException {
         return buildController.getModel(target, modelIdentifier);
+    }
+
+    @Override
+    protected BuildResult<ResilientResult<?>> getResilientModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) throws InternalUnsupportedModelException {
+        throw new UnsupportedOperationException("Method not implemented"); // InternalBuildController is deprecated
     }
 }

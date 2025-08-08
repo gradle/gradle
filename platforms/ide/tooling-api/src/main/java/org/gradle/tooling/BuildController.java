@@ -60,6 +60,11 @@ public interface BuildController {
     <T> T getModel(Class<T> modelType) throws UnknownModelException;
 
     /**
+     * TODO
+     */
+    <T> ResilientResult<T> getResilientModel(Class<T> modelType) throws UnknownModelException;
+
+    /**
      * Fetches a snapshot of the model of the given type, if available.
      *
      * <p>See {@link #getModel(Class)} for more details.</p>
@@ -102,6 +107,11 @@ public interface BuildController {
     <T> T getModel(Model target, Class<T> modelType) throws UnknownModelException;
 
     /**
+     * TODO
+     */
+    <T> ResilientResult<T> getResilientModel(Model target, Class<T> modelType) throws UnknownModelException;
+
+    /**
      * Fetches a snapshot of the model of the given type, if available.
      *
      * <p>See {@link #getModel(Model, Class)} for more details.</p>
@@ -129,6 +139,11 @@ public interface BuildController {
      * @since 4.4
      */
     <T, P> T getModel(Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException, UnknownModelException;
+
+    /**
+     * TODO
+     */
+    <T, P> ResilientResult<T> getResilientModel(Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnknownModelException;
 
     /**
      * Fetches a snapshot of the model of the given type using the given parameter, if available.
@@ -168,6 +183,11 @@ public interface BuildController {
      * @since 4.4
      */
     <T, P> T getModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException, UnknownModelException;
+
+    /**
+     * TODO
+     */
+    <T, P> ResilientResult<T> getResilientModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException, UnknownModelException;
 
     /**
      * Fetches a snapshot of the model of the given type for the given element using the given parameter, if available.
