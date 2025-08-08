@@ -55,7 +55,7 @@ import org.gradle.api.internal.project.CrossProjectModelAccess;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.DeferredProjectConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.project.ProjectScopedTaskResolver;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
@@ -79,6 +79,8 @@ import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.internal.build.BuildProjectRegistry;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
@@ -279,8 +281,11 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         BuildOperationRunner buildOperationRunner,
         CrossProjectConfigurator crossProjectConfigurator,
         CollectionCallbackActionDecorator decorator,
-        ProjectRegistry<ProjectInternal> projectRegistry
+        BuildState buildState,
+        ProjectStateRegistry projectStateRegistry
     ) {
+        BuildProjectRegistry buildProjectRegistry = buildState.getProjects();
+
         return new DefaultTaskContainerFactory(
             instantiator,
             taskIdentityFactory,
@@ -290,7 +295,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             buildOperationRunner,
             crossProjectConfigurator,
             decorator,
-            projectRegistry
+            buildProjectRegistry
         ).create();
     }
 
@@ -352,9 +357,9 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected TaskDependencyFactory createTaskDependencyFactory() {
+    protected TaskDependencyFactory createTaskDependencyFactory(BuildState build) {
         @Nullable TaskDependencyUsageTracker tracker = project.getServices().get(CrossProjectModelAccess.class).taskDependencyUsageTracker(project);
-        return DefaultTaskDependencyFactory.forProject(project.getTasks(), tracker);
+        return DefaultTaskDependencyFactory.forProject(new ProjectScopedTaskResolver(project.getTasks(), build, project.getProjectIdentity()), tracker);
     }
 
     @Provides

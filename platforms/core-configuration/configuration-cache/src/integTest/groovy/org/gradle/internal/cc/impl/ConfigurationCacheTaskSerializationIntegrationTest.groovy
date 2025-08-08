@@ -69,7 +69,7 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
 
         file("foo/build.gradle") << """
             tasks.register("dependent") {
-                inputs.files(parent.tasks.findByPath(':dependency'))
+                inputs.files(parent.tasks.getByName('dependency'))
             }
         """
 
