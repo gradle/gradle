@@ -27,7 +27,6 @@ import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
 import java.io.Closeable;
 import java.io.File;
-import java.util.UUID;
 import java.util.function.Supplier;
 
 import static org.gradle.cache.FineGrainedCacheCleanupStrategy.FineGrainedCacheDeleter;
@@ -89,26 +88,6 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             .open();
         this.baseDirectory = cache.getBaseDir();
         this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, treeDepthToTrackAndCleanup);
-    }
-
-    @Override
-    public AtomicMoveImmutableWorkspace getAtomicMoveWorkspace(String path) {
-        File immutableWorkspace = new File(baseDirectory, path);
-        fileAccessTracker.markAccessed(immutableWorkspace);
-        return new AtomicMoveImmutableWorkspace() {
-            @Override
-            public File getImmutableLocation() {
-                return immutableWorkspace;
-            }
-
-            @Override
-            public <T> T withTemporaryWorkspace(TemporaryWorkspaceAction<T> action) {
-                // TODO Use Files.createTemporaryDirectory() instead
-                String temporaryLocation = path + "-" + UUID.randomUUID();
-                File temporaryWorkspace = new File(baseDirectory, temporaryLocation);
-                return action.executeInTemporaryWorkspace(temporaryWorkspace);
-            }
-        };
     }
 
     @Override
