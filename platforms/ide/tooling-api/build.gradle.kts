@@ -93,6 +93,7 @@ dependencies {
     integTestImplementation(testFixtures(projects.buildProcessServices))
 
     crossVersionTestImplementation(projects.jvmServices)
+    crossVersionTestImplementation(projects.internalTesting)
     crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
     crossVersionTestImplementation(testFixtures(projects.problemsApi))
     crossVersionTestImplementation(libs.jettyWebApp)
