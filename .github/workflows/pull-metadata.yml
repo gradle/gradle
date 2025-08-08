@@ -1,8 +1,8 @@
 name: Check pulls metadata
 
 on:
-  pull_request_target:
-    types: [ closed ]
+  pull_request:
+    types: [ closed, unlabeled, milestoned, demilestoned ]
 
 permissions: {}
 
