@@ -49,7 +49,6 @@ dependencies {
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.problemsApi)
-    implementation(libs.commonsIo)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(projects.testingBase)
