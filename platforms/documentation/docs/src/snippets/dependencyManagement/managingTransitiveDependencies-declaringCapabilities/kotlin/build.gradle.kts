@@ -17,7 +17,7 @@ dependencies {
 // end::dependencies[]
 
 // tag::use_highest_asm[]
-configurations.all {
+configurations.configureEach {
     resolutionStrategy.capabilitiesResolution.withCapability("org.ow2.asm:asm") {
         selectHighestVersion()
     }
@@ -66,7 +66,7 @@ class AsmCapability : ComponentMetadataRule {
 if (project.hasProperty("replace")) {
 
     // tag::use_slf4j[]
-    configurations.all {
+    configurations.configureEach {
         resolutionStrategy.capabilitiesResolution.withCapability("log4j:log4j") {
             val toBeSelected = candidates.firstOrNull { it.id.let { id -> id is ModuleComponentIdentifier && id.module == "log4j-over-slf4j" } }
             if (toBeSelected != null) {
