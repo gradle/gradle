@@ -19,7 +19,6 @@ package org.gradle.cache.internal;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.math.IntMath;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.FileLockManager;
@@ -55,7 +54,7 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
      */
     public static final int MAX_NUMBER_OF_LOCKS = 512;
 
-    private final ProducerGuard<Object> guard = ProducerGuard.adaptive();
+    private final ProducerGuard<File> guard = ProducerGuard.adaptive();
     private final StripedFileLockAccess<LockOnDemandEagerReleaseCrossProcessCacheAccess> fileLocks;
     private final File gcFile;
     private final CacheCleanupExecutor cleanupExecutor;
@@ -75,6 +74,11 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         this.fileLocks = createLocks(numberOfLocks, fileLockManager);
         this.gcFile = new File(baseDir, "gc.properties");
         this.cleanupExecutor = new DefaultCacheCleanupExecutor(this, gcFile, cleanupStrategy.apply(this));
+    }
+
+    @Override
+    public File getCacheDir(String key) {
+        return new File(baseDir, key);
     }
 
     @Override
@@ -107,16 +111,8 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
 
     @Override
     public <T> T useCache(String key, Supplier<? extends T> action) {
-        // Normalize the key since key can be a path,
-        // and we want to avoid issues with different path separators.
-        normalizeKey(key);
-        return guard.guardByKey(key, () -> withFileLock(key, action));
-    }
-
-    private String normalizeKey(String key) {
-        key = FilenameUtils.separatorsToUnix(key);
-        checkArgument(!key.startsWith("/") && !key.endsWith("/"), "Cache key '%s' must not start or end with a slash", key);
-        return key;
+        File cacheDir = getCacheDir(key);
+        return guard.guardByKey(cacheDir, () -> withFileLock(cacheDir, action));
     }
 
     @Override
@@ -127,8 +123,8 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         });
     }
 
-    private <T> T withFileLock(String key, Supplier<? extends T> action) {
-        return fileLocks.get(key).withFileLock(action);
+    private <T> T withFileLock(File cacheDir, Supplier<? extends T> action) {
+        return fileLocks.get(cacheDir).withFileLock(action);
     }
 
     @Override
@@ -195,11 +191,11 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         }
 
         @SuppressWarnings("unchecked")
-        public T get(String key) {
+        public T get(File key) {
             return (T) array[indexFor(key)];
         }
 
-        private int indexFor(Object key) {
+        private int indexFor(File key) {
             int hash = smear(key.hashCode());
             return hash & mask;
         }

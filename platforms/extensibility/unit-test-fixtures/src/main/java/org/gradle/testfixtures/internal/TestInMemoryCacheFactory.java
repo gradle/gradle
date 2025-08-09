@@ -15,7 +15,6 @@
  */
 package org.gradle.testfixtures.internal;
 
-import org.apache.commons.io.FilenameUtils;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.FineGrainedPersistentCache;
@@ -189,7 +188,7 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         private final String displayName;
         @SuppressWarnings({"FieldCanBeLocal", "unused"})
         private final CacheCleanupStrategy cleanup;
-        private final ProducerGuard<Object> guard = ProducerGuard.adaptive();
+        private final ProducerGuard<File> guard = ProducerGuard.adaptive();
 
         public InMemoryFineGrainedCache(File cacheDir, String displayName, Function<FineGrainedPersistentCache, CacheCleanupStrategy> cleanup) {
             this.cacheDir = cacheDir;
@@ -213,31 +212,26 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         }
 
         @Override
+        public File getCacheDir(String key) {
+            return new File(cacheDir, key);
+        }
+
+        @Override
         public FineGrainedPersistentCache open() {
             return this;
         }
 
         @Override
         public <T> T useCache(String key, Supplier<? extends T> action) {
-            key = normalizeKey(key);
-            return guard.guardByKey(key, action);
+            return guard.guardByKey(getCacheDir(key), action);
         }
 
         @Override
         public void useCache(String key, Runnable action) {
-            key = normalizeKey(key);
-            guard.guardByKey(key, () -> {
+            guard.guardByKey(getCacheDir(key), () -> {
                 action.run();
                 return null;
             });
-        }
-
-        private static String normalizeKey(String key) {
-            key = FilenameUtils.separatorsToUnix(key);
-            if (key.startsWith("/") || key.endsWith("/")) {
-                throw new IllegalArgumentException(String.format("Cache key '%s' must not start or end with a slash", key));
-            }
-            return key;
         }
 
         @Override
