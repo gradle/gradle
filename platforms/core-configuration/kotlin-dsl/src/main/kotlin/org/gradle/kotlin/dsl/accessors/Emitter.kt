@@ -174,7 +174,7 @@ fun importsRequiredBy(accessor: Accessor): List<String> = accessor.run {
         is Accessor.ForTask -> importsRequiredBy(spec.type)
         is Accessor.ForContainerElement -> importsRequiredBy(spec.receiver, spec.type)
         is Accessor.ForModelDefault -> importsRequiredBy(spec.receiver, spec.type)
-        is Accessor.ForSoftwareType -> importsRequiredBy(spec.modelType) + listOf(Incubating::class.java.name, Project::class.java.name)
+        is Accessor.ForSoftwareType -> importsRequiredBy(spec.modelType) + importsRequiredBy(spec.targetType) + listOf(Incubating::class.java.name, Project::class.java.name)
         is Accessor.ForContainerElementFactory -> importsRequiredBy(spec.receiverType, spec.elementType) + listOf(Incubating::class.java.name)
         else -> emptyList()
     }
@@ -199,7 +199,7 @@ sealed class Accessor {
 
     data class ForModelDefault(val spec: TypedAccessorSpec) : Accessor()
 
-    data class ForSoftwareType(val spec: TypedSoftwareTypeEntry) : Accessor()
+    data class ForSoftwareType(val spec: TypedSoftwareFeatureEntry) : Accessor()
 
     data class ForContainerElementFactory(val spec: TypedContainerElementFactoryEntry) : Accessor()
 }
@@ -224,7 +224,7 @@ fun accessorsFor(schema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> =
             yieldAll(configurationNames.map(Accessor::ForConfiguration))
 
             yieldAll(uniqueAccessorsFor(modelDefaults).map(Accessor::ForModelDefault))
-            yieldAll(uniqueSoftwareTypeEntries(softwareTypeEntries.mapNotNull(::typedSoftwareType)).map(Accessor::ForSoftwareType))
+            yieldAll(uniqueSoftwareFeatureEntries(softwareFeatureEntries.mapNotNull(::typedSoftwareType)).map(Accessor::ForSoftwareType))
             yieldAll(uniqueContainerElementFactories(containerElementFactories.mapNotNull(::typedContainerElementFactory)).map(Accessor::ForContainerElementFactory))
         }
     }
@@ -239,10 +239,10 @@ fun configurationAccessorSpec(nameSpec: AccessorNameSpec) =
         accessibleType<Configuration>()
     )
 
-private fun typedSoftwareType(softwareTypeEntry: SoftwareTypeEntry<TypeAccessibility>) : TypedSoftwareTypeEntry? {
-    val name = AccessorNameSpec.createOrNull(softwareTypeEntry.softwareTypeName)
+private fun typedSoftwareType(softwareFeatureEntry: SoftwareFeatureEntry<TypeAccessibility>) : TypedSoftwareFeatureEntry? {
+    val name = AccessorNameSpec.createOrNull(softwareFeatureEntry.softwareFeatureName)
     return name?.let {
-        TypedSoftwareTypeEntry(name, softwareTypeEntry.modelType)
+        TypedSoftwareFeatureEntry(name, softwareFeatureEntry.ownDefinitionType, softwareFeatureEntry.targetDefinitionType)
     }
 }
 

@@ -54,8 +54,8 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             dir = layout.projectDirectory.dir("someDir")
             file = layout.settingsDirectory.file("someFile")
         """.stripIndent()
-        buildFileForProject("a") << getProjectFileContent(setValues ? softwareTypeConfig : "")
-        buildFileForProject("b") << getProjectFileContent(setValues ? softwareTypeConfig : "")
+        buildFileForProject("a") << getProjectFileContent(setValues ? softwareTypeConfig : "") << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+        buildFileForProject("b") << getProjectFileContent(setValues ? softwareTypeConfig : "") << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
         run("printTestSoftwareTypeExtensionConfiguration")
@@ -101,8 +101,8 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             dirs = listOf(layout.projectDirectory.dir("someDir1"), layout.projectDirectory.dir("someDir2"))
             files = listOf(layout.settingsDirectory.file("someFile1"), layout.settingsDirectory.file("someFile2"))
         """.stripIndent()
-        buildFileForProject("a") << getProjectFileContent(setValues ? softwareTypeConfig : "")
-        buildFileForProject("b") << getProjectFileContent(setValues ? softwareTypeConfig : "")
+        buildFileForProject("a") << getProjectFileContent(setValues ? softwareTypeConfig : "") << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+        buildFileForProject("b") << getProjectFileContent(setValues ? softwareTypeConfig : "") << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
         run("printTestSoftwareTypeExtensionConfiguration")
@@ -143,7 +143,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             dir = listOf(layout.projectDirectory.dir("someDir1"), layout.projectDirectory.dir("someDir2"))
             file = listOf(layout.settingsDirectory.file("someFile1"), layout.settingsDirectory.file("someFile2"))
         """.stripIndent()
-        buildFileForProject("a") << getProjectFileContent(softwareTypeConfig)
+        buildFileForProject("a") << getProjectFileContent(softwareTypeConfig) << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
         buildFileForProject("b") << ""
 
         when:
