@@ -73,10 +73,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
     public FineGrainedPersistentCache openFineGrained(File cacheDir, String displayName, int numberOfLocks, Function<FineGrainedPersistentCache, CacheCleanupStrategy> cacheCleanupStrategy) throws CacheOpenException {
         lock.lock();
         try {
-            if (multiLockCaches.containsKey(cacheDir)) {
-                throw new CacheOpenException(String.format("Cache for '%s' is already open with displayName: '%s'", cacheDir, multiLockCaches.get(cacheDir).getDisplayName()));
-            }
-            FineGrainedPersistentCache cache = new DefaultFineGrainedPersistentCache(cacheDir, displayName, lockManager, numberOfLocks, cacheCleanupStrategy);
+            FineGrainedPersistentCache cache = multiLockCaches.computeIfAbsent(cacheDir, __ -> new DefaultFineGrainedPersistentCache(cacheDir, displayName, lockManager, numberOfLocks, cacheCleanupStrategy));
             cache.open();
             return cache;
         } finally {
