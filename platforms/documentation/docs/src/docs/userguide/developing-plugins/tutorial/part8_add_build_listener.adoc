@@ -139,4 +139,4 @@ Now we have a simple but working plugin.
 Let's write a test for i.
 
 [.text-right]
-**Next Step:** <<part5_unit_test#part5_unit_test,Write a Unit Test>> >>
+**Next Step:** <<part9_add_build_service.adoc#part9_add_build_service,Add a Build Service>> >>

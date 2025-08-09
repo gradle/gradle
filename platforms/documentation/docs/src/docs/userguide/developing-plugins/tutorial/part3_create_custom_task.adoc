@@ -15,7 +15,7 @@
 [[part3_create_custom_task]]
 = Part 3: Creating Tasks
 
-Learn about tasks in plugins
+Learn about custom tasks and add them to your plugin.
 
 ****
 **In this section, you will:**
@@ -117,6 +117,8 @@ This task:
 * If the message is sent successfully, it prints a confirmation to the console.
 * If something goes wrong, the task fails the build with a clear error message.
 
+== Step 3. Add the Slack API Dependency
+
 The Slack API client is a dependency so you need to add it in your build file:
 
 [source,kotlin]
@@ -127,7 +129,7 @@ dependencies {
 }
 ----
 
-== Step 3. Register it in the Plugin
+== Step 4. Register it in the Plugin
 
 Now that you've defined a custom task class (`SlackTask`), you need to register it in your plugin so users can run `./gradlew sendSlackMessage` from their project.
 
@@ -164,4 +166,4 @@ What this does:
 * Binds the task's `token`, `channel`, and `message` properties to the values defined by the user in the build script.
 
 [.text-right]
-**Next Step:** <<part4_build_listener#part4_build_listerner,Add a BuildListener>> >>
+**Next Step:** <<part4_unit_test.adoc#part4_unit_test,Write a Unit Test>> >>

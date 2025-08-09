@@ -12,29 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[part5_unit_test]]
-= Part 5: Writing a Unit Test
+[[part4_unit_test]]
+= Part 4: Writing a Unit Test
 
 Learn the basics of unit testing your plugin.
 
 ****
 **In this section, you will:**
 
-- Write a Unit Test
+- Write a Unit Test for your plugin
+- Run a Unit Test to test your plugin
 ****
 
-[[part5_begin]]
+[[part4_begin]]
 == Step 0. Before you Begin
 
 1. You initialized your plugin in <<part1_gradle_init_plugin.adoc#part1_begin,part 1>>.
 2. You added an extension to your plugin in <<part2_add_extension.adoc#part2_begin,part 2>>.
 3. You created a custom task in <<part3_create_custom_task.adoc#part3_begin, part3>>.
-4. You added a build listener in <<part4_add_build_listener.adoc#part4_begin,part 4>>.
 
 == Step 1. About Unit Tests
 
-Grade init provides a simple unit test that we can reuse.
-It is available in `src/test/kotlin/org/example/SlackPluginTest.kt`:
+Grade init provides a sample unit test that we can reuse.
+It is available in `src/test/kotlin/org/example/SlackPluginTest.kt`.
+Let's take a look:
 
 [source,kotlin]
 ----
@@ -53,11 +54,11 @@ class DevelopingPluginPluginTest {
 }
 ----
 
-It is quite simple, it applies the `greeting` plugin and verifies that the `greeting` task is available.
+It is quite simple, it applies the `org.example.greeting` plugin and verifies that the `greeting` task is available.
 
 == Step 2. Update the Test
 
-First, update the final name from `DevelopingPluginPluginTest.kt` to `SlackPluginTest.kt`.
+First, update the name of the file from `DevelopingPluginPluginTest.kt` to `SlackPluginTest.kt`.
 
 Second, update your test so it looks as follows:
 
@@ -75,9 +76,18 @@ class SlackPluginTest {
 }
 ----
 
+We are essentially re-using the unit test from Gradle init as-is.
+
+This test creates a fake Gradle project in memory, applies the plugin, and checks that it registered the `sendTestSlackMessage` task.
+
+1. **`ProjectBuilder.builder().build()`** - makes a test project (no files, no real build).
+2. **`project.plugins.apply(...)`** - applies your plugin to it.
+3. **`assertNotNull(...)`** - confirms the task exists after the plugin is applied.
+
 == Step 3. Run the Test
 
 Then, you can run the `test` task and ensure it passes.
+
 [source,text]
 ----
 $ ./gradlew :test
@@ -105,4 +115,4 @@ Configuration cache entry stored.
 You can optionally add another test or change the existing test to get it to fail.
 
 [.text-right]
-**Next Step:** <<part6_add_build_service#part6_build_service,Add a Build Service>> >>
+**Next Step:** <<part5_add_dataflow_action#part5_add_dataflow_action,Add a DataFlow Action>> >>

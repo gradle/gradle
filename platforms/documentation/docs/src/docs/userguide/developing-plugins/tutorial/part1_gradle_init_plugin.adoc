@@ -15,13 +15,13 @@
 [[part1_gradle_init]]
 = Part 1: Initializing the Project
 
-Learn the basics of developing Gradle plugins started with Gradle init.
+Learn the basics of developing Gradle plugins starting with Gradle init.
 
 ****
 **In this section, you will:**
 
 - Initialize a Gradle plugin project
-- Review the directory layout
+- Review the directory layout and existing Hello World plugin
 - Learn about what we will transform this plugin into
 ****
 
@@ -215,7 +215,6 @@ class DevelopingPluginPlugin : Plugin<Project> {
 * `tasks.register("greeting")`: Registers a new task that users can run with `./gradlew greeting`.
 * `doLast { ... }`: Defines the action that happens when the task executes.
 
-
 == Step 5. Understand the Plugin
 
 This plugin is a simple “Hello, World!” Gradle plugin.
@@ -252,9 +251,9 @@ A lightweight Gradle plugin that posts your build results to Slack.
 
 The plugin can:
 
-- Post a custom Slack message using a simple task (`sendTestSlackMessage`)
-- Automatically report build success or failure at the end of the build
-- Seamlessly integrate with Gradle’s lifecycle via a `BuildService`, or a `BuildListener`, or the modern `FlowAction` API
+- Post a custom Slack message using a simple task (`sendTestSlackMessage`).
+- Automatically report build success or failure at the end of the build.
+- Seamlessly integrate with Gradle’s lifecycle via a `BuildService`, or a `BuildListener`, or the modern `FlowAction` API.
 
 [.text-right]
 **Next Step:** <<part2_add_extension.adoc#part2_add_extension,Add an Extension>> >>

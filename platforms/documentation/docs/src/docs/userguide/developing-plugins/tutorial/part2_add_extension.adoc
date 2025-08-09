@@ -15,7 +15,7 @@
 [[part2_add_extension]]
 = Part 2: Add an Extension
 
-Learn about extensions.
+Learn about extensions and how to add them to your plugin.
 
 ****
 **In this section, you will:**
@@ -47,19 +47,17 @@ Gradle injects values set by the user into the plugin logic.
 
 == Step 2. Rename the Plugin Class
 
-First, let's rename the Plugin class of our 'Hello World' example from Gradle init:
-
+First, let's rename the Plugin class of our 'Hello World' example from the Gradle init default.
 Rename the file `plugin/src/main/kotlin/org/example/DevelopingPluginPlugin.kt` to `plugin/src/main/kotlin/org/example/SlackPlugin.kt`.
 
 TIP: In an IDE, renaming the file should update the plugin class automatically.
 
-Then, take the existing code `class DevelopingPluginPlugin: Plugin<Project> {}` and update it to `abstract class SlackPlugin : Plugin<Project> {}` so it looks like this:
+Then, take the class name, `class DevelopingPluginPlugin: Plugin<Project> {}`, and update it to `class SlackPlugin: Plugin<Project> {}` so it looks like this:
 
 [source,kotlin]
 ----
 class SlackPlugin: Plugin<Project> {
     override fun apply(project: Project) {
-        // Register a task
         project.tasks.register("greeting") { task ->
             task.doLast {
                 println("Hello from plugin 'org.example.greeting'")
@@ -74,7 +72,6 @@ You also need to update the build file to reflect the name changes:
 [source,kotlin]
 ----
 gradlePlugin {
-    // Define the plugin
     plugins {
         create("slack") {
             id = "org.example.slack"
@@ -86,8 +83,10 @@ gradlePlugin {
 
 == Step 3. Define the Extension Class
 
-This class holds user-configurable properties.
-Add it to `plugin/src/main/kotlin/org/example/SlackExtension.kt`:
+We will create a class that holds user-configurable properties.
+For this we're using Gradle’s `Property<T>` type for laziness and compatibility with the Configuration Cache.
+
+Create a file called `plugin/src/main/kotlin/org/example/SlackExtension.kt` and add the following code:
 
 [source,kotlin]
 ----
@@ -120,7 +119,6 @@ abstract class SlackExtension @Inject constructor(objects: ObjectFactory) {
 }
 ----
 
-TIP: We're using Gradle’s `Property<T>` type for laziness and compatibility with the Configuration Cache.
 
 This code provides configuration for the plugin with a DSL block:
 

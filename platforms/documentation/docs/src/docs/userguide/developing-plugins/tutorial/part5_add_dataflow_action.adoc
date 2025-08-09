@@ -1,0 +1,223 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[part5_add_dataflow_action]]
+= Part 5: Add a DataFlow Action
+
+Learn the basics of DataFlow Actions to hook into the Gradle build lifecycle and add it to your plugin.
+
+****
+**In this section, you will:**
+
+- Understand DataFlow Action
+- Add a DataFlow Action to the Plugin
+****
+
+[[part5_begin]]
+== Step 0. Before you Begin
+
+1. You initialized your plugin in <<part1_gradle_init_plugin.adoc#part1_begin,part 1>>.
+2. You added an extension to your plugin in <<part2_add_extension.adoc#part2_begin,part 2>>.
+3. You created a custom task in <<part3_create_custom_task.adoc#part3_begin, part3>>.
+4. You wrote a unit test in <<part4_unit_test.adoc#part4_begin,part 4>>.
+
+== Step 1. Understanding DataFlow Actions
+
+Dataflow Actions in Gradle are a modern mechanism for reacting to the build lifecycle and exchanging data between Gradle components without relying on traditional build listeners, task dependencies, or plugin ordering.
+
+They are part of Gradle’s configuration cache-friendly, isolated, and lazy architecture, introduced to support more reliable and scalable plugin behavior.
+
+A Dataflow Action is a unit of logic that executes in response to a particular state or event during the build lifecycle.
+
+They are:
+
+* *Declarative* – You register what should happen and when, but Gradle controls when and how it runs.
+* *Isolated* – The inputs are explicitly declared, and actions are executed with only those inputs.
+* *Safe for Configuration Cache* – Unlike `BuildListener`, these actions are designed to integrate cleanly with the Configuration Cache.
+
+There are three important components of a Flow Action:
+
+* *`FlowScope`* – A service that lets you register flow actions to be triggered under certain conditions (e.g., build finished).
+* *`FlowAction<T>`* – An interface you implement to define the action that runs.
+* *`FlowParameters`* – A container for the inputs to the action (must be Property<T> or service references).
+
+== Step 2. Creating a DataFlow Action
+
+If you want to send a Slack notification when the build finishes, you can write a `SlackBuildFlowAction` in `plugin/src/kotlin/org/example/SlackBuildFlowAction.kt`.
+
+Create this new file and add the following code:
+
+[source,kotlin]
+----
+package org.example
+
+import com.slack.api.Slack
+import com.slack.api.methods.request.chat.ChatPostMessageRequest
+
+import org.gradle.api.flow.FlowAction
+import org.gradle.api.flow.FlowParameters
+import org.gradle.api.logging.Logging
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+
+/**
+ * A Gradle FlowAction that sends a Slack message at the end of a build.
+ * This leverages Gradle's build lifecycle via the dataflow API, which allows actions
+ * to run automatically when the build completes—without needing to attach listeners manually.
+ */
+abstract class SlackBuildFlowAction : FlowAction<SlackBuildFlowAction.Params> {
+
+    private val logger = Logging.getLogger(SlackBuildFlowAction::class.java)
+
+    /**
+     * Parameters that are passed to this action when it executes.
+     * These are injected by Gradle and used to control what the action does.
+     */
+    interface Params : FlowParameters {
+        /** Slack bot token used to authenticate API requests */
+        @get:Input
+        val token: Property<String>
+
+        /** Slack channel ID or name to send the message to */
+        @get:Input
+        val channel: Property<String>
+
+        /** Flag indicating whether the build failed */
+        @get:Input
+        val buildFailed: Property<Boolean>
+    }
+
+    /**
+     * Executes the action when the build finishes.
+     * Constructs and sends a Slack message indicating whether the build succeeded or failed.
+     */
+    override fun execute(parameters: Params) {
+        // Initialize the Slack client and get the API methods interface
+        val slack = Slack.getInstance()
+        val methods = slack.methods(parameters.token.get())
+
+        // Extra debug statements
+        val token = parameters.token.get()
+        val channel = parameters.channel.get()
+        logger.debug("Preparing to send Slack message...")
+        logger.debug("Token present: ${token.isNotEmpty()}")
+        logger.debug("Channel: $channel")
+
+        // Compose the message text based on the build result
+        val status = if (parameters.buildFailed.get()) "Build failed" else "Build succeeded"
+
+        // Extra debug statements
+        logger.debug("Message text: $status")
+
+        // Create a Slack message request
+        val request = ChatPostMessageRequest.builder()
+            .channel(parameters.channel.get())
+            .text(status)
+            .build()
+
+        // Extra debug statements
+        logger.debug("Sending message to Slack...")
+
+        // Send the message via the Slack API and check for success
+        val response = methods.chatPostMessage(request)
+        if (response.isOk) {
+            logger.lifecycle("Slack message sent successfully to channel $channel")
+        } else {
+            logger.error("Failed to send Slack message: ${response.error}")
+            throw RuntimeException("Slack message failed: ${response.error}")
+        }
+    }
+}
+
+----
+
+Currently, two of the three components of a Dataflow Action are complete:
+
+1. The `SlackBuildFlowAction` class is a `FlowAction` that uses the Slack API to send a message at the end of a Gradle build:
+2. The `SlackBuildFlowAction.Params` are `FlowParameters` that define the input parameters required by the flow action.
+
+== Step 2. Registering a DataFlow Action
+
+In the plugin's `apply()` method, you register the flow action like so:
+
+[source,kotlin]
+----
+getFlowScope().always(SlackBuildFlowAction::class.java) { spec ->
+    spec.parameters.token.set(extension.token)
+    spec.parameters.channel.set(extension.channel)
+    spec.parameters.buildFailed.set(getFlowProviders().buildWorkResult.map { it.failure.isPresent })
+}
+----
+
+This tells Gradle: when the build finishes, execute this Slack flow action with these parameters.
+This takes care of the final component of our flow action, the `FlowScope`.
+
+Copy the code so your plugin class looks as follows:
+
+[source,kotlin]
+----
+/*
+ * This source file was generated by the Gradle 'init' task
+ */
+package org.example
+
+import org.gradle.api.Project
+import org.gradle.api.Plugin
+import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.flow.*
+import javax.inject.Inject
+
+abstract class SlackPlugin : Plugin<Project> {
+    @Inject
+    abstract fun getFlowScope(): FlowScope
+
+    @Inject
+    abstract fun getFlowProviders(): FlowProviders
+
+    override fun apply(project: Project) {
+        // Create the 'slack' extension so users can configure token, channel, and message
+        val extension = project.extensions.create("slack", SlackExtension::class.java)
+
+        // Register a task named 'sendTestSlackMessage' of type SlackTask
+        val taskProvider: TaskProvider<SlackTask> = project.tasks.register("sendTestSlackMessage", SlackTask::class.java)
+
+        // Configure the task using values from the extension
+        taskProvider.configure {
+            it.group = "notification" // Logical task grouping for help output
+            it.description = "Sends a test message to Slack using the configured token and channel."
+
+            // Bind extension values to the task's input properties
+            it.token.set(extension.token)
+            it.channel.set(extension.channel)
+            it.message.set(extension.message)
+        }
+
+        getFlowScope().always(SlackBuildFlowAction::class.java) { spec ->
+            spec.parameters.token.set(extension.token)
+            spec.parameters.channel.set(extension.channel)
+            spec.parameters.buildFailed.set(getFlowProviders().buildWorkResult.map { it.failure.isPresent })
+        }
+    }
+}
+----
+
+In our plugin class, we ask Gradle to inject two objects at runtime:
+
+* **`FlowScope`** – Lets the plugin register actions that run automatically during the build lifecycle. In this case, it is used to register our `SlackBuildFlowAction` class.
+* **`FlowProviders`** – Supplies data (like build success/failure) to those actions. In this case, it is used as an input to our `SlackBuildFlowAction` class.
+
+Both are used to hook Slack notifications into the build without manually adding listeners.
+
+[.text-right]
+**Next Step:** <<part6_functional_test.adoc#part6_functional_test,Write a Functional Test>> >>

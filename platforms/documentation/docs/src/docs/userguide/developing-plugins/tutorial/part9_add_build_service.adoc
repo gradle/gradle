@@ -30,12 +30,22 @@ Learn the basics of authoring Gradle tasks by creating a simple one in your Buil
 1. You initialized your plugin in <<part1_gradle_init_plugin.adoc#part1_begin,part 1>>.
 2. You added an extension to your plugin in <<part2_add_extension.adoc#part2_begin,part 2>>.
 3. You created a custom task in <<part3_create_custom_task.adoc#part3_begin, part3>>.
-4. You added a build listener in <<part4_add_build_listener.adoc#part4_begin,part 4>>.
-5. You wrote a unit test in <<part5_unit_test.adoc#part5_begin,part 5>>.
+4. You added a build listener in <<part5_add_dataflow_action.adoc#part4_begin,part 4>>.
+5. You wrote a unit test in <<part4_unit_test.adoc#part5_begin,part 5>>.
 
 == Step 1. Understanding Build Services
 
-== Step 2. Register and Configure Tasks
+Evolving the plugin from using a `BuildListener` to a `BuildService` is a smart move for cleaner design and better integration with Gradle’s lifecycle and caching system.
 
-[.text-right]
-**Next Step:** <<part7_writing_plugins#part7_writing_plugins,Writing Plugins>> >>
+A Build Service in Gradle is a way to define shared, long-lived logic or state that can be used throughout the build lifecycle, in a clean and managed way.
+It is essentially a Gradle-managed singleton that can be safely reused by tasks or plugins during the build.
+
+It’s:
+
+- Reusable across tasks and projects
+- Configurable using input parameters
+- Lifecycle-aware: `close()` is automatically called after the build
+- Isolated: can be run in the configuration or execution phase
+- Efficient: avoids duplicated setup (e.g., setting up an API client, caching state, tracking changes)
+
+Congratulations, you have completed the tutorial!
