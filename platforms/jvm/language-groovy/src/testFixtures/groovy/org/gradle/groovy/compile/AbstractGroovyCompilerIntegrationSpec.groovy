@@ -15,6 +15,7 @@
  */
 package org.gradle.groovy.compile
 import org.gradle.internal.jvm.Jvm
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.junit.Assume
 import spock.lang.Issue
 
@@ -86,8 +87,74 @@ abstract class AbstractGroovyCompilerIntegrationSpec extends AbstractBasicGroovy
             return
         }
 
+        def useJavaxServlet = versionLowerThan("5.0.0")
+        given:
+        buildFile("""
+            plugins {
+                id 'groovy'
+            }
+
+            ${mavenCentralRepository(GradleDsl.GROOVY)}
+
+            dependencies {
+                implementation '${groovyModuleDependency("groovy-servlet", versionNumber)}'
+                // Groovy 5 uses Jakarta EE instead of Java EE
+                ${useJavaxServlet ?
+                """
+                implementation 'javax.servlet:servlet-api:2.4'
+                implementation 'javax.servlet:jsp-api:2.0'
+                """ :
+                """
+                implementation 'jakarta.servlet:jakarta.servlet-api:6.1.0'
+                implementation 'jakarta.servlet.jsp:jakarta.servlet.jsp-api:4.0.0'
+                """
+                }
+            }
+
+            testing.suites.test {
+                useJUnitJupiter()
+            }
+        """)
+        file("src/main/groovy/com/example/Country.groovy") << """
+            package com.example
+
+            import groovy.transform.Canonical
+            import groovy.transform.CompileStatic
+
+            @Canonical
+            @CompileStatic
+            class Country {
+
+                String name
+            }
+        """
+        file("src/main/resources/META-INF/groovy/org.codehaus.groovy.runtime.ExtensionModule") << """)
+            moduleName=test-extension-module
+            moduleVersion=1.0.0
+            extensionClasses=groovy.servlet.ServletCategory
+        """
+        file("src/test/groovy/ServletTest.groovy") << """
+            import groovy.transform.Canonical
+            import groovy.transform.CompileStatic
+            ${useJavaxServlet
+            ? "import javax.servlet.http.HttpSession"
+            : "import jakarta.servlet.http.HttpSession"}
+            import org.junit.jupiter.api.Test
+
+            @Canonical
+            @CompileStatic
+            class ServletTest {
+                HttpSession session
+
+                @Test
+                void dummyTest() {
+                    assert session.get("countryName") == null
+                }
+            }
+        """
+
         when:
-        run("test")
+        run("compileTestGroovy")
 
         then:
         noExceptionThrown()

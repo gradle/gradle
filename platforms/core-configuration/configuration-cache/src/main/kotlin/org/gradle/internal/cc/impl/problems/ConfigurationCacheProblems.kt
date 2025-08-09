@@ -182,7 +182,11 @@ class ConfigurationCacheProblems(
     }
 
     override fun onExecutionTimeProblem(problem: PropertyProblem) {
-        val severity = if (isWarningMode) ProblemSeverity.Deferred else ProblemSeverity.Interrupting
+        val severity = when {
+            isWarningMode -> ProblemSeverity.Deferred
+            cacheAction == SkipStore || degradationDecision.shouldDegrade -> ProblemSeverity.SuppressedSilently
+            else -> ProblemSeverity.Interrupting
+        }
         onProblem(problem, severity)
     }
 
@@ -431,7 +435,7 @@ class ConfigurationCacheProblems(
                 cacheAction is Update -> log("Configuration cache entry updated for {} with {}, {} up-to-date.", updatedProjectsString, problemCountString, reusedProjectsString)
                 cacheAction is Load && !hasProblems -> log("Configuration cache entry reused.")
                 cacheAction is Load -> log("Configuration cache entry reused with {}.", problemCountString)
-                cacheAction == SkipStore -> log("Configuration cache entry discarded as cache is in read-only mode.")
+                cacheAction == SkipStore -> log("Configuration cache disabled as cache is in read-only mode.")
                 hasTooManyProblems -> log("Too many configuration cache problems found ({}).", problemCountString)
                 hasProblems -> log("Configuration cache problems found ({}).", problemCountString)
                 // else not storing or loading and no problems to report
