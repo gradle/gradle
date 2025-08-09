@@ -26,7 +26,6 @@ import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.initialization.properties.FilteringGradleProperties;
 
 import java.util.Set;
-import java.util.function.Predicate;
 
 import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 
@@ -123,14 +122,18 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
             project.setDescription((String) descriptionValue);
             consumedProperties.add(descriptionName);
         }
-
         return consumedProperties.build();
     }
 
     private static void installProjectExtraPropertiesDefaults(ProjectInternal project, GradleProperties projectGradleProperties, Set<String> consumedProperties) {
         ExtraPropertiesExtensionInternal extraPropertiesContainer = (ExtraPropertiesExtensionInternal) project.getExtensions().getExtraProperties();
-        Predicate<String> wasNotConsumed = it -> !consumedProperties.contains(it);
-        extraPropertiesContainer.setGradleProperties(new FilteringGradleProperties(projectGradleProperties, wasNotConsumed));
+        // TODO:configuration-cache avoid the FilteringGradleProperties indirection when no properties are consumed
+        extraPropertiesContainer.setGradleProperties(
+            new FilteringGradleProperties(
+                projectGradleProperties,
+                it -> !consumedProperties.contains(it)
+            )
+        );
     }
 
 }

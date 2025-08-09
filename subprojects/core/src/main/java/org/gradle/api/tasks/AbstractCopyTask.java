@@ -62,6 +62,7 @@ import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
 /**
  * {@code AbstractCopyTask} is the base class for all copy tasks.
@@ -95,9 +96,9 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             getInputs().property(specPropertyName + ".caseSensitive", (Callable<Boolean>) spec::isCaseSensitive);
             getInputs().property(specPropertyName + ".includeEmptyDirs", (Callable<Boolean>) spec::getIncludeEmptyDirs);
             getInputs().property(specPropertyName + ".duplicatesStrategy", (Callable<DuplicatesStrategy>) spec::getDuplicatesStrategy);
-            getInputs().property(specPropertyName + ".dirPermissions", spec.getDirPermissions().map(FilePermissions::toUnixNumeric))
+            getInputs().property(specPropertyName + ".dirPermissions", spec.getDirPermissions().map(transformer(FilePermissions::toUnixNumeric)))
                 .optional(true);
-            getInputs().property(specPropertyName + ".filePermissions", spec.getFilePermissions().map(FilePermissions::toUnixNumeric))
+            getInputs().property(specPropertyName + ".filePermissions", spec.getFilePermissions().map(transformer(FilePermissions::toUnixNumeric)))
                 .optional(true);
             getInputs().property(specPropertyName + ".filteringCharset", (Callable<String>) spec::getFilteringCharset);
         });

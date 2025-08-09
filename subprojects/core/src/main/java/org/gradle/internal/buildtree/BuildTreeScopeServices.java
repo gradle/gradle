@@ -50,9 +50,8 @@ import org.gradle.execution.selection.DefaultBuildTaskSelector;
 import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter;
 import org.gradle.initialization.DefaultGradlePropertiesController;
 import org.gradle.initialization.Environment;
-import org.gradle.initialization.EnvironmentChangeTracker;
-import org.gradle.initialization.GradlePropertiesListener;
 import org.gradle.initialization.GradlePropertiesController;
+import org.gradle.api.internal.properties.GradlePropertiesListener;
 import org.gradle.initialization.exception.DefaultExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionCollector;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
@@ -196,11 +195,8 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected SystemPropertiesInstaller createSystemPropertiesInstaller(
-        EnvironmentChangeTracker environmentChangeTracker,
-        StartParameterInternal startParameter
-    ) {
-        return new DefaultSystemPropertiesInstaller(environmentChangeTracker, startParameter);
+    protected SystemPropertiesInstaller createSystemPropertiesInstaller(StartParameterInternal startParameter) {
+        return new DefaultSystemPropertiesInstaller(startParameter);
     }
 
     @Provides

@@ -34,51 +34,23 @@ class DefaultSystemPropertiesInstallerTest extends Specification {
         (Project.SYSTEM_PROP_PREFIX + ".userSystemProp"): "userSystemValue",
         (Project.SYSTEM_PROP_PREFIX + ".userSystemProp2"): "userSystemValue2",
     ])
-    private EnvironmentChangeTracker environmentChangeTracker = Mock(EnvironmentChangeTracker)
     private StartParameterInternal startParameter = Mock(StartParameterInternal) {
         systemPropertiesArgs >> { startParameterSystemProperties }
     }
     private Map<String, String> startParameterSystemProperties = emptyMap()
 
-    private SystemPropertiesInstaller systemPropertiesInstaller = new DefaultSystemPropertiesInstaller(environmentChangeTracker, startParameter)
+    private SystemPropertiesInstaller systemPropertiesInstaller = new DefaultSystemPropertiesInstaller(startParameter)
 
     @Rule
     public SetSystemProperties sysProp = new SetSystemProperties()
 
     def "set system properties"() {
         when:
-        systemPropertiesInstaller.setSystemPropertiesFrom(loadedGradleProperties, true)
+        systemPropertiesInstaller.setSystemPropertiesFrom(loadedGradleProperties)
 
         then:
         "userSystemValue" == System.getProperty("userSystemProp")
         "userSystemValue2" == System.getProperty("userSystemProp2")
-    }
-
-    def "track loaded properties"() {
-        when:
-        systemPropertiesInstaller.setSystemPropertiesFrom(loadedGradleProperties, isRootBuild)
-
-        then:
-        if (isRootBuild) {
-            0 * environmentChangeTracker.systemPropertyLoaded(_)
-        } else {
-            1 * environmentChangeTracker.systemPropertyLoaded("userSystemProp", "userSystemValue", null)
-            1 * environmentChangeTracker.systemPropertyLoaded("userSystemProp2", "userSystemValue2", null)
-        }
-
-        where:
-        isRootBuild << [true, false]
-    }
-
-    def "track override properties"() {
-        given:
-        startParameterSystemProperties = [("overrideSystemProp"): "overrideSystemValue"]
-
-        when:
-        systemPropertiesInstaller.setSystemPropertiesFrom(loadedGradleProperties, true)
-
-        then:
-        1 * environmentChangeTracker.systemPropertyOverridden("overrideSystemProp")
     }
 
     def "build system properties"() {

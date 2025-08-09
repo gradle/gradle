@@ -240,7 +240,7 @@
   {
     "name": "configuration-cache-base",
     "path": "platforms/core-configuration/configuration-cache-base",
-    "unitTests": true,
+    "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
