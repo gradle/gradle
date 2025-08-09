@@ -24,6 +24,7 @@ import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.CacheVisitor;
+import org.gradle.cache.internal.DefaultFineGrainedPersistentCache;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
@@ -188,7 +189,7 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         private final String displayName;
         @SuppressWarnings({"FieldCanBeLocal", "unused"})
         private final CacheCleanupStrategy cleanup;
-        private final ProducerGuard<File> guard = ProducerGuard.adaptive();
+        private final ProducerGuard<String> guard = ProducerGuard.adaptive();
 
         public InMemoryFineGrainedCache(File cacheDir, String displayName, Function<FineGrainedPersistentCache, CacheCleanupStrategy> cleanup) {
             this.cacheDir = cacheDir;
@@ -223,12 +224,13 @@ public class TestInMemoryCacheFactory implements CacheFactory {
 
         @Override
         public <T> T useCache(String key, Supplier<? extends T> action) {
-            return guard.guardByKey(getCacheDir(key), action);
+            String normalizedKey = DefaultFineGrainedPersistentCache.normalizeCacheKey(key);
+            return guard.guardByKey(normalizedKey, action);
         }
 
         @Override
         public void useCache(String key, Runnable action) {
-            guard.guardByKey(getCacheDir(key), () -> {
+            useCache(key, () -> {
                 action.run();
                 return null;
             });
