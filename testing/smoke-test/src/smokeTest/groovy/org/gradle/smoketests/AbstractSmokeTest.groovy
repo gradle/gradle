@@ -297,9 +297,9 @@ abstract class AbstractSmokeTest extends Specification {
 
     private static List<String> toolchainParameters() {
         return [
-            "-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}" as String,
-            '-Porg.gradle.java.installations.auto-detect=false',
-            '-Porg.gradle.java.installations.auto-download=false',
+            "-Dorg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}" as String,
+            '-Dorg.gradle.java.installations.auto-detect=false',
+            '-Dorg.gradle.java.installations.auto-download=false',
         ]
     }
 
