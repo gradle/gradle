@@ -16,9 +16,11 @@
 
 package org.gradle.cache.internal;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.math.IntMath;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.FileLockManager;
@@ -54,7 +56,7 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
      */
     public static final int MAX_NUMBER_OF_LOCKS = 512;
 
-    private final ProducerGuard<File> guard = ProducerGuard.adaptive();
+    private final ProducerGuard<String> guard = ProducerGuard.adaptive();
     private final StripedFileLockAccess<LockOnDemandEagerReleaseCrossProcessCacheAccess> fileLocks;
     private final File gcFile;
     private final CacheCleanupExecutor cleanupExecutor;
@@ -111,8 +113,8 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
 
     @Override
     public <T> T useCache(String key, Supplier<? extends T> action) {
-        File cacheDir = getCacheDir(key);
-        return guard.guardByKey(cacheDir, () -> withFileLock(cacheDir, action));
+        String cacheKey = normalizeCacheKey(key);
+        return guard.guardByKey(cacheKey, () -> withFileLock(cacheKey, action));
     }
 
     @Override
@@ -123,8 +125,8 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         });
     }
 
-    private <T> T withFileLock(File cacheDir, Supplier<? extends T> action) {
-        return fileLocks.get(cacheDir).withFileLock(action);
+    private <T> T withFileLock(String cacheKey, Supplier<? extends T> action) {
+        return fileLocks.get(cacheKey).withFileLock(action);
     }
 
     @Override
@@ -146,20 +148,17 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
     }
 
     private StripedFileLockAccess<LockOnDemandEagerReleaseCrossProcessCacheAccess> createLocks(int numberOfLocks, FileLockManager fileLockManager) {
-        return StripedFileLockAccess.custom(
-            numberOfLocks,
-            baseDir,
-            fileLock -> new LockOnDemandEagerReleaseCrossProcessCacheAccess(
-                getDisplayName(),
-                fileLock,
-                DefaultLockOptions.mode(Exclusive),
-                fileLockManager,
-                new ReentrantLock(),
-                CacheInitializationAction.NO_INIT_REQUIRED,
-                lock -> {},
-                lock -> {}
-            )
-        );
+        return StripedFileLockAccess.custom(numberOfLocks, baseDir, fileLock -> createLockOnDemandEagerReleaseCacheAccess(fileLock, fileLockManager));
+    }
+
+    private LockOnDemandEagerReleaseCrossProcessCacheAccess createLockOnDemandEagerReleaseCacheAccess(File file, FileLockManager fileLockManager) {
+        return new LockOnDemandEagerReleaseCrossProcessCacheAccess(getDisplayName(), file, DefaultLockOptions.mode(Exclusive), fileLockManager, new ReentrantLock(), CacheInitializationAction.NO_INIT_REQUIRED, lock -> {}, lock -> {});
+    }
+
+    public static String normalizeCacheKey(String key) {
+        String normalizedKey = FilenameUtils.separatorsToUnix(key);
+        Preconditions.checkArgument(!normalizedKey.startsWith("/") && !normalizedKey.endsWith("/"), "Cache key path must be relative and not end with a slash: '%s'", key);
+        return normalizedKey;
     }
 
     /**
@@ -191,11 +190,11 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         }
 
         @SuppressWarnings("unchecked")
-        public T get(File key) {
+        public T get(String key) {
             return (T) array[indexFor(key)];
         }
 
-        private int indexFor(File key) {
+        private int indexFor(String key) {
             int hash = smear(key.hashCode());
             return hash & mask;
         }
