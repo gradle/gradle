@@ -571,7 +571,8 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     Task task(String name, Action<? super Task> configureAction);
 
     /**
-     * <p>Returns the path of this project.  The path is the fully qualified name of the project.</p>
+     * <p>Returns the path of this project, starting with ':'. See {@link org.gradle.api.initialization.Settings#include(String...)}
+     * for more information about project paths.</p>
      *
      * @return The path. Never returns null.
      */
