@@ -50,6 +50,7 @@ dependencies {
     implementation(projects.beanSerializationServices)
     implementation(projects.buildOperations)
     implementation(projects.configurationProblemsBase)
+    implementation(projects.coreFlowServicesApi)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.execution)
     implementation(projects.functional)
