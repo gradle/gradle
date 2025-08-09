@@ -18,8 +18,6 @@ package org.gradle.internal.dispatch;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Adapts from interface T to a {@link Dispatch}
@@ -39,28 +37,12 @@ public class ProxyDispatchAdapter<T> {
         );
     }
 
-    public ProxyDispatchAdapter(Dispatch<? super MethodInvocation> dispatch, Class<T> type, Class<?>... extraTypes) {
+    public ProxyDispatchAdapter(Dispatch<? super MethodInvocation> dispatch, Class<T> type, Class<?> extraType) {
         this.type = type;
-        ClassLoader classLoader = type.getClassLoader();
-        List<Class<?>> types = new ArrayList<Class<?>>(extraTypes.length + 1);
-        types.add(type);
-        for (Class<?> extraType : extraTypes) {
-            ClassLoader candidate = extraType.getClassLoader();
-            if (candidate != classLoader && candidate != null) {
-                try {
-                    if (candidate.loadClass(type.getName()) != null) {
-                        classLoader = candidate;
-                    }
-                } catch (ClassNotFoundException e) {
-                    // Ignore
-                }
-            }
-            types.add(extraType);
-        }
         source = type.cast(
             Proxy.newProxyInstance(
-                classLoader,
-                types.toArray(new Class<?>[0]),
+                selectClassLoader(type, extraType),
+                new Class<?>[]{type, extraType},
                 new DispatchingInvocationHandler(type, dispatch)
             )
         );
@@ -84,7 +66,7 @@ public class ProxyDispatchAdapter<T> {
         }
 
         @Override
-        public Object invoke(Object target, Method method, Object[] parameters) throws Throwable {
+        public Object invoke(Object target, Method method, Object[] parameters) {
             switch (method.getName()) {
                 case "equals":
                     Object parameter = parameters[0];
@@ -102,10 +84,29 @@ public class ProxyDispatchAdapter<T> {
                     return dispatch.hashCode();
                 case "toString":
                     return type.getSimpleName() + " broadcast";
+                default:
+                    dispatch.dispatch(new MethodInvocation(method, parameters));
+                    return null;
             }
-
-            dispatch.dispatch(new MethodInvocation(method, parameters));
-            return null;
         }
+    }
+
+    private static <T> ClassLoader selectClassLoader(Class<T> type, Class<?> extraType) {
+        ClassLoader typeClassLoader = type.getClassLoader();
+        ClassLoader candidate = extraType.getClassLoader();
+        return candidate != typeClassLoader && candidate != null && isCanLoadType(candidate, type)
+            ? candidate
+            : typeClassLoader;
+    }
+
+    private static <T> boolean isCanLoadType(ClassLoader candidate, Class<T> type) {
+        try {
+            if (candidate.loadClass(type.getName()) != null) {
+                return true;
+            }
+        } catch (ClassNotFoundException e) {
+            // Ignore
+        }
+        return false;
     }
 }
