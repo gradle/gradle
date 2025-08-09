@@ -17,6 +17,7 @@
 package org.gradle.cache;
 
 import java.io.Closeable;
+import java.io.File;
 import java.util.function.Supplier;
 
 /**
@@ -27,6 +28,11 @@ import java.util.function.Supplier;
  * Additionally, instead of per key locks we use multiple file locks, similar strategy as it's used for {@link com.google.common.util.concurrent.Striped}.
  */
 public interface FineGrainedPersistentCache extends Closeable, CleanableStore, HasCleanupAction {
+
+    /**
+     * Returns the cache directory for the given key.
+     */
+    File getCacheDir(String key);
 
     FineGrainedPersistentCache open();
 
