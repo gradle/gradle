@@ -120,9 +120,8 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
                             workspace.unstale();
                             return result;
                         }).orElseGet(() -> {
-                            if (workspace.deleteStaleFiles()) {
-                                fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
-                            }
+                            workspace.deleteStaleFiles();
+                            fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
                             return executeInWorkspace(work, context, workspace.getImmutableLocation());
                         });
                 }));
