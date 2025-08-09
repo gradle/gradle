@@ -125,7 +125,8 @@ public class JavaMethod<T, R> {
             Object result = method.invoke(target, args);
             return returnType.cast(result);
         } catch (InvocationTargetException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
+            Throwable cause = e.getCause();
+            throw UncheckedException.throwAsUncheckedException(cause != null ? cause : e);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not call %s.%s() on %s", method.getDeclaringClass().getSimpleName(), method.getName(), target), e);
         }

@@ -16,6 +16,8 @@
 
 package org.gradle.internal;
 
+import org.jspecify.annotations.Nullable;
+
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -61,13 +63,13 @@ public abstract class InternalTransformers {
         }
     }
 
-    public static <T> InternalTransformer<String, T> asString() {
-        return new ToStringTransformer<T>();
+    public static <T> InternalTransformer<@Nullable String, T> asString() {
+        return new ToStringTransformer<>();
     }
 
-    private static class ToStringTransformer<T> implements InternalTransformer<String, T> {
+    private static class ToStringTransformer<T extends @Nullable Object> implements InternalTransformer<@Nullable String, T> {
         @Override
-        public String transform(T original) {
+        public @Nullable String transform(T original) {
             return original == null ? null : original.toString();
         }
     }
@@ -86,7 +88,8 @@ public abstract class InternalTransformers {
         private static final Pattern A_SINGLE_QUOTE = Pattern.compile("'");
 
         @Override
-        public String transform(String input) {
+        // IDEA doesn't recognize non-null type argument
+        public String transform(@SuppressWarnings("NullableProblems") String input) {
             if (SINGLE_QUOTED.matcher(input).matches() || DOUBLE_QUOTED.matcher(input).matches() || !input.contains(" ")) {
                 return input;
             } else {
@@ -120,22 +123,14 @@ public abstract class InternalTransformers {
         };
     }
 
-    public static <R> InternalTransformer<R, Object> toTransformer(final Factory<R> factory) {
-        return new InternalTransformer<R, Object>() {
-            @Override
-            public R transform(Object original) {
-                return factory.create();
-            }
-        };
-    }
-
     /**
      * Converts a URL to a URI
      */
     public static InternalTransformer<URL, URI> toURL() {
         return new InternalTransformer<URL, URI>() {
             @Override
-            public URL transform(URI original) {
+            // IDEA doesn't recognize non-null type argument
+            public URL transform(@SuppressWarnings("NullableProblems") URI original) {
                 try {
                     return original.toURL();
                 } catch (MalformedURLException e) {
