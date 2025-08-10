@@ -54,7 +54,7 @@ class ToolingApiDistributionResolver {
     ToolingApiDistribution resolve(String toolingApiVersion) {
         if (!distributions[toolingApiVersion]) {
             if (useToolingApiFromTestClasspath(toolingApiVersion)) {
-                distributions[toolingApiVersion] = new TestClasspathToolingApiDistribution()
+                throw new RuntimeException("FUCK")
             } else if (CommitDistribution.isCommitDistribution(toolingApiVersion)) {
                 throw new UnsupportedOperationException(String.format("Commit distributions are not supported in this context. Adjust %s code to support them", this.class.canonicalName))
             } else {
