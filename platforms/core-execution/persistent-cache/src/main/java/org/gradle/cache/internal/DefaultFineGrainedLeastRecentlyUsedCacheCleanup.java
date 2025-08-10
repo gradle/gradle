@@ -96,6 +96,8 @@ public class DefaultFineGrainedLeastRecentlyUsedCacheCleanup extends LeastRecent
             .concurrencyLevel(4)
             // This has to be shorter than the STALE_DURATION
             .expireAfterWrite(Duration.ofMinutes(20))
+            // Maximum entries is actually maximumSize / concurrencyLevel
+            .maximumSize(10_000)
             .build(new CacheLoader<File, Boolean>() {
                 @Override
                 public Boolean load(File key) {
