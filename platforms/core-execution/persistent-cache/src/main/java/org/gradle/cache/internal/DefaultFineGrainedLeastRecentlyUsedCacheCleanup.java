@@ -122,7 +122,7 @@ public class DefaultFineGrainedLeastRecentlyUsedCacheCleanup extends LeastRecent
 
         @Override
         public boolean isStale(File entry) {
-            return staleMarkerCache.getUnchecked(entry);
+            return getStaleMarkerFile(entry).exists();
         }
 
         private boolean isStaleUncached(File entry) {
