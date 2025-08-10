@@ -40,6 +40,11 @@ public class DefaultImmutableWorkspaceMetadataStore implements ImmutableWorkspac
     private final OriginMetadataSerializer originMetadataSerializer = new OriginMetadataSerializer();
 
     @Override
+    public boolean workspaceMetadataExists(File workspace) {
+        return new File(workspace, METADATA_FILE).exists();
+    }
+
+    @Override
     public Optional<ImmutableWorkspaceMetadata> loadWorkspaceMetadata(File workspace) {
         File metadataFile = new File(workspace, METADATA_FILE);
 

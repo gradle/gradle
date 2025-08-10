@@ -46,6 +46,7 @@ import java.io.File;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.google.common.collect.ImmutableListMultimap.toImmutableListMultimap;
@@ -110,21 +111,26 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         String uniqueId = context.getIdentity().getUniqueId();
 
         LockingImmutableWorkspace workspace = workspaceProvider.getLockingWorkspace(uniqueId);
+        Supplier<Optional<WorkspaceResult>> missingResultHandler = () -> {
+            if (workspaceMetadataStore.workspaceMetadataExists(workspace.getImmutableLocation())) {
+                fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
+                return loadImmutableWorkspaceIfExists(work, workspace, Optional::empty);
+            } else {
+                return Optional.empty();
+            }
+        };
         return loadImmutableWorkspaceIfNotStale(work, workspace)
             .orElseGet(() ->
-                workspace.withWorkspaceLock(() -> {
-                    fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
-                    return loadImmutableWorkspaceIfExists(work, workspace)
-                        .map(result -> {
-                            // If we got result make sure to unstale in case it was stale
-                            workspace.unstale();
-                            return result;
-                        }).orElseGet(() -> {
-                            workspace.deleteStaleFiles();
-                            fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
-                            return executeInWorkspace(work, context, workspace.getImmutableLocation());
-                        });
-                }));
+                workspace.withWorkspaceLock(() -> loadImmutableWorkspaceIfExists(work, workspace, missingResultHandler)
+                    .map(result -> {
+                        // If we got result make sure to unstale in case it was stale
+                        workspace.unstale();
+                        return result;
+                    }).orElseGet(() -> {
+                        workspace.deleteStaleFiles();
+                        fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
+                        return executeInWorkspace(work, context, workspace.getImmutableLocation());
+                    })));
     }
 
     private Optional<WorkspaceResult> loadImmutableWorkspaceIfNotStale(UnitOfWork work, LockingImmutableWorkspace workspace) {
@@ -132,11 +138,10 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             // If the workspace is stale, we need to run the work under the lock
             return Optional.empty();
         }
-        return loadImmutableWorkspaceIfExists(work, workspace);
+        return loadImmutableWorkspaceIfExists(work, workspace, Optional::empty);
     }
 
-
-    private Optional<WorkspaceResult> loadImmutableWorkspaceIfExists(UnitOfWork work, ImmutableWorkspace workspace) {
+    private Optional<WorkspaceResult> loadImmutableWorkspaceIfExists(UnitOfWork work, ImmutableWorkspace workspace, Supplier<Optional<WorkspaceResult>> missingResultHandler) {
         File immutableLocation = workspace.getImmutableLocation();
         FileSystemLocationSnapshot snapshot = fileSystemAccess.read(immutableLocation.getAbsolutePath());
         switch (snapshot.getType()) {
@@ -147,7 +152,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
                     "Immutable workspace is occupied by a file: " + immutableLocation.getAbsolutePath() + ". " +
                         "Deleting the file in question can allow the content to be recreated.");
             case Missing:
-                return Optional.empty();
+                return missingResultHandler.get();
             default:
                 throw new AssertionError();
         }
