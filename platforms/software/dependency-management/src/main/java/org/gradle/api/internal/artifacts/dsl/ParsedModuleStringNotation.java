@@ -15,71 +15,82 @@
  */
 package org.gradle.api.internal.artifacts.dsl;
 
+import com.google.common.base.Splitter;
 import org.gradle.api.IllegalDependencyNotation;
+import org.jspecify.annotations.Nullable;
 
 public class ParsedModuleStringNotation {
-    private String group;
-    private String name;
-    private String version;
-    private String classifier;
+    // Limit to 5 parts, to allow the error condition below.
+    private static final Splitter COLON_SPLITTER = Splitter.on(':').limit(5);
+
+    @Nullable
+    private final String group;
+    @Nullable
+    private final String name;
+    @Nullable
+    private final String version;
+    @Nullable
+    private final String classifier;
+    @Nullable
     private final String artifactType;
 
-    public ParsedModuleStringNotation(String moduleNotation, String artifactType) {
-        assignValuesFromModuleNotation(moduleNotation);
+    public ParsedModuleStringNotation(String moduleNotation, @Nullable String artifactType) {
+        String group = null;
+        String name = null;
+        String version = null;
+        String classifier = null;
+
+        int index = 0;
+        for (String part : COLON_SPLITTER.split(moduleNotation)) {
+            switch (index) {
+                case 0:
+                    group = part.isEmpty() ? null : part;
+                    break;
+                case 1:
+                    name = part;
+                    break;
+                case 2:
+                    version = part.isEmpty() ? null : part;
+                    break;
+                case 3:
+                    classifier = part;
+                    break;
+            }
+            index++;
+        }
+
+        if (index < 2 || index > 4) {
+            throw new IllegalDependencyNotation("Supplied String module notation '" + moduleNotation + "' is invalid. Example notations: 'org.gradle:gradle-core:2.2', 'org.mockito:mockito-core:1.9.5:javadoc'.");
+        }
+
+        this.group = group;
+        this.name = name;
+        this.version = version;
+        this.classifier = classifier;
         this.artifactType = artifactType;
     }
 
-    private void assignValuesFromModuleNotation(String moduleNotation) {
-        int count = 0;
-        int idx = 0;
-        int cur = -1;
-        while (++cur < moduleNotation.length()) {
-            if (':' == moduleNotation.charAt(cur)) {
-                String fragment = moduleNotation.substring(idx, cur);
-                assignValue(count, fragment);
-                idx = cur + 1;
-                count++;
-            }
-        }
-        assignValue(count, moduleNotation.substring(idx, cur));
-        count++;
-        if (count < 2 || count > 4) {
-            throw new IllegalDependencyNotation("Supplied String module notation '" + moduleNotation + "' is invalid. Example notations: 'org.gradle:gradle-core:2.2', 'org.mockito:mockito-core:1.9.5:javadoc'.");
-        }
-    }
-
-    private void assignValue(int count, String fragment) {
-        switch (count) {
-            case 0:
-                group = "".equals(fragment) ? null : fragment;
-                break;
-            case 1:
-                name = fragment;
-                break;
-            case 2:
-                version = "".equals(fragment) ? null : fragment;
-                break;
-            case 3:
-                classifier = fragment;
-        }
-    }
-
+    @Nullable
     public String getGroup() {
         return group;
     }
 
+    @Nullable
     public String getName() {
         return name;
     }
 
+    @Nullable
     public String getVersion() {
         return version;
     }
 
+    @Nullable
     public String getClassifier() {
         return classifier;
     }
 
+    @Nullable
     public String getArtifactType() {
         return artifactType;
     }
