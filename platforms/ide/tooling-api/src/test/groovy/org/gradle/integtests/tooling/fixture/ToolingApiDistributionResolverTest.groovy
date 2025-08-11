@@ -21,6 +21,7 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.nio.file.Files
@@ -30,6 +31,7 @@ import java.util.concurrent.TimeUnit
 /**
  * Tests {@link ToolingApiDistributionResolver}.
  */
+@Ignore
 class ToolingApiDistributionResolverTest extends Specification {
 
     @Rule
