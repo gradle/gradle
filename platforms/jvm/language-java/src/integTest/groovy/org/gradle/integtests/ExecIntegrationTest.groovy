@@ -485,52 +485,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         "javaexec" | { File serverInfoFile -> javaExecSpecWithHttpServer(serverInfoFile) }
     }
 
-//    @Issue("https://github.com/gradle/gradle/issues/6072")
-//    def "can handle arguments with quotes and spaces"() {
-//
-//        buildFile """
-//            apply plugin: 'java'
-//
-//            task demo(type: Exec) {
-//                executable = org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
-//                args = ['-cp', sourceSets.main.runtimeClasspath.asPath, '-Dfoo="1 2"', 'com.example.demo.DemoApplication']
-//                argumentProviders.add(objects.newInstance(MyApplicationJvmArguments))
-//                dependsOn(tasks.named("compileJava"))
-//            }
-//
-//            abstract class MyApplicationJvmArguments implements CommandLineArgumentProvider {
-//
-//                @Override
-//                Iterable<String> asArguments() {
-//                    return ['bar="3 4"']
-//                }
-//            }
-//
-//        """
-//        file("src/main/java/com/example/demo/DemoApplication.java") << """
-//            package com.example.demo;
-//
-//            public class DemoApplication {
-//
-//                public static void main(String[] args) {
-//                    System.getProperties().entrySet().forEach(System.out::println);
-//                    System.out.println("Arguments: " + String.join(" ", args));
-//                }
-//            }
-//        """
-//
-//        expect:
-//        args("--info")
-//        succeeds("demo")
-//
-//        outputContains('foo="1 2"')
-//        outputContains('Arguments: bar="3 4"')
-//    }
-//
-//    private static def execSpec(def owner = "") {
-//        "${prop(owner, "commandLine")}(${echoCommandLineArgs("Hello")});"
-//    }
-
     private static def execSpecWithJavaExecutable(def owner = "") {
         """
             ${prop(owner, "executable")}(org.gradle.internal.jvm.Jvm.current().getJavaExecutable())
