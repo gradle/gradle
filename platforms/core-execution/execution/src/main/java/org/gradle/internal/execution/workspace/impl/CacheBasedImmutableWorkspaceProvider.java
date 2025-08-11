@@ -21,6 +21,7 @@ import org.gradle.cache.FineGrainedCacheBuilder;
 import org.gradle.cache.FineGrainedCacheCleanupStrategy;
 import org.gradle.cache.FineGrainedCacheCleanupStrategyFactory;
 import org.gradle.cache.FineGrainedPersistentCache;
+import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
@@ -38,6 +39,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
     private final File baseDirectory;
     private final FineGrainedPersistentCache cache;
     private final FineGrainedCacheDeleter deleter;
+    private final ProducerGuard<String> guard;
 
     public static CacheBasedImmutableWorkspaceProvider createWorkspaceProvider(
         FineGrainedCacheBuilder cacheBuilder,
@@ -87,6 +89,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             .withLeastRecentCleanup(cacheCleanupStrategy)
             .open();
         this.baseDirectory = cache.getBaseDir();
+        this.guard = ProducerGuard.adaptive();
         this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, treeDepthToTrackAndCleanup);
     }
 
@@ -104,6 +107,11 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             @Override
             public <T> T withWorkspaceLock(Supplier<T> supplier) {
                 return cache.useCache(path, supplier);
+            }
+
+            @Override
+            public <T> T withProcessLock(Supplier<T> supplier) {
+                return guard.guardByKey(path, supplier);
             }
 
             @Override
