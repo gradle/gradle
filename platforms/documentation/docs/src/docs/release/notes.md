@@ -216,7 +216,7 @@ The improved error message makes dependency version conflicts much easier to dia
 
 Additionally, the error message concludes with a suggested [`dependencyInsight` command](userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection) for further investigation, giving you an actionable next step to explore the conflict in detail.
 
-<a name="config-cache"></a>
+<a name="configuration-cache"></a>
 ### Configuration Cache improvements
 
 The [Configuration Cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing it for subsequent builds. This feature can significantly improve build performance.
