@@ -37,6 +37,7 @@ import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resiliency.ResilientSyncListener;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -45,7 +46,10 @@ import org.gradle.internal.service.scopes.BrokenBuildsCapturingListener;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
 
+import java.io.File;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CompositeBuildServices extends AbstractGradleModuleServices {
 
@@ -90,6 +94,22 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
             } else {
                 return new DefaultIncludedBuildRegistry(includedBuildFactory, listenerManager, buildStateFactory);
             }
+        }
+
+        @Provides
+        public ResilientSyncListener createResilientSyncListener() {
+            return new ResilientSyncListener() {
+                private final Map<File, List<File>> classpaths = new ConcurrentHashMap<>();
+                @Override
+                public void onKotlinScriptCompilationStarted(File scriptFile, List<File> classpath) {
+                    classpaths.put(scriptFile, classpath);
+                }
+
+                @Override
+                public Map<File, List<File>> getClasspaths() {
+                    return classpaths;
+                }
+            };
         }
 
         @Provides
