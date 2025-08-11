@@ -405,7 +405,7 @@ public class ProviderConnection {
         Map<String, String> gradlePropertiesAsSeenByToolchains = new HashMap<>();
         gradlePropertiesAsSeenByToolchains.putAll(properties.getProperties());
         gradlePropertiesAsSeenByToolchains.putAll(startParameter.getProjectProperties());
-        new BuildOptionBackedConverter<>(new ToolchainBuildOptions()).convert(parsedCommandLine, gradlePropertiesAsSeenByToolchains, daemonParams.getToolchainConfiguration());
+        new BuildOptionBackedConverter<>(ToolchainBuildOptions.forToolChainConfiguration()).convert(parsedCommandLine, gradlePropertiesAsSeenByToolchains, daemonParams.getToolchainConfiguration());
 
         return new Parameters(daemonParams, buildLayoutResult, properties, effectiveSystemProperties, startParameter, requestContext);
     }
