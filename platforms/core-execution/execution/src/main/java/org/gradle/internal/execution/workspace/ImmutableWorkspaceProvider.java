@@ -42,6 +42,8 @@ public interface ImmutableWorkspaceProvider {
          */
         <T> T withWorkspaceLock(Supplier<T> supplier);
 
+        <T> T withProcessLock(Supplier<T> supplier);
+
         void unstale();
 
         boolean deleteStaleFiles();
