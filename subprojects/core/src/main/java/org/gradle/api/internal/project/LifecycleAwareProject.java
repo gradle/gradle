@@ -35,22 +35,21 @@ public class LifecycleAwareProject extends MutableStateAccessAwareProject {
 
     public static ProjectInternal from(
         ProjectInternal target,
-        ProjectInternal referrer,
-        GradleLifecycleActionExecutor gradleLifecycleActionExecutor,
-        Instantiator instantiator
+        ProjectInternal referrer
     ) {
+        Instantiator instantiator = target.getServices().get(Instantiator.class);
         return MutableStateAccessAwareProject.wrap(
             target,
             referrer,
-            project -> instantiator.newInstance(LifecycleAwareProject.class, target, referrer, gradleLifecycleActionExecutor)
+            project -> instantiator.newInstance(LifecycleAwareProject.class, target, referrer)
         );
     }
 
     private final GradleLifecycleActionExecutor gradleLifecycleActionExecutor;
 
-    public LifecycleAwareProject(ProjectInternal delegate, ProjectInternal referrer, GradleLifecycleActionExecutor gradleLifecycleActionExecutor) {
+    public LifecycleAwareProject(ProjectInternal delegate, ProjectInternal referrer) {
         super(delegate, referrer);
-        this.gradleLifecycleActionExecutor = gradleLifecycleActionExecutor;
+        this.gradleLifecycleActionExecutor = delegate.getServices().get(GradleLifecycleActionExecutor.class);
     }
 
     @Override
