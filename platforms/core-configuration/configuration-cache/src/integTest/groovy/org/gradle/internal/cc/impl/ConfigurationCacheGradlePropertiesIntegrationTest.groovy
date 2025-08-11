@@ -339,11 +339,13 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
 
         when:
         configurationCacheRun "some", "-Pfoo=one"
+
         then:
         configurationCache.assertStateStored()
 
         when:
         configurationCacheRun "some", "-Pfoo=two"
+
         then:
         configurationCache.assertStateLoaded()
     }
