@@ -91,7 +91,6 @@ class DefaultConfigurationContainerTest extends Specification {
                 TestFiles.taskDependencyFactory(),
         ),
         Stub(ResolveExceptionMapper),
-        new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
         userCodeApplicationContext
     )
 

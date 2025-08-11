@@ -85,7 +85,6 @@ class DefaultConfigurationContainerSpec extends Specification {
         domainObjectContext,
         Stub(PublishArtifactNotationParserFactory),
         Stub(ResolveExceptionMapper),
-        new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
         userCodeApplicationContext
     )
 
