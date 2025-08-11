@@ -21,13 +21,13 @@ import org.gradle.cache.FineGrainedCacheBuilder;
 import org.gradle.cache.FineGrainedCacheCleanupStrategy;
 import org.gradle.cache.FineGrainedCacheCleanupStrategyFactory;
 import org.gradle.cache.FineGrainedPersistentCache;
+import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
 import java.io.Closeable;
 import java.io.File;
-import java.util.UUID;
 import java.util.function.Supplier;
 
 import static org.gradle.cache.FineGrainedCacheCleanupStrategy.FineGrainedCacheDeleter;
@@ -39,6 +39,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
     private final File baseDirectory;
     private final FineGrainedPersistentCache cache;
     private final FineGrainedCacheDeleter deleter;
+    private final ProducerGuard<String> guard;
 
     public static CacheBasedImmutableWorkspaceProvider createWorkspaceProvider(
         FineGrainedCacheBuilder cacheBuilder,
@@ -88,27 +89,8 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             .withLeastRecentCleanup(cacheCleanupStrategy)
             .open();
         this.baseDirectory = cache.getBaseDir();
+        this.guard = ProducerGuard.adaptive();
         this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, treeDepthToTrackAndCleanup);
-    }
-
-    @Override
-    public AtomicMoveImmutableWorkspace getAtomicMoveWorkspace(String path) {
-        File immutableWorkspace = new File(baseDirectory, path);
-        fileAccessTracker.markAccessed(immutableWorkspace);
-        return new AtomicMoveImmutableWorkspace() {
-            @Override
-            public File getImmutableLocation() {
-                return immutableWorkspace;
-            }
-
-            @Override
-            public <T> T withTemporaryWorkspace(TemporaryWorkspaceAction<T> action) {
-                // TODO Use Files.createTemporaryDirectory() instead
-                String temporaryLocation = path + "-" + UUID.randomUUID();
-                File temporaryWorkspace = new File(baseDirectory, temporaryLocation);
-                return action.executeInTemporaryWorkspace(temporaryWorkspace);
-            }
-        };
     }
 
     @Override
@@ -125,6 +107,11 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             @Override
             public <T> T withWorkspaceLock(Supplier<T> supplier) {
                 return cache.useCache(path, supplier);
+            }
+
+            @Override
+            public <T> T withProcessLock(Supplier<T> supplier) {
+                return guard.guardByKey(path, supplier);
             }
 
             @Override

@@ -40,7 +40,6 @@ import java.util.function.Supplier
 
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE
-import static org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep.LockingStrategy
 import static org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.LockingImmutableWorkspace
 
 class AssignImmutableWorkspaceStepWithWorkspaceLockTest extends StepSpec<IdentityContext> implements TestSnapshotFixture {
@@ -64,7 +63,7 @@ class AssignImmutableWorkspaceStepWithWorkspaceLockTest extends StepSpec<Identit
         getLockingWorkspace(workId) >> workspace
     }
 
-    def step = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, delegate, LockingStrategy.WORKSPACE_LOCK)
+    def step = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, delegate)
     def work = Stub(ImmutableUnitOfWork)
 
     def setup() {

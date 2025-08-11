@@ -40,12 +40,13 @@ public class DefaultImmutableWorkspaceMetadataStore implements ImmutableWorkspac
     private final OriginMetadataSerializer originMetadataSerializer = new OriginMetadataSerializer();
 
     @Override
+    public boolean workspaceMetadataExists(File workspace) {
+        return new File(workspace, METADATA_FILE).exists();
+    }
+
+    @Override
     public Optional<ImmutableWorkspaceMetadata> loadWorkspaceMetadata(File workspace) {
         File metadataFile = new File(workspace, METADATA_FILE);
-
-        if (!metadataFile.exists()) {
-            return Optional.empty();
-        }
 
         //noinspection IOStreamConstructor
         try (KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(metadataFile))) {
@@ -63,7 +64,8 @@ public class DefaultImmutableWorkspaceMetadataStore implements ImmutableWorkspac
             }
             return Optional.of(new ImmutableWorkspaceMetadata(originMetadata, outputPropertyHashes.build()));
         } catch (IOException e) {
-            throw new UncheckedIOException("Could not read workspace metadata from " + metadataFile, e);
+            // If the metadata file does not exist or cannot be read, return empty
+            return Optional.empty();
         }
     }
 

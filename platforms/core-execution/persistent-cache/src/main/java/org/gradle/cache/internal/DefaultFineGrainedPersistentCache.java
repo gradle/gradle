@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.math.IntMath;
 import org.apache.commons.io.FileUtils;
@@ -55,7 +56,7 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
      */
     public static final int MAX_NUMBER_OF_LOCKS = 512;
 
-    private final ProducerGuard<Object> guard = ProducerGuard.adaptive();
+    private final ProducerGuard<String> guard = ProducerGuard.adaptive();
     private final StripedFileLockAccess<LockOnDemandEagerReleaseCrossProcessCacheAccess> fileLocks;
     private final File gcFile;
     private final CacheCleanupExecutor cleanupExecutor;
@@ -75,6 +76,11 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         this.fileLocks = createLocks(numberOfLocks, fileLockManager);
         this.gcFile = new File(baseDir, "gc.properties");
         this.cleanupExecutor = new DefaultCacheCleanupExecutor(this, gcFile, cleanupStrategy.apply(this));
+    }
+
+    @Override
+    public File getCacheDir(String key) {
+        return new File(baseDir, key);
     }
 
     @Override
@@ -107,16 +113,8 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
 
     @Override
     public <T> T useCache(String key, Supplier<? extends T> action) {
-        // Normalize the key since key can be a path,
-        // and we want to avoid issues with different path separators.
-        normalizeKey(key);
-        return guard.guardByKey(key, () -> withFileLock(key, action));
-    }
-
-    private String normalizeKey(String key) {
-        key = FilenameUtils.separatorsToUnix(key);
-        checkArgument(!key.startsWith("/") && !key.endsWith("/"), "Cache key '%s' must not start or end with a slash", key);
-        return key;
+        String cacheKey = normalizeCacheKey(key);
+        return guard.guardByKey(cacheKey, () -> withFileLock(cacheKey, action));
     }
 
     @Override
@@ -127,8 +125,8 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         });
     }
 
-    private <T> T withFileLock(String key, Supplier<? extends T> action) {
-        return fileLocks.get(key).withFileLock(action);
+    private <T> T withFileLock(String cacheKey, Supplier<? extends T> action) {
+        return fileLocks.get(cacheKey).withFileLock(action);
     }
 
     @Override
@@ -150,20 +148,17 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
     }
 
     private StripedFileLockAccess<LockOnDemandEagerReleaseCrossProcessCacheAccess> createLocks(int numberOfLocks, FileLockManager fileLockManager) {
-        return StripedFileLockAccess.custom(
-            numberOfLocks,
-            baseDir,
-            fileLock -> new LockOnDemandEagerReleaseCrossProcessCacheAccess(
-                getDisplayName(),
-                fileLock,
-                DefaultLockOptions.mode(Exclusive),
-                fileLockManager,
-                new ReentrantLock(),
-                CacheInitializationAction.NO_INIT_REQUIRED,
-                lock -> {},
-                lock -> {}
-            )
-        );
+        return StripedFileLockAccess.custom(numberOfLocks, baseDir, fileLock -> createLockOnDemandEagerReleaseCacheAccess(fileLock, fileLockManager));
+    }
+
+    private LockOnDemandEagerReleaseCrossProcessCacheAccess createLockOnDemandEagerReleaseCacheAccess(File file, FileLockManager fileLockManager) {
+        return new LockOnDemandEagerReleaseCrossProcessCacheAccess(getDisplayName(), file, DefaultLockOptions.mode(Exclusive), fileLockManager, new ReentrantLock(), CacheInitializationAction.NO_INIT_REQUIRED, lock -> {}, lock -> {});
+    }
+
+    public static String normalizeCacheKey(String key) {
+        String normalizedKey = FilenameUtils.separatorsToUnix(key);
+        Preconditions.checkArgument(!normalizedKey.startsWith("/") && !normalizedKey.endsWith("/"), "Cache key path must be relative and not end with a slash: '%s'", key);
+        return normalizedKey;
     }
 
     /**
@@ -199,7 +194,7 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
             return (T) array[indexFor(key)];
         }
 
-        private int indexFor(Object key) {
+        private int indexFor(String key) {
             int hash = smear(key.hashCode());
             return hash & mask;
         }
