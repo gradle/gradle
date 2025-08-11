@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.ParsedModuleStringNotation;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.api.internal.catalog.parser.StrictVersionParser;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationConvertResult;
@@ -62,6 +63,14 @@ public class DependencyStringNotationConverter<T> implements NotationConverter<S
         maybeEnrichVersion(version, moduleDependency);
         if (moduleDependency instanceof ExternalDependency) {
             ModuleFactoryHelper.addExplicitArtifactsIfDefined((ExternalDependency) moduleDependency, parsedNotation.getArtifactType(), parsedNotation.getClassifier());
+        } else {
+            if (parsedNotation.getArtifactType() != null || parsedNotation.getClassifier() != null) {
+                DeprecationLogger.deprecateBehaviour("Declaring an artifact type or classifier on a non-dependency.")
+                    .withAdvice("The artifact type and classifier can only be specified for external dependencies. The value(s) you specified will be ignored.")
+                    .willBecomeAnErrorInGradle10()
+                    .withUpgradeGuideSection(9, "non_dependency_artifact_type_classifier")
+                    .nagUser();
+            }
         }
 
         return moduleDependency;
@@ -84,7 +93,6 @@ public class DependencyStringNotationConverter<T> implements NotationConverter<S
         }
     }
 
-    @SuppressWarnings("deprecation")
     private ParsedModuleStringNotation splitModuleFromExtension(String notation) {
         int idx = notation.lastIndexOf('@');
         if (idx == -1) {

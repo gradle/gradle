@@ -36,6 +36,77 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_9.2]]
+== Upgrading from 9.1 and earlier
+
+=== Deprecations
+
+[[non_dependency_artifact_type_classifier]]
+==== Deprecation of non-dependency artifact type or classifier notation
+
+Using the artifact type or classifier notation outside of dependency declarations has been deprecated without replacement and will be removed in Gradle 10.0.0.
+This information was never stored, and allowing it to be specified was a source of confusion.
+
+This includes usages in constraints and `ComponentMetadataHandler.withModule(...)`.
+Below are examples of the deprecated notation:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    constraints {
+        implementation("org:foo:1.0:classifier") // deprecated
+        implementation("org:foo:1.0@ext") // deprecated
+    }
+    components {
+        withModule("org:foo@ext") {
+            // ...
+        }
+    }
+}
+
+testing.suites.named<JvmTestSuite>("test") {
+    dependencies {
+        constraints {
+            implementation("org:foo:1.0:classifier") // deprecated
+            implementation("org:foo:1.0@ext") // deprecated
+        }
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+dependencies {
+    constraints {
+        implementation("org:foo:1.0:classifier") // deprecated
+        implementation("org:foo:1.0@ext") // deprecated
+    }
+    components {
+        withModule("org:foo@ext") {
+            // ...
+        }
+    }
+}
+
+testing.suites.test {
+    dependencies {
+        constraints {
+            implementation("org:foo:1.0:classifier") // deprecated
+            implementation("org:foo:1.0@ext") // deprecated
+        }
+    }
+}
+----
+=====
+====
+
 [[changes_9.1]]
 == Upgrading from 9.0 and earlier
 
