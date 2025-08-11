@@ -23,10 +23,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * Marks types that can be instantiated by Gradle via the managed object infrastructure.
+ * Marks Gradle-provided types that can be instantiated via the managed object infrastructure.
  * <p>
  * Types annotated with this annotation will be automatically instantiated by Gradle
- * when constructing managed objects.
+ * when constructing managed objects. This annotation is present only on Gradle-native types
+ *  * and does not need to be added to custom user-instantiated types.
  *
  * To create a managed property, declare an abstract getter method for the given type.
  *
@@ -58,6 +59,8 @@ import java.lang.annotation.RetentionPolicy;
  * </pre>
  *
  * @since 9.0.0
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/properties_providers.html">Managed types reference</a>
  */
 @Incubating
 @Documented

@@ -36,6 +36,18 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_9.2]]
+== Upgrading from 9.1 and earlier
+
+=== Deprecations
+
+=== Potential breaking changes
+
+==== Removed incubating method `ObjectFactory#dependencyCollector()`
+
+The incubating `ObjectFactory#dependencyCollector()` method has been removed.
+DependencyCollectors can still be instantiated within Gradle <<properties_providers.adoc#managed_types, managed types>>.
+
 [[changes_9.1]]
 == Upgrading from 9.0 and earlier
 
