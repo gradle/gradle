@@ -36,6 +36,15 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+TODO find the correct place for this
+[[dependency_multi_string_notation]]
+=== Removed APIs
+
+==== Reporting APIs
+
+* `ReportingExtension.file(String)` has been removed. Use `ReportingExtension.getBaseDirectory()` with `file(String)` or `dir(String)` instead.
+* `ReportingExtension.getApiDocTitle()` has been removed. There is no direct replacement for this method.
+
 [[changes_9.1]]
 == Upgrading from 9.0 and earlier
 

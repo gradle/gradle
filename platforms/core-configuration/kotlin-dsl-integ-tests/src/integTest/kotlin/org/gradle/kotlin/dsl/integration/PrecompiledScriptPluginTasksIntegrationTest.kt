@@ -45,6 +45,7 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
             """
             plugins {
                 `kotlin-dsl`
+                // TODO: Need new version that does not have the deprecation
                 id("io.gitlab.arturbosch.detekt") version "1.23.8"
             }
 
@@ -78,7 +79,6 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
             """.trimIndent()
         )
 
-        executer.expectDocumentedDeprecationWarning("The ReportingExtension.file(String) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the getBaseDirectory().file(String) or getBaseDirectory().dir(String) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#reporting_extension_file")
         build("generateScriptPluginAdapters", "detekt")
     }
 
