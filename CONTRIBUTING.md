@@ -91,14 +91,12 @@ It helps developers optimize performance and gain deeper insights into their bui
 
 ### Code change guidelines
 
-All code contributions should contain the following:
+Code contributions should follow these guidelines to maximize the chance of your changes being accepted:
 
-* Create unit tests using [Spock](https://spockframework.org/spock/docs/2.0/index.html) for new classes or methods that you introduce.
-* Create integration tests that exercise a Gradle build for the bug/feature. 
-* Annotate tests that correspond to a bug on GitHub (`@Issue("https://github.com/gradle/gradle/issues/2622")`).
+* Cover your code with tests. See the [Testing guide](contributing/Testing.md) for more information.
 * Add documentation to the User Manual and DSL Reference (under [platforms/documentation/docs/src/docs](platforms/documentation/docs/src/docs/)).
 * For error messages related changes, follow the [ErrorMessages Guide](contributing/ErrorMessages.md).
-* For Javadocs, follow the [Javadoc Style Guide](contributing/JavadocStyleGuide.md).
+* Add Javadoc for new methods and classes, following the [Javadoc Style Guide](contributing/JavadocStyleGuide.md).
 * For new features, the feature should be mentioned in the [Release Notes](platforms/documentation/docs/src/docs/release/notes.md).
 
 Your code needs to run on [all versions of Java that Gradle supports](platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc) and across all supported operating systems (macOS, Windows, Linux). The [Gradle CI system](http://builds.gradle.org/) will verify this, but here are some pointers that will avoid surprises:
