@@ -1650,7 +1650,8 @@ This method is only meant to be called on configurations which allow the (non-de
             attributesFactory,
             TestUtil.domainObjectCollectionFactory(),
             CollectionCallbackActionDecorator.NOOP,
-            TestUtil.problemsService()
+            TestUtil.problemsService(),
+            new AttributeDesugaring(attributesFactory),
         )
 
         new DefaultConfigurationFactory(

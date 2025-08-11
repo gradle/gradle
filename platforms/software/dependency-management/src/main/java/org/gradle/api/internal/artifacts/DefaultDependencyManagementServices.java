@@ -95,6 +95,7 @@ import org.gradle.api.internal.artifacts.transform.TransformRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
@@ -592,7 +593,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                       DomainObjectCollectionFactory domainObjectCollectionFactory,
                                                                       CalculatedValueContainerFactory calculatedValueContainerFactory,
                                                                       TaskDependencyFactory taskDependencyFactory,
-                                                                      InternalProblems problems) {
+                                                                      InternalProblems problems,
+                                                                      AttributeDesugaring attributeDesugaring) {
             return new DefaultConfigurationServicesBundle(
                 buildOperationRunner,
                 projectStateRegistry,
@@ -603,7 +605,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 attributesFactory,
                 domainObjectCollectionFactory,
                 collectionCallbackActionDecorator,
-                problems
+                problems,
+                attributeDesugaring
             );
         }
 

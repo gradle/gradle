@@ -17,6 +17,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -49,4 +50,5 @@ public interface ConfigurationServicesBundle {
     FileCollectionFactory getFileCollectionFactory();
     CollectionCallbackActionDecorator getCollectionCallbackActionDecorator();
     InternalProblems getProblems();
+    AttributeDesugaring getAttributeDesugaring();
 }

@@ -161,7 +161,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private @Nullable ResolutionStrategyInternal resolutionStrategy;
     private final ResolveExceptionMapper exceptionMapper;
-    private final AttributeDesugaring attributeDesugaring;
 
     private final Path identityPath;
     private final Path projectPath;
@@ -244,7 +243,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.dependencyResolutionListeners = dependencyResolutionListeners;
         this.domainObjectContext = domainObjectContext;
         this.exceptionMapper = exceptionMapper;
-        this.attributeDesugaring = attributeDesugaring;
 
         this.displayName = Describables.memoize(new ConfigurationDescription(identityPath));
         this.configurationAttributes = new FreezableAttributeContainer(configurationServices.getAttributesFactory().mutable(), this.displayName);
@@ -562,7 +560,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 taskDependencyFactory,
                 configurationServices.getCalculatedValueContainerFactory(),
                 configurationServices.getAttributesFactory(),
-                attributeDesugaring,
+                configurationServices.getAttributeDesugaring(),
                 configurationServices.getObjectFactory()
             );
         }
@@ -1678,7 +1676,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         @Override
         public ResolutionResult getResolutionResult() {
             configuration.assertIsResolvable();
-            return new DefaultResolutionResult(configuration.resolutionAccess, configuration.attributeDesugaring);
+            return new DefaultResolutionResult(configuration.resolutionAccess, configuration.configurationServices.getAttributeDesugaring());
         }
 
         @Override
