@@ -24,7 +24,6 @@ import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -49,7 +48,6 @@ public class DefaultLegacyConfiguration extends DefaultConfiguration implements 
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
         ResolveExceptionMapper exceptionMapper,
-        AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext,
         DefaultConfigurationFactory defaultConfigurationFactory,
         ConfigurationRole roleAtCreation
@@ -65,7 +63,6 @@ public class DefaultLegacyConfiguration extends DefaultConfiguration implements 
             artifactNotationParser,
             capabilityNotationParser,
             exceptionMapper,
-            attributeDesugaring,
             userCodeApplicationContext,
             defaultConfigurationFactory,
             roleAtCreation,

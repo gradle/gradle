@@ -24,7 +24,6 @@ import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -48,7 +47,6 @@ public class DefaultDependencyScopeConfiguration extends DefaultConfiguration im
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
         ResolveExceptionMapper exceptionMapper,
-        AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext,
         DefaultConfigurationFactory defaultConfigurationFactory
     ) {
@@ -63,7 +61,6 @@ public class DefaultDependencyScopeConfiguration extends DefaultConfiguration im
             artifactNotationParser,
             capabilityNotationParser,
             exceptionMapper,
-            attributeDesugaring,
             userCodeApplicationContext,
             defaultConfigurationFactory,
             ConfigurationRoles.DEPENDENCY_SCOPE,
