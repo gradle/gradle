@@ -189,10 +189,6 @@ In `plugin/src/main/kotlin/org/example/DevelopingPluginPlugin.kt` you will find 
 
 [source,kotlin]
 ----
-/**
- * A simple 'hello world' plugin.
- * This class implements Gradle's Plugin interface and applies behavior to a project.
- */
 class DevelopingPluginPlugin : Plugin<Project> {
     /**
      * This method is called when the plugin is applied to a project.
@@ -254,6 +250,20 @@ The plugin can:
 - Post a custom Slack message using a simple task (`sendTestSlackMessage`).
 - Automatically report build success or failure at the end of the build.
 - Seamlessly integrate with Gradle’s lifecycle via a `BuildService`, or a `BuildListener`, or the modern `FlowAction` API.
+
+== Step 7. Slack
+
+We will be using the link:https://docs.slack.dev/tools/java-slack-sdk/guides/web-api-client-setup[Slack API Client] for this tutorial.
+You will need:
+
+1. A link:https://slack.com/help/articles/218080037-Getting-started-for-new-Slack-users[Slack Account].
+2. A link:https://slack.com/help/articles/206845317-Create-a-Slack-workspace[Slack Workspace] you can administer (you must have administrative priviledges).
+3. A link:https://api.slack.com/apps[Slack App]:
+ ** Select "Create An App" -> "From Manifest" -> Accept the defaults.
+ ** This will create a "Demo App".
+ ** Create a token for your App in "OAuth & Permissions" and make sure the "Bot Token Scope" includes `chat:write`.
+ ** Then select "Install App".
+ ** Your App should be installed in your Workspace and a token should have been generated that starts with `xoxb-`. Make sure to keep this token handy.
 
 [.text-right]
 **Next Step:** <<part2_add_extension.adoc#part2_add_extension,Add an Extension>> >>

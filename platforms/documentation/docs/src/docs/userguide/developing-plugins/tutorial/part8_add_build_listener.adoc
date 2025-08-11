@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[part4_add_build_listener]]
-= Part 4: Add a Build Listener
+[[part8_add_build_listener]]
+= Part 8: Add a Build Listener
 
-Learn the basics of authoring Gradle by developing
+Learn the basics of the Build Listerner API.
+
 ****
 **In this section, you will:**
 
@@ -23,17 +24,21 @@ Learn the basics of authoring Gradle by developing
 - Add a Build Listener to the Plugin
 ****
 
-[[part4_begin]]
+[[part8_begin]]
 == Step 0. Before you Begin
 
 1. You initialized your plugin in <<part1_gradle_init_plugin.adoc#part1_begin,part 1>>.
 2. You added an extension to your plugin in <<part2_add_extension.adoc#part2_begin,part 2>>.
 3. You created a custom task in <<part3_create_custom_task.adoc#part3_begin, part3>>.
+4. You wrote a unit test in <<part4_unit_test.adoc#part4_begin,part 4>>.
+5. You added a dataflow action to your plugin in <<part5_add_dataflow_action.adoc#part5_begin,part 2>>.
+6. You wrote a functional test in <<part6_functional_test.adoc#part6_begin,part 6>>.
+7. You used a dummy consumer project to consume your plugin in <<part7_use_consumer_project.adoc#part7_begin,part 7>>.
 
 == Step 1. Understanding Build Listeners
 
-`BuildListener` is a Gradle internal interface that lets you hook into the build lifecycle.
-By implementing it, you can execute code at specific points in a Gradle build — such as when it starts, when settings are evaluated, and most commonly, when the build finishes.
+`BuildListener` is a Gradle interface that lets you hook into the build lifecycle.
+By implementing it, you can execute code at specific points in a Gradle build, such as when it starts, when settings are evaluated, and most commonly, when the build finishes.
 
 A `BuildListener` is useful to run some logic at the end (or during key points) of the build.
 For example:
@@ -56,9 +61,11 @@ interface BuildListener {
 
 All methods are optional, you only need to override what you care about.
 
+For our plugin, we will only need to override the `buildFinished` method.
+
 == Step 2. Adding a Listener to our Plugin
 
-We will take a simple approach first and implement the interface in the plugin's `apply()` method:
+We will take a simple approach first and implement the interface and Slack logic in the plugin's `apply()` method:
 
 Update your plugin so it looks as follows:
 
@@ -135,8 +142,11 @@ abstract class SlackPlugin : Plugin<Project> {
 }
 ----
 
-Now we have a simple but working plugin.
-Let's write a test for i.
+Now we have a simple but working plugin that send a Slack message when the build finished using a `BuildListener`.
+You could clean this up a little bit by extracting the Slack code into its own function or its own class.
+
+However, the reason we didn't use a Build Listener previously is that the `buildFinished` method is NOT Configuration Cache compatible.
+See the Configuration Cache <<configuration_cache_requirements.adoc#config_cache:requirements:build_listeners, documentation>> to learn more.
 
 [.text-right]
 **Next Step:** <<part9_add_build_service.adoc#part9_add_build_service,Add a Build Service>> >>

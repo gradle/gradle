@@ -52,11 +52,11 @@ Rename the file `plugin/src/main/kotlin/org/example/DevelopingPluginPlugin.kt` t
 
 TIP: In an IDE, renaming the file should update the plugin class automatically.
 
-Then, take the class name, `class DevelopingPluginPlugin: Plugin<Project> {}`, and update it to `class SlackPlugin: Plugin<Project> {}` so it looks like this:
+Then, take the class name, `class DevelopingPluginPlugin: Plugin<Project> {}`, and update it to `abstract class SlackPlugin: Plugin<Project> {}` so it looks like this:
 
 [source,kotlin]
 ----
-class SlackPlugin: Plugin<Project> {
+abstract class SlackPlugin: Plugin<Project> {
     override fun apply(project: Project) {
         project.tasks.register("greeting") { task ->
             task.doLast {
@@ -66,6 +66,8 @@ class SlackPlugin: Plugin<Project> {
     }
 }
 ----
+
+WARNING: Make sure the class is abstract.
 
 You also need to update the build file to reflect the name changes:
 
@@ -119,13 +121,12 @@ abstract class SlackExtension @Inject constructor(objects: ObjectFactory) {
 }
 ----
 
-
 This code provides configuration for the plugin with a DSL block:
 
 [source,kotlin]
 ----
 slack {
-    token.set("xoxb-your-slack-token")
+    token.set(System.getenv("SLACK_TOKEN"))
     channel.set("#build-notifications")
     message.set("Hello from Gradle!")
 }

@@ -34,7 +34,7 @@ Learn the basics of unit testing your plugin.
 == Step 1. About Unit Tests
 
 Grade init provides a sample unit test that we can reuse.
-It is available in `src/test/kotlin/org/example/SlackPluginTest.kt`.
+It is available in `src/test/kotlin/org/example/DevelopingPluginPluginTest.kt`.
 Let's take a look:
 
 [source,kotlin]
