@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.cli.converter;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
@@ -28,6 +29,8 @@ import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.configuration.BuildLayoutResult;
+import org.gradle.launcher.daemon.toolchain.ToolchainBuildOptions;
+
 
 public class StartParameterConverter {
     private final BuildOptionBackedConverter<WelcomeMessageConfiguration> welcomeMessageConfigurationCommandLineConverter = new BuildOptionBackedConverter<>(new WelcomeMessageBuildOptions());
@@ -35,12 +38,14 @@ public class StartParameterConverter {
     private final BuildOptionBackedConverter<ParallelismConfiguration> parallelConfigurationCommandLineConverter = new BuildOptionBackedConverter<>(new ParallelismBuildOptions());
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
     private final BuildOptionBackedConverter<StartParameterInternal> buildOptionsConverter = new BuildOptionBackedConverter<>(new StartParameterBuildOptions());
+    private final BuildOptionBackedConverter<StartParameter> toolchainOptionsConverter = new BuildOptionBackedConverter<>(ToolchainBuildOptions.forStartParameter());
 
     public void configure(CommandLineParser parser) {
         welcomeMessageConfigurationCommandLineConverter.configure(parser);
         loggingConfigurationCommandLineConverter.configure(parser);
         parallelConfigurationCommandLineConverter.configure(parser);
         projectPropertiesCommandLineConverter.configure(parser);
+        toolchainOptionsConverter.configure(parser);
         parser.allowMixedSubcommandsAndOptions();
         buildOptionsConverter.configure(parser);
     }
@@ -55,6 +60,7 @@ public class StartParameterConverter {
         startParameter.getSystemPropertiesArgs().putAll(properties.getRequestedSystemProperties());
 
         projectPropertiesCommandLineConverter.convert(parsedCommandLine, startParameter.getProjectProperties());
+        toolchainOptionsConverter.convert(parsedCommandLine, properties.getProperties(), startParameter);
 
         if (!parsedCommandLine.getExtraArguments().isEmpty()) {
             startParameter.setTaskNames(parsedCommandLine.getExtraArguments());

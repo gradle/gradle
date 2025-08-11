@@ -18,6 +18,7 @@ package org.gradle.jvm.internal.services;
 
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -32,7 +33,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Optional;
 
 /**
  * TODO: This class shouldn't exist.
@@ -59,12 +59,12 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
         this.startParameter = startParameter;
     }
 
-    private Optional<String> fromGradleOrSystemProperty(String propertyName) {
+    private Provider<String> fromGradleProperty(String propertyName) {
         if (startParameter.getProjectProperties().containsKey(propertyName)) {
-            if (startParameter.getSystemPropertiesArgs().containsKey(propertyName)) {
-                if (!startParameter.getProjectProperties().get(propertyName).equals(startParameter.getSystemPropertiesArgs().get(propertyName))) {
+            if (System.getProperties().containsKey(propertyName)) {
+                if (!startParameter.getProjectProperties().get(propertyName).equals(System.getProperties().get(propertyName))) {
                     throw new InvalidUserDataException(
-                        "The Gradle property '" + propertyName + "' (set to '" + startParameter.getSystemPropertiesArgs().get(propertyName) + "') " +
+                        "The Gradle property '" + propertyName + "' (set to '" + System.getProperties().get(propertyName) + "') " +
                             "has a different value than the project property '" + propertyName + "' (set to '" + startParameter.getProjectProperties().get(propertyName) + "')." +
                             " Please set them to the same value or only set the Gradle property."
                     );
@@ -74,7 +74,7 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
             }
         }
 
-        return Optional.ofNullable(providerFactory.gradleProperty(propertyName).getOrElse(providerFactory.systemProperty(propertyName).getOrNull()));
+        return providerFactory.gradleProperty(propertyName);
     }
 
     private static void emitDeprecatedWarning(String propertyName, String value) {
@@ -87,7 +87,7 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
 
     @Override
     public Collection<String> getJavaInstallationsFromEnvironment() {
-        return Arrays.asList(fromGradleOrSystemProperty(EnvironmentVariableListInstallationSupplier.JAVA_INSTALLATIONS_FROM_ENV_PROPERTY).orElse("").split(","));
+        return Arrays.asList(fromGradleProperty(EnvironmentVariableListInstallationSupplier.JAVA_INSTALLATIONS_FROM_ENV_PROPERTY).getOrElse("").split(","));
     }
 
     @Override
@@ -97,7 +97,7 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
 
     @Override
     public Collection<String> getInstallationsFromPaths() {
-        return Arrays.asList(fromGradleOrSystemProperty(LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY).orElse("").split(","));
+        return Arrays.asList(fromGradleProperty(LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY).getOrElse("").split(","));
     }
 
     @Override
@@ -107,7 +107,7 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
 
     @Override
     public boolean isAutoDetectEnabled() {
-        return fromGradleOrSystemProperty(ToolchainConfiguration.AUTO_DETECT).map(Boolean::parseBoolean).orElse(Boolean.TRUE);
+        return fromGradleProperty(ToolchainConfiguration.AUTO_DETECT).map(Boolean::parseBoolean).getOrElse(Boolean.TRUE);
     }
 
     @Override
@@ -117,7 +117,7 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
 
     @Override
     public boolean isDownloadEnabled() {
-        return fromGradleOrSystemProperty(AutoInstalledInstallationSupplier.AUTO_DOWNLOAD).map(Boolean::parseBoolean).orElse(Boolean.TRUE);
+        return fromGradleProperty(AutoInstalledInstallationSupplier.AUTO_DOWNLOAD).map(Boolean::parseBoolean).getOrElse(Boolean.TRUE);
     }
 
     @Override
@@ -136,7 +136,7 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
 
     @Override
     public File getIntelliJdkDirectory() {
-        return fromGradleOrSystemProperty("org.gradle.java.installations.idea-jdks-directory").map(File::new).orElse(defaultJdksDirectory(OperatingSystem.current()));
+        return fromGradleProperty("org.gradle.java.installations.idea-jdks-directory").map(File::new).getOrElse(defaultJdksDirectory(OperatingSystem.current()));
     }
 
     @Override

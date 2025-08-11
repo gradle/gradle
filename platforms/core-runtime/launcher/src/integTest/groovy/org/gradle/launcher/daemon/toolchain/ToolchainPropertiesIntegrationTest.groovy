@@ -79,7 +79,7 @@ class ToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("printProperty")
 
         and:
-        outputContains("Project property '${ToolchainConfiguration.AUTO_DETECT}': null")
+        outputContains("Project property '${ToolchainConfiguration.AUTO_DETECT}': false")
         outputContains("Toolchain auto-detect enabled: false")
     }
 
