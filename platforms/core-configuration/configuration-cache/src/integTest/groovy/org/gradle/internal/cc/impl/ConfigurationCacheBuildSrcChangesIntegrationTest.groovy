@@ -130,11 +130,12 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
         configurationCache.assertStateStored()
 
         where:
-        inputName             | inputExpression                          | inputArgument
-        'custom value source' | 'ciProvider'                             | '-Dtest_is_ci=true'
-        'system property'     | 'providers.systemProperty("test_is_ci")' | '-Dtest_is_ci=true'
-        'Gradle property'     | 'providers.gradleProperty("test_is_ci")' | '-Ptest_is_ci=true'
-        'gradle.properties'   | 'providers.gradleProperty("test_is_ci")' | ''
+        inputName             | inputExpression                                   | inputArgument
+        'custom value source' | 'ciProvider'                                      | '-Dtest_is_ci=true'
+        'system property'     | 'providers.systemProperty("test_is_ci")'          | '-Dtest_is_ci=true'
+        'Gradle property'     | 'providers.gradleProperty("test_is_ci")'          | '-Ptest_is_ci=true'
+        'Project property'    | 'provider { project.findProperty("test_is_ci") }' | '-Ptest_is_ci=true'
+        'gradle.properties'   | 'providers.gradleProperty("test_is_ci")'          | ''
     }
 
     def "invalidates cache upon change to presence of valid buildSrc by creating #buildSrcNewFile"() {
@@ -167,10 +168,10 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
         buildOperations.none("Load build (:buildSrc)")
 
         where:
-        _ | buildSrcNewFile                     | removalMessage
-        _ | "settings.gradle"                   | "file 'buildSrc/settings.gradle' has been removed."
-        _ | "build.gradle"                      | "an input to task ':buildSrc:jar' has changed"
-        _ | "src/main/groovy/MyClass.groovy"    | "an input to task ':buildSrc:compileGroovy' has changed."
+        _ | buildSrcNewFile                  | removalMessage
+        _ | "settings.gradle"                | "file 'buildSrc/settings.gradle' has been removed."
+        _ | "build.gradle"                   | "an input to task ':buildSrc:jar' has changed"
+        _ | "src/main/groovy/MyClass.groovy" | "an input to task ':buildSrc:compileGroovy' has changed."
     }
 
     def "invalidates cache upon change to presence of valid buildSrc in #parentBuild build by creating #buildSrcNewFile"() {
@@ -212,13 +213,13 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
         buildOperations.none("Load build ($buildSrcBuildPath)")
 
         where:
-        parentBuild | buildSrcNewFile                   | removalMessage
-        "included"  | "settings.gradle"                 | "file 'included/buildSrc/settings.gradle' has been removed."
-        "included"  | "build.gradle"                    | "an input to task ':included:buildSrc:jar' has changed."
-        "included"  | "src/main/groovy/MyClass.groovy"  | "an input to task ':included:buildSrc:compileGroovy' has changed."
-        "buildSrc"  | "settings.gradle"                 | "file 'buildSrc/buildSrc/settings.gradle' has been removed."
-        "buildSrc"  | "build.gradle"                    | "an input to task ':buildSrc:buildSrc:jar' has changed."
-        "buildSrc"  | "src/main/groovy/MyClass.groovy"  | "an input to task ':buildSrc:buildSrc:compileGroovy' has changed."
+        parentBuild | buildSrcNewFile                  | removalMessage
+        "included"  | "settings.gradle"                | "file 'included/buildSrc/settings.gradle' has been removed."
+        "included"  | "build.gradle"                   | "an input to task ':included:buildSrc:jar' has changed."
+        "included"  | "src/main/groovy/MyClass.groovy" | "an input to task ':included:buildSrc:compileGroovy' has changed."
+        "buildSrc"  | "settings.gradle"                | "file 'buildSrc/buildSrc/settings.gradle' has been removed."
+        "buildSrc"  | "build.gradle"                   | "an input to task ':buildSrc:buildSrc:jar' has changed."
+        "buildSrc"  | "src/main/groovy/MyClass.groovy" | "an input to task ':buildSrc:buildSrc:compileGroovy' has changed."
     }
 
     def "reuses cache upon changing invalid buildSrc by creating #description"() {

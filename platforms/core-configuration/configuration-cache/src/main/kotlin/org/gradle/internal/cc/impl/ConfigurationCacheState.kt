@@ -33,15 +33,12 @@ import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.RegisteredBuildServiceProvider
 import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.caching.configuration.BuildCache
-import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.BuildStructureOperationProject
-import org.gradle.initialization.GradlePropertiesController
 import org.gradle.initialization.ProjectsIdentifiedProgressDetails
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor
-import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Actions
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
@@ -57,7 +54,6 @@ import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
-import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.cc.base.services.ProjectRefResolver
 import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
 import org.gradle.internal.configuration.problems.DocumentationSection
@@ -125,7 +121,7 @@ enum class StateType(val encryptable: Boolean = false) {
     Model(true),
 
     /**
-     * Contains the model objects queried by the IDE provided build action in order to calculate the model to send back.
+     * Contains the model objects queried by the IDE-provided build action in order to calculate the model to send back.
      */
     IntermediateModels(true),
 
@@ -165,7 +161,7 @@ interface ConfigurationCacheStateFile {
     fun inputStream(): InputStream
     fun delete()
 
-    // Replace the contents of this state file, by moving the given file to the location of this state file
+    // Replace the contents of this state file by moving the given file to the location of this state file
     fun moveFrom(file: File)
     fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile
     fun relatedStateFile(path: Path): ConfigurationCacheStateFile
@@ -396,16 +392,6 @@ class ConfigurationCacheState(
     }
 
     private
-    fun GradleInternal.loadGradleProperties() {
-        val settingDir = serviceOf<BuildLayout>().settingsDir
-        val buildId = this.owner.buildIdentifier
-        // Load Gradle properties from a file but skip applying system properties defined here.
-        // System properties from the file may be mutated by the build logic, and the execution-time values are already restored by the EnvironmentChangeTracker.
-        // Applying properties from file overwrites these modifications.
-        serviceOf<GradlePropertiesController>().loadGradleProperties(buildId, settingDir, false)
-    }
-
-    private
     suspend fun WriteContext.writeBuildSrcBuild(state: StandAloneNestedBuild, buildTreeState: StoredBuildTreeState) {
         val gradle = state.mutableModel
         withGradleIsolate(gradle, userTypesCodec) {
@@ -431,7 +417,6 @@ class ConfigurationCacheState(
 
     private
     fun ReadContext.readNestedBuildState(build: ConfigurationCacheBuild): CachedBuildState {
-        build.gradle.loadGradleProperties()
         // Decode the build state using the contextualized IO service for the build
         return build.gradle.serviceOf<ConfigurationCacheIncludedBuildIO>().run {
             readIncludedBuildStateFrom(
@@ -617,7 +602,6 @@ class ConfigurationCacheState(
     suspend fun WriteContext.writeBuildTreeScopedState(gradle: GradleInternal) {
         withGradleIsolate(gradle, userTypesCodec) {
             withDebugFrame({ "environment state" }) {
-                writeCachedEnvironmentState(gradle)
                 writePreviewFlags(gradle)
                 writeFileSystemDefaultExcludes(gradle)
             }
@@ -636,7 +620,6 @@ class ConfigurationCacheState(
     private
     suspend fun ReadContext.readBuildTreeScopedState(gradle: GradleInternal) {
         withGradleIsolate(gradle, userTypesCodec) {
-            readCachedEnvironmentState(gradle)
             readPreviewFlags(gradle)
             readFileSystemDefaultExcludes(gradle)
             // It is important that the Develocity plugin be read before
@@ -759,7 +742,7 @@ class ConfigurationCacheState(
         gradle.settings.buildCache.let { buildCache ->
             buildCache.local = readNonNull()
             buildCache.remote = read() as BuildCache?
-            buildCache.registrations = readNonNull<MutableSet<BuildCacheServiceRegistration>>()
+            buildCache.registrations = readNonNull()
         }
         RootBuildCacheControllerSettingsProcessor.process(gradle)
     }
@@ -810,19 +793,6 @@ class ConfigurationCacheState(
                 buildOutputCleanupRegistry.registerOutputs(files)
             }
         }
-    }
-
-    private
-    suspend fun WriteContext.writeCachedEnvironmentState(gradle: GradleInternal) {
-        val environmentChangeTracker = gradle.serviceOf<ConfigurationCacheEnvironmentChangeTracker>()
-        write(environmentChangeTracker.getCachedState())
-    }
-
-    private
-    suspend fun ReadContext.readCachedEnvironmentState(gradle: GradleInternal) {
-        val environmentChangeTracker = gradle.serviceOf<ConfigurationCacheEnvironmentChangeTracker>()
-        val storedState = read() as ConfigurationCacheEnvironmentChangeTracker.CachedEnvironmentState
-        environmentChangeTracker.loadFrom(storedState)
     }
 
     private

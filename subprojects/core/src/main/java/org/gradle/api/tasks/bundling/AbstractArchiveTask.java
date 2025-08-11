@@ -41,6 +41,8 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
+
 /**
  * {@code AbstractArchiveTask} is the base class for all archive tasks.
  */
@@ -103,10 +105,10 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
         Provider<Boolean> useFileSystemPermissions = getProject().getProviders()
             .gradleProperty(USE_FILE_SYSTEM_PERMISSIONS_PROPERTY)
-            .map(value -> Boolean.parseBoolean(value.trim()))
+            .map(transformer(value -> Boolean.parseBoolean(value.trim())))
             .orElse(false);
-        getDirPermissions().set(useFileSystemPermissions.map(fileSystemPermissions -> fileSystemPermissions ? null : defaultDirPermissions));
-        getFilePermissions().set(useFileSystemPermissions.map(fileSystemPermissions -> fileSystemPermissions ? null : defaultFilePermissions));
+        getDirPermissions().set(useFileSystemPermissions.map(transformer(fileSystemPermissions -> fileSystemPermissions ? null : defaultDirPermissions)));
+        getFilePermissions().set(useFileSystemPermissions.map(transformer(fileSystemPermissions -> fileSystemPermissions ? null : defaultFilePermissions)));
     }
 
     @Inject
@@ -333,6 +335,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * Note: On Windows, file system permissions are not supported, and permissions will be set to <code>755</code> for directories and <code>644</code> for files.
      * <p>
      * This setting can also be applied to all archive tasks of the build via <code>org.gradle.archives.use-file-system-permissions=true</code> property.
+     *
      * @since 9.0.0
      */
     @Incubating
