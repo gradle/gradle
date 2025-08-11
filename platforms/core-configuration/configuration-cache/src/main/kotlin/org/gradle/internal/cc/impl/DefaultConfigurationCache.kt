@@ -79,6 +79,7 @@ import org.gradle.util.Path
 import java.io.File
 import java.io.OutputStream
 import java.util.Locale
+import java.util.Properties
 import java.util.UUID
 
 
@@ -813,14 +814,13 @@ class DefaultConfigurationCache internal constructor(
             return CheckedFingerprint.Invalid(buildPath(), classLoaderScopesInvalidationReason)
         }
 
-        val snapshot = System.getProperties().clone()
+        val systemPropertiesSnapshot = System.getProperties().clone()
         return checkFingerprintAgainstLoadedProperties(candidateEntry).also { result ->
             if (result !is CheckedFingerprint.Valid || result.invalidProjects != null) {
-                // Force Gradle properties to be reloaded so the Gradle properties files
-                // along with any Gradle property defining system properties and environment variables
-                // are added to the new fingerprint.
-                unloadGradleProperties()
-                System.setProperties(snapshot.uncheckedCast())
+                // Restore system properties and force Gradle properties to be reloaded
+                // so the Gradle properties files along with any Gradle property defining
+                // system properties and environment variables are added to the new fingerprint.
+                rollbackProperties(systemPropertiesSnapshot.uncheckedCast())
             }
         }
     }
@@ -889,8 +889,9 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun unloadGradleProperties() {
-        gradlePropertiesController.unloadAll();
+    fun rollbackProperties(systemPropertiesSnapshot: Properties) {
+        gradlePropertiesController.unloadAll()
+        System.setProperties(systemPropertiesSnapshot)
     }
 
     private
