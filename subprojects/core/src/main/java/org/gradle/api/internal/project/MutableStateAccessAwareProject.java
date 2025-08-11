@@ -112,6 +112,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
         ProjectInternal referrer,
         Function<ProjectInternal, T> wrapper
     ) {
+        // todo check
         return target == referrer
             ? target
             : wrapper.apply(target);

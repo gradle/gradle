@@ -176,6 +176,7 @@ class IsolatedProjectEvaluationListener(
             // beforeProject was executed eagerly
             is IsolatedProjectActionsState.BeforeProjectExecuted -> {
                 // preserve isolate semantics between `beforeProject` and `afterProject`
+                // todo just do nothing? lifecycle state is already beforeProjectExecuted at this moment
                 project.setLifecycleActionsState(IsolatedProjectActionsState.beforeProjectExecuted(state.afterProject))
             }
 

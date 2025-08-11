@@ -340,7 +340,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     private void onMutableStateAccess() {
-        gradleLifecycleActionExecutor.executeBeforeProjectFor(this);
+//        gradleLifecycleActionExecutor.executeBeforeProjectFor(this);
     }
 
     private ListenerBroadcast<ProjectEvaluationListener> newProjectEvaluationListenerBroadcast() {
