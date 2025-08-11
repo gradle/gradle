@@ -113,14 +113,16 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         componentUnderTest.writeToProject(testDirectory)
 
         and:
-        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}.x86", "machines.${currentHostOperatingSystemFamilyDsl}.x86_64")
+        buildFile << configureTargetMachines("machines.${currentHostOperatingSystemFamilyDsl}.x86", "machines.${currentHostOperatingSystemFamilyDsl}.x86_64", "machines.${currentHostOperatingSystemFamilyDsl}.AARCH64")
 
         expect:
-        succeeds getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86), getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86_64)
+        succeeds getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86), getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86_64), getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.ARM64)
         result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinary(MachineArchitecture.X86),
                 getTasksToAssembleDevelopmentBinary(MachineArchitecture.X86_64),
+            getTasksToAssembleDevelopmentBinary(MachineArchitecture.ARM64),
                 getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86),
-                getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86_64))
+                getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86_64),
+                getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.ARM64))
     }
 
     @ToBeFixedForConfigurationCache(bottomSpecs = [
