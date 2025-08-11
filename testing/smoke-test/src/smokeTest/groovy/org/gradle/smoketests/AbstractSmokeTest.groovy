@@ -55,31 +55,31 @@ abstract class AbstractSmokeTest extends Specification {
         static bnd = "7.1.0"
 
         // https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-recommender
-        static nebulaDependencyRecommender = "12.6.0"
+        static nebulaDependencyRecommender = "13.0.1"
 
         // https://plugins.gradle.org/plugin/com.netflix.nebula.plugin-plugin
-        static nebulaPluginPlugin = "21.2.2"
+        static nebulaPluginPlugin = "22.0.2"
 
         // https://plugins.gradle.org/plugin/com.netflix.nebula.lint
-        static nebulaLint = "20.6.1"
+        static nebulaLint = "21.0.0"
 
         // https://plugins.gradle.org/plugin/org.jetbrains.gradle.plugin.idea-ext
-        static ideaExt = "1.1.10"
+        static ideaExt = "1.2"
 
         // https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-lock
-        static nebulaDependencyLock = Versions.of("15.2.0")
+        static nebulaDependencyLock = Versions.of("16.0.1")
 
         // https://plugins.gradle.org/plugin/com.netflix.nebula.resolution-rules
-        static nebulaResolutionRules = "11.5.0"
+        static nebulaResolutionRules = "12.0.0"
 
         // https://plugins.gradle.org/plugin/com.gradleup.shadow
-        static shadow = "8.3.7"
+        static shadow = "9.0.0"
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/tags
         static asciidoctor = "4.0.4"
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
-        static spotbugs = "6.2.0"
+        static spotbugs = "6.2.3"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application
         static docker = "9.4.0"
@@ -88,7 +88,7 @@ abstract class AbstractSmokeTest extends Specification {
         static springDependencyManagement = "1.1.7"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
-        static springBoot = "3.5.0"
+        static springBoot = "3.5.4"
 
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "35.0.0"
@@ -103,7 +103,7 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.gretty
         static gretty = [
-            [version: "4.1.6", servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
+            [version: "4.1.7", servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
         ]
 
         // https://plugins.gradle.org/plugin/org.ajoberstar.grgit
@@ -116,7 +116,7 @@ abstract class AbstractSmokeTest extends Specification {
         static playframework = "0.16.0"
 
         // https://plugins.gradle.org/plugin/net.ltgt.errorprone
-        static errorProne = "4.2.0"
+        static errorProne = "4.3.0"
 
         // https://plugins.gradle.org/plugin/com.google.protobuf
         static protobufPlugin = "0.9.5"
@@ -128,34 +128,31 @@ abstract class AbstractSmokeTest extends Specification {
         static testRetryPlugin = "1.6.2"
 
         // https://plugins.gradle.org/plugin/io.freefair.aspectj
-        static aspectj = "8.13.1"
+        static aspectj = "8.14"
 
         // https://plugins.gradle.org/plugin/de.undercouch.download
         static undercouchDownload = Versions.of("5.6.0")
 
         // https://github.com/micronaut-projects/micronaut-gradle-plugin/releases
-        static micronaut = "4.5.3"
+        static micronaut = "4.5.4"
 
         // https://plugins.gradle.org/plugin/com.gorylenko.gradle-git-properties
         static gradleGitProperties = Versions.of("2.5.0")
 
         // https://plugins.gradle.org/plugin/org.flywaydb.flyway
-        static flyway = Versions.of("11.9.1")
-
-        // https://plugins.gradle.org/plugin/net.ltgt.apt
-        static apt = Versions.of("0.21")
+        static flyway = Versions.of("11.10.5")
 
         // https://plugins.gradle.org/plugin/io.gitlab.arturbosch.detekt
         static detekt = Versions.of("1.23.8")
 
         // https://plugins.gradle.org/plugin/com.diffplug.spotless
-        static spotless = Versions.of("7.0.4")
+        static spotless = Versions.of("7.2.1")
 
         // https://plugins.gradle.org/plugin/com.google.cloud.tools.jib
         static jib = Versions.of("3.4.5")
 
         // https://plugins.gradle.org/plugin/io.freefair.lombok
-        static lombok = Versions.of("8.13.1")
+        static lombok = Versions.of("8.14")
 
         // https://plugins.gradle.org/plugin/com.moowork.node
         static node = Versions.of("1.3.1")
@@ -164,7 +161,7 @@ abstract class AbstractSmokeTest extends Specification {
         static newNode = Versions.of("7.1.0")
 
         // https://plugins.gradle.org/plugin/org.jlleitschuh.gradle.ktlint
-        static ktlint = Versions.of("12.3.0")
+        static ktlint = Versions.of("13.0.0")
 
         // https://plugins.gradle.org/plugin/org.jlleitschuh.gradle.ktlint-idea
         static ktlintIdea = Versions.of("11.6.1")
@@ -177,7 +174,7 @@ abstract class AbstractSmokeTest extends Specification {
         static nohttp = Versions.of("0.0.11")
 
         // https://plugins.gradle.org/plugin/org.jenkins-ci.jpi
-        static jenkinsJpi = Versions.of("0.54.0")
+        static jenkinsJpi = Versions.of("0.55.0")
 
         // https://github.com/cashapp/paparazzi/releases
         static paparazzi = "1.3.5"
@@ -186,7 +183,7 @@ abstract class AbstractSmokeTest extends Specification {
         static proguardGradle = "7.7.0"
 
         // https://plugins.gradle.org/plugin/com.palantir.consistent-versions
-        static palantirConsistentVersions = "2.34.0"
+        static palantirConsistentVersions = "2.37.0"
 
         // https://github.com/etiennestuder/teamcity-build-scan-plugin/releases
         static teamCityGradlePluginRef = "v0.36"
@@ -195,7 +192,7 @@ abstract class AbstractSmokeTest extends Specification {
         static jenkinsGradlePluginRef = "gradle-2.15"
 
         // https://github.com/gradle/develocity-bamboo-plugin/releases
-        static bambooGradlePluginRef = "develocity-bamboo-plugin-2.3.0"
+        static bambooGradlePluginRef = "develocity-bamboo-plugin-3.0.1"
     }
 
     static class Versions implements Iterable<String> {

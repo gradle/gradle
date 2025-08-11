@@ -58,7 +58,12 @@ abstract class UpdateAgpVersions : DefaultTask() {
         }
 
     private
-    data class FetchedVersions(val latests: List<String>, val nightlyBuildId: String, val nightlyVersion: String)
+    data class FetchedVersions(
+        val latests: List<String>,
+        val nightlyBuildId: String,
+        val nightlyVersion: String,
+        val aapt2Versions: List<String>
+    )
 
     private
     fun fetchLatestAgpVersions(): FetchedVersions {
@@ -73,7 +78,11 @@ abstract class UpdateAgpVersions : DefaultTask() {
         val nightlyVersion = dbf.fetchNightlyVersion(
             "https://androidx.dev/studio/builds/$nightlyBuildId/artifacts/artifacts/repository/com/android/application/com.android.application.gradle.plugin/maven-metadata.xml"
         )
-        return FetchedVersions(latests, nightlyBuildId, nightlyVersion)
+        val aapt2Versions = dbf.fetchAapt2Versions(
+            latests.toSet().plus(nightlyVersion),
+            "https://dl.google.com/dl/android/maven2/com/android/tools/build/aapt2/maven-metadata.xml"
+        )
+        return FetchedVersions(latests, nightlyBuildId, nightlyVersion, aapt2Versions)
     }
 
     private
@@ -82,6 +91,7 @@ abstract class UpdateAgpVersions : DefaultTask() {
             setProperty("latests", fetchedVersions.latests.joinToString(","))
             setProperty("nightlyBuildId", fetchedVersions.nightlyBuildId)
             setProperty("nightlyVersion", fetchedVersions.nightlyVersion)
+            setProperty("aapt2Versions", fetchedVersions.aapt2Versions.joinToString(","))
             store(
                 propertiesFile.get().asFile,
                 comment.get()
@@ -125,6 +135,12 @@ abstract class UpdateAgpVersions : DefaultTask() {
     private
     fun DocumentBuilderFactory.fetchLatests(minimumSupported: String, mavenMetadataUrl: String): List<String> {
         return selectVersionsFrom(minimumSupported, fetchVersionsFromMavenMetadata(mavenMetadataUrl))
+    }
+
+    fun DocumentBuilderFactory.fetchAapt2Versions(agpVersions: Set<String>, mavenMetadataUrl: String): List<String> {
+        return fetchVersionsFromMavenMetadata(mavenMetadataUrl)
+            .filter { version -> version.substringBeforeLast("-") in agpVersions }
+            .sortedBy { VersionNumber.parse(it) }
     }
 
     private
