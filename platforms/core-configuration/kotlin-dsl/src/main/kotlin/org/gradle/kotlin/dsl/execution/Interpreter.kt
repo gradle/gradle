@@ -321,6 +321,7 @@ class Interpreter(val host: Host) {
             )
 
             scriptSource.withLocationAwareExceptionHandling {
+                scriptHost.resilientSyncListener.onKotlinScriptCompilationStarted(File(scriptSource.fileName), compilationClassPath.asFiles, host.implicitImports)
                 ResidualProgramCompiler(
                     outputDir = cachedDir,
                     compilerOptions = host.compilerOptions,
@@ -477,8 +478,8 @@ class Interpreter(val host: Host) {
 
                         scriptSource.withLocationAwareExceptionHandling {
 
+                            scriptHost.resilientSyncListener.onKotlinScriptCompilationStarted(File(originalScriptPath), compilationClassPath.asFiles, host.implicitImports)
                             scriptHost.temporaryFileProvider.withTemporaryScriptFileFor(originalScriptPath, program.secondStageScriptText) { scriptFile ->
-
                                 ResidualProgramCompiler(
                                     outputDir,
                                     host.compilerOptions,
