@@ -172,6 +172,11 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
                 }
 
                 @Override
+                def <T> T withProcessLock(Supplier<T> supplier) {
+                    return supplier.get()
+                }
+
+                @Override
                 void unstale() {
 
                 }
