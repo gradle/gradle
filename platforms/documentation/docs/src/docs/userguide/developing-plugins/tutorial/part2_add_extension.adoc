@@ -48,11 +48,11 @@ Gradle injects values set by the user into the plugin logic.
 == Step 2. Rename the Plugin Class
 
 First, let's rename the Plugin class of our 'Hello World' example from the Gradle init default.
-Rename the file `plugin/src/main/kotlin/org/example/DevelopingPluginPlugin.kt` to `plugin/src/main/kotlin/org/example/SlackPlugin.kt`.
+Rename the file `plugin/src/main/kotlin/org/example/PluginTutorialPlugin.kt` to `plugin/src/main/kotlin/org/example/SlackPlugin.kt`.
 
 TIP: In an IDE, renaming the file should update the plugin class automatically.
 
-Then, take the class name, `class DevelopingPluginPlugin: Plugin<Project> {}`, and update it to `abstract class SlackPlugin: Plugin<Project> {}` so it looks like this:
+Then, take the class name, `class PluginTutorialPlugin: Plugin<Project> {}`, and update it to `abstract class SlackPlugin: Plugin<Project> {}` so it looks like this:
 
 [source,kotlin]
 ----
@@ -140,7 +140,7 @@ Add the following code and update your plugin class so it looks like this:
 
 [source,kotlin]
 ----
-class SlackPlugin: Plugin<Project> {
+abstract class SlackPlugin: Plugin<Project> {
     override fun apply(project: Project) {
         // Create the 'slack' extension so users can configure token, channel, and message
         val extension = project.extensions.create("slack", SlackExtension::class.java)

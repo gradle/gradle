@@ -68,6 +68,32 @@ Update your directory structure so it looks as follows:
 <1> Create a `consumer` project
 =====
 
+You also need to update the root `settings.gradle(.kts)` file so the `consumer` project is a Composite Build:
+
+[source,kotlin]
+.consumer/settings.gradle.kts
+----
+rootProject.name = "plugin-tutorial"
+includeBuild("consumer")
+----
+
+And your `plugin` no longer has access to the version catalog in the root since it is now an included build.
+
+[source,kotlin]
+.plugin/build.gradle.kts
+----
+plugins {
+    // Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins
+    `java-gradle-plugin`
+
+    // Apply the Kotlin JVM plugin to add support for Kotlin.
+    //alias(libs.plugins.kotlin.jvm)
+    id("org.jetbrains.kotlin.jvm") version "2.0.0"
+}
+----
+
+There are workarounds for this but it is outside the scope of this tutorial.
+
 == Step 2. Wire the `consumer` to include the `plugin`
 
 Wire the `consumer` to the plugin via `pluginManagement {}`
@@ -95,12 +121,12 @@ In `consumer/build.gradle.kts`:
 [source,kotlin]
 ----
 plugins {
-    id("org.example.slack") // your plugin ID from gradlePlugin { plugins { id = ... } }
+    id("org.example.slack")
 }
 
 slack {
-    token.set(System.getenv("SLACK_TOKEN") ?: "dummy-token")
-    channel.set("#build-notifications")
+    token.set(System.getenv("SLACK_TOKEN"))
+    channel.set("#social")
     message.set("Hello from consumer via composite build!")
 }
 ----

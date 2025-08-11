@@ -15,7 +15,7 @@
 [[part3_create_custom_task]]
 = Part 3: Creating Tasks
 
-Learn about custom tasks and add them to your plugin.
+Learn about custom tasks, create one and add one to your plugin.
 
 ****
 **In this section, you will:**

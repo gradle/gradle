@@ -34,7 +34,7 @@ Learn the basics of unit testing your plugin.
 == Step 1. About Unit Tests
 
 Grade init provides a sample unit test that we can reuse.
-It is available in `src/test/kotlin/org/example/DevelopingPluginPluginTest.kt`.
+It is available in `src/test/kotlin/org/example/PluginTutorialPluginTest.kt`.
 Let's take a look:
 
 [source,kotlin]
@@ -42,7 +42,7 @@ Let's take a look:
 /**
  * A simple unit test for the 'org.example.greeting' plugin.
  */
-class DevelopingPluginPluginTest {
+class PluginTutorialPluginTest {
     @Test fun `plugin registers task`() {
         // Create a test project and apply the plugin
         val project = ProjectBuilder.builder().build()
@@ -58,7 +58,7 @@ It is quite simple, it applies the `org.example.greeting` plugin and verifies th
 
 == Step 2. Update the Test
 
-First, update the name of the file from `DevelopingPluginPluginTest.kt` to `SlackPluginTest.kt`.
+First, update the name of the file from `PluginTutorialPluginTest.kt` to `SlackPluginTest.kt`.
 
 Second, update your test so it looks as follows:
 
@@ -90,9 +90,8 @@ Then, you can run the `test` task and ensure it passes.
 
 [source,text]
 ----
-$ ./gradlew :test
+$ ./gradlew test
 
-Calculating task graph as no cached configuration is available for tasks: test
 > Task :plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
 > Task :plugin:processTestResources NO-SOURCE
 > Task :plugin:pluginDescriptors UP-TO-DATE
@@ -109,7 +108,6 @@ Calculating task graph as no cached configuration is available for tasks: test
 
 BUILD SUCCESSFUL in 1s
 7 actionable tasks: 2 executed, 5 up-to-date
-Configuration cache entry stored.
 ----
 
 You can optionally add another test or change the existing test to get it to fail.
