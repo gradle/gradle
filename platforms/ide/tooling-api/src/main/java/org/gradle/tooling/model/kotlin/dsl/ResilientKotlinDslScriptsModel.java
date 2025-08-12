@@ -16,12 +16,30 @@
 
 package org.gradle.tooling.model.kotlin.dsl;
 
-import java.io.File;
-import java.util.Map;
+import org.gradle.api.Incubating;
+import org.gradle.tooling.Failure;
 
 /**
  * Resilient version of {@link KotlinDslScriptsModel} that can handle missing or incomplete script models.
+ *
+ * @since 9.2.0
  */
-interface ResilientKotlinDslScriptsModel {
-    Map<File, KotlinDslScriptModel> getScriptModels();
+@Incubating
+public interface ResilientKotlinDslScriptsModel {
+
+    /**
+     * Returns the model for Kotlin DSL scripts.
+     *
+     * @since 9.2.0
+     */
+    @Incubating
+    KotlinDslScriptsModel getModel();
+
+    /**
+     * Returns the failure that occurred while trying to retrieve the model.
+     *
+     * @since 9.2.0
+     */
+    @Incubating
+    Failure getFailure();
 }
