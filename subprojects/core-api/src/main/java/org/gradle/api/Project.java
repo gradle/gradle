@@ -50,7 +50,6 @@ import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.accesscontrol.ForExternalUse;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.jspecify.annotations.Nullable;
@@ -394,8 +393,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return A map from child project name to child project. Returns an empty map if this project does not have
      * any children.
      */
-    @ForExternalUse
-    // See ProjectInternal#getChildProjects
     Map<String, Project> getChildProjects();
 
     /**
