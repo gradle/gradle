@@ -319,7 +319,6 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
             .succeeds()
 
         then:
-        resultDebug.assertTasksScheduled(':compileDebugCpp', ':linkDebug', ':installDebug', ':_xcode___App_Debug')
         resultDebug.assertTasksExecuted(':compileDebugCpp', ':linkDebug', ':installDebug', ':_xcode___App_Debug')
         debugBinary.exec().out == app.expectedOutput
         fixture(debugBinary).assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
@@ -364,7 +363,6 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
                 .succeeds()
 
         then:
-        resultDebug.assertTasksScheduled(':compileDebugX86-64Cpp', ':linkDebugX86-64', ':installDebugX86-64', ':_xcode___App_DebugX86-64')
         resultDebug.assertTasksExecuted(':compileDebugX86-64Cpp', ':linkDebugX86-64', ':installDebugX86-64', ':_xcode___App_DebugX86-64')
         debugBinary.exec().out == app.expectedOutput
         fixture(debugBinary).assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
@@ -407,7 +405,6 @@ apply plugin: 'cpp-library'
             .succeeds()
 
         then:
-        resultDebug.assertTasksScheduled(':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
         resultDebug.assertTasksExecuted(':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
         debugBinary.assertExists()
         fixture(debugBinary).assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
@@ -452,7 +449,6 @@ apply plugin: 'cpp-library'
                 .succeeds()
 
         then:
-        resultDebug.assertTasksScheduled(':compileDebugX86-64Cpp', ':linkDebugX86-64', ':_xcode___App_DebugX86-64')
         resultDebug.assertTasksExecuted(':compileDebugX86-64Cpp', ':linkDebugX86-64', ':_xcode___App_DebugX86-64')
         debugBinary.assertExists()
         fixture(debugBinary).assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)

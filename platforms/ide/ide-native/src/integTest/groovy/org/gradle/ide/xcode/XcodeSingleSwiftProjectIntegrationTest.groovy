@@ -154,7 +154,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             .succeeds()
 
         then:
-        resultDebug.assertTasksScheduled(':compileDebugSwift', ':createDebug', ':_xcode___App_Debug')
         resultDebug.assertTasksExecuted(':compileDebugSwift', ':createDebug', ':_xcode___App_Debug')
         debugBinary.assertExists()
 
@@ -446,7 +445,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             .succeeds()
 
         then:
-        resultDebug.assertTasksScheduled(':compileDebugSwift', ':linkDebug', ':installDebug', ':_xcode___App_Debug')
         resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug', ':installDebug', ':_xcode___App_Debug')
         debugBinary.exec().out == app.expectedOutput
         fixture(debugBinary).assertHasDebugSymbolsFor(app.sourceFileNames)
@@ -460,7 +458,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             .succeeds()
 
         then:
-        resultRelease.assertTasksScheduled(':compileReleaseSwift', ':linkRelease', ':stripSymbolsRelease', ':installRelease', ':_xcode___App_Release')
         resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease', ':stripSymbolsRelease', ':installRelease', ':_xcode___App_Release')
         releaseBinary.exec().out == app.expectedOutput
         fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNames)
@@ -494,7 +491,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
                 .succeeds()
 
         then:
-        resultDebug.assertTasksScheduled(':compileDebugMacosSwift', ':linkDebugMacos', ':installDebugMacos', ':_xcode___App_DebugMacos')
         resultDebug.assertTasksExecuted(':compileDebugMacosSwift', ':linkDebugMacos', ':installDebugMacos', ':_xcode___App_DebugMacos')
         debugBinary.exec().out == app.expectedOutput
         fixture(debugBinary).assertHasDebugSymbolsFor(app.sourceFileNames)
@@ -593,7 +589,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             .succeeds()
 
         then:
-        resultDebug.assertTasksScheduled(':compileDebugSwift', ':linkDebug', ':_xcode___App_Debug')
         resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug', ':_xcode___App_Debug')
         debugBinary.assertExists()
         fixture(debugBinary).assertHasDebugSymbolsFor(lib.sourceFileNames)
@@ -640,7 +635,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
                 .succeeds()
 
         then:
-        resultDebug.assertTasksScheduled(':compileDebugMacosSwift', ':linkDebugMacos', ':_xcode___App_DebugMacos')
         resultDebug.assertTasksExecuted(':compileDebugMacosSwift', ':linkDebugMacos', ':_xcode___App_DebugMacos')
         debugBinary.assertExists()
         fixture(debugBinary).assertHasDebugSymbolsFor(lib.sourceFileNames)
