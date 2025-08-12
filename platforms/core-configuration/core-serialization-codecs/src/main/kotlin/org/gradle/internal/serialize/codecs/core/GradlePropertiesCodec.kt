@@ -16,9 +16,9 @@
 
 package org.gradle.internal.serialize.codecs.core
 
+import org.gradle.api.internal.properties.DefaultGradlePropertiesController
 import org.gradle.api.internal.properties.GradleProperties
-import org.gradle.initialization.DefaultGradlePropertiesController
-import org.gradle.initialization.GradlePropertiesController
+import org.gradle.api.internal.properties.GradlePropertiesController
 import org.gradle.api.internal.properties.GradlePropertyScope
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.graph.Codec
