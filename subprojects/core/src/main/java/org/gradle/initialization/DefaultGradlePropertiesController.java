@@ -18,6 +18,7 @@ package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.properties.GradlePropertiesListener;
