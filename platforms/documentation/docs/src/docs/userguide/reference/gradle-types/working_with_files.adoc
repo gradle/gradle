@@ -1024,7 +1024,7 @@ Reproducing the same byte-for-byte archive generally poses some challenges since
 Each time a ZIP, TAR, JAR, WAR or EAR is built from source, the order of the files inside the archive may change.
 Files on disk can also have different timestamps or permissions depending on the environment.
 
-Starting with Gradle 9.0, all link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask] (e.g. `Jar`, `Zip`) tasks produce reproducible archives by default:
+Starting with Gradle 9.0.0, all link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask] (e.g. `Jar`, `Zip`) tasks produce reproducible archives by default:
 
 - File order in the archive is deterministic
 - Files have fixed timestamps (exact values depend on the archive type)
