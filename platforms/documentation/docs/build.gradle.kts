@@ -106,7 +106,7 @@ tasks.withType<AsciidoctorTask>().configureEach {
 
 gradleDocumentation {
     javadocs {
-        javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
+        javaApi = project.uri("https://docs.oracle.com/en/java/javase/17/docs/api")
         groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-${libs.groovyVersion}/html/gapi")
     }
 }

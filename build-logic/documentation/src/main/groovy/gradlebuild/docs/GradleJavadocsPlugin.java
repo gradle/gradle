@@ -97,7 +97,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             options.addStringOption("Xdoclint:syntax,html", "-quiet");
             // TODO: This breaks the provider
             options.addStringOption("-add-stylesheet", javadocs.getJavadocCss().get().getAsFile().getAbsolutePath());
-            options.addStringOption("source", "8");
+            options.addStringOption("source", "17");
             options.tags("apiNote:a:API Note:", "implSpec:a:Implementation Requirements:", "implNote:a:Implementation Note:");
             // TODO: This breaks the provider
             options.links(javadocs.getJavaApi().get().toString(), javadocs.getGroovyApi().get().toString());
