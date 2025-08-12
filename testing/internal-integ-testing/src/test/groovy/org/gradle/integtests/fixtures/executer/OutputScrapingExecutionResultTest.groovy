@@ -724,7 +724,7 @@ BUILD FAILED in 13s
 
     }
 
-    def "can assert no tasks executed and not skipped"() {
+    def "can assert all tasks are skipped"() {
         def output = """
 
 $tasksExecuted
