@@ -74,13 +74,13 @@ public abstract class DefaultTaskSelector implements TaskSelector {
             getConfigurer().configureHierarchy(targetProject.getMutableModel());
         }
 
-        TaskSelectionResult tasks = taskNameResolver.selectWithName(taskName, targetProject.getMutableModel(), includeSubprojects);
+        TaskSelectionResult tasks = taskNameResolver.selectWithName(taskName, targetProject, includeSubprojects);
         if (tasks != null) {
             LOGGER.info("Task name matched '{}'", taskName);
             return new TaskSelection(targetProject.getProjectPath().asString(), taskName, tasks);
         }
 
-        Map<String, TaskSelectionResult> tasksByName = taskNameResolver.selectAll(targetProject.getMutableModel(), includeSubprojects);
+        Map<String, TaskSelectionResult> tasksByName = taskNameResolver.selectAll(targetProject, includeSubprojects);
         NameMatcher matcher = new NameMatcher();
         String actualName = matcher.find(taskName, tasksByName.keySet());
 

@@ -16,11 +16,12 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.composite.IncludedBuildInternal;
@@ -90,10 +91,12 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
         requireRootProject(project);
 
         // Ensure unique module names for dependencies substituted from included builds
-        applyIdeaPluginToBuildTree(project);
+        ProjectState rootProjectState = ((ProjectInternal) project).getOwner();
+        BuildState owningBuild = rootProjectState.getOwner();
+        applyIdeaPluginToBuildTree(owningBuild);
 
         IdeaModelParameter parameter = createParameter(offlineDependencyResolution);
-        return build(project, parameter);
+        return createIdeaProjectTreeForRootProject(project, parameter);
     }
 
     private static void requireRootProject(Project project) {
@@ -102,34 +105,35 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
         }
     }
 
-    private void applyIdeaPluginToBuildTree(Project root) {
-        applyIdeaPluginToBuildTree((ProjectInternal) root, new ArrayList<>());
+    private void applyIdeaPluginToBuildTree(BuildState build) {
+        applyIdeaPluginRecursively(build, new ArrayList<>());
     }
 
-    private void applyIdeaPluginToBuildTree(ProjectInternal root, List<GradleInternal> alreadyProcessed) {
-        intermediateToolingModelProvider.applyPlugin(root, new ArrayList<>(root.getAllprojects()), IdeaPlugin.class);
+    private void applyIdeaPluginRecursively(BuildState build, List<BuildState> alreadyProcessed) {
+        ProjectState rootProject = build.getProjects().getRootProject();
+        intermediateToolingModelProvider.applyPlugin(rootProject, getProjectsInBuild(build), IdeaPlugin.class);
 
-        for (IncludedBuildInternal reference : root.getGradle().includedBuilds()) {
-            BuildState target = reference.getTarget();
-            if (target instanceof IncludedBuildState) {
-                GradleInternal build = target.getMutableModel();
-                if (!alreadyProcessed.contains(build)) {
-                    alreadyProcessed.add(build);
-                    applyIdeaPluginToBuildTree(build.getRootProject(), alreadyProcessed);
+        for (IncludedBuildInternal reference : build.getMutableModel().includedBuilds()) {
+            BuildState childBuild = reference.getTarget();
+            if (childBuild instanceof IncludedBuildState) {
+                if (!alreadyProcessed.contains(childBuild)) {
+                    alreadyProcessed.add(childBuild);
+                    applyIdeaPluginRecursively(childBuild, alreadyProcessed);
                 }
             }
         }
     }
 
-    private DefaultIdeaProject build(Project rootProject, IdeaModelParameter parameter) {
+    private DefaultIdeaProject createIdeaProjectTreeForRootProject(Project rootProject, IdeaModelParameter parameter) {
         // Currently, applying the plugin here is redundant due to `applyIdeaPluginToBuildTree`.
         // However, the latter should go away in the future, while the application here is inherent to the builder
         rootProject.getPluginManager().apply(IdeaPlugin.class);
         IdeaModel ideaModelExt = rootProject.getPlugins().getPlugin(IdeaPlugin.class).getModel();
         IdeaProjectInternal ideaProjectExt = (IdeaProjectInternal) ideaModelExt.getProject();
 
-        List<Project> allProjects = new ArrayList<>(rootProject.getAllprojects());
-        List<IsolatedIdeaModuleInternal> allIsolatedIdeaModules = getIsolatedIdeaModules(rootProject, allProjects, parameter);
+        ProjectState rootProjectState = ((ProjectInternal) rootProject).getOwner();
+        List<ProjectState> projectsInBuild = getProjectsInBuild(rootProjectState.getOwner());
+        List<IsolatedIdeaModuleInternal> allIsolatedIdeaModules = getIsolatedIdeaModules(rootProjectState, projectsInBuild, parameter);
 
         IdeaLanguageLevel languageLevel = resolveRootLanguageLevel(ideaProjectExt, allIsolatedIdeaModules);
         JavaVersion targetBytecodeVersion = resolveRootTargetBytecodeVersion(ideaProjectExt, allIsolatedIdeaModules);
@@ -139,11 +143,20 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
         // Important to build GradleProject after the IsolatedIdeaModuleInternal requests,
         // to make sure IdeaPlugin is applied to each project and its tasks are registered
         DefaultGradleProject rootGradleProject = gradleProjectBuilder.buildForRoot(rootProject);
-
         IdeaModuleBuilder ideaModuleBuilder = new IdeaModuleBuilder(rootGradleProject, languageLevel, targetBytecodeVersion);
-        out.setChildren(createIdeaModules(out, ideaModuleBuilder, allProjects, allIsolatedIdeaModules));
+
+        List<DefaultIdeaModule> ideaModules = Streams.zip(projectsInBuild.stream(), allIsolatedIdeaModules.stream(), (project, isolatedIdeaModule) -> {
+            DefaultIdeaModule ideaModuleForProject = ideaModuleBuilder.buildWithoutParent(project, isolatedIdeaModule);
+            ideaModuleForProject.setParent(out);
+            return ideaModuleForProject;
+        }).collect(Collectors.toList());
+        out.setChildren(ideaModules);
 
         return out;
+    }
+
+    private static List<ProjectState> getProjectsInBuild(BuildState build) {
+        return ImmutableList.copyOf(build.getProjects().getAllProjects());
     }
 
     private static DefaultIdeaProject buildWithoutChildren(IdeaProjectInternal ideaProjectExt, IdeaLanguageLevel languageLevel, JavaVersion targetBytecodeVersion) {
@@ -178,20 +191,9 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
         return getMaxCompatibility(isolatedModules, IsolatedIdeaModuleInternal::getJavaTargetCompatibility);
     }
 
-    private List<IsolatedIdeaModuleInternal> getIsolatedIdeaModules(Project rootProject, List<Project> allProjects, IdeaModelParameter parameter) {
+    private List<IsolatedIdeaModuleInternal> getIsolatedIdeaModules(ProjectState rootProject, List<ProjectState> projectsInBuild, IdeaModelParameter parameter) {
         return intermediateToolingModelProvider
-            .getModels(rootProject, allProjects, IsolatedIdeaModuleInternal.class, parameter);
-    }
-
-    private static List<DefaultIdeaModule> createIdeaModules(
-        DefaultIdeaProject parent,
-        IdeaModuleBuilder ideaModuleBuilder,
-        List<Project> projects,
-        List<IsolatedIdeaModuleInternal> isolatedIdeaModules
-    ) {
-        return Streams.zip(projects.stream(), isolatedIdeaModules.stream(), ideaModuleBuilder::buildWithoutParent)
-            .map(it -> it.setParent(parent))
-            .collect(Collectors.toList());
+            .getModels(rootProject, projectsInBuild, IsolatedIdeaModuleInternal.class, parameter);
     }
 
     private static JavaVersion getMaxCompatibility(List<IsolatedIdeaModuleInternal> isolatedIdeaModules, Function<IsolatedIdeaModuleInternal, JavaVersion> getCompatibilty) {
@@ -223,10 +225,10 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
             this.ideaProjectTargetBytecodeVersion = ideaProjectTargetBytecodeVersion;
         }
 
-        private DefaultIdeaModule buildWithoutParent(Project project, IsolatedIdeaModuleInternal isolatedIdeaModule) {
+        private DefaultIdeaModule buildWithoutParent(ProjectState project, IsolatedIdeaModuleInternal isolatedIdeaModule) {
             DefaultIdeaModule model = new DefaultIdeaModule()
                 .setName(isolatedIdeaModule.getName())
-                .setGradleProject(rootGradleProject.findByPath(project.getPath()))
+                .setGradleProject(rootGradleProject.findByPath(project.getIdentity().getProjectPath().asString()))
                 .setContentRoots(Collections.singletonList(isolatedIdeaModule.getContentRoot()))
                 .setJdkName(isolatedIdeaModule.getJdkName())
                 .setCompilerOutput(isolatedIdeaModule.getCompilerOutput());

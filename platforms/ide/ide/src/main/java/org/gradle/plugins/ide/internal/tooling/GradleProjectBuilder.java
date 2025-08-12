@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.internal.tooling;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleProjectTask;
@@ -29,7 +30,6 @@ import java.util.List;
 import java.util.Objects;
 
 import static java.util.stream.Collectors.toList;
-import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport.buildFromTask;
 
 /**
@@ -50,36 +50,37 @@ public class GradleProjectBuilder implements GradleProjectBuilderInternal {
     @Override
     public DefaultGradleProject buildForRoot(Project project) {
         boolean realizeTasks = GradleProjectBuilderOptions.shouldRealizeTasks();
-        return buildHierarchy(project.getRootProject(), realizeTasks);
+        ProjectState rootProjectState = ((ProjectInternal) project.getRootProject()).getOwner();
+        return buildHierarchy(rootProjectState, realizeTasks);
     }
 
     /**
      * When {@code realizeTasks} is false, the project's task graph will not be realized, and the task list in the model will be empty
      */
-    private static DefaultGradleProject buildHierarchy(Project project, boolean realizeTasks) {
-        List<DefaultGradleProject> children = getChildProjectsForInternalUse(project).stream()
+    private static DefaultGradleProject buildHierarchy(ProjectState project, boolean realizeTasks) {
+        List<DefaultGradleProject> children = project.getChildProjects().stream()
             .map(it -> buildHierarchy(it, realizeTasks))
             .collect(toList());
 
-        ProjectInternal projectInternal = (ProjectInternal) project;
-        String projectIdentityPath = projectInternal.getIdentityPath().asString();
+        ProjectInternal mutableProject = project.getMutableModel();
+        String projectIdentityPath = project.getIdentityPath().asString();
         DefaultGradleProject gradleProject = new DefaultGradleProject()
-            .setProjectIdentifier(new DefaultProjectIdentifier(project.getRootDir(), project.getPath()))
-            .setName(project.getName())
-            .setDescription(project.getDescription())
-            .setBuildDirectory(project.getLayout().getBuildDirectory().getAsFile().get())
-            .setProjectDirectory(project.getProjectDir())
+            .setProjectIdentifier(new DefaultProjectIdentifier(mutableProject.getRootDir(), mutableProject.getPath()))
+            .setName(mutableProject.getName())
+            .setDescription(mutableProject.getDescription())
+            .setBuildDirectory(mutableProject.getLayout().getBuildDirectory().getAsFile().get())
+            .setProjectDirectory(mutableProject.getProjectDir())
             .setBuildTreePath(projectIdentityPath)
             .setChildren(children);
 
-        gradleProject.getBuildScript().setSourceFile(project.getBuildFile());
+        gradleProject.getBuildScript().setSourceFile(mutableProject.getBuildFile());
 
         for (DefaultGradleProject child : children) {
             child.setParent(gradleProject);
         }
 
         if (realizeTasks) {
-            List<LaunchableGradleProjectTask> tasks = projectInternal.getOwner().fromMutableState(p ->
+            List<LaunchableGradleProjectTask> tasks = project.fromMutableState(p ->
                 collectTasks(gradleProject, p.getTasks())
             );
             gradleProject.setTasks(tasks);

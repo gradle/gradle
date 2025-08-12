@@ -17,14 +17,11 @@
 package org.gradle.initialization;
 
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.api.Project;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.internal.build.BuildState;
 
 import java.util.Comparator;
 import java.util.Set;
-
-import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 
 public class BuildStructureOperationProject implements LoadProjectsBuildOperationType.Result.Project, ProjectsIdentifiedProgressDetails.Project {
     private static final Comparator<LoadProjectsBuildOperationType.Result.Project> PROJECT_COMPARATOR =
@@ -45,26 +42,27 @@ public class BuildStructureOperationProject implements LoadProjectsBuildOperatio
         this.children = children;
     }
 
-    private static BuildStructureOperationProject convert(org.gradle.api.Project project) {
+    private static BuildStructureOperationProject convert(ProjectState project) {
         return new BuildStructureOperationProject(
             project.getName(),
-            project.getPath(),
-            ((ProjectInternal) project).getIdentityPath().toString(),
+            project.getIdentity().getProjectPath().asString(),
+            project.getIdentity().getBuildTreePath().asString(),
             project.getProjectDir().getAbsolutePath(),
-            project.getBuildFile().getAbsolutePath(),
-            convert(getChildProjectsForInternalUse(project)));
+            project.getMutableModel().getBuildFile().getAbsolutePath(),
+            convertAll(project.getChildProjects())
+        );
     }
 
-    private static Set<BuildStructureOperationProject> convert(Iterable<Project> children) {
+    private static Set<BuildStructureOperationProject> convertAll(Iterable<ProjectState> children) {
         ImmutableSortedSet.Builder<BuildStructureOperationProject> builder = new ImmutableSortedSet.Builder<>(PROJECT_COMPARATOR);
-        for (Project child : children) {
+        for (ProjectState child : children) {
             builder.add(convert(child));
         }
         return builder.build();
     }
 
-    public static BuildStructureOperationProject from(GradleInternal gradle) {
-        return convert(gradle.getRootProject());
+    public static BuildStructureOperationProject from(BuildState build) {
+        return convert(build.getProjects().getRootProject());
     }
 
     @Override
