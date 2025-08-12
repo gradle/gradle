@@ -62,6 +62,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -153,8 +154,8 @@ public class BuildOperationTrace implements Stoppable {
     private static final byte[] NEWLINE = {(byte) '\n'};
 
     private final boolean outputTree;
-    private final BuildOperationListener listener;
-    private final TraceWriter writer;
+    private final @Nullable BuildOperationListener listener;
+    private final @Nullable TraceWriter writer;
 
     private final BuildOperationListenerManager buildOperationListenerManager;
 
@@ -170,7 +171,7 @@ public class BuildOperationTrace implements Stoppable {
             return;
         }
 
-        this.writer = new AsyncTraceWriter(new DefaultTraceWriter(basePath, createObjectMapper()));
+        this.writer = new AsyncTraceWriter(new DefaultTraceWriter(basePath));
         Set<String> filter = getFilter(internalOptions);
         if (filter != null) {
             this.outputTree = false;
@@ -195,7 +196,9 @@ public class BuildOperationTrace implements Stoppable {
 
     @Override
     public void stop() {
-        buildOperationListenerManager.removeListener(listener);
+        if (listener != null) {
+            buildOperationListenerManager.removeListener(listener);
+        }
         if (writer != null) {
             writer.complete(outputTree);
         }
@@ -207,13 +210,24 @@ public class BuildOperationTrace implements Stoppable {
         private final ObjectMapper objectMapper;
         private final OutputStream logOutputStream;
 
-        public DefaultTraceWriter(
-            String basePath,
-            ObjectMapper objectMapper
-        ) {
+        public DefaultTraceWriter(String basePath) {
             this.basePath = basePath;
-            this.objectMapper = objectMapper;
+            this.objectMapper = createObjectMapper();
             this.logOutputStream = openStream(logFile(basePath));
+        }
+
+        private static ObjectMapper createObjectMapper() {
+            return new ObjectMapper()
+                .registerModule(new SimpleModule()
+                    .addSerializer(Class.class, new JsonClassSerializer())
+                    .addSerializer(Throwable.class, new JsonThrowableSerializer())
+                    .addSerializer(AttributeContainer.class, new JsonAttributeContainerSerializer())
+                    .setSerializerModifier(new SkipDeprecatedBeanSerializerModifier())
+                )
+                .registerModule(new JavaTimeModule())
+                .registerModule(new Jdk8Module())
+                .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+                .configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
         }
 
         private static OutputStream openStream(File logFile) {
@@ -226,7 +240,7 @@ public class BuildOperationTrace implements Stoppable {
                 logFile.createNewFile();
                 return new BufferedOutputStream(Files.newOutputStream(logFile.toPath()));
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new UncheckedIOException(e);
             }
         }
 
@@ -238,7 +252,7 @@ public class BuildOperationTrace implements Stoppable {
                 logOutputStream.flush();
             } catch (IOException e) {
                 IoActions.closeQuietly(logOutputStream);
-                throw new RuntimeException(e);
+                throw new UncheckedIOException(e);
             } catch (Throwable t) {
                 IoActions.closeQuietly(logOutputStream);
                 throw t;
@@ -262,7 +276,7 @@ public class BuildOperationTrace implements Stoppable {
                 writeDetailTree(roots);
                 writeSummaryTree(roots);
             } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
+                throw new UncheckedIOException(e);
             }
         }
 
@@ -515,20 +529,6 @@ public class BuildOperationTrace implements Stoppable {
         }
     }
 
-    private static ObjectMapper createObjectMapper() {
-        return new ObjectMapper()
-            .registerModule(new SimpleModule()
-                .addSerializer(Class.class, new JsonClassSerializer())
-                .addSerializer(Throwable.class, new JsonThrowableSerializer())
-                .addSerializer(AttributeContainer.class, new JsonAttributeContainerSerializer())
-                .setSerializerModifier(new SkipDeprecatedBeanSerializerModifier())
-            )
-            .registerModule(new JavaTimeModule())
-            .registerModule(new Jdk8Module())
-            .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-            .configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
-    }
-
     private static class JsonThrowableSerializer extends JsonSerializer<Throwable> {
         @Override
         public void serialize(Throwable throwable, JsonGenerator gen, SerializerProvider serializers) throws IOException {
@@ -692,11 +692,15 @@ public class BuildOperationTrace implements Stoppable {
      * This executor takes special care to ensure that any exceptions thrown by
      * submitted actions are rethrown on the calling thread, rather than being
      * silently ignored.
+     * <p>
+     * The use case for this executor strongly overlaps with that of
+     * {@link org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory}.
+     * We should consider merging these implementations.
      */
     private static class AsyncExecutor implements Closeable {
 
         private final ExecutorService executor;
-        private final AtomicReference<Throwable> failure = new AtomicReference<>();
+        private final AtomicReference<@Nullable Throwable> failure = new AtomicReference<>();
 
         public AsyncExecutor() {
             this.executor = Executors.newSingleThreadExecutor();
@@ -732,7 +736,7 @@ public class BuildOperationTrace implements Stoppable {
         public void close() {
             executor.shutdown();
             try {
-                if (!executor.awaitTermination(10, TimeUnit.MINUTES)) {
+                if (!executor.awaitTermination(1, TimeUnit.MINUTES)) {
                     throw new RuntimeException("Timed out waiting for trace writer to complete");
                 }
             } catch (InterruptedException e) {
