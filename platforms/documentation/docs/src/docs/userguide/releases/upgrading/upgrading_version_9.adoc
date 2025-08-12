@@ -51,7 +51,7 @@ DependencyCollectors can still be instantiated within Gradle <<properties_provid
 [[dependency_management_rules]]
 ==== RuleSource-based dependency management APIs have been deprecated
 
-The link:{javadocPath}/org/gradle/model/RuleSource.html[`RuleSource`] based dependency management APIs have been deprecated and will be removed in Gradle 10.0.0.
+The link:{javadocPath}/org/gradle/model/RuleSource.html[`RuleSource`]-based dependency management APIs have been deprecated and will be removed in Gradle 10.0.0.
 
 These APIs include:
 
