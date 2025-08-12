@@ -39,10 +39,10 @@ import java.util.Map;
  * as key-value maps. Property name prefixes are automatically stripped when loading from system
  * properties and environment variables to provide clean property names.
  * <p>
- * This interface is typically used by {@link org.gradle.initialization.GradlePropertiesController}
+ * This interface is typically used by {@link org.gradle.api.internal.properties.GradlePropertiesController}
  * to compose the final property resolution hierarchy for builds and projects.
  *
- * @see org.gradle.initialization.GradlePropertiesController
+ * @see org.gradle.api.internal.properties.GradlePropertiesController
  * @see org.gradle.api.internal.properties.GradleProperties
  */
 public interface GradlePropertiesLoader {

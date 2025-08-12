@@ -132,7 +132,7 @@ import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.initialization.DefaultSettingsLoaderFactory;
 import org.gradle.initialization.DefaultSettingsPreparer;
 import org.gradle.initialization.DefaultToolchainManagement;
-import org.gradle.initialization.GradlePropertiesController;
+import org.gradle.api.internal.properties.GradlePropertiesController;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.InitScriptHandler;
 import org.gradle.initialization.InstantiatingBuildLoader;

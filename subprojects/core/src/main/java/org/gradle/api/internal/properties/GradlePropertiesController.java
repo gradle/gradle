@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.api.internal.properties;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.project.ProjectIdentity;
-import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.api.internal.properties.GradlePropertyScope;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 

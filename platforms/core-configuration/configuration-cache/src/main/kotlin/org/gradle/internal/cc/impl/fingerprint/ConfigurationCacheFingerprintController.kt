@@ -24,7 +24,7 @@ import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
-import org.gradle.initialization.GradlePropertiesController
+import org.gradle.api.internal.properties.GradlePropertiesController
 import org.gradle.api.internal.properties.GradlePropertyScope
 import org.gradle.initialization.buildsrc.BuildSrcDetector
 import org.gradle.internal.build.BuildStateRegistry

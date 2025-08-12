@@ -21,6 +21,7 @@ import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.properties.GradleProperties
+import org.gradle.api.internal.properties.GradlePropertiesController
 import org.gradle.initialization.properties.DefaultGradleProperties
 import spock.lang.Specification
 
