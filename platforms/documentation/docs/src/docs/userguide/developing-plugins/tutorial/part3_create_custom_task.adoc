@@ -15,12 +15,12 @@
 [[part3_create_custom_task]]
 = Part 3: Creating Tasks
 
-Learn about custom tasks, create one and add one to your plugin.
+Learn about custom task types, create one, and add one to your plugin.
 
 ****
 **In this section, you will:**
 
-- Understand Custom Tasks in Plugins
+- Understand Custom Task Types in Plugins
 - Add a Custom Task to the Slack Plugin
 ****
 
@@ -32,85 +32,27 @@ Learn about custom tasks, create one and add one to your plugin.
 
 == Step 1. About Custom Tasks
 
-To make your plugin actually do something, you’ll need to define a custom task.
+To make your plugin actually do something, you’ll need to define a custom task type and register a task of that type in your plugin.
 
 In this case, the task will send a message to Slack using the configuration provided by the user.
 
-== Step 2. Create a Custom Task
+== Step 2. Create a Custom Task Type
 
-Create a new Kotlin file (e.g. `SlackTask.kt`) in `src/main/kotlin/org/example/` and add the following code:
-
-[source,kotlin]
+[.multi-language-text.lang-kotlin]
 ----
-package org.example
-
-import com.slack.api.Slack
-import com.slack.api.methods.request.chat.ChatPostMessageRequest
-
-import org.gradle.api.DefaultTask
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.TaskAction
-import kotlin.text.isNotEmpty
-
-/**
- * A custom Gradle task that sends a test message to a Slack channel.
- *
- * This task is useful for verifying Slack integration during build configuration.
- * It uses the Slack Web API and requires a bot token and a target channel.
- */
-abstract class SlackTask : DefaultTask() {
-
-    // The Slack bot token (usually starts with "xoxb-") used to authenticate the API request.
-    @get:Input
-    abstract val token: Property<String>
-
-    // The Slack channel name or ID (e.g., "#builds" or "C12345678") where the message will be sent.
-    @get:Input
-    abstract val channel: Property<String>
-
-    // The message content to be sent to the specified Slack channel.
-    @get:Input
-    abstract val message: Property<String>
-
-    /**
-     * Sends a message to Slack when the task is executed.
-     * Useful for manual testing of Slack integration from the command line.
-     */
-    @TaskAction
-    fun send() {
-        // Initialize the Slack client and get the API methods interface
-        val slack = Slack.getInstance()
-        val methods = slack.methods(token.get())
-
-        // Extra debug statements
-        logger.debug("Preparing to send Slack message...")
-        logger.debug("Token present: ${token.get().isNotEmpty()}")
-        logger.debug("Channel: ${channel.get()}")
-
-        // Create a Slack message request
-        val request = ChatPostMessageRequest.builder()
-            .channel(channel.get())
-            .text(message.get())
-            .build()
-
-        // Extra debug statements
-        logger.debug("Sending message to Slack...")
-
-        // Send the message via the Slack API and check for success
-        val response = methods.chatPostMessage(request)
-        if (response.isOk) {
-            logger.lifecycle("Slack message sent successfully to channel ${channel.get()}")
-        } else {
-            // Fail the build if the Slack API response indicates an error
-            logger.error("Failed to send Slack message: ${response.error}")
-            throw RuntimeException("Slack message failed: ${response.error}")
-        }
-    }
-}
+Create a new file called `SlackTask.kt` `src/main/kotlin/org/example/` and add the following code:
+----
+[.multi-language-text.lang-groovy]
+----
+Create a new file called `SlackTask.groovy` `src/main/groovy/org/example/` and add the following code:
 ----
 
-This task:
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackTask.kt[]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/SlackTask.groovy[]"]
+====
+
+This custom task type:
 
 * Declares three input properties: `token`, `channel`, and `message`.
 * In the `@TaskAction`, it uses the link:https://github.com/slackapi/java-slack-sdk[Slack API client] to post a message.
@@ -121,43 +63,28 @@ This task:
 
 The Slack API client is a dependency so you need to add it in your build file:
 
-[source,kotlin]
-----
-dependencies {
-    // Use the Java Slack Client APIs
-    implementation("com.slack.api:slack-api-client:1.45.3")
-}
-----
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=slack-api]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/build.gradle.kts[tags=slack-api]"]
+====
 
 == Step 4. Register it in the Plugin
 
 Now that you've defined a custom task class (`SlackTask`), you need to register it in your plugin so users can run `./gradlew sendSlackMessage` from their project.
 
+[.multi-language-text.lang-kotlin]
+----
 Open your plugin implementation file, `SlackPlugin.kt` (in `src/main/kotlin/org/example/`), and modify or confirm it looks like this:
-
-[source,kotlin]
 ----
-abstract class SlackPlugin : Plugin<Project> {
-    override fun apply(project: Project) {
-        // Create the 'slack' extension so users can configure token, channel, and message
-        val extension = project.extensions.create("slack", SlackExtension::class.java)
-
-        // Register a task named 'sendTestSlackMessage' of type SlackTask
-        val taskProvider: TaskProvider<SlackTask> = project.tasks.register("sendTestSlackMessage", SlackTask::class.java)
-
-        // Configure the task using values from the extension
-        taskProvider.configure {
-            it.group = "notification" // Logical task grouping for help output
-            it.description = "Sends a test message to Slack using the configured token and channel."
-
-            // Bind extension values to the task's input properties
-            it.token.set(extension.token)
-            it.channel.set(extension.channel)
-            it.message.set(extension.message)
-        }
-    }
-}
+[.multi-language-text.lang-groovy]
 ----
+Open your plugin implementation file, `SlackPlugin.groovy` (in `src/main/groovy/org/example/`), and modify or confirm it looks like this:
+----
+
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackPlugin.kt[tags=slack-task]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/SlackPlugin.groovy[tags=slack-task]"]
+====
 
 What this does:
 

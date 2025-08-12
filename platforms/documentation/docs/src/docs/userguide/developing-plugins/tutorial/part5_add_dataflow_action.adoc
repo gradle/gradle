@@ -54,92 +54,21 @@ There are three important components of a Flow Action:
 
 == Step 2. Creating a DataFlow Action
 
+[.multi-language-text.lang-kotlin]
+----
 If you want to send a Slack notification when the build finishes, you can write a `SlackBuildFlowAction` in `plugin/src/kotlin/org/example/SlackBuildFlowAction.kt`.
+----
+[.multi-language-text.lang-groovy]
+----
+If you want to send a Slack notification when the build finishes, you can write a `SlackBuildFlowAction` in `plugin/src/groovy/org/example/SlackBuildFlowAction.groovy`.
+----
 
 Create this new file and add the following code:
 
-[source,kotlin]
-----
-package org.example
-
-import com.slack.api.Slack
-import com.slack.api.methods.request.chat.ChatPostMessageRequest
-
-import org.gradle.api.flow.FlowAction
-import org.gradle.api.flow.FlowParameters
-import org.gradle.api.logging.Logging
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
-
-/**
- * A Gradle FlowAction that sends a Slack message at the end of a build.
- * This leverages Gradle's build lifecycle via the dataflow API, which allows actions
- * to run automatically when the build completes—without needing to attach listeners manually.
- */
-abstract class SlackBuildFlowAction : FlowAction<SlackBuildFlowAction.Params> {
-
-    private val logger = Logging.getLogger(SlackBuildFlowAction::class.java)
-
-    /**
-     * Parameters that are passed to this action when it executes.
-     * These are injected by Gradle and used to control what the action does.
-     */
-    interface Params : FlowParameters {
-        /** Slack bot token used to authenticate API requests */
-        @get:Input
-        val token: Property<String>
-
-        /** Slack channel ID or name to send the message to */
-        @get:Input
-        val channel: Property<String>
-
-        /** Flag indicating whether the build failed */
-        @get:Input
-        val buildFailed: Property<Boolean>
-    }
-
-    /**
-     * Executes the action when the build finishes.
-     * Constructs and sends a Slack message indicating whether the build succeeded or failed.
-     */
-    override fun execute(parameters: Params) {
-        // Initialize the Slack client and get the API methods interface
-        val slack = Slack.getInstance()
-        val methods = slack.methods(parameters.token.get())
-
-        // Extra debug statements
-        val token = parameters.token.get()
-        val channel = parameters.channel.get()
-        logger.debug("Preparing to send Slack message...")
-        logger.debug("Token present: ${token.isNotEmpty()}")
-        logger.debug("Channel: $channel")
-
-        // Compose the message text based on the build result
-        val status = if (parameters.buildFailed.get()) "Build failed" else "Build succeeded"
-
-        // Extra debug statements
-        logger.debug("Message text: $status")
-
-        // Create a Slack message request
-        val request = ChatPostMessageRequest.builder()
-            .channel(parameters.channel.get())
-            .text(status)
-            .build()
-
-        // Extra debug statements
-        logger.debug("Sending message to Slack...")
-
-        // Send the message via the Slack API and check for success
-        val response = methods.chatPostMessage(request)
-        if (response.isOk) {
-            logger.lifecycle("Slack message sent successfully to channel $channel")
-        } else {
-            logger.error("Failed to send Slack message: ${response.error}")
-            throw RuntimeException("Slack message failed: ${response.error}")
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackBuildFlowAction.kt[]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/SlackBuildFlowAction.groovy[]"]
+====
 
 Currently, two of the three components of a Dataflow Action are complete:
 
@@ -150,12 +79,12 @@ Currently, two of the three components of a Dataflow Action are complete:
 
 In the plugin's `apply()` method, you register the flow action like so:
 
-[source,kotlin]
+[source,text]
 ----
-getFlowScope().always(SlackBuildFlowAction::class.java) { spec ->
+getFlowScope().always(SlackBuildFlowAction) { spec ->
     spec.parameters.token.set(extension.token)
     spec.parameters.channel.set(extension.channel)
-    spec.parameters.buildFailed.set(getFlowProviders().buildWorkResult.map { it.failure.isPresent })
+    spec.parameters.buildFailed.set(getFlowProviders().buildWorkResult.map { it.failure.isPresent() })
 }
 ----
 
@@ -164,49 +93,10 @@ This takes care of the final component of our flow action, the `FlowScope`.
 
 Copy the code so your plugin class looks as follows:
 
-[source,kotlin]
-----
-package org.example
-
-import org.gradle.api.Project
-import org.gradle.api.Plugin
-import org.gradle.api.tasks.TaskProvider
-import org.gradle.api.flow.*
-import javax.inject.Inject
-
-abstract class SlackPlugin : Plugin<Project> {
-    @Inject
-    abstract fun getFlowScope(): FlowScope
-
-    @Inject
-    abstract fun getFlowProviders(): FlowProviders
-
-    override fun apply(project: Project) {
-        // Create the 'slack' extension so users can configure token, channel, and message
-        val extension = project.extensions.create("slack", SlackExtension::class.java)
-
-        // Register a task named 'sendTestSlackMessage' of type SlackTask
-        val taskProvider: TaskProvider<SlackTask> = project.tasks.register("sendTestSlackMessage", SlackTask::class.java)
-
-        // Configure the task using values from the extension
-        taskProvider.configure {
-            it.group = "notification" // Logical task grouping for help output
-            it.description = "Sends a test message to Slack using the configured token and channel."
-
-            // Bind extension values to the task's input properties
-            it.token.set(extension.token)
-            it.channel.set(extension.channel)
-            it.message.set(extension.message)
-        }
-
-        getFlowScope().always(SlackBuildFlowAction::class.java) { spec ->
-            spec.parameters.token.set(extension.token)
-            spec.parameters.channel.set(extension.channel)
-            spec.parameters.buildFailed.set(getFlowProviders().buildWorkResult.map { it.failure.isPresent })
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackPlugin.kt[tags=final]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/SlackPlugin.groovy[tags=final]"]
+====
 
 In our plugin class, we ask Gradle to inject two objects at runtime:
 

@@ -34,47 +34,40 @@ Learn the basics of unit testing your plugin.
 == Step 1. About Unit Tests
 
 Grade init provides a sample unit test that we can reuse.
+[.multi-language-text.lang-kotlin]
+----
 It is available in `src/test/kotlin/org/example/PluginTutorialPluginTest.kt`.
+----
+[.multi-language-text.lang-groovy]
+----
+It is available in `src/test/groovy/org/example/PluginTutorialPluginTest.groovy`.
+----
 Let's take a look:
 
-[source,kotlin]
-----
-/**
- * A simple unit test for the 'org.example.greeting' plugin.
- */
-class PluginTutorialPluginTest {
-    @Test fun `plugin registers task`() {
-        // Create a test project and apply the plugin
-        val project = ProjectBuilder.builder().build()
-        project.plugins.apply("org.example.greeting")
-
-        // Verify the result
-        assertNotNull(project.tasks.findByName("greeting"))
-    }
-}
-----
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/test/kotlin/org/example/PluginTutorialPluginTest.kt[tags=init-test]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/test/groovy/org/example/PluginTutorialPluginTest.groovy[tags=init-test]"]
+====
 
 It is quite simple, it applies the `org.example.greeting` plugin and verifies that the `greeting` task is available.
 
 == Step 2. Update the Test
 
+[.multi-language-text.lang-kotlin]
+----
 First, update the name of the file from `PluginTutorialPluginTest.kt` to `SlackPluginTest.kt`.
+----
+[.multi-language-text.lang-groovy]
+----
+First, update the name of the file from `PluginTutorialPluginTest.groovy` to `SlackPluginTest.groovy`.
+----
 
 Second, update your test so it looks as follows:
 
-[source,kotlin]
-----
-class SlackPluginTest {
-    @Test fun `plugin registers task`() {
-        // Create a test project and apply the plugin
-        val project = ProjectBuilder.builder().build()
-        project.plugins.apply("org.example.slack")
-
-        // Verify the result
-        assertNotNull(project.tasks.findByName("sendTestSlackMessage"))
-    }
-}
-----
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/test/kotlin/org/example/SlackPluginTest.kt[]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/test/groovy/org/example/SlackPluginTest.groovy[]"]
+====
 
 We are essentially re-using the unit test from Gradle init as-is.
 

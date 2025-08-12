@@ -36,7 +36,7 @@ Learn how to set up a dummy `consumer` project to test your plugin.
 
 == Step 1. Create `consumer` Project
 
-Create a sibling consumer build to try the plugin without publishing anything.
+Create a sibling `consumer` build to try the plugin without publishing anything.
 Update your directory structure so it looks as follows:
 
 [.multi-language-sample]
@@ -68,68 +68,40 @@ Update your directory structure so it looks as follows:
 <1> Create a `consumer` project
 =====
 
-You also need to update the root `settings.gradle(.kts)` file so the `consumer` project is a Composite Build:
+You also need to update the root `settings.gradle(.kts)` file so the `consumer` project is a Composite Build and we no longer include the `plugin` as a build:
 
-[source,kotlin]
-.consumer/settings.gradle.kts
-----
-rootProject.name = "plugin-tutorial"
-includeBuild("consumer")
-----
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="settings.gradle[]"]
+====
 
-And your `plugin` no longer has access to the version catalog in the root since it is now an included build.
+And your `plugin` no longer has access to the version catalog in the root since it is now an included build so you need to update any references:
 
-[source,kotlin]
-.plugin/build.gradle.kts
-----
-plugins {
-    // Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins
-    `java-gradle-plugin`
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=plugins]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/build.gradle[tags=dependencies]"]
+====
 
-    // Apply the Kotlin JVM plugin to add support for Kotlin.
-    //alias(libs.plugins.kotlin.jvm)
-    id("org.jetbrains.kotlin.jvm") version "2.0.0"
-}
-----
-
-There are workarounds for this but it is outside the scope of this tutorial.
+NOTE: There are workarounds for this, but it is outside the scope of this tutorial.
 
 == Step 2. Wire the `consumer` to include the `plugin`
 
-Wire the `consumer` to the plugin via `pluginManagement {}`
+Add a settings.gradle(.kts) file to the `consumer` project and wire it to the plugin via `pluginManagement {}`:
 
-In `consumer/settings.gradle.kts`, add the following code:
-
-[source,kotlin]
-----
-rootProject.name = "consumer"
-
-pluginManagement {
-includeBuild("../plugin")
-    repositories {
-        gradlePluginPortal()
-    }
-}
-----
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="consumer/settings.gradle.kts[]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="consumer/settings.gradle.kts[]"]
+====
 
 `includeBuild("../plugin")` makes the plugin from the plugin directory available by its ID without publishing.
 
 == Step 3. Apply and configure the plugin in the `consumer`
 
-In `consumer/build.gradle.kts`:
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="consumer/build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="consumer/build.gradle[]"]
+====
 
-[source,kotlin]
-----
-plugins {
-    id("org.example.slack")
-}
-
-slack {
-    token.set(System.getenv("SLACK_TOKEN"))
-    channel.set("#social")
-    message.set("Hello from consumer via composite build!")
-}
-----
 
 No version is needed, the plugin is resolved from the included build.
 
@@ -142,19 +114,24 @@ From the `consumer` directory:
 ./gradlew sendSlackMessage
 ----
 
-You can also simply run:
+Or from the `root` directory:
 
 [source,text]
 ----
-./gradlew build
+./gradlew :consumer:sendSlackMessage
 ----
 
-And see the Slack message.
+You can also run:
+
+[source,text]
+----
+./gradlew build                 // from consumer dir
+./gradlew :consumer:build       // from root dir
+----
+
+And see the Slack message appear.
 
 That’s it!
 You can now iterate on the plugin in `plugin/`, and immediately test it in `consumer/` with zero publishing friction.
 
-Let's take a look at another way to implement this plugin.
-
-[.text-right]
-**Next Step:** <<part8_add_build_listener.adoc#part8_add_build_listener,Add a Build Listener>> >>
+Congratulations, you have completed the tutorial!

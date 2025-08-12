@@ -1,0 +1,14 @@
+plugins {
+    id("java")
+    id("org.example.slack")
+}
+
+repositories {
+    mavenCentral()
+}
+
+slack {
+    token.set(System.getenv("SLACK_TOKEN"))
+    channel.set("#social")
+    message.set("Hello from consumer via composite build!")
+}

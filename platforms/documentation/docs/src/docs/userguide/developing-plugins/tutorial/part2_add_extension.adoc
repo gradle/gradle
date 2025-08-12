@@ -34,7 +34,7 @@ Learn about extensions and how to add them to your plugin.
 A plugin extension is a block users can configure in their `build.gradle(.kts)` file to customize how the plugin behaves.
 It lets you expose settings like:
 
-[source,kotlin]
+[source,text]
 ----
 greeting {
     message.set("Hi")
@@ -48,40 +48,40 @@ Gradle injects values set by the user into the plugin logic.
 == Step 2. Rename the Plugin Class
 
 First, let's rename the Plugin class of our 'Hello World' example from the Gradle init default.
+
+[.multi-language-text.lang-kotlin]
+----
 Rename the file `plugin/src/main/kotlin/org/example/PluginTutorialPlugin.kt` to `plugin/src/main/kotlin/org/example/SlackPlugin.kt`.
+----
+[.multi-language-text.lang-groovy]
+----
+Rename the file `plugin/src/main/groovy/org/example/PluginTutorialPlugin.groovy` to `plugin/src/main/groovy/org/example/SlackPlugin.groovy`.
+----
 
 TIP: In an IDE, renaming the file should update the plugin class automatically.
 
+[.multi-language-text.lang-kotlin]
+----
 Then, take the class name, `class PluginTutorialPlugin: Plugin<Project> {}`, and update it to `abstract class SlackPlugin: Plugin<Project> {}` so it looks like this:
+----
+[.multi-language-text.lang-groovy]
+----
+Then, take the class name, `class PluginTutorialPlugin implements Plugin<Project> {}`, and update it to `abstract class SlackPlugin implements Plugin<Project> {}` so it looks like this:
+----
 
-[source,kotlin]
-----
-abstract class SlackPlugin: Plugin<Project> {
-    override fun apply(project: Project) {
-        project.tasks.register("greeting") { task ->
-            task.doLast {
-                println("Hello from plugin 'org.example.greeting'")
-            }
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackPlugin.kt[tags=slack-plugin]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/SlackPlugin.groovy[tags=slack-plugin]"]
+====
 
 WARNING: Make sure the class is abstract.
 
 You also need to update the build file to reflect the name changes:
 
-[source,kotlin]
-----
-gradlePlugin {
-    plugins {
-        create("slack") {
-            id = "org.example.slack"
-            implementationClass = "org.example.SlackPlugin"
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=gradle-plugin]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/build.gradle.kts[tags=gradle-plugin]"]
+====
 
 == Step 3. Define the Extension Class
 
@@ -90,40 +90,14 @@ For this we're using Gradle’s `Property<T>` type for laziness and compatibilit
 
 Create a file called `plugin/src/main/kotlin/org/example/SlackExtension.kt` and add the following code:
 
-[source,kotlin]
-----
-package org.example
-
-import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.Property
-import javax.inject.Inject
-
-/**
- * The SlackExtension class defines a custom extension for the plugin.
- * This allows users to configure the plugin in their build script via a DSL block, e.g.:
- *
- * slack {
- *     token.set("...")
- *     channel.set("#general")
- *     message.set("Hello from Gradle!")
- * }
- */
-abstract class SlackExtension @Inject constructor(objects: ObjectFactory) {
-
-    // The Slack API token used to authenticate requests
-    val token: Property<String> = objects.property(String::class.java)
-
-    // The name or ID of the Slack channel to send the message to
-    val channel: Property<String> = objects.property(String::class.java)
-
-    // The message content to send to the channel
-    val message: Property<String> = objects.property(String::class.java)
-}
-----
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackExtension.kt[]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/SlackExtension.groovy[]"]
+====
 
 This code provides configuration for the plugin with a DSL block:
 
-[source,kotlin]
+[source,text]
 ----
 slack {
     token.set(System.getenv("SLACK_TOKEN"))
@@ -138,22 +112,10 @@ In order for the plugin to use the extension and provide the DSL block to users,
 
 Add the following code and update your plugin class so it looks like this:
 
-[source,kotlin]
-----
-abstract class SlackPlugin: Plugin<Project> {
-    override fun apply(project: Project) {
-        // Create the 'slack' extension so users can configure token, channel, and message
-        val extension = project.extensions.create("slack", SlackExtension::class.java)
-
-        // Register a task that uses the values from the extension
-        project.tasks.register("sendTestSlackMessage") {
-            it.doLast {
-                println("${extension.message.get()} to ${extension.channel.get()}")
-            }
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackPlugin.kt[tags=slack-extension]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/SlackPlugin.groovy[tags=slack-extension]"]
+====
 
 We've also updated the dummy `greeting` task so it is called `sendTestSlackMessage` and it prints out some of the variable values in the extension.
 

@@ -36,52 +36,20 @@ Learn the basics of functional testing your plugin.
 == Step 1. About Functional Tests
 
 Grade init provides a sample functional test that we can reuse.
+[.multi-language-text.lang-kotlin]
+----
 It is available in `src/functionalTest/kotlin/org/example/PluginTutorialPluginFunctionalTest.kt`.
+----
+[.multi-language-text.lang-groovy]
+----
+It is available in `src/functionalTest/groovy/org/example/PluginTutorialPluginFunctionalTest.groovy`.
+----
 Let's take a look:
 
-[source,kotlin]
-----
-package org.example
-
-import java.io.File
-import kotlin.test.assertTrue
-import kotlin.test.Test
-import org.gradle.testkit.runner.GradleRunner
-import org.junit.jupiter.api.io.TempDir
-
-/**
- * A simple functional test for the 'org.example.greeting' plugin.
- */
-class PluginTutorialPluginFunctionalTest {
-
-    @field:TempDir
-    lateinit var projectDir: File
-
-    private val buildFile by lazy { projectDir.resolve("build.gradle") }
-    private val settingsFile by lazy { projectDir.resolve("settings.gradle") }
-
-    @Test fun `can run task`() {
-        // Set up the test build
-        settingsFile.writeText("")
-        buildFile.writeText("""
-            plugins {
-                id('org.example.greeting')
-            }
-        """.trimIndent())
-
-        // Run the build
-        val runner = GradleRunner.create()
-        runner.forwardOutput()
-        runner.withPluginClasspath()
-        runner.withArguments("greeting")
-        runner.withProjectDir(projectDir)
-        val result = runner.build()
-
-        // Verify the result
-        assertTrue(result.output.contains("Hello from plugin 'org.example.greeting'"))
-    }
-}
-----
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/functionalTest/kotlin/org/example/PluginTutorialPluginFunctionalTest.kt[tags=init-test]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/functionalTest/groovy/org/example/PluginTutorialPluginFunctionalTest.groovy[tags=init-test]"]
+====
 
 This functional test uses Gradle <<test_kit.adoc#test_kit,TestKit>> to verify that the `org.example.greeting` plugin works in a real Gradle build.
 Gradle `TestKit` is a built-in Gradle testing framework.
@@ -91,7 +59,7 @@ This way, you can verify that your plugin behaves correctly when applied to a re
 
 First, it sets up a temporary project directory:
 
-[source,kotlin]
+[source,text]
 ----
 @field:TempDir lateinit var projectDir: File
 ----
@@ -100,7 +68,7 @@ First, it sets up a temporary project directory:
 
 Then, it creates a build file and a settings file:
 
-[source,kotlin]
+[source,text]
 ----
 private val buildFile by lazy { projectDir.resolve("build.gradle") }
 private val settingsFile by lazy { projectDir.resolve("settings.gradle") }
@@ -108,7 +76,7 @@ private val settingsFile by lazy { projectDir.resolve("settings.gradle") }
 
 The test writes a minimal build script and keeps the settings file empty:
 
-[source,kotlin]
+[source,text]
 ----
 settingsFile.writeText("")
 buildFile.writeText("""
@@ -123,7 +91,7 @@ Essentially, you can model any realistic project setup directly in your test.
 
 Then, it creates a barebones Gradle project that applies the plugin under test using the `GradleRunner`:
 
-[source,kotlin]
+[source,text]
 ----
 val runner = GradleRunner.create()
    .forwardOutput()
@@ -139,7 +107,7 @@ This process runs in an isolated environment, using the `projectDir` you give it
 
 Finally, the functional test verifies the output:
 
-[source,kotlin]
+[source,text]
 ----
 assertTrue(result.output.contains("Hello from plugin 'org.example.greeting'"))
 ----
@@ -150,56 +118,21 @@ We are also going to re-use a majority of this test.
 
 == Step 2. Update the Test
 
+[.multi-language-text.lang-kotlin]
+----
 First, update the name of the file from `PluginTutorialPluginFunctionalTest.kt` to `SlackPluginFunctionalTest.kt`.
+----
+[.multi-language-text.lang-groovy]
+----
+First, update the name of the file from `PluginTutorialPluginFunctionalTest.groovy` to `SlackPluginFunctionalTest.groovy`.
+----
 
 Second, update your test so it looks as follows:
 
-[source,kotlin]
-----
-package org.example
-
-import java.io.File
-import kotlin.test.assertTrue
-import kotlin.test.Test
-import org.gradle.testkit.runner.GradleRunner
-import org.junit.jupiter.api.io.TempDir
-
-class SlackPluginFunctionalTest {
-
-    @field:TempDir
-    lateinit var projectDir: File
-
-    private val buildFile by lazy { projectDir.resolve("build.gradle") }
-    private val settingsFile by lazy { projectDir.resolve("settings.gradle") }
-
-    @Test fun `can run task`() {
-        // Set up the test build
-        settingsFile.writeText("")
-        buildFile.writeText(
-            """
-            plugins {
-                id('org.example.slack')
-            }
-            slack {
-                token.set(System.getenv("SLACK_TOKEN"))
-                channel.set("#bt-docs")
-                message.set("Hello from Gradle!")
-            }
-        """.trimIndent()
-        )
-
-        // Run the build
-        val runner = GradleRunner.create()
-        runner.forwardOutput()
-        runner.withPluginClasspath()
-        runner.withProjectDir(projectDir)
-        val result = runner.build()
-
-        // Verify the result
-        assertTrue(result.output.contains("Slack message sent successfully"))
-    }
-}
-----
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/functionalTest/kotlin/org/example/SlackPluginFunctionalTest.kt[]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/functionalTest/groovy/org/example/SlackPluginFunctionalTest.groovy[]"]
+====
 
 This functional test:
 
@@ -212,34 +145,10 @@ This functional test:
 
 It's important to look at the build file of our plugin before we can run our functional test, specifically the test related build logic:
 
-[source,kotlin]
-----
-// Add a source set for the functional test suite
-val functionalTestSourceSet = sourceSets.create("functionalTest") {
-}
-
-configurations["functionalTestImplementation"].extendsFrom(configurations["testImplementation"])
-configurations["functionalTestRuntimeOnly"].extendsFrom(configurations["testRuntimeOnly"])
-
-// Add a task to run the functional tests
-val functionalTest by tasks.registering(Test::class) {
-    testClassesDirs = functionalTestSourceSet.output.classesDirs
-    classpath = functionalTestSourceSet.runtimeClasspath
-    useJUnitPlatform()
-}
-
-gradlePlugin.testSourceSets.add(functionalTestSourceSet)
-
-tasks.named<Task>("check") {
-    // Run the functional tests as part of `check`
-    //dependsOn(functionalTest)
-}
-
-tasks.named<Test>("test") {
-    // Use JUnit Jupiter for unit tests.
-    useJUnitPlatform()
-}
-----
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=test-config]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/build.gradle[tags=test-config]"]
+====
 
 This logic sets up a **separate functional test suite** for the plugin.
 It:
