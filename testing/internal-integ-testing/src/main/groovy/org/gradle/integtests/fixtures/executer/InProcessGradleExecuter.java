@@ -38,22 +38,27 @@ import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.integtests.fixtures.FileSystemWatchingHelper;
+import org.gradle.integtests.fixtures.validation.ValidationServicesFixture;
 import org.gradle.internal.Factory;
 import org.gradle.internal.InternalListener;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.buildprocess.BuildProcessState;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instrumentation.agent.AgentInitializer;
+import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.instrumentation.agent.AgentUtils;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Time;
 import org.gradle.launcher.cli.BuildEnvironmentConfigurationConverter;
 import org.gradle.launcher.cli.Parameters;
@@ -119,6 +124,16 @@ import static org.junit.Assert.assertNull;
  * are correctly in place.
  */
 public class InProcessGradleExecuter extends DaemonGradleExecuter {
+
+    protected static final ServiceRegistry GLOBAL_SERVICES = new BuildProcessState(
+        true,
+        AgentStatus.of(isAgentInstrumentationEnabled()),
+        ClassPath.EMPTY,
+        newCommandLineProcessLogging(),
+        NativeServicesTestFixture.getInstance(),
+        ValidationServicesFixture.getServices()
+    ).getServices();
+
     private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
 
     public static final TestFile COMMON_TMP = new TestFile(new File("build/tmp"));
@@ -137,6 +152,13 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     public InProcessGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext);
         waitForChangesToBePickedUpBeforeExecution();
+    }
+
+    private static ServiceRegistry newCommandLineProcessLogging() {
+        ServiceRegistry loggingServices = LoggingServiceRegistry.newEmbeddableLogging();
+        LoggingManagerInternal rootLoggingManager = loggingServices.get(LoggingManagerFactory.class).getRoot();
+        rootLoggingManager.attachSystemOutAndErr();
+        return loggingServices;
     }
 
     private void waitForChangesToBePickedUpBeforeExecution() {

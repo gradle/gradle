@@ -30,31 +30,31 @@ image::gradle-basic-1.png[]
 </p>
 ++++
 
-=== Projects:
+Gradle builds are defined in terms of *projects* and *tasks*, configured using *build scripts* written in *Groovy* or *Kotlin*.
 
-- A Gradle *project* is a piece of software that can be built, such as an application or a library.
-- *Single project* builds include a single project called the *root project*.
-- *Multi-project* builds include *one root project* and *any number of subprojects*.
+[cols="1,2", options="header"]
+|===
+| Concept        | What It Means
 
-=== Build Scripts:
+| Build
+| The process and environment for producing outputs. A *build* includes one or more *projects* and their *build scripts*.
 
-- *Build scripts* detail to Gradle what steps to take to build the project.
-- Each project can include one or more build scripts.
+| Project
+| A piece of software that can be built, such as an application or library. A *build* may have a single root *project* or multiple *subprojects*.
 
-=== Dependencies and Dependency Management:
+| Task
+| A basic unit of work, like compiling code or running tests. *Tasks* are declared in *build scripts* or added by *plugins*.
 
-- *Dependency management* is an automated technique for declaring and resolving external resources required by a project.
-- Each project typically includes a number of *dependencies* that Gradle resolves during the build.
+| Build Script
+| A configuration file (`build.gradle(.kts)`) that defines *tasks*, *dependencies*, and other instructions that tell Gradle how to build a *project*.
 
-=== Tasks:
+| Plugin
+| Used to extend Gradle's capabilities (like the `Java` plugin). *Plugins* often add tasks and conventions to *projects*.
 
-- *Tasks are a basic unit of work* such as compiling code or running your test.
-- Each project contains one or more tasks defined inside a build script or a plugin.
+| Dependency
+| External or internal resources required by a *project*. Gradle automatically resolves these during the *build*.
 
-=== Plugins:
-
-- Plugins are used to *extend Gradle's capability*.
-- Plugins optionally contribute tasks to a project.
+|===
 
 == Project structure
 
@@ -68,26 +68,21 @@ A Gradle project will look similar to the following:
 ----
 project
 ├── gradle                          // <1>
-│   ├── libs.versions.toml              // <2>
-│   └── wrapper
-│       ├── gradle-wrapper.jar
-│       └── gradle-wrapper.properties
-├── gradlew                         // <3>
-├── gradlew.bat                         // <3>
-├── settings.gradle(.kts)           // <4>
+├── gradlew                             // <2>
+├── gradlew.bat                         // <2>
+├── settings.gradle(.kts)           // <3>
 ├── subproject-a
-│   ├── build.gradle(.kts)              // <5>
-│   └── src                         // <6>
+│   ├── build.gradle(.kts)              // <4>
+│   └── src/                        // <5>
 └── subproject-b
-    ├── build.gradle(.kts)              // <5>
-    └── src                         // <6>
+    ├── build.gradle(.kts)              // <4>
+    └── src/                        // <5>
 ----
 <1> Gradle directory to store wrapper files and more
-<2> Gradle *version catalog* for dependency management
-<3> Gradle *wrapper scripts* - _THIS IS A GRADLE PROJECT!_
-<4> Gradle *settings file* to define a root project name and subprojects
-<5> Gradle *build scripts* of the two subprojects - `subproject-a` and `subproject-b`
-<6> *Source code* and/or additional files for the projects
+<2> Gradle *wrapper scripts* - _THIS IS A GRADLE PROJECT!_
+<3> Gradle *settings file* to define a root project name and subprojects
+<4> Gradle *build scripts* of the two subprojects - `subproject-a` and `subproject-b`
+<5> *Source code* and/or additional files for the projects
 
 == Invoking Gradle
 
@@ -96,6 +91,8 @@ project
 Gradle is <<gradle_ides.adoc#gradle_ides,built-in to many IDEs>> including Android Studio, IntelliJ IDEA, Visual Studio Code, Eclipse, and NetBeans.
 
 Gradle can be automatically invoked when you build, clean, or run your app in the IDE.
+
+image::gradle-ide-invocation.gif[]
 
 Consult the manual for the IDE of your choice to learn more about how Gradle can be used and configured.
 
@@ -108,6 +105,16 @@ Gradle can be invoked in the command line once <<installation.adoc#installation,
 $ gradle build
 ----
 
+[source,text]
+----
+$ gradle test
+----
+
+[source,text]
+----
+$ gradle clean build
+----
+
 Most projects do not use the installed version of Gradle but rather the Gradle Wrapper.
 
 === With the Gradle Wrapper
@@ -118,6 +125,8 @@ The wrapper is a script that invokes a declared version of Gradle and is *the re
 ----
 $ ./gradlew build
 ----
+
+image::gradle-terminal-invocation.gif[]
 
 [.text-right]
 **Next Step:** <<gradle_wrapper_basics.adoc#gradle_wrapper_basics,Learn about the Gradle Wrapper>> >>

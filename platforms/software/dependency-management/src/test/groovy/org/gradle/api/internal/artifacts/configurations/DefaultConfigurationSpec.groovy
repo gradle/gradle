@@ -39,7 +39,6 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
@@ -70,10 +69,10 @@ import org.gradle.internal.Describables
 import org.gradle.internal.Factories
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.component.external.model.ImmutableCapabilities
+import org.gradle.internal.component.model.VariantIdentifier
 import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.AttributeTestUtil
@@ -100,7 +99,7 @@ class DefaultConfigurationSpec extends Specification {
     def projectStateRegistry = Mock(ProjectStateRegistry)
     def domainObjectCollectionCallbackActionDecorator = Mock(CollectionCallbackActionDecorator)
     def userCodeApplicationContext = Mock(UserCodeApplicationContext)
-    def calculatedValueContainerFactory = Mock(CalculatedValueContainerFactory)
+    def calculatedValueContainerFactory = TestUtil.calculatedValueContainerFactory()
 
     def setup() {
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new AnonymousListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener, Stub(Dispatch)) }
@@ -1575,11 +1574,12 @@ This method is only meant to be called on configurations which allow the (non-de
     }
 
     private SelectedArtifactSet selectedArtifacts(Set<File> files = []) {
+        VariantIdentifier sourceVariantId = Mock()
         return new SelectedArtifactSet() {
             @Override
             void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
                 files.each { file ->
-                    visitor.visitArtifact(Describables.of(file.getName()), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, resolvableArtifact(file))
+                    visitor.visitArtifact(Describables.of(file.getName()), sourceVariantId, ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, resolvableArtifact(file))
                 }
                 visitor.endVisitCollection(null)
             }
@@ -1619,19 +1619,16 @@ This method is only meant to be called on configurations which allow the (non-de
     }
 
     private DefaultConfigurationFactory confFactory(String projectPath, String buildPath) {
-        def domainObjectContext = Stub(DomainObjectContext)
         def build = Path.path(buildPath)
         def project = Path.path(projectPath)
         def buildTreePath = build.append(Path.path(projectPath))
+        def identity = project.name != null ? ProjectIdentity.forSubproject(build, project) : ProjectIdentity.forRootProject(build, "foo")
+
+        def domainObjectContext = Stub(DomainObjectContext)
         _ * domainObjectContext.identityPath(_) >> { String p -> buildTreePath.child(p) }
         _ * domainObjectContext.projectPath(_) >> { String p -> project.child(p) }
         _ * domainObjectContext.buildPath >> build
-        _ * domainObjectContext.projectIdentity >> new ProjectIdentity(
-            new DefaultBuildIdentifier(build),
-            buildTreePath,
-            project,
-            project.name ?: "foo"
-        )
+        _ * domainObjectContext.projectIdentity >> identity
         _ * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
         _ * domainObjectContext.equals(_) >> true // In these tests, we assume we're in the same context
 

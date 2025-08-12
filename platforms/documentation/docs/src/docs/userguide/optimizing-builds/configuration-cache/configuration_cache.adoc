@@ -22,14 +22,14 @@
 // ./gradlew :docs:docsTest --tests="ExemplarExternalSamplesFunctionalTest.snippet-configuration-cache-*"
 // ./gradlew :docs:docsTest --tests="ExemplarExternalSamplesFunctionalTest.snippet-value-providers-*"
 
-The Configuration Cache improves build performance by caching the result of the <<build_lifecycle#build_lifecycle,configuration phase>> and reusing it for subsequent builds.
+The Configuration Cache improves build performance by caching the result of the <<build_lifecycle_intermediate.adoc#build_lifecycle,configuration phase>> and reusing it for subsequent builds.
 
 image::configuration-cache-4.png[]
 
 [[config_cache:intro]]
 == Configuration Cache Basics
 
-The <<build_lifecycle.adoc#build_lifecycle, Gradle Build Lifecycle>> consists of three phases: **initialization**, **configuration**, and **execution**.
+The <<build_lifecycle_intermediate.adoc#build_lifecycle, Gradle Build Lifecycle>> consists of three phases: **initialization**, **configuration**, and **execution**.
 
 1. The **initialization** phase determines the structure of the build.
 2. The **configuration** phase evaluates what work needs to be done.
@@ -43,12 +43,13 @@ Additionally, Gradle applies performance optimizations to task execution.
 
 To do this, Gradle does the following:
 
-[cols="~,~,~,~"]
+[cols="~,~,~,~,~"]
 |===
 | Phase | Cache | Cache Key | Work Avoidance | Parallelism and Performance
 
 | *Configuration* | Configuration Cache | Build logic and environment | Skip project configuration | Runs tasks in parallel within the same project, optimizes memory, and more
 | *Execution* | Build Cache | Task inputs | Skip task execution | Runs independent tasks in different projects in parallel with `--parallel`
+
 |===
 
 The Configuration Cache is similar to the <<build_cache#build_cache,Build Cache>>, but they store different types of data:

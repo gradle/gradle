@@ -23,23 +23,44 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * Marks types that can be instantiated by Gradle via the managed object infrastructure.
+ * Marks Gradle-provided types that can be instantiated via the managed object infrastructure.
  * <p>
  * Types annotated with this annotation will be automatically instantiated by Gradle
- * when constructing managed objects. See the below example:
+ * when constructing managed objects. This annotation is present only on Gradle-native types
+ *  * and does not need to be added to custom user-instantiated types.
+ *
+ * To create a managed property, declare an abstract getter method for the given type.
+ *
+ * For the managed property to be created properly, the object containing it must be
+ * instantiated using the {@link org.gradle.api.model.ObjectFactory#newInstance(Class, Object...)}
+ * or as a managed {@link org.gradle.api.tasks.Nested} property.
+ *
+ * The example below creates a {@code ConfigurableFileCollection} and {@code RegularFileProperty}
+ * automatically when the {@code MyObject} instance is instantiated by Gradle:
  *
  * <pre class='autoTested'>
+ * interface NestedExample {
+ *     Property&lt;String&gt; getExampleMessage();
+ * }
+ *
  * interface MyObject {
  *     ConfigurableFileCollection getFiles();
+ *
  *     RegularFileProperty getProperty();
+ *
+ *     &commat;Nested
+ *     NestedExample getNested();
  * }
  *
  * def instance = objects.newInstance(MyObject)
  * instance.files.from(file("foo.txt"))
- * instance.property.set(file("bar.txt"))
+ * instance.property = file("bar.txt")
+ * instance.nested.exampleMessage = "Hello, World!"
  * </pre>
  *
  * @since 9.0.0
+ *
+ * @see <a href="https://docs.gradle.org/current/userguide/properties_providers.html">Managed types reference</a>
  */
 @Incubating
 @Documented

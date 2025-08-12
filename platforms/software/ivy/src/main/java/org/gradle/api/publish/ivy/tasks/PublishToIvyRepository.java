@@ -66,7 +66,6 @@ public abstract class PublishToIvyRepository extends DefaultTask {
     private final Transient.Var<IvyPublicationInternal> publication = varOf();
     private final Transient.Var<DefaultIvyArtifactRepository> repository = varOf();
     private final Cached<PublishSpec> spec = Cached.of(this::computeSpec);
-    private final Property<Credentials> credentials = getProject().getObjects().property(Credentials.class);
 
     public PublishToIvyRepository() {
 
@@ -138,9 +137,7 @@ public abstract class PublishToIvyRepository extends DefaultTask {
 
     @Nested
     @Optional
-    Property<Credentials> getCredentials() {
-        return credentials;
-    }
+    abstract Property<Credentials> getCredentials();
 
     /**
      * Sets the repository to publish to.
@@ -149,7 +146,7 @@ public abstract class PublishToIvyRepository extends DefaultTask {
      */
     public void setRepository(IvyArtifactRepository repository) {
         this.repository.set((DefaultIvyArtifactRepository) repository);
-        this.credentials.set(((DefaultIvyArtifactRepository) repository).getConfiguredCredentials());
+        this.getCredentials().set(((DefaultIvyArtifactRepository) repository).getConfiguredCredentials());
     }
 
     @TaskAction

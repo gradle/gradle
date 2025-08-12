@@ -17,6 +17,7 @@
 package org.gradle.internal.serialize.codecs.dm
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
+import org.gradle.internal.component.model.VariantIdentifier
 import org.gradle.api.internal.artifacts.configurations.ArtifactCollectionInternal
 import org.gradle.api.internal.artifacts.configurations.DefaultArtifactCollection
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
@@ -28,6 +29,7 @@ import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
+import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.internal.DisplayName
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.extensions.stdlib.uncheckedCast
@@ -44,6 +46,7 @@ class ArtifactCollectionCodec(
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
     private val artifactSetConverter: ArtifactSetToFileCollectionFactory,
     private val attributeDesugaring: AttributeDesugaring,
+    private val taskDependencyFactory: TaskDependencyFactory
 ) : Codec<ArtifactCollectionInternal> {
 
     override suspend fun WriteContext.encode(value: ArtifactCollectionInternal) {
@@ -59,17 +62,18 @@ class ArtifactCollectionCodec(
         val lenient = readBoolean()
         val elements = readList().uncheckedCast<List<Any>>()
 
-        val files = artifactSetConverter.asFileCollection(displayName, lenient,
+        val artifacts = artifactSetConverter.getSelectedArtifacts(
             elements.map { element ->
                 when (element) {
                     is Throwable -> artifactSetConverter.asResolvedArtifactSet(element)
-                    is FixedFileArtifactSpec -> artifactSetConverter.asResolvedArtifactSet(element.id, element.variantAttributes, element.capabilities, element.variantDisplayName, element.file)
+                    is FixedFileArtifactSpec -> artifactSetConverter.asResolvedArtifactSet(element.id, element.sourceVariantId, element.variantAttributes, element.capabilities, element.artifactSetName, element.file)
                     is ResolvedArtifactSet -> element
                     else -> throw IllegalArgumentException("Unexpected element $element in artifact collection")
                 }
             }
         )
-        return DefaultArtifactCollection(files, lenient, artifactSetConverter.resolutionHost(displayName), calculatedValueContainerFactory, attributeDesugaring)
+
+        return DefaultArtifactCollection(artifacts, lenient, artifactSetConverter.resolutionHost(displayName), taskDependencyFactory, calculatedValueContainerFactory, attributeDesugaring)
     }
 }
 
@@ -77,9 +81,10 @@ class ArtifactCollectionCodec(
 private
 data class FixedFileArtifactSpec(
     val id: ComponentArtifactIdentifier,
+    val sourceVariantId: VariantIdentifier,
     val variantAttributes: ImmutableAttributes,
     val capabilities: ImmutableCapabilities,
-    val variantDisplayName: DisplayName,
+    val artifactSetName: DisplayName,
     val file: File
 )
 
@@ -110,9 +115,15 @@ class CollectingArtifactVisitor : ArtifactVisitor {
         elements.add(failure)
     }
 
-    override fun visitArtifact(variantName: DisplayName, variantAttributes: ImmutableAttributes, capabilities: ImmutableCapabilities, artifact: ResolvableArtifact) {
+    override fun visitArtifact(
+        artifactSetName: DisplayName,
+        sourceVariantId: VariantIdentifier,
+        attributes: ImmutableAttributes,
+        capabilities: ImmutableCapabilities,
+        artifact: ResolvableArtifact
+    ) {
         if (artifacts.add(artifact)) {
-            elements.add(FixedFileArtifactSpec(artifact.id, variantAttributes, capabilities, variantName, artifact.file))
+            elements.add(FixedFileArtifactSpec(artifact.id, sourceVariantId, attributes, capabilities, artifactSetName, artifact.file))
         }
     }
 

@@ -19,14 +19,17 @@ package org.gradle.kotlin.dsl.plugins.dsl
 import org.gradle.api.JavaVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions.NotEmbeddedExecutor
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.not
+import org.junit.Assume.assumeThat
+import org.junit.Before
 import org.junit.Test
-import java.io.File
 import org.junit.experimental.categories.Category
-import org.gradle.test.fixtures.Flaky
+import java.io.File
 
 /**
  * Assert that the cross-version protocol between `:kotlin-dsl-plugins` and `:kotlin-dsl-provider-plugins` is not broken.
@@ -44,9 +47,17 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
 
     private val oldestSupportedKotlinDslPluginVersion = "4.3.0"
 
+    @Before
+    fun setup() {
+        assumeThat(
+            "beta JDK is not usable with older Kotlin due to version parsing issues",
+            System.getProperty("java.runtime.version"),
+            not(containsString("beta"))
+        )
+    }
+
     @Test
     @Requires(NotEmbeddedExecutor::class)
-    @Category(Flaky::class) // https://github.com/gradle/gradle-private/issues/4752
     fun `can run with oldest supported version of kotlin-dsl plugin`() {
 
         withDefaultSettingsIn("buildSrc")
@@ -66,7 +77,8 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
 
         expectConfigurationCacheRequestedDeprecation()
 
-        build("help").apply {
+        // Suppress CC problem caused by the outdated KGP version. Can be removed when KGP 2.0+ is used.
+        build("help", "-Dorg.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners=true").apply {
 
             assertThat(
                 output,
@@ -85,7 +97,6 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
     @Test
     @Requires(NotEmbeddedExecutor::class, reason = "Kotlin version leaks on the classpath when running embedded")
     fun `can build plugin for previous unsupported Kotlin language version`() {
-
         val previousKotlinLanguageVersion = "1.4"
 
         withDefaultSettingsIn("producer")

@@ -26,7 +26,7 @@ TIP: If you are using Gradle for Android, you need to move to version 3.3 or hig
  . If you are not already on the latest 4.10.x release, read the sections <<#changes_4.10,below>> for help upgrading your project to the latest 4.10.x release.
 We recommend upgrading to the latest 4.10.x release to get the most useful warnings and deprecations information before moving to 5.0.
 Avoid upgrading Gradle and migrating to Kotlin DSL at the same time in order to ease troubleshooting in case of potential issues.
- . Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
+ . Try running `gradle help --scan` and view the https://docs.gradle.com/develocity/get-started/#identifying_deprecated_gradle_functionality[deprecations view] of the generated Build Scan.
 If there are no warnings, the Deprecations tab will not appear.
 +
 image::deprecations.png[Deprecations View of a Gradle Build Scan]
@@ -333,7 +333,7 @@ You can bypass the toolchain discovery by specifying the installation directory 
 [[changes_4.3]]
 == Upgrading from 4.2 and earlier
 
- * The `plugins {}` block can now be <<plugins.adoc#sec:subprojects_plugins_dsl,used in subprojects>> and for <<plugins.adoc#sec:buildsrc_plugins_dsl,plugins in the _buildSrc_ directory>>.
+ * The `plugins {}` block can now be <<plugins_intermediate.adoc#sec:subprojects_plugins_dsl,used in subprojects>> and for <<plugins_intermediate.adoc#sec:buildsrc_plugins_dsl,plugins in the _buildSrc_ directory>>.
 
 === Other deprecations
 

@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.JavaVersion
-import org.gradle.initialization.GradlePropertiesController
+import org.gradle.api.internal.properties.GradleProperties
 import java.io.Serializable
 
 
@@ -28,7 +28,7 @@ data class KotlinCompilerOptions(
 ) : Serializable
 
 
-fun kotlinCompilerOptions(gradleProperties: GradlePropertiesController): KotlinCompilerOptions =
+fun kotlinCompilerOptions(gradleProperties: GradleProperties): KotlinCompilerOptions =
     KotlinCompilerOptions(
         allWarningsAsErrors = getBooleanKotlinDslOption(gradleProperties, ALL_WARNINGS_AS_ERRORS_PROPERTY_NAME, false),
         skipMetadataVersionCheck = getBooleanKotlinDslOption(gradleProperties, SKIP_METADATA_VERSION_CHECK_PROPERTY_NAME, true)

@@ -374,18 +374,18 @@
       </trusted-keys>
    </configuration>
    <components>
-      <component group="android-studio" name="android-studio" version="2025.1.1.11">
-         <artifact name="android-studio-2025.1.1.11.linux.tar.gz">
-            <sha256 value="ba9c7ea9caddf84e17555f7889aa993cdf30d51a5c0fc29f577ef7f7b9e4ce75" origin="Verified" reason="Artifact is not signed"/>
+      <component group="android-studio" name="android-studio" version="2025.1.2.11">
+         <artifact name="android-studio-2025.1.2.11.linux.tar.gz">
+            <sha256 value="8f3874c6b119538cdd96c7bcb65555feea81133e251f69365d21ddd77777be78" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2025.1.1.11.mac.dmg">
-            <sha256 value="077f7fbe20e6050d45cbfaa75b88bd38cfd60b058a01d6ffb9643a9f1952307f" origin="Verified" reason="Artifact is not signed"/>
+         <artifact name="android-studio-2025.1.2.11.mac.dmg">
+            <sha256 value="6c2090819b09e07ce1a9d5a59cf868f4ab63968c2e04a074f709458d6dc29fc0" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2025.1.1.11.mac_arm.dmg">
-            <sha256 value="a4fe8a43a0cc1260e47f4d1a6e5357ef5076a272c8b7b1446523fa087f48c89e" origin="Verified" reason="Artifact is not signed"/>
+         <artifact name="android-studio-2025.1.2.11.mac_arm.dmg">
+            <sha256 value="ee7d11602f077ae0306f42de5d6a2f84600d07b74df9d62173f433df85abc977" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2025.1.1.11.windows.zip">
-            <sha256 value="c187e11e9e28f6765b6f1383228dbe1f18fc4cbeff916450e91d26b7ff26ca09" origin="Verified" reason="Artifact is not signed"/>
+         <artifact name="android-studio-2025.1.2.11.windows.zip">
+            <sha256 value="5449aa42853491227147c597003a3871c2cd378582c78b534762844cce4c9462" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="antlr" name="antlr" version="2.7.7">
@@ -876,9 +876,9 @@
             <pgp value="7186BBF993566D8C2F4F7ED7D945E643368FEF62"/>
          </artifact>
       </component>
-      <component group="io.github.gradle" name="gradle-enterprise-conventions-plugin" version="0.10.2">
-         <artifact name="gradle-enterprise-conventions-plugin-0.10.2.jar">
-            <sha256 value="48d4b3bb8337998f191f2d2a5d7afbdeaed39dd248c7c2d2ab2fcdde76b365e9" origin="Verified" reason="Artifact is not signed"/>
+      <component group="io.github.gradle" name="develocity-conventions-plugin" version="0.12.1">
+         <artifact name="develocity-conventions-plugin-0.12.1.jar">
+            <sha256 value="f9c53f4dad78c9041b36324402260a8f13264140f96c02ffbb4bafc4157be95f" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="io.github.java-diff-utils" name="java-diff-utils" version="4.12">

@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.util.Path;
 
 import java.io.IOException;
 
@@ -30,30 +29,16 @@ import java.io.IOException;
  */
 public class BuildIdentifierSerializer extends AbstractSerializer<BuildIdentifier> {
 
-    private static final byte ROOT = 0;
-    private static final byte LOCAL = 1;
+    private final PathSerializer pathSerializer = new PathSerializer();
 
     @Override
     public BuildIdentifier read(Decoder decoder) throws IOException {
-        byte type = decoder.readByte();
-        switch (type) {
-            case ROOT:
-                return DefaultBuildIdentifier.ROOT;
-            case LOCAL:
-                return new DefaultBuildIdentifier(Path.path(decoder.readString()));
-            default:
-                throw new IllegalArgumentException("Unexpected build identifier type.");
-        }
+        return new DefaultBuildIdentifier(pathSerializer.read(decoder));
     }
 
     @Override
     public void write(Encoder encoder, BuildIdentifier value) throws IOException {
-        if (value == DefaultBuildIdentifier.ROOT) {
-            encoder.writeByte(ROOT);
-        } else {
-            encoder.writeByte(LOCAL);
-            encoder.writeString(value.getBuildPath());
-        }
+        pathSerializer.write(encoder, ((DefaultBuildIdentifier) value).getIdentityPath());
     }
 
 }

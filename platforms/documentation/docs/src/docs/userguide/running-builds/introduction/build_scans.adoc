@@ -13,11 +13,11 @@
 // limitations under the License.
 
 [[build_scans]]
-= Build Scan
+= Build Scan Basics
 
 ++++
 <div class="badge-wrapper">
-    <a class="badge" href="https://dpeuniversity.gradle.com/app/courses/b5069222-cfd0-4393-b645-7a2c713853d5/" target="_blank">
+    <a class="badge" href="https://dpeuniversity.gradle.com/app/learning_paths/f633b8eb-2979-449e-a434-b94787fe5f32" target="_blank">
         <span class="badge-type button--blue">LEARN</span>
         <span class="badge-text">How to Use Build Scan&nbsp;&nbsp;&nbsp;&gt;</span>
     </a>
@@ -60,7 +60,7 @@ Visit the link:https://scans.gradle.com/[Build Scan page] to learn more.
 
 To see what data is captured and sent in a Build Scan, refer to the link:https://docs.gradle.com/develocity/gradle-plugin/current/#captured_information)[Captured Information] section in the Gradle Develocity Plugin documentation.
 
-Ready to build something? Start with the <<gradle_basics.adoc#gradle,Beginner Tutorial>>.
+Ready to build something? Start with the <<part1_gradle_init.adoc#part1_gradle_init,Beginner Tutorial>>.
 
 [.text-right]
 **Next Step:** <<part1_gradle_init.adoc#part1_gradle_init,Start the Tutorial>> >>

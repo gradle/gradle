@@ -18,7 +18,6 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectIdentity
-import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
@@ -43,9 +42,9 @@ import org.gradle.internal.cc.base.serialize.HostServiceProvider
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.Load
+import org.gradle.internal.cc.impl.ConfigurationCacheAction.SkipStore
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.Store
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.Update
-import org.gradle.internal.cc.impl.ConfigurationCacheAction.SkipStore
 import org.gradle.internal.cc.impl.extensions.withMostRecentEntry
 import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
@@ -80,6 +79,7 @@ import org.gradle.util.Path
 import java.io.File
 import java.io.OutputStream
 import java.util.Locale
+import java.util.Properties
 import java.util.UUID
 
 
@@ -193,10 +193,6 @@ class DefaultConfigurationCache internal constructor(
     override val isLoaded: Boolean
         get() = cacheAction is Load
 
-    private
-    val isStoreSkipped: Boolean
-        get() = cacheAction is SkipStore
-
     override fun initializeCacheEntry() {
         val (cacheAction, cacheActionDescription) = determineCacheAction()
         this.cacheAction = cacheAction
@@ -246,8 +242,8 @@ class DefaultConfigurationCache internal constructor(
         graphBuilder: BuildTreeWorkGraphBuilder?,
         scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph
     ): BuildTreeConfigurationCache.WorkGraphResult {
-        return when {
-            isLoaded -> {
+        return when (cacheAction) {
+            is Load -> {
                 val finalizedGraph = loadWorkGraph(graph, graphBuilder, false)
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
@@ -255,10 +251,13 @@ class DefaultConfigurationCache internal constructor(
                     entryDiscarded = false
                 )
             }
-            isStoreSkipped -> {
+            SkipStore -> {
                 // build work graph without contributing to a cache entry
                 val finalizedGraph = runAtConfigurationTime {
-                    scheduler(graph)
+                    val result = scheduler(graph)
+                    // force computation of degradation reasons at configuration time as it shouldn't be attempted at execution time
+                    problems.shouldDegradeGracefully()
+                    result
                 }
                 BuildTreeConfigurationCache.WorkGraphResult(
                     finalizedGraph,
@@ -266,7 +265,7 @@ class DefaultConfigurationCache internal constructor(
                     entryDiscarded = true
                 )
             }
-            else -> {
+            Store, is Update -> {
                 runWorkThatContributesToCacheEntry {
                     val finalizedGraph = scheduler(graph)
                     val rootBuild = buildStateRegistry.rootBuild
@@ -815,14 +814,13 @@ class DefaultConfigurationCache internal constructor(
             return CheckedFingerprint.Invalid(buildPath(), classLoaderScopesInvalidationReason)
         }
 
-        loadGradleProperties()
-
+        val systemPropertiesSnapshot = System.getProperties().clone()
         return checkFingerprintAgainstLoadedProperties(candidateEntry).also { result ->
-            if (result !is CheckedFingerprint.Valid) {
-                // Force Gradle properties to be reloaded so the Gradle properties files
-                // along with any Gradle property defining system properties and environment variables
-                // are added to the new fingerprint.
-                unloadGradleProperties()
+            if (result !is CheckedFingerprint.Valid || result.invalidProjects != null) {
+                // Restore system properties and force Gradle properties to be reloaded
+                // so the Gradle properties files along with any Gradle property defining
+                // system properties and environment variables are added to the new fingerprint.
+                rollbackProperties(systemPropertiesSnapshot.uncheckedCast())
             }
         }
     }
@@ -877,8 +875,6 @@ class DefaultConfigurationCache internal constructor(
                 action(object : ConfigurationCacheFingerprintController.Host {
                     override val valueSourceProviderFactory: ValueSourceProviderFactory
                         get() = host.service()
-                    override val gradleProperties: GradleProperties
-                        get() = gradlePropertiesController.gradleProperties
                 })
             }
         }
@@ -893,13 +889,9 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun loadGradleProperties() {
-        gradlePropertiesController.loadGradlePropertiesFrom(startParameter.buildTreeRootDirectory, true)
-    }
-
-    private
-    fun unloadGradleProperties() {
-        gradlePropertiesController.unloadGradleProperties()
+    fun rollbackProperties(systemPropertiesSnapshot: Properties) {
+        gradlePropertiesController.unloadAll()
+        System.setProperties(systemPropertiesSnapshot)
     }
 
     private

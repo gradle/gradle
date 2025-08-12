@@ -16,18 +16,15 @@
 
 package org.gradle.integtests.tooling.r64
 
-import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
 class DaemonReuseCrossVersionSpec extends ToolingApiSpecification {
-    GradleExecuter executer
 
     def setup() {
         toolingApi.requireIsolatedDaemons()
-        executer = toolingApi.createExecuter()
-        executer.useOnlyRequestedJvmOpts()
         settingsFile << "rootProject.name = 'test-build'"
     }
 
@@ -78,6 +75,12 @@ class DaemonReuseCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private void runBuildViaCLI() {
-        executer.withArguments("-Dorg.gradle.jvmargs=${NORMALIZED_BUILD_JVM_OPTS.join(" ")} -Djava.io.tmpdir=${buildContext.getTmpDir().absolutePath}").withTasks("help").run()
+        new NoDaemonGradleExecuter(toolingApi.getDistribution(), temporaryFolder, buildContext)
+            .withDaemonBaseDir(toolingApi.daemonBaseDir)
+            .requireDaemon()
+            .useOnlyRequestedJvmOpts()
+            .withArguments("-Dorg.gradle.jvmargs=${NORMALIZED_BUILD_JVM_OPTS.join(" ")} -Djava.io.tmpdir=${buildContext.getTmpDir().absolutePath}")
+            .withTasks("help")
+            .run()
     }
 }

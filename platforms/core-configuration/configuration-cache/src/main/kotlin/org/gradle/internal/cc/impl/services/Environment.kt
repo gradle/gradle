@@ -24,7 +24,6 @@ import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.service.scopes.EventScope
 import org.gradle.internal.service.scopes.Scope
-import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.internal.GUtil
 import java.io.File
 
@@ -32,15 +31,16 @@ import java.io.File
 /**
  * Augments the [DefaultEnvironment] to track access to properties files, environment variables and system properties.
  **/
-@ServiceScope(Scope.Build::class)
 class ConfigurationCacheEnvironment(
     private val listenerManager: ListenerManager
 ) : DefaultEnvironment() {
 
-    @EventScope(Scope.Build::class)
+    @EventScope(Scope.BuildTree::class)
     interface Listener {
         fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>)
+        fun systemProperty(name: String, value: String?)
         fun envVariablesPrefixedBy(prefix: String, snapshot: Map<String, String?>)
+        fun envVariable(name: String, value: String?)
     }
 
     private
@@ -55,23 +55,33 @@ class ConfigurationCacheEnvironment(
     }
 
     override fun getSystemProperties(): Environment.Properties =
-        TrackingProperties(System.getProperties().uncheckedCast()) { prefix, snapshot ->
-            listener.systemPropertiesPrefixedBy(prefix, snapshot)
-        }
+        TrackingProperties(
+            System.getProperties().uncheckedCast(),
+            { prefix, snapshot -> listener.systemPropertiesPrefixedBy(prefix, snapshot) },
+            { name, value -> listener.systemProperty(name, value) }
+        )
 
     override fun getVariables(): Environment.Properties =
-        TrackingProperties(System.getenv()) { prefix, snapshot ->
-            listener.envVariablesPrefixedBy(prefix, snapshot)
-        }
+        TrackingProperties(
+            System.getenv(),
+            { prefix, snapshot -> listener.envVariablesPrefixedBy(prefix, snapshot) },
+            { name, value -> listener.envVariable(name, value) }
+        )
 
     private
     class TrackingProperties(
         map: Map<String, String>,
-        val onByNamePrefix: (String, Map<String, String?>) -> Unit
+        val onByNamePrefix: (String, Map<String, String?>) -> Unit,
+        val onByName: (String, String?) -> Unit
     ) : DefaultProperties(map) {
         override fun byNamePrefix(prefix: String): Map<String, String> =
             super.byNamePrefix(prefix).also { snapshot ->
                 onByNamePrefix(prefix, snapshot)
+            }
+
+        override fun get(name: String): String? =
+            super.get(name).also { value ->
+                onByName(name, value)
             }
     }
 }
@@ -97,5 +107,8 @@ open class DefaultEnvironment : Environment {
     open class DefaultProperties(val map: Map<String, String>) : Environment.Properties {
         override fun byNamePrefix(prefix: String): Map<String, String> =
             map.filterKeysByPrefix(prefix)
+
+        override fun get(name: String): String? =
+            map[name]
     }
 }

@@ -21,7 +21,7 @@ For migrating within Gradle 8.x, see the <<upgrading_version_8.adoc#upgrading_ve
 
 We recommend the following steps for all users:
 
-. Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated Build Scan.
+. Try running `gradle help --scan` and view the https://docs.gradle.com/develocity/get-started/#identifying_deprecated_gradle_functionality[deprecations view] of the generated Build Scan.
 +
 image::deprecations.png[Deprecations View in a Build Scan]
 +
@@ -82,6 +82,9 @@ Groovy has been upgraded from version 3.0.24 to https://groovy-lang.org/changelo
 The update to Groovy 4 comes with many breaking changes, such as the removal of legacy packages, changes in the module structure, a parser rewrite, and bytecode output changes.
 For a complete overview of Groovy language changes from 3.x to 4.x, see the https://groovy-lang.org/releasenotes/groovy-4.0.html[Groovy 4.0 release notes].
 These changes may affect those who use Groovy directly or indirectly in Gradle, and in rare cases, users relying on transitive dependencies.
+
+TIP: Popular Groovy classes that used to be in packages like `groovy.util` are now in different packages to account for the JPMS "split package requirement".
+See link:https://groovy-lang.org/releasenotes/groovy-4.0.html#Groovy4.0-split-package-renaming[this specific entry].
 
 ==== `is`-prefixed `Boolean` properties no longer recognized by Groovy
 
@@ -199,9 +202,60 @@ For Gradle 8.x, the minimum supported version was 3.0.
 
 === C++ and Swift plugins no longer depend on software model based plugins
 
-<<cpp_application_plugin.adoc#cpp_application_plugin,Cpp Application Plugin>>, <<cpp_library_plugin.adoc#cpp_library_plugin,Cpp Library Plugin>>, <<swift_application_plugin.adoc#swift_application_plugin,Swift Application Plugin>>, and <<swift_library_plugin.adoc#swift_library_plugin,Swift Library Plugin>> have been updated and no longer rely on the software model plugin infrastructure.
+<<cpp_application_plugin.adoc#cpp_application_plugin,C\++ Application Plugin>>, <<cpp_library_plugin.adoc#cpp_library_plugin,C++ Library Plugin>>, <<swift_application_plugin.adoc#swift_application_plugin,Swift Application Plugin>>, and <<swift_library_plugin.adoc#swift_library_plugin,Swift Library Plugin>> have been updated and no longer rely on the software model plugin infrastructure.
 
-As a result, `toolChains` should now be configured directly at the top-level of your build script instead of within a `model { }` block.
+As a result, `toolChains` should be configured directly at the top-level of your build script instead of within a `model { }` block.
+
+For example, instead of:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id("cpp-library")
+}
+
+model {
+    toolChains {
+        clang(Clang) {
+            eachPlatform {
+                cCompiler.executable = "clang"
+                cppCompiler.executable = "clang++"
+            }
+        }
+    }
+}
+----
+=====
+====
+
+This should become:
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id("cpp-library")
+}
+
+toolChains {
+    clang(Clang) {
+        eachPlatform {
+            cCompiler.executable = "clang"
+            cppCompiler.executable = "clang++"
+        }
+    }
+}
+----
+=====
+====
+
+This change needs to be made in builds using the new C++ or Swift plugins or the existing software model based plugins.
 
 === Scala plugins no longer create unresolvable configurations
 
@@ -741,6 +795,14 @@ Eclipse JGit has been updated from 5.13.3 to link:https://projects.eclipse.org/p
 This update reworks how Gradle configures JGit for SSH operations and introduces support for using the SSH Agent, leveraging the new capabilities available in link:https://github.com/eclipse-jgit/jgit/blob/v7.2.1.202505142326-r/org.eclipse.jgit.ssh.apache.agent/README.md[JGit’s] SSH agent integration.
 
 == Removed APIs and features
+
+=== Removal of deprecated `jcenter()`
+
+The `jcenter()` repository API has been removed in Gradle 9.0.0. The API was deprecated in Gradle 7.0.
+
+The JCenter repository was link:https://jfrog.com/blog/jcenter-sunset/[redirected to Maven Central in August 2024].
+
+link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html#org.gradle.api.artifacts.dsl.RepositoryHandler:mavenCentral()[`RepositoryHandler.mavenCentral()`] is the closest direct replacement.
 
 === Removal of deprecated `JvmVendorSpec.IBM_SEMERU`
 
