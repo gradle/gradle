@@ -19,6 +19,7 @@ package org.gradle.initialization
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.properties.GradleProperties
+import org.gradle.api.internal.properties.GradlePropertiesListener
 import org.gradle.initialization.properties.GradlePropertiesLoader
 import org.gradle.initialization.properties.SystemPropertiesInstaller
 import org.gradle.util.Path
@@ -247,7 +248,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         controller.loadGradleProperties(rootBuildId, buildRootDir, true)
 
         then:
-        1 * systemPropertiesInstaller.setSystemPropertiesFrom(_, _) >> { GradleProperties props, boolean isRoot ->
+        1 * systemPropertiesInstaller.setSystemPropertiesFrom(_) >> { GradleProperties props ->
             assert props.properties == [
                 gradleHomeProp: "gradleHomeValue",
                 buildRootProp: "buildRootValue",
@@ -278,7 +279,7 @@ class DefaultGradlePropertiesControllerTest extends Specification {
         controller.loadGradleProperties(rootBuildId, buildRootDir, true)
 
         then:
-        1 * systemPropertiesInstaller.setSystemPropertiesFrom(_, _) >> { GradleProperties props, boolean isRoot ->
+        1 * systemPropertiesInstaller.setSystemPropertiesFrom(_) >> { GradleProperties props ->
             assert props.properties == [prop: expected]
         }
 

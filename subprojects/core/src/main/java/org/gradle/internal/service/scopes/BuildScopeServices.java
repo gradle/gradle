@@ -429,9 +429,16 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         ValueSourceProviderFactory valueSourceProviderFactory,
         ProcessOutputProviderFactory processOutputProviderFactory,
         ListenerManager listenerManager,
-        ObjectFactory objectFactory
+        ObjectFactory objectFactory,
+        GradleProperties gradleProperties
     ) {
-        return instantiator.newInstance(DefaultProviderFactory.class, valueSourceProviderFactory, processOutputProviderFactory, listenerManager, objectFactory);
+        return instantiator.newInstance(DefaultProviderFactory.class,
+            valueSourceProviderFactory,
+            processOutputProviderFactory,
+            listenerManager,
+            objectFactory,
+            gradleProperties
+        );
     }
 
     @Provides

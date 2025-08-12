@@ -294,7 +294,7 @@ public interface ValueSupplier {
     class CompositeSideEffect<T> implements SideEffect<T> {
 
         @Nullable
-        private static <T> SideEffect<T> of(Iterable<SideEffect<T>> sideEffects) {
+        private static <T> SideEffect<T> of(Iterable<@Nullable SideEffect<T>> sideEffects) {
             List<SideEffect<? super T>> flatSideEffects = new ArrayList<>();
 
             for (SideEffect<? super T> sideEffect : sideEffects) {
@@ -476,6 +476,7 @@ public interface ValueSupplier {
 
     class Present<T> implements Value<T> {
         private final T result;
+        @Nullable
         private final SideEffect<? super T> sideEffect;
 
         private Present(T result) {
@@ -791,6 +792,7 @@ public interface ValueSupplier {
     class FixedExecutionTimeValue<T> extends ExecutionTimeValue<T> {
         private final T value;
         private final boolean changingContent;
+        @Nullable
         private final SideEffect<? super T> sideEffect;
 
         private FixedExecutionTimeValue(T value, boolean changingContent, @Nullable SideEffect<? super T> sideEffect) {

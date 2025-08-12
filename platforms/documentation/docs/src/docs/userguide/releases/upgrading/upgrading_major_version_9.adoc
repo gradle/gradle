@@ -202,9 +202,60 @@ For Gradle 8.x, the minimum supported version was 3.0.
 
 === C++ and Swift plugins no longer depend on software model based plugins
 
-<<cpp_application_plugin.adoc#cpp_application_plugin,Cpp Application Plugin>>, <<cpp_library_plugin.adoc#cpp_library_plugin,Cpp Library Plugin>>, <<swift_application_plugin.adoc#swift_application_plugin,Swift Application Plugin>>, and <<swift_library_plugin.adoc#swift_library_plugin,Swift Library Plugin>> have been updated and no longer rely on the software model plugin infrastructure.
+<<cpp_application_plugin.adoc#cpp_application_plugin,C\++ Application Plugin>>, <<cpp_library_plugin.adoc#cpp_library_plugin,C++ Library Plugin>>, <<swift_application_plugin.adoc#swift_application_plugin,Swift Application Plugin>>, and <<swift_library_plugin.adoc#swift_library_plugin,Swift Library Plugin>> have been updated and no longer rely on the software model plugin infrastructure.
 
-As a result, `toolChains` should now be configured directly at the top-level of your build script instead of within a `model { }` block.
+As a result, `toolChains` should be configured directly at the top-level of your build script instead of within a `model { }` block.
+
+For example, instead of:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id("cpp-library")
+}
+
+model {
+    toolChains {
+        clang(Clang) {
+            eachPlatform {
+                cCompiler.executable = "clang"
+                cppCompiler.executable = "clang++"
+            }
+        }
+    }
+}
+----
+=====
+====
+
+This should become:
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id("cpp-library")
+}
+
+toolChains {
+    clang(Clang) {
+        eachPlatform {
+            cCompiler.executable = "clang"
+            cppCompiler.executable = "clang++"
+        }
+    }
+}
+----
+=====
+====
+
+This change needs to be made in builds using the new C++ or Swift plugins or the existing software model based plugins.
 
 === Scala plugins no longer create unresolvable configurations
 
