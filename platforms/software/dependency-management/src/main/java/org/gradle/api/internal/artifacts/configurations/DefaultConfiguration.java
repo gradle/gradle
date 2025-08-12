@@ -157,8 +157,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private @Nullable DefaultPublishArtifactSet allArtifacts;
     private final ConfigurationResolvableDependencies resolvableDependencies;
     private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
-    private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
-    private @Nullable ResolutionStrategyInternal resolutionStrategy;
     private final ResolveExceptionMapper exceptionMapper;
 
     private final Path identityPath;
@@ -207,7 +205,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private @Nullable ConfigurationInternal consistentResolutionSource;
     private @Nullable String consistentResolutionReason;
+
+    /** This factory can't be extracted to the services bundle, as it would create a circular dependency between those two types. */
     private final DefaultConfigurationFactory defaultConfigurationFactory;
+
+    /** This factory has some unique usages during copy, so it can't be extracted to the services bundle. */
+    private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
+    private @Nullable ResolutionStrategyInternal resolutionStrategy;
 
     private final ConfigurationServicesBundle configurationServices;
 
