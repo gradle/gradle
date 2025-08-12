@@ -23,7 +23,6 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
-import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -46,7 +45,6 @@ public class DefaultDependencyScopeConfiguration extends DefaultConfiguration im
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
-        ResolveExceptionMapper exceptionMapper,
         UserCodeApplicationContext userCodeApplicationContext,
         DefaultConfigurationFactory defaultConfigurationFactory
     ) {
@@ -60,7 +58,6 @@ public class DefaultDependencyScopeConfiguration extends DefaultConfiguration im
             resolutionStrategyFactory,
             artifactNotationParser,
             capabilityNotationParser,
-            exceptionMapper,
             userCodeApplicationContext,
             defaultConfigurationFactory,
             ConfigurationRoles.DEPENDENCY_SCOPE,

@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.ResolvableConfiguration
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.ConfigurationServicesBundle
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
@@ -78,6 +79,7 @@ class DefaultConfigurationContainerTest extends Specification {
         CollectionCallbackActionDecorator.NOOP,
         TestUtil.problemsService(),
         new AttributeDesugaring(attributesFactory),
+        new ResolveExceptionMapper(StandaloneDomainObjectContext.ANONYMOUS, new DocumentationRegistry())
     )
 
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
@@ -90,7 +92,6 @@ class DefaultConfigurationContainerTest extends Specification {
                 TestFiles.resolver(),
                 TestFiles.taskDependencyFactory(),
         ),
-        Stub(ResolveExceptionMapper),
         userCodeApplicationContext
     )
 

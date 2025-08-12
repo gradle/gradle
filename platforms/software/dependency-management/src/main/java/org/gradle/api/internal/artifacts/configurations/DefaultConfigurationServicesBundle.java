@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConfigurationServicesBundle;
+import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -49,6 +50,7 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
     private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
     private final InternalProblems problems;
     private final AttributeDesugaring attributeDesugaring;
+    private final ResolveExceptionMapper exceptionMapper;
 
     public DefaultConfigurationServicesBundle(BuildOperationRunner buildOperationRunner,
                                               ProjectStateRegistry projectStateRegistry,
@@ -60,7 +62,8 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
                                               DomainObjectCollectionFactory domainObjectCollectionFactory,
                                               CollectionCallbackActionDecorator collectionCallbackActionDecorator,
                                               InternalProblems problems,
-                                              AttributeDesugaring attributeDesugaring) {
+                                              AttributeDesugaring attributeDesugaring,
+                                              ResolveExceptionMapper exceptionMapper) {
         this.buildOperationRunner = buildOperationRunner;
         this.projectStateRegistry = projectStateRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
@@ -72,6 +75,7 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
         this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
         this.problems = problems;
         this.attributeDesugaring = attributeDesugaring;
+        this.exceptionMapper = exceptionMapper;
     }
 
     @Override
@@ -127,5 +131,10 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
     @Override
     public AttributeDesugaring getAttributeDesugaring() {
         return attributeDesugaring;
+    }
+
+    @Override
+    public ResolveExceptionMapper getExceptionMapper() {
+        return exceptionMapper;
     }
 }

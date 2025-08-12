@@ -1652,6 +1652,7 @@ This method is only meant to be called on configurations which allow the (non-de
             CollectionCallbackActionDecorator.NOOP,
             TestUtil.problemsService(),
             new AttributeDesugaring(attributesFactory),
+            new ResolveExceptionMapper(domainObjectContext, new DocumentationRegistry())
         )
 
         new DefaultConfigurationFactory(
@@ -1659,7 +1660,6 @@ This method is only meant to be called on configurations which allow the (non-de
             listenerManager,
             domainObjectContext,
             publishArtifactNotationParserFactory,
-            new ResolveExceptionMapper(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
             userCodeApplicationContext
         )
     }

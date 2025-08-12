@@ -22,7 +22,6 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
-import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
 import org.gradle.internal.Factory;
@@ -47,7 +46,6 @@ public class DefaultConfigurationFactory {
     private final DomainObjectContext domainObjectContext;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
-    private final ResolveExceptionMapper exceptionContextualizer;
     private final UserCodeApplicationContext userCodeApplicationContext;
 
     @Inject
@@ -56,7 +54,6 @@ public class DefaultConfigurationFactory {
         ListenerManager listenerManager,
         DomainObjectContext domainObjectContext,
         PublishArtifactNotationParserFactory artifactNotationParserFactory,
-        ResolveExceptionMapper exceptionMapper,
         UserCodeApplicationContext userCodeApplicationContext
     ) {
         this.configurationServices = configurationServices;
@@ -64,7 +61,6 @@ public class DefaultConfigurationFactory {
         this.domainObjectContext = domainObjectContext;
         this.artifactNotationParser = artifactNotationParserFactory.create();
         this.capabilityNotationParser = new CapabilityNotationParserFactory(true).create();
-        this.exceptionContextualizer = exceptionMapper;
         this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
@@ -91,7 +87,6 @@ public class DefaultConfigurationFactory {
             resolutionStrategyFactory,
             artifactNotationParser,
             capabilityNotationParser,
-            exceptionContextualizer,
             userCodeApplicationContext,
             this,
             role
@@ -118,7 +113,6 @@ public class DefaultConfigurationFactory {
             resolutionStrategyFactory,
             artifactNotationParser,
             capabilityNotationParser,
-            exceptionContextualizer,
             userCodeApplicationContext,
             this
         );
@@ -144,7 +138,6 @@ public class DefaultConfigurationFactory {
             resolutionStrategyFactory,
             artifactNotationParser,
             capabilityNotationParser,
-            exceptionContextualizer,
             userCodeApplicationContext,
             this
         );
@@ -170,7 +163,6 @@ public class DefaultConfigurationFactory {
             resolutionStrategyFactory,
             artifactNotationParser,
             capabilityNotationParser,
-            exceptionContextualizer,
             userCodeApplicationContext,
             this
         );

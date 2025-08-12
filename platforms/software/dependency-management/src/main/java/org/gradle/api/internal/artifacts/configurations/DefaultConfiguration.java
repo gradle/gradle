@@ -157,7 +157,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private @Nullable DefaultPublishArtifactSet allArtifacts;
     private final ConfigurationResolvableDependencies resolvableDependencies;
     private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
-    private final ResolveExceptionMapper exceptionMapper;
 
     private final Path identityPath;
     private final Path projectPath;
@@ -228,7 +227,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
-        ResolveExceptionMapper exceptionMapper,
         UserCodeApplicationContext userCodeApplicationContext,
         DefaultConfigurationFactory defaultConfigurationFactory,
         ConfigurationRole roleAtCreation,
@@ -244,7 +242,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.dependencyResolutionListeners = dependencyResolutionListeners;
         this.domainObjectContext = domainObjectContext;
-        this.exceptionMapper = exceptionMapper;
 
         this.displayName = Describables.memoize(new ConfigurationDescription(identityPath));
         this.configurationAttributes = new FreezableAttributeContainer(configurationServices.getAttributesFactory().mutable(), this.displayName);
@@ -536,7 +533,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public ResolutionHost getHost() {
-            return new DefaultResolutionHost(identityPath, displayName, configurationServices.getProblems(), exceptionMapper);
+            return new DefaultResolutionHost(identityPath, displayName, configurationServices.getProblems(), configurationServices.getExceptionMapper());
         }
 
         @Override
@@ -633,7 +630,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 try {
                     results = resolver.resolveGraph(DefaultConfiguration.this);
                 } catch (Exception e) {
-                    throw exceptionMapper.mapFailure(e, "dependencies", displayName.getDisplayName());
+                    throw configurationServices.getExceptionMapper().mapFailure(e, "dependencies", displayName.getDisplayName());
                 }
 
                 // Make the new state visible in case a dependency resolution listener queries the result, which requires the new state
@@ -787,7 +784,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 try {
                     return Optional.of(resolver.resolveBuildDependencies(this, futureCompleteResults));
                 } catch (Exception e) {
-                    throw exceptionMapper.mapFailure(e, "dependencies", displayName.getDisplayName());
+                    throw configurationServices.getExceptionMapper().mapFailure(e, "dependencies", displayName.getDisplayName());
                 }
             } // Otherwise, already have a result, so reuse it
             return initial;
