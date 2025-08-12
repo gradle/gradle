@@ -34,7 +34,7 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         run("check")
 
         then:
-        result.assertTasksExecuted(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, ":test", ":check")
+        result.assertTasksScheduled(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, ":test", ":check")
         result.assertTasksSkipped(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, ":test", ":check")
     }
 
@@ -47,7 +47,7 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         succeeds(task)
 
         then:
-        result.assertTasksExecuted(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, expectedLifecycleTasks)
+        result.assertTasksScheduled(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, expectedLifecycleTasks)
         assertTestCasesRan()
 
         where:
@@ -70,7 +70,7 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         succeeds(task)
 
         then:
-        result.assertTasksExecuted(getTasksToCompileComponentUnderTest(expectedArchitecture), getTasksToBuildAndRunUnitTest(expectedArchitecture), expectedLifecycleTasks)
+        result.assertTasksScheduled(getTasksToCompileComponentUnderTest(expectedArchitecture), getTasksToBuildAndRunUnitTest(expectedArchitecture), expectedLifecycleTasks)
         assertTestCasesRan()
 
         where:
@@ -95,7 +95,7 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         succeeds(task)
 
         then:
-        result.assertTasksExecuted(getTasksToCompileComponentUnderTest(expectedArchitecture), tasksToBuildAndRunUnitTest, expectedLifecycleTasks)
+        result.assertTasksScheduled(getTasksToCompileComponentUnderTest(expectedArchitecture), tasksToBuildAndRunUnitTest, expectedLifecycleTasks)
         assertTestCasesRan()
 
         where:
@@ -115,7 +115,7 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         succeeds(task)
 
         then:
-        result.assertTasksExecuted(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, expectedLifecycleTasks)
+        result.assertTasksScheduled(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, expectedLifecycleTasks)
         assertTestCasesRan()
 
         where:
@@ -153,7 +153,7 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, ":test")
+        result.assertTasksScheduled(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, ":test")
         result.assertTasksSkipped(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, ":test")
 
         when:
@@ -161,9 +161,9 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         succeeds("test")
 
         then:
-        result.assertTasksExecuted(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, ":test")
+        result.assertTasksScheduled(tasksToCompileComponentUnderTest, tasksToBuildAndRunUnitTest, ":test")
         result.assertTasksSkipped(tasksToCompileComponentUnderTest + tasksToRelocate)
-        result.assertTasksNotSkipped(tasksToBuildAndRunUnitTest - tasksToRelocate, ":test")
+        result.assertTasksExecuted(tasksToBuildAndRunUnitTest - tasksToRelocate, ":test")
     }
 
     private void configureTargetMachines(String targetMachineDeclaration) {

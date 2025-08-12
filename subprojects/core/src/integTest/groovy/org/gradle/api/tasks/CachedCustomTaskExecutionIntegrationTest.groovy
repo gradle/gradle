@@ -50,7 +50,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         when:
         withBuildCache().run "help"
         then:
-        result.assertTaskNotSkipped(":buildSrc:compileGroovy")
+        result.assertTaskExecuted(":buildSrc:compileGroovy")
 
         expect:
         file("buildSrc/build").assertIsDir().deleteDir()
@@ -74,7 +74,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         when:
         withBuildCache().run "customTask"
         then:
-        result.assertTaskNotSkipped(":customTask")
+        result.assertTaskExecuted(":customTask")
 
         when:
         file("buildSrc/build").deleteDir()
@@ -100,7 +100,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         when:
         withBuildCache().run "customTask"
         then:
-        result.assertTaskNotSkipped(":customTask")
+        result.assertTaskExecuted(":customTask")
         file("build/output.txt").text == "input"
 
         when:
@@ -109,7 +109,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         cleanBuildDir()
         withBuildCache().run "customTask"
         then:
-        result.assertTaskNotSkipped(":customTask")
+        result.assertTaskExecuted(":customTask")
         file("build/output.txt").text == "input modified"
     }
 

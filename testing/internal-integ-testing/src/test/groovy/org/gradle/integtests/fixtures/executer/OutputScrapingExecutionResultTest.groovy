@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.executer
 
+import org.gradle.util.internal.TextUtil
 
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT
 
@@ -361,29 +362,29 @@ post build
         def result = OutputScrapingExecutionResult.from(output, "")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
-        result.assertTasksExecuted([":a", ":b"])
-        result.assertTasksExecuted(":a", ":b", ":a", [":a", ":b"], ":b")
+        result.assertTasksScheduled(":a", ":b")
+        result.assertTasksScheduled([":a", ":b"])
+        result.assertTasksScheduled(":a", ":b", ":a", [":a", ":b"], ":b")
 
         and:
-        result.assertTasksExecutedInOrder(":a", ":b")
-        result.assertTasksExecutedInOrder([":a", ":b"])
+        result.assertTasksScheduledInOrder(":a", ":b")
+        result.assertTasksScheduledInOrder([":a", ":b"])
 
         and:
-        result.assertTaskExecuted(':a')
-        result.assertTaskExecuted(':b')
-        result.assertTaskNotExecuted(':c')
+        result.assertTaskScheduled(':a')
+        result.assertTaskScheduled(':b')
+        result.assertTasksNotScheduled(':c')
 
         and:
         result.executedTasks == [":a", ":b"]
         result.skippedTasks == [":b"] as Set
 
         and:
-        result.assertTasksNotSkipped(":a")
-        result.assertTasksNotSkipped(":a", ":a", [":a"])
+        result.assertTasksExecuted(":a")
+        result.assertTasksExecuted(":a", ":a", [":a"])
 
         and:
-        result.assertTaskNotSkipped(":a")
+        result.assertTaskExecuted(":a")
 
         and:
         result.assertTasksSkipped(":b")
@@ -393,7 +394,7 @@ post build
         result.assertTaskSkipped(":b")
 
         when:
-        result.assertTasksExecuted(":a")
+        result.assertTasksScheduled(":a")
 
         then:
         def e = thrown(AssertionError)
@@ -404,7 +405,7 @@ post build
             '''))
 
         when:
-        result.assertTasksExecuted(":a", ":b", ":c")
+        result.assertTasksScheduled(":a", ":b", ":c")
 
         then:
         def e2 = thrown(AssertionError)
@@ -415,14 +416,14 @@ post build
             '''))
 
         when:
-        result.assertTasksExecutedInOrder(":b", ":a")
+        result.assertTasksScheduledInOrder(":b", ":a")
 
         then:
         def e3 = thrown(AssertionError)
         e3.message.startsWith(":a does not occur in expected order (expected: exact([:b, :a]), actual [:a, :b])")
 
         when:
-        result.assertTasksExecutedInOrder(":a")
+        result.assertTasksScheduledInOrder(":a")
 
         then:
         def e4 = thrown(AssertionError)
@@ -433,7 +434,7 @@ post build
             '''))
 
         when:
-        result.assertTasksExecutedInOrder(":a", ":b", ":c")
+        result.assertTasksScheduledInOrder(":a", ":b", ":c")
 
         then:
         def e5 = thrown(AssertionError)
@@ -444,7 +445,7 @@ post build
             '''))
 
         when:
-        result.assertTaskExecuted(':c')
+        result.assertTaskScheduled(':c')
 
         then:
         def e6 = thrown(AssertionError)
@@ -456,7 +457,7 @@ post build
             '''))
 
         when:
-        result.assertTaskNotExecuted(':b')
+        result.assertTasksNotScheduled(':b')
 
         then:
         def e7 = thrown(AssertionError)
@@ -512,18 +513,14 @@ post build
             '''))
 
         when:
-        result.assertTasksNotSkipped()
+        result.assertTasksExecuted()
 
         then:
-        def e12 = thrown(AssertionError)
-        error(e12).startsWith(error('''
-            Build output does not contain the expected non skipped tasks.
-            Expected: []
-            Actual: [:a]
-            '''))
+        def e12 = thrown(IllegalArgumentException)
+        error(e12).startsWith(error('''taskPaths cannot be empty.'''))
 
         when:
-        result.assertTasksNotSkipped(":b")
+        result.assertTasksExecuted(":b")
 
         then:
         def e13 = thrown(AssertionError)
@@ -534,7 +531,7 @@ post build
             '''))
 
         when:
-        result.assertTasksNotSkipped(":a", ":c")
+        result.assertTasksExecuted(":a", ":c")
 
         then:
         def e14 = thrown(AssertionError)
@@ -545,7 +542,7 @@ post build
             '''))
 
         when:
-        result.assertTaskNotSkipped(":b")
+        result.assertTaskExecuted(":b")
 
         then:
         def e15 = thrown(AssertionError)
@@ -594,10 +591,226 @@ BUILD FAILED in 13s
         def result = OutputScrapingExecutionResult.from(output, "")
 
         then:
-        result.assertTasksExecutedInOrder(":compileMyTestBinaryMyTestJava", ":myTestBinaryTest")
+        result.assertTasksScheduledInOrder(":compileMyTestBinaryMyTestJava", ":myTestBinaryTest")
+        result.assertTasksScheduled(":myTestBinaryTest", ":compileMyTestBinaryMyTestJava")
         result.assertTasksExecuted(":myTestBinaryTest", ":compileMyTestBinaryMyTestJava")
-        result.assertTasksNotSkipped(":myTestBinaryTest", ":compileMyTestBinaryMyTestJava")
     }
+
+    def "can assert no tasks have been executed"() {
+        def output = """
+
+FAILURE: Build failed with an exception.
+
+BUILD FAILED in 13s
+2 actionable tasks: 2 executed
+
+"""
+        when:
+        def result = OutputScrapingExecutionResult.from(output, "")
+
+        then:
+        result.assertNoTasksScheduled()
+    }
+
+    def "can assert any tasks have been executed"() {
+        def output = """
+> Task :compileMyTestBinaryMyTestJava
+> Task :myTestBinaryTest
+
+MyTest > test FAILED
+    java.lang.AssertionError at MyTest.java:10
+
+1 test completed, 1 failed
+
+> Task :myTestBinaryTest FAILED
+
+
+FAILURE: Build failed with an exception.
+
+BUILD FAILED in 13s
+2 actionable tasks: 2 executed
+
+"""
+        when:
+        def result = OutputScrapingExecutionResult.from(output, "")
+
+        then:
+        result.assertAnyTasksScheduled()
+    }
+
+    def "can assert at least one task was executed and not skipped"() {
+        def output = """
+> Task :a
+> Task :b
+
+> Task :a
+some content
+
+> Task :b
+other content
+
+> Task :a
+all good
+
+> Task :b SKIPPED
+
+FAILURE: Build failed with an exception.
+
+BUILD FAILED in 13s
+2 actionable tasks: 2 executed
+
+"""
+        when:
+        def result = OutputScrapingExecutionResult.from(output, "")
+
+        then:
+        result.assertAnyTasksExecuted()
+    }
+
+    def 'assertAnyTasksExecuted() fails assertion when output contains no tasks or skipped tasks'() {
+        def output = """
+
+$tasksExecuted
+
+FAILURE: Build failed with an exception.
+
+BUILD FAILED in 13s
+2 actionable tasks: 2 executed
+
+"""
+        when:
+        def result = OutputScrapingExecutionResult.from(output, "")
+        result.assertAnyTasksExecuted()
+
+        then:
+        def e = thrown(AssertionError)
+        e.message.startsWith(message)
+
+        where:
+        tasksExecuted                                      | message
+        '> Task :a SKIPPED\n\n> Task :b SKIPPED'           | "Build output contains only skipped tasks: [:a, :b]"
+        ''                                                 | "Build output does not contain any executed tasks."
+    }
+
+    def 'assertAllTasksSkipped() fails assertion when output contains at least one task that is executed'() {
+        def output = """
+> Task :a
+> Task :b
+
+> Task :a
+some content
+
+> Task :b
+other content
+
+> Task :a
+all good
+
+> Task :b SKIPPED
+
+FAILURE: Build failed with an exception.
+
+BUILD FAILED in 13s
+2 actionable tasks: 2 executed
+
+"""
+        when:
+        def result = OutputScrapingExecutionResult.from(output, "")
+        result.assertAllTasksSkipped()
+
+        then:
+        def e = thrown(AssertionError)
+        TextUtil.convertLineSeparatorsToUnix(e.message).startsWith("Build output contains unexpected non skipped tasks.\nExpected: []\nActual: [:a]");
+
+    }
+
+    def "can assert all tasks are skipped"() {
+        def output = """
+
+$tasksExecuted
+
+FAILURE: Build failed with an exception.
+
+BUILD FAILED in 13s
+2 actionable tasks: 2 executed
+
+"""
+        when:
+        def result = OutputScrapingExecutionResult.from(output, "")
+
+        then:
+        result.assertAllTasksSkipped()
+
+        where:
+        tasksExecuted << [
+            '> Task :a SKIPPED\n\n> Task :b SKIPPED',
+            ''
+        ]
+    }
+
+    def 'throws exception when assertTasksScheduled taskPaths is empty'() {
+        def output = """
+> Task :compileMyTestBinaryMyTestJava
+> Task :myTestBinaryTest
+
+MyTest > test FAILED
+    java.lang.AssertionError at MyTest.java:10
+
+1 test completed, 1 failed
+
+> Task :myTestBinaryTest FAILED
+
+
+FAILURE: Build failed with an exception.
+
+BUILD FAILED in 13s
+2 actionable tasks: 2 executed
+
+"""
+        when:
+        def result = OutputScrapingExecutionResult.from(output, "")
+        result.assertTasksScheduled(taskPaths)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.startsWith("taskPaths cannot be empty.")
+
+        where:
+        taskPaths << [[] as Object[], null]
+    }
+
+    def "throws exception when assertTasksExecuted taskPaths is empty"() {
+        def output = """
+> Task :compileMyTestBinaryMyTestJava
+> Task :myTestBinaryTest
+
+MyTest > test FAILED
+    java.lang.AssertionError at MyTest.java:10
+
+1 test completed, 1 failed
+
+> Task :myTestBinaryTest FAILED
+
+
+FAILURE: Build failed with an exception.
+
+BUILD FAILED in 13s
+2 actionable tasks: 2 executed
+
+"""
+        when:
+        def result = OutputScrapingExecutionResult.from(output, "")
+        result.assertTasksExecuted(taskPaths)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.startsWith("taskPaths cannot be empty.")
+
+        where:
+        taskPaths << [[] as Object[], null]
+    }
+
+
 
     def "strips out work in progress area when evaluating rich console output"() {
         def output = """
@@ -618,7 +831,7 @@ Before
         def result = OutputScrapingExecutionResult.from(output, "")
 
         then:
-        result.assertTasksExecuted(':log')
+        result.assertTasksScheduled(':log')
         result.groupedOutput.task(':log').output == "Before\nAfter"
     }
 }

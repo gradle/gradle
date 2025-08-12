@@ -36,13 +36,13 @@ abstract class AbstractNativeProductionComponentDependenciesIntegrationTest exte
         run(':assembleDebug')
 
         then:
-        result.assertTasksExecuted(libDebugTasks, assembleDebugTasks, ':assembleDebug')
+        result.assertTasksScheduled(libDebugTasks, assembleDebugTasks, ':assembleDebug')
 
         when:
         run(':assembleRelease')
 
         then:
-        result.assertTasksExecuted(assembleReleaseTasks, ':assembleRelease')
+        result.assertTasksScheduled(assembleReleaseTasks, ':assembleRelease')
     }
 
     def "can define an included build implementation dependency on a binary"() {
@@ -62,13 +62,13 @@ abstract class AbstractNativeProductionComponentDependenciesIntegrationTest exte
         run(':assembleDebug')
 
         then:
-        result.assertTasksExecuted(libDebugTasks, assembleDebugTasks, ':assembleDebug')
+        result.assertTasksScheduled(libDebugTasks, assembleDebugTasks, ':assembleDebug')
 
         when:
         run(':assembleRelease')
 
         then:
-        result.assertTasksExecuted(assembleReleaseTasks, ':assembleRelease')
+        result.assertTasksScheduled(assembleReleaseTasks, ':assembleRelease')
     }
 
     @Override

@@ -62,7 +62,7 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         isolatedProjectsRun(*invocation)
 
         then:
-        result.assertTasksExecuted(expectedTasks)
+        result.assertTasksScheduled(expectedTasks)
 
         where:
         invocation                             | expectedTasks
@@ -89,7 +89,7 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         isolatedProjectsRun(":a:build", "-Dorg.gradle.internal.isolated-projects.configure-on-demand.tasks=true")
 
         then:
-        result.assertTaskExecuted(":a:build")
+        result.assertTaskScheduled(":a:build")
         outputDoesNotContain("Configure :b")
     }
 

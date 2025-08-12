@@ -155,7 +155,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
 
         then:
         resultDebug.assertTasksExecuted(':compileDebugSwift', ':createDebug', ':_xcode___App_Debug')
-        resultDebug.assertTasksNotSkipped(':compileDebugSwift', ':createDebug', ':_xcode___App_Debug')
         debugBinary.assertExists()
 
         when:
@@ -167,8 +166,8 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             .succeeds()
 
         then:
+        resultRelease.assertTasksScheduled(':compileReleaseSwift', ':createRelease', ':_xcode___App_Release')
         resultRelease.assertTasksExecuted(':compileReleaseSwift', ':createRelease', ':_xcode___App_Release')
-        resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':createRelease', ':_xcode___App_Release')
         releaseBinary.assertExists()
     }
 
@@ -383,7 +382,7 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             .succeeds(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
-        resultTestRunner.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ':linkTest', ':installTest',
+        resultTestRunner.assertTasksScheduled(':compileDebugSwift', ':compileTestSwift', ':linkTest', ':installTest',
             ':syncBundleToXcodeBuiltProductDir', ':_xcode__build_GreeterTest___GradleTestRunner_Debug')
         resultTestRunner.assertHasPostBuildOutput("Test Case '-[GreeterTest.MultiplyTestSuite testCanMultiplyTotalOf42]' passed")
         resultTestRunner.assertHasPostBuildOutput("Test Case '-[GreeterTest.SumTestSuite testCanAddSumOf42]' passed")
@@ -415,7 +414,7 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             .succeeds(XcodebuildExecutor.XcodeAction.TEST)
 
         then:
-        resultTestRunner.assertTasksExecuted(':compileDebugSwift', ':compileTestSwift', ":relocateMainForTest", ':linkTest', ':installTest',
+        resultTestRunner.assertTasksScheduled(':compileDebugSwift', ':compileTestSwift', ":relocateMainForTest", ':linkTest', ':installTest',
             ':syncBundleToXcodeBuiltProductDir', ':_xcode__build_AppTest___GradleTestRunner_Debug')
         resultTestRunner.assertHasPostBuildOutput("Test Case '-[AppTest.MultiplyTestSuite testCanMultiplyTotalOf42]' passed")
         resultTestRunner.assertHasPostBuildOutput("Test Case '-[AppTest.SumTestSuite testCanAddSumOf42]' passed")
@@ -447,7 +446,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
 
         then:
         resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug', ':installDebug', ':_xcode___App_Debug')
-        resultDebug.assertTasksNotSkipped(':compileDebugSwift', ':linkDebug', ':installDebug', ':_xcode___App_Debug')
         debugBinary.exec().out == app.expectedOutput
         fixture(debugBinary).assertHasDebugSymbolsFor(app.sourceFileNames)
 
@@ -461,7 +459,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
 
         then:
         resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease', ':stripSymbolsRelease', ':installRelease', ':_xcode___App_Release')
-        resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':linkRelease', ':stripSymbolsRelease', ':installRelease', ':_xcode___App_Release')
         releaseBinary.exec().out == app.expectedOutput
         fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNames)
     }
@@ -495,7 +492,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
 
         then:
         resultDebug.assertTasksExecuted(':compileDebugMacosSwift', ':linkDebugMacos', ':installDebugMacos', ':_xcode___App_DebugMacos')
-        resultDebug.assertTasksNotSkipped(':compileDebugMacosSwift', ':linkDebugMacos', ':installDebugMacos', ':_xcode___App_DebugMacos')
         debugBinary.exec().out == app.expectedOutput
         fixture(debugBinary).assertHasDebugSymbolsFor(app.sourceFileNames)
 
@@ -508,8 +504,8 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
                 .succeeds()
 
         then:
+        resultRelease.assertTasksScheduled(':compileReleaseMacosSwift', ':linkReleaseMacos', ':stripSymbolsReleaseMacos', ':installReleaseMacos', ':_xcode___App_ReleaseMacos')
         resultRelease.assertTasksExecuted(':compileReleaseMacosSwift', ':linkReleaseMacos', ':stripSymbolsReleaseMacos', ':installReleaseMacos', ':_xcode___App_ReleaseMacos')
-        resultRelease.assertTasksNotSkipped(':compileReleaseMacosSwift', ':linkReleaseMacos', ':stripSymbolsReleaseMacos', ':installReleaseMacos', ':_xcode___App_ReleaseMacos')
         releaseBinary.exec().out == app.expectedOutput
         fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNames)
     }
@@ -594,7 +590,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
 
         then:
         resultDebug.assertTasksExecuted(':compileDebugSwift', ':linkDebug', ':_xcode___App_Debug')
-        resultDebug.assertTasksNotSkipped(':compileDebugSwift', ':linkDebug', ':_xcode___App_Debug')
         debugBinary.assertExists()
         fixture(debugBinary).assertHasDebugSymbolsFor(lib.sourceFileNames)
 
@@ -607,8 +602,8 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             .succeeds()
 
         then:
+        resultRelease.assertTasksScheduled(':compileReleaseSwift', ':linkRelease', ':stripSymbolsRelease', ':_xcode___App_Release')
         resultRelease.assertTasksExecuted(':compileReleaseSwift', ':linkRelease', ':stripSymbolsRelease', ':_xcode___App_Release')
-        resultRelease.assertTasksNotSkipped(':compileReleaseSwift', ':linkRelease', ':stripSymbolsRelease', ':_xcode___App_Release')
         releaseBinary.assertExists()
         fixture(releaseBinary).assertHasDebugSymbolsFor(lib.sourceFileNames)
     }
@@ -641,7 +636,6 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
 
         then:
         resultDebug.assertTasksExecuted(':compileDebugMacosSwift', ':linkDebugMacos', ':_xcode___App_DebugMacos')
-        resultDebug.assertTasksNotSkipped(':compileDebugMacosSwift', ':linkDebugMacos', ':_xcode___App_DebugMacos')
         debugBinary.assertExists()
         fixture(debugBinary).assertHasDebugSymbolsFor(lib.sourceFileNames)
 
@@ -654,8 +648,8 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
                 .succeeds()
 
         then:
+        resultRelease.assertTasksScheduled(':compileReleaseMacosSwift', ':linkReleaseMacos', ':stripSymbolsReleaseMacos', ':_xcode___App_ReleaseMacos')
         resultRelease.assertTasksExecuted(':compileReleaseMacosSwift', ':linkReleaseMacos', ':stripSymbolsReleaseMacos', ':_xcode___App_ReleaseMacos')
-        resultRelease.assertTasksNotSkipped(':compileReleaseMacosSwift', ':linkReleaseMacos', ':stripSymbolsReleaseMacos', ':_xcode___App_ReleaseMacos')
         releaseBinary.assertExists()
         fixture(releaseBinary).assertHasDebugSymbolsFor(lib.sourceFileNames)
     }
