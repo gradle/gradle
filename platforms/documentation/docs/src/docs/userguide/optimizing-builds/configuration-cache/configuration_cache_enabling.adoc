@@ -353,7 +353,7 @@ To temporarily revert to the previous behavior, set the Gradle property `org.gra
 With the evolution of the Configuration Cache, Gradle may impose additional restrictions on build logic.
 To make adoption smoother, it is possible to _temporarily_ opt out of these restrictions in specific cases:
 
-1. Starting with Gradle 9.0, it is an error to use any provider, except a provider of `BuildService` returned from
+1. Starting with Gradle 9.0.0, it is an error to use any provider, except a provider of `BuildService` returned from
 link:{javadocPath}/org/gradle/api/services/BuildServiceRegistry.html#registerIfAbsent(java.lang.String,java.lang.Class,org.gradle.api.Action)[`BuildServiceRegistry.registerIfAbsent`]
 or
 link:{javadocPath}/org/gradle/api/services/BuildServiceRegistration.html#getService()[`BuildServiceRegistration.getService`]
