@@ -28,8 +28,6 @@ import org.gradle.api.tasks.diagnostics.TaskReportTask;
 import org.gradle.api.tasks.diagnostics.internal.DiagnosticsTaskNames;
 import org.gradle.configuration.Help;
 
-import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
-
 /**
  * Adds various reporting tasks that provide information about the project.
  *
@@ -75,7 +73,7 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
         // Static classes are used for the configure actions here to avoid implicitly dragging project/tasks into the model registry
         tasks.register(ProjectInternal.HELP_TASK, Help.class, new HelpAction());
         tasks.register(ProjectInternal.PROJECTS_TASK, ProjectReportTask.class, new ProjectReportTaskAction(projectName));
-        tasks.register(ProjectInternal.TASKS_TASK, TaskReportTask.class, new TaskReportTaskAction(projectName, getChildProjectsForInternalUse(project).isEmpty()));
+        tasks.register(ProjectInternal.TASKS_TASK, TaskReportTask.class, new TaskReportTaskAction(projectName, project.getChildProjects().isEmpty()));
         tasks.register(PROPERTIES_TASK, PropertyReportTask.class, new PropertyReportTaskAction(projectName));
     }
 

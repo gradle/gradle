@@ -22,6 +22,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.api.invocation.Gradle;
@@ -85,8 +86,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
-
 public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<EclipseRuntime> {
     private final GradleProjectBuilderInternal gradleProjectBuilder;
     private final EclipseModelAwareUniqueProjectNameProvider uniqueProjectNameProvider;
@@ -149,12 +148,13 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         currentProject = project;
         eclipseProjects = new ArrayList<>();
         ProjectInternal root = (ProjectInternal) project.getRootProject();
+        ProjectState rootProjectState = root.getOwner();
         rootGradleProject = gradleProjectBuilder.buildForRoot(project);
         tasksFactory.collectTasks(root);
         applyEclipsePlugin(root, new ArrayList<>());
         deduplicateProjectNames(root);
-        buildHierarchy(root);
-        populate(root);
+        buildHierarchy(rootProjectState);
+        populate(rootProjectState);
         return result;
     }
 
@@ -186,22 +186,23 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         }
     }
 
-    private DefaultEclipseProject buildHierarchy(Project project) {
+    private DefaultEclipseProject buildHierarchy(ProjectState projectState) {
         List<DefaultEclipseProject> children = new ArrayList<>();
-        for (Project child : getChildProjectsForInternalUse(project)) {
+        for (ProjectState child : projectState.getChildProjects()) {
             children.add(buildHierarchy(child));
         }
 
-        EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class);
+        Project mutableProject = projectState.getMutableModel();
+        EclipseModel eclipseModel = mutableProject.getExtensions().getByType(EclipseModel.class);
         org.gradle.plugins.ide.eclipse.model.EclipseProject internalProject = eclipseModel.getProject();
         String name = internalProject.getName();
         String description = GUtil.elvis(internalProject.getComment(), null);
-        DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children).setGradleProject(rootGradleProject.findByPath(project.getPath()));
+        DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, mutableProject.getPath(), description, mutableProject.getProjectDir(), children).setGradleProject(rootGradleProject.findByPath(mutableProject.getPath()));
 
         for (DefaultEclipseProject child : children) {
             child.setParent(eclipseProject);
         }
-        addProject(project, eclipseProject);
+        addProject(mutableProject, eclipseProject);
         return eclipseProject;
     }
 
@@ -212,8 +213,8 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         eclipseProjects.add(eclipseProject);
     }
 
-    private void populate(Project p) {
-        ((ProjectInternal) p).getOwner().applyToMutableState(project -> {
+    private void populate(ProjectState p) {
+        p.applyToMutableState(project -> {
             EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class);
 
             boolean projectDependenciesOnly = this.projectDependenciesOnly;
@@ -243,7 +244,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
             populateEclipseProjectJdt(eclipseProject, eclipseModel.getJdt());
         });
 
-        for (Project childProject : getChildProjectsForInternalUse(p)) {
+        for (ProjectState childProject : p.getChildProjects()) {
             populate(childProject);
         }
     }

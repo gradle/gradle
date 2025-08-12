@@ -18,7 +18,6 @@ package org.gradle.tooling.provider.model.internal;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Cast;
 import org.gradle.internal.build.BuildState;
@@ -51,18 +50,17 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
     }
 
     @Override
-    public <T> List<T> getModels(Project requester, List<Project> targets, String modelName, Class<T> modelType, @Nullable Object parameter) {
+    public <T> List<T> getModels(ProjectState requester, List<ProjectState> targets, String modelName, Class<T> modelType, @Nullable Object parameter) {
         if (targets.isEmpty()) {
             return Collections.emptyList();
         }
-
 
         List<Object> rawModels = fetchModels(requester, targets, modelName, parameter);
         return ensureModelTypes(modelType, rawModels);
     }
 
     @Override
-    public <P extends Plugin<Project>> void applyPlugin(Project requester, List<Project> targets, Class<P> pluginClass) {
+    public <P extends Plugin<Project>> void applyPlugin(ProjectState requester, List<ProjectState> targets, Class<P> pluginClass) {
         List<Object> rawModels = fetchModels(requester, targets, PluginApplyingBuilder.MODEL_NAME, createPluginApplyingParameter(pluginClass));
         ensureModelTypes(Boolean.class, rawModels);
     }
@@ -71,50 +69,44 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         return () -> pluginClass;
     }
 
-    private List<Object> fetchModels(Project requester, List<Project> targets, String modelName, @Nullable Object parameter) {
-        reportToolingModelDependencies((ProjectInternal) requester, targets);
+    private List<Object> fetchModels(ProjectState requester, List<ProjectState> targets, String modelName, @Nullable Object parameter) {
+        reportToolingModelDependencies(requester, targets);
         BuildState buildState = extractSingleBuildState(targets);
         ToolingModelParameterCarrier carrier = parameter == null ? null : parameterCarrierFactory.createCarrier(parameter);
         return buildState.withToolingModels(controller -> getModels(controller, targets, modelName, carrier));
     }
 
-    private List<Object> getModels(BuildToolingModelController controller, List<Project> targets, String modelName, @Nullable ToolingModelParameterCarrier parameter) {
+    private List<Object> getModels(BuildToolingModelController controller, List<ProjectState> targets, String modelName, @Nullable ToolingModelParameterCarrier parameter) {
         List<Supplier<Object>> fetchActions = targets.stream()
-            .map(targetProject -> (Supplier<Object>) () -> fetchModel(modelName, controller, (ProjectInternal) targetProject, parameter))
+            .map(targetProject -> (Supplier<Object>) () -> fetchModel(modelName, controller, targetProject, parameter))
             .collect(toList());
 
         return runFetchActions(fetchActions);
     }
 
     @Nullable
-    private static Object fetchModel(String modelName, BuildToolingModelController controller, ProjectInternal targetProject, @Nullable ToolingModelParameterCarrier parameter) {
-        ProjectState builderTarget = targetProject.getOwner();
+    private static Object fetchModel(String modelName, BuildToolingModelController controller, ProjectState builderTarget, @Nullable ToolingModelParameterCarrier parameter) {
         ToolingModelScope toolingModelScope = controller.locateBuilderForTarget(builderTarget, modelName, parameter != null);
         return toolingModelScope.getModel(modelName, parameter);
     }
 
-    private static BuildState extractSingleBuildState(List<Project> targets) {
+    private static BuildState extractSingleBuildState(List<ProjectState> targets) {
         if (targets.isEmpty()) {
             throw new IllegalStateException("Cannot find build state without target projects");
         }
 
-        BuildState result = getBuildState(targets.get(0));
+        BuildState result = targets.get(0).getOwner();
 
-        for (Project target : targets) {
-            BuildState projectBuildState = getBuildState(target);
-            if (result != projectBuildState) {
+        for (ProjectState target : targets) {
+            if (result != target.getOwner()) {
                 throw new IllegalArgumentException(
                     String.format("Expected target projects to share the same build state. Found at least two: '%s' and '%s'",
-                        result.getDisplayName(), projectBuildState.getDisplayName())
+                        result.getDisplayName(), target.getOwner().getDisplayName())
                 );
             }
         }
 
         return result;
-    }
-
-    private static BuildState getBuildState(Project target) {
-        return ((ProjectInternal) target).getOwner().getOwner();
     }
 
     private static <T> List<T> ensureModelTypes(Class<T> implementationType, List<Object> rawModels) {
@@ -134,9 +126,9 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         return actionRunner.run(actions);
     }
 
-    private void reportToolingModelDependencies(ProjectInternal requester, List<Project> targets) {
-        for (Project target : targets) {
-            projectDependencyListener.onToolingModelDependency(requester.getOwner(), ((ProjectInternal) target).getOwner());
+    private void reportToolingModelDependencies(ProjectState requester, List<ProjectState> targets) {
+        for (ProjectState target : targets) {
+            projectDependencyListener.onToolingModelDependency(requester, target);
         }
     }
 }
