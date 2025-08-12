@@ -17,7 +17,6 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
@@ -80,6 +79,7 @@ import org.gradle.util.Path
 import java.io.File
 import java.io.OutputStream
 import java.util.Locale
+import java.util.Properties
 import java.util.UUID
 
 
@@ -814,14 +814,13 @@ class DefaultConfigurationCache internal constructor(
             return CheckedFingerprint.Invalid(buildPath(), classLoaderScopesInvalidationReason)
         }
 
-        loadGradleProperties()
-
+        val systemPropertiesSnapshot = System.getProperties().clone()
         return checkFingerprintAgainstLoadedProperties(candidateEntry).also { result ->
-            if (result !is CheckedFingerprint.Valid) {
-                // Force Gradle properties to be reloaded so the Gradle properties files
-                // along with any Gradle property defining system properties and environment variables
-                // are added to the new fingerprint.
-                unloadGradleProperties()
+            if (result !is CheckedFingerprint.Valid || result.invalidProjects != null) {
+                // Restore system properties and force Gradle properties to be reloaded
+                // so the Gradle properties files along with any Gradle property defining
+                // system properties and environment variables are added to the new fingerprint.
+                rollbackProperties(systemPropertiesSnapshot.uncheckedCast())
             }
         }
     }
@@ -890,15 +889,9 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun loadGradleProperties() {
-        val rootBuildId = DefaultBuildIdentifier.ROOT
-        gradlePropertiesController.loadGradleProperties(rootBuildId, startParameter.buildTreeRootDirectory, true)
-    }
-
-    private
-    fun unloadGradleProperties() {
-        val rootBuildId = DefaultBuildIdentifier.ROOT
-        gradlePropertiesController.unloadGradleProperties(rootBuildId)
+    fun rollbackProperties(systemPropertiesSnapshot: Properties) {
+        gradlePropertiesController.unloadAll()
+        System.setProperties(systemPropertiesSnapshot)
     }
 
     private
