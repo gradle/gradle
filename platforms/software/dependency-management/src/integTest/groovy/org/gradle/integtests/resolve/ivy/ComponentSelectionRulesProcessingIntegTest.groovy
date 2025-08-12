@@ -474,7 +474,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
     }
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
-    def "can provide component selection rule as rule source"() {
+    def "can provide component selection all rule as rule source"() {
         buildFile << """
 
             dependencies {
@@ -524,6 +524,58 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         then:
         executer.expectDocumentedDeprecationWarning("The ComponentSelectionRules.all(Object) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_management_rules")
         checkDependencies()
+    }
 
+    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
+    def "can provide component selection withModule rule as rule source"() {
+        buildFile << """
+
+            dependencies {
+                conf "org.utils:api:1.+"
+            }
+
+            def ruleSource = new Select11()
+
+            configurations.all {
+                resolutionStrategy {
+                    componentSelection {
+                        withModule("org.utils:api", ruleSource)
+                    }
+                }
+            }
+
+            checkDeps.doLast {
+                def artifacts = configurations.conf.incoming.artifacts.artifacts
+                assert artifacts.size() == 1
+                assert artifacts[0].id.componentIdentifier.version == '1.1'
+                assert ruleSource.candidates == ['1.2', '1.1']
+            }
+
+            class Select11 {
+                def candidates = []
+
+                @Mutate
+                void select(ComponentSelection selection) {
+                    if (selection.candidate.version != '1.1') {
+                        selection.reject("not 1.1")
+                    }
+                    candidates << selection.candidate.version
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org.utils:api' {
+                expectVersionListing()
+                '1.1' {
+                    expectResolve()
+                }
+            }
+        }
+
+        then:
+        executer.expectDocumentedDeprecationWarning("The ComponentSelectionRules.withModule(Object,Object) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_management_rules")
+        checkDependencies()
     }
 }
