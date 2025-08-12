@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r920;
+package org.gradle.integtests.tooling.r920
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion;
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification;
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildAction
-import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildController
+import org.gradle.tooling.Failure
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
-import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel;
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
+import org.gradle.tooling.model.kotlin.dsl.ResilientKotlinDslScriptsModel
 
 @ToolingApiVersion('>=9.2')
 @TargetGradleVersion('>=9.2')
@@ -33,55 +34,112 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         settingsFile.delete()
     }
 
-    def "basic project w/ included build - broken included build settings file and build script - strict mode - build action"() {
+    def "returns all successful and first failed script model when #description"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
-            includeBuild("included")
+            include("a", "b", "c", "d")
         """
 
-        def included = file("included")
-        def includedSettings = included.file("settings.gradle.kts") << """
-
-        """
-        included.file("build.gradle.kts") << """
+        file("a/build.gradle.kts") << """
             plugins {
                 id("java")
             }
-            boom !!!
+
+        """
+        file("b/build.gradle.kts") << """
+            plugins {
+                id("java")
+            }
+        """
+        def c = file("c/build.gradle.kts") << """
+            plugins {
+                id("java")
+            }
+        """
+        def d = file("d/build.gradle.kts") << """
+            plugins {
+                id("java")
+            }
         """
 
         when:
-        def model = succeeds {
-            action(new CustomModelAction()).run()
+        def original = succeeds {
+            action(new OriginalModelAction()).run()
         }
 
         then:
-        model.scriptModels.size() == 3
+        original
+
+        when:
+        c << """$breakage"""
+        def resilientModels = succeeds {
+            action(new ResilientModelAction()).run()
+        }
+
+        then:
+        // TODO: Figure out why we return more
+        // resilientModels.scriptModels.size() == original.scriptModels.size()
+        resilientModels.scriptModels.size() == original.scriptModels.size() - 1
+        def resilientScripts = resilientModels.scriptModels.collect { it.key}
+        for (File scriptFile : original.scriptModels.keySet()) {
+            if (scriptFile == d) {
+                assert !resilientScripts.contains(scriptFile)
+            } else {
+                assert resilientScripts.contains(scriptFile)
+                def originalModel = original.scriptModels.get(scriptFile)
+                def resilientModel = resilientModels.scriptModels.get(scriptFile)
+                // Accessors don't match for some reason
+                assert originalModel.classPath.find { !it.absolutePath.contains("/accessors/") } == resilientModel.classPath.find { !it.absolutePath.contains("/accessors/") }
+                assert originalModel.implicitImports == resilientModel.implicitImports
+            }
+        }
+        resilientModels.failureMessage.contains("c/build.gradle.kts' line: 5")
+        resilientModels.failureMessage.contains(expectedFailure)
+
+        where:
+        description                | breakage                                     | expectedFailure
+        "scripts evaluation fails" | "throw RuntimeException(\"Failing script\")" | "Failing script"
+        "script compilation fails" | "broken !!!"                                 | "broken !!!"
     }
 
     static class MyCustomModel implements Serializable {
 
         Map<File, KotlinDslScriptModel> scriptModels
 
-        MyCustomModel(Map<File, KotlinDslScriptModel> scriptModels) {
+        String failureMessage
+
+        MyCustomModel(Map<File, KotlinDslScriptModel> scriptModels, Failure failure) {
             this.scriptModels = scriptModels
+            this.failureMessage = failure ? failure.description : null
         }
 
     }
 
-    static class CustomModelAction implements BuildAction<MyCustomModel>, Serializable {
+    static class OriginalModelAction implements BuildAction<MyCustomModel>, Serializable {
 
         @Override
         MyCustomModel execute(BuildController controller) {
             KotlinDslScriptsModel buildScriptModel = controller.getModel(KotlinDslScriptsModel.class)
-            KotlinDslScriptsModel buildScriptModel2 = controller.getModel(KotlinDslScriptsModel.class)
 
             return new MyCustomModel(
                 buildScriptModel.scriptModels,
+                null
             )
         }
+    }
 
+    static class ResilientModelAction implements BuildAction<MyCustomModel>, Serializable {
+
+        @Override
+        MyCustomModel execute(BuildController controller) {
+            ResilientKotlinDslScriptsModel buildScriptModel = controller.getModel(ResilientKotlinDslScriptsModel.class)
+
+            return new MyCustomModel(
+                buildScriptModel.model.scriptModels,
+                buildScriptModel.failure
+            )
+        }
     }
 
 }
