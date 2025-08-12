@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r64
+package org.gradle.integtests.tooling
 
-import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
-class DaemonReuseCrossVersionSpec extends ToolingApiSpecification {
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires a daemon")
+class DaemonReuseIntegrationTest extends AbstractIntegrationSpec {
+
+    ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
 
     def setup() {
         toolingApi.requireIsolatedDaemons()
@@ -37,7 +41,6 @@ class DaemonReuseCrossVersionSpec extends ToolingApiSpecification {
         assertSameDaemon(original)
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires a daemon")
     def "tooling API client reuses existing daemon started by CLI"() {
         runBuildViaCLI()
         def original = getDaemonUID()
@@ -47,7 +50,6 @@ class DaemonReuseCrossVersionSpec extends ToolingApiSpecification {
         assertSameDaemon(original)
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires a daemon")
     def "CLI reuses existing daemon started by TAPI"() {
         runBuildViaTAPI()
         def original = getDaemonUID()
@@ -66,20 +68,20 @@ class DaemonReuseCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private void runBuildViaTAPI() {
-        withConnection {
+        toolingApi.withConnection {
             def build = newBuild()
-            build.setJvmArguments(NORMALIZED_BUILD_JVM_OPTS + "-Djava.io.tmpdir=${buildContext.getTmpDir().absolutePath}".toString())
+            build.setJvmArguments(ToolingApiSpecification.NORMALIZED_BUILD_JVM_OPTS + "-Djava.io.tmpdir=${buildContext.getTmpDir().absolutePath}".toString())
             build.forTasks("help")
             build.run()
         }
     }
 
     private void runBuildViaCLI() {
-        new NoDaemonGradleExecuter(toolingApi.getDistribution(), temporaryFolder, buildContext)
+        executer
             .withDaemonBaseDir(toolingApi.daemonBaseDir)
             .requireDaemon()
             .useOnlyRequestedJvmOpts()
-            .withArguments("-Dorg.gradle.jvmargs=${NORMALIZED_BUILD_JVM_OPTS.join(" ")} -Djava.io.tmpdir=${buildContext.getTmpDir().absolutePath}")
+            .withArguments("-Dorg.gradle.jvmargs=${ToolingApiSpecification.NORMALIZED_BUILD_JVM_OPTS.join(" ")} -Djava.io.tmpdir=${buildContext.getTmpDir().absolutePath}")
             .withTasks("help")
             .run()
     }

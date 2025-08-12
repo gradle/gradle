@@ -17,7 +17,6 @@
 package org.gradle.integtests.tooling.fixture
 
 import org.gradle.internal.UncheckedException
-import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.internal.consumer.BlockingResultHandler
@@ -25,7 +24,7 @@ import org.gradle.tooling.internal.consumer.BlockingResultHandler
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-class TestResultHandler implements ResultHandler<Object>, BlockingHttpServer.FailureTracker {
+class TestResultHandler implements ResultHandler<Object> {
     final latch = new CountDownLatch(1)
     GradleConnectionException failure
 
@@ -38,11 +37,11 @@ class TestResultHandler implements ResultHandler<Object>, BlockingHttpServer.Fai
         latch.countDown()
     }
 
-    def finished() {
+    void finished() {
         finished(20)
     }
 
-    def finished(int seconds) {
+    void finished(int seconds) {
         if (!latch.await(seconds, TimeUnit.SECONDS)) {
             throw new AssertionError("Timeout waiting for operation to complete.")
         }
