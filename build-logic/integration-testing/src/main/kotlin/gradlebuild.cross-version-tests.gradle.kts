@@ -46,7 +46,21 @@ fun configureTestFixturesForCrossVersionTests() {
         }
     }
 }
+
 val releasedVersions = gradleModule.identity.releasedVersions.orNull
+
+fun Test.addShadedJarDependency() {
+    val moduleIdentity = gradleModule.identity
+    val shadedJarFile: Provider<String> = moduleIdentity.baseName.zip(moduleIdentity.version) { baseName, version ->
+        "shaded-jar/gradle-tooling-api-shaded-${version.baseVersion.version}.jar"
+    }
+    val jarFile = project(":tooling-api").layout.buildDirectory.file(shadedJarFile)
+    inputs.file(jarFile).withPathSensitivity(PathSensitivity.NONE)
+
+    systemProperty("toolingApi.shadedJar", jarFile.get().asFile.absolutePath)
+
+    dependsOn(":tooling-api:toolingApiShadedJar")
+}
 
 fun createQuickFeedbackTasks() {
     val testType = TestType.CROSSVERSION
@@ -55,6 +69,7 @@ fun createQuickFeedbackTasks() {
     testType.executers.forEach { executer ->
         val taskName = "$executer${prefix.capitalize()}Test"
         val testTask = createTestTask(taskName, executer, sourceSet, testType) {
+            addShadedJarDependency()
             this.setSystemPropertiesOfTestJVM("latest")
             this.systemProperties["org.gradle.integtest.crossVersion"] = "true"
             this.systemProperties["org.gradle.integtest.crossVersion.lowestTestedVersion"] = releasedVersions?.lowestTestedVersion?.version
@@ -84,6 +99,7 @@ fun createAggregateTasks(sourceSet: SourceSet) {
     val releasedVersions = gradleModule.identity.releasedVersions.orNull
     releasedVersions?.allTestedVersions?.forEach { targetVersion ->
         val crossVersionTest = createTestTask("gradle${targetVersion.version}CrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION) {
+            addShadedJarDependency()
             this.description = "Runs the cross-version tests against Gradle ${targetVersion.version}"
             this.systemProperties["org.gradle.integtest.versions"] = targetVersion.version
             this.systemProperties["org.gradle.integtest.crossVersion"] = "true"
