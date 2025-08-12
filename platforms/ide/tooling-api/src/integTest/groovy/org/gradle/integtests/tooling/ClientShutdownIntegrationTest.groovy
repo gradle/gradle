@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r22
+package org.gradle.integtests.tooling
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
+import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
@@ -25,13 +26,17 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.junit.Rule
 
-class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
-    private static final JVM_OPTS = ["-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError"] + NORMALIZED_BUILD_JVM_OPTS
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requires a daemon")
+class ClientShutdownIntegrationTest extends AbstractIntegrationSpec {
+    private static final JVM_OPTS = ["-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError"] + ToolingApiSpecification.NORMALIZED_BUILD_JVM_OPTS
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
+    ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
+
     def setup() {
+        settingsFile.touch()
         toolingApi.requireIsolatedToolingApi()
         toolingApi.requireIsolatedUserHome()
     }
@@ -52,7 +57,7 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def "cleans up idle daemons when tooling API session is shutdown"() {
-        withConnection { connection ->
+        toolingApi.withConnection { connection ->
             connection.model(GradleBuild).setJvmArguments(buildJvmArguments).get()
         }
         toolingApi.daemons.daemon.assertIdle()
@@ -64,7 +69,6 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
         toolingApi.daemons.daemon.stops()
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requires a daemon")
     def "cleans up busy daemons once they become idle when tooling API session is shutdown"() {
         given:
         server.start()
@@ -72,7 +76,7 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
 task slow { doLast { ${server.callFromBuild('sync')} } }
 """
         def sync = server.expectAndBlock('sync')
-        withConnection { connection ->
+        toolingApi.withConnection { connection ->
             connection.model(GradleBuild).setJvmArguments(buildJvmArguments).get()
         }
         toolingApi.daemons.daemon.assertIdle()
@@ -97,7 +101,7 @@ task slow { doLast { ${server.callFromBuild('sync')} } }
 
     def "shutdown ignores daemons that are no longer running"() {
         given:
-        withConnection { connection ->
+        toolingApi.withConnection { connection ->
             connection.model(GradleBuild).setJvmArguments(buildJvmArguments).get()
         }
         toolingApi.daemons.daemon.assertIdle()
@@ -110,13 +114,12 @@ task slow { doLast { ${server.callFromBuild('sync')} } }
         noExceptionThrown()
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requires a daemon")
     def "shutdown ignores daemons that were not started by client"() {
         given:
         daemonExecutor().run()
         toolingApi.daemons.daemon.assertIdle()
 
-        withConnection { connection ->
+        toolingApi.withConnection { connection ->
             connection.model(GradleBuild).setJvmArguments(buildJvmArguments).get()
         }
         toolingApi.daemons.daemon.assertIdle()
@@ -129,7 +132,7 @@ task slow { doLast { ${server.callFromBuild('sync')} } }
     }
 
     private GradleExecuter daemonExecutor() {
-        new NoDaemonGradleExecuter(targetDist, temporaryFolder, getBuildContext())
+        executer
             .withDaemonBaseDir(toolingApi.daemonBaseDir)
             .withBuildJvmOpts(buildJvmArguments)
             .useOnlyRequestedJvmOpts()

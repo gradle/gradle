@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.m8
+package org.gradle.integtests.tooling
 
 import org.apache.commons.io.output.TeeOutputStream
-import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.TestOutputStream
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.util.GradleVersion
 
 @LeaksFileHandles
-class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiLoggingIntegrationTest extends AbstractIntegrationSpec {
+
+    ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
 
     def setup() {
         toolingApi.requireIsolatedToolingApi()
@@ -38,6 +38,7 @@ class ToolingApiLoggingCrossVersionSpec extends ToolingApiSpecification {
     def "client receives same stdout and stderr when in verbose mode as if running from the command-line in debug mode"() {
         toolingApi.verboseLogging = true
 
+        settingsFile.touch()
         file("build.gradle") << """
 System.err.println "sys err logging xxx"
 
@@ -53,7 +54,7 @@ project.logger.debug("debug logging yyy");
         when:
         def stdOut = new TestOutputStream()
         def stdErr = new TestOutputStream()
-        withConnection {
+        toolingApi.withConnection {
             def build = it.newBuild()
             build.standardOutput = new TeeOutputStream(stdOut, System.out)
             build.standardError = new TeeOutputStream(stdErr, System.err)
@@ -70,19 +71,11 @@ project.logger.debug("debug logging yyy");
         out.count("lifecycle logging yyy") == 1
         out.count("warn logging yyy") == 1
         out.count("println logging yyy") == 1
-        if (targetVersion.baseVersion >= GradleVersion.version("4.7")) {
-            // Handling of error log message changed
-            out.count("error logging xxx") == 1
-            out.count("sys err logging xxx") == 1
+        out.count("logging xxx") == 0
 
-            err.count("logging") == 0
-        }  else {
-            out.count("logging xxx") == 0
-
-            err.count("logging yyy") == 0
-            err.count("error logging xxx") == 1
-            err.count("sys err logging xxx") == 1
-        }
+        err.count("logging yyy") == 0
+        err.count("error logging xxx") == 1
+        err.count("sys err logging xxx") == 1
 
         and:
         shouldNotContainProviderLogging(out)
@@ -105,27 +98,26 @@ project.logger.info ("info logging");
 project.logger.debug("debug logging");
 """
         when:
-        def commandLineResult = runUsingCommandLine()
-
+        succeeds("help")
         and:
-        withBuild()
+        def stdOut = new TestOutputStream()
+        def stdErr = new TestOutputStream()
+        toolingApi.withConnection {
+            newBuild().forTasks("help")
+                .setStandardOutput(new TeeOutputStream(stdOut, System.out))
+                .setStandardError(new TeeOutputStream(stdErr, System.err))
+                .run()
+        }
 
         then:
-        def out = result.output
-        def err = result.error
-        def commandLineOutput = removeStartupWarnings(commandLineResult.output)
-        normaliseOutput(out) == normaliseOutput(commandLineOutput)
-        err == commandLineResult.error
+        def out = stdOut.toString()
+        def err = stdErr.toString()
+        normaliseOutput(out) == normaliseOutput(removeStartupWarnings(result.output))
+        err == result.error
 
         and:
-        def errLogging
-        if (targetDist.toolingApiMergesStderrIntoStdout) {
-            errLogging = out
-        } else {
-            errLogging = err
-        }
-        errLogging.count("System.err \u03b1\u03b2") == 1
-        errLogging.count("error logging \u03b1\u03b2") == 1
+        err.count("System.err \u03b1\u03b2") == 1
+        err.count("error logging \u03b1\u03b2") == 1
 
         and:
         out.count("lifecycle logging \u03b1\u03b2") == 1
@@ -146,25 +138,6 @@ project.logger.debug("debug logging");
             output = output.substring(output.indexOf('\n') + 1)
         }
         output
-    }
-
-    private ExecutionResult runUsingCommandLine() {
-        def executer = new NoDaemonGradleExecuter(targetDist, temporaryFolder, getBuildContext())
-            .withCommandLineGradleOpts("-Dorg.gradle.deprecation.trace=false") //suppress deprecation stack trace
-            .noExtraLogging() // use default logging level, NoDaemonGradleExecuter sets --info otherwise
-
-        if (targetDist.toolingApiMergesStderrIntoStdout) {
-            // The TAPI provider merges the streams, so need to merge the streams for command-line execution too
-            executer.withArgument("--console=plain")
-            executer.withTestConsoleAttached()
-            // We changed the test console system property values in 4.9, need to use "both" instead of "BOTH"
-            if (targetVersion.baseVersion >= GradleVersion.version("4.8")
-                    && targetVersion.baseVersion < GradleVersion.version("4.9")) {
-                executer.withCommandLineGradleOpts("-Dorg.gradle.internal.console.test-console=both")
-            }
-        }
-
-        return executer.run()
     }
 
     String normaliseOutput(String output) {
