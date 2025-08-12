@@ -280,7 +280,6 @@ dependencies {
                         rulesInvoked << details.id.version
                     }
                     all(new ActionRule('rulesInvoked': rulesInvoked))
-                    all(new RuleObject('rulesInvoked': rulesInvoked))
                     all(VerifyingRule)
                 }
             }
@@ -293,18 +292,9 @@ dependencies {
                 }
             }
 
-            class RuleObject {
-                List rulesInvoked
-
-                @org.gradle.model.Mutate
-                void execute(ComponentMetadataDetails details) {
-                    rulesInvoked << details.id.version
-                }
-            }
-
             def rules1 = provider { rulesInvoked }
             resolve.doLast {
-                assert rules1.get() == [ '1.0', '1.0', '1.0', '1.0', '1.0' ]
+                assert rules1.get() == [ '1.0', '1.0', '1.0', '1.0' ]
                 assert VerifyingRule.ruleInvoked
             }
         """
@@ -317,7 +307,6 @@ dependencies {
         }
 
         then:
-        executer.expectDocumentedDeprecationWarning("The ComponentMetadataHandler.all(Object) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_management_rules")
         succeeds 'resolve'
     }
 
@@ -353,13 +342,11 @@ dependencies {
                         rulesInvoked << 1
                     }
                     withModule('org.test:projectA', new ActionRule('rulesInvoked': rulesInvoked))
-                    withModule('org.test:projectA', new RuleObject('rulesInvoked': rulesInvoked))
 
                     withModule('org.test:projectB') { ComponentMetadataDetails details ->
                         rulesUninvoked << 1
                     }
                     withModule('org.test:projectB', new ActionRule('rulesInvoked': rulesUninvoked))
-                    withModule('org.test:projectB', new RuleObject('rulesInvoked': rulesUninvoked))
 
                     withModule('org.test:projectA', InvokedRule)
                     withModule('org.test:projectB', NotInvokedRule)
@@ -374,19 +361,10 @@ dependencies {
                 }
             }
 
-            class RuleObject {
-                List rulesInvoked
-
-                @org.gradle.model.Mutate
-                void execute(ComponentMetadataDetails details) {
-                    rulesInvoked << 3
-                }
-            }
-
             def rules1 = provider { rulesInvoked }
             def rules2 = provider { rulesUninvoked }
             resolve.doLast {
-                assert rules1.get().sort() == [ 1, 2, 3 ]
+                assert rules1.get().sort() == [ 1, 2 ]
                 assert rules2.get().empty
                 assert InvokedRule.ruleInvoked
                 assert !NotInvokedRule.ruleInvoked
@@ -401,36 +379,7 @@ dependencies {
         }
 
         then:
-        executer.expectDocumentedDeprecationWarning("The ComponentMetadataHandler.withModule(Object,Object) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_management_rules")
-        executer.expectDocumentedDeprecationWarning("The ComponentMetadataHandler.withModule(Object,Object) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_management_rules")
-
         succeeds 'resolve'
-    }
-
-    def "produces sensible error when @Mutate method does not have ComponentMetadata as first parameter"() {
-        buildFile << """
-            dependencies {
-                components {
-                    all(new BadRuleSource())
-                }
-            }
-
-            class BadRuleSource {
-                @org.gradle.model.Mutate
-                void doSomething(String s) { }
-            }
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning("The ComponentMetadataHandler.all(Object) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_management_rules")
-        fails "resolve"
-
-        then:
-        executer.expectDocumentedDeprecationWarning("The ComponentMetadataHandler.all(Object) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_management_rules")
-        fails 'resolveConf'
-        failureDescriptionStartsWith("A problem occurred evaluating root project")
-        failure.assertHasCause("""Type BadRuleSource is not a valid rule source:
-- Method doSomething(java.lang.String) is not a valid rule method: First parameter of a rule method must be of type org.gradle.api.artifacts.ComponentMetadataDetails""")
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")

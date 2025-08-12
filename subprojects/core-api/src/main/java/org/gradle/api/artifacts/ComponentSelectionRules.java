@@ -77,24 +77,6 @@ public interface ComponentSelectionRules {
     ComponentSelectionRules all(@DelegatesTo(ComponentSelection.class) Closure<?> closure);
 
     /**
-     * Adds a rule-source backed component selection rule that will apply to all resolved components.
-     *
-     * The ruleSource provides the rule as exactly one rule method annotated with {@link org.gradle.model.Mutate}.
-     *
-     * This rule method:
-     * <ul>
-     *     <li>must return void.</li>
-     *     <li>must have {@link org.gradle.api.artifacts.ComponentSelection} as its parameter.</li>
-     * </ul>
-     *
-     * @param ruleSource an instance providing a rule implementation
-     * @return this
-     * @deprecated use {@link #all(Action)} instead.
-     */
-    @Deprecated
-    ComponentSelectionRules all(Object ruleSource);
-
-    /**
      * Adds a component selection rule that will apply to the specified module.
      * Each rule will receive a {@link ComponentSelection} object as an argument.
      *
@@ -114,23 +96,4 @@ public interface ComponentSelectionRules {
      * @return this
      */
     ComponentSelectionRules withModule(Object id, @DelegatesTo(ComponentSelection.class) Closure<?> closure);
-
-    /**
-     * Adds a rule-source backed component selection rule that will apply to the specified module.
-     *
-     * The ruleSource provides the rule as exactly one rule method annotated with {@link org.gradle.model.Mutate}.
-     *
-     * This rule method:
-     * <ul>
-     *     <li>must return void.</li>
-     *     <li>must have {@link org.gradle.api.artifacts.ComponentSelection} as its parameter.</li>
-     * </ul>
-     *
-     * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
-     * @param ruleSource an instance providing a rule implementation
-     * @return this
-     * @deprecated use {@link #withModule(Object,Action)} instead.
-     */
-    @Deprecated
-    ComponentSelectionRules withModule(Object id, Object ruleSource);
 }
