@@ -305,7 +305,6 @@ fun settingsScriptModelBuilder(scriptFile: File, project: Project) = project.run
         scriptFile = scriptFile,
         project = project,
         scriptClassPath = settings.scriptCompilationClassPath,
-        accessorsClassPath = { settings.accessorsClassPathOf(it) },
         sourceLookupScriptHandlers = listOf(settings.buildscript),
         enclosingScriptProjectDir = rootDir
     )
