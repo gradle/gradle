@@ -43,12 +43,13 @@ Additionally, Gradle applies performance optimizations to task execution.
 
 To do this, Gradle does the following:
 
-[cols="~,~,~,~"]
+[cols="~,~,~,~,~"]
 |===
 | Phase | Cache | Cache Key | Work Avoidance | Parallelism and Performance
 
 | *Configuration* | Configuration Cache | Build logic and environment | Skip project configuration | Runs tasks in parallel within the same project, optimizes memory, and more
 | *Execution* | Build Cache | Task inputs | Skip task execution | Runs independent tasks in different projects in parallel with `--parallel`
+
 |===
 
 The Configuration Cache is similar to the <<build_cache#build_cache,Build Cache>>, but they store different types of data:
