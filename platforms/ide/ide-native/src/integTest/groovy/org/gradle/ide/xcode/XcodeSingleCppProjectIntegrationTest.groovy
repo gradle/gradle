@@ -332,7 +332,6 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
             .succeeds()
 
         then:
-        resultRelease.assertTasksScheduled(':compileReleaseCpp', ':linkRelease', ':stripSymbolsRelease', ':installRelease', ':_xcode___App_Release')
         resultRelease.assertTasksExecuted(':compileReleaseCpp', ':linkRelease', ':stripSymbolsRelease', ':installRelease', ':_xcode___App_Release')
         releaseBinary.exec().out == app.expectedOutput
         fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
@@ -376,7 +375,6 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
                 .succeeds()
 
         then:
-        resultRelease.assertTasksScheduled(':compileReleaseX86-64Cpp', ':linkReleaseX86-64', ':stripSymbolsReleaseX86-64', ':installReleaseX86-64', ':_xcode___App_ReleaseX86-64')
         resultRelease.assertTasksExecuted(':compileReleaseX86-64Cpp', ':linkReleaseX86-64', ':stripSymbolsReleaseX86-64', ':installReleaseX86-64', ':_xcode___App_ReleaseX86-64')
         releaseBinary.exec().out == app.expectedOutput
         fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
@@ -418,7 +416,6 @@ apply plugin: 'cpp-library'
             .succeeds()
 
         then:
-        resultRelease.assertTasksScheduled(':compileReleaseCpp', ':linkRelease', ':stripSymbolsRelease', ':_xcode___App_Release')
         resultRelease.assertTasksExecuted(':compileReleaseCpp', ':linkRelease', ':stripSymbolsRelease', ':_xcode___App_Release')
         releaseBinary.assertExists()
         fixture(releaseBinary).assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
@@ -462,7 +459,6 @@ apply plugin: 'cpp-library'
                 .succeeds()
 
         then:
-        resultRelease.assertTasksScheduled(':compileReleaseX86-64Cpp', ':linkReleaseX86-64', ':stripSymbolsReleaseX86-64', ':_xcode___App_ReleaseX86-64')
         resultRelease.assertTasksExecuted(':compileReleaseX86-64Cpp', ':linkReleaseX86-64', ':stripSymbolsReleaseX86-64', ':_xcode___App_ReleaseX86-64')
         releaseBinary.assertExists()
         fixture(releaseBinary).assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
