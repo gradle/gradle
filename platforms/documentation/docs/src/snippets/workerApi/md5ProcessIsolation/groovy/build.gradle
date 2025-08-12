@@ -4,7 +4,7 @@ repositories {
     mavenCentral()
 }
 
-configurations.register('codec') {
+configurations.create('codec') {
     attributes {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
     }
