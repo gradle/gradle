@@ -27,6 +27,7 @@ dependencies {
 
     api(projects.baseServices)
     api(projects.coreApi)
+    api(projects.internalDistributionTesting)
     api(projects.internalIntegTesting)
     api(projects.internalTesting)
     api(projects.stdlibJavaExtensions)
