@@ -28,8 +28,27 @@ import java.util.Map;
 @ServiceScope(Scope.BuildTree.class)
 public interface ResilientSyncListener {
 
-    void onKotlinScriptCompilationStarted(File scriptFile, List<File> classpath, List<String> implicitImports);
+    void onKotlinScriptCompilationStarted(File scriptFile, List<File> classpath, List<String> implicitImports, Runnable runnable);
 
-    Map<File, List<File>> getClasspaths();
+    Map<File, KotlinCompilationInternalModel> getModels();
 
+    @NullMarked
+    class KotlinCompilationInternalModel {
+
+        private final List<File> classpath;
+        private final List<String> implicitImports;
+
+        public  KotlinCompilationInternalModel(List<File> classpath, List<String> implicitImports) {
+            this.classpath = classpath;
+            this.implicitImports = implicitImports;
+        }
+
+        public List<File> getClasspath() {
+            return classpath;
+        }
+
+        public List<String> getImplicitImports() {
+            return implicitImports;
+        }
+    }
 }
