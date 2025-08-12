@@ -95,22 +95,22 @@ public class Providers {
         return new ChangingProvider<>(value);
     }
 
-    public static <T> Provider<T> memoizing(ProviderInternal<T> provider) {
+    public static <T> ProviderInternal<T> memoizing(ProviderInternal<T> provider) {
         return memoizing(provider, null);
     }
 
-    public static <T> Provider<T> memoizing(ProviderInternal<T> provider, @Nullable SerializableSupplier<DisplayName> displayName) {
+    public static <T> ProviderInternal<T> memoizing(ProviderInternal<T> provider, @Nullable SerializableSupplier<DisplayName> displayName) {
         return new MemoizingProvider<>(provider, displayName);
     }
 
-    public static class MemoizingProvider<T> extends AbstractMinimalProvider<T> {
+    private static class MemoizingProvider<T> extends AbstractMinimalProvider<T> {
         private final ProviderInternal<T> provider;
         @Nullable
         private Value<? extends T> value;
         @Nullable
         private final Supplier<DisplayName> displayName;
 
-        public MemoizingProvider(ProviderInternal<T> provider, @Nullable Supplier<DisplayName> displayName) {
+        public MemoizingProvider(ProviderInternal<T> provider, @Nullable SerializableSupplier<DisplayName> displayName) {
             this.provider = provider;
             this.displayName = displayName;
         }
