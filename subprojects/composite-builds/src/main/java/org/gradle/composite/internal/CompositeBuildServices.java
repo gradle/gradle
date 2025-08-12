@@ -83,15 +83,17 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
         @Provides
         public ResilientSyncListener createResilientSyncListener() {
             return new ResilientSyncListener() {
-                private final Map<File, List<File>> classpaths = new ConcurrentHashMap<>();
+                private final Map<File, KotlinCompilationInternalModel> models = new ConcurrentHashMap<>();
+
                 @Override
-                public void onKotlinScriptCompilationStarted(File scriptFile, List<File> classpath) {
-                    classpaths.put(scriptFile, classpath);
+                public void onKotlinScriptCompilationStarted(File scriptFile, List<File> classpath, List<String> implicitImports, Runnable runnable) {
+                    models.put(scriptFile, new KotlinCompilationInternalModel(classpath, implicitImports));
+                    runnable.run();
                 }
 
                 @Override
-                public Map<File, List<File>> getClasspaths() {
-                    return classpaths;
+                public Map<File, KotlinCompilationInternalModel> getModels() {
+                    return models;
                 }
             };
         }
