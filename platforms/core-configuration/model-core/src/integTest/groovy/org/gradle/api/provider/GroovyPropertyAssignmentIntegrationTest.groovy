@@ -279,7 +279,7 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
                 }
             }
 
-            project.extensions.add('pluginDeclarations', project.container(PluginDeclaration))
+            project.extensions.add('pluginDeclarations', project.objects.domainObjectContainer(PluginDeclaration))
 
             pluginDeclarations {
                 myPlugin {
