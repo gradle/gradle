@@ -37,6 +37,7 @@ import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.GroovySourceDirectorySet
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.PathSensitive
@@ -239,9 +240,16 @@ fun Project.configureIde(testType: TestType) {
 
     // We apply lazy as we don't want to depend on the order
     plugins.withType<IdeaPlugin> {
+        val testKotlinSourceSet = sourceSet.extensions.findByName("kotlin") as SourceDirectorySet?
         with(model) {
             module {
-                testSources.from(sourceSet.java.srcDirs, sourceSet.the<GroovySourceDirectorySet>().srcDirs)
+                // workaround for https://github.com/gradle/gradle/issues/34646
+                if (testKotlinSourceSet != null) {
+                    testSources.from(sourceSet.java.srcDirs, sourceSet.the<GroovySourceDirectorySet>().srcDirs, testKotlinSourceSet.srcDirs)
+                }
+                else {
+                    testSources.from(sourceSet.java.srcDirs, sourceSet.the<GroovySourceDirectorySet>().srcDirs)
+                }
                 testResources.from(sourceSet.resources.srcDirs)
             }
         }
