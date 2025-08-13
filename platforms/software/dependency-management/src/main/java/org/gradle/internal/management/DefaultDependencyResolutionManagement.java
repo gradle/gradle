@@ -238,6 +238,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         }
 
         @Override
+        @Deprecated
         public ComponentMetadataHandler all(Object ruleSource) {
             components(h -> h.all(ruleSource));
             return this;
@@ -268,6 +269,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         }
 
         @Override
+        @Deprecated
         public ComponentMetadataHandler withModule(Object id, Object ruleSource) {
             components(h -> h.withModule(id, ruleSource));
             return this;
