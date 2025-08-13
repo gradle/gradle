@@ -29,6 +29,7 @@ import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.DefaultWorkerLimits
+import org.gradle.internal.work.ResourceLockStatistics
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -36,7 +37,7 @@ import org.gradle.util.TestUtil
 import static org.junit.Assert.assertTrue
 
 class DefaultProjectStateRegistryTest extends ConcurrentSpec {
-    def workerLeaseService = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new DefaultWorkerLimits(4))
+    def workerLeaseService = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new DefaultWorkerLimits(4), ResourceLockStatistics.NO_OP)
     def registry = new DefaultProjectStateRegistry(workerLeaseService)
     def projectFactory = Mock(IProjectFactory)
 

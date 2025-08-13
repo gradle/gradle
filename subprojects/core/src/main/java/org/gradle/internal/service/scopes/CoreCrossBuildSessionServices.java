@@ -43,9 +43,11 @@ import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.work.DefaultResourceLockStatistics;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.DefaultWorkerLimits;
 import org.gradle.internal.work.ProjectParallelExecutionController;
+import org.gradle.internal.work.ResourceLockStatistics;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.internal.work.WorkerLimits;
 
@@ -56,6 +58,18 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
         registration.add(ResourceLockCoordinationService.class, DefaultResourceLockCoordinationService.class);
         registration.add(WorkerLeaseService.class, ProjectParallelExecutionController.class, DefaultWorkerLeaseService.class);
         registration.add(DynamicCallContextTracker.class, DefaultDynamicCallContextTracker.class);
+    }
+
+    @Provides
+    ResourceLockStatistics createResourceLockStatistics(
+        BuildOperationRunner buildOperationRunner,
+        CrossBuildSessionParameters buildSessionParameters
+    ) {
+        // This service is initialized before the system properties on the command line are "installed"
+        // into System.getProperties(). So, we also need to check the start parameter for the property.
+        boolean statisticsEnabled = System.getProperty(ResourceLockStatistics.PROJECT_LOCK_STATS_PROPERTY) != null ||
+            buildSessionParameters.getStartParameter().getSystemPropertiesArgs().containsKey(ResourceLockStatistics.PROJECT_LOCK_STATS_PROPERTY);
+        return statisticsEnabled ? new DefaultResourceLockStatistics(buildOperationRunner) : ResourceLockStatistics.NO_OP;
     }
 
     @Provides
