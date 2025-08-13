@@ -221,7 +221,7 @@ Use the `archiveAppendix`, `archiveFileName` , `archiveFile`, `archiveBaseName`,
 ==== AbstractCompile API Deprecations
 
 The previously deprecated `destinationDir` property of the `AbstractCompile` remains deprecated, and will now emit a deprecation warning upon use.
-It is now scheduled for removal in Gradle 9.0.
+It is now scheduled for removal in Gradle 9.0.0.
 Use the `destinationDirectory` property instead.
 
 ==== ResolvedComponentResult API Cleanup
@@ -675,7 +675,7 @@ No changes are required for projects that already apply the
 
 ==== Upload Task should not be used
 
-The `Upload` task remains deprecated and is now scheduled for removal in Gradle 9.0.
+The `Upload` task remains deprecated and is now scheduled for removal in Gradle 9.0.0.
 Although this type remains, it is no longer functional and will throw an exception upon running.
 It is preserved solely to avoid breaking plugins.
 Use the tasks in the `maven-publish` or `ivy-publish` plugins instead.
@@ -881,7 +881,7 @@ See more details about toolchain configuration in the <<toolchains#sec:configuri
 [[org_gradle_util_reports_deprecations_7]]
 ==== Deprecated members of the `org.gradle.util` package now report their deprecation
 
-These members will be removed in Gradle 9.0.
+These members will be removed in Gradle 9.0.0.
 
 * `ClosureBackedAction`
 * `CollectionUtils`
@@ -1303,7 +1303,7 @@ If the set of attributes is shared across configurations, consider adding an add
 [[for_use_at_configuration_time_deprecation]]
 ==== `Provider#forUseAtConfigurationTime()` has been deprecated
 
-link:{javadocPath}/org/gradle/api/provider/Provider.html#forUseAtConfigurationTime--[Provider#forUseAtConfigurationTime] is now deprecated and scheduled for removal in Gradle 9.0.
+link:{javadocPath}/org/gradle/api/provider/Provider.html#forUseAtConfigurationTime--[Provider#forUseAtConfigurationTime] is now deprecated and scheduled for removal in Gradle 9.0.0.
 Clients should simply remove the call.
 
 The call was mandatory on providers of external values such as link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:systemProperty(java.lang.String)[system properties], link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:environmentVariable(java.lang.String)[environment variables],

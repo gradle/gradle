@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization
+package org.gradle.api.internal.properties
 
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.project.ProjectIdentity
-import org.gradle.api.internal.properties.GradleProperties
-import org.gradle.api.internal.properties.GradlePropertiesListener
 import org.gradle.initialization.properties.GradlePropertiesLoader
 import org.gradle.initialization.properties.SystemPropertiesInstaller
 import org.gradle.util.Path

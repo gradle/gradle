@@ -48,8 +48,8 @@ The previous step will help you identify potential problems by issuing deprecati
 The incubating `ObjectFactory#dependencyCollector()` method has been removed.
 DependencyCollectors can still be instantiated within Gradle <<properties_providers.adoc#managed_types, managed types>>.
 
-[[changes_9.1]]
-== Upgrading from 9.0 and earlier
+[[changes_9.1.0]]
+== Upgrading from 9.0.0 and earlier
 
 === Deprecations
 

@@ -324,7 +324,7 @@ If you are already applying one of those, no further action is needed.
 
 NOTE: This change may affect existing builds that relied on the previous behavior of archive tasks, where file order was not deterministic, and file timestamps and permissions were taken from the file system.
 
-In Gradle 9.0, the default behavior of archive tasks (such as `Jar`, `Ear`, `War`, `Zip`, and `AbstractArchiveTask`) has changed to produce reproducible archives by default.
+In Gradle 9.0.0, the default behavior of archive tasks (such as `Jar`, `Ear`, `War`, `Zip`, and `AbstractArchiveTask`) has changed to produce reproducible archives by default.
 That means that:
 
 - File order in the archive is now deterministic.
