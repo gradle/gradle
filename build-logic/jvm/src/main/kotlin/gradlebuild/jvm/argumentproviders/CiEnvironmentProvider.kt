@@ -49,7 +49,6 @@ class CiEnvironmentProvider(private val test: Test) : CommandLineArgumentProvide
 
     private
     fun getToolchainInstallationPathsProperty(): List<String> {
-        // TODO replace this with LocationListInstallationSupplier.FORWARDED_JAVA_INSTALLATIONS_PATHS_PROPERTY once this is available in the Gradle dist we are compiling against
         return toolchainInstallationPaths.map { listOf("-D$JAVA_INSTALLATIONS_PATHS_PROPERTY.forwarded=$it") }.getOrElse(emptyList())
     }
 

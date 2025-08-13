@@ -74,12 +74,13 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier.FORWARDED_JAVA_INSTALLATIONS_PATHS_PROPERTY;
+import static org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY;
 
 /**
  * Allows the tests to get hold of an alternative Java installation when needed.
  */
 public abstract class AvailableJavaHomes {
+    private static final String FORWARDED_JAVA_INSTALLATIONS_PATHS_PROPERTY = JAVA_INSTALLATIONS_PATHS_PROPERTY + ".forwarded";
     private static final Supplier<List<JvmInstallationMetadata>> INSTALLATIONS = Suppliers.memoize(AvailableJavaHomes::discoverLocalInstallations);
 
     private static final GradleDistribution DISTRIBUTION = new UnderDevelopmentGradleDistribution();
