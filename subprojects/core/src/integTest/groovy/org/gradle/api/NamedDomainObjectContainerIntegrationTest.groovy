@@ -26,7 +26,7 @@ trait AbstractNamedDomainObjectContainerIntegrationTest {
     }
 
     String makeContainer() {
-        return "project.container(SomeType)"
+        return "project.objects.domainObjectContainer(SomeType)"
     }
 
     static String getContainerType() {

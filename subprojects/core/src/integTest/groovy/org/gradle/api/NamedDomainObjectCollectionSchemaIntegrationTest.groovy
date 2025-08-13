@@ -40,17 +40,18 @@ class NamedDomainObjectCollectionSchemaIntegrationTest extends AbstractIntegrati
         """
     }
 
-    def "collection schema from project.container is public type"() {
+    def "collection schema from project.domainObjectContainer is public type"() {
         buildFile """
             interface PubType {}
-            class Impl implements PubType, Named {
+            abstract class Impl implements PubType, Named {
                 String name
+                @Inject
                 Impl(String name) {
                     this.name = name
                 }
             }
-            def factory = { name -> new Impl(name) }
-            def testContainer = project.container(PubType, factory)
+            def factory = { name -> project.objects.newInstance(Impl, name) }
+            def testContainer = project.objects.domainObjectContainer(PubType, factory)
 
             testContainer.create("foo")
             testContainer.register("bar")
