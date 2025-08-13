@@ -24,7 +24,7 @@ import org.gradle.api.plugins.PluginAware
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
 import org.gradle.kotlin.dsl.*
-import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
+import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForGradle
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForProject
@@ -236,7 +236,7 @@ fun ScriptCompilationConfiguration.Builder.defaultImportsForPrecompiledScript() 
             require(environment != null)
             context.compilationConfiguration.with {
                 defaultImports(
-                    PrecompiledScriptDependenciesResolver.implicitImportsForScript(
+                    PrecompiledScriptsEnvironment.implicitImportsForScript(
                         context.script.text,
                         environment
                     )
