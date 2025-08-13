@@ -2287,8 +2287,6 @@ Class <org.gradle.internal.rules.RuleAction> is not annotated (directly or via i
 Class <org.gradle.internal.rules.RuleActionAdapter> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (RuleActionAdapter.java:0)
 Class <org.gradle.internal.rules.RuleActionValidationException> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (RuleActionValidationException.java:0)
 Class <org.gradle.internal.rules.RuleActionValidator> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (RuleActionValidator.java:0)
-Class <org.gradle.internal.rules.RuleSourceBackedRuleAction$MultiMap> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (RuleSourceBackedRuleAction.java:0)
-Class <org.gradle.internal.rules.RuleSourceBackedRuleAction> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (RuleSourceBackedRuleAction.java:0)
 Class <org.gradle.internal.rules.SpecRuleAction> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (SpecRuleAction.java:0)
 Class <org.gradle.internal.scan.NotUsedByScanPlugin> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (NotUsedByScanPlugin.java:0)
 Class <org.gradle.internal.scan.UsedByScanPlugin> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (UsedByScanPlugin.java:0)

@@ -238,12 +238,6 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         }
 
         @Override
-        public ComponentMetadataHandler all(Object ruleSource) {
-            components(h -> h.all(ruleSource));
-            return this;
-        }
-
-        @Override
         public ComponentMetadataHandler all(Class<? extends ComponentMetadataRule> rule) {
             components(h -> h.all(rule));
             return this;
@@ -264,12 +258,6 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         @Override
         public ComponentMetadataHandler withModule(Object id, Closure<?> rule) {
             components(h -> h.withModule(id, rule));
-            return this;
-        }
-
-        @Override
-        public ComponentMetadataHandler withModule(Object id, Object ruleSource) {
-            components(h -> h.withModule(id, ruleSource));
             return this;
         }
 

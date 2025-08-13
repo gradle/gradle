@@ -173,11 +173,6 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     }
 
     @Override
-    public ComponentMetadataHandler all(Object ruleSource) {
-        return addRule(createAllSpecRuleAction(ruleActionAdapter.createFromRuleSource(ComponentMetadataDetails.class, ruleSource)));
-    }
-
-    @Override
     public ComponentMetadataHandler withModule(Object id, Action<? super ComponentMetadataDetails> rule) {
         return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromAction(rule)));
     }
@@ -185,11 +180,6 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     @Override
     public ComponentMetadataHandler withModule(Object id, Closure<?> rule) {
         return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromClosure(ComponentMetadataDetails.class, rule)));
-    }
-
-    @Override
-    public ComponentMetadataHandler withModule(Object id, Object ruleSource) {
-        return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromRuleSource(ComponentMetadataDetails.class, ruleSource)));
     }
 
     @Override

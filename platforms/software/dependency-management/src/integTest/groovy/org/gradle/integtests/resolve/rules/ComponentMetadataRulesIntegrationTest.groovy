@@ -280,7 +280,6 @@ dependencies {
                         rulesInvoked << details.id.version
                     }
                     all(new ActionRule('rulesInvoked': rulesInvoked))
-                    all(new RuleObject('rulesInvoked': rulesInvoked))
                     all(VerifyingRule)
                 }
             }
@@ -293,18 +292,9 @@ dependencies {
                 }
             }
 
-            class RuleObject {
-                List rulesInvoked
-
-                @org.gradle.model.Mutate
-                void execute(ComponentMetadataDetails details) {
-                    rulesInvoked << details.id.version
-                }
-            }
-
             def rules1 = provider { rulesInvoked }
             resolve.doLast {
-                assert rules1.get() == [ '1.0', '1.0', '1.0', '1.0', '1.0' ]
+                assert rules1.get() == [ '1.0', '1.0', '1.0', '1.0' ]
                 assert VerifyingRule.ruleInvoked
             }
         """
@@ -352,13 +342,11 @@ dependencies {
                         rulesInvoked << 1
                     }
                     withModule('org.test:projectA', new ActionRule('rulesInvoked': rulesInvoked))
-                    withModule('org.test:projectA', new RuleObject('rulesInvoked': rulesInvoked))
 
                     withModule('org.test:projectB') { ComponentMetadataDetails details ->
                         rulesUninvoked << 1
                     }
                     withModule('org.test:projectB', new ActionRule('rulesInvoked': rulesUninvoked))
-                    withModule('org.test:projectB', new RuleObject('rulesInvoked': rulesUninvoked))
 
                     withModule('org.test:projectA', InvokedRule)
                     withModule('org.test:projectB', NotInvokedRule)
@@ -373,19 +361,10 @@ dependencies {
                 }
             }
 
-            class RuleObject {
-                List rulesInvoked
-
-                @org.gradle.model.Mutate
-                void execute(ComponentMetadataDetails details) {
-                    rulesInvoked << 3
-                }
-            }
-
             def rules1 = provider { rulesInvoked }
             def rules2 = provider { rulesUninvoked }
             resolve.doLast {
-                assert rules1.get().sort() == [ 1, 2, 3 ]
+                assert rules1.get().sort() == [ 1, 2 ]
                 assert rules2.get().empty
                 assert InvokedRule.ruleInvoked
                 assert !NotInvokedRule.ruleInvoked
@@ -401,30 +380,6 @@ dependencies {
 
         then:
         succeeds 'resolve'
-    }
-
-    def "produces sensible error when @Mutate method does not have ComponentMetadata as first parameter"() {
-        buildFile << """
-            dependencies {
-                components {
-                    all(new BadRuleSource())
-                }
-            }
-
-            class BadRuleSource {
-                @org.gradle.model.Mutate
-                void doSomething(String s) { }
-            }
-        """
-
-        when:
-        fails "resolve"
-
-        then:
-        fails 'resolveConf'
-        failureDescriptionStartsWith("A problem occurred evaluating root project")
-        failure.assertHasCause("""Type BadRuleSource is not a valid rule source:
-- Method doSomething(java.lang.String) is not a valid rule method: First parameter of a rule method must be of type org.gradle.api.artifacts.ComponentMetadataDetails""")
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")

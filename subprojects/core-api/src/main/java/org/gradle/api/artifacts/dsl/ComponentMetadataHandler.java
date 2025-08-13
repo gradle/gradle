@@ -96,23 +96,6 @@ public interface ComponentMetadataHandler {
     ComponentMetadataHandler all(@DelegatesTo(ComponentMetadataDetails.class) Closure<?> rule);
 
     /**
-     * Adds a rule that may modify the metadata of any resolved software component.
-     *
-     * <p>The ruleSource is an Object that has a single rule method annotated with {@link org.gradle.model.Mutate}.
-     *
-     * <p>This rule method:
-     * <ul>
-     *     <li>must return void.</li>
-     *     <li>must have {@link ComponentMetadataDetails} as the first parameter.</li>
-     *     <li>may have an additional parameter of type {@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor} or {@link org.gradle.api.artifacts.maven.PomModuleDescriptor}.</li>
-     * </ul>
-     *
-     * @param ruleSource the rule source object to be added
-     * @return this
-     */
-    ComponentMetadataHandler all(Object ruleSource);
-
-    /**
      * Adds a class based rule that may modify the metadata of any resolved software component.
      *
      * @param rule the rule to be added
@@ -153,17 +136,6 @@ public interface ComponentMetadataHandler {
      * @return this
      */
     ComponentMetadataHandler withModule(Object id, @DelegatesTo(ComponentMetadataDetails.class) Closure<?> rule);
-
-    /**
-     * Adds a rule that may modify the metadata of any resolved software component belonging to the specified module.
-     *
-     * <p>The rule source parameter is subject to the same requirements as {@link #all(Object)}.
-     *
-     * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
-     * @param ruleSource the rule source object to be added
-     * @return this
-     */
-    ComponentMetadataHandler withModule(Object id, Object ruleSource);
 
     /**
      * Adds a class based rule that may modify the metadata of any resolved software component belonging to the specified module.

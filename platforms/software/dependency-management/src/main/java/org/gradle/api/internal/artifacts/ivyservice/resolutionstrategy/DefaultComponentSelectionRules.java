@@ -94,11 +94,6 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     }
 
     @Override
-    public ComponentSelectionRules all(Object ruleSource) {
-        return addRule(createAllSpecRulesAction(ruleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
-    }
-
-    @Override
     public ComponentSelectionRules withModule(Object id, Action<? super ComponentSelection> selectionAction) {
         return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromAction(selectionAction)));
     }
@@ -106,11 +101,6 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     @Override
     public ComponentSelectionRules withModule(Object id, Closure<?> closure) {
         return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
-    }
-
-    @Override
-    public ComponentSelectionRules withModule(Object id, Object ruleSource) {
-        return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
     }
 
     @Override
