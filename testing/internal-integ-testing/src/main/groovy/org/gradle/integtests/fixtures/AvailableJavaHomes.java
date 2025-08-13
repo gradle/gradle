@@ -472,7 +472,7 @@ public abstract class AvailableJavaHomes {
 
     /**
      * On CI we pass -Porg.gradle.java.installations.paths=X,Y,Z to the build, then "forward" it
-     * as a system property (`-Dorg.gradle.java.installations.paths.forwarded`) to get deterministic results.
+     * as a system property ({@code -Dorg.gradle.java.installations.paths.forwarded}) to get deterministic results.
      */
     private static class ToolchainInstallationPathsSystemPropertyJvmLocator implements InstallationSupplier {
 
