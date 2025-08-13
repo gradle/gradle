@@ -21,7 +21,7 @@ import org.gradle.api.internal.project.ProjectIdentity;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Scope of the property.
+ * Scope of the property. Properties can be {@link Build build-scoped} or {@link Project project-scoped}.
  *
  * Can be used as map keys.
  */

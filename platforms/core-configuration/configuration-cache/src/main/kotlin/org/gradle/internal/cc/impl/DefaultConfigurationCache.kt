@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.internal.properties.GradlePropertiesController
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
@@ -31,7 +32,6 @@ import org.gradle.configurationcache.withModelLoadOperation
 import org.gradle.configurationcache.withModelStoreOperation
 import org.gradle.configurationcache.withWorkGraphLoadOperation
 import org.gradle.configurationcache.withWorkGraphStoreOperation
-import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements

@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.api.internal.properties;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectIdentity;
-import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.api.internal.properties.GradlePropertiesListener;
-import org.gradle.api.internal.properties.GradlePropertyScope;
 import org.gradle.initialization.properties.DefaultGradleProperties;
 import org.gradle.initialization.properties.GradlePropertiesLoader;
 import org.gradle.initialization.properties.SystemPropertiesInstaller;

@@ -68,7 +68,7 @@ This feature is _not enabled by default_ and has the following limitations:
 - <<config_cache:ide,IDE imports and syncs>> do not yet use the Configuration Cache.
 - Continuous Integration (CI) support is actively evolving.
 
-Since Gradle 9.0 the Configuration Cache is the link:https://blog.gradle.org/road-to-configuration-cache#preferred-mode-of-execution[preferred mode of execution].
+Since Gradle 9.0.0 the Configuration Cache is the link:https://blog.gradle.org/road-to-configuration-cache#preferred-mode-of-execution[preferred mode of execution].
 ====
 
 [[config_cache:intro:how_does_it_work]]

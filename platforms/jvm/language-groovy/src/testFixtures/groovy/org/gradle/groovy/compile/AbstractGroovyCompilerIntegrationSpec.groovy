@@ -83,9 +83,8 @@ abstract class AbstractGroovyCompilerIntegrationSpec extends AbstractBasicGroovy
     // Groovy code.
     @Issue("GRADLE-3235")
     def gradle3235() {
-        if (versionLowerThan('2.0.5')) {
-            return
-        }
+        // This test requires https://issues.apache.org/jira/browse/GROOVY-8480 which is in Groovy 2.5.0+
+        Assume.assumeFalse(versionLowerThan('2.5.0'))
 
         def useJavaxServlet = versionLowerThan("5.0.0")
         given:
