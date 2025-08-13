@@ -2259,7 +2259,6 @@ Class <org.gradle.internal.resources.ProjectLock> is not annotated (directly or 
 Class <org.gradle.internal.resources.ProjectLockRegistry$1> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ProjectLockRegistry.java:0)
 Class <org.gradle.internal.resources.ProjectLockRegistry$2> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ProjectLockRegistry.java:0)
 Class <org.gradle.internal.resources.ProjectLockRegistry> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ProjectLockRegistry.java:0)
-Class <org.gradle.internal.resources.ProjectLockStatistics> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ProjectLockStatistics.java:0)
 Class <org.gradle.internal.resources.ResourceLock> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ResourceLock.java:0)
 Class <org.gradle.internal.resources.ResourceLockContainer> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ResourceLockContainer.java:0)
 Class <org.gradle.internal.resources.ResourceLockCoordinationService> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ResourceLockCoordinationService.java:0)

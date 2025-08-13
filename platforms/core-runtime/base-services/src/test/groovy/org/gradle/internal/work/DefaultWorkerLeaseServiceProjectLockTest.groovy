@@ -16,8 +16,8 @@
 
 package org.gradle.internal.work
 
-
 import org.gradle.internal.MutableBoolean
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.resources.ResourceLockState
 import org.gradle.util.SetSystemProperties
@@ -535,7 +535,9 @@ class DefaultWorkerLeaseServiceProjectLockTest extends AbstractWorkerLeaseServic
         def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
 
         when:
-        System.setProperty(DefaultWorkerLeaseService.PROJECT_LOCK_STATS_PROPERTY, "")
+        def buildOperationRunner = new TestBuildOperationRunner()
+        def statistics = new DefaultResourceLockStatistics(buildOperationRunner)
+        def workerLeaseService = workerLeaseService(true, 1, statistics)
         boolean thread2Executed = false
         async {
             start {
@@ -555,7 +557,12 @@ class DefaultWorkerLeaseServiceProjectLockTest extends AbstractWorkerLeaseServic
         }
 
         then:
-        workerLeaseService.projectLockStatistics.totalWaitTimeMillis > -1
+        statistics.totalBlockedTime.get() > -1
+        (buildOperationRunner.operations.collect {it.displayName} as Set) == ([
+            "Acquired [state of project :project]",
+            "Blocked on [state of project :project]",
+            "Acquired [state of project :project]"
+        ] as Set)
     }
 
     def "fails when attempting to acquire a project lock and changes are disallowed"() {
@@ -668,37 +675,13 @@ class DefaultWorkerLeaseServiceProjectLockTest extends AbstractWorkerLeaseServic
         }
     }
 
-    def "does not gather statistics when statistics flag is not set"() {
-        def projectLock = workerLeaseService.getProjectLock(path("root"), path(":project"))
-
-        when:
-        boolean thread2Executed = false
-        async {
-            start {
-                workerLeaseService.withLocks([projectLock]) {
-                    instant.thread1
-                    thread.blockUntil.thread2
-                    sleep 10
-                }
-            }
-            start {
-                thread.blockUntil.thread1
-                instant.thread2
-                workerLeaseService.withLocks([projectLock]) {
-                    thread2Executed = true
-                }
-            }
-        }
-
-        then:
-        workerLeaseService.projectLockStatistics.totalWaitTimeMillis == -1
-    }
-
-    def "does not gather statistics when not acquiring project lock"() {
+    def "does not track blocking on worker leases"() {
         def workerLease = workerLeaseService.newWorkerLease()
 
         when:
-        System.setProperty(DefaultWorkerLeaseService.PROJECT_LOCK_STATS_PROPERTY, "")
+        def buildOperationRunner = new TestBuildOperationRunner()
+        def statistics = new DefaultResourceLockStatistics(buildOperationRunner)
+        def workerLeaseService = workerLeaseService(true, 1, statistics)
         boolean thread2Executed = false
         async {
             start {
@@ -718,7 +701,11 @@ class DefaultWorkerLeaseServiceProjectLockTest extends AbstractWorkerLeaseServic
         }
 
         then:
-        workerLeaseService.projectLockStatistics.totalWaitTimeMillis == -1
+        statistics.totalBlockedTime.get() == -1
+        (buildOperationRunner.operations.collect {it.displayName} as Set) == ([
+            "Acquired [worker lease]",
+            "Acquired [worker lease]"
+        ] as Set)
     }
 
     boolean lockIsHeld(final ResourceLock resourceLock) {
