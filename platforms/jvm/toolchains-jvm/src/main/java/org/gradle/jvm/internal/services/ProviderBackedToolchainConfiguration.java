@@ -59,6 +59,17 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
         this.startParameter = startParameter;
     }
 
+    /**
+     * Retrieves a Gradle property, and emits a deprecation warning if it was specified as a project property.
+     *
+     * ToolchainBuildOptions takes care of capturing toolchain configuration system properties in the launcher and
+     * shipping them to the daemon as project properties in {@link StartParameter}.  So, whether a property is set as
+     * a system property or as a project property, it should still be available as a "Gradle property".  Here we check
+     * if it was specified as a project property, but not a system property, and, if so, emit a deprecation warning.
+     *
+     * It's conceivable that it could be set as both a system property and a project property for migration purposes,
+     * which is fine.  If so, we ensure that they have the same value, and if not, throw an exception.
+     */
     private Provider<String> fromGradleProperty(String propertyName) {
         if (startParameter.getProjectProperties().containsKey(propertyName)) {
             if (System.getProperties().containsKey(propertyName)) {
