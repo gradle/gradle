@@ -488,4 +488,40 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         expect:
         succeeds("resolve")
     }
+
+    @ToBeFixedForConfigurationCache(because = "ResolvedConfiguration is CC incompatible")
+    def "parent artifact methods are deprecated"() {
+        mavenRepo.module("org", "foo")
+            .dependsOn(mavenRepo.module("org", "bar").publish())
+            .publish()
+
+        buildFile << """
+            configurations {
+                conf
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                conf("org:foo:1.0")
+            }
+
+            tasks.register("resolve") {
+                doLast {
+                    def fooDep = configurations.conf.resolvedConfiguration.firstLevelModuleDependencies.first()
+                    def barDep = fooDep.children.first()
+
+                    barDep.getParentArtifacts(fooDep)
+                    barDep.getArtifacts(fooDep)
+                    barDep.getAllArtifacts(fooDep)
+                }
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The ResolvedDependency.getParentArtifacts(ResolvedDependency) method has been deprecated. This is scheduled to be removed in Gradle 10.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#resolved_dependency_parent_artifacts")
+        executer.expectDocumentedDeprecationWarning("The ResolvedDependency.getArtifacts(ResolvedDependency) method has been deprecated. This is scheduled to be removed in Gradle 10.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#resolved_dependency_parent_artifacts")
+        executer.expectDocumentedDeprecationWarning("The ResolvedDependency.getAllArtifacts(ResolvedDependency) method has been deprecated. This is scheduled to be removed in Gradle 10.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#resolved_dependency_parent_artifacts")
+        succeeds("resolve")
+    }
 }
