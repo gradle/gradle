@@ -70,6 +70,7 @@ class ToolchainsParallelActionExecutionCrossVersionSpec extends ToolingApiSpecif
     @TargetGradleVersion(">=8.1")
     def "nested actions that query a project model which leverages toolchain information do not cause Property evaluation to be in unexpected state"() {
         given:
+        System.setProperty("org.gradle.java.installations.auto-download", "true")
         setupBuildWithToolchainsResolution()
 
         when:
@@ -85,9 +86,7 @@ class ToolchainsParallelActionExecutionCrossVersionSpec extends ToolingApiSpecif
         def e = thrown(BuildActionFailureException)
         def root = rootCause(e)
         def message = 'No locally installed toolchains match'
-        if (targetVersion >= GradleVersion.version("9.2.0")) {
-            message = "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=99, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}. Toolchain auto-provisioning is not enabled."
-        } else if (targetVersion >= GradleVersion.version("8.14")) {
+        if (targetVersion >= GradleVersion.version("8.14")) {
             message = "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=99, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}. No matching toolchain could be found in the configured toolchain download repositories."
         } else if (targetVersion >= GradleVersion.version("8.13")) {
             message = "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=99, vendor=any vendor, implementation=vendor-specific}. No matching toolchain could be found in the configured toolchain download repositories."
