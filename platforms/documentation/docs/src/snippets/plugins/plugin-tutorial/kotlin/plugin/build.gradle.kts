@@ -49,6 +49,7 @@ gradlePlugin {
 
 // tag::gradle-plugin[]
 gradlePlugin {
+    // Define the plugin
     plugins {
         create("slack") {
             id = "org.example.slack"

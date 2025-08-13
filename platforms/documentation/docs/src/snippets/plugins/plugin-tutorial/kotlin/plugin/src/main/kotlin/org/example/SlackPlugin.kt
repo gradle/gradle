@@ -46,6 +46,7 @@ abstract class SlackPlugin : Plugin<Project> {
 // tag::slack-plugin[]
 abstract class SlackPlugin: Plugin<Project> {
     override fun apply(project: Project) {
+        // Register a task
         project.tasks.register("greeting") { task ->
             task.doLast {
                 println("Hello from plugin 'org.example.greeting'")
@@ -65,6 +66,7 @@ abstract class SlackPlugin: Plugin<Project> {
 
         // Register a task that uses the values from the extension
         project.tasks.register("sendTestSlackMessage") {
+            // Use `doLast` to define the action that runs when the task is executed.
             it.doLast {
                 println("${extension.message.get()} to ${extension.channel.get()}")
             }

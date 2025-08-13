@@ -46,7 +46,7 @@ slack {
 }
 ----
 
-Behind the scenes, this `slack { ... }` block maps directly to a Kotlin or Groovy class with properties.
+Behind the scenes, this `slack {}` block maps directly to a Kotlin or Groovy class with properties.
 Gradle handles the magic of injecting the values into your plugin's logic.
 
 == Step 2: Rename the Plugin Class
@@ -64,7 +64,8 @@ Rename the file `plugin/src/main/groovy/org/example/PluginTutorialPlugin.groovy`
 
 TIP: Most modern IDEs, like IntelliJ IDEA, can automatically handle both the file and class name updates for you.
 
-Next, we'll update the class name. The `abstract` keyword is important here because it allows Gradle to use its dependency injection framework to provide the plugin with services it needs, like the `ObjectFactory`.
+Next, we'll update the class name.
+The `abstract` keyword is important here because it allows Gradle to use its dependency injection framework to provide the plugin with services it needs, like the `ObjectFactory`.
 
 [.multi-language-text.lang-kotlin]
 ----
@@ -89,7 +90,8 @@ include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/buil
 
 == Step 3: Define the Extension Class
 
-Now, let's define the class that holds the configurable properties for our plugin. We'll use Gradle's `Property<T>` type for these properties, as this makes them lazy and fully compatible with the Configuration Cache.
+Now, let's define the class that holds the configurable properties for our plugin.
+We'll use Gradle's `Property<T>` type for these properties, as this makes them lazy and fully compatible with the Configuration Cache.
 
 Create a new file called `plugin/src/main/kotlin/org/example/SlackExtension.kt` and add the following code:
 
@@ -102,7 +104,8 @@ This class will provide the configuration for the `slack` DSL block we saw earli
 
 == Step 4: Register the Extension in the Plugin
 
-The final step is to register the `SlackExtension` in our `SlackPlugin` class. This tells Gradle to create the extension and make it available in the build script.
+The final step is to register the `SlackExtension` in our `SlackPlugin` class.
+This tells Gradle to create the extension and make it available in the build script.
 
 Let's update the `apply` method to register our new extension and modify the dummy task to use its properties.
 

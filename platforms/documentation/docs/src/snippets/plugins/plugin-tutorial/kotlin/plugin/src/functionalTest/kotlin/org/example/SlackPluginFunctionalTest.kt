@@ -17,8 +17,7 @@ class SlackPluginFunctionalTest {
     @Test fun `can run task`() {
         // Set up the test build
         settingsFile.writeText("")
-        buildFile.writeText(
-            """
+        buildFile.writeText("""
             plugins {
                 id('org.example.slack')
             }

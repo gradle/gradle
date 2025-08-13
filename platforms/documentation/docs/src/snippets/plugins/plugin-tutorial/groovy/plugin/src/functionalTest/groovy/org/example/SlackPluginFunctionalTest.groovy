@@ -20,15 +20,15 @@ class SlackPluginFunctionalTest extends Specification {
         given:
         settingsFile << ""
         buildFile << """
-plugins {
-    id('org.example.slack')
-}
-slack {
-    token.set(System.getenv("SLACK_TOKEN"))
-    channel.set('#social')
-    message.set('Hello from Gradle!')
-}
-"""
+            plugins {
+                id('org.example.slack')
+            }
+            slack {
+                token.set(System.getenv("SLACK_TOKEN"))
+                channel.set('#social')
+                message.set('Hello from Gradle!')
+            }
+        """
 
         when:
         def runner = GradleRunner.create()

@@ -15,17 +15,19 @@
 [[part6_functional_test]]
 = Part 6: Writing a Functional Test
 
-Learn the basics of functional testing your plugin.
+Learn how to write a functional test to verify your plugin's behavior in a real-world scenario.
 
 ****
-**In this section, you will:**
+**In this section, you'll:**
 
-- Write a Functional Test for your plugin
-- Run a Functional Test to test your plugin
+- Understand the difference between unit and functional tests.
+- Learn how to use Gradle's TestKit for end-to-end testing.
+- Update the default functional test to verify your plugin.
+- Run the functional test and confirm your plugin works as expected.
 ****
 
 [[part6_begin]]
-== Step 0. Before you Begin
+== Step 0: Before you Begin
 
 1. You initialized your plugin in <<part1_gradle_init_plugin.adoc#part1_begin,part 1>>.
 2. You added an extension to your plugin in <<part2_add_extension.adoc#part2_begin,part 2>>.
@@ -33,143 +35,84 @@ Learn the basics of functional testing your plugin.
 4. You wrote a unit test in <<part4_unit_test.adoc#part4_begin,part 4>>.
 5. You added a dataflow action to your plugin in <<part5_add_dataflow_action.adoc#part5_begin,part 2>>.
 
-== Step 1. About Functional Tests
+== Step 1: About Functional Tests
 
-Grade init provides a sample functional test that we can reuse.
-[.multi-language-text.lang-kotlin]
-----
-It is available in `src/functionalTest/kotlin/org/example/PluginTutorialPluginFunctionalTest.kt`.
-----
-[.multi-language-text.lang-groovy]
-----
-It is available in `src/functionalTest/groovy/org/example/PluginTutorialPluginFunctionalTest.groovy`.
-----
-Let's take a look:
+While a unit test checks a single class in isolation, a **functional test** verifies that your plugin works correctly in a *real Gradle build*.
 
-====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/functionalTest/kotlin/org/example/PluginTutorialPluginFunctionalTest.kt[tags=init-test]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/functionalTest/groovy/org/example/PluginTutorialPluginFunctionalTest.groovy[tags=init-test]"]
-====
+Gradle provides a powerful testing framework called **TestKit**.
+It allows you to programmatically:
 
-This functional test uses Gradle <<test_kit.adoc#test_kit,TestKit>> to verify that the `org.example.greeting` plugin works in a real Gradle build.
-Gradle `TestKit` is a built-in Gradle testing framework.
-Instead of just unit testing your plugin’s classes in isolation, `TestKit` spins up an actual Gradle build (in a temporary directory) and runs it.
-Exactly like a real user would.
-This way, you can verify that your plugin behaves correctly when applied to a real project.
+* Spin up a real Gradle process.
+* Create a temporary, isolated project directory.
+* Run a build in that directory with a specific set of tasks and arguments.
+* Verify the build's output, status, and side effects (like files being created).
 
-First, it sets up a temporary project directory:
-
-[source,text]
-----
-@field:TempDir lateinit var projectDir: File
-----
-
-`JUnit` creates a fresh, empty directory for each test run so the build runs in isolation.
-
-Then, it creates a build file and a settings file:
-
-[source,text]
-----
-private val buildFile by lazy { projectDir.resolve("build.gradle") }
-private val settingsFile by lazy { projectDir.resolve("settings.gradle") }
-----
-
-The test writes a minimal build script and keeps the settings file empty:
-
-[source,text]
-----
-settingsFile.writeText("")
-buildFile.writeText("""
-   plugins {
-       id('org.example.greeting')
-   }
-""".trimIndent())
-----
-
-This is where you can define any build logic you want to test.
-Essentially, you can model any realistic project setup directly in your test.
-
-Then, it creates a barebones Gradle project that applies the plugin under test using the `GradleRunner`:
-
-[source,text]
-----
-val runner = GradleRunner.create()
-   .forwardOutput()
-   .withPluginClasspath()
-   .withArguments("greeting")
-   .withProjectDir(projectDir)
-val result = runner.build()
-----
-
-`GradleRunner` is the main API class in `TestKit` that actually runs a Gradle build from your test code.
-When you call `GradleRunner.create()`, you’re instantiating a new Gradle process in-process for your test.
-This process runs in an isolated environment, using the `projectDir` you give it as the root of the build.
-
-Finally, the functional test verifies the output:
-
-[source,text]
-----
-assertTrue(result.output.contains("Hello from plugin 'org.example.greeting'"))
-----
-
-This confirms the plugin’s task actually ran and printed the expected message.
-
-We are also going to re-use a majority of this test.
-
-== Step 2. Update the Test
+The `gradle init` command created a sample functional test for you:
 
 [.multi-language-text.lang-kotlin]
 ----
-First, update the name of the file from `PluginTutorialPluginFunctionalTest.kt` to `SlackPluginFunctionalTest.kt`.
+It's available at `src/functionalTest/kotlin/org/example/PluginTutorialPluginFunctionalTest.kt`.
 ----
 [.multi-language-text.lang-groovy]
 ----
-First, update the name of the file from `PluginTutorialPluginFunctionalTest.groovy` to `SlackPluginFunctionalTest.groovy`.
+It's available at `src/functionalTest/groovy/org/example/PluginTutorialPluginFunctionalTest.groovy`.
 ----
 
-Second, update your test so it looks as follows:
+It uses the `GradleRunner` class to execute a build and then asserts that the build's output contains the expected "Hello World" message.
+We're going to re-use this same structure for our test.
+
+== Step 2: Update the Test
+
+First, let's update the name of the test file to match our plugin.
+
+[.multi-language-text.lang-kotlin]
+----
+Rename the file `PluginTutorialPluginFunctionalTest.kt` to `SlackPluginFunctionalTest.kt`.
+----
+[.multi-language-text.lang-groovy]
+----
+Rename the file `PluginTutorialPluginFunctionalTest.groovy` to `SlackPluginFunctionalTest.groovy`.
+----
+
+Now, update the test file to look like this:
 
 ====
 include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/functionalTest/kotlin/org/example/SlackPluginFunctionalTest.kt[]"]
 include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/functionalTest/groovy/org/example/SlackPluginFunctionalTest.groovy[]"]
 ====
 
-This functional test:
+This functional test does the following:
 
-1. **Creates a temporary test project** (`@TempDir`), including `settings.gradle` and `build.gradle` files.
-2. **Applies the Slack plugin** in `build.gradle` and configures it with a token, channel, and message.
-3. **Runs the build programmatically** using `GradleRunner` with the plugin’s classpath.
-4. **Verifies the result** by asserting that the build output contains `"Slack message sent successfully"`.
+1.  **Creates a temporary test project** (`@TempDir`), complete with `settings.gradle` and a `build.gradle` file.
+2.  **Applies the Slack plugin** and configures it with a token and channel. The token is retrieved from an environment variable, just like a real-world setup.
+3.  **Runs the build** using `GradleRunner`, with our custom task `sendTestSlackMessage` as the argument.
+4.  **Verifies the result** by asserting that the build output contains `"Slack message sent successfully"`.
 
-== Step 3. Check out the Build File
+== Step 3: Check out the Functional Test Build Logic
 
-It's important to look at the build file of our plugin before we can run our functional test, specifically the test related build logic:
+Before you run the test, it's good to understand how `gradle init` configured our project to support functional tests.
+
+Look at the `build.gradle(.kts)` file and notice the section related to functional tests:
 
 ====
 include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=test-config]"]
 include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/build.gradle[tags=test-config]"]
 ====
 
-This logic sets up a **separate functional test suite** for the plugin.
-It:
+This configuration sets up a dedicated `functionalTest` source set and task, which keeps our functional tests separate from our unit tests.
+This makes our test suites more organized and reliable.
 
-* Creates a new `functionalTest` source set (`src/functionalTest/...`) for end-to-end plugin tests.
-* Inherits dependencies from the normal `test` setup.
-* Registers a `functionalTest` task that runs these tests with JUnit 5.
-* Configures Gradle so TestKit is available for them.
-* Optionally wires `functionalTest` into the `check` lifecycle task.
+== Step 4: Run the Functional Test
 
-== Step 4. Run the Functional Test
-
-As you can see from the code in the functional test, the Slack token is retrienve from the environment variable `SLACK_TOKEN`.
-You need to set this variable before you run the test:
+The functional test uses an environment variable named `SLACK_TOKEN`.
+Before you run the test, you must set this variable in your terminal.
 
 [source,text]
 ----
 $ export SLACK_TOKEN="xoxb-..."
 ----
 
-Then, you can run the `functionalTest` task and ensure it passes:
+Now you can run the `functionalTest` task to execute your test.
 
 [source,text]
 ----
@@ -181,9 +124,9 @@ BUILD SUCCESSFUL in 4s
 6 actionable tasks: 1 executed, 5 up-to-date
 ----
 
-Make sure your Slack message is sent in your Slack Workspace `#social` channel.
+If everything is configured correctly, you should see a message confirming a successful build, and a test message should have been sent to your Slack workspace!
 
-You can also run the `check` task.
+You can also run the `check` task, which executes both unit and functional tests.
 
 [.text-right]
-**Next Step:** <<part7_use_consumer_project#part7_use_consumer_project,Use a Consumer Project>> >>
+**Next Step:** <<part7_use_consumer_project.adoc#part7_use_consumer_project,Use a Consumer Project>> >>
