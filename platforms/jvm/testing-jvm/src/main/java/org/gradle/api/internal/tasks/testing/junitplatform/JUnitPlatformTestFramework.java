@@ -43,11 +43,13 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
 
     private final DefaultTestFilter filter;
     private final Provider<Boolean> dryRun;
+    private final ObjectFactory objectFactory;
 
     @Inject
-    public JUnitPlatformTestFramework(DefaultTestFilter filter, Provider<Boolean> dryRun) {
+    public JUnitPlatformTestFramework(DefaultTestFilter filter, Provider<Boolean> dryRun, ObjectFactory objectFactory) {
         this.filter = filter;
         this.dryRun = dryRun;
+        this.objectFactory = objectFactory;
     }
 
     @UsedByScanPlugin("test-retry")
@@ -84,7 +86,7 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
 
     @Override
     public TestFrameworkDetector getDetector() {
-        return null;
+        return new JUnitPlatformResourceBasedDetector(objectFactory);
     }
 
     @Override

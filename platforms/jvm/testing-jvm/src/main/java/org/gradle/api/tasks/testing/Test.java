@@ -54,6 +54,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -202,6 +203,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         javaLauncher.finalizeValueOnRead();
         getDryRun().convention(false);
         testFramework = objectFactory.property(TestFramework.class).convention(objectFactory.newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
+        getScanForTestResources().convention(getProject().getProviders().provider(() -> !getTestResourcesDirs().isEmpty()));
     }
 
     private Provider<JavaLauncher> createJavaLauncherConvention() {
@@ -666,7 +668,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
-        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
+        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getScanForTestResources().get(), getTestClassesDirs(), getTestResourcesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
     }
 
     private void validateExecutableMatchesToolchain() {
@@ -843,6 +845,17 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public FileCollection getTestClassesDirs() {
         return testClassesDirs;
     }
+
+    /**
+     * Returns the directories to scan for resource-based testing.
+     *
+     * @since 9.2.0
+     */
+    @Incubating
+    @InputFiles
+    @Optional
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract ConfigurableFileCollection getTestResourcesDirs();
 
     /**
      * Sets the directories to scan for compiled test sources.
@@ -1133,6 +1146,16 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public boolean isScanForTestClasses() {
         return scanForTestClasses;
     }
+
+    /**
+     * Whether to scan for test resources for resource-based testing.
+     *
+     * @since 9.2.0
+     */
+    @Incubating
+    @Input
+    @Optional
+    public abstract Property<Boolean> getScanForTestResources();
 
     public void setScanForTestClasses(boolean scanForTestClasses) {
         this.scanForTestClasses = scanForTestClasses;

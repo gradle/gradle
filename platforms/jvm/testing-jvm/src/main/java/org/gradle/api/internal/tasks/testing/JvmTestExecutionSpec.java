@@ -32,7 +32,9 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final Iterable<? extends File> modulePath;
     private final FileTree candidateClassFiles;
     private final boolean scanForTestClasses;
+    private final boolean scanForTestResources;
     private final FileCollection testClassesDirs;
+    private final FileCollection testResourcesDirs;
     private final String path;
     private final Path identityPath;
     private final long forkEvery;
@@ -41,13 +43,15 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final Set<String> previousFailedTestClasses;
     private final boolean testIsModule;
 
-    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses, boolean testIsModule) {
+    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath, FileTree candidateClassFiles, boolean scanForTestClasses, boolean scanForTestResources, FileCollection testClassesDirs, FileCollection testResourcesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses, boolean testIsModule) {
         this.testFramework = testFramework;
         this.classpath = classpath;
         this.modulePath = modulePath;
         this.candidateClassFiles = candidateClassFiles;
         this.scanForTestClasses = scanForTestClasses;
+        this.scanForTestResources = scanForTestResources;
         this.testClassesDirs = testClassesDirs;
+        this.testResourcesDirs = testResourcesDirs;
         this.path = path;
         this.identityPath = identityPath;
         this.forkEvery = forkEvery;
@@ -61,7 +65,7 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     @UsedByScanPlugin("test-retry")
     public JvmTestExecutionSpec copyWithTestFramework(TestFramework testFramework) {
         return new JvmTestExecutionSpec(testFramework, this.classpath, this.modulePath, this.candidateClassFiles,
-            this.scanForTestClasses, this.testClassesDirs, this.path, this.identityPath, this.forkEvery,
+            this.scanForTestClasses, this.scanForTestResources, this.testClassesDirs, this.testResourcesDirs, this.path, this.identityPath, this.forkEvery,
             this.javaForkOptions, this.maxParallelForks, this.previousFailedTestClasses, this.testIsModule
         );
     }
@@ -86,9 +90,18 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
         return scanForTestClasses;
     }
 
+    public boolean isScanForTestResources() {
+        return scanForTestResources;
+    }
+
     @UsedByScanPlugin("test-retry")
     public FileCollection getTestClassesDirs() {
         return testClassesDirs;
+    }
+
+    @UsedByScanPlugin("test-retry")
+    public FileCollection getTestResourcesDirs() {
+        return testResourcesDirs;
     }
 
     public String getPath() {
