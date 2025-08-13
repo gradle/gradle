@@ -18,7 +18,7 @@ package org.gradle.kotlin.dsl.cache
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.cache.CacheCleanupStrategyFactory
-import org.gradle.cache.UnscopedCacheBuilderFactory
+import org.gradle.cache.FileLockManager
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.AtomicMoveImmutableWorkspace
@@ -37,7 +37,7 @@ class KotlinDslWorkspaceProvider(
     fileAccessTimeJournal: FileAccessTimeJournal,
     cacheConfigurations: CacheConfigurationsInternal,
     cacheCleanupStrategyFactory: CacheCleanupStrategyFactory,
-    unscopedCacheBuilderFactory: UnscopedCacheBuilderFactory
+    fileLockManager: FileLockManager,
 ) : Closeable {
 
     private
@@ -49,7 +49,7 @@ class KotlinDslWorkspaceProvider(
         2, // scripts and accessors caches sit below the root directory
         cacheConfigurations,
         cacheCleanupStrategyFactory,
-        unscopedCacheBuilderFactory
+        fileLockManager
     )
 
     val accessors = subWorkspace("accessors")

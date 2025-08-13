@@ -20,21 +20,20 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategyFactory;
 import org.gradle.cache.CleanupAction;
+import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
+import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
+import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
 import java.io.Closeable;
 import java.io.File;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceProvider, Closeable {
@@ -43,16 +42,16 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
     private final SingleDepthFileAccessTracker fileAccessTracker;
     private final File baseDirectory;
     private final PersistentCache cache;
-    private final UnscopedCacheBuilderFactory unscopedCacheBuilderFactory;
+    private final FileLockManager fileLockManager;
 
-    private final Map<String, CacheContainer> keyCaches = new ConcurrentHashMap<>();
+    private final ProducerGuard<String> producerGuard = ProducerGuard.adaptive();
 
     public static CacheBasedImmutableWorkspaceProvider createWorkspaceProvider(
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         CacheConfigurationsInternal cacheConfigurations,
         CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
-        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
+        FileLockManager fileLockManager
     ) {
         return createWorkspaceProvider(
             cacheBuilder,
@@ -60,7 +59,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP,
             cacheConfigurations,
             cacheCleanupStrategyFactory,
-            unscopedCacheBuilderFactory
+            fileLockManager
         );
     }
 
@@ -70,7 +69,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
         int treeDepthToTrackAndCleanup,
         CacheConfigurationsInternal cacheConfigurations,
         CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
-        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
+        FileLockManager fileLockManager
     ) {
         return new CacheBasedImmutableWorkspaceProvider(
             cacheBuilder,
@@ -78,7 +77,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             treeDepthToTrackAndCleanup,
             cacheConfigurations,
             cacheCleanupStrategyFactory,
-            unscopedCacheBuilderFactory
+            fileLockManager
         );
     }
 
@@ -88,7 +87,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
         int treeDepthToTrackAndCleanup,
         CacheConfigurationsInternal cacheConfigurations,
         CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
-        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
+        FileLockManager fileLockManager
     ) {
         PersistentCache cache = cacheBuilder
             .withCleanupStrategy(cacheCleanupStrategyFactory.create(createCleanupAction(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations), cacheConfigurations.getCleanupFrequency()::get))
@@ -101,7 +100,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
         this.cache = cache;
         this.baseDirectory = cache.getBaseDir();
         this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, treeDepthToTrackAndCleanup);
-        this.unscopedCacheBuilderFactory = unscopedCacheBuilderFactory;
+        this.fileLockManager = fileLockManager;
     }
 
     private static CleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal, int treeDepthToTrackAndCleanup, CacheConfigurationsInternal cacheConfigurations) {
@@ -147,43 +146,17 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
 
             @Override
             public <T> T withWorkspaceLock(Supplier<T> supplier) {
-                CacheContainer cacheContainer = keyCaches.computeIfAbsent(path, cache ->
-                    new CacheContainer(unscopedCacheBuilderFactory.cache(workspaceBaseDir)
-                        .withInitialLockMode(FileLockManager.LockMode.OnDemand)
-                        .open()));
-
-                return cacheContainer.withFileLock(supplier);
+                return producerGuard.guardByKey(path, () -> {
+                    try (@SuppressWarnings("unused") FileLock lock = fileLockManager.lock(workspaceBaseDir, DefaultLockOptions.mode(FileLockManager.LockMode.Exclusive), "cache:" + workspaceBaseDir.getParentFile().getName())) {
+                        return supplier.get();
+                    }
+                });
             }
         };
     }
 
     @Override
     public void close() {
-        keyCaches.forEach((id, cache) -> cache.close());
         cache.close();
-    }
-
-    private static class CacheContainer {
-        private final ReentrantLock lock = new ReentrantLock();
-        private final PersistentCache cache;
-
-        CacheContainer(PersistentCache cache) {
-            this.cache = cache;
-        }
-
-        public <T> T withFileLock(Supplier<T> supplier) {
-            return cache.withFileLock(() -> {
-                lock.lock();
-                try {
-                    return supplier.get();
-                } finally {
-                    lock.unlock();
-                }
-            });
-        }
-
-        public void close() {
-            cache.close();
-        }
     }
 }
