@@ -401,6 +401,9 @@ public class ProviderConnection {
             effectiveSystemProperties.putAll(daemonParams.getMutableAndImmutableSystemProperties());
         }
         StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(operationParameters, buildLayoutResult, properties);
+        if (requestContext.getJvmCriteria() instanceof DaemonJvmCriteria.Spec) {
+            startParameter.setDaemonJvmCriteriaConfigured(true);
+        }
 
         Map<String, String> gradlePropertiesAsSeenByToolchains = new HashMap<>();
         gradlePropertiesAsSeenByToolchains.putAll(properties.getProperties());

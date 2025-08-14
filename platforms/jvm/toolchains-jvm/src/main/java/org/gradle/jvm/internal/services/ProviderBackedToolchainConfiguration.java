@@ -16,12 +16,10 @@
 
 package org.gradle.jvm.internal.services;
 
-import org.gradle.StartParameter;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.initialization.JvmToolchainsConfigurationValidator;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
@@ -45,55 +43,26 @@ import java.util.Collection;
 public class ProviderBackedToolchainConfiguration implements ToolchainConfiguration {
     private final ProviderFactory providerFactory;
     private final SystemProperties systemProperties;
-    private final StartParameter startParameter;
+    private final JvmToolchainsConfigurationValidator jvmToolchainsConfigurationValidator;
 
     @Inject
-    public ProviderBackedToolchainConfiguration(ProviderFactory providerFactory, StartParameter startParameter) {
-        this(providerFactory, SystemProperties.getInstance(), startParameter);
+    public ProviderBackedToolchainConfiguration(ProviderFactory providerFactory, JvmToolchainsConfigurationValidator jvmToolchainsConfigurationValidator) {
+        this(providerFactory, SystemProperties.getInstance(), jvmToolchainsConfigurationValidator);
 
     }
 
-    ProviderBackedToolchainConfiguration(ProviderFactory providerFactory, SystemProperties systemProperties, StartParameter startParameter) {
+    ProviderBackedToolchainConfiguration(ProviderFactory providerFactory, SystemProperties systemProperties, JvmToolchainsConfigurationValidator jvmToolchainsConfigurationValidator) {
         this.providerFactory = providerFactory;
         this.systemProperties = systemProperties;
-        this.startParameter = startParameter;
+        this.jvmToolchainsConfigurationValidator = jvmToolchainsConfigurationValidator;
     }
 
     /**
      * Retrieves a Gradle property, and emits a deprecation warning if it was specified as a project property.
-     *
-     * ToolchainBuildOptions takes care of capturing toolchain configuration system properties in the launcher and
-     * shipping them to the daemon as project properties in {@link StartParameter}.  So, whether a property is set as
-     * a system property or as a project property, it should still be available as a "Gradle property".  Here we check
-     * if it was specified as a project property, but not a system property, and, if so, emit a deprecation warning.
-     *
-     * It's conceivable that it could be set as both a system property and a project property for migration purposes,
-     * which is fine.  If so, we ensure that they have the same value, and if not, throw an exception.
      */
     private Provider<String> fromGradleProperty(String propertyName) {
-        if (startParameter.getProjectProperties().containsKey(propertyName)) {
-            if (System.getProperties().containsKey(propertyName)) {
-                if (!startParameter.getProjectProperties().get(propertyName).equals(System.getProperties().get(propertyName))) {
-                    throw new InvalidUserDataException(
-                        "The Gradle property '" + propertyName + "' (set to '" + System.getProperties().get(propertyName) + "') " +
-                            "has a different value than the project property '" + propertyName + "' (set to '" + startParameter.getProjectProperties().get(propertyName) + "')." +
-                            " Please set them to the same value or only set the Gradle property."
-                    );
-                }
-            } else {
-                emitDeprecatedWarning(propertyName, startParameter.getProjectProperties().get(propertyName));
-            }
-        }
-
+        jvmToolchainsConfigurationValidator.validatePropertyConfiguration(propertyName);
         return providerFactory.gradleProperty(propertyName);
-    }
-
-    private static void emitDeprecatedWarning(String propertyName, String value) {
-        DeprecationLogger.deprecateAction("Specifying '" + propertyName + "' as a project property on the command line")
-            .withAdvice("Instead, specify it as a Gradle property, i.e. `-D" + propertyName + "=" + value + "`.")
-            .willBecomeAnErrorInGradle10()
-            .withUpgradeGuideSection(9, "toolchain-project-properties")
-            .nagUser();
     }
 
     @Override

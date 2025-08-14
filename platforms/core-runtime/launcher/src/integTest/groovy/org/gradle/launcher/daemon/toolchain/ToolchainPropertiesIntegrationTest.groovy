@@ -18,8 +18,9 @@ package org.gradle.launcher.daemon.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration
+import org.gradle.launcher.daemon.ToolchainPropertiesDeprecationsFixture
 
-class ToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec {
+class ToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec implements ToolchainPropertiesDeprecationsFixture {
     def "nags when toolchain property is specified as a project property on the command line"() {
         given:
         settingsFile << "rootProject.name = 'test'"
@@ -29,12 +30,7 @@ class ToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec {
         args("-P${ToolchainConfiguration.AUTO_DETECT}=false")
 
         then:
-        executer.expectDocumentedDeprecationWarning(
-            "Specifying 'org.gradle.java.installations.auto-detect' as a project property on the command line has been deprecated." +
-                " This will fail with an error in Gradle 10." +
-                " Instead, specify it as a Gradle property, i.e. `-Dorg.gradle.java.installations.auto-detect=false`." +
-                " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#toolchain-project-properties"
-        )
+        expectToolchainPropertyDeprecationFor('org.gradle.java.installations.auto-detect', 'false')
         executer.withToolchainDetectionEnabled()
         succeeds("printProperty")
 
@@ -53,12 +49,7 @@ class ToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec {
         args("-P${ToolchainConfiguration.AUTO_DETECT}=false")
 
         then:
-        executer.expectDocumentedDeprecationWarning(
-            "Specifying 'org.gradle.java.installations.auto-detect' as a project property on the command line has been deprecated." +
-                " This will fail with an error in Gradle 10." +
-                " Instead, specify it as a Gradle property, i.e. `-Dorg.gradle.java.installations.auto-detect=false`." +
-                " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#toolchain-project-properties"
-        )
+        expectToolchainPropertyDeprecationFor('org.gradle.java.installations.auto-detect', 'false')
         executer.withToolchainDetectionEnabled()
         succeeds("printProperty")
 
