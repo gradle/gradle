@@ -62,10 +62,11 @@ public abstract class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareCo
         // The original implementation only applied to the main feature.
         getFeatures().all(feature -> {
             if (feature.getName().equals(JvmConstants.JAVA_MAIN_FEATURE_NAME)) {
-                feature.withJavadocJar();
-
                 Configuration javadocElements = feature.getJavadocElementsConfiguration();
-                if (!isRegisteredAsLegacyVariant(javadocElements)) {
+                if (javadocElements == null) {
+                    // This method can be called multiple times. Only publish the javadoc jar once.
+                    feature.withJavadocJar();
+                    javadocElements = feature.getJavadocElementsConfiguration();
                     addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
                 }
             }
@@ -79,10 +80,11 @@ public abstract class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareCo
         // The original implementation only applied to the main feature.
         getFeatures().all(feature -> {
             if (feature.getName().equals(JvmConstants.JAVA_MAIN_FEATURE_NAME)) {
-                feature.withSourcesJar();
-
                 Configuration sourcesElements = feature.getSourcesElementsConfiguration();
-                if (!isRegisteredAsLegacyVariant(sourcesElements)) {
+                if (sourcesElements == null) {
+                    // This method can be called multiple times. Only publish the sources jar once.
+                    feature.withSourcesJar();
+                    sourcesElements = feature.getSourcesElementsConfiguration();
                     addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
                 }
             }

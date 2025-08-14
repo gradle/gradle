@@ -69,6 +69,60 @@ publishing {
 }
 ```
 
+#### Introduced provider-accepting methods for publishing configurations
+
+Two new methods have been added to `AdhocComponentWithVariants` which accept providers of consumable configurations:
+
+- `void addVariantsFromConfiguration(Provider<ConsumableConfiguration>, Action<? super ConfigurationVariantDetails>)`
+- `void withVariantsFromConfiguration(Provider<ConsumableConfiguration>, Action<? super ConfigurationVariantDetails>)`
+
+These overload the existing methods with the same name that accept realized configuration instances.
+
+These new APIs allow configurations to be published without realizing them first.
+Consider the following example showcasing how to use the new API:
+
+```kotlin
+plugins {
+    id("base")
+    id("maven-publish")
+}
+
+group = "org.example"
+version = "1.0"
+
+val myTask = tasks.register<Jar>("myTask")
+val variantDependencies = configurations.dependencyScope("variantDependencies")
+val myNewVariant: NamedDomainObjectProvider<ConsumableConfiguration> = configurations.consumable("myNewVariant") {
+    extendsFrom(variantDependencies.get())
+    outgoing {
+        artifact(myTask)
+    }
+    attributes {
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("foo"))
+    }
+}
+
+
+publishing {
+    val component = softwareComponentFactory.adhoc("component")
+    // This new overload now accepts a lazy provider of consumable configuration
+    component.addVariantsFromConfiguration(myNewVariant) {}
+
+    repositories {
+        maven {
+            url = uri("<your repo url>")
+        }
+    }
+    publications {
+        create<MavenPublication>("myPublication") {
+            from(component)
+        }
+    }
+}
+```
+
+When using this new API, the `myNewVariant` configuration will no longer be realized unless the `myPublication` publication is published.
+
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
 <!--
