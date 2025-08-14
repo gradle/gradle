@@ -20,35 +20,41 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.ConfigurationVariantDetails;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants, SoftwareComponentInternal {
+
     private final String componentName;
-    private final Map<Configuration, ConfigurationVariantMapping> variants = new LinkedHashMap<>(4);
     private final ObjectFactory objectFactory;
 
-    @Nullable
-    private Set<UsageContext> cachedVariants;
+    // Mutable state
+    private final List<ConfigurationVariantAction> actions;
+    private @Nullable ImmutableSet<UsageContext> cachedVariants;
 
     @Inject
     public DefaultAdhocSoftwareComponent(String componentName, ObjectFactory objectFactory) {
         this.componentName = componentName;
         this.objectFactory = objectFactory;
+        this.actions = new ArrayList<>();
     }
 
     @Override
@@ -59,33 +65,57 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
     @Override
     public void addVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> spec) {
         checkNotObserved();
-        variants.put(outgoingConfiguration, new ConfigurationVariantMapping((ConfigurationInternal) outgoingConfiguration, spec, objectFactory));
+        actions.add(new ConfigurationVariantAction(() -> outgoingConfiguration, spec, false));
+    }
+
+    @Override
+    public void addVariantsFromConfiguration(Provider<ConsumableConfiguration> outgoingConfiguration, Action<? super ConfigurationVariantDetails> action) {
+        checkNotObserved();
+        actions.add(new ConfigurationVariantAction(outgoingConfiguration::get, action, false));
     }
 
     @Override
     public void withVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> action) {
         checkNotObserved();
-        if (!variants.containsKey(outgoingConfiguration)) {
-            throw new InvalidUserDataException("Variant for configuration " + outgoingConfiguration.getName() + " does not exist in component " + componentName);
-        }
-        variants.get(outgoingConfiguration).addAction(action);
+        actions.add(new ConfigurationVariantAction(() -> outgoingConfiguration, action, true));
+    }
+
+    @Override
+    public void withVariantsFromConfiguration(Provider<ConsumableConfiguration> outgoingConfiguration, Action<? super ConfigurationVariantDetails> action) {
+        checkNotObserved();
+        actions.add(new ConfigurationVariantAction(outgoingConfiguration::get, action, true));
     }
 
     @Override
     public Set<? extends UsageContext> getUsages() {
         if (cachedVariants == null) {
-            ImmutableSet.Builder<UsageContext> builder = new ImmutableSet.Builder<>();
-            for (ConfigurationVariantMapping variant : variants.values()) {
-                variant.collectVariants(builder::add);
-            }
-            cachedVariants = builder.build();
+            cachedVariants = computeVariants();
         }
-
         return cachedVariants;
     }
 
-    protected boolean isRegisteredAsLegacyVariant(Configuration outgoingConfiguration) {
-        return variants.containsKey(outgoingConfiguration);
+    private ImmutableSet<UsageContext> computeVariants() {
+        Map<Configuration, ConfigurationVariantMapping> variants = new LinkedHashMap<>(4);
+        for (ConfigurationVariantAction action : actions) {
+            Configuration configuration = action.getConfiguration();
+            if (!action.isMutate()) {
+                variants.put(configuration, new ConfigurationVariantMapping((ConfigurationInternal) configuration, action.getSpec(), objectFactory));
+            } else {
+                if (!variants.containsKey(configuration)) {
+                    throw new InvalidUserDataException(
+                        "Variant for configuration '" + configuration.getName() + "' does not exist in component '" + componentName + "'. " +
+                            "For a given configuration, 'addVariantsFromConfiguration' must be called before 'withVariantsFromConfiguration'."
+                    );
+                }
+                variants.get(configuration).addAction(action.getSpec());
+            }
+        }
+
+        ImmutableSet.Builder<UsageContext> builder = new ImmutableSet.Builder<>();
+        for (ConfigurationVariantMapping variant : variants.values()) {
+            variant.collectVariants(builder::add);
+        }
+        return builder.build();
     }
 
     /**
@@ -109,4 +139,31 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
             return Collections.singletonList(Documentation.upgradeMinorGuide(8, "gmm_modification_after_publication_populated").getConsultDocumentationMessage());
         }
     }
+
+    private static final class ConfigurationVariantAction {
+
+        private final Supplier<Configuration> configuration;
+        private final Action<? super ConfigurationVariantDetails> spec;
+        private final boolean mutate;
+
+        public ConfigurationVariantAction(Supplier<Configuration> configuration, Action<? super ConfigurationVariantDetails> spec, boolean mutate) {
+            this.configuration = configuration;
+            this.spec = spec;
+            this.mutate = mutate;
+        }
+
+        public Configuration getConfiguration() {
+            return configuration.get();
+        }
+
+        public Action<? super ConfigurationVariantDetails> getSpec() {
+            return spec;
+        }
+
+        public boolean isMutate() {
+            return mutate;
+        }
+
+    }
+
 }
