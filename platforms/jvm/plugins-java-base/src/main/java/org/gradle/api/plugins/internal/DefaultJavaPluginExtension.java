@@ -21,9 +21,11 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.DirectoryProperty;
@@ -229,12 +231,12 @@ public class DefaultJavaPluginExtension implements JavaPluginExtensionInternal {
             // without needing to explicitly know about each variant.
 
             AdhocComponentWithVariants adhocComponent = (AdhocComponentWithVariants) component;
-            Configuration javadocElements = feature.getJavadocElementsConfiguration();
+            NamedDomainObjectProvider<ConsumableConfiguration> javadocElements = feature.getJavadocElementsConfiguration();
             if (javadocElements != null) {
                 adhocComponent.addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
             }
 
-            Configuration sourcesElements = feature.getSourcesElementsConfiguration();
+            NamedDomainObjectProvider<ConsumableConfiguration> sourcesElements = feature.getSourcesElementsConfiguration();
             if (sourcesElements != null) {
                 adhocComponent.addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
             }

@@ -105,7 +105,9 @@ public abstract class WarPlugin implements Plugin<Project> {
 
         mainFeature.getImplementationConfiguration().extendsFrom(providedCompileConfiguration);
         mainFeature.getRuntimeClasspathConfiguration().extendsFrom(providedRuntimeConfiguration);
-        mainFeature.getRuntimeElementsConfiguration().extendsFrom(providedRuntimeConfiguration);
+        mainFeature.getRuntimeElementsConfiguration().configure(conf ->
+            conf.extendsFrom(providedRuntimeConfiguration)
+        );
 
         JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
         configurationContainer.getByName(defaultTestSuite.getSources().getRuntimeClasspathConfigurationName()).extendsFrom(providedRuntimeConfiguration);

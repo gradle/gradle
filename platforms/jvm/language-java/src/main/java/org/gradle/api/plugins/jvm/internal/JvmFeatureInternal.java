@@ -16,7 +16,9 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Named;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
@@ -91,7 +93,7 @@ public interface JvmFeatureInternal extends Named {
      * @return null if {@link #withJavadocJar()} has not been called.
      */
     @Nullable
-    Configuration getJavadocElementsConfiguration();
+    NamedDomainObjectProvider<ConsumableConfiguration> getJavadocElementsConfiguration();
 
     /**
      * Gets the consumable configuration created by {@link #withSourcesJar()}.
@@ -99,7 +101,7 @@ public interface JvmFeatureInternal extends Named {
      * @return null if {@link #withSourcesJar()} has not been called.
      */
     @Nullable
-    Configuration getSourcesElementsConfiguration();
+    NamedDomainObjectProvider<ConsumableConfiguration> getSourcesElementsConfiguration();
 
     // TODO: Many of the methods below probably belong on a JvmTarget. Features may have many targets
     // and thus many configurations, jar tasks, compile tasks, etc.
@@ -203,7 +205,7 @@ public interface JvmFeatureInternal extends Named {
      *
      * @return The {@code apiElements} configuration.
      */
-    Configuration getApiElementsConfiguration();
+    NamedDomainObjectProvider<ConsumableConfiguration> getApiElementsConfiguration();
 
     /**
      * Get the consumable configuration which produces the {@code runtimeElements} variant of this feature.
@@ -212,6 +214,6 @@ public interface JvmFeatureInternal extends Named {
      *
      * @return The {@code runtimeElements} configuration.
      */
-    Configuration getRuntimeElementsConfiguration();
+    NamedDomainObjectProvider<ConsumableConfiguration> getRuntimeElementsConfiguration();
 
 }

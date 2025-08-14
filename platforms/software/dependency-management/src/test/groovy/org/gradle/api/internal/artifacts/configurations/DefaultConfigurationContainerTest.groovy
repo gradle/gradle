@@ -227,12 +227,6 @@ class DefaultConfigurationContainerTest extends Specification {
         verifyRole(ConfigurationRoles.CONSUMABLE, "b") {
             consumable("b", {})
         }
-        verifyLocked(ConfigurationRoles.CONSUMABLE, "c") {
-            consumableLocked("c")
-        }
-        verifyLocked(ConfigurationRoles.CONSUMABLE, "d") {
-            consumableLocked("d", {})
-        }
     }
 
     def "creates dependency scope configuration"() {
@@ -338,7 +332,6 @@ class DefaultConfigurationContainerTest extends Specification {
 
         where:
         name                                                | action
-        "consumableLocked(String, Action)"                | { consumableLocked("foo", it) }
         "resolvableLocked(String, Action)"                | { resolvableLocked("foo", it) }
         "dependencyScopeLocked(String, Action)"           | { dependencyScopeLocked("foo", it) }
         "resolvableDependencyScopeLocked(String, Action)" | { resolvableDependencyScopeLocked("foo", it) }
@@ -383,9 +376,15 @@ class DefaultConfigurationContainerTest extends Specification {
 
     def verifyLocked(ConfigurationRole role, String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer) {
         verifyEagerConfiguration(name, producer) {
-            assert !(it instanceof ResolvableConfiguration)
-            assert !(it instanceof DependencyScopeConfiguration)
-            assert !(it instanceof ConsumableConfiguration)
+            if (role == ConfigurationRoles.DEPENDENCY_SCOPE) {
+                assert it instanceof DependencyScopeConfiguration
+            } else if (role == ConfigurationRoles.RESOLVABLE) {
+                assert it instanceof ResolvableConfiguration
+            } else if (role == ConfigurationRoles.CONSUMABLE) {
+                assert it instanceof ConsumableConfiguration
+            } else {
+                assert it instanceof DefaultConfiguration
+            }
             assert role.resolvable == it.isCanBeResolved()
             assert role.declarable == it.isCanBeDeclared()
             assert role.consumable == it.isCanBeConsumed()
