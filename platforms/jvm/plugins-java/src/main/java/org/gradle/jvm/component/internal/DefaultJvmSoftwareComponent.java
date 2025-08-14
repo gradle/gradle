@@ -16,8 +16,9 @@
 
 package org.gradle.jvm.component.internal;
 
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
@@ -62,7 +63,7 @@ public abstract class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareCo
         // The original implementation only applied to the main feature.
         getFeatures().all(feature -> {
             if (feature.getName().equals(JvmConstants.JAVA_MAIN_FEATURE_NAME)) {
-                Configuration javadocElements = feature.getJavadocElementsConfiguration();
+                NamedDomainObjectProvider<ConsumableConfiguration> javadocElements = feature.getJavadocElementsConfiguration();
                 if (javadocElements == null) {
                     // This method can be called multiple times. Only publish the javadoc jar once.
                     feature.withJavadocJar();
@@ -80,7 +81,7 @@ public abstract class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareCo
         // The original implementation only applied to the main feature.
         getFeatures().all(feature -> {
             if (feature.getName().equals(JvmConstants.JAVA_MAIN_FEATURE_NAME)) {
-                Configuration sourcesElements = feature.getSourcesElementsConfiguration();
+                NamedDomainObjectProvider<ConsumableConfiguration> sourcesElements = feature.getSourcesElementsConfiguration();
                 if (sourcesElements == null) {
                     // This method can be called multiple times. Only publish the sources jar once.
                     feature.withSourcesJar();

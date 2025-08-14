@@ -18,6 +18,7 @@ package org.gradle.language.swift.internal
 
 import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ResolvableConfiguration
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal
@@ -42,7 +43,7 @@ class DefaultSwiftBinaryTest extends Specification {
     def implementation = project.configurations.dependencyScope("implementation").get()
     def compile = Stub(Configuration)
     def link = Stub(Configuration)
-    def runtime = Stub(Configuration)
+    def runtime = Stub(ResolvableConfiguration)
     def configurations = Stub(RoleBasedConfigurationContainerInternal)
     def incoming = Mock(ResolvableDependencies)
     DefaultSwiftBinary binary

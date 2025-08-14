@@ -17,7 +17,9 @@
 package org.gradle.language.cpp.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
@@ -45,7 +47,7 @@ import java.util.Collections;
 
 public abstract class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary, PublicationAwareComponent {
     private final FileCollection publicHeadersWithConvention;
-    private final Configuration apiElements;
+    private final NamedDomainObjectProvider<ConsumableConfiguration> apiElements;
     private final MainLibraryVariant mainVariant;
     private final DefaultLibraryDependencies dependencies;
 
@@ -60,7 +62,7 @@ public abstract class DefaultCppLibrary extends DefaultCppComponent implements C
 
         Usage apiUsage = getObjectFactory().named(Usage.class, Usage.C_PLUS_PLUS_API);
 
-        this.apiElements = configurations.consumableLocked(getNames().withSuffix("cppApiElements"), conf -> {
+        this.apiElements = configurations.consumable(getNames().withSuffix("cppApiElements"), conf -> {
             conf.extendsFrom(dependencies.getApiDependencies());
             conf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
             conf.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
@@ -108,7 +110,7 @@ public abstract class DefaultCppLibrary extends DefaultCppComponent implements C
         action.execute(dependencies);
     }
 
-    public Configuration getApiElements() {
+    public NamedDomainObjectProvider<ConsumableConfiguration> getApiElements() {
         return apiElements;
     }
 

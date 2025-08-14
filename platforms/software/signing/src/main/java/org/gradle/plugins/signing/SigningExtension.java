@@ -162,7 +162,7 @@ public abstract class SigningExtension {
         final Configuration configuration = configurations.findByName(DEFAULT_CONFIGURATION_NAME);
         return configuration != null
             ? configuration
-            : configurations.consumableLocked(DEFAULT_CONFIGURATION_NAME);
+            : configurations.consumable(DEFAULT_CONFIGURATION_NAME).get();
     }
 
     /**

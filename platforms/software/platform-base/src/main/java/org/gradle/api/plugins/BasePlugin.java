@@ -92,7 +92,7 @@ public abstract class BasePlugin implements Plugin<Project> {
             });
         });
 
-        configurations.consumableLocked(Dependency.DEFAULT_CONFIGURATION, conf -> {
+        configurations.consumable(Dependency.DEFAULT_CONFIGURATION, conf -> {
             conf.setDescription("Configuration for default artifacts.");
         });
 
