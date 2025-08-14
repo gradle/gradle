@@ -44,7 +44,7 @@ jobs:
             if (context.payload.pull_request && context.payload.pull_request.head.repo.fork) {
                 core.setOutput('sys-prop-args', '-DagreePublicBuildScanTermOfService=yes -Ddevelocity.edge.discovery=false -DcacheNode=us --scan')
             } else {
-                core.setOutput('sys-prop-args', '-Ddevelocity.edge.discovery=false -DcacheNode=us')
+                core.setOutput('sys-prop-args', '')
             }
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
