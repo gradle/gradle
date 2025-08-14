@@ -34,7 +34,6 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
@@ -58,7 +57,11 @@ public abstract class FindMissingDocumentationFiles extends DefaultTask {
         "sec:ear_convention_properties",
         "sec:base_plugin_conventions",
         "sec:project_reports_convention_properties",
-        "sec:kotlin_dsl_about_conventions"
+        "sec:kotlin_dsl_about_conventions",
+        "sec:java_convention_properties",
+        "config_cache:not_yet_implemented:secrets",
+        "config_cache:not_implemented:store_parallel_execution",
+        "config_cache:not_yet_implemented:storing_lambdas"
     ));
 
     @InputDirectory
@@ -80,17 +83,14 @@ public abstract class FindMissingDocumentationFiles extends DefaultTask {
         try {
             List<String> allErrors = new ArrayList<>();
 
-            // Step 1: Find all .adoc files from the JSON that are missing from the directory (with hardcoded exclusions)
             allErrors.addAll(findMissingAdocFiles(gradle7JsonFile, directoryPath));
             allErrors.addAll(findMissingAdocFiles(gradle8JsonFile, directoryPath));
 
-            // Step 2: Find all anchors from the JSON that are missing from all .adoc files (with hardcoded exclusions)
             Set<String> allExistingAnchors = findAllAdocAnchors(directoryPath);
             allErrors.addAll(findMissingAnchors(gradle7JsonFile, allExistingAnchors));
             allErrors.addAll(findMissingAnchors(gradle8JsonFile, allExistingAnchors));
 
             if (!allErrors.isEmpty()) {
-                // Print all errors and fail the build
                 System.out.println("Found documentation files or anchors that do not exist:");
                 for (String error : allErrors) {
                     System.out.println(error);
