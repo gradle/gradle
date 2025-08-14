@@ -76,6 +76,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
@@ -209,6 +210,11 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     @Inject
     protected abstract ObjectFactory getObjectFactory();
+
+    // Method kept for binary compatibility.
+    @SuppressWarnings("unused")
+    @Inject
+    protected abstract Instantiator getInstantiator();
 
     @Inject
     protected abstract ListenerManager getListenerManager();
