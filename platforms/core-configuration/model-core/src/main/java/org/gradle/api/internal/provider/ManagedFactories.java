@@ -68,20 +68,24 @@ public class ManagedFactories {
 
             ProviderInternal<S> provider = Cast.uncheckedNonnullCast(state);
             Class<S> providerType = provider.getType();
+            // We should properly serialize the type for the source property instead
+            // of trying to infer it from the backing provider.
             if (providerType == null) {
                 // TODO: This violates the assumption that all Property instances have a type.
-                // We should properly serialize the type for the source property instead
-                // of trying to infer it from the backing provider.
                 @SuppressWarnings("deprecation")
                 DefaultProperty<?> noTypeProperty = propertyFactory.propertyWithNoType();
+                // TODO(mlopatkin) we don't set the value here, is it bad?
                 return type.cast(noTypeProperty);
             } else {
                 return type.cast(propertyOf(providerType, provider));
             }
         }
 
+        @SuppressWarnings("deprecation")
         <V> Property<V> propertyOf(Class<V> type, Provider<V> value) {
-            return propertyFactory.property(type).value(value);
+            // As we're inferring the type from the value, it may not exactly match the type of property and may actually be forbidden.
+            // Imagine Property<Object> holding a List - the users will be asked to use ListProperty.
+            return propertyFactory.propertyOfAnyType(type).value(value);
         }
 
         @Override

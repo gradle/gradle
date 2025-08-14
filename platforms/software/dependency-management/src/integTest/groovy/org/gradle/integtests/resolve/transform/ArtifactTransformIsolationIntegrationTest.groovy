@@ -26,7 +26,6 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 /**
@@ -84,7 +83,6 @@ abstract class Resolve extends Copy {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/34667")
-    @ToBeImplemented
     def "can isolate object property with #valueType value"() {
         given:
         mavenRepo.module("test", "test", "1.3").publish()
@@ -134,22 +132,22 @@ abstract class Resolve extends Copy {
         """
 
         when:
-        fails("resolve")
+        succeeds("resolve")
 
         then:
-        failureHasCause(~/Creating a property of type 'Property<.+>' is unsupported. Use '.+' instead./)
+        outputContains(expectedOutput)
 
         where:
-        valueType     | value
-        "List"        | "['a'] as List<String>"
-        "Set"         | "['a'] as Set<String>"
-        "Map"         | "[a: 'b'] as Map<String, String>"
-        "Directory"   | "layout.projectDirectory.dir('foo')"
-        "RegularFile" | "layout.projectDirectory.file('foo')"
+        valueType     | value                                 | expectedOutput
+        "String"      | "'some string'"                       | "some string"
+        "List"        | "['a'] as List<String>"               | "[a]"
+        "Set"         | "['a'] as Set<String>"                | "[a]"
+        "Map"         | "[a: 'b'] as Map<String, String>"     | "[a:b]"
+        "Directory"   | "layout.projectDirectory.dir('foo')"  | "/foo"
+        "RegularFile" | "layout.projectDirectory.file('foo')" | "/foo"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/34667")
-    @ToBeImplemented
     def "can isolate managed object property with property holding #valueType value"() {
         given:
         mavenRepo.module("test", "test", "1.3").publish()
@@ -203,18 +201,19 @@ abstract class Resolve extends Copy {
         """
 
         when:
-        fails("resolve")
+        succeeds("resolve")
 
         then:
-        failureHasCause(~/Creating a property of type 'Property<.+>' is unsupported. Use '.+' instead./)
+        outputContains(expectedOutput)
 
         where:
-        valueType     | value
-        "List"        | "['a'] as List<String>"
-        "Set"         | "['a'] as Set<String>"
-        "Map"         | "[a: 'b'] as Map<String, String>"
-        "Directory"   | "layout.projectDirectory.dir('foo')"
-        "RegularFile" | "layout.projectDirectory.file('foo')"
+        valueType     | value                                 | expectedOutput
+        "String"      | "'some string'"                       | "some string"
+        "List"        | "['a'] as List<String>"               | "[a]"
+        "Set"         | "['a'] as Set<String>"                | "[a]"
+        "Map"         | "[a: 'b'] as Map<String, String>"     | "[a:b]"
+        "Directory"   | "layout.projectDirectory.dir('foo')"  | "/foo"
+        "RegularFile" | "layout.projectDirectory.file('foo')" | "/foo"
     }
 
     @Requires(IntegTestPreconditions.NotParallelExecutor)

@@ -18,7 +18,6 @@ package org.gradle.workers.internal
 
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -314,9 +313,8 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/34667")
-    @ToBeImplemented
-    def "can provide object property with #valueType value with isolation mode #isolationMode"() {
-        buildFile << """
+    def "can provide object property with #valueType value with isolation mode #isolationMode"(def isolationMode, String valueType, String value, String expectedOutput) {
+        buildFile """
             ${parameterWorkAction('Property<Object>', 'println parameters.testParam.get()')}
 
             task runWork(type: ParameterTask) {
@@ -329,28 +327,27 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        // succeeds("runWork")
-        fails("runWork")
+        succeeds("runWork")
 
         then:
-        failureHasCause(~/Creating a property of type 'Property<.+>' is unsupported. Use '.+' instead./)
+        outputContains(expectedOutput)
 
         where:
-        [isolationMode, valueType, value] << [ISOLATION_MODES, [
-            ["List", "['a'] as List<String>"],
-            ["Set", "['a'] as Set<String>"],
-            ["Map", "[a: 'b'] as Map<String, String>"],
-            ["Directory", "layout.projectDirectory.dir('foo')"],
-            ["RegularFile", "layout.projectDirectory.file('foo')"],
+        [isolationMode, valueType, value, expectedOutput] << [ISOLATION_MODES, [
+            ["String", "'some string'", "some string"],
+            ["List", "['a'] as List<String>", "[a]"],
+            ["Set", "['a'] as Set<String>", "[a]"],
+            ["Map", "[a: 'b'] as Map<String, String>", "[a:b]"],
+            ["Directory", "layout.projectDirectory.dir('foo')", "/foo"],
+            ["RegularFile", "layout.projectDirectory.file('foo')", "/foo"],
         ]].combinations { mode, valueData ->
             [mode] + valueData
         }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/34667")
-    @ToBeImplemented
-    def "can provide managed object property with #valueType value with isolation mode #isolationMode"() {
-        buildFile << """
+    def "can provide managed object property with #valueType value with isolation mode #isolationMode"(def isolationMode, String valueType, String value, String expectedOutput) {
+        buildFile """
             interface MyManagedObject {
                 Property<Object> getValue()
             }
@@ -367,19 +364,19 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        // succeeds("runWork")
-        fails("runWork")
+        succeeds("runWork")
 
         then:
-        failureHasCause(~/Creating a property of type 'Property<.+>' is unsupported. Use '.+' instead./)
+        outputContains(expectedOutput)
 
         where:
-        [isolationMode, valueType, value] << [ISOLATION_MODES, [
-            ["List", "['a'] as List<String>"],
-            ["Set", "['a'] as Set<String>"],
-            ["Map", "[a: 'b'] as Map<String, String>"],
-            ["Directory", "layout.projectDirectory.dir('foo')"],
-            ["RegularFile", "layout.projectDirectory.file('foo')"],
+        [isolationMode, valueType, value, expectedOutput] << [ISOLATION_MODES, [
+            ["String", "'some string'", "some string"],
+            ["List", "['a'] as List<String>", "[a]"],
+            ["Set", "['a'] as Set<String>", "[a]"],
+            ["Map", "[a: 'b'] as Map<String, String>", "[a:b]"],
+            ["Directory", "layout.projectDirectory.dir('foo')", "/foo"],
+            ["RegularFile", "layout.projectDirectory.file('foo')", "/foo"],
         ]].combinations { mode, valueData ->
             [mode] + valueData
         }

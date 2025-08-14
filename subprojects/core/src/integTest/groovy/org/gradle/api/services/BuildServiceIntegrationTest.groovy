@@ -1616,7 +1616,6 @@ Hello, subproject1
     }
 
     @Issue("https://github.com/gradle/gradle/issues/34667")
-    @ToBeImplemented
     def "can use Property with #valueType value as service parameter"() {
         buildFile """
             abstract class PrintService implements BuildService<PrintService.Params> {
@@ -1625,7 +1624,7 @@ Hello, subproject1
                 }
 
                 void printValue() {
-                    println(parameters.value)
+                    println(parameters.value.get())
                 }
             }
 
@@ -1642,23 +1641,22 @@ Hello, subproject1
         """
 
         when:
-        fails("print")
-        // succeeds("print")
+        succeeds("print")
 
         then:
-        failureHasCause(~/Creating a property of type 'Property<.+>' is unsupported. Use '.+' instead./)
+        outputContains(expectedOutput)
 
         where:
-        valueType     | value
-        "List"        | "['a'] as List<String>"
-        "Set"         | "['a'] as Set<String>"
-        "Map"         | "[a: 'b'] as Map<String, String>"
-        "Directory"   | "layout.projectDirectory.dir('foo')"
-        "RegularFile" | "layout.projectDirectory.file('foo')"
+        valueType     | value                                 | expectedOutput
+        "String"      | "'some string'"                       | "some string"
+        "List"        | "['a'] as List<String>"               | "[a]"
+        "Set"         | "['a'] as Set<String>"                | "[a]"
+        "Map"         | "[a: 'b'] as Map<String, String>"     | "[a:b]"
+        "Directory"   | "layout.projectDirectory.dir('foo')"  | "/foo"
+        "RegularFile" | "layout.projectDirectory.file('foo')" | "/foo"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/34667")
-    @ToBeImplemented
     def "can use Property with #valueType value in a managed object as service parameter"() {
         buildFile """
             interface MyManagedObject {
@@ -1671,7 +1669,7 @@ Hello, subproject1
                 }
 
                 void printValue() {
-                    println(parameters.managedObject.value.get())
+                    println(parameters.managedObject.get().value.get())
                 }
             }
 
@@ -1688,19 +1686,19 @@ Hello, subproject1
         """
 
         when:
-        fails("print")
-        // succeeds("print")
+        succeeds("print")
 
         then:
-        failureHasCause(~/Creating a property of type 'Property<.+>' is unsupported. Use '.+' instead./)
+        outputContains(expectedOutput)
 
         where:
-        valueType     | value
-        "List"        | "['a'] as List<String>"
-        "Set"         | "['a'] as Set<String>"
-        "Map"         | "[a: 'b'] as Map<String, String>"
-        "Directory"   | "layout.projectDirectory.dir('foo')"
-        "RegularFile" | "layout.projectDirectory.file('foo')"
+        valueType     | value                                 | expectedOutput
+        "String"      | "'some string'"                       | "some string"
+        "List"        | "['a'] as List<String>"               | "[a]"
+        "Set"         | "['a'] as Set<String>"                | "[a]"
+        "Map"         | "[a: 'b'] as Map<String, String>"     | "[a:b]"
+        "Directory"   | "layout.projectDirectory.dir('foo')"  | "/foo"
+        "RegularFile" | "layout.projectDirectory.file('foo')" | "/foo"
     }
 
     def "should not resolve providers when computing shared resources"() {
