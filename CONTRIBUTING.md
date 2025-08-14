@@ -91,15 +91,15 @@ It helps developers optimize performance and gain deeper insights into their bui
 
 ### Code change guidelines
 
-Code contributions should follow these guidelines to maximize the chance of your changes being accepted:
+Code contributions should follow these guidelines to maximize the chance of them being accepted:
 
 * Cover your code with tests. See the [Testing guide](contributing/Testing.md) for more information.
 * Add documentation to the User Manual and DSL Reference (under [platforms/documentation/docs/src/docs](platforms/documentation/docs/src/docs/)).
 * For error messages related changes, follow the [ErrorMessages Guide](contributing/ErrorMessages.md).
-* Add Javadoc for new methods and classes, following the [Javadoc Style Guide](contributing/JavadocStyleGuide.md).
+* Add Javadoc for new methods and classes, following the [Javadoc Style Guide](contributing/JavadocStyleGuide.md). Javadoc is *required* for new public, top-level types.
 * For new features, the feature should be mentioned in the [Release Notes](platforms/documentation/docs/src/docs/release/notes.md).
 
-Your code needs to run on [all versions of Java that Gradle supports](platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc) and across all supported operating systems (macOS, Windows, Linux). The [Gradle CI system](http://builds.gradle.org/) will verify this, but here are some pointers that will avoid surprises:
+Your code needs to run on [all versions of Java that Gradle supports](platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc) and across all supported operating systems (macOS, Windows, Linux). The Gradle CI system will verify this, but here are some pointers that will avoid surprises:
 
 * Be careful when using features introduced in Java 9 or later. Some parts of Gradle still need to run on Java 8.
 * Normalize file paths in tests. The `org.gradle.util.internal.TextUtil` class has some useful functions for this purpose.
