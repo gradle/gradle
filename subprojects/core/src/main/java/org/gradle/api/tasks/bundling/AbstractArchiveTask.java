@@ -126,6 +126,24 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Internal
+    public Property<ConfigurableFilePermissions> getDirPermissions() {
+        return super.getDirPermissions();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Internal
+    public Property<ConfigurableFilePermissions> getFilePermissions() {
+        return super.getFilePermissions();
+    }
+
+    /**
      * Returns the archive name. If the name has not been explicitly set, the pattern for the name is:
      * <code>[archiveBaseName]-[archiveAppendix]-[archiveVersion]-[archiveClassifier].[archiveExtension]</code>
      *
