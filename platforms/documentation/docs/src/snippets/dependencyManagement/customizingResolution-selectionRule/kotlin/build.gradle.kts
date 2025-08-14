@@ -90,7 +90,7 @@ tasks.register("printMetadataRulesConfig") {
 
 // tag::targeted-component-selection[]
 configurations {
-    register("targetConfig") {
+    create("targetConfig") {
         resolutionStrategy {
             componentSelection {
                 withModule("org.sample:api") {
@@ -116,7 +116,7 @@ tasks.register("printTargetConfig") {
 }
 
 configurations {
-    register("sampleConfig") {
+    create("sampleConfig") {
         resolutionStrategy {
             componentSelection {
                 withModule("org.sample:api") {
