@@ -375,14 +375,14 @@ Unlike `Project.container(Class)`, the `ObjectFactory` version decorates contain
 [[dependency_management_rules]]
 ==== Deprecation of ruleSource-based dependency management APIs
 
-The link:{javadocPath}/org/gradle/model/RuleSource.html[`RuleSource`]-based dependency management APIs have been deprecated and will be removed in Gradle 10.0.0.
+The javadoc:org.gradle.model.RuleSource[]-based dependency management APIs have been deprecated and will be removed in Gradle 10.0.0.
 
 Deprecated APIs include:
 
-- link:{javadocPath}/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html#all(java.lang.Object)[`ComponentMetadataHandler.all(Object)`]
-- link:{javadocPath}/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html#all(java.lang.Object)[`ComponentMetadataHandler.withModule(Object,Object)`]
-- link:{javadocPath}/org/gradle/api/artifacts/ComponentSelectionRules.html#all(java.lang.Object)[`ComponentSelectionRules.all(Object)`]
-- link:{javadocPath}/org/gradle/api/artifacts/ComponentSelectionRules.html#withModule(java.lang.Object,java.lang.Object)[`ComponentSelectionRules.withModule(Object,Object)`]
+- javadoc:org.gradle.api.artifacts.dsl.ComponentMetadataHandler#all(java.lang.Object)[]
+- javadoc:org.gradle.api.artifacts.dsl.ComponentMetadataHandler#withModule(java.lang.Object,java.lang.Object)[]
+- javadoc:org.gradle.api.artifacts.ComponentSelectionRules#all(java.lang.Object)[]
+- javadoc:org.gradle.api.artifacts.ComponentSelectionRules#withModule(java.lang.Object,java.lang.Object)[]
 
 Use the alternative methods that accept a `ComponentMetadataRule` class or an `Action`.
 
