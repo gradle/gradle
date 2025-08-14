@@ -64,6 +64,7 @@ import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.gradle.plugin.use.resolve.internal.local.PluginPublication;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.util.GradleVersion;
 import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
@@ -150,7 +151,8 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(JavaLibraryPlugin.class);
         GradlePluginDevelopmentExtension extension = createExtension(project);
-        applyDependencies(project);
+        Provider<String> versionProvider = extension.getGradleApiVersion();
+        applyDependencies(project, versionProvider);
         configureJarTask(project, extension);
         configureTestKit(project, extension);
         configurePublishing(project);
@@ -158,7 +160,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
         configureDescriptorGeneration(project, extension);
         validatePluginDeclarations(project, extension);
         configurePluginValidations(project, extension);
-        configureDependencyGradlePluginsResolution(project);
+        configureDependencyGradlePluginsResolution(project, versionProvider);
     }
 
     private void registerPlugins(Project project, GradlePluginDevelopmentExtension extension) {
@@ -168,15 +170,19 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
         extension.getPlugins().all(pluginDeclaration -> registry.registerPublication(projectIdentity, new LocalPluginPublication(pluginDeclaration)));
     }
 
-    private static void applyDependencies(Project project) {
-        // TODO This should be provided via GradlePluginDevelopmentExtension.gradleApiVersion once it's not an experimental feature
+    private static void applyDependencies(Project project, Provider<String> versionProvider) {
         InternalOptions internalOptions = ((ProjectInternal) project).getServices().get(InternalOptions.class);
         if (internalOptions.getOption(EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY).get()) {
             return;
         }
         DependencyHandler dependencies = project.getDependencies();
-        dependencies.add(API_CONFIGURATION, dependencies.gradleApi());
+        if(versionProvider.isPresent()) {
+            dependencies.addProvider(API_CONFIGURATION, versionProvider.map((version) -> dependencies.gradleApi(version)));
+        } else {
+            dependencies.add(API_CONFIGURATION, dependencies.gradleApi());
+        }
     }
+
 
     private void configureJarTask(Project project, GradlePluginDevelopmentExtension extension) {
         project.getTasks().named(JAR_TASK, Jar.class, jarTask -> {
@@ -287,8 +293,8 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, check -> check.dependsOn(validatorTask));
     }
 
-    private void configureDependencyGradlePluginsResolution(Project project) {
-        new GradlePluginApiVersionAttributeConfigurationAction().execute((ProjectInternal) project);
+    private void configureDependencyGradlePluginsResolution(Project project, Provider<String> versionProvider) {
+        new GradlePluginApiVersionAttributeConfigurationAction(versionProvider).execute((ProjectInternal) project);
     }
 
     private Provider<JavaLauncher> toolchainLauncher(Project project) {

@@ -338,6 +338,13 @@ public interface DependencyHandler extends ExtensionAware {
     Dependency gradleApi();
 
     /**
+     * Creates a dependency on the API of the specified version of Gradle.
+     *
+     * @return The dependency.
+     */
+    Dependency gradleApi(String gradleVersion);
+
+    /**
      * Creates a dependency on the <a href="https://docs.gradle.org/current/userguide/test_kit.html" target="_top">Gradle test-kit</a> API.
      *
      * @return The dependency.

@@ -164,4 +164,6 @@ public abstract class GradlePluginDevelopmentExtension {
     public void setAutomatedPublishing(boolean automatedPublishing) {
         this.automatedPublishing = automatedPublishing;
     }
+
+    public abstract Property<String> getGradleApiVersion();
 }
