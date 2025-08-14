@@ -70,7 +70,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 @NullMarked
-public class ValidationProblemSerialization {
+public class VerificationProblemSerialization {
     private static final GsonBuilder GSON_BUILDER = createGsonBuilder();
 
     public static List<? extends InternalProblem> parseMessageList(String lines) {

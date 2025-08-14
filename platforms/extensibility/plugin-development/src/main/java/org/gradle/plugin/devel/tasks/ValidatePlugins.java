@@ -48,7 +48,7 @@ import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.plugin.devel.tasks.internal.ValidateAction;
-import org.gradle.plugin.devel.tasks.internal.ValidationProblemSerialization;
+import org.gradle.plugin.devel.tasks.internal.VerificationProblemSerialization;
 import org.gradle.workers.WorkerExecutor;
 
 import javax.inject.Inject;
@@ -121,9 +121,9 @@ public abstract class ValidatePlugins extends DefaultTask {
             });
         getWorkerExecutor().await();
 
-        List<? extends InternalProblem> problems = ValidationProblemSerialization.parseMessageList(new String(Files.readAllBytes(getOutputFile().get().getAsFile().toPath())));
+        List<? extends InternalProblem> problems = VerificationProblemSerialization.parseMessageList(new String(Files.readAllBytes(getOutputFile().get().getAsFile().toPath())));
 
-        Stream<String> messages = ValidationProblemSerialization.toPlainMessage(problems).sorted();
+        Stream<String> messages = VerificationProblemSerialization.toPlainMessage(problems).sorted();
         if (problems.isEmpty()) {
             getLogger().info("Plugin validation finished without warnings.");
         } else {
