@@ -60,7 +60,7 @@ public class StartParameterConverter {
         startParameter.getSystemPropertiesArgs().putAll(properties.getRequestedSystemProperties());
 
         projectPropertiesCommandLineConverter.convert(parsedCommandLine, startParameter.getProjectProperties());
-        toolchainOptionsConverter.convert(parsedCommandLine, properties.getProperties(), startParameter);
+        toolchainOptionsConverter.convert(parsedCommandLine, properties.getRequestedSystemProperties(), startParameter);
 
         if (!parsedCommandLine.getExtraArguments().isEmpty()) {
             startParameter.setTaskNames(parsedCommandLine.getExtraArguments());
