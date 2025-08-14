@@ -13,6 +13,7 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
     api(projects.persistentCache)
+    api(projects.problemsApi)
     api(projects.declarativeDslToolingModels)
 
     api(libs.inject)
