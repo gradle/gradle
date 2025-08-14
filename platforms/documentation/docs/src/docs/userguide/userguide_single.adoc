@@ -84,7 +84,7 @@ include::organizing_gradle_projects.adoc[leveloffset=+2]
 include::multi_project_builds.adoc[leveloffset=+2]
 include::sharing_build_logic_between_subprojects.adoc[leveloffset=+2]
 include::composite_builds.adoc[leveloffset=+2]
-include::multi_project_configuration_and_execution.adoc[leveloffset=+2]
+include::configuration_on_demand.adoc[leveloffset=+2]
 include::isolated_projects.adoc[leveloffset=+2]
 
 == DEVELOPING TASKS
