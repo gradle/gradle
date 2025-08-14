@@ -28,8 +28,8 @@ public class GradleDocsAsciidoctorExtensionRegistry implements ExtensionRegistry
         registry.docinfoProcessor(MetadataDocinfoProcessor.class);
         registry.docinfoProcessor(new MultiLanguageSamplesDocinfoProcessor());
 
-        registry.includeProcessor(GuidesContributeIncludeProcessor.class);
         registry.includeProcessor(SampleIncludeProcessor.class);
+        registry.inlineMacro(JavadocLinkInlineMacro.class);
 
         registry.inlineMacro(SinceGradleLabelProcessor.class);
         registry.inlineMacro(IncubatingLabelProcessor.class);

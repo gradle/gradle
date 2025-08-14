@@ -51,14 +51,14 @@ DependencyCollectors can still be instantiated within Gradle <<properties_provid
 [[dependency_management_rules]]
 ==== RuleSource-based dependency management APIs have been deprecated
 
-The link:{javadocPath}/org/gradle/model/RuleSource.html[`RuleSource`]-based dependency management APIs have been deprecated and will be removed in Gradle 10.0.0.
+The javadoc:org.gradle.model.RuleSource[]-based dependency management APIs have been deprecated and will be removed in Gradle 10.0.0.
 
 These APIs include:
 
-- link:{javadocPath}/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html#all(java.lang.Object)[`ComponentMetadataHandler.all(Object)`]
-- link:{javadocPath}/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html#all(java.lang.Object)[`ComponentMetadataHandler.withModule(Object,Object)`]
-- link:{javadocPath}/org/gradle/api/artifacts/ComponentSelectionRules.html#all(java.lang.Object)[`ComponentSelectionRules.all(Object)`]
-- link:{javadocPath}/org/gradle/api/artifacts/ComponentSelectionRules.html#withModule(java.lang.Object,java.lang.Object)[`ComponentSelectionRules.withModule(Object,Object)`]
+- javadoc:org.gradle.api.artifacts.dsl.ComponentMetadataHandler#all(java.lang.Object)[]
+- javadoc:org.gradle.api.artifacts.dsl.ComponentMetadataHandler#withModule(java.lang.Object,java.lang.Object)[]
+- javadoc:org.gradle.api.artifacts.ComponentSelectionRules#all(java.lang.Object)[]
+- javadoc:org.gradle.api.artifacts.ComponentSelectionRules#withModule(java.lang.Object,java.lang.Object)[]
 
 Instead of using these APIs, you should use the alternative methods that take a `ComponentMetadataRule` class or an `Action`.
 
