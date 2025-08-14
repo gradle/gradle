@@ -26,6 +26,8 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Issue
 
 /**
  * Ensures that artifact transform parameters are isolated from one another and the surrounding project state.
@@ -79,6 +81,140 @@ abstract class Resolve extends Copy {
     }
 }
 """
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/34667")
+    @ToBeImplemented
+    def "can isolate object property with #valueType value"() {
+        given:
+        mavenRepo.module("test", "test", "1.3").publish()
+
+        buildFile """
+            abstract class PrintTransform implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters{
+                    @Internal
+                    Property<Object> getValue()
+                }
+
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    println("value = \${parameters.value.get()}")
+                    outputs.file(inputArtifact.get().asFile)
+                }
+            }
+
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
+
+            configurations {
+                compile
+            }
+
+            dependencies {
+                compile 'test:test:1.3'
+            }
+
+            dependencies {
+                registerTransform(PrintTransform) {
+                    from.attribute(artifactType, 'jar')
+                    to.attribute(artifactType, 'transformedJar')
+                    parameters {
+                        value = $value
+                    }
+                }
+            }
+
+            tasks.register("resolve", Resolve) {
+                artifactTypeAttribute = 'transformedJar'
+                into layout.buildDirectory.dir('transformed')
+            }
+        """
+
+        when:
+        fails("resolve")
+
+        then:
+        failureHasCause(~/Creating a property of type 'Property<.+>' is unsupported. Use '.+' instead./)
+
+        where:
+        valueType     | value
+        "List"        | "['a'] as List<String>"
+        "Set"         | "['a'] as Set<String>"
+        "Map"         | "[a: 'b'] as Map<String, String>"
+        "Directory"   | "layout.projectDirectory.dir('foo')"
+        "RegularFile" | "layout.projectDirectory.file('foo')"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/34667")
+    @ToBeImplemented
+    def "can isolate managed object property with property holding #valueType value"() {
+        given:
+        mavenRepo.module("test", "test", "1.3").publish()
+
+        buildFile """
+            interface MyManagedObject {
+                Property<Object> getValue()
+            }
+
+            abstract class PrintTransform implements TransformAction<Parameters> {
+                interface Parameters extends TransformParameters{
+                    @Internal
+                    Property<MyManagedObject> getManagedObject()
+                }
+
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    println("value = \${parameters.managedObject.get().value.get()}")
+                    outputs.file(inputArtifact.get().asFile)
+                }
+            }
+
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
+
+            configurations {
+                compile
+            }
+
+            dependencies {
+                compile 'test:test:1.3'
+            }
+
+            dependencies {
+                registerTransform(PrintTransform) {
+                    from.attribute(artifactType, 'jar')
+                    to.attribute(artifactType, 'transformedJar')
+                    parameters {
+                        managedObject = objects.newInstance(MyManagedObject).tap { value = $value }
+                    }
+                }
+            }
+
+            tasks.register("resolve", Resolve) {
+                artifactTypeAttribute = 'transformedJar'
+                into layout.buildDirectory.dir('transformed')
+            }
+        """
+
+        when:
+        fails("resolve")
+
+        then:
+        failureHasCause(~/Creating a property of type 'Property<.+>' is unsupported. Use '.+' instead./)
+
+        where:
+        valueType     | value
+        "List"        | "['a'] as List<String>"
+        "Set"         | "['a'] as Set<String>"
+        "Map"         | "[a: 'b'] as Map<String, String>"
+        "Directory"   | "layout.projectDirectory.dir('foo')"
+        "RegularFile" | "layout.projectDirectory.file('foo')"
     }
 
     @Requires(IntegTestPreconditions.NotParallelExecutor)

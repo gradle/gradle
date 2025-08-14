@@ -825,7 +825,8 @@ service: closed with value 10001
         outputContains("service: closed with value 11")
     }
 
-    @Requires(IntegTestPreconditions.NotConfigCached) // already covers CC behavior
+    @Requires(IntegTestPreconditions.NotConfigCached)
+    // already covers CC behavior
     def "service used at configuration is discarded before execution time when used with configuration cache"() {
         serviceImplementation()
         buildFile << """
@@ -1612,6 +1613,94 @@ Hello, subproject1
         failure.assertHasFailure("Failed to stop service 'counter2'.") {
             it.assertHasCause("broken")
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/34667")
+    @ToBeImplemented
+    def "can use Property with #valueType value as service parameter"() {
+        buildFile """
+            abstract class PrintService implements BuildService<PrintService.Params> {
+                interface Params extends BuildServiceParameters {
+                    Property<Object> getValue()
+                }
+
+                void printValue() {
+                    println(parameters.value)
+                }
+            }
+
+            tasks.register("print") {
+                def serviceProvider = gradle.sharedServices.registerIfAbsent("printService", PrintService) {
+                    parameters.value = $value
+                }
+                usesService(serviceProvider)
+
+                doLast {
+                    serviceProvider.get().printValue()
+                }
+            }
+        """
+
+        when:
+        fails("print")
+        // succeeds("print")
+
+        then:
+        failureHasCause(~/Creating a property of type 'Property<.+>' is unsupported. Use '.+' instead./)
+
+        where:
+        valueType     | value
+        "List"        | "['a'] as List<String>"
+        "Set"         | "['a'] as Set<String>"
+        "Map"         | "[a: 'b'] as Map<String, String>"
+        "Directory"   | "layout.projectDirectory.dir('foo')"
+        "RegularFile" | "layout.projectDirectory.file('foo')"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/34667")
+    @ToBeImplemented
+    def "can use Property with #valueType value in a managed object as service parameter"() {
+        buildFile """
+            interface MyManagedObject {
+                Property<Object> getValue()
+            }
+
+            abstract class PrintService implements BuildService<PrintService.Params> {
+                interface Params extends BuildServiceParameters {
+                    Property<MyManagedObject> getManagedObject()
+                }
+
+                void printValue() {
+                    println(parameters.managedObject.value.get())
+                }
+            }
+
+            tasks.register("print") {
+                def serviceProvider = gradle.sharedServices.registerIfAbsent("printService", PrintService) {
+                    parameters.managedObject = objects.newInstance(MyManagedObject).tap { value = $value }
+                }
+                usesService(serviceProvider)
+
+                doLast {
+                    serviceProvider.get().printValue()
+                }
+            }
+        """
+
+        when:
+        fails("print")
+        // succeeds("print")
+
+        then:
+        failureHasCause(~/Creating a property of type 'Property<.+>' is unsupported. Use '.+' instead./)
+
+        where:
+        valueType     | value
+        "List"        | "['a'] as List<String>"
+        "Set"         | "['a'] as Set<String>"
+        "Map"         | "[a: 'b'] as Map<String, String>"
+        "Directory"   | "layout.projectDirectory.dir('foo')"
+        "RegularFile" | "layout.projectDirectory.file('foo')"
     }
 
     def "should not resolve providers when computing shared resources"() {

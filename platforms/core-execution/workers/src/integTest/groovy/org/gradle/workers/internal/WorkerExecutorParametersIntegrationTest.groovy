@@ -18,6 +18,8 @@ package org.gradle.workers.internal
 
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Issue
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -309,6 +311,78 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         isolationMode << ISOLATION_MODES
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/34667")
+    @ToBeImplemented
+    def "can provide object property with #valueType value with isolation mode #isolationMode"() {
+        buildFile << """
+            ${parameterWorkAction('Property<Object>', 'println parameters.testParam.get()')}
+
+            task runWork(type: ParameterTask) {
+                isolationMode = ${isolationMode}
+                def value = $value
+                parameters {
+                    testParam.set(value)
+                }
+            }
+        """
+
+        when:
+        // succeeds("runWork")
+        fails("runWork")
+
+        then:
+        failureHasCause(~/Creating a property of type 'Property<.+>' is unsupported. Use '.+' instead./)
+
+        where:
+        [isolationMode, valueType, value] << [ISOLATION_MODES, [
+            ["List", "['a'] as List<String>"],
+            ["Set", "['a'] as Set<String>"],
+            ["Map", "[a: 'b'] as Map<String, String>"],
+            ["Directory", "layout.projectDirectory.dir('foo')"],
+            ["RegularFile", "layout.projectDirectory.file('foo')"],
+        ]].combinations { mode, valueData ->
+            [mode] + valueData
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/34667")
+    @ToBeImplemented
+    def "can provide managed object property with #valueType value with isolation mode #isolationMode"() {
+        buildFile << """
+            interface MyManagedObject {
+                Property<Object> getValue()
+            }
+
+            ${parameterWorkAction('Property<MyManagedObject>', 'println parameters.testParam.get().value.get()')}
+
+            task runWork(type: ParameterTask) {
+                isolationMode = ${isolationMode}
+                def value = objects.newInstance(MyManagedObject).tap { value = $value }
+                parameters {
+                    testParam.set(value)
+                }
+            }
+        """
+
+        when:
+        // succeeds("runWork")
+        fails("runWork")
+
+        then:
+        failureHasCause(~/Creating a property of type 'Property<.+>' is unsupported. Use '.+' instead./)
+
+        where:
+        [isolationMode, valueType, value] << [ISOLATION_MODES, [
+            ["List", "['a'] as List<String>"],
+            ["Set", "['a'] as Set<String>"],
+            ["Map", "[a: 'b'] as Map<String, String>"],
+            ["Directory", "layout.projectDirectory.dir('foo')"],
+            ["RegularFile", "layout.projectDirectory.file('foo')"],
+        ]].combinations { mode, valueData ->
+            [mode] + valueData
+        }
     }
 
     def "can provide build service parameters with isolation mode #isolationMode"() {
