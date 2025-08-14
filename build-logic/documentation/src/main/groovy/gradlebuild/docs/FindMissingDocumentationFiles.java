@@ -71,9 +71,11 @@ public abstract class FindMissingDocumentationFiles extends DefaultTask {
     public abstract DirectoryProperty getDocumentationRoot();
 
     @InputFile
+    @PathSensitive(PathSensitivity.NONE)
     public abstract RegularFileProperty getGradle7JsonFile();
 
     @InputFile
+    @PathSensitive(PathSensitivity.NONE)
     public abstract RegularFileProperty getGradle8JsonFile();
 
     @TaskAction
