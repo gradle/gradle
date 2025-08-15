@@ -119,6 +119,13 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     static final InternalFlag EXPERIMENTAL_SUPPRESS_GRADLE_API_PROPERTY = new InternalFlag("org.gradle.unsafe.suppress-gradle-api");
 
     /**
+     * Suppress adding the {@code DependencyHandler#gradleTestKit()} dependency to all test's {@code implementation} configuration.
+     *
+     * Experimental property used to test using an external Gradle Test Kit dependency.
+     */
+    static final InternalFlag EXPERIMENTAL_SUPPRESS_GRADLE_TEST_KIT_PROPERTY = new InternalFlag("org.gradle.unsafe.suppress-gradle-test-kit");
+
+    /**
      * The task group used for tasks created by the Java Gradle plugin development plugin.
      *
      * @since 4.0
@@ -455,9 +462,14 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
                 test.getJvmArgumentProviders().add(new AddOpensCommandLineArgumentProvider(test));
             });
 
+            // TODO See #applyDependencies(Project)
+            InternalOptions internalOptions = ((ProjectInternal) project).getServices().get(InternalOptions.class);
+            boolean addGradleTestKit = internalOptions.getOption(EXPERIMENTAL_SUPPRESS_GRADLE_TEST_KIT_PROPERTY).get();
             for (SourceSet testSourceSet : testSourceSets) {
-                String implementationConfigurationName = testSourceSet.getImplementationConfigurationName();
-                dependencies.add(implementationConfigurationName, dependencies.gradleTestKit());
+                if (addGradleTestKit) {
+                    String implementationConfigurationName = testSourceSet.getImplementationConfigurationName();
+                    dependencies.add(implementationConfigurationName, dependencies.gradleTestKit());
+                }
                 String runtimeOnlyConfigurationName = testSourceSet.getRuntimeOnlyConfigurationName();
                 dependencies.add(runtimeOnlyConfigurationName, project.getLayout().files(pluginClasspathTask));
             }
