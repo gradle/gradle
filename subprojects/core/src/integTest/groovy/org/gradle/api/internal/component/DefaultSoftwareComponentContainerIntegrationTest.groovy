@@ -87,7 +87,7 @@ class DefaultSoftwareComponentContainerIntegrationTest extends AbstractIntegrati
             ${customKotlinComponentWithName("TestComponent")}
 
             components {
-                registerBinding(TestComponent::class.java, DefaultTestComponent::class.java)
+                registerBinding(TestComponent::class, DefaultTestComponent::class)
                 create<TestComponent>("first") {
                     value.set(1)
                 }
@@ -156,8 +156,8 @@ class DefaultSoftwareComponentContainerIntegrationTest extends AbstractIntegrati
             ${customKotlinComponentWithName("CustomComponent")}
 
             components {
-                registerBinding(TestComponent::class.java, DefaultTestComponent::class.java)
-                registerBinding(CustomComponent::class.java, DefaultCustomComponent::class.java)
+                registerBinding(TestComponent::class, DefaultTestComponent::class)
+                registerBinding(CustomComponent::class, DefaultCustomComponent::class)
                 create<TestComponent>("first") {
                     value.set(1)
                 }
@@ -227,7 +227,7 @@ class DefaultSoftwareComponentContainerIntegrationTest extends AbstractIntegrati
             ${customKotlinComponentWithName("TestComponent")}
 
             components {
-                registerBinding(TestComponent::class.java, DefaultTestComponent::class.java)
+                registerBinding(TestComponent::class, DefaultTestComponent::class)
                 create<TestComponent>("comp1") {
                     value.set(1)
                 }
