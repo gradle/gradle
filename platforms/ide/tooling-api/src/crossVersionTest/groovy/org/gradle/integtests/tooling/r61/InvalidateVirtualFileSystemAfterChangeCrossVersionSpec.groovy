@@ -17,8 +17,8 @@
 package org.gradle.integtests.tooling.r61
 
 import org.gradle.integtests.fixtures.daemon.DaemonFixture
-import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.model.gradle.GradleBuild
@@ -93,11 +93,15 @@ class InvalidateVirtualFileSystemAfterChangeCrossVersionSpec extends ToolingApiS
         """
 
         def block = server.expectAndBlock("block")
-        def build = new NoDaemonGradleExecuter(toolingApi.getDistribution(), temporaryFolder, buildContext)
-            .withDaemonBaseDir(toolingApi.daemonBaseDir)
-            .requireDaemon()
-            .withTasks("block", "--info")
-            .start()
+
+        TestResultHandler resultHandler = new TestResultHandler()
+        toolingApi.connector()
+            .connect()
+            .newBuild()
+            .forTasks("block")
+            .addArguments("--info")
+            .run(resultHandler)
+
         block.waitForAllPendingCalls()
         toolingApi.daemons.daemon.assertBusy()
 
@@ -108,12 +112,12 @@ class InvalidateVirtualFileSystemAfterChangeCrossVersionSpec extends ToolingApiS
 
         then:
         block.releaseAll()
-        build.waitForFinish()
+        resultHandler.finished()
         pathsInvalidated()
 
         cleanup:
         block?.releaseAll()
-        build?.waitForFinish()
+        resultHandler?.finished()
     }
 
     @TargetGradleVersion(">=4.0 <6.1")
