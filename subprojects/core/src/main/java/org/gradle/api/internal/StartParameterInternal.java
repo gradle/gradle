@@ -46,6 +46,7 @@ public class StartParameterInternal extends StartParameter {
     private boolean configurationCacheQuiet;
     private int configurationCacheEntriesPerKey = 1;
     private boolean configurationCacheIntegrityCheckEnabled;
+    private @Nullable String isolatedProjectsEnablePaths = null;
     private boolean searchUpwards = true;
     private boolean useEmptySettings = false;
     private Duration continuousBuildQuietPeriod = Duration.ofMillis(250);
@@ -87,6 +88,7 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheQuiet = configurationCacheQuiet;
         p.configurationCacheEntriesPerKey = configurationCacheEntriesPerKey;
         p.configurationCacheIntegrityCheckEnabled = configurationCacheIntegrityCheckEnabled;
+        p.isolatedProjectsEnablePaths = isolatedProjectsEnablePaths;
         p.searchUpwards = searchUpwards;
         p.useEmptySettings = useEmptySettings;
         p.enableProblemReportGeneration = enableProblemReportGeneration;
@@ -256,6 +258,15 @@ public class StartParameterInternal extends StartParameter {
 
     public boolean isConfigurationCacheIntegrityCheckEnabled() {
         return configurationCacheIntegrityCheckEnabled;
+    }
+
+    @Nullable
+    public String getIsolatedProjectsEnablePaths() {
+        return isolatedProjectsEnablePaths;
+    }
+
+    public void setIsolatedProjectsEnablePaths(@Nullable String isolatedProjectsEnablePaths) {
+        this.isolatedProjectsEnablePaths = isolatedProjectsEnablePaths;
     }
 
     public void setContinuousBuildQuietPeriod(Duration continuousBuildQuietPeriod) {

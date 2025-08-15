@@ -22,13 +22,16 @@ import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentCache
 import org.gradle.api.internal.configuration.DefaultBuildFeatures
+import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.logging.LogLevel
 import org.gradle.execution.selection.BuildTaskSelector
 import org.gradle.initialization.Environment
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.initialization.layout.BuildTreeLocations
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.InternalFlag
+import org.gradle.internal.buildoption.Option
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
@@ -76,7 +79,10 @@ import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.internal.IncubationLogger
 
 
-class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices {
+class DefaultBuildTreeModelControllerServices(
+    private val fileLookup: FileLookup,
+    private val buildTreeLocations: BuildTreeLocations,
+) : BuildTreeModelControllerServices {
     companion object {
         private
         val parallelBuilding = InternalFlag("org.gradle.internal.tooling.parallel", true)
@@ -108,19 +114,8 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
     override fun servicesForBuildTree(requirements: BuildActionModelRequirements): BuildTreeModelControllerServices.Supplier {
         val startParameter = requirements.startParameter
 
-        // Isolated projects also implies configuration cache
-        if (startParameter.isolatedProjects.get() && !startParameter.configurationCache.get()) {
-            if (startParameter.configurationCache.isExplicit) {
-                throw GradleException("The configuration cache cannot be disabled when isolated projects is enabled.")
-            }
-        }
-
         val configurationCacheLogLevel = if (startParameter.isConfigurationCacheQuiet) LogLevel.INFO else LogLevel.LIFECYCLE
-        val modelParameters = getBuildModelParameters(
-            requirements,
-            startParameter,
-            configurationCacheLogLevel
-        )
+        val modelParameters = getBuildModelParameters(requirements, startParameter, configurationCacheLogLevel)
 
         if (!startParameter.isConfigurationCacheQuiet) {
             if (modelParameters.isIsolatedProjects) {
@@ -150,7 +145,9 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
         val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
         val requiresTasks = requirements.isRunsTasks
-        val isolatedProjects = startParameter.isolatedProjects.get()
+        val isolatedProjects = isolatedProjectsRequested(startParameter)
+        checkIsolatedProjectsCanEnableConfigurationCache(isolatedProjects, startParameter.configurationCache)
+
         val parallelProjectExecution = isolatedProjects || requirements.startParameter.isParallelProjectExecutionEnabled
         val parallelToolingActions = parallelProjectExecution && options.getOption(parallelBuilding).get()
         val invalidateCoupledProjects = isolatedProjects && options.getOption(invalidateCoupledProjects).get()
@@ -213,6 +210,28 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                     resilientModelBuilding = resilientModelBuilding
                 )
             }
+        }
+    }
+
+    private fun isolatedProjectsRequested(startParameter: StartParameterInternal): Boolean {
+        return startParameter.isolatedProjects.get() ||
+            !startParameter.isolatedProjects.isExplicit && isolatedProjectsRequestedByPath(startParameter)
+    }
+
+    private fun isolatedProjectsRequestedByPath(startParameter: StartParameterInternal): Boolean {
+        val enablePathsOption = startParameter.isolatedProjectsEnablePaths ?: return false
+        val absoluteFileResolver = fileLookup.fileResolver
+        val pathsSeparator = ';'
+        val paths = enablePathsOption.trim(pathsSeparator).split(pathsSeparator)
+            .map { absoluteFileResolver.resolve(it.trim()) }
+
+        val targetDirectory = buildTreeLocations.buildTreeRootDirectory
+        return paths.any { targetDirectory.startsWith(it) }
+    }
+
+    private fun checkIsolatedProjectsCanEnableConfigurationCache(isolatedProjects: Boolean, configurationCache: Option.Value<Boolean>) {
+        if (isolatedProjects && !configurationCache.get() && configurationCache.isExplicit) {
+            throw GradleException("The configuration cache cannot be disabled when isolated projects is enabled.")
         }
     }
 
