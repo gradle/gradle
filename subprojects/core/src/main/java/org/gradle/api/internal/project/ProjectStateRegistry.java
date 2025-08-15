@@ -57,6 +57,11 @@ public interface ProjectStateRegistry {
     ProjectState stateFor(Path identityPath) throws IllegalArgumentException;
 
     /**
+     * Locates the state object that owns the project with the given identity path, or null if this project is not present.
+     */
+    @Nullable ProjectState findProjectState(Path identityPath);
+
+    /**
      * Locates the state objects for all projects of the given build.
      */
     BuildProjectRegistry projectsFor(BuildIdentifier buildIdentifier) throws IllegalArgumentException;
