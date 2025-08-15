@@ -316,6 +316,9 @@ For example, to enable toolchain auto-detection, you could use `-Porg.gradle.jav
 This behavior is deprecated and will be removed in Gradle 10.0.0.
 Instead, you should specify these settings as [Gradle properties](userguide/build_environment.html#sec:gradle_configuration_properties) using the `-D` flag:
 
+```text
+-Dorg.gradle.java.installations.auto-detect=false
+//```
 
 === Potential breaking changes
 
