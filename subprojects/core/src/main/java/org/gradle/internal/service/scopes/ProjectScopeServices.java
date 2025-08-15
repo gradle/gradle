@@ -18,7 +18,6 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.initialization.SharedModelDefaults;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ExternalProcessStartedListener;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
@@ -35,7 +34,6 @@ import org.gradle.api.internal.file.TaskFileVarFactory;
 import org.gradle.api.internal.file.collections.ManagedFactories;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-import org.gradle.api.internal.initialization.ActionBasedModelDefaultsHandler;
 import org.gradle.api.internal.initialization.BuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -107,9 +105,7 @@ import org.gradle.normalization.internal.DefaultInputNormalizationHandler;
 import org.gradle.normalization.internal.DefaultRuntimeClasspathNormalization;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
-import org.gradle.plugin.software.internal.ModelDefaultsHandler;
-import org.gradle.plugin.software.internal.PluginScheme;
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+import org.gradle.plugin.internal.PluginScheme;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 import org.jspecify.annotations.Nullable;
@@ -380,17 +376,6 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             new org.gradle.api.internal.file.ManagedFactories.DirectoryManagedFactory(fileFactory),
             new org.gradle.api.internal.file.ManagedFactories.DirectoryPropertyManagedFactory(filePropertyFactory)
         );
-    }
-
-    @Provides
-    protected ModelDefaultsHandler createActionBasedModelDefaultsHandler(
-        SharedModelDefaults sharedModelDefaults,
-        ProjectLayout projectLayout,
-        SoftwareTypeRegistry softwareTypeRegistry,
-        PluginScheme pluginScheme,
-        InternalProblems problems
-    ) {
-        return new ActionBasedModelDefaultsHandler(sharedModelDefaults, projectLayout, softwareTypeRegistry, pluginScheme.getInspectionScheme(), problems);
     }
 
     @Provides({ProjectLayout.class, TaskFileVarFactory.class})
