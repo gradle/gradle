@@ -338,8 +338,8 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
             ["List", "['a'] as List<String>", "[a]"],
             ["Set", "['a'] as Set<String>", "[a]"],
             ["Map", "[a: 'b'] as Map<String, String>", "[a:b]"],
-            ["Directory", "layout.projectDirectory.dir('foo')", "/foo"],
-            ["RegularFile", "layout.projectDirectory.file('foo')", "/foo"],
+            ["Directory", "layout.projectDirectory.dir('foo')", File.separator + "foo"],
+            ["RegularFile", "layout.projectDirectory.file('foo')", File.separator + "foo"],
         ]].combinations { mode, valueData ->
             [mode] + valueData
         }
@@ -375,8 +375,8 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
             ["List", "['a'] as List<String>", "[a]"],
             ["Set", "['a'] as Set<String>", "[a]"],
             ["Map", "[a: 'b'] as Map<String, String>", "[a:b]"],
-            ["Directory", "layout.projectDirectory.dir('foo')", "/foo"],
-            ["RegularFile", "layout.projectDirectory.file('foo')", "/foo"],
+            ["Directory", "layout.projectDirectory.dir('foo')", File.separator + "foo"],
+            ["RegularFile", "layout.projectDirectory.file('foo')", File.separator + "foo"],
         ]].combinations { mode, valueData ->
             [mode] + valueData
         }

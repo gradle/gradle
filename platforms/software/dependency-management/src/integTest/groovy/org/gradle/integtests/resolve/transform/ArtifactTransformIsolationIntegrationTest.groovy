@@ -143,8 +143,8 @@ abstract class Resolve extends Copy {
         "List"        | "['a'] as List<String>"               | "[a]"
         "Set"         | "['a'] as Set<String>"                | "[a]"
         "Map"         | "[a: 'b'] as Map<String, String>"     | "[a:b]"
-        "Directory"   | "layout.projectDirectory.dir('foo')"  | "/foo"
-        "RegularFile" | "layout.projectDirectory.file('foo')" | "/foo"
+        "Directory"   | "layout.projectDirectory.dir('foo')"  | File.separator + "foo"
+        "RegularFile" | "layout.projectDirectory.file('foo')" | File.separator + "foo"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/34667")
@@ -212,8 +212,8 @@ abstract class Resolve extends Copy {
         "List"        | "['a'] as List<String>"               | "[a]"
         "Set"         | "['a'] as Set<String>"                | "[a]"
         "Map"         | "[a: 'b'] as Map<String, String>"     | "[a:b]"
-        "Directory"   | "layout.projectDirectory.dir('foo')"  | "/foo"
-        "RegularFile" | "layout.projectDirectory.file('foo')" | "/foo"
+        "Directory"   | "layout.projectDirectory.dir('foo')"  | File.separator + "foo"
+        "RegularFile" | "layout.projectDirectory.file('foo')" | File.separator + "foo"
     }
 
     @Requires(IntegTestPreconditions.NotParallelExecutor)
