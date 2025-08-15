@@ -19,7 +19,7 @@ import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.named
 import javax.inject.Inject
 
-class InstrumentedJarsPlugin {
+class InstrumentedJarsPlugin : Plugin<Project> {
     override fun apply(project: Project) = project.run {
         val outgoingConfiguration = createOutgoingConfiguration()
         attachArtifact()
@@ -30,7 +30,7 @@ class InstrumentedJarsPlugin {
     private fun Project.configurePublication(outgoing: Configuration) {
         // tag::create_adhoc_component[]
         // create an adhoc component
-        val softwareComponentFactory = extensions.getByType<PublishingExtension>().softwareComponentFactory
+        val softwareComponentFactory = extensions.getByType(PublishingExtension::class.java).softwareComponentFactory
         val adhocComponent = softwareComponentFactory.adhoc("myAdhocComponent")
         // add it to the list of components that this project declares
         components.add(adhocComponent)

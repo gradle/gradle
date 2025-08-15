@@ -517,11 +517,11 @@ In general publishing dependencies to enforced platforms is a mistake: enforced 
             val consumableConfiguration = configurations.create("foo") {
                 attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("foo"))
             }
-            val myCustomComponent = publishing.softwareComponentFactory.adhoc("myCustomComponent").apply {
-                addVariantsFromConfiguration(consumableConfiguration) {}
-            }
 
             publishing {
+                val myCustomComponent = softwareComponentFactory.adhoc("myCustomComponent")
+                myCustomComponent.addVariantsFromConfiguration(consumableConfiguration) {}
+
                 repositories {
                     maven {
                         url = uri("${mavenRepo.uri}")

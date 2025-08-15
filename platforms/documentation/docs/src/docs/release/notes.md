@@ -43,10 +43,9 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 #### Introduced `PublishingExtension#getSoftwareComponentFactory` method
 
-This new methods exposes the `SoftwareComponentFactory` service without requiring it to be injected.
-Without this service accessor, it is not possible to create and publish custom software components in build scripts or precompiled script plugins without resorting to more cumbersome means of acquiring the service.
+This new method exposes the `SoftwareComponentFactory` service via the `publishing` extension.
 
-Consider the following example showcasing how to publish a custom component using this new method.
+The following example shows how to use this new method to publish a custom component:
 
 ```kotlin
 plugins {
@@ -54,11 +53,11 @@ plugins {
 }
 
 val consumableConfiguration = getAConfiguration()
-val myCustomComponent = publishing.softwareComponentFactory.adhoc("myCustomComponent").apply {
-    addVariantsFromConfiguration(consumableConfiguration) {}
-}
 
 publishing {
+    val myCustomComponent = softwareComponentFactory.adhoc("myCustomComponent")
+    myCustomComponent.addVariantsFromConfiguration(consumableConfiguration) {}
+    
     publications {
         create<MavenPublication>("maven") {
             from(myCustomComponent)
