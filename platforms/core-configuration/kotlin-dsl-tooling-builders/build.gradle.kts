@@ -9,6 +9,7 @@ dependencies {
     api(projects.core)
     api(projects.serviceProvider)
     api(libs.kotlinStdlib)
+    api(projects.toolingApi)
 
     implementation(projects.classloaders)
     implementation(projects.serviceLookup)
@@ -21,7 +22,6 @@ dependencies {
     implementation(projects.platformBase)
     implementation(projects.platformJvm)
     implementation(projects.pluginsJavaBase)
-    implementation(projects.toolingApi)
     implementation(projects.kotlinDslToolingModels)
     implementation(projects.buildProcessServices)
 
