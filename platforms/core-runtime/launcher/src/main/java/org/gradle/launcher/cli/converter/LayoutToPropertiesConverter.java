@@ -58,7 +58,7 @@ public class LayoutToPropertiesConverter {
         allBuildOptions.addAll(new WelcomeMessageBuildOptions().getAllOptions()); // TODO maybe a new converter also here
         allBuildOptions.addAll(new DaemonBuildOptions().getAllOptions());
         allBuildOptions.addAll(new ParallelismBuildOptions().getAllOptions());
-        allBuildOptions.addAll(new ToolchainBuildOptions().getAllOptions());
+        allBuildOptions.addAll(ToolchainBuildOptions.forToolChainConfiguration().getAllOptions());
     }
 
     public AllProperties convert(InitialProperties initialProperties, BuildLayoutResult layout) {

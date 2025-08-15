@@ -42,6 +42,7 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final List<BuiltInCommand> builtInCommands;
     private final CacheConfigurationsInternal cacheConfigurations;
     private final InternalProblems problems;
+    private final JvmToolchainsConfigurationValidator jvmToolchainsConfigurationValidator;
 
     public DefaultSettingsLoaderFactory(
         SettingsProcessor settingsProcessor,
@@ -53,7 +54,8 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
         InitScriptHandler initScriptHandler,
         List<BuiltInCommand> builtInCommands,
         CacheConfigurationsInternal cacheConfigurations,
-        InternalProblems problems
+        InternalProblems problems,
+        JvmToolchainsConfigurationValidator jvmToolchainsConfigurationValidator
     ) {
         this.settingsProcessor = settingsProcessor;
         this.buildRegistry = buildRegistry;
@@ -65,25 +67,29 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
         this.builtInCommands = builtInCommands;
         this.cacheConfigurations = cacheConfigurations;
         this.problems = problems;
+        this.jvmToolchainsConfigurationValidator = jvmToolchainsConfigurationValidator;
     }
 
     @Override
     public SettingsLoader forTopLevelBuild() {
         return new GradlePropertiesHandlingSettingsLoader(
-            new CacheConfigurationsHandlingSettingsLoader(
-                new InitScriptHandlingSettingsLoader(
-                    new CompositeBuildSettingsLoader(
-                        new ChildBuildRegisteringSettingsLoader(
-                            new CommandLineIncludedBuildSettingsLoader(
-                                defaultSettingsLoader()
+            new DaemonJvmToolchainsValidatingSettingsLoader(
+                new CacheConfigurationsHandlingSettingsLoader(
+                    new InitScriptHandlingSettingsLoader(
+                        new CompositeBuildSettingsLoader(
+                            new ChildBuildRegisteringSettingsLoader(
+                                new CommandLineIncludedBuildSettingsLoader(
+                                    defaultSettingsLoader()
+                                ),
+                                buildIncluder
                             ),
-                            buildIncluder
+                            buildRegistry
                         ),
-                        buildRegistry
+                        initScriptHandler
                     ),
-                    initScriptHandler
+                    cacheConfigurations
                 ),
-                cacheConfigurations
+                jvmToolchainsConfigurationValidator
             ),
             buildLayoutFactory,
             gradlePropertiesController
