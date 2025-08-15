@@ -436,7 +436,7 @@ NOTE: Whether you are using toolchain auto-detection or you are configuring <<se
 
 In order to disable auto-detection, you can use the `org.gradle.java.installations.auto-detect` Gradle property:
 
-* Either start gradle using `-Dorg.gradle.java.installations.auto-detect=false`
+* Either start Gradle using `-Dorg.gradle.java.installations.auto-detect=false`
 * Or put `org.gradle.java.installations.auto-detect=false` into your `gradle.properties` file.
 
 [[sec:provisioning]]
@@ -550,7 +550,7 @@ This can help to debug which toolchains are available to the build, how they are
 
 In order to disable auto-provisioning, you can use the `org.gradle.java.installations.auto-download` Gradle property:
 
-* Either start gradle using `-Dorg.gradle.java.installations.auto-download=false`
+* Either start Gradle using `-Dorg.gradle.java.installations.auto-download=false`
 * Or put `org.gradle.java.installations.auto-download=false` into a `gradle.properties` file.
 
 [NOTE]
