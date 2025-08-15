@@ -17,7 +17,6 @@ package org.gradle.plugin.use.resolve.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
-import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
@@ -27,6 +26,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
@@ -176,10 +176,7 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
         ConfigurationContainer configurations = resolutionServices.getConfigurationContainer();
         Configuration configuration = configurations.detachedConfiguration(dependency);
         configuration.setTransitive(false);
-        ArtifactView lenientView = configuration.getIncoming().artifactView(view -> {
-            view.setLenient(true);
-        });
-        return lenientView.getArtifacts().getFailures().isEmpty();
+        return configuration.getIncoming().getResolutionResult().getAllDependencies().stream().noneMatch(result -> result instanceof UnresolvedDependencyResult);
     }
 
     private ModuleDependency getMarkerDependency(PluginRequestInternal pluginRequest) {
