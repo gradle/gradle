@@ -679,4 +679,65 @@ Artifacts
         expect:
         succeeds("help")
     }
+
+    def "consumable configurations are not realized at configuration-time"() {
+        given:
+        buildFile("""
+            plugins {
+                id("java")
+            }
+            configurations.named(Dependency.DEFAULT_CONFIGURATION).configure {
+                throw new RuntimeException("Should not be called!")
+            }
+            configurations.named(${configuration}).configure {
+                throw new RuntimeException("Should not be called!")
+            }
+        """)
+
+        expect:
+        succeeds("help")
+
+        where:
+        configuration << [
+            "JavaPlatformPlugin.API_ELEMENTS_CONFIGURATION_NAME",
+            "JavaPlatformPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME"
+        ]
+    }
+
+    def "sourcesElements consumable configuration is not realized at configuration-time"() {
+        given:
+        buildFile("""
+            plugins {
+                id("java")
+            }
+            java {
+                withSourcesJar()
+            }
+            configurations.named(JavaPlugin.SOURCES_ELEMENTS_CONFIGURATION_NAME).configure {
+                throw new RuntimeException("Should not be called!")
+            }
+        """)
+
+        expect:
+        succeeds("help")
+    }
+
+    def "javadocElements consumable configuration is not realized at configuration-time"() {
+        given:
+        buildFile("""
+            plugins {
+                id("java")
+            }
+            java {
+                withJavadocJar()
+            }
+            configurations.named(JavaPlugin.JAVADOC_ELEMENTS_CONFIGURATION_NAME).configure {
+                throw new RuntimeException("Should not be called!")
+            }
+        """)
+
+        expect:
+        succeeds("help")
+    }
+
 }

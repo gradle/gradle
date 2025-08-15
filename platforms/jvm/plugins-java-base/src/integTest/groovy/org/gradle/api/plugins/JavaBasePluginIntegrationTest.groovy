@@ -116,4 +116,26 @@ class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "verify"
     }
+
+    def "registering a feature without the java plugin applied is deprecated"() {
+        buildFile("""
+            plugins {
+                id("java-base")
+            }
+
+            sourceSets {
+                create("foo")
+            }
+
+            java {
+                registerFeature("foo") {
+                    usingSourceSet(sourceSets.foo)
+                }
+            }
+        """)
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The `registerFeature` method was called, but the Java plugin has not yet been applied. This behavior has been deprecated. This will fail with an error in Gradle 10. `registerFeature` should only be called in projects where the Java plugin has been applied. Apply the `java`, `java-library`, `application`, `groovy`, or any other plugin that applies the Java plugin. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_register_feature_no_java_plugin")
+        succeeds("help")
+    }
 }

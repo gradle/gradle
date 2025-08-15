@@ -18,6 +18,7 @@ package org.gradle.api.plugins.catalog;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.AdhocComponentWithVariants;
@@ -28,6 +29,7 @@ import org.gradle.api.plugins.catalog.internal.CatalogExtensionInternal;
 import org.gradle.api.plugins.catalog.internal.DefaultVersionCatalogPluginExtension;
 import org.gradle.api.plugins.catalog.internal.TomlFileGenerator;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskProvider;
 
 import javax.inject.Inject;
@@ -59,7 +61,7 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
     }
 
     private void createPublication(ProjectInternal project, TaskProvider<TomlFileGenerator> generator) {
-        Configuration exported = project.getConfigurations().consumableLocked(VERSION_CATALOG_ELEMENTS, cnf -> {
+        Provider<ConsumableConfiguration> exported = project.getConfigurations().consumable(VERSION_CATALOG_ELEMENTS, cnf -> {
             cnf.setDescription("Artifacts for the version catalog");
             cnf.getOutgoing().artifact(generator);
             cnf.attributes(attrs -> {
@@ -70,7 +72,7 @@ public abstract class VersionCatalogPlugin implements Plugin<Project> {
 
         project.getPlugins().withType(BasePlugin.class, plugin -> {
             project.getTasks().named(BasePlugin.ASSEMBLE_TASK_NAME).configure(assemble -> {
-                assemble.dependsOn(exported.getArtifacts());
+                assemble.dependsOn(exported.get().getArtifacts());
             });
         });
 

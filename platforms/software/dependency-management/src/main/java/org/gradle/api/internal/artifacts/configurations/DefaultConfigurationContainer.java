@@ -113,7 +113,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     public void visitConsumable(Consumer<ConfigurationInternal> visitor) {
-
         // Visit all configurations which are known to be consumable
         withType(ConsumableConfiguration.class).forEach(configuration ->
             visitor.accept((ConfigurationInternal) configuration)
@@ -125,7 +124,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                 visitor.accept((ConfigurationInternal) configuration);
             }
         });
-
     }
 
     @Override
@@ -209,73 +207,61 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     public NamedDomainObjectProvider<ResolvableConfiguration> resolvable(String name) {
         assertCanMutate("resolvable(String)");
-        return registerResolvableConfiguration(name, Actions.doNothing());
+        return registerConfiguration(name, ResolvableConfiguration.class, this::doCreateResolvable, Actions.doNothing());
     }
 
     @Override
     public NamedDomainObjectProvider<ResolvableConfiguration> resolvable(String name, Action<? super ResolvableConfiguration> action) {
         assertCanMutate("resolvable(String, Action)");
-        return registerResolvableConfiguration(name, action);
+        return registerConfiguration(name, ResolvableConfiguration.class, this::doCreateResolvable, action);
     }
 
     @Override
-    public Configuration resolvableLocked(String name) {
+    public ResolvableConfiguration resolvableLocked(String name) {
         assertCanMutate("resolvableLocked(String)");
-        return createLockedLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE, Actions.doNothing());
+        return createLockedConfiguration(name, this::doCreateResolvable, Actions.doNothing());
     }
 
     @Override
-    public Configuration resolvableLocked(String name, Action<? super Configuration> action) {
+    public ResolvableConfiguration resolvableLocked(String name, Action<? super Configuration> action) {
         assertCanMutate("resolvableLocked(String, Action)");
-        return createLockedLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE, action);
+        return createLockedConfiguration(name, this::doCreateResolvable, action);
     }
 
     @Override
     public NamedDomainObjectProvider<ConsumableConfiguration> consumable(String name) {
         assertCanMutate("consumable(String)");
-        return registerConsumableConfiguration(name, Actions.doNothing());
+        return registerConfiguration(name, ConsumableConfiguration.class, this::doCreateConsumable, Actions.doNothing());
     }
 
     @Override
     public NamedDomainObjectProvider<ConsumableConfiguration> consumable(String name, Action<? super ConsumableConfiguration> action) {
         assertCanMutate("consumable(String, Action)");
-        return registerConsumableConfiguration(name, action);
-    }
-
-    @Override
-    public Configuration consumableLocked(String name) {
-        assertCanMutate("consumableLocked(String)");
-        return createLockedLegacyConfiguration(name, ConfigurationRoles.CONSUMABLE, Actions.doNothing());
-    }
-
-    @Override
-    public Configuration consumableLocked(String name, Action<? super Configuration> action) {
-        assertCanMutate("consumableLocked(String, Action)");
-        return createLockedLegacyConfiguration(name, ConfigurationRoles.CONSUMABLE, action);
+        return registerConfiguration(name, ConsumableConfiguration.class, this::doCreateConsumable, action);
     }
 
     @Override
     public NamedDomainObjectProvider<DependencyScopeConfiguration> dependencyScope(String name) {
         assertCanMutate("dependencyScope(String)");
-        return registerDependencyScopeConfiguration(name, Actions.doNothing());
+        return registerConfiguration(name, DependencyScopeConfiguration.class, this::doCreateDependencyScope, Actions.doNothing());
     }
 
     @Override
     public NamedDomainObjectProvider<DependencyScopeConfiguration> dependencyScope(String name, Action<? super DependencyScopeConfiguration> action) {
         assertCanMutate("dependencyScope(String, Action)");
-        return registerDependencyScopeConfiguration(name, action);
+        return registerConfiguration(name, DependencyScopeConfiguration.class, this::doCreateDependencyScope, action);
     }
 
     @Override
-    public Configuration dependencyScopeLocked(String name) {
+    public DefaultDependencyScopeConfiguration dependencyScopeLocked(String name) {
         assertCanMutate("dependencyScopeLocked(String)");
-        return createLockedLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, Actions.doNothing());
+        return createLockedConfiguration(name, this::doCreateDependencyScope, Actions.doNothing());
     }
 
     @Override
-    public Configuration dependencyScopeLocked(String name, Action<? super Configuration> action) {
+    public DefaultDependencyScopeConfiguration dependencyScopeLocked(String name, Action<? super Configuration> action) {
         assertCanMutate("dependencyScopeLocked(String, Action)");
-        return createLockedLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, action);
+        return createLockedConfiguration(name, this::doCreateDependencyScope, action);
     }
 
     @Override
@@ -322,7 +308,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                 return getByName(name);
             }
         } else {
-            return createLockedLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, Actions.doNothing());
+            return dependencyScopeLocked(name);
         }
     }
 
@@ -335,35 +321,37 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         });
     }
 
-    private NamedDomainObjectProvider<ConsumableConfiguration> registerConsumableConfiguration(String name, Action<? super ConsumableConfiguration> configureAction) {
-        return registerConfiguration(name, configureAction, ConsumableConfiguration.class, n ->
-            defaultConfigurationFactory.createConsumable(name, resolver, resolutionStrategyFactory)
-        );
+    private DefaultConsumableConfiguration doCreateConsumable(String name) {
+        return defaultConfigurationFactory.createConsumable(name, resolver, resolutionStrategyFactory);
     }
 
-    private NamedDomainObjectProvider<ResolvableConfiguration> registerResolvableConfiguration(String name, Action<? super ResolvableConfiguration> configureAction) {
-        return registerConfiguration(name, configureAction, ResolvableConfiguration.class, n ->
-            defaultConfigurationFactory.createResolvable(name, resolver, resolutionStrategyFactory)
-        );
+    private DefaultResolvableConfiguration doCreateResolvable(String name) {
+        return defaultConfigurationFactory.createResolvable(name, resolver, resolutionStrategyFactory);
     }
 
-    private NamedDomainObjectProvider<DependencyScopeConfiguration> registerDependencyScopeConfiguration(String name, Action<? super DependencyScopeConfiguration> configureAction) {
-        return registerConfiguration(name, configureAction, DependencyScopeConfiguration.class, n ->
-            defaultConfigurationFactory.createDependencyScope(name, resolver, resolutionStrategyFactory)
-        );
+    private DefaultDependencyScopeConfiguration doCreateDependencyScope(String name) {
+        return defaultConfigurationFactory.createDependencyScope(name, resolver, resolutionStrategyFactory);
     }
 
     private ConfigurationInternal createLockedLegacyConfiguration(String name, ConfigurationRole role, Action<? super Configuration> configureAction) {
+        return createLockedConfiguration(
+            name,
+            n -> defaultConfigurationFactory.create(n, false, resolver, resolutionStrategyFactory, role),
+            configureAction
+        );
+    }
+
+    private <T extends ConfigurationInternal> T createLockedConfiguration(String name, Function<String, T> factory, Action<? super Configuration> configureAction) {
         assertElementNotPresent(name);
         validateNameIsAllowed(name);
-        ConfigurationInternal configuration = defaultConfigurationFactory.create(name, false, resolver, resolutionStrategyFactory, role);
+        T configuration = factory.apply(name);
         super.add(configuration);
         configureAction.execute(configuration);
         configuration.preventUsageMutation();
         return configuration;
     }
 
-    private <T extends Configuration> NamedDomainObjectProvider<T> registerConfiguration(String name, Action<? super T> configureAction, Class<T> publicType, Function<String, T> factory) {
+    private <T extends Configuration> NamedDomainObjectProvider<T> registerConfiguration(String name, Class<T> publicType, Function<String, T> factory, Action<? super T> configureAction) {
         assertElementNotPresent(name);
         validateNameIsAllowed(name);
 
