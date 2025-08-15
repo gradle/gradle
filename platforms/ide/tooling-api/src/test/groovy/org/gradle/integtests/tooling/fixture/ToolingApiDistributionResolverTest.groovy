@@ -44,7 +44,7 @@ class ToolingApiDistributionResolverTest extends Specification {
     @RestoreSystemProperties
     def "uses distribution from classpath when resolving current version"() {
         given:
-        System.setProperty("toolingApi.shadedJar", "/path/to/shaded.jar")
+        System.setProperty("toolingApi.shadedJar", "path/to/fake-unexisted-shaded.jar")
         def version = GradleVersion.current().baseVersion.version
 
         when:
