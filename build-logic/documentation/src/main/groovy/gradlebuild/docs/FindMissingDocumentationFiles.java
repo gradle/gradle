@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,12 +55,14 @@ public abstract class FindMissingDocumentationFiles extends DefaultTask {
     ));
 
     private static final Set<String> EXCLUDED_ANCHORS = new HashSet<>(Arrays.asList(
+        // properties have been deprecated in Gradle 9.0.0
         "sec:war_convention_properties",
         "sec:ear_convention_properties",
         "sec:base_plugin_conventions",
         "sec:project_reports_convention_properties",
         "sec:kotlin_dsl_about_conventions",
         "sec:java_convention_properties",
+        // config cache items that have now been implemented
         "config_cache:not_yet_implemented:secrets",
         "config_cache:not_implemented:store_parallel_execution",
         "config_cache:not_yet_implemented:storing_lambdas"
