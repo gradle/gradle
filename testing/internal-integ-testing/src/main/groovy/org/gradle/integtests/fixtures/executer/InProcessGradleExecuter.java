@@ -48,6 +48,8 @@ import org.gradle.internal.buildprocess.BuildProcessState;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.instrumentation.agent.AgentInitializer;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.instrumentation.agent.AgentUtils;
@@ -92,7 +94,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -129,6 +130,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         true,
         AgentStatus.of(isAgentInstrumentationEnabled()),
         ClassPath.EMPTY,
+        getCurrentInstallation(),
         newCommandLineProcessLogging(),
         NativeServicesTestFixture.getInstance(),
         ValidationServicesFixture.getServices()
@@ -152,6 +154,14 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     public InProcessGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext);
         waitForChangesToBePickedUpBeforeExecution();
+    }
+
+    private static CurrentGradleInstallation getCurrentInstallation() {
+        TestFile gradleHomeDir = IntegrationTestBuildContext.INSTANCE.getGradleHomeDir();
+        if (gradleHomeDir != null) {
+            return new CurrentGradleInstallation(new GradleInstallation(gradleHomeDir));
+        }
+        return new CurrentGradleInstallation(null);
     }
 
     private static ServiceRegistry newCommandLineProcessLogging() {
@@ -281,7 +291,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             builder.classpath(getExecHandleFactoryClasspath());
             builder.jvmArgs(invocation.launcherJvmArgs);
             // Apply the agent to the newly created daemon. The feature flag decides if it is going to be used.
-            for (File agent : cleanup(GLOBAL_SERVICES.get(ModuleRegistry.class).getModule(AgentUtils.AGENT_MODULE_NAME).getClasspath().getAsFiles())) {
+            for (File agent : GLOBAL_SERVICES.get(ModuleRegistry.class).getModule(AgentUtils.AGENT_MODULE_NAME).getClasspath().getAsFiles()) {
                 builder.jvmArgs("-javaagent:" + agent.getAbsolutePath());
             }
             builder.environment(invocation.environmentVars);
@@ -295,26 +305,14 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     }
 
     private Collection<File> getExecHandleFactoryClasspath() {
-        Collection<File> classpath = cleanup(GLOBAL_SERVICES.get(ModuleRegistry.class).getAdditionalClassPath().getAsFiles());
+        ModuleRegistry moduleRegistry = GLOBAL_SERVICES.get(ModuleRegistry.class);
+        Collection<File> classpath = moduleRegistry.getModule("gradle-gradle-cli").getAllRequiredModulesClasspath().getAsFiles();
         if (!OperatingSystem.current().isWindows()) {
             return classpath;
         }
         // Use a Class-Path manifest JAR to circumvent too long command line issues on Windows (cap 8191)
         // Classpath is huge here because it's the test runtime classpath
         return Collections.singleton(getClasspathManifestJarFor(classpath));
-    }
-
-    private Collection<File> cleanup(List<File> files) {
-        List<File> result = new LinkedList<>();
-        String prefix = Jvm.current().getJavaHome().getPath() + File.separator;
-        for (File file : files) {
-            if (file.getPath().startsWith(prefix)) {
-                // IDEA adds the JDK's bootstrap classpath to the classpath it uses to run test - remove this
-                continue;
-            }
-            result.add(file);
-        }
-        return result;
     }
 
     private File getClasspathManifestJarFor(Collection<File> classpath) {

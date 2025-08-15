@@ -74,15 +74,16 @@ dependencies {
 
     testImplementation(projects.internalIntegTesting)
 
-    testFixturesImplementation(projects.coreApi)
-    testFixturesImplementation(projects.core)
-    testFixturesImplementation(projects.logging)
-    testFixturesImplementation(projects.modelCore)
     testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.baseServicesGroovy)
-    testFixturesImplementation(projects.internalTesting)
+    testFixturesImplementation(projects.core)
+    testFixturesImplementation(projects.coreApi)
     testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.internalTesting)
+    testFixturesImplementation(projects.logging)
+    testFixturesImplementation(projects.modelCore)
     testFixturesImplementation(testFixtures(projects.buildProcessServices))
+    testFixturesImplementation(testFixtures(projects.enterpriseLogging))
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.slf4jApi)
 
