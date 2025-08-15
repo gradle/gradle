@@ -257,7 +257,7 @@ public class DefaultFileLockManager implements FileLockManager {
                     return;
                 }
                 try {
-                    LOGGER.debug("Releasing lock on {}.", displayName);
+                    LOGGER.debug("Idle Daemon. Performing periodic task: Releasing lock on {}.", displayName);
                     try {
                         if (lock != null && !lock.isShared()) {
                             // Discard information region
@@ -327,7 +327,7 @@ public class DefaultFileLockManager implements FileLockManager {
          * Note: In the implementation we use {@link java.nio.channels.FileLock} that is tight to a JVM process, not a thread.
          */
         private LockState lock(LockMode lockMode) throws Throwable {
-            LOGGER.debug("Waiting to acquire {} lock on {}.", lockMode.toString().toLowerCase(Locale.ROOT), displayName);
+            LOGGER.debug("Idle Daemon. Performing periodic task: Waiting to acquire {} lock on {}.", lockMode.toString().toLowerCase(Locale.ROOT), displayName);
 
             // Lock the state region, with the requested mode
             FileLockOutcome lockOutcome = lockStateRegion(lockMode);
@@ -360,7 +360,7 @@ public class DefaultFileLockManager implements FileLockManager {
                     // Just read the state region
                     lockState = lockFileAccess.readLockState();
                 }
-                LOGGER.debug("Lock acquired on {}.", displayName);
+                LOGGER.debug("Idle Daemon. Performing periodic task: Lock acquired on {}.", displayName);
                 lock = stateRegionLock;
                 return lockState;
             } catch (Throwable t) {
