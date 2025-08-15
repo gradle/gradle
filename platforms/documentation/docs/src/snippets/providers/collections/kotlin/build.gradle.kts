@@ -108,7 +108,7 @@ abstract class MyPluginExtensionExtensiblePolymorphicDomainObjectContainer {
 val epdoc = extensions.create<MyPluginExtensionExtensiblePolymorphicDomainObjectContainer>("epdoc")
 
 // Register available types for container
-epdoc.animals.registerBinding(Dog::class.java, Dog::class.java)
+epdoc.animals.registerBinding(Dog::class, Dog::class)
 
 epdoc.apply {
     animals {
