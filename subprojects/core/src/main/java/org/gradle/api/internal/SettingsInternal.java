@@ -23,13 +23,13 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.declarative.dsl.model.annotations.Adding;
 import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.IncludedBuildSpec;
+import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.FinalizableValue;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.service.ServiceRegistry;
@@ -46,7 +46,7 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
 
     ScriptSource getSettingsScript();
 
-    ProjectRegistry<DefaultProjectDescriptor> getProjectRegistry();
+    ProjectDescriptorRegistry getProjectRegistry();
 
     DefaultProjectDescriptor getDefaultProject();
 

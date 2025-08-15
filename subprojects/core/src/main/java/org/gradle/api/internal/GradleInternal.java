@@ -161,7 +161,7 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     @Override
     StartParameterInternal getStartParameter();
 
-    ProjectRegistry<ProjectInternal> getProjectRegistry();
+    ProjectRegistry getProjectRegistry();
 
     // A separate property, as the public getter does not use a wildcard type and cannot be overridden
     List<? extends IncludedBuildInternal> includedBuilds();

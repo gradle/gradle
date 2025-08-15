@@ -15,28 +15,28 @@
  */
 package org.gradle.api.internal.project;
 
-import org.gradle.api.specs.Spec;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
 import java.util.Set;
 
-public interface ProjectRegistry<T extends ProjectIdentifier> {
-    void addProject(T project);
+/**
+ * A registry of all projects in a build, accessible by path.
+ * <p>
+ * <strong>This type should be avoided if possible.</strong> Prefer {@link ProjectStateRegistry} or
+ * {@link org.gradle.internal.build.BuildProjectRegistry}, which operate on {@link ProjectState}
+ * instances instead of raw {@link ProjectInternal} instances.
+ */
+@ServiceScope(Scope.Build.class)
+public interface ProjectRegistry extends HoldsProjectState {
 
-    @Nullable T getRootProject();
+    void addProject(ProjectInternal project);
 
-    @Nullable T getProject(String path);
+    @Nullable ProjectInternal getProject(String path);
 
-    @Nullable T getProject(File projectDir);
+    Set<ProjectInternal> getAllProjects(String path);
 
-    int size();
+    Set<ProjectInternal> getSubProjects(String path);
 
-    Set<T> getAllProjects();
-
-    Set<T> getAllProjects(String path);
-
-    Set<T> getSubProjects(String path);
-
-    Set<T> findAll(Spec<? super T> constraint);
 }
