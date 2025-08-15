@@ -14,40 +14,34 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl
+package org.gradle.jvm.toolchain
 
-import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class ConfigurationCacheJavaToolchainsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheJavaToolchainsIntegrationTest extends AbstractIntegrationSpec {
 
-    protected ConfigurationCacheBuildOperationsFixture configurationCache
+    def configurationCache = newConfigurationCacheFixture()
 
-    def setup() {
-        configurationCache = newConfigurationCacheFixture()
+    @Override
+    void setupExecuter() {
+        super.setupExecuter()
+        executer.withConfigurationCacheEnabled()
     }
 
     def "show toolchains task works properly"() {
         when:
-        configurationCacheRun "javaToolchains"
+        run "javaToolchains"
 
         then:
-        assertStateStored()
+        configurationCache.assertStateStored()
         result.assertTasksScheduled(":javaToolchains")
 
         when:
-        configurationCacheRun "javaToolchains"
+        run "javaToolchains"
 
         then:
-        assertStateLoaded()
-        result.assertTasksScheduled(":javaToolchains")
-    }
-
-    private void assertStateStored() {
-        configurationCache.assertStateStored()
-    }
-
-    private void assertStateLoaded() {
         configurationCache.assertStateLoaded()
+        result.assertTaskScheduled(":javaToolchains")
     }
 
 }

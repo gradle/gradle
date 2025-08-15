@@ -20,9 +20,7 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMa
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheParallelOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheReadOnlyOption
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.internal.cc.impl.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
-import org.intellij.lang.annotations.Language
 
 abstract class AbstractConfigurationCacheIntegrationTest extends AbstractConfigurationCacheOptInFeatureIntegrationTest {
 
@@ -44,10 +42,6 @@ abstract class AbstractConfigurationCacheIntegrationTest extends AbstractConfigu
 
     private static final String[] CLI_OPTIONS = [ENABLE_CLI_OPT, LOG_REPORT_LINK_AS_WARNING, ENABLE_PARALLEL_CACHE, "--no-problems-report"]
 
-    void buildKotlinFile(@Language(value = "kotlin") String script) {
-        buildKotlinFile << script
-    }
-
     void configurationCacheRun(String... tasks) {
         run(*CLI_OPTIONS, *tasks)
     }
@@ -58,19 +52,5 @@ abstract class AbstractConfigurationCacheIntegrationTest extends AbstractConfigu
 
     void configurationCacheFails(String... tasks) {
         fails(*CLI_OPTIONS, *tasks)
-    }
-
-    protected void assertTestsExecuted(String testClass, String... testNames) {
-        new DefaultTestExecutionResult(testDirectory)
-            .testClass(testClass)
-            .assertTestsExecuted(testNames)
-    }
-
-    protected static String removeVfsLogOutput(String normalizedOutput) {
-        normalizedOutput
-            .replaceAll(/Received \d+ file system events .*\n/, '')
-            .replaceAll(/Spent \d+ ms processing file system events since last build\n/, '')
-            .replaceAll(/Spent \d+ ms registering watches for file system events\n/, '')
-            .replaceAll(/Virtual file system .*\n/, '')
     }
 }
