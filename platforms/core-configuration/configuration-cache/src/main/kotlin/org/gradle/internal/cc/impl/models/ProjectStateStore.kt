@@ -18,11 +18,11 @@ package org.gradle.internal.cc.impl.models
 
 import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.ValueStore
+import org.gradle.internal.Describables
+import org.gradle.internal.DisplayName
 import org.gradle.internal.cc.impl.CheckedFingerprint
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore
 import org.gradle.internal.cc.impl.StateType
-import org.gradle.internal.Describables
-import org.gradle.internal.DisplayName
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.model.CalculatedValueContainer
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -31,7 +31,6 @@ import org.gradle.internal.serialize.Encoder
 import org.gradle.util.Path
 import java.io.Closeable
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 
 
@@ -105,30 +104,6 @@ abstract class ProjectStateStore<K, V>(
      */
     fun loadOrCreateValue(key: K, creator: () -> V): V {
         val address = loadOrCreateAddress(key, creator)
-        return readValue(key, address)
-    }
-
-    /**
-     * If value has to be created, the original value is returned without (de)serialization
-     *
-     * This is delicate API, because the original value is returned only for the first call of this function.
-     * As such, the call should probably be guarded with additional synchronization and memoization.
-     *
-     * Prefer [loadOrCreateValue] unless there is a special reason.
-     */
-    fun loadOrCreateOriginalValue(key: K, creator: () -> V): V {
-        val originalValueCapture = AtomicReference<V>()
-        val address = loadOrCreateAddress(key) {
-            val originalValue = creator()
-            originalValueCapture.set(originalValue)
-            originalValue
-        }
-
-        // Skip deserialization if the value was just created
-        originalValueCapture.get()?.let {
-            return it
-        }
-
         return readValue(key, address)
     }
 
