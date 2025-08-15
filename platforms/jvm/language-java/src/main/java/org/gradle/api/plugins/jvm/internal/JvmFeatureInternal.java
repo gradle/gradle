@@ -52,27 +52,6 @@ public interface JvmFeatureInternal extends Named {
      */
     ImmutableCapabilities getCapabilities();
 
-    // TODO: Are sources and javadoc also target-specific? Some targets, for example java 8 vs 11, may use
-    // separate sources which compile to version-specific APIs. Same for javadoc. They are built from the sources
-    // used for compilation. Also each version of java comes with a separate javadoc tool.
-
-    // TODO: Should Javadoc even live on a generic JVM target? May be can call it withDocumentationJar?
-    // Scala and groovy have Groovydoc and Scaladoc. Kotlin has KDoc.
-
-    /**
-     * Configures this feature to publish a javadoc jar alongside the primary artifacts. As a result,
-     * this method also configures the necessary configurations and tasks required to produce
-     * the javadoc artifact.
-     */
-    void withJavadocJar();
-
-    /**
-     * Configures this feature to publish a sources jar alongside the primary artifacts. As a result,
-     * this method also configures the necessary configurations and tasks required to produce
-     * the sources artifact.
-     */
-    void withSourcesJar();
-
     /**
      * Configures this feature to publish a variant containing a list of this feature's source directories.
      */
@@ -88,20 +67,18 @@ public interface JvmFeatureInternal extends Named {
     void withApi();
 
     /**
-     * Gets the consumable configuration created by {@link #withJavadocJar()}.
-     *
-     * @return null if {@link #withJavadocJar()} has not been called.
+     * Creates the javadoc elements configuration, which exposes the javadoc jar of this feature, if
+     * it has not been created already. Any tasks needed to produce the artifacts of the configuration
+     * are also created and configured if necessary.
      */
-    @Nullable
-    NamedDomainObjectProvider<ConsumableConfiguration> getJavadocElementsConfiguration();
+    NamedDomainObjectProvider<ConsumableConfiguration> maybeRegisterJavadocElements();
 
     /**
-     * Gets the consumable configuration created by {@link #withSourcesJar()}.
-     *
-     * @return null if {@link #withSourcesJar()} has not been called.
+     * Creates the sources elements configuration, which exposes the sources jar of this feature, if
+     * it has not been created already. Any tasks needed to produce the artifacts of the configuration
+     * are also created and configured if necessary.
      */
-    @Nullable
-    NamedDomainObjectProvider<ConsumableConfiguration> getSourcesElementsConfiguration();
+    NamedDomainObjectProvider<ConsumableConfiguration> maybeRegisterSourcesElements();
 
     // TODO: Many of the methods below probably belong on a JvmTarget. Features may have many targets
     // and thus many configurations, jar tasks, compile tasks, etc.

@@ -104,6 +104,19 @@ These APIs include:
 
 Instead of using these APIs, you should use the alternative methods that take a `ComponentMetadataRule` class or an `Action`.
 
+[[deprecate_register_feature_no_java_plugin]]
+==== Deprecated calling `registerFeature` without the applying Java plugin
+Creating a JVM feature using link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html#registerFeature(java.lang.String,org.gradle.api.Action)[`JavaPluginExtension#registerFeature`] before applying the Java plugin has been deprecated and will become an error in Gradle 10.0.0.
+
+Build logic which creates JVM features should ensure the Java plugin is applied before calling `registerFeature`.
+
+The following bundled Gradle plugins apply the Java plugin implicitly:
+- `java-library`
+- `application`
+- `groovy`
+- `scala`
+- `war`
+
 [[changes_9.1.0]]
 == Upgrading from 9.0.0 and earlier
 
