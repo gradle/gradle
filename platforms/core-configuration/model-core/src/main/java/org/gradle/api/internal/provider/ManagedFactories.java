@@ -84,7 +84,7 @@ public class ManagedFactories {
         @SuppressWarnings("deprecation")
         <V> Property<V> propertyOf(Class<V> type, Provider<V> value) {
             // As we're inferring the type from the value, it may not exactly match the type of property and may actually be forbidden.
-            // Imagine Property<Object> holding a List - the users will be asked to use ListProperty.
+            // Imagine Property<Object> holding a List - if we didn't use `propertyOfAnyType` we would throw an exception asking the user to use ListProperty.
             return propertyFactory.propertyOfAnyType(type).value(value);
         }
 
