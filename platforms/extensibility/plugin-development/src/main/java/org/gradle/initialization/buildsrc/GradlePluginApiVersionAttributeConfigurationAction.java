@@ -24,6 +24,7 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.util.GradleVersion;
 
@@ -33,6 +34,11 @@ import org.gradle.util.GradleVersion;
  * so that those configurations resolve Gradle multi-variant plugin dependencies for the current API version.
  */
 public class GradlePluginApiVersionAttributeConfigurationAction implements BuildSrcProjectConfigurationAction {
+    public GradlePluginApiVersionAttributeConfigurationAction(Provider<String> versionProvider) {
+        this.versionProvider = versionProvider.orElse(GradleVersion.current().getVersion());
+    }
+
+    private final Provider<String> versionProvider;
 
     @Override
     public void execute(ProjectInternal project) {
@@ -48,16 +54,22 @@ public class GradlePluginApiVersionAttributeConfigurationAction implements Build
         );
     }
 
-    private void setAttributeForSourceSet(SourceSet sourceSet, ConfigurationContainer configurations, NamedObjectInstantiator instantiator) {
-        setAttributeForConfiguration(configurations.named(sourceSet.getCompileClasspathConfigurationName()), instantiator);
-        setAttributeForConfiguration(configurations.named(sourceSet.getRuntimeClasspathConfigurationName()), instantiator);
+    private void setAttributeForSourceSet(
+        SourceSet sourceSet,
+        ConfigurationContainer configurations,
+        NamedObjectInstantiator instantiator) {
+        setAttributeForConfiguration(configurations.named(sourceSet.getCompileClasspathConfigurationName()), instantiator, versionProvider);
+        setAttributeForConfiguration(configurations.named(sourceSet.getRuntimeClasspathConfigurationName()), instantiator, versionProvider);
     }
 
-    private static void setAttributeForConfiguration(NamedDomainObjectProvider<Configuration> configurationProvider, NamedObjectInstantiator instantiator) {
+    private static void setAttributeForConfiguration(
+        NamedDomainObjectProvider<Configuration> configurationProvider,
+        NamedObjectInstantiator instantiator,
+        Provider<String> versionProvider) {
         configurationProvider.configure(configuration ->
             configuration.getAttributes().attribute(
                 GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE,
-                instantiator.named(GradlePluginApiVersion.class, GradleVersion.current().getVersion())
+                instantiator.named(GradlePluginApiVersion.class, versionProvider.get())
             )
         );
     }

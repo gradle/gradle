@@ -237,6 +237,11 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     }
 
     @Override
+    public Dependency gradleApi(String gradleVersion) {
+        return dependencyFactory.create("org.gradle.experimental","gradle-public-api",gradleVersion);
+    }
+
+    @Override
     public Dependency gradleTestKit() {
         return dependencyFactory.createDependency(DependencyFactoryInternal.ClassPathNotation.GRADLE_TEST_KIT);
     }
