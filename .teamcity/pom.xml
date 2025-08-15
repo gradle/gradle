@@ -9,6 +9,8 @@
         <jackson.version>2.18.2</jackson.version>
         <dslContextParameter.branch>master</dslContextParameter.branch>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- https://kotlinlang.org/docs/maven.html#enable-incremental-compilation -->
+        <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
     </properties>
     <groupId>Gradle_Check</groupId>
     <artifactId>Gradle_Check_dsl</artifactId>
