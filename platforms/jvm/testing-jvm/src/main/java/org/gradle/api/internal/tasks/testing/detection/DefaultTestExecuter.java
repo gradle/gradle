@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformResourceBasedDetector;
 import org.gradle.api.internal.tasks.testing.processors.MaxNParallelTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.PatternMatchTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassProcessor;
@@ -102,16 +103,25 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
                 new RunPreviousFailedFirstTestClassProcessor(testExecutionSpec.getPreviousFailedTestClasses(),
                     new MaxNParallelTestClassProcessor(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory)));
 
-        final FileTree testClassFiles = testExecutionSpec.getCandidateClassFiles();
+        final DelegatingTestDetector detector = new DelegatingTestDetector();
 
-        Runnable detector;
+        final FileTree testClassFiles = testExecutionSpec.getCandidateClassFiles();
         if (testExecutionSpec.isScanForTestClasses() && testFramework.getDetector() != null) {
             TestFrameworkDetector testFrameworkDetector = testFramework.getDetector();
             testFrameworkDetector.setTestClasses(new ArrayList<File>(testExecutionSpec.getTestClassesDirs().getFiles()));
             testFrameworkDetector.setTestClasspath(classpath.getApplicationClasspath());
-            detector = new DefaultTestClassScanner(testClassFiles, testFrameworkDetector, processor);
+            detector.addTestDetector(new DefaultTestClassScanner(testClassFiles, testFrameworkDetector, processor));
         } else {
-            detector = new DefaultTestClassScanner(testClassFiles, null, processor);
+            detector.addTestDetector(new DefaultTestClassScanner(testClassFiles, null, processor));
+        }
+
+        final FileTree testResourceFiles = testExecutionSpec.getTestResourcesDirs().getAsFileTree();
+        if (testExecutionSpec.isScanForTestResources() && testFramework.getDetector() != null) {
+            JUnitPlatformResourceBasedDetector testFrameworkDetector = (JUnitPlatformResourceBasedDetector) testFramework.getDetector();
+            testFrameworkDetector.setTestResources(testExecutionSpec.getTestResourcesDirs().getFiles());
+
+            // TODO: Newer, simpler scanner type for this?
+            detector.addTestDetector(new DefaultTestResourcesScanner(testResourceFiles, testFrameworkDetector, processor));
         }
 
         // What is this?

@@ -18,6 +18,9 @@ package org.gradle.api.internal.tasks.testing.testng;
 import org.gradle.api.internal.tasks.testing.detection.AbstractTestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 
+import java.io.File;
+import java.util.Set;
+
 class TestNGDetector extends AbstractTestFrameworkDetector<TestNGTestClassDetector> {
     TestNGDetector(ClassFileExtractionManager classFileExtractionManager) {
         super(classFileExtractionManager);
@@ -31,5 +34,10 @@ class TestNGDetector extends AbstractTestFrameworkDetector<TestNGTestClassDetect
     @Override
     protected boolean isKnownTestCaseClassName(String testCaseClassName) {
         return false;
+    }
+
+    @Override
+    public void setTestResources(Set<File> resourceFiles) {
+        // TestNG doesn't use resource based testing
     }
 }

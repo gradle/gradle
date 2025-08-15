@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
  * The default test class scanner. Depending on the availability of a test framework detector,
  * a detection or filename scan is performed to find test classes.
  */
-public class DefaultTestClassScanner implements Runnable {
+public class DefaultTestClassScanner implements TestDetector {
     private static final Pattern ANONYMOUS_CLASS_NAME = Pattern.compile(".*\\$\\d+");
     private final FileTree candidateClassFiles;
     private final TestFrameworkDetector testFrameworkDetector;
@@ -45,7 +45,7 @@ public class DefaultTestClassScanner implements Runnable {
     }
 
     @Override
-    public void run() {
+    public void detect() {
         if (testFrameworkDetector == null) {
             filenameScan();
         } else {
