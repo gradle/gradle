@@ -825,8 +825,7 @@ service: closed with value 10001
         outputContains("service: closed with value 11")
     }
 
-    @Requires(IntegTestPreconditions.NotConfigCached)
-    // already covers CC behavior
+    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "already covers CC behavior")
     def "service used at configuration is discarded before execution time when used with configuration cache"() {
         serviceImplementation()
         buildFile << """
