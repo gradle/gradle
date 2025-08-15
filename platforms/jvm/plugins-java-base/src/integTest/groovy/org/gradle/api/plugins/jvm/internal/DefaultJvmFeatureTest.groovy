@@ -87,10 +87,9 @@ class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
 
         when:
         def feature = createFeature("main")
-        feature.withJavadocJar()
 
         then:
-        def configuration = feature.javadocElementsConfiguration.get()
+        def configuration = feature.maybeRegisterJavadocElements().get()
         configuration == project.configurations.getByName(JvmConstants.JAVADOC_ELEMENTS_CONFIGURATION_NAME)
         !configuration.canBeResolved
         configuration.canBeConsumed
@@ -107,10 +106,9 @@ class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
 
         when:
         def feature = createFeature("main")
-        feature.withSourcesJar()
 
         then:
-        def configuration = feature.sourcesElementsConfiguration.get()
+        def configuration = feature.maybeRegisterSourcesElements().get()
         configuration == project.configurations.getByName(JvmConstants.SOURCES_ELEMENTS_CONFIGURATION_NAME)
         !configuration.canBeResolved
         configuration.canBeConsumed
@@ -134,13 +132,13 @@ class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
         def f1 = new DefaultJvmFeature("feature1", one, Collections.emptySet(), project, false)
         def f2 = new DefaultJvmFeature("feature2", two, Collections.emptySet(), project, false)
 
-        f1.withJavadocJar()
-        f1.withSourcesJar()
+        f1.maybeRegisterJavadocElements()
+        f1.maybeRegisterSourcesElements()
         f1.withApi()
         f1.withSourceElements()
 
-        f2.withJavadocJar()
-        f2.withSourcesJar()
+        f2.maybeRegisterJavadocElements()
+        f2.maybeRegisterSourcesElements()
         f2.withApi()
         f2.withSourceElements()
 

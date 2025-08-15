@@ -63,13 +63,8 @@ public abstract class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareCo
         // The original implementation only applied to the main feature.
         getFeatures().all(feature -> {
             if (feature.getName().equals(JvmConstants.JAVA_MAIN_FEATURE_NAME)) {
-                NamedDomainObjectProvider<ConsumableConfiguration> javadocElements = feature.getJavadocElementsConfiguration();
-                if (javadocElements == null) {
-                    // This method can be called multiple times. Only publish the javadoc jar once.
-                    feature.withJavadocJar();
-                    javadocElements = feature.getJavadocElementsConfiguration();
-                    addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
-                }
+                NamedDomainObjectProvider<ConsumableConfiguration> javadocElements = feature.maybeRegisterJavadocElements();
+                addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
             }
         });
     }
@@ -81,13 +76,8 @@ public abstract class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareCo
         // The original implementation only applied to the main feature.
         getFeatures().all(feature -> {
             if (feature.getName().equals(JvmConstants.JAVA_MAIN_FEATURE_NAME)) {
-                NamedDomainObjectProvider<ConsumableConfiguration> sourcesElements = feature.getSourcesElementsConfiguration();
-                if (sourcesElements == null) {
-                    // This method can be called multiple times. Only publish the sources jar once.
-                    feature.withSourcesJar();
-                    sourcesElements = feature.getSourcesElementsConfiguration();
-                    addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
-                }
+                NamedDomainObjectProvider<ConsumableConfiguration> sourcesElements = feature.maybeRegisterSourcesElements();
+                addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
             }
         });
     }

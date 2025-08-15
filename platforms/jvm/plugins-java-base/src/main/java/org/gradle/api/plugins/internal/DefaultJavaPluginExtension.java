@@ -43,6 +43,7 @@ import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.Actions;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
@@ -222,6 +223,14 @@ public class DefaultJavaPluginExtension implements JavaPluginExtensionInternal {
         configureAction.execute(spec);
         JvmFeatureInternal feature = spec.create();
 
+        // TODO: In Gradle 10 when we can guarantee that there is a Java component, we can remove these side-effects.
+        if (spec.hasJavadocJar()) {
+            feature.maybeRegisterJavadocElements();
+        }
+        if (spec.hasSourcesJar()) {
+            feature.maybeRegisterSourcesElements();
+        }
+
         JvmSoftwareComponentInternal component = getSingleJavaComponent();
         if (component != null) {
             component.getFeatures().add(feature);
@@ -231,13 +240,13 @@ public class DefaultJavaPluginExtension implements JavaPluginExtensionInternal {
             // without needing to explicitly know about each variant.
 
             AdhocComponentWithVariants adhocComponent = (AdhocComponentWithVariants) component;
-            NamedDomainObjectProvider<ConsumableConfiguration> javadocElements = feature.getJavadocElementsConfiguration();
-            if (javadocElements != null) {
+            if (spec.hasJavadocJar()) {
+                NamedDomainObjectProvider<ConsumableConfiguration> javadocElements = feature.maybeRegisterJavadocElements();
                 adhocComponent.addVariantsFromConfiguration(javadocElements, new JavaConfigurationVariantMapping("runtime", true));
             }
 
-            NamedDomainObjectProvider<ConsumableConfiguration> sourcesElements = feature.getSourcesElementsConfiguration();
-            if (sourcesElements != null) {
+            if (spec.hasSourcesJar()) {
+                NamedDomainObjectProvider<ConsumableConfiguration> sourcesElements = feature.maybeRegisterSourcesElements();
                 adhocComponent.addVariantsFromConfiguration(sourcesElements, new JavaConfigurationVariantMapping("runtime", true));
             }
 
@@ -258,8 +267,13 @@ public class DefaultJavaPluginExtension implements JavaPluginExtensionInternal {
             return jvmComponents.iterator().next();
         }
 
-        // TODO: This case should be deprecated.
-        // Users should not be able to create detached features with `registerFeature`
+        DeprecationLogger.deprecateBehaviour("The `registerFeature` method was called, but the Java plugin has not yet been applied.")
+            .withContext("`registerFeature` should only be called in projects where the Java plugin has been applied.")
+            .withAdvice("Apply the `java`, `java-library`, `application`, `groovy`, or any other plugin that applies the Java plugin.")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(8, "deprecate_register_feature_no_java_plugin")
+            .nagUser();
+
         return null;
     }
 

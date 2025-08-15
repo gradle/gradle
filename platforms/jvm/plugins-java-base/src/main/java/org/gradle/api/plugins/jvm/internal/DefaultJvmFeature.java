@@ -40,6 +40,7 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
@@ -108,8 +109,8 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     private final NamedDomainObjectProvider<ConsumableConfiguration> runtimeElements;
 
     // Configurable outgoing variants
-    private NamedDomainObjectProvider<ConsumableConfiguration> javadocElements;
-    private NamedDomainObjectProvider<ConsumableConfiguration> sourcesElements;
+    private @Nullable NamedDomainObjectProvider<ConsumableConfiguration> javadocElements;
+    private @Nullable NamedDomainObjectProvider<ConsumableConfiguration> sourcesElements;
 
     public DefaultJvmFeature(
         String name,
@@ -277,38 +278,6 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     }
 
     @Override
-    public void withJavadocJar() {
-        if (javadocElements != null) {
-            return;
-        }
-        this.javadocElements = JvmPluginsHelper.createDocumentationVariantWithArtifact(
-            sourceSet.getJavadocElementsConfigurationName(),
-            SourceSet.isMain(sourceSet) ? null : name,
-            JAVADOC,
-            capabilities,
-            sourceSet.getJavadocJarTaskName(),
-            project.getTasks().named(sourceSet.getJavadocTaskName()),
-            project
-        );
-    }
-
-    @Override
-    public void withSourcesJar() {
-        if (sourcesElements != null) {
-            return;
-        }
-        this.sourcesElements = JvmPluginsHelper.createDocumentationVariantWithArtifact(
-            sourceSet.getSourcesElementsConfigurationName(),
-            SourceSet.isMain(sourceSet) ? null : name,
-            SOURCES,
-            capabilities,
-            sourceSet.getSourcesJarTaskName(),
-            sourceSet.getAllSource(),
-            project
-        );
-    }
-
-    @Override
     public void withSourceElements() {
         // TODO: Why are we using this non-standard name? For the `java` component, this
         // equates to `mainSourceElements` instead of `sourceElements` as one would expect.
@@ -424,12 +393,34 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     }
 
     @Override
-    public NamedDomainObjectProvider<ConsumableConfiguration> getJavadocElementsConfiguration() {
+    public NamedDomainObjectProvider<ConsumableConfiguration> maybeRegisterJavadocElements() {
+        if (javadocElements == null) {
+            this.javadocElements = JvmPluginsHelper.createDocumentationVariantWithArtifact(
+                sourceSet.getJavadocElementsConfigurationName(),
+                SourceSet.isMain(sourceSet) ? null : name,
+                JAVADOC,
+                capabilities,
+                sourceSet.getJavadocJarTaskName(),
+                project.getTasks().named(sourceSet.getJavadocTaskName()),
+                project
+            );
+        }
         return javadocElements;
     }
 
     @Override
-    public NamedDomainObjectProvider<ConsumableConfiguration> getSourcesElementsConfiguration() {
+    public NamedDomainObjectProvider<ConsumableConfiguration> maybeRegisterSourcesElements() {
+        if (sourcesElements == null) {
+            this.sourcesElements = JvmPluginsHelper.createDocumentationVariantWithArtifact(
+                sourceSet.getSourcesElementsConfigurationName(),
+                SourceSet.isMain(sourceSet) ? null : name,
+                SOURCES,
+                capabilities,
+                sourceSet.getSourcesJarTaskName(),
+                sourceSet.getAllSource(),
+                project
+            );
+        }
         return sourcesElements;
     }
 
