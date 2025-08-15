@@ -11,7 +11,7 @@ import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.api.component.AdhocComponentWithVariants
-import org.gradle.api.component.SoftwareComponentFactory
+import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.kotlin.dsl.creating
 import org.gradle.kotlin.dsl.getValue
@@ -19,11 +19,7 @@ import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.named
 import javax.inject.Inject
 
-// tag::inject_software_component_factory[]
-class InstrumentedJarsPlugin @Inject constructor(
-    private val softwareComponentFactory: SoftwareComponentFactory) : Plugin<Project> {
-// end::inject_software_component_factory[]
-
+class InstrumentedJarsPlugin {
     override fun apply(project: Project) = project.run {
         val outgoingConfiguration = createOutgoingConfiguration()
         attachArtifact()
@@ -34,6 +30,7 @@ class InstrumentedJarsPlugin @Inject constructor(
     private fun Project.configurePublication(outgoing: Configuration) {
         // tag::create_adhoc_component[]
         // create an adhoc component
+        val softwareComponentFactory = extensions.getByType<PublishingExtension>().softwareComponentFactory
         val adhocComponent = softwareComponentFactory.adhoc("myAdhocComponent")
         // add it to the list of components that this project declares
         components.add(adhocComponent)
