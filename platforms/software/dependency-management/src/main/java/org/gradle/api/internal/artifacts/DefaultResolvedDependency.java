@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ListMultimap;
 import org.apache.commons.lang3.ObjectUtils;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -44,7 +42,6 @@ import java.util.TreeSet;
 public class DefaultResolvedDependency implements ResolvedDependency {
     private final Set<DefaultResolvedDependency> children = new LinkedHashSet<>();
     private final Set<ResolvedDependency> parents = new LinkedHashSet<>();
-    private final ListMultimap<ResolvedDependency, ResolvedArtifactSet> parentArtifacts = ArrayListMultimap.create();
     private final String variantName;
     private final ModuleVersionIdentifier moduleVersionId;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -136,7 +133,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
         if (!parents.contains(parent)) {
             throw new InvalidUserDataException("Provided dependency (" + parent + ") must be a parent of: " + this);
         }
-        return CompositeResolvedArtifactSet.of(parentArtifacts.get(parent));
+        return ResolvedArtifactSet.EMPTY;
     }
 
     @Override
@@ -190,11 +187,6 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     public void addChild(DefaultResolvedDependency child) {
         children.add(child);
         child.parents.add(this);
-    }
-
-    public void addParentSpecificArtifacts(ResolvedDependency parent, ResolvedArtifactSet artifacts) {
-        this.parentArtifacts.put(parent, artifacts);
-        moduleArtifacts.add(artifacts);
     }
 
     public void addModuleArtifacts(ResolvedArtifactSet artifacts) {
