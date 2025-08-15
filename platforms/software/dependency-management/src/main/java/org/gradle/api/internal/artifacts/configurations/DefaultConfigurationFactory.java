@@ -22,10 +22,8 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
-import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -48,8 +46,6 @@ public class DefaultConfigurationFactory {
     private final DomainObjectContext domainObjectContext;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
-    private final ResolveExceptionMapper exceptionContextualizer;
-    private final AttributeDesugaring attributeDesugaring;
     private final UserCodeApplicationContext userCodeApplicationContext;
 
     @Inject
@@ -58,8 +54,6 @@ public class DefaultConfigurationFactory {
         ListenerManager listenerManager,
         DomainObjectContext domainObjectContext,
         PublishArtifactNotationParserFactory artifactNotationParserFactory,
-        ResolveExceptionMapper exceptionMapper,
-        AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext
     ) {
         this.configurationServices = configurationServices;
@@ -67,8 +61,6 @@ public class DefaultConfigurationFactory {
         this.domainObjectContext = domainObjectContext;
         this.artifactNotationParser = artifactNotationParserFactory.create();
         this.capabilityNotationParser = new CapabilityNotationParserFactory(true).create();
-        this.exceptionContextualizer = exceptionMapper;
-        this.attributeDesugaring = attributeDesugaring;
         this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
@@ -95,8 +87,6 @@ public class DefaultConfigurationFactory {
             resolutionStrategyFactory,
             artifactNotationParser,
             capabilityNotationParser,
-            exceptionContextualizer,
-            attributeDesugaring,
             userCodeApplicationContext,
             this,
             role
@@ -123,8 +113,6 @@ public class DefaultConfigurationFactory {
             resolutionStrategyFactory,
             artifactNotationParser,
             capabilityNotationParser,
-            exceptionContextualizer,
-            attributeDesugaring,
             userCodeApplicationContext,
             this
         );
@@ -150,8 +138,6 @@ public class DefaultConfigurationFactory {
             resolutionStrategyFactory,
             artifactNotationParser,
             capabilityNotationParser,
-            exceptionContextualizer,
-            attributeDesugaring,
             userCodeApplicationContext,
             this
         );
@@ -177,8 +163,6 @@ public class DefaultConfigurationFactory {
             resolutionStrategyFactory,
             artifactNotationParser,
             capabilityNotationParser,
-            exceptionContextualizer,
-            attributeDesugaring,
             userCodeApplicationContext,
             this
         );

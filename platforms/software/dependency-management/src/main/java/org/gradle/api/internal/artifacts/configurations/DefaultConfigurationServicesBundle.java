@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConfigurationServicesBundle;
+import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -47,6 +49,8 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
     private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
     private final InternalProblems problems;
+    private final AttributeDesugaring attributeDesugaring;
+    private final ResolveExceptionMapper exceptionMapper;
 
     public DefaultConfigurationServicesBundle(BuildOperationRunner buildOperationRunner,
                                               ProjectStateRegistry projectStateRegistry,
@@ -57,7 +61,9 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
                                               AttributesFactory attributesFactory,
                                               DomainObjectCollectionFactory domainObjectCollectionFactory,
                                               CollectionCallbackActionDecorator collectionCallbackActionDecorator,
-                                              InternalProblems problems) {
+                                              InternalProblems problems,
+                                              AttributeDesugaring attributeDesugaring,
+                                              ResolveExceptionMapper exceptionMapper) {
         this.buildOperationRunner = buildOperationRunner;
         this.projectStateRegistry = projectStateRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
@@ -68,6 +74,8 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
         this.problems = problems;
+        this.attributeDesugaring = attributeDesugaring;
+        this.exceptionMapper = exceptionMapper;
     }
 
     @Override
@@ -118,5 +126,15 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
     @Override
     public InternalProblems getProblems() {
         return problems;
+    }
+
+    @Override
+    public AttributeDesugaring getAttributeDesugaring() {
+        return attributeDesugaring;
+    }
+
+    @Override
+    public ResolveExceptionMapper getExceptionMapper() {
+        return exceptionMapper;
     }
 }

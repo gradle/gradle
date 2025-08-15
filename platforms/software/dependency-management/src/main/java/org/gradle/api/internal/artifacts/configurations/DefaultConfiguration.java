@@ -70,7 +70,6 @@ import org.gradle.api.internal.artifacts.resolver.ResolutionOutputsInternal;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.FreezableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.AbstractFileCollection;
@@ -158,10 +157,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private @Nullable DefaultPublishArtifactSet allArtifacts;
     private final ConfigurationResolvableDependencies resolvableDependencies;
     private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
-    private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
-    private @Nullable ResolutionStrategyInternal resolutionStrategy;
-    private final ResolveExceptionMapper exceptionMapper;
-    private final AttributeDesugaring attributeDesugaring;
 
     private final Path identityPath;
     private final Path projectPath;
@@ -209,7 +204,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private @Nullable ConfigurationInternal consistentResolutionSource;
     private @Nullable String consistentResolutionReason;
+
+    /** This factory can't be extracted to the services bundle, as it would create a circular dependency between those two types. */
     private final DefaultConfigurationFactory defaultConfigurationFactory;
+
+    /** This factory has some unique usages during copy, so it can't be extracted to the services bundle. */
+    private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
+    private @Nullable ResolutionStrategyInternal resolutionStrategy;
 
     private final ConfigurationServicesBundle configurationServices;
 
@@ -226,8 +227,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
-        ResolveExceptionMapper exceptionMapper,
-        AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext,
         DefaultConfigurationFactory defaultConfigurationFactory,
         ConfigurationRole roleAtCreation,
@@ -243,8 +242,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.dependencyResolutionListeners = dependencyResolutionListeners;
         this.domainObjectContext = domainObjectContext;
-        this.exceptionMapper = exceptionMapper;
-        this.attributeDesugaring = attributeDesugaring;
 
         this.displayName = Describables.memoize(new ConfigurationDescription(identityPath));
         this.configurationAttributes = new FreezableAttributeContainer(configurationServices.getAttributesFactory().mutable(), this.displayName);
@@ -536,7 +533,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public ResolutionHost getHost() {
-            return new DefaultResolutionHost(identityPath, displayName, configurationServices.getProblems(), exceptionMapper);
+            return new DefaultResolutionHost(identityPath, displayName, configurationServices.getProblems(), configurationServices.getExceptionMapper());
         }
 
         @Override
@@ -562,7 +559,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 taskDependencyFactory,
                 configurationServices.getCalculatedValueContainerFactory(),
                 configurationServices.getAttributesFactory(),
-                attributeDesugaring,
+                configurationServices.getAttributeDesugaring(),
                 configurationServices.getObjectFactory()
             );
         }
@@ -633,7 +630,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 try {
                     results = resolver.resolveGraph(DefaultConfiguration.this);
                 } catch (Exception e) {
-                    throw exceptionMapper.mapFailure(e, "dependencies", displayName.getDisplayName());
+                    throw configurationServices.getExceptionMapper().mapFailure(e, "dependencies", displayName.getDisplayName());
                 }
 
                 // Make the new state visible in case a dependency resolution listener queries the result, which requires the new state
@@ -787,7 +784,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 try {
                     return Optional.of(resolver.resolveBuildDependencies(this, futureCompleteResults));
                 } catch (Exception e) {
-                    throw exceptionMapper.mapFailure(e, "dependencies", displayName.getDisplayName());
+                    throw configurationServices.getExceptionMapper().mapFailure(e, "dependencies", displayName.getDisplayName());
                 }
             } // Otherwise, already have a result, so reuse it
             return initial;
@@ -1678,7 +1675,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         @Override
         public ResolutionResult getResolutionResult() {
             configuration.assertIsResolvable();
-            return new DefaultResolutionResult(configuration.resolutionAccess, configuration.attributeDesugaring);
+            return new DefaultResolutionResult(configuration.resolutionAccess, configuration.configurationServices.getAttributeDesugaring());
         }
 
         @Override
