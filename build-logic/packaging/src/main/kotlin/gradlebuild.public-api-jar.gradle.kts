@@ -85,6 +85,7 @@ val gradleApiElements = configurations.consumable("gradleApiElements") {
     configureAsApiElements(objects)
 }
 
+// TODO: SoftwareComponentFactoryProvider can be replaced with PublishingExtension#getSoftwareComponentFactory()
 open class SoftwareComponentFactoryProvider @Inject constructor(val factory: SoftwareComponentFactory)
 val softwareComponentFactory = project.objects.newInstance(SoftwareComponentFactoryProvider::class.java).factory
 val gradleApiComponent = softwareComponentFactory.adhoc("gradleApi")

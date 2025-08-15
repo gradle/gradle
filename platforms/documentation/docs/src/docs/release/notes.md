@@ -39,6 +39,33 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ## New features and usability improvements
 
+### Publishing improvements
+
+#### Introduced `PublishingExtension#getSoftwareComponentFactory` method
+
+This new method exposes the `SoftwareComponentFactory` service via the `publishing` extension.
+
+The following example shows how to use this new method to publish a custom component:
+
+```kotlin
+plugins {
+    id("maven-publish")
+}
+
+val consumableConfiguration = getAConfiguration()
+
+publishing {
+    val myCustomComponent = softwareComponentFactory.adhoc("myCustomComponent")
+    myCustomComponent.addVariantsFromConfiguration(consumableConfiguration) {}
+    
+    publications {
+        create<MavenPublication>("maven") {
+            from(myCustomComponent)
+        }
+    }
+}
+```
+
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
 <!--
