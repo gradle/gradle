@@ -44,7 +44,6 @@ import static org.gradle.api.plugins.antlr.internal.AntlrSpec.PACKAGE_ARG;
  */
 public abstract class AntlrPlugin implements Plugin<Project> {
     public static final String ANTLR_CONFIGURATION_NAME = "antlr";
-    public static final String ANTLR_TASK_GROUP = "Antlr";
     private final ObjectFactory objectFactory;
 
     @Inject
@@ -91,7 +90,7 @@ public abstract class AntlrPlugin implements Plugin<Project> {
                     // 4) Register a source-generating task, and
                     TaskProvider<AntlrTask> antlrTask = project.getTasks().register(taskName, AntlrTask.class, task -> {
                         task.setDescription("Processes the " + sourceSet.getName() + " Antlr grammars.");
-                        task.setGroup(ANTLR_TASK_GROUP);
+                        task.setGroup("Antlr");
                         // 4.1) set up convention mapping for default sources (allows user to not have to specify)
                         task.setSource(antlrSourceSet);
                         task.setOutputDirectory(outputDirectory);

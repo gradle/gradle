@@ -117,6 +117,6 @@ class AntlrPluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(AntlrPlugin)
 
         then:
-        project.tasks.withType(AntlrTask).all { it.group == AntlrPlugin.ANTLR_TASK_GROUP }
+        project.tasks.withType(AntlrTask).all { it.group == 'Antlr' }
     }
 }
