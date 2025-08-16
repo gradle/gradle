@@ -22,6 +22,7 @@ import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.DefaultWorkerLimits
 import org.gradle.internal.work.NoAvailableWorkerLeaseException
+import org.gradle.internal.work.ResourceLockStatistics
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -34,7 +35,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
 
     def setupBuildOperationExecutor(int maxThreads) {
         def workerLimits = new DefaultWorkerLimits(maxThreads)
-        workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), workerLimits)
+        workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), workerLimits, ResourceLockStatistics.NO_OP)
         workerRegistry.startProjectExecution(true)
         buildOperationExecutor = BuildOperationExecutorSupport.builder(workerLimits).withWorkerLeaseService(workerRegistry).build()
         outerOperationCompletion = workerRegistry.startWorker()
@@ -184,7 +185,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
     def "operations are canceled when the generator fails"() {
         def buildQueue = Mock(BuildOperationQueue)
         def buildOperationQueueFactory = Mock(BuildOperationQueueFactory) {
-            create(_, _, _) >> { buildQueue }
+            create(_, _, _, _) >> { buildQueue }
         }
 
         def buildOperationExecutor = BuildOperationExecutorSupport.builder(1).withQueueFactory(buildOperationQueueFactory).build()
@@ -211,7 +212,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
             waitForCompletion() >> { throw new MultipleBuildOperationFailures(operationFailures, null) }
         }
         def buildOperationQueueFactory = Mock(BuildOperationQueueFactory) {
-            create(_, _, _) >> { buildQueue }
+            create(_, _, _, _) >> { buildQueue }
         }
         def buildOperationExecutor = BuildOperationExecutorSupport.builder(1).withQueueFactory(buildOperationQueueFactory).build()
         def worker = Stub(BuildOperationWorker)

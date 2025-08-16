@@ -18,8 +18,8 @@ package org.gradle.internal.work
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class ProjectLockStatisticsIntegrationTest extends AbstractIntegrationSpec {
-    def "displays project lock statistics after build finishes"() {
+class ResourceLockStatisticsIntegrationTest extends AbstractIntegrationSpec {
+    def "displays resource lock statistics after build finishes"() {
         createDirs("child")
         settingsFile << """
             include ':child'
@@ -52,10 +52,10 @@ class ProjectLockStatisticsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.withArguments("--parallel", "-D${DefaultWorkerLeaseService.PROJECT_LOCK_STATS_PROPERTY}")
+        executer.withArguments("--parallel", "-D${ResourceLockStatistics.PROJECT_LOCK_STATS_PROPERTY}")
         succeeds(":wait", ":child:blocked")
 
         then:
-        result.assertHasPostBuildOutput("Time spent waiting on project locks")
+        result.assertHasPostBuildOutput("Time spent waiting on resource locks")
     }
 }
