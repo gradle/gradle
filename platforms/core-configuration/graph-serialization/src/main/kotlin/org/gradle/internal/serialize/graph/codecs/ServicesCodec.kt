@@ -19,6 +19,8 @@ package org.gradle.internal.serialize.graph.codecs
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.logPropertyProblem
+import org.gradle.internal.serialize.graph.ownerService
 import org.gradle.internal.service.scopes.ServiceScope
 
 
@@ -51,7 +53,7 @@ object ServicesCodec : EncodingProducer, Decoding {
     }
 
     override suspend fun ReadContext.decode(): Any? {
-        return isolate.owner.service(readClass())
+        return ownerService(readClass())
     }
 }
 
@@ -59,6 +61,15 @@ object ServicesCodec : EncodingProducer, Decoding {
 internal
 class OwnerServiceEncoding(val serviceType: Class<*>) : Encoding {
     override suspend fun WriteContext.encode(value: Any) {
+        if (ownerService(serviceType) !== value) {
+            logPropertyProblem {
+                text("Expecting service of type ")
+                reference(serviceType)
+                text("to be the same instance as ")
+                reference("$value")
+                text(" but it was not.")
+            }
+        }
         writeClass(serviceType)
     }
 }
