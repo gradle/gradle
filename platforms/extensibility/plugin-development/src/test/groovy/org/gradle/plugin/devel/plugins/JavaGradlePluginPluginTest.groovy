@@ -176,13 +176,13 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
         project.plugins.findPlugin(JavaPlugin)
     }
 
-    def "apply adds gradleApi dependency to api"() {
+    def "apply adds gradleApi dependency to compileOnly"() {
         when:
         project.pluginManager.apply(JavaGradlePluginPlugin)
 
         then:
         project.configurations
-            .getByName(JavaGradlePluginPlugin.API_CONFIGURATION)
+            .getByName(JavaGradlePluginPlugin.COMPILE_ONLY_CONFIGURATION)
             .dependencies.find {
             it.files == project.dependencies.gradleApi().files
         }
