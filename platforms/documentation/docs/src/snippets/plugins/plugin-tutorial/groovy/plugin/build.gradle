@@ -1,0 +1,90 @@
+// tag::plugin-init[]
+// tag::plugins[]
+plugins {
+    // Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins
+    id 'java-gradle-plugin'
+
+    // Apply the Groovy plugin to add support for Groovy
+    id 'groovy'
+}
+// end::plugin-init[]
+// end::plugins[]
+
+repositories {
+    // Use Maven Central for resolving dependencies.
+    mavenCentral()
+}
+
+// tag::dependencies[]
+// tag::slack-api[]
+dependencies {
+    // end::slack-api[]
+    // Use the awesome Spock testing and specification framework
+    /*
+    testImplementation libs.spock.core
+     */
+    testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // tag::slack-api[]
+    // Use the Java Slack Client APIs
+    implementation("com.slack.api:slack-api-client:1.45.3")
+}
+// end::slack-api[]
+// end::dependencies[]
+
+/*
+// tag::plugin-init[]
+
+gradlePlugin {
+    // Define the plugin
+    plugins {
+        greeting {
+            id = 'org.example.greeting'
+            implementationClass = 'org.example.PluginTutorialPlugin'
+        }
+    }
+}
+// end::plugin-init[]
+*/
+
+// tag::gradle-plugin[]
+gradlePlugin {
+    // Define the plugin
+    plugins {
+        slack {
+            id = 'org.example.slack'
+            implementationClass = 'org.example.SlackPlugin'
+        }
+    }
+}
+// end::gradle-plugin[]
+
+// tag::test-config[]
+// Add a source set for the functional test suite
+sourceSets {
+    functionalTest {
+    }
+}
+
+configurations.functionalTestImplementation.extendsFrom(configurations.testImplementation)
+configurations.functionalTestRuntimeOnly.extendsFrom(configurations.testRuntimeOnly)
+
+// Add a task to run the functional tests
+tasks.register('functionalTest', Test) {
+    testClassesDirs = sourceSets.functionalTest.output.classesDirs
+    classpath = sourceSets.functionalTest.runtimeClasspath
+    useJUnitPlatform()
+}
+
+gradlePlugin.testSourceSets.add(sourceSets.functionalTest)
+
+tasks.named('check') {
+    // Run the functional tests as part of `check`
+    dependsOn(tasks.functionalTest)
+}
+
+tasks.named('test') {
+    // Use JUnit Jupiter for unit tests.
+    useJUnitPlatform()
+}
+// end::test-config[]
