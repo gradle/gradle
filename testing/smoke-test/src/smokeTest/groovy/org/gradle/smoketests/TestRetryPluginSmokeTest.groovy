@@ -106,7 +106,7 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
             .assertTestSkipped("skipped")
             .assertTestPassed("flaky")
             .assertTestPassed("successful")
-            .assertTestCount(7, 4, 0) // failing runs 3 times, flaky twice (once with a failure)
+            .assertTestCount(7, 4) // failing runs 3 times, flaky twice (once with a failure)
     }
 
     static void assertTaskFailed(BuildResult result, String task) {

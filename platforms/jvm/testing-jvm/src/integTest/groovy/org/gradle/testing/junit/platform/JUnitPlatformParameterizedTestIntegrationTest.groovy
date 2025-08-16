@@ -57,13 +57,13 @@ class JUnitPlatformParameterizedTestIntegrationTest extends JUnitPlatformIntegra
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("PassingWithDisabledParameterizedTest", "OnlyDisabledParameterizedTest")
         result.testClassByHtml("PassingWithDisabledParameterizedTest")
-            .assertTestCount(5, 0, 0)
+            .assertTestCount(5, 0)
             .assertTestsSkipped("disabledTest", "disabledParameterizedTest(String)")
             .assertTestPassed("passingTest")
             .assertTestPassed("enabledParameterizedTest(String)[1]", "[1] first")
             .assertTestPassed("enabledParameterizedTest(String)[2]", "[2] second")
         result.testClassByHtml("OnlyDisabledParameterizedTest")
-            .assertTestCount(2, 0, 0)
+            .assertTestCount(2, 0)
             .assertTestsSkipped("disabledParameterizedTest1(String)", "disabledParameterizedTest2(String)")
     }
 
@@ -99,13 +99,13 @@ class JUnitPlatformParameterizedTestIntegrationTest extends JUnitPlatformIntegra
 
         result.assertTestClassesExecuted("PassingWithDisabledParameterizedTest", "OnlyDisabledParameterizedTest")
         result.testClassByHtml("PassingWithDisabledParameterizedTest")
-            .assertTestCount(5, 0, 0)
+            .assertTestCount(5, 0)
             .assertTestsSkipped("disabledTest", "disabledParameterizedTest(String)")
             .assertTestPassed("passingTest")
             .assertTestPassed("enabledParameterizedTest(String)[1]", "[1] first")
             .assertTestPassed("enabledParameterizedTest(String)[2]", "[2] second")
         result.testClassByHtml("OnlyDisabledParameterizedTest")
-            .assertTestCount(2, 0, 0)
+            .assertTestCount(2, 0)
             .assertTestsSkipped("disabledParameterizedTest1(String)", "disabledParameterizedTest2(String)")
     }
 

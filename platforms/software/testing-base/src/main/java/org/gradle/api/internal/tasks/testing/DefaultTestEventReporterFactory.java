@@ -19,51 +19,49 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.testing.logging.SimpleTestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestEventProgressListener;
-import org.gradle.api.internal.tasks.testing.results.HtmlTestReportGenerator;
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListener;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
-import org.gradle.api.tasks.testing.TestEventReporterFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.reflect.Instantiator;
 import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.function.LongFunction;
+import java.util.function.Supplier;
 
 @NullMarked
-public final class DefaultTestEventReporterFactory implements TestEventReporterFactory {
+public final class DefaultTestEventReporterFactory implements TestEventReporterFactoryInternal {
 
     private final ListenerManager listenerManager;
     private final StyledTextOutputFactory textOutputFactory;
     private final ProgressLoggerFactory progressLoggerFactory;
-    private final HtmlTestReportGenerator htmlTestReportGenerator;
+    private final Instantiator instantiator;
 
     @Inject
     public DefaultTestEventReporterFactory(
         ListenerManager listenerManager,
         StyledTextOutputFactory textOutputFactory,
         ProgressLoggerFactory progressLoggerFactory,
-        HtmlTestReportGenerator htmlTestReportGenerator
+        Instantiator instantiator
     ) {
         this.listenerManager = listenerManager;
         this.textOutputFactory = textOutputFactory;
         this.progressLoggerFactory = progressLoggerFactory;
-        this.htmlTestReportGenerator = htmlTestReportGenerator;
+        this.instantiator = instantiator;
     }
 
     @Override
-    public GroupTestEventReporter createTestEventReporter(
-        String rootName,
-        Directory binaryResultsDirectory,
-        Directory htmlReportDirectory
-    ) {
+    public GroupTestEventReporter createTestEventReporter(String rootName, Directory binaryResultsDirectory, Directory htmlReportDirectory) {
         ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster = listenerManager.createAnonymousBroadcaster(TestListenerInternal.class);
 
         // Renders console output for the task
@@ -72,28 +70,45 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         // Emits progress logger events
         testListenerInternalBroadcaster.add(new TestEventProgressListener(progressLoggerFactory));
 
-        // Record all emitted results to disk
-        Path binaryResultsDir = binaryResultsDirectory.getAsFile().toPath();
-        SerializableTestResultStore.Writer resultsSerializingListener = newResultsSerializingListener(binaryResultsDir);
-        testListenerInternalBroadcaster.add(resultsSerializingListener);
-
-        return new LifecycleTrackingGroupTestEventReporter(new DefaultRootTestEventReporter(
-            rootName,
-            testListenerInternalBroadcaster.getSource(),
-            new LongIdGenerator(),
-            htmlReportDirectory.getAsFile().toPath(),
-            binaryResultsDir,
-            resultsSerializingListener,
-            htmlTestReportGenerator,
-            listenerManager.getBroadcaster(TestExecutionResultsListener.class)
-        ));
+        GenericHtmlTestReportGenerator reportGenerator = instantiator.newInstance(GenericHtmlTestReportGenerator.class, htmlReportDirectory.getAsFile().toPath());
+        return createInternalTestEventReporter(
+            id -> new DefaultTestSuiteDescriptor(id, rootName),
+            binaryResultsDirectory,
+            reportGenerator,
+            testListenerInternalBroadcaster,
+            false,
+            FailureReportResult::noAction
+        );
     }
 
-    private SerializableTestResultStore.Writer newResultsSerializingListener(Path binaryResultsDir) {
+    @Override
+    public GroupTestEventReporterInternal createInternalTestEventReporter(
+        LongFunction<TestDescriptorInternal> rootDescriptorFactory,
+        Directory binaryResultsDirectory,
+        TestReportGenerator reportGenerator,
+        ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster,
+        boolean skipFirstLevelOnDisk,
+        Supplier<FailureReportResult> detectOtherFailures
+    ) {
+        // Record all emitted results to disk
+        Path binaryResultsDir = binaryResultsDirectory.getAsFile().toPath();
+        SerializableTestResultStore.Writer resultsSerializingListener;
         try {
-            return new SerializableTestResultStore(binaryResultsDir).openWriter();
+            resultsSerializingListener = new SerializableTestResultStore(binaryResultsDir).openWriter(skipFirstLevelOnDisk);
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+        testListenerInternalBroadcaster.add(resultsSerializingListener);
+
+        return new LifecycleTrackingGroupTestEventReporter(new DefaultRootTestEventReporter(
+            rootDescriptorFactory,
+            testListenerInternalBroadcaster.getSource(),
+            new LongIdGenerator(),
+            binaryResultsDir,
+            resultsSerializingListener,
+            reportGenerator,
+            listenerManager.getBroadcaster(TestExecutionResultsListener.class),
+            detectOtherFailures
+        ));
     }
 }

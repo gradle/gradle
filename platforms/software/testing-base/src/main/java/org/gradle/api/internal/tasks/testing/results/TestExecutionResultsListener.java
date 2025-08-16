@@ -35,6 +35,6 @@ public interface TestExecutionResultsListener {
     /**
      * Called when a test execution is complete and binary results are available for consumption.
      */
-    void executionResultsAvailable(TestDescriptorInternal rootDescriptor, Path binaryResultsDir, boolean hasFailures);
+    void executionResultsAvailable(TestDescriptorInternal rootDescriptor, Path binaryResultsDir, boolean hasTestFailures);
 
 }
