@@ -22,6 +22,7 @@ image:gradle.png[float=left] Gradle Build Tool is a fast, dependable, and adapta
 
 In this User Manual, Gradle Build Tool is abbreviated **Gradle**.
 
+[[reference]]
 == Supported Languages and Frameworks
 
 Gradle supports Android, Java, Kotlin Multiplatform, Groovy, Scala, Javascript, and C/C++.

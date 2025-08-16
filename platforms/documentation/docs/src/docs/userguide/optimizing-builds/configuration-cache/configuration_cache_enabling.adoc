@@ -14,7 +14,7 @@
 
 :gradle-issues: https://github.com/gradle/gradle/issues/
 
-[[config_cache_enabling]]
+[[config_cache:usage]]
 = Enabling and Configuring the Configuration Cache
 
 [[config_cache:usage:enable]]

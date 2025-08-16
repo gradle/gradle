@@ -17,6 +17,7 @@ dependencies {
         exclude(module = "servlet-api")
     }
     implementation("com.vladsch.flexmark:flexmark-all")
+    implementation("com.google.code.gson:gson")
     implementation("org.apache.commons:commons-lang3")
     implementation("org.asciidoctor:asciidoctor-gradle-jvm")
     implementation("org.asciidoctor:asciidoctorj")

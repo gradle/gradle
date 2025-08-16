@@ -59,6 +59,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         generateUserManual(project, tasks, layout, extension);
 
         checkXrefLinksInUserManualAreValid(layout, tasks, extension);
+        checkLinksInUserManualAreNotMissing(layout, tasks, extension);
     }
 
     public static List<String> getDefaultExcludedPackages() {
@@ -332,5 +333,15 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         });
 
         tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(checkDeadInternalLinks));
+    }
+
+    private void checkLinksInUserManualAreNotMissing(ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {
+        TaskProvider<FindMissingDocumentationFiles> checkMissingInternalLinks = tasks.register("checkMissingInternalLinks", FindMissingDocumentationFiles.class, task -> {
+            task.getDocumentationRoot().convention(extension.getUserManual().getRoot());
+            task.getGradle7JsonFile().convention(layout.getProjectDirectory().file("src/main/resources/links_gradle_7.json"));
+            task.getGradle8JsonFile().convention(layout.getProjectDirectory().file("src/main/resources/links_gradle_8.json"));
+        });
+
+        tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(checkMissingInternalLinks));
     }
 }
