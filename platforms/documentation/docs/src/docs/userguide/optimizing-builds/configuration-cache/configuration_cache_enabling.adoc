@@ -148,9 +148,9 @@ The read-only configuration caching feature is _incubating_.
 ====
 
 [[config_cache:stable]]
-== Enabling the Configuration Cache Feature Flag
+== Enabling Strict Configuration Cache Mode
 
-To help teams prepare for the stabilization of configuration caching, Gradle provides a strict mode behind a dedicated feature flag.
+To help teams adopt configuration caching, Gradle provides a strict mode behind a dedicated feature flag.
 
 You can enable this feature flag in your build using the following configuration:
 
