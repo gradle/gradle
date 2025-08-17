@@ -111,7 +111,6 @@ class AntlrPluginTest extends AbstractProjectBuilderSpec {
         sourcesJar.taskDependencies.getDependencies(null).contains(generateGrammarSource)
     }
 
-    @Issue('https://github.com/gradle/gradle/issues/33373')
     def "Antlr tasks are assigned to the correct group"() {
         when:
         project.pluginManager.apply(AntlrPlugin)
