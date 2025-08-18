@@ -165,6 +165,13 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
     }
 
     @Override
+    public @Nullable ProjectState findProjectState(Path identityPath) {
+        synchronized (lock) {
+            return projectsByPath.get(identityPath);
+        }
+    }
+
+    @Override
     public BuildProjectRegistry projectsFor(BuildIdentifier buildIdentifier) throws IllegalArgumentException {
         synchronized (lock) {
             BuildProjectRegistry registry = projectsByBuild.get(buildIdentifier);
