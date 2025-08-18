@@ -32,7 +32,7 @@ class ResilientKotlinDslScriptsModelBuilder(val delegate: AbstractKotlinDslScrip
         val buildState = (project.gradle as GradleInternal).owner
         var exception = null as Throwable?
         try {
-            // Is there a better way to get the exception from the build state if it exists?
+            // TODO: Is there a better way to get the exception from the build state if it exists?
             buildState.ensureProjectsLoaded()
         } catch (e: Exception) {
             exception = e
