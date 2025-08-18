@@ -80,7 +80,7 @@ import static org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier
  * Allows the tests to get hold of an alternative Java installation when needed.
  */
 public abstract class AvailableJavaHomes {
-    private static final String FORWARDED_JAVA_INSTALLATIONS_PATHS_PROPERTY = JAVA_INSTALLATIONS_PATHS_PROPERTY + ".forwarded";
+    private static final String FORWARDED_JAVA_INSTALLATIONS_PATHS_PROPERTY = JAVA_INSTALLATIONS_PATHS_PROPERTY + ".integTest";
     private static final Supplier<List<JvmInstallationMetadata>> INSTALLATIONS = Suppliers.memoize(AvailableJavaHomes::discoverLocalInstallations);
 
     private static final GradleDistribution DISTRIBUTION = new UnderDevelopmentGradleDistribution();
