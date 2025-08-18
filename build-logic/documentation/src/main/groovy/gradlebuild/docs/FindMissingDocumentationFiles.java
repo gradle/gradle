@@ -82,7 +82,9 @@ public abstract class FindMissingDocumentationFiles extends DefaultTask {
         "single-version-declarations",
         "version_ordering",
         "sec:declaring_without_version",
-        "rich-version-constraints"
+        "rich-version-constraints",
+        "dependency_management_in_gradle",
+        "sec:dependency-mgmt-in-gradle"
     ));
 
     @InputDirectory
