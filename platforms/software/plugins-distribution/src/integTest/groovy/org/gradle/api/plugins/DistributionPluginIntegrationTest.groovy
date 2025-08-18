@@ -68,13 +68,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
                 }
             }
 
-            interface MyServices {
-                @Inject
-                SoftwareComponentFactory getSoftwareComponentFactory()
-            }
-
-            def factory = objects.newInstance(MyServices).softwareComponentFactory
-            def distributionComponent = factory.adhoc("distribution")
+            def distributionComponent = publishing.softwareComponentFactory.adhoc("distribution")
             distributionComponent.addVariantsFromConfiguration(configurations.distribution) {}
 
             publishing {
