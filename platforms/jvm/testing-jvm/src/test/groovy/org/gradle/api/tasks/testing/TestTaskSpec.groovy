@@ -47,6 +47,9 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         suiteDescriptor.id >> testId
         suiteDescriptor.parent >> null
         suiteDescriptor.composite >> true
+        suiteDescriptor.name >> "suite"
+        suiteDescriptor.displayName >> "suite"
+
         def startEvent = Stub(TestStartEvent) {
             getParentId() >> null
         }
@@ -60,28 +63,12 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         }
     }
 
-    def expectTestSuitePasses() {
-        def testId = "test"
-        suiteDescriptor.id >> testId
-        suiteDescriptor.parent >> null
-        suiteDescriptor.composite >> true
-        def startEvent = Stub(TestStartEvent) {
-            getParentId() >> null
-        }
-        def finishEvent = Stub(TestCompleteEvent) {
-            getResultType() >> TestResult.ResultType.SUCCESS
-        }
-
-        _ * testExecuter.execute(_ as TestExecutionSpec, _) >> { TestExecutionSpec testExecutionSpec, TestResultProcessor processor ->
-            processor.started(suiteDescriptor, startEvent)
-            processor.completed(testId, finishEvent)
-        }
-    }
-
     def expectTestPasses() {
         suiteDescriptor.id >> "suite"
         suiteDescriptor.parent >> null
         suiteDescriptor.composite >> true
+        suiteDescriptor.name >> "suite"
+        suiteDescriptor.displayName >> "suite"
 
         testDescriptor.id >> "test"
         testDescriptor.parent >> suiteDescriptor
@@ -114,6 +101,9 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         suiteDescriptor.id >> testId
         suiteDescriptor.parent >> null
         suiteDescriptor.composite >> true
+        suiteDescriptor.name >> "suite"
+        suiteDescriptor.displayName >> "suite"
+
         def startEvent = Stub(TestStartEvent) {
             getParentId() >> null
         }
@@ -134,6 +124,8 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         suiteDescriptor.id >> "suite"
         suiteDescriptor.parent >> null
         suiteDescriptor.composite >> true
+        suiteDescriptor.name >> "suite"
+        suiteDescriptor.displayName >> "suite"
 
         testDescriptor.id >> "test"
         testDescriptor.parent >> suiteDescriptor
@@ -173,7 +165,7 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
 
         then:
         GradleException e = thrown()
-        e.message.startsWith("There were failing tests. See the report at")
+        assertTestFailuresReported(e)
     }
 
     def "notifies listener of test progress"() {
@@ -295,7 +287,7 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
 
         then:
         GradleException e = thrown()
-        e.message.startsWith("There were failing tests. See the report at")
+        assertTestFailuresReported(e)
         1 * closure.call()
 
         when:
@@ -303,7 +295,7 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
 
         then:
         e = thrown()
-        e.message.startsWith("There were failing tests. See the report at")
+        assertTestFailuresReported(e)
         0 * closure.call()
     }
 
@@ -316,7 +308,7 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
 
         then:
         GradleException e = thrown()
-        e.message.startsWith("There were failing tests. See the report at")
+        assertTestFailuresReported(e)
     }
 
     def "does not report task as failed if first suite contained tests"() {
@@ -331,5 +323,9 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
 
         then:
         noExceptionThrown()
+    }
+
+    private void assertTestFailuresReported(GradleException e) {
+        assert e.message.startsWith("There were failing tests. See the test results for more details")
     }
 }
