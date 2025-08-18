@@ -40,6 +40,7 @@ import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.MutableStateAccessAwareProject
 import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectWrapperFactory
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
 import org.gradle.api.logging.Logger
@@ -67,7 +68,6 @@ import org.gradle.internal.metaobject.DynamicInvokeResult
 import org.gradle.internal.metaobject.DynamicObject
 import org.gradle.internal.model.ModelContainer
 import org.gradle.internal.model.RuleBasedPluginListener
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
@@ -85,33 +85,33 @@ class ProblemReportingCrossProjectModelAccess(
     private val problemFactory: ProblemFactory,
     private val dynamicCallProblemReporting: DynamicCallProblemReporting,
     private val buildModelParameters: BuildModelParameters,
-    private val instantiator: Instantiator
+    private val projectWrapperFactory: ProjectWrapperFactory
 ) : CrossProjectModelAccess {
     override fun findProject(referrer: ProjectInternal, relativeTo: ProjectInternal, path: String): ProjectInternal? {
         return delegate.findProject(referrer, relativeTo, path)?.let {
-            it.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, it), instantiator)
+            it.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, it), projectWrapperFactory)
         }
     }
 
     override fun access(referrer: ProjectInternal, project: ProjectInternal): ProjectInternal {
-        return project.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, project), instantiator)
+        return project.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, project), projectWrapperFactory)
     }
 
     override fun getChildProjects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableMap<String, Project> {
         return delegate.getChildProjects(referrer, relativeTo).mapValuesTo(LinkedHashMap()) {
-            (it.value as ProjectInternal).wrap(referrer, CrossProjectModelAccessInstance(CHILD, relativeTo), instantiator)
+            (it.value as ProjectInternal).wrap(referrer, CrossProjectModelAccessInstance(CHILD, relativeTo), projectWrapperFactory)
         }
     }
 
     override fun getSubprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
         return delegate.getSubprojects(referrer, relativeTo).mapTo(LinkedHashSet()) {
-            it.wrap(referrer, CrossProjectModelAccessInstance(SUBPROJECT, relativeTo), instantiator)
+            it.wrap(referrer, CrossProjectModelAccessInstance(SUBPROJECT, relativeTo), projectWrapperFactory)
         }
     }
 
     override fun getAllprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
         return delegate.getAllprojects(referrer, relativeTo).mapTo(LinkedHashSet()) {
-            it.wrap(referrer, CrossProjectModelAccessInstance(ALLPROJECTS, relativeTo), instantiator)
+            it.wrap(referrer, CrossProjectModelAccessInstance(ALLPROJECTS, relativeTo), projectWrapperFactory)
         }
     }
 
@@ -138,9 +138,20 @@ class ProblemReportingCrossProjectModelAccess(
     fun ProjectInternal.wrap(
         referrer: ProjectInternal,
         access: CrossProjectModelAccessInstance,
-        instantiator: Instantiator
+        projectWrapperFactory: ProjectWrapperFactory
     ): ProjectInternal = MutableStateAccessAwareProject.wrap(this, referrer) {
-        instantiator.newInstance(ProblemReportingProject::class.java, this, referrer, access, problems, coupledProjectsListener, problemFactory, buildModelParameters, dynamicCallProblemReporting)
+        projectWrapperFactory.newWrapper(
+            this,
+            ProblemReportingProject::class.java,
+            this,
+            referrer,
+            access,
+            problems,
+            coupledProjectsListener,
+            problemFactory,
+            buildModelParameters,
+            dynamicCallProblemReporting
+        )
     }
 
     @Suppress("LargeClass")
