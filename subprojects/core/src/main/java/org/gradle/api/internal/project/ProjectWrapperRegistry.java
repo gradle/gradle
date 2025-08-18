@@ -18,7 +18,16 @@ package org.gradle.api.internal.project;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
+/**
+ * A registry to synchronize the lifetime of wrappers with the projects they wrap.
+ * Since {@link DefaultProject} instances are stored in various kinds of registries, they have a dedicated lifetime.
+ * <p>
+ * This lifetime is a part of public API. Consider a build logic that keeps a {@code WeakHashMap<Project, Object>} globally.
+ * The lifetime of the keys here is important, because if keys are represented by ephemeral (collected on the next GC run) wrappers,
+ * entries in the map will be collected earlier, compared to raw {@link DefaultProject} instances.
+ * <p>
+ * Implementations must be thread-safe.
+ */
 @ServiceScope(Scope.Build.class)
 public interface ProjectWrapperRegistry {
 
