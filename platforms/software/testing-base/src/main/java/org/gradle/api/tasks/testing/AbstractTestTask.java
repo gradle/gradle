@@ -32,8 +32,10 @@ import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestReportGenerator;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.internal.tasks.testing.junit.result.BinaryResultBackedTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.JUnitXmlResultOptions;
 import org.gradle.api.internal.tasks.testing.junit.result.TestEventReporterAsListener;
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.internal.tasks.testing.logging.DefaultTestLoggingContainer;
 import org.gradle.api.internal.tasks.testing.logging.FullExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.logging.ShortExceptionFormatter;
@@ -81,11 +83,13 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -480,8 +484,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             throw UncheckedException.throwAsUncheckedException(e);
         }
 
-        TestReportGenerator reportGenerator = createReportGenerators();
-
         // Log number of completed, skipped, and failed tests to console, and update live as count changes
         TestCountLogger testCountLogger = new TestCountLogger(getProgressLoggerFactory());
         addTestListener(testCountLogger);
@@ -497,7 +499,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         TestWorkerProgressListener testWorkerProgressListener = new TestWorkerProgressListener(getProgressLoggerFactory(), parentProgressLogger);
         testListenerInternalBroadcaster.add(testWorkerProgressListener);
 
-        // Record test events to `results`, and test outputs to `testOutputStore`
+        TestReportGenerator reportGenerator = createReportGenerator();
         try (TestEventReporterAsListener reporterAsListener = new TestEventReporterAsListener(descriptor -> ((TestEventReporterFactoryInternal) getTestEventReporterFactory()).createInternalTestEventReporter(
             ignored -> descriptor,
             getBinaryResultsDirectory().get(),
@@ -526,15 +528,17 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         }
     }
 
-    private TestReportGenerator createReportGenerators() {
+    private TestReportGenerator createReportGenerator() {
         List<TestReportGenerator> reportGenerators = new ArrayList<>();
 
         DirectoryReport html = reports.getHtml();
+        File outputLocation = html.getOutputLocation().get().getAsFile();
         if (html.getRequired().get()) {
             if (testReporter != null) {
-                throw new UnsupportedOperationException("TODO: Map results for legacy reporting interface");
+                // Map results for legacy reporting interface
+                reportGenerators.add(new CustomTestReportingGenerator(outputLocation, getBinaryResultsDirectory().getAsFile().get(), testReporter));
             } else {
-                reportGenerators.add(getObjectFactory().newInstance(GenericHtmlTestReportGenerator.class, html.getOutputLocation().get().getAsFile().toPath()));
+                reportGenerators.add(getObjectFactory().newInstance(GenericHtmlTestReportGenerator.class, outputLocation.toPath()));
             }
         } else {
             getLogger().info("Test report disabled, omitting generation of the HTML test report.");
@@ -694,4 +698,27 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     @Input
     abstract public Property<Boolean> getFailOnNoDiscoveredTests();
+
+    /**
+     * Internal {@link TestReportGenerator} implementation that wires results to the provided {@link TestReporter}.
+     */
+    @NullMarked
+    private static final class CustomTestReportingGenerator implements TestReportGenerator {
+        private final File outputDir;
+        private final File testResultsDir;
+        private final TestReporter testReporter;
+
+        private CustomTestReportingGenerator(File outputDir, File testResultsDir, TestReporter testReporter) {
+            this.outputDir = outputDir;
+            this.testResultsDir = testResultsDir;
+            this.testReporter = testReporter;
+        }
+
+        @Override
+        public Path generate(List<Path> resultsDirectories) {
+            TestResultsProvider testResultsProvider = new BinaryResultBackedTestResultsProvider(testResultsDir);
+            testReporter.generateReport(testResultsProvider, outputDir);
+            return outputDir.toPath();
+        }
+    }
 }
