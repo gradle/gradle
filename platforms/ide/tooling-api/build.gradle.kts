@@ -59,9 +59,8 @@ dependencies {
 
     api(libs.jspecify)
 
-    implementation(projects.buildDiscovery)
-    implementation(projects.buildProcessServices)
     implementation(projects.core)
+    implementation(projects.buildProcessServices)
     implementation(projects.logging)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
@@ -93,7 +92,7 @@ dependencies {
     integTestImplementation(testFixtures(projects.buildProcessServices))
 
     crossVersionTestImplementation(projects.jvmServices)
-    crossVersionTestImplementation(projects.problems)
+    crossVersionTestImplementation(projects.internalTesting)
     crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
     crossVersionTestImplementation(testFixtures(projects.problemsApi))
     crossVersionTestImplementation(libs.jettyWebApp)

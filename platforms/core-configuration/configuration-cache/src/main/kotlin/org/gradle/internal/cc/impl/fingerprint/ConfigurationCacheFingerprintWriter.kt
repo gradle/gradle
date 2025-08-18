@@ -37,8 +37,6 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource
 import org.gradle.api.internal.provider.sources.EnvironmentVariablesPrefixedByValueSource
 import org.gradle.api.internal.provider.sources.FileContentValueSource
-import org.gradle.api.internal.provider.sources.GradlePropertiesPrefixedByValueSource
-import org.gradle.api.internal.provider.sources.GradlePropertyValueSource
 import org.gradle.api.internal.provider.sources.SystemPropertiesPrefixedByValueSource
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource
 import org.gradle.api.internal.provider.sources.process.ProcessOutputValueSource
@@ -46,11 +44,12 @@ import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceListener
+import org.gradle.api.internal.properties.GradlePropertiesListener
+import org.gradle.api.internal.properties.GradlePropertyScope
 import org.gradle.initialization.buildsrc.BuildSrcDetector
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildoption.FeatureFlag
 import org.gradle.internal.buildoption.FeatureFlagListener
-import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.cc.impl.CoupledProjectsListener
 import org.gradle.internal.cc.impl.InputTrackingState
 import org.gradle.internal.cc.impl.UndeclaredBuildInputListener
@@ -87,6 +86,7 @@ import java.util.EnumSet
 import java.util.concurrent.ConcurrentHashMap
 
 
+@Suppress("LargeClass")
 @ParallelListener
 internal
 class ConfigurationCacheFingerprintWriter(
@@ -96,7 +96,6 @@ class ConfigurationCacheFingerprintWriter(
     private val fileCollectionFactory: FileCollectionFactory,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
     private val workExecutionTracker: WorkExecutionTracker,
-    private val environmentChangeTracker: ConfigurationCacheEnvironmentChangeTracker,
     private val inputTrackingState: InputTrackingState,
     private val buildStateRegistry: BuildStateRegistry,
 ) : ValueSourceProviderFactory.ValueListener,
@@ -112,6 +111,7 @@ class ConfigurationCacheFingerprintWriter(
     FeatureFlagListener,
     FileCollectionObservationListener,
     ScriptSourceListener,
+    GradlePropertiesListener,
     ConfigurationCacheEnvironment.Listener {
 
     interface Host {
@@ -119,7 +119,6 @@ class ConfigurationCacheFingerprintWriter(
         val encryptionKeyHashCode: HashCode
         val gradleUserHomeDir: File
         val allInitScripts: List<File>
-        val startParameterProperties: Map<String, Any?>
         val buildStartTime: Long
         val cacheIntermediateModels: Boolean
         val modelAsProjectDependency: Boolean
@@ -180,13 +179,18 @@ class ConfigurationCacheFingerprintWriter(
     private
     var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
 
+    private
+    val gradleProperties = ConcurrentHashMap<GradlePropertyScope, MutableSet<String>>()
+
+    private
+    val gradlePropertiesByPrefix = ConcurrentHashMap<GradlePropertyScope, MutableSet<String>>()
+
     init {
         buildScopedSink.initScripts(host.allInitScripts)
         buildScopedSink.write(
             ConfigurationCacheFingerprint.GradleEnvironment(
                 host.gradleUserHomeDir,
                 jvmFingerprint(),
-                host.startParameterProperties,
                 host.ignoreInputsDuringConfigurationCacheStore,
                 host.instrumentationAgentUsed,
                 host.ignoredFileSystemCheckInputs
@@ -301,6 +305,18 @@ class ConfigurationCacheFingerprintWriter(
         reportUniqueFileSystemEntryInput(file, consumer)
     }
 
+    override fun systemPropertyChanged(key: Any, value: Any?, consumer: String?) {
+        sink().systemPropertyChanged(key, value, locationFor(consumer))
+    }
+
+    override fun systemPropertyRemoved(key: Any, consumer: String?) {
+        sink().systemPropertyRemoved(key)
+    }
+
+    override fun systemPropertiesCleared(consumer: String?) {
+        sink().systemPropertiesCleared()
+    }
+
     override fun systemPropertyRead(key: String, value: Any?, consumer: String?) {
         if (isInputTrackingDisabled()) {
             return
@@ -310,22 +326,7 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     fun addSystemPropertyToFingerprint(key: String, value: Any?, consumer: String? = null) {
-        if (isSystemPropertyMutated(key)) {
-            // Mutated values of the system properties are not part of the fingerprint, as their value is
-            // set at the configuration time. Everything that reads a mutated property value should be saved
-            // as a fixed value.
-            return
-        }
-        val propertyValue =
-            if (isSystemPropertyLoaded(key)) {
-                // Loaded values of the system properties are loaded from gradle.properties but never mutated.
-                // Thus, as a configuration input is an old value of property at load moment.
-                environmentChangeTracker.getLoadedPropertyOldValue(key)
-            } else {
-                value
-            }
-
-        sink().systemPropertyRead(key, propertyValue)
+        sink().systemPropertyRead(key, value)
         reportUniqueSystemPropertyInput(key, consumer)
     }
 
@@ -345,7 +346,7 @@ class ConfigurationCacheFingerprintWriter(
     override fun fileOpened(file: File, consumer: String?) {
         if (isInputTrackingDisabled() || isExecutingWork()) {
             // Ignore files that are read as part of the task actions. These should really be task
-            // inputs. Otherwise, we risk fingerprinting files such as:
+            // inputs. Otherwise, we risk fingerprinting files such as
             // - temporary files that will be gone at the end of the build.
             // - files in the output directory, for incremental tasks or tasks that remove stale outputs
             return
@@ -369,16 +370,13 @@ class ConfigurationCacheFingerprintWriter(
         addSystemPropertiesPrefixedByToFingerprint(prefix, snapshot)
     }
 
+    override fun systemProperty(name: String, value: String?) {
+        systemPropertyRead(name, value, null)
+    }
+
     private
     fun addSystemPropertiesPrefixedByToFingerprint(prefix: String, snapshot: Map<String, String?>) {
-        val filteredSnapshot = snapshot.mapValues { e ->
-            if (isSystemPropertyMutated(e.key)) {
-                ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy.IGNORED
-            } else {
-                e.value
-            }
-        }
-        buildScopedSink.write(ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy(prefix, filteredSnapshot))
+        buildScopedSink.write(ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy(prefix, snapshot))
     }
 
     override fun envVariablesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
@@ -386,6 +384,10 @@ class ConfigurationCacheFingerprintWriter(
             return
         }
         addEnvVariablesPrefixedByToFingerprint(prefix, snapshot)
+    }
+
+    override fun envVariable(name: String, value: String?) {
+        envVariableRead(name, value, null)
     }
 
     private
@@ -429,31 +431,34 @@ class ConfigurationCacheFingerprintWriter(
                 }
             }
 
-            is GradlePropertyValueSource.Parameters -> {
-                // The set of Gradle properties is already an input
-            }
-
-            is GradlePropertiesPrefixedByValueSource.Parameters -> {
-                // The set of Gradle properties is already an input
-            }
-
             is SystemPropertyValueSource.Parameters -> {
                 addSystemPropertyToFingerprint(parameters.propertyName.get(), obtainedValue.value.get())
             }
 
             is SystemPropertiesPrefixedByValueSource.Parameters -> {
                 val prefix = parameters.prefix.get()
-                addSystemPropertiesPrefixedByToFingerprint(prefix, obtainedValue.value.get()?.uncheckedCast() ?: emptyMap())
+                addSystemPropertiesPrefixedByToFingerprint(
+                    prefix,
+                    obtainedValue.value.get()?.uncheckedCast()
+                        ?: emptyMap()
+                )
                 reportUniqueSystemPropertiesPrefixedByInput(prefix)
             }
 
             is EnvironmentVariableValueSource.Parameters -> {
-                addEnvVariableToFingerprint(parameters.variableName.get(), obtainedValue.value.get() as? String)
+                addEnvVariableToFingerprint(
+                    parameters.variableName.get(),
+                    obtainedValue.value.get() as? String
+                )
             }
 
             is EnvironmentVariablesPrefixedByValueSource.Parameters -> {
                 val prefix = parameters.prefix.get()
-                addEnvVariablesPrefixedByToFingerprint(prefix, obtainedValue.value.get()?.uncheckedCast() ?: emptyMap())
+                addEnvVariablesPrefixedByToFingerprint(
+                    prefix,
+                    obtainedValue.value.get()?.uncheckedCast()
+                        ?: emptyMap()
+                )
                 reportUniqueEnvironmentVariablesPrefixedByInput(prefix)
             }
 
@@ -483,16 +488,6 @@ class ConfigurationCacheFingerprintWriter(
             is Describable -> displayName
             else -> null
         }
-
-    private
-    fun isSystemPropertyLoaded(key: String): Boolean {
-        return environmentChangeTracker.isSystemPropertyLoaded(key)
-    }
-
-    private
-    fun isSystemPropertyMutated(key: String): Boolean {
-        return environmentChangeTracker.isSystemPropertyMutated(key)
-    }
 
     override fun onScriptClassLoaded(source: ScriptSource, scriptClass: Class<*>) {
         source.resource.file?.let {
@@ -850,6 +845,21 @@ class ConfigurationCacheFingerprintWriter(
             }
         }
 
+        fun systemPropertyChanged(key: Any, value: Any?, trace: PropertyTrace) {
+            undeclaredSystemProperties.remove(key)
+            write(ConfigurationCacheFingerprint.SystemPropertyChanged(key, value), trace)
+        }
+
+        fun systemPropertyRemoved(key: Any) {
+            undeclaredSystemProperties.remove(key)
+            write(ConfigurationCacheFingerprint.SystemPropertyRemoved(key))
+        }
+
+        fun systemPropertiesCleared() {
+            undeclaredSystemProperties.clear()
+            write(ConfigurationCacheFingerprint.SystemPropertiesCleared)
+        }
+
         fun envVariableRead(key: String, value: String?) {
             if (undeclaredEnvironmentVariables.add(key)) {
                 write(ConfigurationCacheFingerprint.UndeclaredEnvironmentVariable(key, value))
@@ -901,7 +911,7 @@ class ConfigurationCacheFingerprintWriter(
             writer.write(
                 ProjectSpecificFingerprint.ProjectIdentity(
                     project.buildTreePath,
-                    Path.path(project.buildIdentifier.buildPath),
+                    project.buildPath,
                     project.projectPath
                 )
             )
@@ -915,6 +925,116 @@ class ConfigurationCacheFingerprintWriter(
     override fun onScriptFileResolved(scriptFile: File) {
         fileObserved(scriptFile)
     }
+
+    override fun onGradlePropertiesLoaded(
+        propertyScope: GradlePropertyScope,
+        propertiesDir: File
+    ) {
+        buildScopedSink.write(
+            ConfigurationCacheFingerprint.GradlePropertiesLoaded(
+                propertyScope,
+                propertiesDir
+            )
+        )
+    }
+
+    override fun onGradlePropertiesByPrefix(
+        propertyScope: GradlePropertyScope,
+        prefix: String,
+        snapshot: Map<String, String>
+    ) {
+        if (shouldTrackGradlePropertyInput(gradlePropertiesByPrefix, propertyScope, prefix)) {
+            // TODO:isolated consider tracking per project
+            buildScopedSink.write(
+                ConfigurationCacheFingerprint.GradlePropertiesPrefixedBy(
+                    propertyScope,
+                    prefix,
+                    snapshot
+                )
+            )
+            reportGradlePropertiesByPrefixInput(propertyScope, prefix)
+        }
+    }
+
+    override fun onGradlePropertyAccess(
+        propertyScope: GradlePropertyScope,
+        propertyName: String,
+        propertyValue: Any?
+    ) {
+        // TODO: may need to ignore some properties,
+        //  see `org.gradle.internal.cc.impl.Workarounds#isIgnoredStartParameterProperty`
+        if (shouldTrackGradlePropertyInput(gradleProperties, propertyScope, propertyName)) {
+            // TODO:isolated could tracking per project
+            buildScopedSink.write(
+                ConfigurationCacheFingerprint.GradleProperty(
+                    propertyScope,
+                    propertyName,
+                    propertyValue
+                )
+            )
+            reportGradlePropertyInput(propertyScope, propertyName)
+        }
+    }
+
+    private
+    fun shouldTrackGradlePropertyInput(
+        keysPerScope: ConcurrentHashMap<GradlePropertyScope, MutableSet<String>>,
+        propertyScope: GradlePropertyScope,
+        propertyKey: String
+    ): Boolean = keysPerScope
+        .computeIfAbsent(propertyScope) { newConcurrentHashSet() }
+        .add(propertyKey)
+
+    private
+    fun reportGradlePropertyInput(
+        propertyScope: GradlePropertyScope,
+        propertyName: String,
+        consumer: String? = null
+    ) {
+        if (propertyName.startsWith("org.gradle.")) {
+            // Don't include builtin Gradle properties in the report
+            return
+        }
+        val location = locationFor(consumer)
+        if (location === PropertyTrace.Unknown || location === PropertyTrace.Gradle) {
+            // Don't include property accesses coming from the Gradle runtime itself (e.g., version, group, buildDir, etc.)
+            return
+        }
+        reportInput(scopedLocation(propertyScope, location), null) {
+            text("Gradle property ")
+            reference(propertyName)
+        }
+    }
+
+    private
+    fun reportGradlePropertiesByPrefixInput(
+        propertyScope: GradlePropertyScope,
+        prefix: String,
+        consumer: String? = null
+    ) {
+        val location = locationFor(consumer)
+        if (location === PropertyTrace.Unknown || location === PropertyTrace.Gradle) {
+            // Don't include property accesses coming from the Gradle runtime itself (e.g., systemProp.*)
+            return
+        }
+        reportInput(scopedLocation(propertyScope, location), null) {
+            text("Gradle property ") // To avoid introducing a separate subtree in the report
+            reference("$prefix*")
+        }
+    }
+
+    private
+    fun scopedLocation(
+        propertyScope: GradlePropertyScope,
+        location: PropertyTrace
+    ) = PropertyTrace.Project(
+        path = when (propertyScope) {
+            is GradlePropertyScope.Project -> propertyScope.projectIdentity.buildTreePath.path
+            is GradlePropertyScope.Build -> propertyScope.buildIdentifier.buildPath
+            else -> error("Unexpected property scope $propertyScope")
+        },
+        trace = location
+    )
 }
 
 

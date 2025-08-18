@@ -16,7 +16,7 @@
 
 package org.gradle.internal.cc.impl.isolated
 
-import org.gradle.integtests.tooling.fixture.SomeToolingModel
+import org.gradle.internal.cc.impl.fixtures.SomeToolingModel
 
 class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def setup() {
@@ -257,7 +257,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         and:
         // TODO - should not invalidate all cached state
         fixture.assertModelRecreated {
-            gradlePropertyChanged()
+            gradlePropertyChanged("shared-input")
             buildModelQueries = 1 // TODO:configuration-cache ???
             projectConfigured(":buildSrc")
             projectsConfigured(":", ":a", ":b", ":c")

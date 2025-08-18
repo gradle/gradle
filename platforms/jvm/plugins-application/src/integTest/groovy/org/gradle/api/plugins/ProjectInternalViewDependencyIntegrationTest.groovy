@@ -45,7 +45,7 @@ class ProjectInternalViewDependencyIntegrationTest extends AbstractIntegrationSp
         succeeds "customTest"
 
         then:
-        result.assertTaskExecuted(":jar")
+        result.assertTaskScheduled(":jar")
     }
 
     def "can test against the internal view of java library"() {
@@ -72,7 +72,7 @@ class ProjectInternalViewDependencyIntegrationTest extends AbstractIntegrationSp
         succeeds "customTest"
 
         then:
-        result.assertTaskExecuted(":jar")
+        result.assertTaskScheduled(":jar")
     }
 
     def writeBaseBuildFile() {

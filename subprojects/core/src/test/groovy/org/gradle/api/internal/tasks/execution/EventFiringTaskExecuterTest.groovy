@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.execution
 import org.gradle.api.DefaultTask
 import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.tasks.TaskExecuter
@@ -40,10 +39,8 @@ class EventFiringTaskExecuterTest extends Specification {
     def taskListener = Mock(TaskListenerInternal)
     def delegate = Mock(TaskExecuter)
     def task = Mock(TaskInternal)
-    def projectId = new ProjectIdentity(
-        DefaultBuildIdentifier.ROOT,
-        Path.path(":a"),
-        Path.path(":a"),
+    def projectId = ProjectIdentity.forRootProject(
+        Path.ROOT,
         "root",
     )
     def taskIdentity = new TaskIdentity(DefaultTask, "foo", projectId, 0)

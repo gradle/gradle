@@ -14,7 +14,7 @@ plugins {
 }
 
 // tag::project_substitution[]
-configurations.all {
+configurations.configureEach {
     resolutionStrategy.dependencySubstitution.all {
         requested.let {
             if (it is ModuleComponentSelector && it.group == "org.example") {

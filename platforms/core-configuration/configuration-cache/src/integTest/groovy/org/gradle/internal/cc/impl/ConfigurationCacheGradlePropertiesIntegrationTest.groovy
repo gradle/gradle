@@ -18,16 +18,18 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.internal.cc.impl.fixtures.GradlePropertiesIncludedBuildFixture
 import org.gradle.internal.cc.impl.fixtures.SystemPropertiesCompositeBuildFixture
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
-import static org.gradle.initialization.IGradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX
-import static org.gradle.initialization.IGradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX
+import static org.gradle.initialization.properties.GradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX
+import static org.gradle.initialization.properties.GradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX
 
 class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def configurationCache = newConfigurationCacheFixture()
+
     def "invalidates cache when set of Gradle property defining system properties changes"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
         settingsFile << """
             println(gradleProp + '!')
         """
@@ -65,7 +67,6 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
 
     def "invalidates cache when set of Gradle property defining system properties has multiple changes"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
         settingsFile << """
             println(forChange1 + '!')
         """
@@ -91,7 +92,6 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
 
     def "invalidates cache when set of Gradle property defining environment variables changes"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
         settingsFile << """
             println(gradleProp + '!')
         """
@@ -142,7 +142,6 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
 
     def "detects dynamic Gradle property access in settings script"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
         settingsFile << """
             println($dynamicPropertyExpression + '!')
         """
@@ -167,7 +166,7 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         then:
         outputContains '2!'
         configurationCache.assertStateStored()
-        outputContains "because the set of Gradle properties has changed: the value of 'gradleProp' was changed and 'unusedProperty' was removed."
+        outputContains "configuration cache cannot be reused because Gradle property 'gradleProp' has changed."
 
         where:
         dynamicPropertyExpression << [
@@ -179,7 +178,6 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
     @Issue("https://github.com/gradle/gradle/issues/19793")
     def "gradle properties must be accessible from task in #build"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
         build.setup(this)
 
         when:
@@ -205,7 +203,6 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
     def "system properties declared in properties of composite build"() {
         given:
         String systemProp = "fromPropertiesFile"
-        def configurationCache = newConfigurationCacheFixture()
         def fixture = spec.createFixtureFor(this, systemProp)
         fixture.setup()
 
@@ -232,10 +229,9 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         spec << SystemPropertiesCompositeBuildFixture.specsWithSystemPropertyAccess()
     }
 
-    def "passing cli override doesn't invalidates cache entry if property wasn't read at configuration time"() {
+    def "reuses cache when system property used only at execution time changes"() {
         given:
         String systemProp = "fromPropertiesFile"
-        def configurationCache = newConfigurationCacheFixture()
         def fixture = spec.createFixtureFor(this, systemProp)
         fixture.setup()
 
@@ -264,10 +260,9 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         spec << SystemPropertiesCompositeBuildFixture.specsWithoutSystemPropertyAccess()
     }
 
-    def "passing cli override invalidates cache entry if property was read at configuration time"() {
+    def "invalidates cache when system property used at configuration time changes"() {
         given:
         String systemProp = "fromPropertiesFile"
-        def configurationCache = newConfigurationCacheFixture()
         def fixture = spec.createFixtureFor(this, systemProp)
         fixture.setup()
 
@@ -307,7 +302,6 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
     def "runtime mutation system properties in composite build"() {
         given:
         String systemProp = "fromPropertiesFile"
-        def configurationCache = newConfigurationCacheFixture()
         def includedBuildSystemPropertyDefinition = new SystemPropertiesCompositeBuildFixture.IncludedBuild("included-build")
         def spec = new SystemPropertiesCompositeBuildFixture.Spec(
             [includedBuildSystemPropertyDefinition],
@@ -336,5 +330,215 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
 
         cleanup:
         System.clearProperty(systemProp)
+    }
+
+    def "reuses cache when unused project property changes on command-line"() {
+        buildFile """
+            tasks.register("some")
+        """
+
+        when:
+        configurationCacheRun "some", "-Pfoo=one"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "some", "-Pfoo=two"
+
+        then:
+        configurationCache.assertStateLoaded()
+    }
+
+    def "invalidates cache when project property changes on command-line, if used at configuration time via #description"() {
+        buildFile """
+            tasks.register("some")
+        """
+
+        file(fileWithAccess) << """
+            def access = ${accessExpr}
+            println("Access: '\${access}'")
+        """
+
+        when:
+        configurationCacheRun "some", "-Pfoo=one"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Access: '${isPresence ? 'true' : 'one'}'")
+
+        when:
+        configurationCacheRun "some", "-Pfoo=two"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Access: '${isPresence ? 'true' : 'two'}'")
+
+        where:
+        description               | fileWithAccess    | accessExpr                    | isPresence
+        "project.ext.get()"       | "build.gradle"    | "project.ext.get('foo')"      | false
+        "project.ext.has()"       | "build.gradle"    | "project.ext.has('foo')"      | true
+        "project.ext.properties"  | "build.gradle"    | "project.ext.properties.foo"  | false
+        "project.ext.foo"         | "build.gradle"    | "project.ext.foo"             | false
+        "project.foo"             | "build.gradle"    | "project.foo"                 | false
+        "project script lookup"   | "build.gradle"    | "foo"                         | false
+        "project.hasProperty()"   | "build.gradle"    | "project.hasProperty('foo')"  | true
+        "settings.ext.get()"      | "settings.gradle" | "settings.ext.get('foo')"     | false
+        "settings.ext.has()"      | "settings.gradle" | "settings.ext.has('foo')"     | true
+        "settings.ext.properties" | "settings.gradle" | "settings.ext.properties.foo" | false
+        "settings.ext.foo"        | "settings.gradle" | "settings.ext.foo"            | false
+        "settings.foo"            | "settings.gradle" | "settings.foo"                | false
+        "settings script lookup"  | "settings.gradle" | "foo"                         | false
+    }
+
+    @ToBeImplemented
+    def "reuses cache when unused project property changes on command-line, if another property is accessed via ext.properties"() {
+        buildFile """
+            project.ext.properties.bar // access another property
+
+            tasks.register("some")
+        """
+
+        when:
+        configurationCacheRun "some", "-Pbar=bar", "-Pfoo=one"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "some", "-Pbar=bar", "-Pfoo=two"
+
+        then:
+        configurationCache.assertStateStored()
+        // Must be:
+//        configurationCache.assertStateLoaded()
+    }
+
+    def "reuses cache when project property changes on command-line, but was shadowed via build logic assignment"() {
+        buildFile """
+            project.ext.foo = "script"
+            println("Access: '\${project.ext.foo}'")
+
+            tasks.register("some")
+        """
+
+        when:
+        configurationCacheRun "some", "-Pfoo=one"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Access: 'script'")
+
+        when:
+        configurationCacheRun "some", "-Pfoo=two"
+
+        then:
+        configurationCache.assertStateLoaded()
+    }
+
+    def "reuses cache when project property changes on command-line, if used only at execution time via extra container"() {
+        buildFile """
+            def props = project.ext
+            tasks.register("some") {
+                doLast {
+                    println("Execution: '\${props.foo}'")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "some", "-Pfoo=one"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "some", "-Pfoo=two"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains "Execution: 'two'"
+    }
+
+    def "reuses cache when project property changes on command-line, if used only at execution time via gradleProperty"() {
+        buildFile """
+            def prop = providers.gradleProperty('foo')
+            tasks.register("some") {
+                doLast {
+                    println("Execution: '\${prop.orNull}'")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "some", "-Pfoo=one"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Execution: 'one'")
+
+        when:
+        configurationCacheRun "some", "-Pfoo=two"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("Execution: 'two'")
+    }
+
+    def "reuses cache when project property changes on command-line, if looked up but unused at configuration time via gradleProperty"() {
+        buildFile """
+            providers.gradleProperty("foo")
+            tasks.register("some")
+        """
+
+        when:
+        configurationCacheRun "some", "-Pfoo=one"
+        then:
+        executed(":some")
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "some", "-Pfoo=two"
+        then:
+        configurationCache.assertStateLoaded()
+    }
+
+    def "invalidates cache when project property changes on command-line, if used at configuration time as gradle property via #description"() {
+        buildFile """
+            tasks.register("some")
+        """
+
+        file(fileWithAccess) << """
+            def access = ${accessExpr}
+            println("Access: '\${access}'")
+        """
+
+        when:
+        configurationCacheRun "some", "-Pfoo=one"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Access: '${isPresence ? 'true' : 'one'}'")
+
+        when:
+        configurationCacheRun "some", "-Pfoo=two"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Access: '${isPresence ? 'true' : 'two'}'")
+
+        when:
+        configurationCacheRun "some" // no property
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Access: '${isPresence ? 'false' : 'null'}'")
+
+        where:
+        description                                     | fileWithAccess    | accessExpr                                    | isPresence
+        "project.providers.gradleProperty()"            | "build.gradle"    | "providers.gradleProperty('foo').orNull"      | false
+        "project.providers.gradleProperty().isPresent"  | "build.gradle"    | "providers.gradleProperty('foo').isPresent()" | true
+        "settings.providers.gradleProperty()"           | "settings.gradle" | "providers.gradleProperty('foo').orNull"      | false
+        "settings.providers.gradleProperty().isPresent" | "settings.gradle" | "providers.gradleProperty('foo').isPresent()" | true
     }
 }

@@ -92,7 +92,4 @@ public class ResolutionBackedFileCollection extends AbstractFileCollection {
         formatter.node("contains: " + getDisplayName());
     }
 
-    SelectedArtifactSet getArtifacts() {
-        return artifacts;
-    }
 }

@@ -482,6 +482,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return group;
     }
 
+    /**
+     * Constructs a default group for this project based on its hierarchy.
+     *
+     * For example, a project ":a:b:c" in a build with a root project named "root"
+     * will have a default group "root.a.b".
+     */
     private String getDefaultGroup() {
         ProjectInternal parent = getParent();
         if (parent == null) {
@@ -639,6 +645,20 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public int compareTo(Project otherProject) {
         return ProjectOrderingUtil.compare(this, otherProject);
+    }
+
+    @Override
+    public final boolean equals(Object obj) {
+        if (!(obj instanceof ProjectInternal)) {
+            return false;
+        }
+        ProjectInternal otherProject = (ProjectInternal) obj;
+        return getProjectIdentity().equals(otherProject.getProjectIdentity());
+    }
+
+    @Override
+    public final int hashCode() {
+        return getProjectIdentity().hashCode();
     }
 
     @Override

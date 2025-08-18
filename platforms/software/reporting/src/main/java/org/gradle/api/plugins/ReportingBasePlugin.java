@@ -34,6 +34,7 @@ import org.gradle.api.reporting.ReportingExtension;
 public abstract class ReportingBasePlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
-        project.getExtensions().create(ReportingExtension.NAME, ReportingExtension.class, project);
+        ReportingExtension reporting = project.getExtensions().create(ReportingExtension.NAME, ReportingExtension.class, project);
+        reporting.getBaseDirectory().convention(project.getLayout().getBuildDirectory().dir(ReportingExtension.DEFAULT_REPORTS_DIR_NAME));
     }
 }

@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -68,7 +69,7 @@ class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationSpec {
         if (GradleContextualExecuter.isDaemon()) {
             // don't load scala into the daemon as it exhausts permgen
             return
-        } else if (!GradleContextualExecuter.isEmbedded() && !GradleContextualExecuter.isParallel() && !JavaVersion.current().isJava8Compatible()) {
+        } else if (!IntegrationTestBuildContext.isEmbedded() && !GradleContextualExecuter.isParallel() && !JavaVersion.current().isJava8Compatible()) {
             executer.withBuildJvmOpts('-XX:MaxPermSize=128m')
         }
 

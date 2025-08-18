@@ -85,8 +85,6 @@ dependencies {
 
     implementation(projects.baseServicesGroovy)
     implementation(projects.buildCache)
-    implementation(projects.buildDiscovery)
-    implementation(projects.buildDiscoveryApi)
     implementation(projects.buildEvents)
     implementation(projects.buildOption)
     implementation(projects.buildProcessServices)

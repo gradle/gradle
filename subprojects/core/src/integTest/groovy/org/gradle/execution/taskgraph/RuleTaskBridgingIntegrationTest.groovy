@@ -362,7 +362,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         succeeds('customTask')
 
         then:
-        result.assertTasksExecutedInOrder(':climbTask', ':customTask')
+        result.assertTasksScheduledInOrder(':climbTask', ':customTask')
     }
 
     def "a non-rule-source task can depend on one or more task of types created via both rule sources and old world container"() {
@@ -388,7 +388,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         succeeds('customTask')
 
         then:
-        result.assertTasksExecutedInOrder(any(':climbTask', ':oldClimber'),  ':customTask')
+        result.assertTasksScheduledInOrder(any(':climbTask', ':oldClimber'),  ':customTask')
     }
 
     @ToBeFixedForIsolatedProjects(because = "evaluationDependsOn is not IP compatible, configuring projects from root, ")
@@ -423,7 +423,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         succeeds('sub2:customTask')
 
         then:
-        result.assertTasksExecutedInOrder(':sub1:climbTask', ':sub2:customTask')
+        result.assertTasksScheduledInOrder(':sub1:climbTask', ':sub2:customTask')
     }
 
     def "can depend on a rule-source task after a project has been evaluated"() {
@@ -450,7 +450,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         succeeds('customTask')
 
         then:
-        result.assertTasksExecutedInOrder(':climbTask', ':customTask')
+        result.assertTasksScheduledInOrder(':climbTask', ':customTask')
     }
 
     def "a build failure occurs when depending on a rule task with failing configuration"() {
@@ -520,7 +520,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         succeeds('customTask')
 
         then:
-        result.assertTasksExecutedInOrder(':climbTask', ':customTask')
+        result.assertTasksScheduledInOrder(':climbTask', ':customTask')
     }
 
     def "a non-rule-source task can depend on a rule-source task with matching criteria"() {
@@ -544,7 +544,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         succeeds('customTask')
 
         then:
-        result.assertTasksExecutedInOrder(':climbTask', ':customTask')
+        result.assertTasksScheduledInOrder(':climbTask', ':customTask')
     }
 
     def "a non-rule-source task can not depend on both realizable and default task collections"() {
@@ -569,7 +569,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         succeeds('customTask')
 
         then:
-        result.assertTasksExecutedInOrder(':foo', ':customTask')
+        result.assertTasksScheduledInOrder(':foo', ':customTask')
     }
 
     @NotYetImplemented
@@ -595,7 +595,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         succeeds('customTask')
 
         then:
-        result.assertTasksExecutedInOrder(':customTask', ':climbTask', ':jumpTask')
+        result.assertTasksScheduledInOrder(':customTask', ':climbTask', ':jumpTask')
     }
 
     @NotYetImplemented
@@ -683,6 +683,6 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         run "customTask"
 
         then:
-        result.assertTasksExecutedInOrder(':climbTask', ':customTask')
+        result.assertTasksScheduledInOrder(':climbTask', ':customTask')
     }
 }

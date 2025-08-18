@@ -84,7 +84,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         // To avoid code duplication, the initialization logic is extracted to an instance initialization block.
         ObjectFactory objectFactory = getObjectFactory();
         this.analysisMappingFile = objectFactory.fileProperty();
-        this.analysisFiles = getProject().files();
+        this.analysisFiles = objectFactory.fileCollection();
         this.compileOptions = objectFactory.newInstance(CompileOptions.class);
         JavaToolchainService javaToolchainService = getJavaToolchainService();
         this.javaLauncher = objectFactory.property(JavaLauncher.class).convention(javaToolchainService.launcherFor(it -> {}));

@@ -31,7 +31,6 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.FinalizableValue;
-import org.gradle.internal.initialization.BuildLogicFiles;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -40,7 +39,7 @@ import java.util.List;
 
 public interface SettingsInternal extends Settings, PluginAwareInternal, FinalizableValue {
 
-    String BUILD_SRC = BuildLogicFiles.BUILD_SOURCE_DIRECTORY;
+    String BUILD_SRC = "buildSrc";
 
     @Override
     StartParameter getStartParameter();
@@ -90,14 +89,13 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
     @Adding
     @Incubating
     default void include(String projectPath) {
-        include(new String[]{projectPath});
+        include(new String[] {projectPath});
     }
 
     /**
      * A {@link URI} factory function exposed to DCL.
      * Mimics {@code SettingsScriptApi.uri} available in Kotlin DSL.
      * Primarily for use in {@link org.gradle.api.artifacts.repositories.MavenArtifactRepository#setUrl}
-     *
      * @see FileOperations#uri
      */
     @Restricted

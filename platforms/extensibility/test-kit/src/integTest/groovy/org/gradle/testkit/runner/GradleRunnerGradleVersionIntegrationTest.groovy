@@ -18,7 +18,7 @@ package org.gradle.testkit.runner
 
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestKitPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -75,7 +75,7 @@ class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrati
 
         where:
         type         | version                      | configurer
-        "embedded"   | buildContext.version.version | { if (!GradleContextualExecuter.embedded) { it.withGradleInstallation(buildContext.gradleHomeDir) } }
+        "embedded"   | buildContext.version.version | { if (!IntegrationTestBuildContext.embedded) { it.withGradleInstallation(buildContext.gradleHomeDir) } }
         "locator"    | lowestMajorGradleVersion     | { it.withGradleDistribution(locator.getDistributionFor(GradleVersion.version(lowestMajorGradleVersion))) }
         "production" | lowestMajorGradleVersion     | { it.withGradleVersion(lowestMajorGradleVersion) }
     }

@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.component.LibraryComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer
@@ -79,7 +78,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
 
     def "serializes root project ProjectComponentSelector"() {
         given:
-        def selector = new DefaultProjectComponentSelector(new ProjectIdentity(new DefaultBuildIdentifier(path(":build")), Path.ROOT, Path.ROOT, "rootProject"), ImmutableAttributes.EMPTY, capabilities())
+        def selector = new DefaultProjectComponentSelector(ProjectIdentity.forRootProject(Path.ROOT, "root"), ImmutableAttributes.EMPTY, capabilities())
 
         when:
         def result = serialize(selector, serializer) as ProjectComponentSelector
@@ -93,7 +92,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
 
     def "serializes root build ProjectComponentSelector"() {
         given:
-        def selector = new DefaultProjectComponentSelector(new ProjectIdentity(new DefaultBuildIdentifier(path(":build")), path(":a:b"), path(":a:b"), "b"), ImmutableAttributes.EMPTY, capabilities())
+        def selector = new DefaultProjectComponentSelector(ProjectIdentity.forSubproject(Path.ROOT, path(":subproject")), ImmutableAttributes.EMPTY, capabilities())
 
         when:
         def result = serialize(selector, serializer) as ProjectComponentSelector
@@ -107,7 +106,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
 
     def "serializes other build root ProjectComponentSelector"() {
         given:
-        def selector = new DefaultProjectComponentSelector(new ProjectIdentity(new DefaultBuildIdentifier(path(":build")), path(":prefix"), Path.ROOT, "someProject"), ImmutableAttributes.EMPTY, capabilities())
+        def selector = new DefaultProjectComponentSelector(ProjectIdentity.forRootProject(path(":build"), "root"), ImmutableAttributes.EMPTY, capabilities())
 
         when:
         def result = serialize(selector, serializer) as ProjectComponentSelector
@@ -121,7 +120,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
 
     def "serializes other build ProjectComponentSelector"() {
         given:
-        def selector = new DefaultProjectComponentSelector(new ProjectIdentity(new DefaultBuildIdentifier(path(":build")), path(":prefix:a:b"), path(":a:b"), "b"), ImmutableAttributes.EMPTY, capabilities())
+        def selector = new DefaultProjectComponentSelector(ProjectIdentity.forSubproject(path(":build"), path(":subproject")), ImmutableAttributes.EMPTY, capabilities())
 
         when:
         def result = serialize(selector, serializer) as ProjectComponentSelector
@@ -135,7 +134,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
 
     def "serializes ProjectComponentSelector with attributes"() {
         given:
-        def selector = new DefaultProjectComponentSelector(new ProjectIdentity(new DefaultBuildIdentifier(path(":build")), identityPath, projectPath, projectName), AttributeTestUtil.attributes(foo: 'x', bar: 'y'), capabilities())
+        def selector = new DefaultProjectComponentSelector(id, AttributeTestUtil.attributes(foo: 'x', bar: 'y'), capabilities())
 
         when:
         def result = serialize(selector, serializer) as ProjectComponentSelector
@@ -149,10 +148,12 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         assertSameProjectId(result as ProjectComponentSelectorInternal, selector)
 
         where:
-        identityPath                  | projectPath  | projectName
-        path(":prefix:a:b")           | path(":a:b") | 'b'
-        path(":prefix:a:someProject") | Path.ROOT    | "someProject"
-        Path.ROOT                     | Path.ROOT    | "rootProject"
+        id << [
+            ProjectIdentity.forRootProject(Path.ROOT, "root"),
+            ProjectIdentity.forSubproject(Path.ROOT, path(":subproject")),
+            ProjectIdentity.forRootProject(path(":build"), "root"),
+            ProjectIdentity.forSubproject(path(":build"), path(":subproject"))
+        ]
     }
 
     def "serializes ModuleComponentSelector"() {
@@ -284,7 +285,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
     }
 
     void assertSameProjectId(ProjectComponentSelectorInternal result, ProjectComponentSelectorInternal selector) {
-        assert result.projectIdentity.buildIdentifier == selector.projectIdentity.buildIdentifier
+        assert result.projectIdentity.buildPath == selector.projectIdentity.buildPath
         assert result.projectIdentity.buildTreePath == selector.projectIdentity.buildTreePath
         assert result.projectIdentity.projectPath == selector.projectIdentity.projectPath
         assert result.projectIdentity.projectName == selector.projectIdentity.projectName

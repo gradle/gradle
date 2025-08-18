@@ -18,12 +18,14 @@ package org.gradle.internal.component.local.model;
 
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.model.VariantIdentifier;
 
 /**
  * Default implementation of {@link LocalVariantGraphResolveMetadata} used to represent a single local variant.
  */
 public final class DefaultLocalVariantGraphResolveMetadata implements LocalVariantGraphResolveMetadata {
 
+    private final VariantIdentifier id;
     private final String name;
     private final boolean transitive;
     private final ImmutableAttributes attributes;
@@ -31,17 +33,24 @@ public final class DefaultLocalVariantGraphResolveMetadata implements LocalVaria
     private final ImmutableCapabilities capabilities;
 
     public DefaultLocalVariantGraphResolveMetadata(
+        VariantIdentifier id,
         String name,
         boolean transitive,
         ImmutableAttributes attributes,
         ImmutableCapabilities capabilities,
         boolean deprecatedForConsumption
     ) {
+        this.id = id;
         this.name = name;
         this.transitive = transitive;
         this.attributes = attributes;
         this.capabilities = capabilities;
         this.deprecatedForConsumption = deprecatedForConsumption;
+    }
+
+    @Override
+    public VariantIdentifier getId() {
+        return id;
     }
 
     @Override

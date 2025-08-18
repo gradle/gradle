@@ -98,7 +98,7 @@ class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        result.assertTasksExecuted(':b:c:t1')
+        result.assertTasksScheduled(':b:c:t1')
     }
 
     def "can run build using task selectors from connection"() {
@@ -114,7 +114,7 @@ class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        result.assertTasksExecuted(':t1', ':b:c:t1')
+        result.assertTasksScheduled(':t1', ':b:c:t1')
     }
 
     def "build task selectors from connection in specified order"() {
@@ -128,14 +128,14 @@ class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
             it.forLaunchables(selectorT1, selectorT2)
         }
         then:
-        result.assertTasksExecutedInOrder(':t1', ':b:c:t1', ':b:t2', ':b:c:t2')
+        result.assertTasksScheduledInOrder(':t1', ':b:c:t1', ':b:t2', ':b:c:t2')
 
         when:
         withBuild { BuildLauncher it ->
             it.forLaunchables(selectorT2, selectorT1)
         }
         then:
-        result.assertTasksExecutedInOrder(':b:t2', ':b:c:t2', ':t1', ':b:c:t1')
+        result.assertTasksScheduledInOrder(':b:t2', ':b:c:t2', ':t1', ':b:c:t1')
     }
 
     def "can fetch task selectors for root project from connection"() {
@@ -182,7 +182,7 @@ class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        result.assertTasksExecuted(':b:t2')
+        result.assertTasksScheduled(':b:t2')
     }
 
     def "build task from connection as Launchable"() {
@@ -198,7 +198,7 @@ class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        result.assertTasksExecuted(':t1')
+        result.assertTasksScheduled(':t1')
     }
 
     def "build tasks Launchables in order"() {
@@ -214,14 +214,14 @@ class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        result.assertTasksExecutedInOrder(':t1', ':b:t2', ':b:c:t1')
+        result.assertTasksScheduledInOrder(':t1', ':b:t2', ':b:c:t1')
 
         when:
         withBuild { BuildLauncher it ->
             it.forLaunchables(taskBCT1, taskBT2, taskT1)
         }
         then:
-        result.assertTasksExecutedInOrder(':b:c:t1', ':b:t2', ':t1')
+        result.assertTasksScheduledInOrder(':b:c:t1', ':b:t2', ':t1')
     }
 
     def "build tasks and selectors in order"() {
@@ -239,7 +239,7 @@ class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
             it.forLaunchables(selectorBT1, selectorBT3, taskT1)
         }
         then:
-        result.assertTasksExecutedInOrder(':b:c:t1', ':b:t3', ':t1')
+        result.assertTasksScheduledInOrder(':b:c:t1', ':b:t3', ':t1')
     }
 
     def "build tasks and selectors in order cross version"() {
@@ -258,7 +258,7 @@ class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
             it.forLaunchables(taskT1, selectorT1, selectorT2, taskBT2)
         }
         then:
-        result.assertTasksExecutedInOrder(':t1', ':b:c:t1', ':b:t2', ':b:c:t2')
+        result.assertTasksScheduledInOrder(':t1', ':b:c:t1', ':b:t2', ':b:c:t2')
     }
 
     def "builds selectors from different projects"() {
@@ -276,7 +276,7 @@ class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
             it.forLaunchables(selectorBT1, selectorBT3, selectorT1)
         }
         then:
-        result.assertTasksExecuted(':b:c:t1', ':b:t3', ':t1')
+        result.assertTasksScheduled(':b:c:t1', ':b:t3', ':t1')
     }
 
     def "can request tasks for root project"() {

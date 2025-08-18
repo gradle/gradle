@@ -21,8 +21,8 @@ Versions not listed here may or may not work.
 == Java Runtime
 
 Gradle runs on the Java Virtual Machine (JVM), which is often provided by either a JDK or JRE.
-A JVM version between 17 and 24 is required to execute Gradle.
-JVM 25 and later versions are not yet supported.
+A JVM version between 17 and 25 is required to execute Gradle.
+JVM 26 and later versions are not yet supported.
 
 The Gradle wrapper, Gradle client, Tooling API client, and TestKit client are compatible with JVM 8.
 
@@ -39,24 +39,25 @@ See the table below for the Java version supported by a specific Gradle release:
 |===
 |Java version | Support for toolchains | Support for running Gradle
 
-| 8 | N/A | 2.0
-| 9 | N/A | 4.3
-| 10| N/A | 4.7
-| 11| N/A | 5.0
-| 12| N/A | 5.4
-| 13| N/A | 6.0
-| 14| N/A | 6.3
-| 15| 6.7 | 6.7
-| 16| 7.0 | 7.0
-| 17| 7.3 | 7.3
-| 18| 7.5 | 7.5
-| 19| 7.6 | 7.6
-| 20| 8.1 | 8.3
-| 21| 8.4 | 8.5
-| 22| 8.7 | 8.8
-| 23| 8.10 | 8.10
-| 24| 8.14 | 8.14
-| 25| N/A | N/A
+| 8 | N/A | 2.0 to 8.14.*
+| 9 | N/A | 4.3 to 8.14.*
+| 10| N/A | 4.7 to 8.14.*
+| 11| N/A | 5.0 to 8.14.*
+| 12| N/A | 5.4 to 8.14.*
+| 13| N/A | 6.0 to 8.14.*
+| 14| N/A | 6.3 to 8.14.*
+| 15| 6.7 | 6.7 to 8.14.*
+| 16| 7.0 | 7.0 to 8.14.*
+| 17| 7.3 | 7.3 and after
+| 18| 7.5 | 7.5 and after
+| 19| 7.6 | 7.6 and after
+| 20| 8.1 | 8.3 and after
+| 21| 8.4 | 8.5 and after
+| 22| 8.7 | 8.8 and after
+| 23| 8.10 | 8.10 and after
+| 24| 8.14 | 8.14 and after
+| 25| 9.1.0 | 9.1.0 and after
+| 26| N/A | N/A
 |===
 
 NOTE: We only list versions in the table above once we have tested that they work without any warnings.
@@ -66,7 +67,7 @@ We encourage users to try it out and let us know.
 [[kotlin]]
 == Kotlin
 
-Gradle is tested with Kotlin 2.0.0 through 2.2.20-Beta1.
+Gradle is tested with Kotlin 2.0.0 through 2.2.20-Beta2.
 Beta and RC versions may or may not work.
 
 .Embedded Kotlin version
@@ -100,18 +101,18 @@ Beta and RC versions may or may not work.
 | 1.9.24 | 8.10 | 1.8
 | 2.0.20 | 8.11 | 1.8
 | 2.0.21 | 8.12 | 1.8
-| 2.2.0  | 9.0 | 2.2
+| 2.2.0  | 9.0.0 | 2.2
 |===
 
 == Groovy
 
-Gradle is tested with Groovy 1.5.8 through 4.0.27.
+Gradle is tested with Groovy 1.5.8 through 4.0.28.
 
 Gradle plugins written in Groovy must use Groovy 4.x for compatibility with Gradle and Groovy DSL build scripts.
 
 == Android
 
-Gradle is tested with Android Gradle Plugin 8.4 through 8.11.
+Gradle is tested with Android Gradle Plugin 8.4 through 8.12.
 Alpha and beta versions may or may not work.
 
 == Target Platforms

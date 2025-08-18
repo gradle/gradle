@@ -494,7 +494,7 @@ Artifacts
         expect:
         succeeds ":subB:test"
         result.assertTaskOrder(":subA:jar", ":subB:test")
-        result.assertTaskNotExecuted(":subA:test")
+        result.assertTasksNotScheduled(":subA:test")
     }
 
     def "classes directories registered on source set output are included in runtime classes variant"() {
@@ -540,7 +540,7 @@ Artifacts
         succeeds "consumer:consumeRuntimeClasses"
 
         then:
-        result.assertTaskExecuted(":customCompile")
+        result.assertTaskScheduled(":customCompile")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22484")
@@ -573,7 +573,7 @@ Artifacts
         succeeds "bar"
 
         then:
-        result.assertTasksExecuted(":compileJava", ":bar")
+        result.assertTasksScheduled(":compileJava", ":bar")
     }
 
     def "changing the role of jvm configurations fails (#configuration - #method(true))"() {

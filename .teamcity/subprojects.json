@@ -119,20 +119,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "build-discovery",
-    "path": "platforms/core-runtime/build-discovery",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "name": "build-discovery-api",
-    "path": "platforms/core-runtime/build-discovery-api",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "build-events",
     "path": "subprojects/build-events",
     "unitTests": true,
@@ -254,7 +240,7 @@
   {
     "name": "configuration-cache-base",
     "path": "platforms/core-configuration/configuration-cache-base",
-    "unitTests": true,
+    "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -611,6 +597,13 @@
   {
     "name": "graph-serialization",
     "path": "platforms/core-configuration/graph-serialization",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "groovy-loader",
+    "path": "platforms/core-runtime/groovy-loader",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false

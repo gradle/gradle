@@ -39,7 +39,7 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
     int getDistributionSizeMiB() {
-        return 66
+        return 70
     }
 
     @Override

@@ -16,11 +16,12 @@
 package org.gradle.testfixtures.internal;
 
 import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.api.internal.properties.GradlePropertiesController;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
-import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.internal.build.BuildModelControllerServices;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.service.Provides;
@@ -46,7 +47,7 @@ public class TestBuildScopeServices extends BuildScopeServices {
 
     @Override
     @Provides
-    protected GradleProperties createGradleProperties(GradlePropertiesController gradlePropertiesController) {
+    protected GradleProperties createGradleProperties(BuildState buildState, GradlePropertiesController gradlePropertiesController) {
         return new EmptyGradleProperties();
     }
 
@@ -63,18 +64,23 @@ public class TestBuildScopeServices extends BuildScopeServices {
     private static class EmptyGradleProperties implements GradleProperties {
         @Nullable
         @Override
-        public Object find(String propertyName) {
+        public String find(String propertyName) {
             return null;
         }
 
         @Override
-        public Map<String, Object> mergeProperties(Map<String, Object> properties) {
-            return properties;
+        public Map<String, String> getProperties() {
+            return Collections.emptyMap();
         }
 
         @Override
-        public Map<String, Object> getProperties() {
+        public Map<String, String> getPropertiesWithPrefix(String prefix) {
             return Collections.emptyMap();
+        }
+
+        @Override
+        public @Nullable Object findUnsafe(String propertyName) {
+            return null;
         }
     }
 }

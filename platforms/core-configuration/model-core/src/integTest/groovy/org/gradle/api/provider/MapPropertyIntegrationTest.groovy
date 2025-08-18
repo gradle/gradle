@@ -825,7 +825,7 @@ task thing {
 
         then:
         outputContains(expectedOutput)
-        result.assertTasksExecuted(expectedTasks)
+        result.assertTasksScheduled(expectedTasks)
 
         where:
         provider          | call                                  | isFinalized | expectedTasks            | expectedOutput

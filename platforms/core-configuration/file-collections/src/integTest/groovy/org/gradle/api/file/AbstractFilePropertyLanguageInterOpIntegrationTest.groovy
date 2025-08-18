@@ -44,7 +44,7 @@ abstract class AbstractFilePropertyLanguageInterOpIntegrationTest extends Abstra
         run("consumer")
 
         then:
-        result.ignoreBuildSrc.assertTasksExecuted(":producer", ":consumer")
+        result.ignoreBuildSrc.assertTasksScheduled(":producer", ":consumer")
         file("out.txt").text == "content"
     }
 
@@ -65,7 +65,7 @@ abstract class AbstractFilePropertyLanguageInterOpIntegrationTest extends Abstra
         run("consumer")
 
         then:
-        result.ignoreBuildSrc.assertTasksExecuted(":producer", ":consumer")
+        result.ignoreBuildSrc.assertTasksScheduled(":producer", ":consumer")
         file("out.txt").text == "content"
     }
 }

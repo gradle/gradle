@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.jvm.inspection.JvmVendor.KnownJvmVendor;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
@@ -26,6 +27,7 @@ import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
  *
  * @since 6.8
  */
+@HasInternalProtocol
 public abstract class JvmVendorSpec {
 
     /**

@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.executer
 
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.GradleVersion
 
@@ -25,6 +26,7 @@ class IsolatedProjectsGradleExecuter extends DaemonGradleExecuter {
     static final List<String> ISOLATED_PROJECTS_ARGS = [
         "-D${StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME}=true",
         "-D${StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=0",
+        "-D${ConfigurationCacheStartParameter.Options.REPORT_OUTPUT_DIR}=.gradle/isolated-projects/reports",
     ].collect { it.toString() }
 
     IsolatedProjectsGradleExecuter(

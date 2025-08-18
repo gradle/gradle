@@ -47,7 +47,7 @@ If enabled in `gradle.properties`, you can override it and disable the cache at 
 === Ignoring Configuration Cache Problems
 
 By default, Gradle fails the build if Configuration Cache problems occur.
-However, when gradually updating plugins or build logic to support the Configuration Cache, it can be useful to temporarily turn problems into warnings by enabling the _warning mode_.
+However, when gradually updating plugins or build logic to support the Configuration Cache, it can be useful to temporarily turn problems into warnings by enabling _warning mode_.
 
 To change this behavior at build time, use the following flag:
 
@@ -68,7 +68,7 @@ org.gradle.configuration-cache.problems=warn
 
 [WARNING]
 ====
-The warning mode is a migration and troubleshooting aid and not intended as a persistent way of ignoring incompatibilities.
+Warning mode is a migration and troubleshooting aid and not intended as a persistent way of ignoring incompatibilities.
 It will also not prevent new incompatibilities being accidentally added to your build later.
 
 Instead, we recommend explicitly marking problematic tasks as <<configuration_cache_debugging.adoc#config_cache:task_opt_out,incompatible>>.
@@ -116,8 +116,35 @@ org.gradle.configuration-cache.parallel=true
 [WARNING]
 ====
 The parallel configuration caching feature is _incubating_, and some builds may not work correctly.
-A common symptom of incompatibility is `ConcurrentModificationException` errors during the <<build_lifecycle.adoc#sec:configuration,configuration phase>>.
+A common symptom of incompatibility is `ConcurrentModificationException` errors during the <<build_lifecycle_intermediate.adoc#sec:configuration,configuration phase>>.
 However, this feature is expected to work well for <<multi_project_configuration_and_execution.adoc#sec:decoupled_projects,decoupled>> multi-project builds.
+====
+
+[[config_cache:usage:read_only]]
+=== Making the Configuration Cache Read-Only
+
+In some builds, such as CI builds running in ephemeral environments, it may be desirable for Gradle to use the Configuration Cache only when there's a cache hit.
+If there's a miss, caching offers no benefit since the disk state won't be preserved across builds.
+
+To enable read-only configuration caching at build time, use:
+
+[source,text]
+----
+❯ ./gradlew -Dorg.gradle.configuration-cache.read-only=true
+----
+
+Or set it persistently in `gradle.properties`:
+
+[source,properties]
+----
+org.gradle.configuration-cache.read-only=true
+----
+
+Note that if you enable this persistently, you'll need to explicitly disable it via the command line in order for Gradle to ever write to the configuration cache.
+
+[WARNING]
+====
+The read-only configuration caching feature is _incubating_.
 ====
 
 [[config_cache:stable]]
@@ -138,7 +165,7 @@ Undeclared Shared Build Service Usage::
 If a task uses a <<build_services#build_services, shared Build Service>> without explicitly declaring the requirement using the `Task.usesService` method, Gradle will emit a deprecation warning.
 
 Deprecation Enforcement Without Configuration Cache::
-Even when the Configuration Cache is not enabled, Gradle will enforce deprecations for the following requirements if the feature flag is present:
+Even when the Configuration Cache is not enabled, Gradle will warn if the following deprecated features are used:
 - <<configuration_cache_requirements.adoc#config_cache:requirements:build_listeners, Registering build listeners>>
 - <<configuration_cache_requirements.adoc#config_cache:requirements:task_extensions, Using task extensions and conventions at execution time>>
 
@@ -259,8 +286,8 @@ Once your developer workflow (e.g., running tests from the IDE) is stable, consi
 
 Once everything is stable locally and within your team, consider enabling the Configuration Cache on CI:
 
-- Ensure your builds stays CC compliant, developers can’t introduce problem accidentally!
-- CC overhead is compensated by the intra-project task parallelism.
+- This ensures your builds stays CC compliant, and developers can’t introduce problems accidentally!
+- CC overhead is compensated for by the intra-project task parallelism.
 - Getting cache hits may not be possible initially (this is normal).
 
 When you are ready to focus on hit rates:
@@ -326,7 +353,7 @@ To temporarily revert to the previous behavior, set the Gradle property `org.gra
 With the evolution of the Configuration Cache, Gradle may impose additional restrictions on build logic.
 To make adoption smoother, it is possible to _temporarily_ opt out of these restrictions in specific cases:
 
-1. Starting with Gradle 9.0, it is an error to use any provider, except a provider of `BuildService` returned from
+1. Starting with Gradle 9.0.0, it is an error to use any provider, except a provider of `BuildService` returned from
 link:{javadocPath}/org/gradle/api/services/BuildServiceRegistry.html#registerIfAbsent(java.lang.String,java.lang.Class,org.gradle.api.Action)[`BuildServiceRegistry.registerIfAbsent`]
 or
 link:{javadocPath}/org/gradle/api/services/BuildServiceRegistration.html#getService()[`BuildServiceRegistration.getService`]

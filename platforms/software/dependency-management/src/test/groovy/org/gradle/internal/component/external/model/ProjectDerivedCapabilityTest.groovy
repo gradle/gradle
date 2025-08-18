@@ -17,7 +17,6 @@
 package org.gradle.internal.component.external.model
 
 import org.gradle.api.capabilities.Capability
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
@@ -52,7 +51,7 @@ class ProjectDerivedCapabilityTest extends Specification {
             getName() >> name
             getVersion() >> version
             getOwner() >> Mock(ProjectState) {
-                getIdentity() >> new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, name)
+                getIdentity() >> ProjectIdentity.forRootProject(Path.ROOT, name)
             }
         }
     }

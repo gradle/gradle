@@ -133,8 +133,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private ExtensibleDynamicObject extensibleDynamicObject;
 
+    @Nullable
     private String description;
 
+    @Nullable
     private String group;
 
     private final Property<Duration> timeout;
@@ -181,7 +183,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.project = taskInfo.project;
 
         assert project != null;
-        assert identity.name != null;
+        assert identity.getName() != null;
         this.state = new TaskStateInternal();
         final TaskDependencyFactory taskDependencyFactory = project.getTaskDependencyFactory();
         this.mustRunAfter = taskDependencyFactory.configurableDependency();
@@ -207,7 +209,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private void assertDynamicObject() {
         if (extensibleDynamicObject == null) {
-            extensibleDynamicObject = new ExtensibleDynamicObject(this, identity.type, services.get(InstantiatorFactory.class).decorateLenient(services));
+            extensibleDynamicObject = new ExtensibleDynamicObject(this, identity.getTaskType(), services.get(InstantiatorFactory.class).decorateLenient(services));
         }
     }
 
@@ -242,7 +244,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     public String getName() {
-        return identity.name;
+        return identity.getName();
     }
 
     @Override
@@ -472,12 +474,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     public String getPath() {
-        return identity.projectPath.toString();
+        return identity.getPath().getPath();
     }
 
     @Override
     public Path getIdentityPath() {
-        return identity.identityPath;
+        return identity.getBuildTreePath();
     }
 
     @Override
@@ -600,23 +602,25 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Internal
     @Override
+    @Nullable
     public String getDescription() {
         return description;
     }
 
     @Override
-    public void setDescription(String description) {
+    public void setDescription(@Nullable String description) {
         this.description = description;
     }
 
     @Internal
     @Override
+    @Nullable
     public String getGroup() {
         return group;
     }
 
     @Override
-    public void setGroup(String group) {
+    public void setGroup(@Nullable String group) {
         this.group = group;
     }
 

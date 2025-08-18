@@ -19,6 +19,9 @@ package org.gradle.internal.cc.impl
 import org.gradle.initialization.StartParameterBuildOptions
 
 class ConfigurationCacheReadOnlyIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    public static final String CONFIGURATION_CACHE_DISABLED_READ_ONLY_REASON = "Configuration cache disabled as cache is in read-only mode."
+
     def "should not create an entry on a cache miss if in read-only mode"() {
         def configurationCache = newConfigurationCacheFixture()
 
@@ -31,7 +34,7 @@ class ConfigurationCacheReadOnlyIntegrationTest extends AbstractConfigurationCac
         then:
         configurationCache.assertNoConfigurationCache()
 
-        postBuildOutputContains("Configuration cache entry discarded as cache is in read-only mode.")
+        postBuildOutputContains(CONFIGURATION_CACHE_DISABLED_READ_ONLY_REASON)
     }
 
     def "should not create an entry on a cache miss when using #options if in read-only mode"() {
@@ -52,7 +55,7 @@ class ConfigurationCacheReadOnlyIntegrationTest extends AbstractConfigurationCac
         then:
         configurationCache.assertNoConfigurationCache()
 
-        postBuildOutputContains("Configuration cache entry discarded as cache is in read-only mode.")
+        postBuildOutputContains(CONFIGURATION_CACHE_DISABLED_READ_ONLY_REASON)
 
         where:
         options << [
@@ -74,15 +77,46 @@ class ConfigurationCacheReadOnlyIntegrationTest extends AbstractConfigurationCac
 
         then:
         configurationCache.assertStateStored()
+        outputDoesNotContain("Read-only Configuration Cache is an incubating feature.")
 
         when:
         configurationCacheRun("help", ENABLE_READ_ONLY_CACHE)
 
         then:
         configurationCache.assertStateLoaded()
+        outputContains("Read-only Configuration Cache is an incubating feature.")
     }
 
-    def "problems are reported and fail the build when in read-only mode"() {
+    def "should be able to disable read-only CC via command-line and get a cache hit"() {
+        def configurationCache = newConfigurationCacheFixture()
+        def disableReadOnlyCache = "-D${StartParameterBuildOptions.ConfigurationCacheReadOnlyOption.PROPERTY_NAME}=false"
+
+        given:
+        settingsFile << ""
+        file("gradle.properties") << """
+            org.gradle.configuration-cache.read-only=true
+        """
+
+        when:
+        configurationCacheRun("help")
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+
+        when:
+        configurationCacheRun("help", disableReadOnlyCache)
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun("help")
+
+        then:
+        configurationCache.assertStateLoaded()
+    }
+
+    def "problems are reported and but do not fail the build when in read-only mode"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
 
@@ -95,18 +129,69 @@ class ConfigurationCacheReadOnlyIntegrationTest extends AbstractConfigurationCac
         """
 
         when:
-        configurationCacheFails 'broken', ENABLE_READ_ONLY_CACHE
+        configurationCacheRun 'broken', ENABLE_READ_ONLY_CACHE
 
         then:
         configurationCache.assertNoConfigurationCache()
-        outputContains("Configuration cache entry discarded as cache is in read-only mode.")
+        postBuildOutputContains(CONFIGURATION_CACHE_DISABLED_READ_ONLY_REASON)
 
-        // ensure report is produced
-        problems.assertResultHtmlReportHasProblems(failure) {
-            withProblem("Execution failed for task ':broken'.")
+        problems.assertResultConsoleSummaryHasNoProblems(result)
+        problems.assertResultHtmlReportHasProblems(result) {
+            totalProblemsCount = 1
+            withProblem("invocation of Task.project at execution time is unsupported")
         }
-        failure.assertHasDescription("Execution failed for task ':broken'.")
-        failure.assertHasCause("Invocation of 'Task.project' by task ':broken' at execution time is unsupported with the configuration cache.")
-        failure.assertHasFailures(1)
+    }
+
+    def "should not fail on CC problems while evaluating lazy properties in Groovy in read-only mode"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile """
+        class TaskWithLazyProperty extends DefaultTask {
+            private String value
+            @Input
+            String getLazyValue() {
+                if (value == null) {
+                    value = project.name
+                }
+                return value
+            }
+        }
+        tasks.register("lazy", TaskWithLazyProperty) { task ->
+           doLast {
+               println("Value is " + task.lazyValue)
+           }
+        }
+        """
+
+        when:
+        configurationCacheRun("lazy", ENABLE_READ_ONLY_CACHE)
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+        result.assertTaskExecuted(":lazy")
+    }
+
+    def "should not fail on CC problems while evaluating lazy properties in Kotlin in read-only mode"() {
+        def configurationCache = newConfigurationCacheFixture()
+
+        buildKotlinFile """
+        abstract class TaskWithLazyProperty: DefaultTask() {
+            @get:Input
+            val lazyValue: String by lazy {
+                this.project.name
+            }
+        }
+        tasks.register("lazy", TaskWithLazyProperty::class) {
+            doLast {
+                println("Value is " + lazyValue)
+            }
+        }
+        """
+
+        when:
+        configurationCacheRun("lazy", ENABLE_READ_ONLY_CACHE)
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+        result.assertTaskExecuted(":lazy")
     }
 }

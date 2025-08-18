@@ -842,8 +842,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                 }
             }
 
-            def factory = project.services.get(SoftwareComponentFactory)
-            def comp = factory.adhoc("comp")
+            def comp = publishing.softwareComponentFactory.adhoc("comp")
             comp.addVariantsFromConfiguration(configurations.first) {}
             comp.addVariantsFromConfiguration(configurations.second) {}
 

@@ -56,8 +56,14 @@ public final class CalculateTaskGraphBuildOperationType implements BuildOperatio
      */
     public interface TaskIdentity extends NodeIdentity {
 
+        /**
+         * The path of the build this task belongs to.
+         */
         String getBuildPath();
 
+        /**
+         * The path of this task in the build.
+         */
         String getTaskPath();
 
         /**

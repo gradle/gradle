@@ -18,8 +18,6 @@ package org.gradle.internal.dispatch;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Adapts from interface T to a {@link Dispatch}
@@ -28,26 +26,26 @@ public class ProxyDispatchAdapter<T> {
     private final Class<T> type;
     private final T source;
 
-    public ProxyDispatchAdapter(Dispatch<? super MethodInvocation> dispatch, Class<T> type, Class<?>... extraTypes) {
+    public ProxyDispatchAdapter(Dispatch<? super MethodInvocation> dispatch, Class<T> type) {
         this.type = type;
-        List<Class<?>> types = new ArrayList<Class<?>>();
-        ClassLoader classLoader = type.getClassLoader();
-        types.add(type);
-        for (Class<?> extraType : extraTypes) {
-            ClassLoader candidate = extraType.getClassLoader();
-            if (candidate != classLoader && candidate != null) {
-                try {
-                    if (candidate.loadClass(type.getName()) != null) {
-                        classLoader = candidate;
-                    }
-                } catch (ClassNotFoundException e) {
-                    // Ignore
-                }
-            }
-            types.add(extraType);
-        }
-        source = type.cast(Proxy.newProxyInstance(classLoader, types.toArray(new Class<?>[0]),
-            new DispatchingInvocationHandler(type, dispatch)));
+        source = type.cast(
+            Proxy.newProxyInstance(
+                type.getClassLoader(),
+                new Class<?>[]{type},
+                new DispatchingInvocationHandler(type, dispatch)
+            )
+        );
+    }
+
+    public ProxyDispatchAdapter(Dispatch<? super MethodInvocation> dispatch, Class<T> type, Class<?> extraType) {
+        this.type = type;
+        source = type.cast(
+            Proxy.newProxyInstance(
+                selectClassLoader(type, extraType),
+                new Class<?>[]{type, extraType},
+                new DispatchingInvocationHandler(type, dispatch)
+            )
+        );
     }
 
     public Class<T> getType() {
@@ -68,29 +66,47 @@ public class ProxyDispatchAdapter<T> {
         }
 
         @Override
-        public Object invoke(Object target, Method method, Object[] parameters) throws Throwable {
-            if (method.getName().equals("equals")) {
-                Object parameter = parameters[0];
-                if (parameter == null || !Proxy.isProxyClass(parameter.getClass())) {
-                    return false;
-                }
-                Object handler = Proxy.getInvocationHandler(parameter);
-                if (!DispatchingInvocationHandler.class.isInstance(handler)) {
-                    return false;
-                }
+        public Object invoke(Object target, Method method, Object[] parameters) {
+            switch (method.getName()) {
+                case "equals":
+                    Object parameter = parameters[0];
+                    if (parameter == null || !Proxy.isProxyClass(parameter.getClass())) {
+                        return false;
+                    }
+                    Object handler = Proxy.getInvocationHandler(parameter);
+                    if (!(handler instanceof DispatchingInvocationHandler)) {
+                        return false;
+                    }
 
-                DispatchingInvocationHandler otherHandler = (DispatchingInvocationHandler) handler;
-                return otherHandler.type.equals(type) && otherHandler.dispatch == dispatch;
+                    DispatchingInvocationHandler otherHandler = (DispatchingInvocationHandler) handler;
+                    return otherHandler.type.equals(type) && otherHandler.dispatch == dispatch;
+                case "hashCode":
+                    return dispatch.hashCode();
+                case "toString":
+                    return type.getSimpleName() + " broadcast";
+                default:
+                    dispatch.dispatch(new MethodInvocation(method, parameters));
+                    return null;
             }
-
-            if (method.getName().equals("hashCode")) {
-                return dispatch.hashCode();
-            }
-            if (method.getName().equals("toString")) {
-                return type.getSimpleName() + " broadcast";
-            }
-            dispatch.dispatch(new MethodInvocation(method, parameters));
-            return null;
         }
+    }
+
+    private static <T> ClassLoader selectClassLoader(Class<T> type, Class<?> extraType) {
+        ClassLoader typeClassLoader = type.getClassLoader();
+        ClassLoader candidate = extraType.getClassLoader();
+        return candidate != typeClassLoader && candidate != null && isCanLoadType(candidate, type)
+            ? candidate
+            : typeClassLoader;
+    }
+
+    private static <T> boolean isCanLoadType(ClassLoader candidate, Class<T> type) {
+        try {
+            if (candidate.loadClass(type.getName()) != null) {
+                return true;
+            }
+        } catch (ClassNotFoundException e) {
+            // Ignore
+        }
+        return false;
     }
 }

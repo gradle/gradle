@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
+import org.gradle.internal.component.model.VariantIdentifier
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry
@@ -40,11 +41,15 @@ import spock.lang.Specification
 class LocalFileDependencyBackedArtifactSetTest extends Specification {
     def attributesFactory = AttributeTestUtil.attributesFactory()
     def dep = Mock(LocalFileDependencyMetadata)
+    def componentId = Mock(ComponentIdentifier)
+    def sourceVariantId = Mock(VariantIdentifier) {
+        getOwner() >> componentId
+    }
     def filter = Mock(Spec)
     def selector = Mock(ArtifactVariantSelector)
     def artifactTypeRegistry = Mock(ImmutableArtifactTypeRegistry)
     def transformRegistry = Mock(VariantTransformRegistry)
-    def set = new DefaultLocalFileDependencyBackedArtifactSet(dep, filter, selector, artifactTypeRegistry, TestUtil.calculatedValueContainerFactory(), transformRegistry, ImmutableAttributes.EMPTY, false)
+    def set = new DefaultLocalFileDependencyBackedArtifactSet(dep, sourceVariantId, filter, selector, artifactTypeRegistry, TestUtil.calculatedValueContainerFactory(), transformRegistry, ImmutableAttributes.EMPTY, false)
 
     def "has build dependencies"() {
         def fileBuildDependencies = Stub(TaskDependency)
@@ -138,7 +143,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
 
         then:
         1 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts -> artifacts.visit(artifactVisitor) }
-        1 * artifactVisitor.visitArtifact(_, attrs1, ImmutableCapabilities.EMPTY, { it.file == f1 }) >> { DisplayName displayName, AttributeContainer attrs, ImmutableCapabilities capabilities, ResolvableArtifact artifact ->
+        1 * artifactVisitor.visitArtifact(_, sourceVariantId, attrs1, ImmutableCapabilities.EMPTY, { it.file == f1 }) >> { DisplayName displayName, VariantIdentifier sourceVariantId, AttributeContainer attrs, ImmutableCapabilities capabilities, ResolvableArtifact artifact ->
             assert displayName.displayName == 'local file'
             assert artifact.id == new ComponentFileArtifactIdentifier(id, f1.name)
         }
@@ -146,7 +151,7 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
 
         then:
         1 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts -> artifacts.visit(artifactVisitor) }
-        1 * artifactVisitor.visitArtifact(_, attrs2, ImmutableCapabilities.EMPTY, { it.file == f2 }) >> { DisplayName displayName, AttributeContainer attrs, ImmutableCapabilities capabilities, ResolvableArtifact artifact ->
+        1 * artifactVisitor.visitArtifact(_, sourceVariantId, attrs2, ImmutableCapabilities.EMPTY, { it.file == f2 }) >> { DisplayName displayName, VariantIdentifier sourceVariantId,AttributeContainer attrs, ImmutableCapabilities capabilities, ResolvableArtifact artifact ->
             assert displayName.displayName == 'local file'
             assert artifact.id == new ComponentFileArtifactIdentifier(id, f2.name)
         }
@@ -176,11 +181,11 @@ class LocalFileDependencyBackedArtifactSetTest extends Specification {
         1 * files.files >> ([f1, f2] as Set)
         2 * selector.select(_, _, _) >> { ResolvedVariantSet variants, r, a -> variants.candidates.first() }
         2 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts -> artifacts.visit(artifactVisitor) }
-        1 * artifactVisitor.visitArtifact(_, attrs1, ImmutableCapabilities.EMPTY, { it.file == f1 }) >> { DisplayName displayName, AttributeContainer attrs, ImmutableCapabilities capabilities, ResolvableArtifact artifact ->
+        1 * artifactVisitor.visitArtifact(_, sourceVariantId, attrs1, ImmutableCapabilities.EMPTY, { it.file == f1 }) >> { DisplayName displayName, VariantIdentifier sourceVariantId, AttributeContainer attrs, ImmutableCapabilities capabilities, ResolvableArtifact artifact ->
             assert displayName.displayName == 'local file'
             assert artifact.id == new OpaqueComponentArtifactIdentifier(f1)
         }
-        1 * artifactVisitor.visitArtifact(_, attrs2, ImmutableCapabilities.EMPTY, { it.file == f2 }) >> { DisplayName displayName, AttributeContainer attrs, ImmutableCapabilities capabilities, ResolvableArtifact artifact ->
+        1 * artifactVisitor.visitArtifact(_, sourceVariantId, attrs2, ImmutableCapabilities.EMPTY, { it.file == f2 }) >> { DisplayName displayName, VariantIdentifier sourceVariantId, AttributeContainer attrs, ImmutableCapabilities capabilities, ResolvableArtifact artifact ->
             assert displayName.displayName == 'local file'
             assert artifact.id == new OpaqueComponentArtifactIdentifier(f2)
         }

@@ -624,7 +624,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
                 }
             }
 
-            def component = componentFactory.adhoc("component")
+            def component = publishing.softwareComponentFactory.adhoc("component")
             component.addVariantsFromConfiguration(configurations.elements) {
                 mapToMavenScope('runtime')
             }
@@ -978,13 +978,6 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
                 @Override
                 abstract NamedDomainObjectContainer<SoftwareComponent> getVariants();
             }
-
-            // This is the only public API way to obtain a SoftwareComponentFactory.
-            interface PublishServices {
-                @Inject
-                SoftwareComponentFactory getSoftwareComponentFactory()
-            }
-            def componentFactory = objects.newInstance(PublishServices).softwareComponentFactory
         """
     }
 
@@ -1041,7 +1034,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
 
         def component = "${name}ChildComponent"
         output += """
-            def ${component} = componentFactory.adhoc("${component}")
+            def ${component} = publishing.softwareComponentFactory.adhoc("${component}")
             ${component}.addVariantsFromConfiguration(configurations."${publicationConf}") {
                 mapToMavenScope('runtime')
                 dependencyMapping {

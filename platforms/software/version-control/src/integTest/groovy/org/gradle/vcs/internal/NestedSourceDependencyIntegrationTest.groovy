@@ -131,7 +131,7 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds("resolve")
         then:
-        result.assertTasksExecutedInOrder(":second:generate", ":first:generate", ":resolve")
+        result.assertTasksScheduledInOrder(":second:generate", ":first:generate", ":resolve")
 
         // Updating the remote repository causes changes downstream
         when:
@@ -151,7 +151,7 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds("resolve", "--info")
         then:
-        result.assertTasksExecutedInOrder(":second:generate", ":first:generate", ":resolve")
+        result.assertTasksScheduledInOrder(":second:generate", ":first:generate", ":resolve")
 
         // Updating the remote repository causes changes downstream
         when:
@@ -183,7 +183,7 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds("resolve")
         then:
-        result.assertTasksExecutedInOrder(":second:generate", ":first:generate", ":resolve")
+        result.assertTasksScheduledInOrder(":second:generate", ":first:generate", ":resolve")
 
         // Updating the remote repository causes changes downstream
         when:
@@ -213,7 +213,7 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
 
         then:
-        result.assertTasksExecutedInOrder(":second:generate", ":first:generate", ":resolve")
+        result.assertTasksScheduledInOrder(":second:generate", ":first:generate", ":resolve")
 
         // Updating the remote repository causes changes downstream
         when:
@@ -251,7 +251,7 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
 
         then:
-        result.assertTasksExecutedInOrder(":plugin:compileJava", ":plugin:compileGroovy", ":plugin:pluginDescriptors", ":plugin:processResources", ":plugin:classes", ":plugin:jar", ":second:generate", ":first:generate", ":resolve")
+        result.assertTasksScheduledInOrder(":plugin:compileJava", ":plugin:compileGroovy", ":plugin:pluginDescriptors", ":plugin:processResources", ":plugin:classes", ":plugin:jar", ":second:generate", ":first:generate", ":resolve")
         outputContains("Hello from root build's plugin")
     }
 
@@ -270,7 +270,7 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
 
         then:
-        result.assertTasksExecutedInOrder(":second:generate", ":first:generate", ":resolve")
+        result.assertTasksScheduledInOrder(":second:generate", ":first:generate", ":resolve")
     }
 
     def "can use a source mapping defined similarly in two nested builds"() {
@@ -288,7 +288,7 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
 
         then:
-        result.assertTasksExecutedInOrder(":third:generate", ":second:generate", ":first:generate", ":resolve")
+        result.assertTasksScheduledInOrder(":third:generate", ":second:generate", ":first:generate", ":resolve")
 
         // Updating the remote repository causes changes downstream
         when:
@@ -347,7 +347,7 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
 
         then:
-        result.assertTasksExecutedInOrder(":third:generate", ":second:generate", ":first:generate", ":resolve")
+        result.assertTasksScheduledInOrder(":third:generate", ":second:generate", ":first:generate", ":resolve")
 
         // Updating the remote repository causes changes downstream
         when:

@@ -24,7 +24,7 @@ jobs:
           secret-ids: |
             ORG_TEAM_GITHUB_ACCESS_TOKEN, gha/gradle/_all/ORG_TEAM_GITHUB_ACCESS_TOKEN
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: GitHub CODEOWNERS Validator
         uses: mszostok/codeowners-validator@v0.7.4

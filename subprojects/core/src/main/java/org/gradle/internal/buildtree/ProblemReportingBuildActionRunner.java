@@ -18,9 +18,9 @@ package org.gradle.internal.buildtree;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.initialization.layout.BuildTreeLocations;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.exception.ExceptionAnalyser;
-import org.gradle.internal.initialization.BuildTreeLocations;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.problems.buildtree.ProblemReporter;
 import org.gradle.problems.buildtree.ProblemReporter.ProblemConsumer;

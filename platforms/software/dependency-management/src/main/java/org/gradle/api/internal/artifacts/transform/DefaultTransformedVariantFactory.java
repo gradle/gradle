@@ -101,6 +101,7 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
     ) {
         return new TransformedExternalArtifactSet(
             componentIdentifier,
+            sourceVariant.getSourceVariantId(),
             sourceVariant.getArtifacts(),
             variantDefinition.getTargetAttributes(),
             sourceVariant.getCapabilities(),
@@ -128,7 +129,7 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
         }
         ComponentVariantIdentifier targetComponentVariant = new ComponentVariantIdentifier(componentIdentifier, variantDefinition.getTargetAttributes(), sourceVariant.getCapabilities());
         List<TransformStepNode> transformStepNodes = createTransformStepNodes(sourceArtifacts, sourceAttributes, targetComponentVariant, variantDefinition, dependenciesResolver);
-        return new TransformedProjectArtifactSet(targetComponentVariant, transformStepNodes);
+        return new TransformedProjectArtifactSet(sourceVariant.getSourceVariantId(), targetComponentVariant, transformStepNodes);
     }
 
     private List<TransformStepNode> createTransformStepNodes(

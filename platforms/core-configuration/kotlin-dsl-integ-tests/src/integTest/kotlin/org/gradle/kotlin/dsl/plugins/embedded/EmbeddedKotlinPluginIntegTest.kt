@@ -226,7 +226,7 @@ class EmbeddedKotlinPluginIntegTest : AbstractKotlinIntegrationTest() {
 
         val result = build("assemble")
 
-        result.assertTaskExecuted(":compileKotlin")
+        result.assertTaskScheduled(":compileKotlin")
     }
 
     private

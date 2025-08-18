@@ -22,7 +22,6 @@ import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.ProjectIdentity
@@ -920,7 +919,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
     private <T extends TaskInternal> T expectTaskCreated(String name, final Class<T> type, T task) {
         // We cannot just stub here as we want to return a different task each time.
-        def projectId = new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "root")
+        def projectId = ProjectIdentity.forRootProject(Path.ROOT, "root")
         def id = new TaskIdentity(type, name, projectId, 12)
         1 * delegate.create(id) >> task
         def createdTask = factory.create(id)

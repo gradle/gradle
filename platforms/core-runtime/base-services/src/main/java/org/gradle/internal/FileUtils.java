@@ -17,6 +17,7 @@
 package org.gradle.internal;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.io.FileSystem;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.GradleException;
 
@@ -31,6 +32,12 @@ import java.util.Locale;
 
 public class FileUtils {
     public static final int WINDOWS_PATH_LIMIT = 260;
+
+    /**
+     * The character used to replace illegal characters in file names.
+     */
+    private static final char ILLEGAL_CHAR_REPLACEMENT = '-';
+
 
     private static final Comparator<File> FILE_SEGMENT_COMPARATOR = new Comparator<File>() {
         @Override
@@ -63,26 +70,19 @@ public class FileUtils {
     };
 
     /**
-     * Converts a string into a string that is safe to use as a file name. The result will only include ascii characters and numbers, and the "-","_", #, $ and "." characters.
+     * Converts a string into a string that is safe to use as a file name.
+     * The result will preserve Unicode characters while replacing filesystem-illegal
+     * and web-problematic characters with "-".
      */
     public static String toSafeFileName(String name) {
-        int size = name.length();
-        StringBuilder rc = new StringBuilder(size * 2);
-        for (int i = 0; i < size; i++) {
-            char c = name.charAt(i);
-            boolean valid = c >= 'a' && c <= 'z';
-            valid = valid || (c >= 'A' && c <= 'Z');
-            valid = valid || (c >= '0' && c <= '9');
-            valid = valid || (c == '_') || (c == '-') || (c == '.') || (c == '$');
-            if (valid) {
-                rc.append(c);
-            } else {
-                // Encode the character using hex notation
-                rc.append('#');
-                rc.append(Integer.toHexString(c));
-            }
-        }
-        return rc.toString();
+        // Use Windows filesystem rules for cross-platform compatibility
+        String result = FileSystem.WINDOWS.toLegalFileName(name, ILLEGAL_CHAR_REPLACEMENT);
+
+        // Replace additional characters that may cause issues in web/HTML contexts
+        return result.replace(' ', ILLEGAL_CHAR_REPLACEMENT)
+            .replace('\t', ILLEGAL_CHAR_REPLACEMENT)
+            .replace('\n', ILLEGAL_CHAR_REPLACEMENT)
+            .replace('\r', ILLEGAL_CHAR_REPLACEMENT);
     }
 
     public static File assertInWindowsPathLengthLimitation(File file) {

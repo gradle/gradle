@@ -77,6 +77,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigurationCacheIgnoredFileSystemCheckInputs(),
         new ConfigurationCacheDebugOption(),
         new ConfigurationCacheParallelOption(),
+        new ConfigurationCacheReadOnlyOption(),
         new ConfigurationCacheRecreateOption(),
         new ConfigurationCacheQuietOption(),
         new ConfigurationCacheIntegrityCheckOption(),
@@ -615,6 +616,20 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
+    public static class ConfigurationCacheReadOnlyOption extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.read-only";
+
+        public ConfigurationCacheReadOnlyOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheReadOnly(value);
+        }
+    }
+
     public static class ConfigurationCacheEntriesPerKeyOption extends IntegerBuildOption<StartParameterInternal> {
 
         public static final String PROPERTY_NAME = "org.gradle.configuration-cache.entries-per-key";
@@ -711,7 +726,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public static final String LONG_OPTION = "task-graph";
 
         public TaskGraphOption() {
-            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Print task graph instead of executing tasks."));
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "(Experimental) Print task graph instead of executing tasks."));
         }
 
         @Override

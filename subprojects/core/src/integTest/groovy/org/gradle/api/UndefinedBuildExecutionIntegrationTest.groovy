@@ -205,7 +205,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds("tasks") // without deprecation warning
         then:
-        result.assertTaskExecuted(":buildSrc:jar")
+        result.assertTaskScheduled(":buildSrc:jar")
         file("buildSrc/.gradle").assertIsDir()
 
         when:

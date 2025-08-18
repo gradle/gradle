@@ -79,7 +79,7 @@ task listJars {
         succeeds('listJars')
 
         then:
-        result.assertTaskExecuted(":listJars")
+        result.assertTaskScheduled(":listJars")
         proxyServer.hadConnections()
     }
 
