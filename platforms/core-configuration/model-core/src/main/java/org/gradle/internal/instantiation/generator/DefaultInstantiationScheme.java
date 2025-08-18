@@ -27,7 +27,6 @@ import org.gradle.internal.instantiation.generator.ClassGenerator.SerializationC
 import org.gradle.internal.service.ServiceLookup;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
 
 class DefaultInstantiationScheme implements InstantiationScheme {
@@ -112,9 +111,7 @@ class DefaultInstantiationScheme implements InstantiationScheme {
             try {
                 SerializationConstructor<?> constructor = serializationConstructorFor(implType, baseClass);
                 return implType.cast(constructor.newInstance(services, nestedGenerator));
-            } catch (InvocationTargetException e) {
-                throw new ObjectInstantiationException(implType, e.getCause());
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 throw new ObjectInstantiationException(implType, e);
             }
         }
