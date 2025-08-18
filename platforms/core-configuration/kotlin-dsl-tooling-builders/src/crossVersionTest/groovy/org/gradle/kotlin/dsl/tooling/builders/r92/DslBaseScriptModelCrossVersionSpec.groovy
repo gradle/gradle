@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.tooling.builders.r91
+package org.gradle.kotlin.dsl.tooling.builders.r92
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
-import org.gradle.tooling.model.kotlin.dsl.DslBaseScriptModel
+import org.gradle.tooling.model.dsl.DslBaseScriptModel
 
 import java.util.stream.Collectors
 
-@TargetGradleVersion(">=9.1")
+@TargetGradleVersion(">=9.2")
 class DslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     def "DslBaseScriptModel is obtained without configuring projects"() {
@@ -73,12 +73,15 @@ class DslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossV
     private static void loadClassesFrom(List<File> classPath, String... classNames) {
         classLoaderFor(classPath).withCloseable { loader ->
             classNames.each {
-                loader.loadClass(it)
+                assert loader.loadClass(it) != null
             }
         }
     }
 
     private static URLClassLoader classLoaderFor(List<File> classPath) {
-        new URLClassLoader(classPath.collect { it.toURI().toURL() } as URL[])
+        new URLClassLoader(
+                classPath.collect { it.toURI().toURL() } as URL[],
+                (ClassLoader) null // we don't want the classloader to have a fallback
+        )
     }
 }
