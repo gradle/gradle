@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DefaultProjectWrapperRegistry implements ProjectWrapperRegistry {
+public class DefaultProjectWrapperRegistry implements ProjectWrapperRegistry, HoldsProjectState {
     private final Map<ProjectIdentity, List<ProjectInternal>> projectWrappers = new ConcurrentHashMap<>();
 
     @Override
@@ -32,5 +32,10 @@ public class DefaultProjectWrapperRegistry implements ProjectWrapperRegistry {
             projectIdentity -> Collections.synchronizedList(new ArrayList<>())
         );
         wrappers.add(wrapper);
+    }
+
+    @Override
+    public void discardAll() {
+        projectWrappers.clear();
     }
 }
