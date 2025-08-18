@@ -73,6 +73,26 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
             }
         }
 
+        final class NoTestsRun implements FailureReportResult {
+            private final String failureMessage;
+
+            private NoTestsRun(String failureMessage) {
+                if (failureMessage == null || failureMessage.isEmpty()) {
+                    throw new IllegalArgumentException("Failure message must not be null or empty");
+                }
+                this.failureMessage = failureMessage;
+            }
+
+            public String getFailureMessage() {
+                return failureMessage;
+            }
+
+            @Override
+            public String toString() {
+                return "NO_TESTS_RUN";
+            }
+        }
+
         /**
          * A failure was reported, and no further reporting should be done.
          */
@@ -96,6 +116,15 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
          */
         static FailureReportResult noAction() {
             return NoAction.INSTANCE;
+        }
+
+        /**
+         * The test task did not run any tests and this was not expected or permitted (via filters and the {@code failOnNoDiscoveredTests} flag).
+         *
+         * @param failureMessage the message describing the reason no tests running is a failure
+         */
+        static FailureReportResult noTestsRun(String failureMessage) {
+            return new NoTestsRun(failureMessage);
         }
     }
 

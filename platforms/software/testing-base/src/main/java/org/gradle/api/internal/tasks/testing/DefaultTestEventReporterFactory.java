@@ -100,14 +100,17 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         }
         testListenerInternalBroadcaster.add(resultsSerializingListener);
 
+        TestListenerInternal testListenerBroadcaster = testListenerInternalBroadcaster.getSource();
+        TestExecutionResultsListener executionResultsListenerBroadcaster = listenerManager.getBroadcaster(TestExecutionResultsListener.class);
+
         return new LifecycleTrackingGroupTestEventReporter(new DefaultRootTestEventReporter(
             rootDescriptorFactory,
-            testListenerInternalBroadcaster.getSource(),
+            testListenerBroadcaster,
             new LongIdGenerator(),
             binaryResultsDir,
             resultsSerializingListener,
             reportGenerator,
-            listenerManager.getBroadcaster(TestExecutionResultsListener.class),
+            executionResultsListenerBroadcaster,
             detectOtherFailures
         ));
     }
