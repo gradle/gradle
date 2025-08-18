@@ -22,10 +22,13 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.Failure
+import org.gradle.tooling.GradleConnectionException
+import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.tooling.model.kotlin.dsl.ResilientKotlinDslScriptsModel
+import org.gradle.util.internal.ToBeImplemented
 
 @ToolingApiVersion('>=9.2')
 @TargetGradleVersion('>=9.2')
@@ -165,6 +168,62 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         "script compilation fails" | "broken !!!"                                 | "broken !!!"
     }
 
+    @ToBeImplemented("Needs resilient GradleBuild model")
+    def "returns scripts models for settings included build"() {
+        given:
+        settingsKotlinFile << """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+            rootProject.name = "root"
+            plugins {
+                id("build-logic")
+            }
+        """
+
+        def included = file("build-logic")
+        included.file("settings.gradle.kts") << """
+            rootProject.name = "build-logic"
+
+            pluginManagement {
+                repositories {
+                    mavenCentral()
+                    gradlePluginPortal()
+                }
+            }
+        """
+        included.file("build.gradle.kts") << """
+            plugins {
+                `kotlin-dsl`
+            }
+
+            repositories {
+                mavenCentral()
+                gradlePluginPortal()
+            }
+        """
+        def settingsPlugin = included.file("src/main/kotlin/build-logic.settings.gradle.kts") << """
+        """
+
+        when:
+        def original = succeeds {
+            action(new OriginalModelAction()).run()
+        }
+
+        then:
+        original
+
+        when:
+        settingsPlugin << """ broken !!! """
+        fails {
+            action(new ResilientModelAction()).withArguments("-Dorg.gradle.internal.resilient-model-building=true").run()
+        }
+
+        then:
+        def e = thrown(GradleConnectionException)
+        e.message.startsWith("The supplied build action failed with an exception.")
+    }
+
     static class MyCustomModel implements Serializable {
 
         Map<File, KotlinDslScriptModel> scriptModels
@@ -175,17 +234,23 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             this.scriptModels = scriptModels
             this.failureMessage = failure ? failure.description : null
         }
-
     }
 
     static class OriginalModelAction implements BuildAction<MyCustomModel>, Serializable {
 
         @Override
         MyCustomModel execute(BuildController controller) {
-            KotlinDslScriptsModel buildScriptModel = controller.getModel(KotlinDslScriptsModel.class)
+            GradleBuild gradleBuild = controller.getModel(GradleBuild.class)
+            Map<File, KotlinDslScriptModel> scriptModels = [:]
+            for (BasicGradleProject project : gradleBuild.projects) {
+                if (project.parent == null) {
+                    KotlinDslScriptsModel buildScriptModel = controller.getModel(project, KotlinDslScriptsModel.class)
+                    scriptModels += buildScriptModel.scriptModels
+                }
+            }
 
             return new MyCustomModel(
-                buildScriptModel.scriptModels,
+                scriptModels,
                 null
             )
         }
@@ -196,13 +261,22 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         @Override
         MyCustomModel execute(BuildController controller) {
             GradleBuild gradleBuild = controller.getModel(GradleBuild.class)
-            ResilientKotlinDslScriptsModel buildScriptModel = controller.getModel(gradleBuild.rootProject, ResilientKotlinDslScriptsModel.class)
+            Map<File, KotlinDslScriptModel> scriptModels = [:]
+            Failure failure = null
+            for (BasicGradleProject project : gradleBuild.projects) {
+                if (project.parent == null) {
+                    ResilientKotlinDslScriptsModel buildScriptModel = controller.getModel(project, ResilientKotlinDslScriptsModel.class)
+                    scriptModels += buildScriptModel.model.scriptModels
+                    if (buildScriptModel.failure) {
+                        failure = buildScriptModel.failure
+                    }
+                }
+            }
 
             return new MyCustomModel(
-                buildScriptModel.model.scriptModels,
-                buildScriptModel.failure
+                scriptModels,
+                failure
             )
         }
     }
-
 }
