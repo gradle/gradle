@@ -21,7 +21,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.invocation.GradleLifecycleActionExecutor;
 import org.jspecify.annotations.Nullable;
 
@@ -33,15 +32,15 @@ import org.jspecify.annotations.Nullable;
  */
 public class LifecycleAwareProject extends MutableStateAccessAwareProject {
 
-    public static ProjectInternal from(
+    public static ProjectInternal wrap(
         ProjectInternal target,
-        ProjectInternal referrer
+        ProjectInternal referrer,
+        ProjectWrapperFactory projectWrapperFactory
     ) {
-        Instantiator instantiator = target.getServices().get(Instantiator.class);
         return MutableStateAccessAwareProject.wrap(
             target,
             referrer,
-            project -> instantiator.newInstance(LifecycleAwareProject.class, target, referrer)
+            () -> projectWrapperFactory.newWrapper(target, LifecycleAwareProject.class, target, referrer)
         );
     }
 
