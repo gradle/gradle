@@ -35,7 +35,7 @@ All major IDEs support Gradle, including Android Studio, IntelliJ IDEA, Visual S
 
 image::userguide-ides.png[]
 
-You can also invoke Gradle via its <<command_line_interface.adoc#command_line_interface_reference,command-line interface>> (CLI) in your terminal or through your continuous integration (CI) server.
+You can also invoke Gradle via its <<command_line_interface.adoc#command_line_interface,command-line interface>> (CLI) in your terminal or through your continuous integration (CI) server.
 
 == Releases
 

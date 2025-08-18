@@ -39,6 +39,7 @@ Dependency locking offers several key advantages:
 [[sec:dependency-locking]]
 == Activate locking for specific configurations
 
+[[dependency-locking]]
 Locking is enabled per <<dependency_configurations.adoc#sub:what-are-dependency-configurations,dependency configuration>>.
 
 Once enabled, you must create an initial lock state, causing Gradle to verify that resolution results do not change.
@@ -133,6 +134,7 @@ NOTE: Gradle won't write the lock state to disk if the build fails, preventing t
 [[sec:lock-all-configurations-in-one-build-execution]]
 === Lock all configurations in a single build execution
 
+[[lock_all_configurations_in_one_build_execution]]
 When working with multiple configurations, you may want to lock them all at once in a single build execution.
 You have two options for this:
 
@@ -207,6 +209,7 @@ This *lockfile should be included in source control* to ensure that all team mem
 [[sec:migrate-single-lockfile]]
 == Migrating your legacy lockfile
 
+[[migrate_single_lockfile]]
 If your project uses the legacy lock file format of a file per locked configuration, follow these instructions to migrate to the new format:
 
 1. Follow the documentation for <<#sec:lock-all-configurations-in-one-build-execution, writing>> or <<#sec:selectively-updating-lock-state-entries, updating>> dependency lock state.
@@ -217,6 +220,7 @@ NOTE: Migration can be done one configuration at a time. Gradle will keep sourci
 [[sec:configuring-the-per-project-lock-file-name-and-location]]
 == Configuring the lock file name and location
 
+[[configuring_the_per_project_lock_file_name_and_location]]
 When using a single lock file per project, you can configure its name and location.
 
 This capability allows you to specify a file name based on project properties, enabling a single project to store different lock states for different execution contexts.
@@ -245,6 +249,7 @@ The complete validation is as follows:
 [[sec:fine-tuning-dependency-locking-behaviour-with-lock-mode]]
 === Fine-tuning dependency locking behaviour with lock mode
 
+[[fine_tuning_dependency_locking_behaviour_with_lock_mode]]
 While the default lock mode behaves as described above, two other modes are available:
 
 Strict mode::
@@ -269,6 +274,7 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockModeSel
 [[sec:selectively-updating-lock-state-entries]]
 == Updating lock state entries selectively
 
+[[selectively_updating_lock_state_entries]]
 In order to update only specific modules of a configuration, you can use the `--update-locks` command line flag.
 It takes a comma (`,`) separated list of module notations.
 In this mode, the existing lock state is still used as input to resolution, filtering out the modules targeted by the update:
@@ -302,6 +308,7 @@ NOTE: Gradle must resolve a configuration that is no longer marked as locked to 
 [[sec:ignoring-specific-dependencies-lock-state]]
 == Ignoring specific dependencies from the lock state
 
+[[ignoring_dependencies]]
 In some scenarios, you may want to use dependency locking for other reasons than build reproducibility.
 
 As a build author, you might want certain dependencies to update more frequently than others.
@@ -331,4 +338,5 @@ Ignoring dependencies will have the following effects:
 [[sec:locking-limitations]]
 == Understanding locking limitations
 
+[[locking_limitations]]
 - Dependency locking does not currently apply to source dependencies.

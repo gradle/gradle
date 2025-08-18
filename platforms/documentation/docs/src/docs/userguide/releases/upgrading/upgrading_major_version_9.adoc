@@ -47,7 +47,7 @@ This is a breaking change from previous versions, which supported JVM 8 and high
 
 Your build can still target lower JVM versions using <<toolchains.adoc#toolchains, Toolchains>> for compilation, testing and other workers (Checkstyle, Javadoc, etc).
 
-The <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle wrapper>> and command-line launcher can run with JVM 8, but it still requires a newer JVM to start the build.
+The <<gradle_wrapper.adoc#gradle_wrapper,Gradle wrapper>> and command-line launcher can run with JVM 8, but it still requires a newer JVM to start the build.
 For more, see the <<upgrading_version_8.adoc#minimum_daemon_jvm_version,Running Gradle on older JVMs>> section below.
 
 <<tooling_api.adoc#embedding,Gradle Tooling API>> and <<test_kit#test_kit, TestKit>> remain compatible with JVM 8 and higher.

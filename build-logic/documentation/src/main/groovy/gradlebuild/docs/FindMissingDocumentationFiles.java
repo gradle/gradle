@@ -64,7 +64,25 @@ public abstract class FindMissingDocumentationFiles extends DefaultTask {
         // config cache items that have now been implemented
         "config_cache:not_yet_implemented:secrets",
         "config_cache:not_implemented:store_parallel_execution",
-        "config_cache:not_yet_implemented:storing_lambdas"
+        "config_cache:not_yet_implemented:storing_lambdas",
+        // reroute to cookbook, no anchors needed
+        "build_jenkins",
+        "build_teamcity",
+        "build_github_actions",
+        "sec:configure_github_actions",
+        "build_travis",
+        // fixed in redirection (javascript)
+        "sec:component_selection_rules",
+        "sub:declaring_dependency_with_dynamic_version",
+        "sub:declaring_dependency_with_changing_version",
+        "sec:controlling_dependency_caching_programmatically",
+        "sec:offline-mode",
+        "sec:controlling_dependency_caching_command_line",
+        "sec:dynamic_versions_and_changing_modules",
+        "single-version-declarations",
+        "version_ordering",
+        "sec:declaring_without_version",
+        "rich-version-constraints"
     ));
 
     @InputDirectory
