@@ -20,7 +20,7 @@ import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
-import org.gradle.kotlin.dsl.tooling.builders.KotlinDslBaseScriptModelBuilder
+import org.gradle.kotlin.dsl.tooling.builders.DslBaseScriptModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction
 
@@ -35,7 +35,7 @@ class KotlinScriptingModelBuildersServices : AbstractGradleModuleServices() {
         fun createIdeBuildScopeToolingModelBuilderRegistryAction(): BuildScopeToolingModelBuilderRegistryAction =
             object : BuildScopeToolingModelBuilderRegistryAction {
                 override fun execute(registry: ToolingModelBuilderRegistry) {
-                    registry.register(KotlinDslBaseScriptModelBuilder)
+                    registry.register(DslBaseScriptModelBuilder)
                     @Suppress("DEPRECATION")
                     registry.register(org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelBuilder)
                 }

@@ -18,18 +18,20 @@ package org.gradle.kotlin.dsl.tooling.builders.r91
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
-import org.gradle.tooling.model.kotlin.dsl.KotlinDslBaseScriptModel
+import org.gradle.tooling.model.kotlin.dsl.DslBaseScriptModel
+
+import java.util.stream.Collectors
 
 @TargetGradleVersion(">=9.1")
-class KotlinDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
+class DslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
-    def "KotlinDslBaseScriptModel is obtained without configuring projects"() {
+    def "DslBaseScriptModel is obtained without configuring projects"() {
 
         when:
         def listener = new ConfigurationPhaseMonitoringListener()
-        KotlinDslBaseScriptModel model = withConnection { connection ->
+        DslBaseScriptModel model = withConnection { connection ->
             connection
-                .model(KotlinDslBaseScriptModel)
+                .model(DslBaseScriptModel)
                 .addProgressListener(listener)
                 .get()
         }
@@ -38,6 +40,7 @@ class KotlinDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
         model != null
 
         and: "script templates classpath"
+        println "model.scriptTemplatesClassPath = ${model.scriptTemplatesClassPath.stream().limit(10).map {it.name }.collect(Collectors.joining("\n\t", "\n\t", ""))}" // TODO: remove
         loadClassesFrom(
             model.scriptTemplatesClassPath,
             // Script templates for IDE support
@@ -54,9 +57,11 @@ class KotlinDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
 
         and: "implicit imports"
         !model.implicitImports.isEmpty()
+        println "model.implicitImports = ${model.implicitImports.stream().limit(10).collect(Collectors.joining("\n\t", "\n\t", ""))}" // TODO: remove
 
         and: "base classpath"
         !model.kotlinDslClassPath.isEmpty()
+        println "model.kotlinDslClassPath = ${model.kotlinDslClassPath.stream().limit(10).map {it.name }.collect(Collectors.joining("\n\t", "\n\t", ""))}" // TODO: remove
         model.kotlinDslClassPath.find { it.name.contains("gradle-api-") && it.name.endsWith(".jar") }
         model.kotlinDslClassPath.find { it.name.contains("groovy-") && it.name.endsWith(".jar") }
         model.kotlinDslClassPath.find { it.name.contains("gradle-kotlin-dsl-") && it.name.endsWith(".jar") }

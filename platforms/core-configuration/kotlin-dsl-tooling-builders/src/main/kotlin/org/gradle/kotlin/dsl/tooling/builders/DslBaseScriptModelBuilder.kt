@@ -22,24 +22,24 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.tooling.model.kotlin.dsl.KotlinDslBaseScriptModel
+import org.gradle.tooling.model.kotlin.dsl.DslBaseScriptModel
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
 import java.io.File
 import java.io.Serializable
 
 
 internal
-object KotlinDslBaseScriptModelBuilder : BuildScopeModelBuilder {
+object DslBaseScriptModelBuilder : BuildScopeModelBuilder {
 
     override fun canBuild(modelName: String): Boolean =
-        modelName == "org.gradle.tooling.model.kotlin.dsl.KotlinDslBaseScriptModel"
+        modelName == "org.gradle.tooling.model.kotlin.dsl.DslBaseScriptModel"
 
-    override fun create(target: BuildState): KotlinDslBaseScriptModel {
+    override fun create(target: BuildState): DslBaseScriptModel {
         val gradle = target.mutableModel
         val moduleRegistry = gradle.serviceOf<ModuleRegistry>()
         val implicitImports = gradle.serviceOf<ImplicitImports>()
         val kotlinScriptClassPathProvider = gradle.serviceOf<KotlinScriptClassPathProvider>()
-        return StandardKotlinDslBaseScriptModel(
+        return StandardDslBaseScriptModel(
             scriptTemplatesClassPath = moduleRegistry.scriptTemplatesClassPath,
             implicitImports = implicitImports.list,
             kotlinDslClassPath = kotlinScriptClassPathProvider.gradleKotlinDsl.asFiles
@@ -56,11 +56,11 @@ object KotlinDslBaseScriptModelBuilder : BuildScopeModelBuilder {
 
 
 internal
-data class StandardKotlinDslBaseScriptModel(
+data class StandardDslBaseScriptModel(
     private val scriptTemplatesClassPath: List<File>,
     private val implicitImports: List<String>,
     private val kotlinDslClassPath: List<File>
-) : KotlinDslBaseScriptModel, Serializable {
+) : DslBaseScriptModel, Serializable {
 
     override fun getScriptTemplatesClassPath() = scriptTemplatesClassPath
 

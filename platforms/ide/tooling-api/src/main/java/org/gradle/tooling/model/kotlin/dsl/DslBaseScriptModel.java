@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.kotlin.dsl;
+package org.gradle.tooling.model.kotlin.dsl; // TODO: change package
 
 import org.gradle.api.Incubating;
 
@@ -26,15 +26,15 @@ import java.util.List;
  *
  * This model can be queried very early in the build lifecycle, without any script evaluation or build configuration.
  *
- * @since 9.1.0
+ * @since 9.2.0
  */
 @Incubating
-public interface KotlinDslBaseScriptModel {
+public interface DslBaseScriptModel {
 
     /**
      * Classpath required to load Kotlin script template classes.
      *
-     * @since 9.1.0
+     * @since 9.2.0
      */
     @Incubating
     List<File> getScriptTemplatesClassPath();
@@ -42,7 +42,7 @@ public interface KotlinDslBaseScriptModel {
     /**
      * The implicit imports that are used for all scripts.
      *
-     * @since 9.1.0
+     * @since 9.2.0
      */
     @Incubating
     List<String> getImplicitImports();
@@ -51,7 +51,7 @@ public interface KotlinDslBaseScriptModel {
     /**
      * A base classpath that contains Gradle API, Gradle API extensions and Kotlin DSL jars
      *
-     * @since 9.1.0
+     * @since 9.2.0
      */
     @Incubating
     List<File> getKotlinDslClassPath();
