@@ -24,6 +24,7 @@ import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 
@@ -148,7 +149,7 @@ public class ToolchainBuildOptions {
     }
 
     private abstract static class IntellijJdkBuildOption<T> extends StringBuildOption<T> {
-        private static final String GRADLE_PROPERTY = "org.gradle.java.installations.idea-jdks-directory";
+        private static final String GRADLE_PROPERTY = IntellijInstallationSupplier.INTELLIJ_JDK_DIR_PROPERTY;
 
         public IntellijJdkBuildOption() {
             super(GRADLE_PROPERTY);

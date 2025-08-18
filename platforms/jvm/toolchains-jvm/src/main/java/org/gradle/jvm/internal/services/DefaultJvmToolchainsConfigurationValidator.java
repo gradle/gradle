@@ -23,6 +23,7 @@ import org.gradle.initialization.JvmToolchainsConfigurationValidator;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 
@@ -71,7 +72,7 @@ public class DefaultJvmToolchainsConfigurationValidator implements JvmToolchains
             validatePropertyConfiguration(LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY);
             validatePropertyConfiguration(ToolchainConfiguration.AUTO_DETECT);
             validatePropertyConfiguration(AutoInstalledInstallationSupplier.AUTO_DOWNLOAD);
-            validatePropertyConfiguration("org.gradle.java.installations.idea-jdks-directory");
+            validatePropertyConfiguration(IntellijInstallationSupplier.INTELLIJ_JDK_DIR_PROPERTY);
         }
     }
 

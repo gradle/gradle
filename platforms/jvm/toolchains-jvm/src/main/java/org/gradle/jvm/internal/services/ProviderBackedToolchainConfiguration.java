@@ -23,6 +23,7 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.jspecify.annotations.Nullable;
@@ -116,7 +117,7 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
 
     @Override
     public File getIntelliJdkDirectory() {
-        return fromGradleProperty("org.gradle.java.installations.idea-jdks-directory").map(File::new).getOrElse(defaultJdksDirectory(OperatingSystem.current()));
+        return fromGradleProperty(IntellijInstallationSupplier.INTELLIJ_JDK_DIR_PROPERTY).map(File::new).getOrElse(defaultJdksDirectory(OperatingSystem.current()));
     }
 
     @Override
