@@ -23,6 +23,7 @@ Additionally, this release provides [build authoring improvements](#build-author
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Eng Zer Jun](https://github.com/Juneezee),
 [EunHyunsu](https://github.com/ehs208),
+[Gaëtan Muller](https://github.com/MGaetan89),
 [HeeChul Yang](https://github.com/yangchef1),
 [Jendrik Johannes](https://github.com/jjohannes),
 [Johnny Lim](https://github.com/izeye),
