@@ -16,8 +16,10 @@
 
 package org.gradle.internal.build;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier;
@@ -25,20 +27,30 @@ import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.Set;
 
 public class DefaultBuildToolingModelController implements BuildToolingModelController {
+
+    private static final Set<String> RESILIENT_MODELS = ImmutableSet.of(
+        // TODO: Is there a better way to identify resilient models?
+        "org.gradle.tooling.model.kotlin.dsl.ResilientKotlinDslScriptsModel"
+    );
+
     private final BuildLifecycleController buildController;
     private final BuildState buildState;
     private final ToolingModelBuilderLookup buildScopeLookup;
+    private final BuildModelParameters modelParameters;
 
     public DefaultBuildToolingModelController(
         BuildState buildState,
         BuildLifecycleController buildController,
-        ToolingModelBuilderLookup buildScopeLookup
+        ToolingModelBuilderLookup buildScopeLookup,
+        BuildModelParameters modelParameters
     ) {
         this.buildState = buildState;
         this.buildController = buildController;
         this.buildScopeLookup = buildScopeLookup;
+        this.modelParameters = modelParameters;
     }
 
     @Override
@@ -65,8 +77,21 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
             throw new IllegalArgumentException("Project has unexpected owner.");
         }
         // Force configuration of the containing build and then locate the builder for target project
-        buildController.configureProjects();
+        tryConfigureProjects(modelName);
         return doLocate(target, modelName, param);
+    }
+
+    private void tryConfigureProjects(String modelName) {
+        try {
+            buildController.configureProjects();
+        } catch (Exception e) {
+            if (modelParameters.isResilientModelBuilding() && RESILIENT_MODELS.contains(modelName)) {
+                // If resilient model building is enabled, we ignore the exception
+                // and allow the model to be built without configuration.
+                return;
+            }
+            throw e;
+        }
     }
 
     private ToolingModelScope doLocate(ProjectState target, String modelName, boolean param) {
