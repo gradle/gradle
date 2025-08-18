@@ -268,8 +268,7 @@ public class ProjectBuilderImpl {
 
         @Override
         protected ServiceRegistrationProvider prepareServicesProvider(BuildDefinition buildDefinition, BuildModelControllerServices.Supplier supplier) {
-            File homeDir = new File(buildDefinition.getBuildRootDir(), "gradleHome");
-            return new TestBuildScopeServices(homeDir, supplier);
+            return new TestBuildScopeServices(supplier);
         }
 
         @Override
