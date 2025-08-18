@@ -20,8 +20,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.tooling.model.dsl.DslBaseScriptModel
 
-import java.util.stream.Collectors
-
 @TargetGradleVersion(">=9.2")
 class DslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
@@ -61,7 +59,7 @@ class DslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossV
         )
 
         and: "implicit imports"
-        !model.implicitImports.isEmpty()
+        !model.kotlinScriptImplicitImports.isEmpty()
 
         and: "base classpath"
         !model.kotlinDslClassPath.isEmpty()

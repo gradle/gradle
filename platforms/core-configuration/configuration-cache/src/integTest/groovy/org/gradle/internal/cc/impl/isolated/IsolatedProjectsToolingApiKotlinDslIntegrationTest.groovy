@@ -79,7 +79,7 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
         checkModel(actual, expected, [
             { it.classPath },
             { it.sourcePath },
-            { it.implicitImports },
+           { it.getKotlinScriptImplicitImports },
             // TODO:isolated support editor reports
 //            [{ it.editorReports }, { a, e -> checkEditorReport(a, e) }],
             { it.exceptions },

@@ -45,14 +45,6 @@ public interface DslBaseScriptModel {
     @Incubating
     List<File> getScriptTemplatesClassPath();
 
-    /**
-     * The implicit imports that are used for all scripts.
-     *
-     * @since 9.2.0
-     */
-    @Incubating
-    List<String> getImplicitImports();
-
 
     /**
      * A base classpath that contains Gradle API, Gradle API extensions and Kotlin DSL jars
@@ -61,4 +53,12 @@ public interface DslBaseScriptModel {
      */
     @Incubating
     List<File> getKotlinDslClassPath();
+
+    /**
+     * The implicit imports that are used for all scripts.
+     *
+     * @since 9.2.0
+     */
+    @Incubating
+    List<String> getKotlinScriptImplicitImports();
 }

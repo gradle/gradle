@@ -97,7 +97,7 @@ class StandardDslBaseScriptModel implements DslBaseScriptModel, Serializable {
     }
 
     @Override
-    public List<String> getImplicitImports() {
+    public List<String> getKotlinScriptImplicitImports() {
         return implicitImports;
     }
 
