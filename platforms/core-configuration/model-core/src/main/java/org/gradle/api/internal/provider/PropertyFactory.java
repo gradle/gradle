@@ -35,6 +35,17 @@ public interface PropertyFactory {
     @Deprecated
     DefaultProperty<?> propertyWithNoType();
 
+    /**
+     * Creates a property with an arbitrary value type without applying the usual checks (like no {@code Property<Directory>}, etc.)
+     *
+     * @param type the type of the property value
+     * @param <T> the type of the property value
+     * @return the property
+     * @deprecated Consider passing around the type information and using {@link #property(Class)} instead.
+     */
+    @Deprecated
+    <T> DefaultProperty<T> propertyOfAnyType(Class<T> type);
+
     @ManagedObjectCreator(publicType = Property.class)
     <T> DefaultProperty<T> property(Class<T> type);
 

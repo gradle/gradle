@@ -479,9 +479,10 @@ Used to pass JVM options and custom settings to the JVM.
 `GRADLE_OPTS`::
 Specifies JVM arguments to use when starting the Gradle client VM.
 +
-The client VM only handles command line input/output, so one would rarely need to change its VM options.
+The client VM is lightweight and mainly handles command-line input and output, so it's uncommon to change its VM options.
 +
-The actual build is run by the Gradle daemon, which is not affected by this environment variable.
+While `GRADLE_OPTS` typically doesn't affect the <<gradle_daemon.adoc#gradle_daemon,daemon>>, you can use it to pass arguments to the daemon by setting the `org.gradle.jvmargs` system property.
+This is the recommended way to configure the daemon's JVM options, such as heap size or memory settings, via an environment variable.
 
 `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`::
 Specifies the `GRADLE_USER_HOME` directory for Gradle to store its global configuration properties, initialization scripts, caches, log files and more.

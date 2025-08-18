@@ -79,7 +79,7 @@ class DefaultProjectDependencyConstraintTest extends Specification {
         projectState.getMutableModel() >> project
 
         def projectStateRegistry = Mock(ProjectStateRegistry) {
-            stateFor(Path.ROOT) >> projectState
+            findProjectState(Path.ROOT) >> projectState
         }
 
         def dependencyFactory = new DefaultProjectDependencyFactory(
