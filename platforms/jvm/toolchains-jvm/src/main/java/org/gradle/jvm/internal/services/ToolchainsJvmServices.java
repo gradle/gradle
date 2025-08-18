@@ -107,7 +107,6 @@ public class ToolchainsJvmServices extends AbstractGradleModuleServices {
         }
 
         public void configure(ServiceRegistration registration) {
-            registration.add(JvmToolchainsConfigurationValidator.class, DefaultJvmToolchainsConfigurationValidator.class);
             registration.add(ToolchainConfiguration.class, ProviderBackedToolchainConfiguration.class);
             registration.add(OsXJavaHomeCommand.class, DefaultOsXJavaHomeCommand.class);
 
@@ -140,6 +139,7 @@ public class ToolchainsJvmServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
         registration.add(JvmInstallationProblemReporter.class);
+        registration.add(JvmToolchainsConfigurationValidator.class, DefaultJvmToolchainsConfigurationValidator.class);
     }
 
     @Override

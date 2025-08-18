@@ -23,7 +23,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 /**
  * Validates the JVM toolchains configuration used by the Gradle Daemon.
  */
-@ServiceScope(Scope.Build.class)
+@ServiceScope(Scope.BuildSession.class)
 public interface JvmToolchainsConfigurationValidator {
     /**
      * Validates that the given property is configured properly.
