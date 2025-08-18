@@ -16,47 +16,31 @@
 
 package org.gradle.kotlin.dsl.tooling.builders.internal
 
-import org.gradle.internal.build.BuildState
-import org.gradle.internal.resiliency.ResilientSyncListener
-import org.gradle.kotlin.dsl.tooling.builders.StandardKotlinDslScriptModel
+import org.gradle.api.Project
+import org.gradle.api.internal.GradleInternal
+import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinDslScriptsModelBuilder
 import org.gradle.tooling.Failure
 import org.gradle.tooling.internal.consumer.DefaultFailure
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.tooling.model.kotlin.dsl.ResilientKotlinDslScriptsModel
-import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
+import org.gradle.tooling.provider.model.ToolingModelBuilder
 
 internal
-class ResilientKotlinDslScriptsModelBuilder : BuildScopeModelBuilder {
+class ResilientKotlinDslScriptsModelBuilder(val delegate: AbstractKotlinDslScriptsModelBuilder) : ToolingModelBuilder {
 
-    override fun create(target: BuildState): ResilientKotlinDslScriptsModel {
+    override fun buildAll(modelName: String, project: Project): Any? {
+        val buildState = (project.gradle as GradleInternal).owner
+        var exception = null as Throwable?
         try {
-            target.ensureProjectsLoaded()
+            // Is there a better way to get the exception from the build state if it exists?
+            buildState.ensureProjectsLoaded()
         } catch (e: Exception) {
-            return buildModel(target, e)
+            exception = e
         }
-        try {
-            target.ensureProjectsConfigured()
-        } catch (e: Exception) {
-            return buildModel(target, e)
-        }
-        return buildModel(target, null)
-    }
-
-    private
-    fun buildModel(target: BuildState, throwable: Throwable?): ResilientKotlinDslScriptsModel {
-        val syncListener = target.mutableModel.services.get(ResilientSyncListener::class.java)
-        val map = syncListener.models.map {
-            it.key to StandardKotlinDslScriptModel(
-                it.value.classpath,
-                sourcePath = emptyList(),
-                implicitImports = it.value.implicitImports,
-                editorReports = emptyList(),
-                exceptions = emptyList(),
-            )
-        }.toMap()
+        val model = delegate.buildAll(modelName, project)
         return object : ResilientKotlinDslScriptsModel {
-            override fun getModel(): KotlinDslScriptsModel = KotlinDslScriptsModel { map }
-            override fun getFailure(): Failure = DefaultFailure.fromThrowable(throwable)
+            override fun getModel(): KotlinDslScriptsModel = model
+            override fun getFailure(): Failure? = if (exception == null) { exception } else { DefaultFailure.fromThrowable(exception) }
         }
     }
 

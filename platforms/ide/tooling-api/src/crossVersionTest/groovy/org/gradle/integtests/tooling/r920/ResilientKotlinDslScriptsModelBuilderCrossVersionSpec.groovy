@@ -22,6 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.Failure
+import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.tooling.model.kotlin.dsl.ResilientKotlinDslScriptsModel
@@ -32,6 +33,64 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
     def setup() {
         settingsFile.delete()
+    }
+
+    def "returns all models if there is no exception"() {
+        given:
+        settingsKotlinFile << """
+            rootProject.name = "root"
+            include("a", "b", "c", "d")
+        """
+
+        file("a/build.gradle.kts") << """
+            plugins {
+                id("java")
+            }
+
+        """
+        file("b/build.gradle.kts") << """
+            plugins {
+                id("java")
+            }
+        """
+        file("c/build.gradle.kts") << """
+            plugins {
+                id("java")
+            }
+        """
+        file("d/build.gradle.kts") << """
+            plugins {
+                id("java")
+            }
+        """
+
+        when:
+        def original = succeeds {
+            action(new OriginalModelAction()).run()
+        }
+
+        then:
+        original
+
+        when:
+        def resilientModels = succeeds {
+            action(new ResilientModelAction())
+                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                .run()
+        }
+
+        then:
+        def originalScripts = original.scriptModels.keySet()
+        def resilientScripts = resilientModels.scriptModels.keySet()
+        resilientScripts.size() == originalScripts.size()
+        for (File scriptFile : original.scriptModels.keySet()) {
+            assert resilientScripts.contains(scriptFile)
+            def originalModel = original.scriptModels.get(scriptFile)
+            def resilientModel = resilientModels.scriptModels.get(scriptFile)
+            assert resilientModel.classPath == originalModel.classPath
+            assert resilientModel.implicitImports == originalModel.implicitImports
+        }
+        resilientModels.failureMessage == null
     }
 
     def "returns all successful and first failed script model when #description"() {
@@ -74,24 +133,27 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         when:
         c << """$breakage"""
         def resilientModels = succeeds {
-            action(new ResilientModelAction()).run()
+            action(new ResilientModelAction())
+                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                .run()
         }
 
         then:
-        // TODO: Figure out why we return more
-        // resilientModels.scriptModels.size() == original.scriptModels.size()
-        resilientModels.scriptModels.size() == original.scriptModels.size() - 1
-        def resilientScripts = resilientModels.scriptModels.collect { it.key}
+        def originalScripts = original.scriptModels.keySet()
+        def resilientScripts = resilientModels.scriptModels.keySet()
+        resilientScripts.size() == originalScripts.size()
         for (File scriptFile : original.scriptModels.keySet()) {
-            if (scriptFile == d) {
-                assert !resilientScripts.contains(scriptFile)
-            } else {
+            if (scriptFile != d) {
                 assert resilientScripts.contains(scriptFile)
                 def originalModel = original.scriptModels.get(scriptFile)
                 def resilientModel = resilientModels.scriptModels.get(scriptFile)
-                // Accessors don't match for some reason
-                assert originalModel.classPath.find { !it.absolutePath.contains("/accessors/") } == resilientModel.classPath.find { !it.absolutePath.contains("/accessors/") }
-                assert originalModel.implicitImports == resilientModel.implicitImports
+                assert resilientModel.classPath == originalModel.classPath
+                assert resilientModel.implicitImports == originalModel.implicitImports
+            } else {
+                def originalModel = original.scriptModels.get(scriptFile)
+                def resilientModel = resilientModels.scriptModels.get(scriptFile)
+                assert resilientModel.classPath == originalModel.classPath.findAll { !it.absolutePath.contains("/accessors/") }
+                assert resilientModel.implicitImports == originalModel.implicitImports
             }
         }
         resilientModels.failureMessage.contains("c/build.gradle.kts' line: 5")
@@ -133,7 +195,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         @Override
         MyCustomModel execute(BuildController controller) {
-            ResilientKotlinDslScriptsModel buildScriptModel = controller.getModel(ResilientKotlinDslScriptsModel.class)
+            GradleBuild gradleBuild = controller.getModel(GradleBuild.class)
+            ResilientKotlinDslScriptsModel buildScriptModel = controller.getModel(gradleBuild.rootProject, ResilientKotlinDslScriptsModel.class)
 
             return new MyCustomModel(
                 buildScriptModel.model.scriptModels,

@@ -34,6 +34,7 @@ class DefaultBuildToolingModelControllerFactory(
             owner,
             controller,
             controller.gradle.services.get(ToolingModelBuilderLookup::class.java),
+            modelParameters
         )
         return if (modelParameters.isIntermediateModelCache) {
             ConfigurationCacheAwareBuildToolingModelController(defaultController, controller.gradle.services.get(BuildTreeConfigurationCache::class.java))

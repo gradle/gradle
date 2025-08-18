@@ -18,6 +18,7 @@ package org.gradle.tooling.model.kotlin.dsl;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.Failure;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Resilient version of {@link KotlinDslScriptsModel} that can handle missing or incomplete script models.
@@ -41,5 +42,6 @@ public interface ResilientKotlinDslScriptsModel {
      * @since 9.2.0
      */
     @Incubating
+    @Nullable
     Failure getFailure();
 }
