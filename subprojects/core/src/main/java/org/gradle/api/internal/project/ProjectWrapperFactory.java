@@ -20,6 +20,10 @@ import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+/**
+ * A preferred way to create project wrappers.
+ * The created wrapper is runtime-decorated and its lifetime is synchronized with the wrapped project.
+ */
 @ServiceScope(Scope.Build.class)
 public interface ProjectWrapperFactory {
 
