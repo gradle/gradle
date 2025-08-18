@@ -338,8 +338,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
     private void checkLinksInUserManualAreNotMissing(ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {
         TaskProvider<FindMissingDocumentationFiles> checkMissingInternalLinks = tasks.register("checkMissingInternalLinks", FindMissingDocumentationFiles.class, task -> {
             task.getDocumentationRoot().convention(extension.getUserManual().getRoot());
-            task.getGradle7JsonFile().convention(layout.getProjectDirectory().file("src/main/resources/links_gradle_7.json"));
-            task.getGradle8JsonFile().convention(layout.getProjectDirectory().file("src/main/resources/links_gradle_8.json"));
+            task.getJsonFilesDirectory().convention(layout.getProjectDirectory().dir("src/main/resources"));
         });
 
         tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(checkMissingInternalLinks));

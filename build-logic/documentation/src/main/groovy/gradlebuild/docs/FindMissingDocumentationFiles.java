@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,10 +31,9 @@ import java.util.Arrays;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.InputDirectory;
-import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
@@ -72,29 +71,24 @@ public abstract class FindMissingDocumentationFiles extends DefaultTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getDocumentationRoot();
 
-    @InputFile
-    @PathSensitive(PathSensitivity.NONE)
-    public abstract RegularFileProperty getGradle7JsonFile();
-
-    @InputFile
-    @PathSensitive(PathSensitivity.NONE)
-    public abstract RegularFileProperty getGradle8JsonFile();
+    @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract DirectoryProperty getJsonFilesDirectory();
 
     @TaskAction
     public void checkMissingFiles() {
-        File gradle7JsonFile = getGradle7JsonFile().getAsFile().get();
-        File gradle8JsonFile = getGradle8JsonFile().getAsFile().get();
         String directoryPath = getDocumentationRoot().get().toString();
+        FileCollection jsonFiles = getJsonFilesDirectory().getAsFileTree().filter(file -> file.getName().endsWith(".json"));
 
         try {
             List<String> allErrors = new ArrayList<>();
-
-            allErrors.addAll(findMissingAdocFiles(gradle7JsonFile, directoryPath));
-            allErrors.addAll(findMissingAdocFiles(gradle8JsonFile, directoryPath));
-
             Set<String> allExistingAnchors = findAllAdocAnchors(directoryPath);
-            allErrors.addAll(findMissingAnchors(gradle7JsonFile, allExistingAnchors));
-            allErrors.addAll(findMissingAnchors(gradle8JsonFile, allExistingAnchors));
+
+            for (File jsonFile : jsonFiles) {
+                getLogger().info("Verifying documentation for file: {}", jsonFile.getName());
+                allErrors.addAll(findMissingAdocFiles(jsonFile, directoryPath));
+                allErrors.addAll(findMissingAnchors(jsonFile, allExistingAnchors));
+            }
 
             if (!allErrors.isEmpty()) {
                 System.out.println("Found documentation files or anchors that do not exist:");
