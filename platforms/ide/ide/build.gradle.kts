@@ -24,7 +24,10 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.baseServicesGroovy)
+    implementation(projects.buildProcessServices)
+    implementation(projects.classloaders)
     implementation(projects.ear)
+    implementation(projects.kotlinDsl)  // TODO: git rid of this
     implementation(projects.languageJava)
     implementation(projects.loggingApi)
     implementation(projects.platformBase)
