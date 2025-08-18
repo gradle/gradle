@@ -23,7 +23,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel
-import org.gradle.tooling.model.kotlin.dsl.DslBaseScriptModel
+import org.gradle.tooling.model.dsl.DslBaseScriptModel
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
 import java.io.File
 import java.io.Serializable

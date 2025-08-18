@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.kotlin.dsl; // TODO: change package
+package org.gradle.tooling.model.dsl;
 
 import org.gradle.api.Incubating;
 

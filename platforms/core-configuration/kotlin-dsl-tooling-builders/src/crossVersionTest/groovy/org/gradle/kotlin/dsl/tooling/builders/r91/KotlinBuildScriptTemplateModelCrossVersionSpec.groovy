@@ -30,7 +30,7 @@ class KotlinBuildScriptTemplateModelCrossVersionSpec extends AbstractKotlinScrip
             expectDocumentedDeprecationWarning(
                 "The org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel type has been deprecated. " +
                     "This will fail with an error in Gradle 10. " +
-                    "Please use the org.gradle.tooling.model.kotlin.dsl.DslBaseScriptModel type instead."
+                    "Please use the org.gradle.tooling.model.dsl.DslBaseScriptModel type instead."
             )
         }
 
