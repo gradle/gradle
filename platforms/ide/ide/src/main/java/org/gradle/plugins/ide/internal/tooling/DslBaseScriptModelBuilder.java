@@ -16,10 +16,13 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider;
 import org.gradle.kotlin.dsl.support.ImplicitImports;
 import org.gradle.tooling.model.dsl.DslBaseScriptModel;
@@ -27,6 +30,7 @@ import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
@@ -45,33 +49,46 @@ public class DslBaseScriptModelBuilder implements BuildScopeModelBuilder {
         ModuleRegistry moduleRegistry = gradle.getServices().get(ModuleRegistry.class);
         ImplicitImports implicitImports = gradle.getServices().get(ImplicitImports.class);
         KotlinScriptClassPathProvider kotlinScriptClassPathProvider = gradle.getServices().get(KotlinScriptClassPathProvider.class);
+        DependencyFactoryInternal dependencyFactory = gradle.getServices().get(DependencyFactoryInternal.class);
         return new StandardDslBaseScriptModel(
-            getScriptTemplatesClassPath(moduleRegistry),
-            implicitImports.getList(),
-            kotlinScriptClassPathProvider.getGradleKotlinDsl().getAsFiles()
+            getGradleApiClassPath(dependencyFactory).getAsFiles(),
+            getScriptTemplatesClassPath(moduleRegistry).getAsFiles(),
+            kotlinScriptClassPathProvider.getGradleKotlinDsl().getAsFiles(),
+            implicitImports.getList()
         );
     }
 
-    private static List<File> getScriptTemplatesClassPath(ModuleRegistry moduleRegistry) {
+    @Nonnull
+    private static ClassPath getGradleApiClassPath(DependencyFactoryInternal dependencyFactory) {
+        return DefaultClassPath.of(((FileCollectionDependency) dependencyFactory.gradleApi()).getFiles().getFiles());
+    }
+
+    private static ClassPath getScriptTemplatesClassPath(ModuleRegistry moduleRegistry) {
         return Stream.of("gradle-core", "gradle-tooling-api")
             .map(moduleRegistry::getModule)
             .flatMap(it -> it.getAllRequiredModules().stream())
-            .reduce(ClassPath.EMPTY, (classPath, module) -> classPath.plus(module.getClasspath()), ClassPath::plus)
-            .getAsFiles();
+            .reduce(ClassPath.EMPTY, (classPath, module) -> classPath.plus(module.getClasspath()), ClassPath::plus);
     }
 }
 
 @NullMarked
 class StandardDslBaseScriptModel implements DslBaseScriptModel, Serializable {
 
+    private final List<File> gradleApiClassPath;
     private final List<File> scriptTemplatesClassPath;
     private final List<String> implicitImports;
     private final List<File> kotlinDslClassPath;
 
-    public StandardDslBaseScriptModel(List<File> scriptTemplatesClassPath, List<String> implicitImports, List<File> kotlinDslClassPath) {
+    public StandardDslBaseScriptModel(List<File> gradleApiClassPath, List<File> scriptTemplatesClassPath, List<File> kotlinDslClassPath, List<String> implicitImports) {
+        this.gradleApiClassPath = gradleApiClassPath;
         this.scriptTemplatesClassPath = scriptTemplatesClassPath;
-        this.implicitImports = implicitImports;
         this.kotlinDslClassPath = kotlinDslClassPath;
+        this.implicitImports = implicitImports;
+    }
+
+    @Override
+    public List<File> getGradleApiClassPath() {
+        return gradleApiClassPath;
     }
 
     @Override

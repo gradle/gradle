@@ -32,6 +32,12 @@ import java.util.List;
 public interface DslBaseScriptModel {
 
     /**
+     * Classpath required to use the Gradle API.
+     */
+    @Incubating
+    List<File> getGradleApiClassPath();
+
+    /**
      * Classpath required to load Kotlin script template classes.
      *
      * @since 9.2.0

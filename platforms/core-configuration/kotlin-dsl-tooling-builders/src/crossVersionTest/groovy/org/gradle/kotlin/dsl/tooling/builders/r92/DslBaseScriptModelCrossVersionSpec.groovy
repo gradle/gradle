@@ -39,8 +39,13 @@ class DslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossV
         then:
         model != null
 
+        and: "gradle api classpath"
+        model.gradleApiClassPath.find { it.name.contains("gradle-api-") && it.name.endsWith(".jar") }
+        model.gradleApiClassPath.find { it.name.contains("groovy-") && it.name.endsWith(".jar") }
+        model.gradleApiClassPath.find { it.name.contains("kotlin-stdlib-") && it.name.endsWith(".jar") }
+        model.gradleApiClassPath.find { it.name.contains("gradle-kotlin-dsl-") && it.name.endsWith(".jar") } == null
+
         and: "script templates classpath"
-        println "model.scriptTemplatesClassPath = ${model.scriptTemplatesClassPath.stream().limit(10).map {it.name }.collect(Collectors.joining("\n\t", "\n\t", ""))}" // TODO: remove
         loadClassesFrom(
             model.scriptTemplatesClassPath,
             // Script templates for IDE support
@@ -57,11 +62,9 @@ class DslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossV
 
         and: "implicit imports"
         !model.implicitImports.isEmpty()
-        println "model.implicitImports = ${model.implicitImports.stream().limit(10).collect(Collectors.joining("\n\t", "\n\t", ""))}" // TODO: remove
 
         and: "base classpath"
         !model.kotlinDslClassPath.isEmpty()
-        println "model.kotlinDslClassPath = ${model.kotlinDslClassPath.stream().limit(10).map {it.name }.collect(Collectors.joining("\n\t", "\n\t", ""))}" // TODO: remove
         model.kotlinDslClassPath.find { it.name.contains("gradle-api-") && it.name.endsWith(".jar") }
         model.kotlinDslClassPath.find { it.name.contains("groovy-") && it.name.endsWith(".jar") }
         model.kotlinDslClassPath.find { it.name.contains("gradle-kotlin-dsl-") && it.name.endsWith(".jar") }
