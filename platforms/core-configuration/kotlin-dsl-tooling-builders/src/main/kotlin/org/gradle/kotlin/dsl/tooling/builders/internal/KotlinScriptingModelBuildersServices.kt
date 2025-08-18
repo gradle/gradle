@@ -34,7 +34,6 @@ class KotlinScriptingModelBuildersServices : AbstractGradleModuleServices() {
         fun createIdeBuildScopeToolingModelBuilderRegistryAction(): BuildScopeToolingModelBuilderRegistryAction =
             object : BuildScopeToolingModelBuilderRegistryAction {
                 override fun execute(registry: ToolingModelBuilderRegistry) {
-                    registry.register(ResilientKotlinDslScriptsModelBuilder())
                     @Suppress("DEPRECATION")
                     registry.register(org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptTemplateModelBuilder)
                 }

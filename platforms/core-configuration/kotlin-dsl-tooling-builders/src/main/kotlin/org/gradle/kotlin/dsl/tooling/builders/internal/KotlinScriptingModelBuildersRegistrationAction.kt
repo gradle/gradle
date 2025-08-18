@@ -37,13 +37,19 @@ class KotlinScriptingModelBuildersRegistrationAction : ProjectConfigureAction {
         builders.register(IsolatedScriptsModelBuilder)
 
         if (project.parent == null) {
-            val isolatedProjects = project.serviceOf<BuildModelParameters>().isIsolatedProjects
-            if (isolatedProjects) {
-                builders.register(IsolatedProjectsSafeKotlinDslScriptsModelBuilder(intermediateModelProvider))
+            val modelParameters = project.serviceOf<BuildModelParameters>()
+            val isolatedProjects = modelParameters.isIsolatedProjects
+            val builder = if (isolatedProjects) {
+                IsolatedProjectsSafeKotlinDslScriptsModelBuilder(intermediateModelProvider)
             } else {
-                builders.register(KotlinDslScriptsModelBuilder)
+                KotlinDslScriptsModelBuilder
             }
 
+            if (modelParameters.isResilientModelBuilding) {
+                builders.register(ResilientKotlinDslScriptsModelBuilder(builder))
+            } else {
+                builders.register(builder)
+            }
             project.tasks.register(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
         }
     }
