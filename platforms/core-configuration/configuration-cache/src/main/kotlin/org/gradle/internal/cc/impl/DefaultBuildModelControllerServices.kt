@@ -23,6 +23,7 @@ import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultDynamicLookupRoutine
 import org.gradle.api.internal.project.DynamicLookupRoutine
 import org.gradle.api.internal.project.ProjectRegistry
+import org.gradle.api.internal.project.ProjectWrapperFactory
 import org.gradle.configuration.ProjectsPreparer
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.internal.DynamicCallContextTracker
@@ -163,9 +164,9 @@ class DefaultBuildModelControllerServices(
             listenerManager: ListenerManager,
             dynamicCallProblemReporting: DynamicCallProblemReporting,
             buildModelParameters: BuildModelParameters,
-            instantiator: Instantiator,
+            projectWrapperFactory: ProjectWrapperFactory,
         ): CrossProjectModelAccess {
-            val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry)
+            val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry, projectWrapperFactory)
             return ProblemReportingCrossProjectModelAccess(
                 delegate,
                 problemsListener,
@@ -173,7 +174,7 @@ class DefaultBuildModelControllerServices(
                 problemFactory,
                 dynamicCallProblemReporting,
                 buildModelParameters,
-                instantiator
+                projectWrapperFactory
             )
         }
 
@@ -198,9 +199,10 @@ class DefaultBuildModelControllerServices(
     class VintageIsolatedProjectsProvider : ServiceRegistrationProvider {
         @Provides
         fun createCrossProjectModelAccess(
-            projectRegistry: ProjectRegistry
+            projectRegistry: ProjectRegistry,
+            projectWrapperFactory: ProjectWrapperFactory
         ): CrossProjectModelAccess {
-            return DefaultCrossProjectModelAccess(projectRegistry)
+            return DefaultCrossProjectModelAccess(projectRegistry, projectWrapperFactory)
         }
 
         @Provides
