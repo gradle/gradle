@@ -93,6 +93,15 @@ fun createQuickFeedbackTasks(sourceSet: SourceSet, releasedVersions: ReleasedVer
 }
 
 fun createAggregateTasks(sourceSet: SourceSet, releasedVersions: ReleasedVersionsDetails?) {
+    tasks.register("allVersionsCrossVersionTest") {
+        description = "Run cross-version tests against all released versions (latest patch release of each)"
+        group = "ci lifecycle"
+    }
+
+    tasks.named("allVersionsCrossVersionTest") {
+        dependsOn("allVersionsCrossVersionTests")
+    }
+
     val allVersionsCrossVersionTests = tasks.register("allVersionsCrossVersionTests") {
         group = "verification"
         description = "Runs the cross-version tests against all Gradle versions with 'forking' executer"
