@@ -18,6 +18,7 @@ package org.gradle.internal.extensibility;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemLocationProperty;
@@ -38,7 +39,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -59,7 +59,7 @@ public class ConventionAwareHelper implements ConventionMapping {
     public ConventionAwareHelper(IConventionAware source) {
         this._source = source;
         this._propertyNames = JavaPropertyReflectionUtil.propertyNames(source);
-        this._ineligiblePropertyNames = new HashSet<>();
+        this._ineligiblePropertyNames = new ObjectOpenHashSet<>();
     }
 
     private MappedProperty map(String propertyName, MappedPropertyImpl mapping) {
