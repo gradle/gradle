@@ -19,6 +19,7 @@ package org.gradle.internal.serialize.codecs.core
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
@@ -531,7 +532,7 @@ class WorkNodeCodec(
                 readSuccessorReferences(nodeForId) {
                     node.addFinalizingSuccessor(it)
                 }
-                val lifecycleSuccessors = mutableSetOf<Node>()
+                val lifecycleSuccessors = ObjectOpenHashSet<Node>()
                 readSuccessorReferences(nodeForId) {
                     lifecycleSuccessors.add(it)
                 }
