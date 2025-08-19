@@ -46,7 +46,7 @@ configurations.named("integTestRuntimeClasspath") {
     extendsFrom(configurations.named("integTestDistributionRuntimeOnly").get())
 }
 createTasks(sourceSet, TestType.INTEGRATION)
-configureIde(TestType.INTEGRATION)
+configureIde(sourceSet)
 
 createTestTask("integMultiVersionTest", "forking", sourceSet, TestType.INTEGRATION) {
     // This test task runs only multi-version tests and is intended to be used in the late pipeline to sweep up versions not previously tested

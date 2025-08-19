@@ -40,9 +40,13 @@ class ToolingApiClassLoaderProvider {
     private static final GradleDistribution CURRENT_GRADLE = new UnderDevelopmentGradleDistribution(IntegrationTestBuildContext.INSTANCE)
 
     static ClassLoader getToolingApiClassLoader(ToolingApiDistribution toolingApi, Class<?> target) {
-        def testClassPath = [ToolingApiSpecification, target]
+        def testClassPath = [ToolingApiSpecification, target] //FIXME: this is where we forget our additional source set / class directories
             .collect { ClasspathUtil.getClasspathForClass(it) }
 
+        // TODO: Why do we break classloading in the first place?
+        File testClassClassFolder = ClasspathUtil.getClasspathForClass(target)
+        testClassPath.add(testClassClassFolder.parentFile.parentFile.toPath().resolve("java/" + testClassClassFolder.name + "Fixtures").toFile())
+        testClassPath.add(testClassClassFolder.parentFile.parentFile.toPath().resolve("java/" + testClassClassFolder.name).toFile())
         testClassPath.addAll(collectAdditionalClasspath(toolingApi, target))
 
         getTestClassLoader(toolingApi, testClassPath)

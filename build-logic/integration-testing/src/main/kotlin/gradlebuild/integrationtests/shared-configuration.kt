@@ -232,10 +232,7 @@ fun DistributionTest.setSystemPropertiesOfTestJVM(defaultVersions: String) {
 
 
 internal
-fun Project.configureIde(testType: TestType) {
-    val prefix = testType.prefix
-    val sourceSet = the<SourceSetContainer>().getByName("${prefix}Test")
-
+fun Project.configureIde(sourceSet: SourceSet) {
     // We apply lazy as we don't want to depend on the order
     plugins.withType<IdeaPlugin> {
         with(model) {
