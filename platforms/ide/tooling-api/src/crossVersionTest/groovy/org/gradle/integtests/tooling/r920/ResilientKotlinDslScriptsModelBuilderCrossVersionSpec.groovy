@@ -92,7 +92,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             assert resilientModel.classPath == originalModel.classPath
             assert resilientModel.implicitImports == originalModel.implicitImports
         }
-        resilientModels.failureMessage == null
+        resilientModels.failureMessages.isEmpty()
     }
 
     def "returns all successful and first failed script model when #description"() {
@@ -158,8 +158,9 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
                 assert resilientModel.implicitImports == originalModel.implicitImports
             }
         }
-        resilientModels.failureMessage.contains("c/build.gradle.kts' line: 5")
-        resilientModels.failureMessage.contains(expectedFailure)
+        resilientModels.failureMessages.size() == 1
+        resilientModels.failureMessages[settingsKotlinFile.parentFile].contains("c/build.gradle.kts' line: 5")
+        resilientModels.failureMessages[settingsKotlinFile.parentFile].contains(expectedFailure)
 
         where:
         description                | breakage                                     | expectedFailure
@@ -259,8 +260,9 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
                 assert resilientModel.v2.implicitImports == originalModel.implicitImports
             }
         }
-        resilientModels.failureMessage.contains("b/build.gradle.kts' line: 2")
-        resilientModels.failureMessage.contains("Failing script")
+        resilientModels.failureMessages.size() == 1
+        resilientModels.failureMessages[settingsKotlinFile.parentFile].contains("b/build.gradle.kts' line: 2")
+        resilientModels.failureMessages[settingsKotlinFile.parentFile].contains("Failing script")
     }
 
     def "returns scripts models when project convention plugin is failing with compile error"() {
@@ -352,7 +354,9 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
                 assert resilientModel.v2.implicitImports == originalModel.implicitImports
             }
         }
-        resilientModels.failureMessage.contains("Execution failed for task ':build-logic:compileKotlin'")
+        resilientModels.failureMessages.size() == 2
+        resilientModels.failureMessages[settingsKotlinFile.parentFile].contains("A problem occurred configuring project ':b'.")
+        resilientModels.failureMessages[included].contains("Execution failed for task ':build-logic:compileKotlin'.")
     }
 
     @ToBeImplemented("Needs resilient GradleBuild model")
@@ -413,13 +417,12 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
     static class MyCustomModel implements Serializable {
 
-        Map<File, KotlinDslScriptModel> scriptModels
+        final Map<File, KotlinDslScriptModel> scriptModels
+        final Map<File, String> failureMessages
 
-        String failureMessage
-
-        MyCustomModel(Map<File, KotlinDslScriptModel> scriptModels, Failure failure) {
+        MyCustomModel(Map<File, KotlinDslScriptModel> scriptModels, Map<File, Failure> failure) {
             this.scriptModels = scriptModels
-            this.failureMessage = failure ? failure.description : null
+            this.failureMessages = failure.collectEntries { k, v -> [(k): v.description] }
         }
     }
 
@@ -438,7 +441,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
             return new MyCustomModel(
                 scriptModels,
-                null
+                [:]
             )
         }
     }
@@ -449,24 +452,24 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         MyCustomModel execute(BuildController controller) {
             GradleBuild gradleBuild = controller.getModel(GradleBuild.class)
             Map<File, KotlinDslScriptModel> scriptModels = [:]
-            Failure failure = null
+            Map<File, Failure> failures = [:]
             ResilientKotlinDslScriptsModel buildScriptModel = controller.getModel(gradleBuild.rootProject, ResilientKotlinDslScriptsModel.class)
             scriptModels += buildScriptModel.model.scriptModels
             if (buildScriptModel.failure) {
-                failure = buildScriptModel.failure
+                failures[gradleBuild.buildIdentifier.rootDir] = buildScriptModel.failure
             }
             for (GradleBuild build : gradleBuild.includedBuilds) {
                 def root = build.rootProject
                 buildScriptModel = controller.getModel(root, ResilientKotlinDslScriptsModel.class)
                 scriptModels += buildScriptModel.model.scriptModels
                 if (buildScriptModel.failure) {
-                    failure = buildScriptModel.failure
+                    failures[build.buildIdentifier.rootDir] = buildScriptModel.failure
                 }
             }
 
             return new MyCustomModel(
                 scriptModels,
-                failure
+                failures
             )
         }
     }
