@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.TargetVersions
 /**
  * Tests that task classes compiled with the current version of Gradle are compatible with previous versions.
  */
-@TargetVersions("7.0+")
+@TargetVersions("7.3+") // we run with Java 17 which is not yet supported by Gradle before 7.3
 class TaskSubclassingBinaryBackwardsCompatibilityCrossVersionSpec extends AbstractTaskSubclassingBinaryCompatibilityCrossVersionSpec {
     def "can use task subclass using previous Gradle version"() {
         given:
