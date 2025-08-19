@@ -20,6 +20,7 @@ dependencies {
     implementation(projects.cleanup)
     implementation(projects.dependencyModules)
     implementation(projects.jvm)
+    implementation("com.google.code.gson:gson")
 
     testImplementation("junit:junit")
 }
