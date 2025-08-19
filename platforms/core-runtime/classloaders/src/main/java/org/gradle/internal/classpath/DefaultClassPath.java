@@ -19,7 +19,6 @@ package org.gradle.internal.classpath;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -28,15 +27,18 @@ import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
+import java.util.Spliterator;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import static org.gradle.internal.Cast.uncheckedCast;
 
 /**
  * An immutable classpath.
@@ -54,7 +56,7 @@ public class DefaultClassPath implements ClassPath, Serializable {
         } else if (files instanceof Collection) {
             return of((Collection<File>) files);
         } else {
-            List<File> list = new ArrayList<File>();
+            List<File> list = new ArrayList<>();
             for (File file : files) {
                 list.add(file);
             }
@@ -112,7 +114,7 @@ public class DefaultClassPath implements ClassPath, Serializable {
 
     @Override
     public List<File> getAsFiles() {
-        return files;
+        return uncheckedCast(Arrays.asList(files.asArray.clone()));
     }
 
     @Override
@@ -167,12 +169,9 @@ public class DefaultClassPath implements ClassPath, Serializable {
 
     @Override
     public ClassPath removeIf(final Spec<? super File> filter) {
-        List<File> remainingFiles = CollectionUtils.filter(files, new Spec<File>() {
-            @Override
-            public boolean isSatisfiedBy(File element) {
-                return !filter.isSatisfiedBy(element);
-            }
-        });
+        List<File> remainingFiles = files.stream()
+            .filter(element -> !filter.isSatisfiedBy(element))
+            .collect(Collectors.toList());
         if (remainingFiles.size() == files.size()) {
             return this;
         }
@@ -196,11 +195,15 @@ public class DefaultClassPath implements ClassPath, Serializable {
         return files.hashCode();
     }
 
-    private static ImmutableUniqueList<File> concat(Collection<File> files1, Collection<File> files2) {
-        Set<File> result = new LinkedHashSet<File>();
-        result.addAll(files1);
-        result.addAll(files2);
-        return new ImmutableUniqueList<File>(result);
+    private static ImmutableUniqueList<File> concat(ImmutableUniqueList<File> files1, Collection<File> files2) {
+        ImmutableUniqueList.Builder<File> builder = ImmutableUniqueList.builderWithExactSize(files1.size() + files2.size());
+        for (File file : files1) {
+            builder.add(file);
+        }
+        for (File file : files2) {
+            builder.add(file);
+        }
+        return builder.build();
     }
 
     public static class Builder {
@@ -220,8 +223,8 @@ public class DefaultClassPath implements ClassPath, Serializable {
         }
     }
 
-    public static final class ImmutableUniqueList<T> extends AbstractList<T> implements Serializable {
-        private static final ImmutableUniqueList<Object> EMPTY = new ImmutableUniqueList<Object>(Collections.emptySet());
+    public static final class ImmutableUniqueList<T> implements Iterable<T>, Serializable {
+        private static final ImmutableUniqueList<Object> EMPTY = new ImmutableUniqueList<Object>(new Object[0]);
 
         public static <T> ImmutableUniqueList<T> of(Collection<T> collection) {
             if (collection.isEmpty()) {
@@ -236,6 +239,45 @@ public class DefaultClassPath implements ClassPath, Serializable {
 
         public static <T> Builder<T> builderWithExactSize(int exactSize) {
             return new Builder<T>(exactSize);
+        }
+
+        @Override
+        public int hashCode() {
+            return Arrays.hashCode(asArray);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (!(obj instanceof ImmutableUniqueList)) {
+                return false;
+            }
+            return Arrays.equals(asArray, Cast.<ImmutableUniqueList<T>>uncheckedCast(obj).asArray);
+        }
+
+        @Override
+        public String toString() {
+            return Arrays.toString(asArray);
+        }
+
+        public boolean isEmpty() {
+            return size() == 0;
+        }
+
+        public Stream<T> stream() {
+            return StreamSupport.stream(spliterator(), false);
+        }
+
+        @Override
+        public Spliterator<T> spliterator() {
+            return uncheckedCast(Arrays.spliterator(asArray));
+        }
+
+        @Override
+        public Iterator<T> iterator() {
+            return uncheckedCast(Arrays.asList(asArray).iterator());
         }
 
         public static class Builder<T> {
@@ -262,12 +304,12 @@ public class DefaultClassPath implements ClassPath, Serializable {
             }
 
             public ImmutableUniqueList<T> build() {
-                return new ImmutableUniqueList<T>(set, shrinkArray());
+                return new ImmutableUniqueList<T>(shrinkArray());
             }
 
             public ImmutableUniqueList<T> buildWithExactSize() {
                 assert array.length == inserted;
-                return new ImmutableUniqueList<T>(set, array);
+                return new ImmutableUniqueList<T>(array);
             }
 
             private Object[] shrinkArray() {
@@ -286,46 +328,23 @@ public class DefaultClassPath implements ClassPath, Serializable {
         }
 
         private final Object[] asArray;
-        private final Set<T> asSet;
-        private final int size;
-
-        /**
-         * Unsafe constructor for internally created Sets that we know won't be mutated.
-         */
-        ImmutableUniqueList(Set<T> from) {
-            this(from, from.toArray(new Object[0]));
-        }
 
         /**
          * Unsafe constructor for {@link Builder}.
          */
-        ImmutableUniqueList(Set<T> set, Object[] array) {
-            size = array.length;
+        ImmutableUniqueList(Object[] array) {
             asArray = array;
-            asSet = set;
         }
 
-        @Override
         public T get(int index) {
-            if (index >= size) {
-                throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size);
+            if (index >= size()) {
+                throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + size());
             }
             return Cast.uncheckedNonnullCast(asArray[index]);
         }
 
-        @Override
-        public boolean contains(Object o) {
-            return asSet.contains(o);
-        }
-
-        @Override
-        public boolean containsAll(Collection<?> c) {
-            return asSet.containsAll(c);
-        }
-
-        @Override
         public int size() {
-            return size;
+            return asArray.length;
         }
     }
 }
