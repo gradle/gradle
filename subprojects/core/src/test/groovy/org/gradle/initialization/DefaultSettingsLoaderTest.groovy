@@ -47,7 +47,7 @@ class DefaultSettingsLoaderTest extends Specification {
     private mockBuildLayoutFactory = Mock(BuildLayoutFactory) {
         getLayoutFor(_) >> mockBuildLayout
     }
-    private mockProjectDescriptor = Mock(DefaultProjectDescriptor) {
+    private mockProjectDescriptor = Mock(ProjectDescriptorInternal) {
         getPath() >> ":"
         getProjectDir() >> mockBuildLayout.settingsDir
         getBuildFile() >> new File(mockBuildLayout.settingsDir, "build.gradle")

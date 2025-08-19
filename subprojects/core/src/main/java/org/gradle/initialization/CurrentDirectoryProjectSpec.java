@@ -30,8 +30,8 @@ public class CurrentDirectoryProjectSpec extends AbstractProjectSpec {
     }
 
     @Override
-    protected void select(ProjectDescriptorRegistry candidates, List<DefaultProjectDescriptor> matches) {
-        for (DefaultProjectDescriptor candidate : candidates.getAllProjects()) {
+    protected void select(ProjectDescriptorRegistry candidates, List<ProjectDescriptorInternal> matches) {
+        for (ProjectDescriptorInternal candidate : candidates.getAllProjects()) {
             if (candidate.getProjectDir().equals(currentDir)) {
                 matches.add(candidate);
             }
@@ -47,7 +47,7 @@ public class CurrentDirectoryProjectSpec extends AbstractProjectSpec {
     }
 
     @Override
-    protected String formatMultipleMatchesMessage(Iterable<DefaultProjectDescriptor> matches) {
+    protected String formatMultipleMatchesMessage(Iterable<ProjectDescriptorInternal> matches) {
         return String.format("Multiple projects in this build have project directory '%s': %s", currentDir, matches);
     }
 }

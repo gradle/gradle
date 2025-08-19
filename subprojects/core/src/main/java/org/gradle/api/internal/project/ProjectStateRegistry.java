@@ -18,7 +18,7 @@ package org.gradle.api.internal.project;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.initialization.DefaultProjectDescriptor;
+import org.gradle.initialization.ProjectDescriptorInternal;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildProjectRegistry;
@@ -81,7 +81,7 @@ public interface ProjectStateRegistry {
     /**
      * Registers a single project.
      */
-    ProjectState registerProject(BuildState owner, DefaultProjectDescriptor projectDescriptor);
+    ProjectState registerProject(BuildState owner, ProjectDescriptorInternal projectDescriptor);
 
     /**
      * Allows the given code to access the mutable state of any project in the tree, regardless of which other threads may be accessing the project.

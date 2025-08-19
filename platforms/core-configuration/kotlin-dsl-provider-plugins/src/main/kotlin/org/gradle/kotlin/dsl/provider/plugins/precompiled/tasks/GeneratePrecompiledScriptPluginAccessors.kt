@@ -51,7 +51,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.initialization.ClassLoaderScopeRegistry
-import org.gradle.initialization.DefaultProjectDescriptor
+import org.gradle.initialization.ProjectDescriptorInternal
 import org.gradle.internal.Try
 import org.gradle.internal.build.NestedRootBuildRunner.createNestedBuildTree
 import org.gradle.internal.classpath.ClassPath
@@ -359,7 +359,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     }
                     val rootProjectScope = baseScope.createChild("accessors-root-project", null)
                     settings.rootProject.name = "gradle-kotlin-dsl-accessors"
-                    val projectState = gradle.serviceOf<ProjectStateRegistry>().registerProject(gradle.owner, settings.rootProject as DefaultProjectDescriptor)
+                    val projectState = gradle.serviceOf<ProjectStateRegistry>().registerProject(gradle.owner, settings.rootProject as ProjectDescriptorInternal)
                     projectState.createMutableModel(rootProjectScope, baseScope)
                     val rootProject = projectState.mutableModel
                     gradle.rootProject = rootProject

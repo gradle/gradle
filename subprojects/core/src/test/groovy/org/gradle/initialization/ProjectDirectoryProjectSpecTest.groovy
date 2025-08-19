@@ -16,7 +16,6 @@
 package org.gradle.initialization
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -25,13 +24,11 @@ import spock.lang.Specification
 import static org.gradle.util.internal.WrapUtil.toSet
 
 @CleanupTestDirectory
-public class ProjectDirectoryProjectSpecTest extends Specification {
+class ProjectDirectoryProjectSpecTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass());
     private final File dir = temporaryFolder.createDir("build");
     private final ProjectDirectoryProjectSpec spec = new ProjectDirectoryProjectSpec(dir);
-    private int counter;
-    def settings = "settings 'foo'"
 
     def "contains match when at least one project has specified project dir"() {
         expect:
@@ -45,7 +42,7 @@ public class ProjectDirectoryProjectSpecTest extends Specification {
 
     def "selects single project which has specified project dir"() {
         when:
-        ProjectIdentifier project1 = project(dir);
+        ProjectDescriptorInternal project1 = project(dir);
 
         then:
         spec.selectProject("settings 'foo'", registry(project1, project(new File("other")))) == project1;
@@ -61,8 +58,8 @@ public class ProjectDirectoryProjectSpecTest extends Specification {
     }
 
     def "select project fails when multiple projects have specified project dir"() {
-        ProjectIdentifier project1 = project(dir);
-        ProjectIdentifier project2 = project(dir);
+        ProjectDescriptorInternal project1 = project(dir);
+        ProjectDescriptorInternal project2 = project(dir);
 
         when:
         spec.selectProject("settings 'foo'", registry(project1, project2));
@@ -91,15 +88,15 @@ public class ProjectDirectoryProjectSpecTest extends Specification {
         e.message == "Project directory '" + dir + "' is not a directory."
     }
 
-    private ProjectDescriptorRegistry registry(final DefaultProjectDescriptor... projects) {
+    private ProjectDescriptorRegistry registry(final ProjectDescriptorInternal... projects) {
         final ProjectDescriptorRegistry registry = Stub(ProjectDescriptorRegistry)
         registry.getAllProjects() >> toSet(projects)
         return registry
     }
 
-    private DefaultProjectDescriptor project(final File projectDir) {
-        final ProjectIdentifier projectIdentifier = Mock(DefaultProjectDescriptor)
-        projectIdentifier.projectDir >> projectDir
-        return projectIdentifier
+    private ProjectDescriptorInternal project(final File projectDir) {
+        return Mock(ProjectDescriptorInternal) {
+            getProjectDir() >> projectDir
+        }
     }
 }

@@ -39,8 +39,8 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DependenciesAccessors;
+import org.gradle.initialization.ProjectDescriptorInternal;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.Cast;
 import org.gradle.internal.buildoption.FeatureFlags;
@@ -175,12 +175,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         executeWork(new ProjectAccessorUnitOfWork(projectRegistry));
     }
 
-    private static void warnIfRootProjectNameNotSetExplicitly(@Nullable ProjectDescriptor project) {
-        if (!(project instanceof DefaultProjectDescriptor)) {
-            return;
-        }
-        DefaultProjectDescriptor descriptor = (DefaultProjectDescriptor) project;
-        if (!descriptor.isExplicitName()) {
+    private static void warnIfRootProjectNameNotSetExplicitly(@Nullable ProjectDescriptorInternal project) {
+        if (!project.isExplicitName()) {
             LOGGER.warn("Project accessors enabled, but root project name not explicitly set for '" + project.getName() +
                 "'. Checking out the project in different folders will impact the generated code and implicitly the buildscript classpath, breaking caching.");
         }

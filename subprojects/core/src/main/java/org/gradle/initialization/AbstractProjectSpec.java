@@ -25,15 +25,15 @@ public abstract class AbstractProjectSpec implements ProjectSpec {
     @Override
     public boolean containsProject(ProjectDescriptorRegistry registry) {
         checkPreconditions(registry);
-        List<DefaultProjectDescriptor> matches = new ArrayList<>();
+        List<ProjectDescriptorInternal> matches = new ArrayList<>();
         select(registry, matches);
         return !matches.isEmpty();
     }
 
     @Override
-    public DefaultProjectDescriptor selectProject(String settingsDescription, ProjectDescriptorRegistry registry) {
+    public ProjectDescriptorInternal selectProject(String settingsDescription, ProjectDescriptorRegistry registry) {
         checkPreconditions(registry);
-        List<DefaultProjectDescriptor> matches = new ArrayList<>();
+        List<ProjectDescriptorInternal> matches = new ArrayList<>();
         select(registry, matches);
         if (matches.isEmpty()) {
             String message = formatNoMatchesMessage(settingsDescription) + UNRELATED_BUILD_HINT;
@@ -48,9 +48,9 @@ public abstract class AbstractProjectSpec implements ProjectSpec {
     protected void checkPreconditions(ProjectDescriptorRegistry registry) {
     }
 
-    protected abstract String formatMultipleMatchesMessage(Iterable<DefaultProjectDescriptor> matches);
+    protected abstract String formatMultipleMatchesMessage(Iterable<ProjectDescriptorInternal> matches);
 
     protected abstract String formatNoMatchesMessage(String settings);
 
-    protected abstract void select(ProjectDescriptorRegistry candidates, List<DefaultProjectDescriptor> matches);
+    protected abstract void select(ProjectDescriptorRegistry candidates, List<ProjectDescriptorInternal> matches);
 }

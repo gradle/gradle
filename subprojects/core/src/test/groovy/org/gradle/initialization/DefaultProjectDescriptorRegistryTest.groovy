@@ -32,7 +32,7 @@ class DefaultProjectDescriptorRegistryTest extends Specification {
 
     def "can add root project"() {
         when:
-        DefaultProjectDescriptor root = descriptor("root")
+        ProjectDescriptorInternal root = descriptor("root")
 
         then:
         registry.getRootProject().is(root)
@@ -40,21 +40,21 @@ class DefaultProjectDescriptorRegistryTest extends Specification {
 
     def addProject() {
         when:
-        DefaultProjectDescriptor root = descriptor("root")
+        ProjectDescriptorInternal root = descriptor("root")
 
         then:
         root.is(registry.getProject(root.getPath()))
         registry.getAllProjects().contains(root)
 
         when:
-        DefaultProjectDescriptor child = descriptor(CHILD_NAME, root)
+        ProjectDescriptorInternal child = descriptor(CHILD_NAME, root)
 
         then:
         child.is(registry.getProject(child.getPath()))
         registry.getAllProjects().contains(child)
 
         when:
-        DefaultProjectDescriptor childChild = descriptor(CHILD_CHILD_NAME, child)
+        ProjectDescriptorInternal childChild = descriptor(CHILD_CHILD_NAME, child)
 
         then:
         childChild.is(registry.getProject(childChild.getPath()))
@@ -67,18 +67,18 @@ class DefaultProjectDescriptorRegistryTest extends Specification {
     }
 
     def canLocalAllProjects() {
-        DefaultProjectDescriptor root = descriptor("root")
-        DefaultProjectDescriptor child = descriptor(CHILD_NAME, root)
-        DefaultProjectDescriptor childChild = descriptor(CHILD_CHILD_NAME, child)
+        ProjectDescriptorInternal root = descriptor("root")
+        ProjectDescriptorInternal child = descriptor(CHILD_NAME, root)
+        ProjectDescriptorInternal childChild = descriptor(CHILD_CHILD_NAME, child)
 
         expect:
         registry.getAllProjects() == ([root, child, childChild] as Set)
     }
 
     def canRemoveProject() {
-        DefaultProjectDescriptor root = descriptor("root")
-        DefaultProjectDescriptor child = descriptor(CHILD_NAME, root)
-        DefaultProjectDescriptor childChild = descriptor(CHILD_CHILD_NAME, child)
+        ProjectDescriptorInternal root = descriptor("root")
+        ProjectDescriptorInternal child = descriptor(CHILD_NAME, root)
+        ProjectDescriptorInternal childChild = descriptor(CHILD_CHILD_NAME, child)
 
         when:
         String path = childChild.getPath()
@@ -90,7 +90,7 @@ class DefaultProjectDescriptorRegistryTest extends Specification {
     }
 
     def "can add project"() {
-        DefaultProjectDescriptor rootProject = descriptor("testName")
+        ProjectDescriptorInternal rootProject = descriptor("testName")
 
         expect:
         rootProject.is(registry.getProject(rootProject.getPath()))
@@ -98,7 +98,7 @@ class DefaultProjectDescriptorRegistryTest extends Specification {
 
     def changeProjectDescriptorPath() {
         // Project is added as a side effect
-        DefaultProjectDescriptor project = descriptor("name")
+        ProjectDescriptorInternal project = descriptor("name")
         registry.changeDescriptorPath(Path.path(":"), Path.path(":newPath"))
 
         expect:
@@ -107,7 +107,7 @@ class DefaultProjectDescriptorRegistryTest extends Specification {
         registry.getProject(":newPath") is project
     }
 
-    private DefaultProjectDescriptor descriptor(String name, DefaultProjectDescriptor parent = null, TestFile projectDir = TEST_DIR.file(name)) {
+    private ProjectDescriptorInternal descriptor(String name, ProjectDescriptorInternal parent = null, TestFile projectDir = TEST_DIR.file(name)) {
         // Project is added to the registry as a side effect (yuck)
         return new DefaultProjectDescriptor(parent, name, projectDir, registry, FILE_RESOLVER)
     }

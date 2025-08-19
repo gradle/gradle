@@ -27,18 +27,18 @@ import java.util.Set;
 
 @ServiceScope(Scope.Settings.class)
 public class DefaultProjectDescriptorRegistry implements ProjectDescriptorRegistry {
-    private final Map<String, DefaultProjectDescriptor> projects = new HashMap<>();
+    private final Map<String, ProjectDescriptorInternal> projects = new HashMap<>();
 
     @Override
-    public void addProject(DefaultProjectDescriptor project) {
-        DefaultProjectDescriptor previous = projects.put(project.getPath(), project);
+    public void addProject(ProjectDescriptorInternal project) {
+        ProjectDescriptorInternal previous = projects.put(project.getPath(), project);
         if (previous != null) {
             throw new IllegalArgumentException(String.format("Multiple projects registered for path '%s'.", project.getPath()));
         }
     }
 
-    public DefaultProjectDescriptor removeProject(String path) {
-        DefaultProjectDescriptor project = projects.remove(path);
+    public ProjectDescriptorInternal removeProject(String path) {
+        ProjectDescriptorInternal project = projects.remove(path);
         assert project != null;
         return project;
     }
@@ -49,23 +49,23 @@ public class DefaultProjectDescriptorRegistry implements ProjectDescriptorRegist
     }
 
     @Override
-    public Set<DefaultProjectDescriptor> getAllProjects() {
+    public Set<ProjectDescriptorInternal> getAllProjects() {
         return ImmutableSet.copyOf(projects.values());
     }
 
     @Override
-    public DefaultProjectDescriptor getRootProject() {
+    public @Nullable ProjectDescriptorInternal getRootProject() {
         return getProject(Path.ROOT.getPath());
     }
 
     @Override
-    public @Nullable DefaultProjectDescriptor getProject(String path) {
+    public @Nullable ProjectDescriptorInternal getProject(String path) {
         return projects.get(path);
     }
 
     @Override
     public void changeDescriptorPath(Path oldPath, Path newPath) {
-        DefaultProjectDescriptor projectDescriptor = removeProject(oldPath.toString());
+        ProjectDescriptorInternal projectDescriptor = removeProject(oldPath.toString());
         projectDescriptor.setPath(newPath);
         addProject(projectDescriptor);
     }

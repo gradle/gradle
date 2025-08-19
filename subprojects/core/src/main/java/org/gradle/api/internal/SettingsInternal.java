@@ -27,8 +27,8 @@ import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal
 import org.gradle.declarative.dsl.model.annotations.Adding;
 import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.IncludedBuildSpec;
+import org.gradle.initialization.ProjectDescriptorInternal;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.FinalizableValue;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
@@ -48,9 +48,9 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
 
     ProjectDescriptorRegistry getProjectRegistry();
 
-    DefaultProjectDescriptor getDefaultProject();
+    ProjectDescriptorInternal getDefaultProject();
 
-    void setDefaultProject(DefaultProjectDescriptor defaultProject);
+    void setDefaultProject(ProjectDescriptorInternal defaultProject);
 
     @Override
     GradleInternal getGradle();

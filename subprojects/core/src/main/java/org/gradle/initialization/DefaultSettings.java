@@ -75,9 +75,9 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     private File settingsDir;
 
-    private DefaultProjectDescriptor rootProjectDescriptor;
+    private final ProjectDescriptorInternal rootProjectDescriptor;
 
-    private DefaultProjectDescriptor defaultProjectDescriptor;
+    private ProjectDescriptorInternal defaultProjectDescriptor;
 
     private final GradleInternal gradle;
 
@@ -149,18 +149,18 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         return scriptHandler;
     }
 
-    public DefaultProjectDescriptor createProjectDescriptor(@Nullable DefaultProjectDescriptor parent, String name, File dir) {
+    public ProjectDescriptorInternal createProjectDescriptor(@Nullable ProjectDescriptorInternal parent, String name, File dir) {
         return new DefaultProjectDescriptor(parent, name, dir, getProjectDescriptorRegistry(), getFileResolver(), getScriptFileResolver());
     }
 
     @Override
-    public DefaultProjectDescriptor findProject(String path) {
+    public ProjectDescriptorInternal findProject(String path) {
         return getProjectDescriptorRegistry().getProject(path);
     }
 
     @Override
-    public @Nullable DefaultProjectDescriptor findProject(File projectDir) {
-        Set<DefaultProjectDescriptor> matches = getProjectDescriptorRegistry().getAllProjects().stream()
+    public @Nullable ProjectDescriptorInternal findProject(File projectDir) {
+        Set<ProjectDescriptorInternal> matches = getProjectDescriptorRegistry().getAllProjects().stream()
             .filter(project -> project.getProjectDir().equals(projectDir))
             .collect(Collectors.toSet());
 
@@ -172,8 +172,8 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Override
-    public DefaultProjectDescriptor project(String path) {
-        DefaultProjectDescriptor projectDescriptor = getProjectDescriptorRegistry().getProject(path);
+    public ProjectDescriptorInternal project(String path) {
+        ProjectDescriptorInternal projectDescriptor = getProjectDescriptorRegistry().getProject(path);
         if (projectDescriptor == null) {
             throw new UnknownProjectException(String.format("Project with path '%s' could not be found.", path));
         }
@@ -181,8 +181,8 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Override
-    public DefaultProjectDescriptor project(File projectDir) {
-        DefaultProjectDescriptor projectDescriptor = findProject(projectDir);
+    public ProjectDescriptorInternal project(File projectDir) {
+        ProjectDescriptorInternal projectDescriptor = findProject(projectDir);
         if (projectDescriptor == null) {
             throw new UnknownProjectException(String.format("Project with path '%s' could not be found.", projectDir));
         }
@@ -194,10 +194,10 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         for (String projectPath : projectPaths) {
             String subPath = "";
             String[] pathElements = removeTrailingColon(projectPath).split(":");
-            DefaultProjectDescriptor parentProjectDescriptor = rootProjectDescriptor;
+            ProjectDescriptorInternal parentProjectDescriptor = rootProjectDescriptor;
             for (String pathElement : pathElements) {
                 subPath = subPath + ":" + pathElement;
-                DefaultProjectDescriptor projectDescriptor = getProjectDescriptorRegistry().getProject(subPath);
+                ProjectDescriptorInternal projectDescriptor = getProjectDescriptorRegistry().getProject(subPath);
                 if (projectDescriptor == null) {
                     parentProjectDescriptor = createProjectDescriptor(parentProjectDescriptor, pathElement, new File(parentProjectDescriptor.getProjectDir(), pathElement));
                 } else {
@@ -227,17 +227,13 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         return rootProjectDescriptor;
     }
 
-    public void setRootProjectDescriptor(DefaultProjectDescriptor rootProjectDescriptor) {
-        this.rootProjectDescriptor = rootProjectDescriptor;
-    }
-
     @Override
-    public DefaultProjectDescriptor getDefaultProject() {
+    public ProjectDescriptorInternal getDefaultProject() {
         return defaultProjectDescriptor;
     }
 
     @Override
-    public void setDefaultProject(DefaultProjectDescriptor defaultProjectDescriptor) {
+    public void setDefaultProject(ProjectDescriptorInternal defaultProjectDescriptor) {
         this.defaultProjectDescriptor = defaultProjectDescriptor;
     }
 

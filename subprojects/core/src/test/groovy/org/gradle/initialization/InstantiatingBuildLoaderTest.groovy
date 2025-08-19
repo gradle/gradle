@@ -43,9 +43,9 @@ class InstantiatingBuildLoaderTest extends Specification {
     File childProjectDir
     ProjectDescriptorRegistry projectDescriptorRegistry = new DefaultProjectDescriptorRegistry()
     StartParameter startParameter = new StartParameter()
-    ProjectDescriptor rootDescriptor
+    ProjectDescriptorInternal rootDescriptor
     ProjectInternal rootProject
-    ProjectDescriptor childDescriptor
+    ProjectDescriptorInternal childDescriptor
     ProjectInternal childProject
     GradleInternal gradle
     SettingsInternal settingsInternal
@@ -133,7 +133,7 @@ class InstantiatingBuildLoaderTest extends Specification {
         rootProject.childProjectsUnchecked['child'].is childProject
     }
 
-    ProjectDescriptor descriptor(String name, ProjectDescriptor parent, File projectDir) {
+    ProjectDescriptorInternal descriptor(String name, ProjectDescriptorInternal parent, File projectDir) {
         new DefaultProjectDescriptor(parent, name, projectDir, projectDescriptorRegistry, TestFiles.resolver(rootProjectDir))
     }
 
