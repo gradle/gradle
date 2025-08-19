@@ -16,9 +16,10 @@
 
 import gradlebuild.basics.capitalize
 import gradlebuild.basics.testing.TestType
+import gradlebuild.identity.extension.ReleasedVersionsDetails
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
-import gradlebuild.integrationtests.createTestTask
 import gradlebuild.integrationtests.configureIde
+import gradlebuild.integrationtests.createTestTask
 import gradlebuild.integrationtests.setSystemPropertiesOfTestJVM
 
 plugins {
@@ -29,26 +30,26 @@ plugins {
 }
 
 val sourceSet = sourceSets.create("${TestType.CROSSVERSION.prefix}Test")
-jvmCompile {
-    addCompilationFrom(sourceSet)
-}
-addDependenciesAndConfigurations(TestType.CROSSVERSION.prefix)
-createQuickFeedbackTasks()
-createAggregateTasks(sourceSet)
-configureIde(TestType.CROSSVERSION)
-configureTestFixturesForCrossVersionTests()
-
-fun configureTestFixturesForCrossVersionTests() {
-    // do not attempt to find projects when the plugin is applied just to generate accessors
-    if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "test" /* remove once wrapper is updated */) {
-        dependencies {
-            "crossVersionTestImplementation"(testFixtures(project(":tooling-api")))
-        }
-    }
-}
 val releasedVersions = gradleModule.identity.releasedVersions.orNull
 
-fun createQuickFeedbackTasks() {
+jvmCompile {
+    addCompilationFrom(sourceSet)
+        targetJvmVersion = 8
+    }
+}
+addDependenciesAndConfigurations(TestType.CROSSVERSION.prefix)
+createQuickFeedbackTasks(sourceSet, releasedVersions)
+createAggregateTasks(sourceSet, releasedVersions)
+configureIde(sourceSet)
+configureDependenciesForCrossVersionTests()
+
+fun configureDependenciesForCrossVersionTests() {
+    dependencies {
+        project.configurations[sourceSet.implementationConfigurationName](testFixtures(project(":tooling-api")))
+    }
+}
+
+fun createQuickFeedbackTasks(sourceSet: SourceSet, releasedVersions: ReleasedVersionsDetails?) {
     val testType = TestType.CROSSVERSION
     val defaultExecuter = "embedded"
     val prefix = testType.prefix
@@ -68,9 +69,30 @@ fun createQuickFeedbackTasks() {
             tasks.named("check").configure { dependsOn(testTask) }
         }
     }
+
+    tasks.named("quickTest") {
+        dependsOn("embeddedCrossVersionTest")
+    }
+
+    tasks.named("platformTest") {
+        dependsOn("forkingCrossVersionTest")
+    }
+
+    tasks.named("quickFeedbackCrossVersionTest") {
+        dependsOn("quickFeedbackCrossVersionTests")
+    }
 }
 
-fun createAggregateTasks(sourceSet: SourceSet) {
+fun createAggregateTasks(sourceSet: SourceSet, releasedVersions: ReleasedVersionsDetails?) {
+    tasks.register("allVersionsCrossVersionTest") {
+        description = "Run cross-version tests against all released versions (latest patch release of each)"
+        group = "ci lifecycle"
+    }
+
+    tasks.named("allVersionsCrossVersionTest") {
+        dependsOn("allVersionsCrossVersionTests")
+    }
+
     val allVersionsCrossVersionTests = tasks.register("allVersionsCrossVersionTests") {
         group = "verification"
         description = "Runs the cross-version tests against all Gradle versions with 'forking' executer"
@@ -81,7 +103,6 @@ fun createAggregateTasks(sourceSet: SourceSet) {
         description = "Runs the cross-version tests against a subset of selected Gradle versions with 'forking' executer for quick feedback"
     }
 
-    val releasedVersions = gradleModule.identity.releasedVersions.orNull
     releasedVersions?.allTestedVersions?.forEach { targetVersion ->
         val crossVersionTest = createTestTask("gradle${targetVersion.version}CrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION) {
             this.description = "Runs the cross-version tests against Gradle ${targetVersion.version}"
