@@ -43,6 +43,15 @@ project.layout.settingsDirectory.file(".teamcity/subprojects.json").asFile.apply
             val sourceSet = sourceSets.create("${TestType.CROSSVERSION.prefix}Test")
             val releasedVersions = gradleModule.identity.releasedVersions.orNull
 
+            jvmCompile {
+                // crossVersion tests must be able to run the TAPI client, which is still JVM 8 compatible,
+                // code may also run in Gradle versions that may not support the JVM version used to compile
+                // the production code for the in-development Gradle version
+                addCompilationFrom(sourceSet) {
+                    targetJvmVersion = 8
+                }
+            }
+
             addDependenciesAndConfigurations(TestType.CROSSVERSION.prefix)
             createQuickFeedbackTasks(sourceSet, releasedVersions)
             createAggregateTasks(sourceSet, releasedVersions)

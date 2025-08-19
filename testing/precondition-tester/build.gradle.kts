@@ -23,6 +23,14 @@ plugins {
 
 description = "Internal project testing and collecting information about all the test preconditions."
 
+jvmCompile {
+    compilations {
+        named("main") {
+            targetJvmVersion = 8
+        }
+    }
+}
+
 dependencies {
     // ========================================================================
     // All subprojects, which has their own preconditions.
