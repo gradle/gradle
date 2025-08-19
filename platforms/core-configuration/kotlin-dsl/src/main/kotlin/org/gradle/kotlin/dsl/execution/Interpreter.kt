@@ -190,16 +190,8 @@ class Interpreter(val host: Host) {
         val programHost =
             programHostFor(options)
 
-
-        // TODO: consider computing stage 1 accessors only when there's a buildscript or plugins block
-        // TODO: consider splitting buildscript/plugins block accessors
-        val stage1BlocksAccessorsClassPath = stage1BlocksAccessorsClassPath(programTarget, scriptHost)
-
         if (cachedProgram != null) {
-            val classPath = host.compilationClassPathOf(targetScope.parent).asFiles + stage1BlocksAccessorsClassPath.asFiles
-            scriptHost.resilientSyncListener.onKotlinScriptCompilationStarted(File(scriptSource.fileName), classPath, host.implicitImports) {
-                programHost.eval(cachedProgram, scriptHost)
-            }
+            programHost.eval(cachedProgram, scriptHost)
             return
         }
 
@@ -219,13 +211,8 @@ class Interpreter(val host: Host) {
             programId
         )
 
-        val classPath = host.compilationClassPathOf(targetScope.parent).asFiles + stage1BlocksAccessorsClassPath.asFiles
-        scriptHost.resilientSyncListener.onKotlinScriptCompilationStarted(File(scriptSource.fileName), classPath, host.implicitImports) {
-            programHost.eval(specializedProgram, scriptHost)
-        }
+        programHost.eval(specializedProgram, scriptHost)
     }
-
-
 
     private
     fun programTargetFor(target: Any): ProgramTarget =
@@ -271,7 +258,10 @@ class Interpreter(val host: Host) {
 
         // TODO: consider computing stage 1 accessors only when there's a buildscript or plugins block
         // TODO: consider splitting buildscript/plugins block accessors
-        val stage1BlocksAccessorsClassPath = stage1BlocksAccessorsClassPath(programTarget, scriptHost)
+        val stage1BlocksAccessorsClassPath = when (programTarget) {
+            ProgramTarget.Project -> host.stage1BlocksAccessorsFor(scriptHost)
+            else -> ClassPath.EMPTY
+        }
 
         val scriptPath = scriptHost.fileName
         val classesDir = compile(
@@ -294,13 +284,6 @@ class Interpreter(val host: Host) {
             stage1BlocksAccessorsClassPath,
             scriptSource
         )
-    }
-
-    private fun stage1BlocksAccessorsClassPath(programTarget: ProgramTarget, scriptHost: KotlinScriptHost<Any>): ClassPath {
-        return when (programTarget) {
-            ProgramTarget.Project -> host.stage1BlocksAccessorsFor(scriptHost)
-            else -> ClassPath.EMPTY
-        }
     }
 
     @Suppress("LongParameterList")
@@ -338,22 +321,20 @@ class Interpreter(val host: Host) {
             )
 
             scriptSource.withLocationAwareExceptionHandling {
-                scriptHost.resilientSyncListener.onKotlinScriptCompilationStarted(File(scriptSource.fileName), compilationClassPath.asFiles, host.implicitImports) {
-                    ResidualProgramCompiler(
-                        outputDir = cachedDir,
-                        compilerOptions = host.compilerOptions,
-                        classPath = compilationClassPath,
-                        originalSourceHash = programId.sourceHash,
-                        programKind = programKind,
-                        programTarget = programTarget,
-                        implicitImports = host.implicitImports,
-                        logger = interpreterLogger,
-                        temporaryFileProvider = temporaryFileProvider,
-                        compileBuildOperationRunner = host::runCompileBuildOperation,
-                        stage1BlocksAccessorsClassPath = stage1BlocksAccessorsClassPath,
-                        packageName = residualProgram.packageName,
-                    ).compile(residualProgram.document)
-                }
+                ResidualProgramCompiler(
+                    outputDir = cachedDir,
+                    compilerOptions = host.compilerOptions,
+                    classPath = compilationClassPath,
+                    originalSourceHash = programId.sourceHash,
+                    programKind = programKind,
+                    programTarget = programTarget,
+                    implicitImports = host.implicitImports,
+                    logger = interpreterLogger,
+                    temporaryFileProvider = temporaryFileProvider,
+                    compileBuildOperationRunner = host::runCompileBuildOperation,
+                    stage1BlocksAccessorsClassPath = stage1BlocksAccessorsClassPath,
+                    packageName = residualProgram.packageName,
+                ).compile(residualProgram.document)
             }
         }
     }
@@ -444,9 +425,7 @@ class Interpreter(val host: Host) {
 
             val cachedProgram = host.cachedClassFor(programId)
             if (cachedProgram != null) {
-                scriptHost.resilientSyncListener.onKotlinScriptCompilationStarted(File(scriptHost.scriptSource.fileName), compileClassPath.asFiles + accessorsClassPath.asFiles, host.implicitImports) {
-                    eval(cachedProgram, scriptHost)
-                }
+                eval(cachedProgram, scriptHost)
                 return
             }
 
@@ -463,9 +442,7 @@ class Interpreter(val host: Host) {
                 programId
             )
 
-            scriptHost.resilientSyncListener.onKotlinScriptCompilationStarted(File(scriptHost.scriptSource.fileName), compileClassPath.asFiles + accessorsClassPath.asFiles, host.implicitImports) {
-                eval(specializedProgram, scriptHost)
-            }
+            eval(specializedProgram, scriptHost)
         }
 
         override fun accessorsClassPathFor(scriptHost: KotlinScriptHost<*>): ClassPath =
@@ -499,24 +476,24 @@ class Interpreter(val host: Host) {
                     startCompilerOperationFor(scriptSource, scriptTemplateId).use {
 
                         scriptSource.withLocationAwareExceptionHandling {
-                            scriptHost.resilientSyncListener.onKotlinScriptCompilationStarted(File(originalScriptPath), compilationClassPath.asFiles, host.implicitImports) {
-                                scriptHost.temporaryFileProvider.withTemporaryScriptFileFor(originalScriptPath, program.secondStageScriptText) { scriptFile ->
-                                    ResidualProgramCompiler(
-                                        outputDir,
-                                        host.compilerOptions,
-                                        compilationClassPath,
-                                        sourceHash,
-                                        programKind,
-                                        programTarget,
-                                        host.implicitImports,
-                                        interpreterLogger,
-                                        scriptHost.temporaryFileProvider,
-                                        host::runCompileBuildOperation
-                                    ).emitStage2ProgramFor(
-                                        scriptFile,
-                                        originalScriptPath
-                                    )
-                                }
+
+                            scriptHost.temporaryFileProvider.withTemporaryScriptFileFor(originalScriptPath, program.secondStageScriptText) { scriptFile ->
+
+                                ResidualProgramCompiler(
+                                    outputDir,
+                                    host.compilerOptions,
+                                    compilationClassPath,
+                                    sourceHash,
+                                    programKind,
+                                    programTarget,
+                                    host.implicitImports,
+                                    interpreterLogger,
+                                    scriptHost.temporaryFileProvider,
+                                    host::runCompileBuildOperation
+                                ).emitStage2ProgramFor(
+                                    scriptFile,
+                                    originalScriptPath
+                                )
                             }
                         }
                     }
