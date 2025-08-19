@@ -17,9 +17,9 @@
 package org.gradle.execution.plan.edges;
 
 import com.google.common.collect.ImmutableSortedSet;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.gradle.execution.plan.Node;
 
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -45,7 +45,7 @@ public class DependencySuccessorsOnlyNodeSet implements DependencyNodesSet {
     public DependencySuccessorsOnlyNodeSet addDependency(Node node) {
         orderedDependencies.add(node);
         if (waitingFor == null) {
-            waitingFor = new HashSet<>();
+            waitingFor = new ObjectOpenHashSet<>();
         }
         // It would be better to discard dependencies that have already completed at this point, rather than collecting them and checking their state later
         // However, it is not always known whether a dependency will be scheduled or not when it is added here.
