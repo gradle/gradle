@@ -32,6 +32,7 @@ import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.kotlin.dsl.support.isGradleKotlinDslJar
 import org.gradle.kotlin.dsl.support.isGradleKotlinDslJarName
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.jetbrains.kotlin.it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import java.io.File
 import java.net.URI
 import java.net.URISyntaxException
@@ -176,7 +177,7 @@ class ClassLoaderClassPathCache {
 
     private
     fun classPathOf(classLoader: ClassLoader): Set<File> {
-        val classPathFiles = mutableSetOf<File>()
+        val classPathFiles = ObjectOpenHashSet<File>()
 
         object : ClassLoaderVisitor() {
             override fun visitClassPath(classPath: Array<URL>) {
