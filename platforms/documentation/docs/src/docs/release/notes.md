@@ -16,13 +16,14 @@ Gradle now supports [Java 25](#java-25).
 
 This release adds support for [diagnostics and preview improvements](#diagnostics), and includes [console enhancements](#cli) such as a rich console off-screen line indicator and a new plain console with colors.
 
-Gradle @version@ introduces [improved error messages](#error) for version conflicts and enhancements to the [Configuration Cache](#configuration-cache), including a new read-only mode and improved handling of keystore types.
+Gradle @version@ introduces [improved error messages](#error) for version conflicts and enhancements to the [Configuration Cache](#configuration-cache). This includes a new read-only mode, finer-grained tracking of `-P` command-line properties, and improved handling of keystore types.
 
 Additionally, this release provides [build authoring improvements](#build-authoring), such as a new `Gradle.getBuildPath()` method and type-safe accessors for `compileOnly` plugin dependencies in precompiled Kotlin scripts.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Eng Zer Jun](https://github.com/Juneezee),
 [EunHyunsu](https://github.com/ehs208),
+[Gaëtan Muller](https://github.com/MGaetan89),
 [HeeChul Yang](https://github.com/yangchef1),
 [Jendrik Johannes](https://github.com/jjohannes),
 [Johnny Lim](https://github.com/izeye),
@@ -236,6 +237,74 @@ To enable the feature, specify the following flag in the command-line when invok
 ```
 
 Even though the option may also be enabled via `gradle.properties`, that would not be recommended, as that would effectively always lead to the [Configuration Cache](userguide/configuration_cache.html) becoming disabled.
+
+#### Finer grained tracking of `-P` command-line properties
+
+Previously, changing any `-P` [command-line property](userguide/build_environment.html#sec:project_properties) would invalidate the [Configuration Cache](userguide/configuration_cache.html), even if the property wasn't used during the configuration phase.
+
+Consider the following Kotlin DSL example:
+
+```kotlin
+tasks.register("echo") {
+    val value = providers.gradleProperty("value")
+    doLast {
+        println("value: ${value.orNull}")
+    }
+}
+```
+
+With previous versions of Gradle, multiple executions of the `echo` task with different `-P` arguments would be unable to reuse the Configuration Cache:
+
+```console
+$ ./gradlew --configuration-cache echo -Pvalue=1
+
+Calculating task graph as no cached configuration is available for tasks: echo
+
+> Task :echo
+value: 1
+
+...
+Configuration cache entry stored.
+```
+
+```console
+$ ./gradlew --configuration-cache echo -Pvalue=2
+
+Calculating task graph as configuration cache cannot be reused because the set of Gradle properties has changed: the value of 'value' was changed.
+
+> Task :echo
+value: 2
+
+...
+Configuration cache entry stored.
+```
+
+By detecting that the `value` property is never mentioned during the configuration phase, this release can reuse the configuration cache for faster builds:
+
+```console
+$ ./gradlew --configuration-cache echo -Pvalue=1
+
+Calculating task graph as no cached configuration is available for tasks: echo
+
+> Task :echo
+value: 1
+
+...
+Configuration cache entry stored.
+```
+
+```console
+$ ./gradlew --configuration-cache echo -Pvalue=2
+Reusing configuration cache.
+
+> Task :echo
+value: 2
+
+...
+Configuration cache entry reused.
+```
+
+Additionally, the [Configuration Cache report](userguide/configuration_cache_debugging.html#config_cache:troubleshooting) will include properties used during the configuration phase under the _Build configuration inputs_ tab.
 
 #### Encryption honors the JVM’s default keystore type
 
