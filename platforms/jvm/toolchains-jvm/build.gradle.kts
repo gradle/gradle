@@ -17,6 +17,7 @@
 plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.distribution.api-kotlin")
+    id("gradlebuild.cross-version-tests")
 }
 
 description = "Adds support for using JVM toolchains in projects"

@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.internal.java")
+    id("gradlebuild.cross-version-tests")
 }
 
 description = "Integration tests which don't fit anywhere else - should probably be split up"

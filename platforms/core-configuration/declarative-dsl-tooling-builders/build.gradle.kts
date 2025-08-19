@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.implementation-kotlin")
+    id("gradlebuild.cross-version-tests")
 }
 
 description = "Declarative DSL Tooling Builders for IDEs"

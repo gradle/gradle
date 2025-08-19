@@ -22,6 +22,7 @@ import java.util.jar.Attributes
 plugins {
     id("gradlebuild.distribution.api-java")
     id("com.gradleup.gr8") version "0.10"
+    id("gradlebuild.cross-version-tests")
 }
 
 description = "Entry point of the Gradle wrapper command"

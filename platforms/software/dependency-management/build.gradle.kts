@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.implementation-java")
+    id("gradlebuild.cross-version-tests")
 }
 
 description = """This project contains most of the dependency management logic of Gradle:

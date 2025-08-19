@@ -16,6 +16,7 @@
 
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.cross-version-tests")
 }
 
 description = "Plugins that add support for generating IDE project files used for importing Gradle projects into IDEs"
