@@ -45,7 +45,7 @@ public interface TaskDependencyInternal extends TaskDependency {
      */
     Set<? extends Task> getDependenciesForInternalUse(@Nullable Task task);
 
-    TaskDependencyInternal EMPTY = new TaskDependencyContainerInternal() {
+    TaskDependencyContainerInternal EMPTY = new TaskDependencyContainerInternal() {
         @Override
         public Set<? extends Task> getDependenciesForInternalUse(@Nullable Task task) {
             return Collections.emptySet();

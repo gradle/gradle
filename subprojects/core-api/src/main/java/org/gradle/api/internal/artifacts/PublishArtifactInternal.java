@@ -15,9 +15,10 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.PublishArtifact;
 
-public interface PublishArtifactInternal extends PublishArtifact {
+public interface PublishArtifactInternal extends PublishArtifact, Buildable {
     boolean shouldBePublished();
 
     static boolean shouldBePublished(PublishArtifact artifact) {

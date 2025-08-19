@@ -40,6 +40,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.tasks.util.internal.PatternSetFactory
 import org.gradle.composite.internal.BuildTreeWorkGraphController
+import org.gradle.execution.plan.TaskDependencyResolver
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.execution.InputFingerprinter
@@ -194,7 +195,8 @@ class DefaultConfigurationCacheCodecs(
     taskDependencyFactory: TaskDependencyFactory,
     val javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
     transformStepNodeFactory: TransformStepNodeFactory,
-    problems: InternalProblems
+    problems: InternalProblems,
+    taskDependencyResolver: TaskDependencyResolver
 ) : ConfigurationCacheCodecs {
 
     private
@@ -244,7 +246,7 @@ class DefaultConfigurationCacheCodecs(
             bind(DefaultTransformCodec(fileLookup, actionScheme))
             bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
             bind(TransformStepSpecCodec)
-            bind(PublishArtifactLocalArtifactMetadataCodec)
+            bind(PublishArtifactLocalArtifactMetadataCodec(taskDependencyResolver))
             bind(TransformedProjectArtifactSetCodec())
             bind(TransformedExternalArtifactSetCodec())
             bind(CalculateArtifactsCodec(calculatedValueContainerFactory))

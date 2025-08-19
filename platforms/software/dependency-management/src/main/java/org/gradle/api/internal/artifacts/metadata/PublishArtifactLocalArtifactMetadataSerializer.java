@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.api.internal.artifacts.publish.ImmutablePublishArtifact;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -30,6 +31,7 @@ import java.io.File;
 /**
  * A thread-safe and reusable serializer for {@link PublishArtifactLocalArtifactMetadata}.
  */
+// todo where do we use it?
 public class PublishArtifactLocalArtifactMetadataSerializer implements Serializer<PublishArtifactLocalArtifactMetadata> {
 
     private final ComponentIdentifierSerializer componentIdentifierSerializer;
@@ -48,8 +50,7 @@ public class PublishArtifactLocalArtifactMetadataSerializer implements Serialize
         File artifactFile = new File(decoder.readString());
         return new PublishArtifactLocalArtifactMetadata(
             identifier,
-            new ImmutablePublishArtifact(artifactName, artifactExtension, artifactType, artifactClassifier, artifactFile)
-        );
+            new ImmutablePublishArtifact(artifactName, artifactExtension, artifactType, artifactClassifier, artifactFile, TaskDependencyInternal.EMPTY));
     }
 
     @Override

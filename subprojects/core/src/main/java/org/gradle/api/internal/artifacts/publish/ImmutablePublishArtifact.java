@@ -37,18 +37,27 @@ public class ImmutablePublishArtifact implements PublishArtifact {
     private final String type;
     private final String classifier;
     private final File file;
+    private final TaskDependency taskDependency;
 
-    public ImmutablePublishArtifact(String name, String extension, String type, @Nullable String classifier, File file) {
+    public ImmutablePublishArtifact(
+        String name,
+        String extension,
+        String type,
+        @Nullable String classifier,
+        File file,
+        TaskDependency taskDependency
+    ) {
         this.name = name;
         this.extension = extension;
         this.type = type;
         this.classifier = classifier;
         this.file = file;
+        this.taskDependency = taskDependency;
     }
 
     @Override
     public TaskDependency getBuildDependencies() {
-        return TaskDependencyInternal.EMPTY;
+        return taskDependency;
     }
 
     @Override
