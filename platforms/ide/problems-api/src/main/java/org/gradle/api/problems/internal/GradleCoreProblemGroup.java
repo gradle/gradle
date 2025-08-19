@@ -71,6 +71,7 @@ public abstract class GradleCoreProblemGroup {
         ProblemGroup java();
         ProblemGroup groovy();
         ProblemGroup groovyDsl();
+        ProblemGroup kotlinDsl();
     }
 
     public interface ValidationProblemGroup {
@@ -90,6 +91,7 @@ public abstract class GradleCoreProblemGroup {
         private final ProblemGroup java = ProblemGroup.create("java", "Java compilation", thisGroup);
         private final ProblemGroup groovy = ProblemGroup.create("groovy", "Groovy compilation", thisGroup);
         public ProblemGroup groovyDsl = ProblemGroup.create("groovy-dsl", "Groovy DSL script compilation", thisGroup);
+        public ProblemGroup kotlinDsl = ProblemGroup.create("kotlin-dsl", "Kotlin DSL script compilation", thisGroup);
 
         private DefaultCompilationProblemGroup() {
         }
@@ -112,6 +114,11 @@ public abstract class GradleCoreProblemGroup {
         @Override
         public ProblemGroup groovyDsl() {
             return this.groovyDsl;
+        }
+
+        @Override
+        public ProblemGroup kotlinDsl() {
+            return this.kotlinDsl;
         }
     }
 

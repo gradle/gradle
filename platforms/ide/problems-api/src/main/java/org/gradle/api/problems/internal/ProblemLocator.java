@@ -25,7 +25,14 @@ public interface ProblemLocator {
         public Collection<InternalProblem> findAll(Throwable t) {
             return Collections.emptyList();
         }
+
+        @Override
+        public Collection<InternalProblem> findInHierachy(Throwable t) {
+            return Collections.emptyList();
+        }
     };
 
     Collection<InternalProblem> findAll(Throwable t);
+
+    Collection<InternalProblem> findInHierachy(Throwable t);
 }
