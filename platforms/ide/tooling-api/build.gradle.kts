@@ -2,6 +2,7 @@ plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.publish-public-libraries")
     id("gradlebuild.shaded-jar")
+    id("gradlebuild.cross-version-tests")
 }
 
 description = "Gradle Tooling API - the programmatic API to invoke Gradle"
