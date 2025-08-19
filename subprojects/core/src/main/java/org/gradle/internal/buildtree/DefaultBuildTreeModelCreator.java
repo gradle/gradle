@@ -16,7 +16,6 @@
 
 package org.gradle.internal.buildtree;
 
-import com.google.common.base.Preconditions;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.build.BuildState;
@@ -176,7 +175,9 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
         }
 
         private ProjectState findProject(BuildState build, BuildTreeModelTarget.Project projectPath) {
-            Preconditions.checkArgument(build.isProjectsLoaded(), "Build %s is not loaded", build.getBuildRootDir());
+            if (!build.isProjectsLoaded()) {
+                build.ensureProjectsLoaded();
+            }
             return build.getProjects().getProject(projectPath.getProjectPath());
         }
     }
