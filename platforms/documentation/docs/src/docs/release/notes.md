@@ -69,17 +69,17 @@ publishing {
 }
 ```
 
-#### Introduced provider-accepting methods for publishing configurations
+#### New provider-based methods for publishing configurations
 
-Two new methods have been added to `AdhocComponentWithVariants` which accept providers of consumable configurations:
+Two new methods have been added to [`AdhocComponentWithVariants`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html) which accept providers of consumable configurations:
 
-- `void addVariantsFromConfiguration(Provider<ConsumableConfiguration>, Action<? super ConfigurationVariantDetails>)`
-- `void withVariantsFromConfiguration(Provider<ConsumableConfiguration>, Action<? super ConfigurationVariantDetails>)`
+- [`void addVariantsFromConfiguration(Provider<ConsumableConfiguration>, Action<? super ConfigurationVariantDetails>)`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html#addVariantsFromConfiguration(org.gradle.api.provider.Provider,org.gradle.api.Action))
+- [`void withVariantsFromConfiguration(Provider<ConsumableConfiguration>, Action<? super ConfigurationVariantDetails>)`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html#withVariantsFromConfiguration(org.gradle.api.provider.Provider,org.gradle.api.Action))
 
-These overload the existing methods with the same name that accept realized configuration instances.
+These complement the existing methods that accept realized configuration instances.
 
-These new APIs allow configurations to be published without realizing them first.
-Consider the following example showcasing how to use the new API:
+With this new API, configurations can remain lazy and are only realized when actually needed for publishing.
+Consider the following example:
 
 ```kotlin
 plugins {
@@ -102,7 +102,6 @@ val myNewVariant: NamedDomainObjectProvider<ConsumableConfiguration> = configura
     }
 }
 
-
 publishing {
     val component = softwareComponentFactory.adhoc("component")
     // This new overload now accepts a lazy provider of consumable configuration
@@ -121,7 +120,7 @@ publishing {
 }
 ```
 
-When using this new API, the `myNewVariant` configuration will no longer be realized unless the `myPublication` publication is published.
+With this approach, the `myNewVariant` configuration will only be realized if the `myPublication` publication is actually published.
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
