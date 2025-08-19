@@ -17,12 +17,12 @@
 package org.gradle.api.internal.collections;
 
 import com.google.common.base.Objects;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.specs.Spec;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -38,7 +38,7 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
 
     private void ensureNonProviderValuesMutable() {
         if (nonProvidedValues == Collections.EMPTY_SET) {
-            nonProvidedValues = new HashSet<T>();
+            nonProvidedValues = new ObjectOpenHashSet<>();
         }
     }
 
