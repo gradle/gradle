@@ -333,7 +333,7 @@ class DefaultConfigurationCache internal constructor(
         // because it carries information required by dependency resolution
         // to ensure project artifacts are actually created the first time around.
         // When the value is loaded from the store, the dependency information is lost.
-        return projectMetadata.loadOrCreateOriginalValue(identityPath, creator)
+        return projectMetadata.loadOrCreateValue(identityPath, creator)
     }
 
     override fun finalizeCacheEntry() {

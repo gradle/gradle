@@ -206,7 +206,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                     configureOnDemand = configureOnDemand,
                     configurationCache = configurationCache,
                     isolatedProjects = isolatedProjects,
-                    intermediateModelCache = false,
+                    intermediateModelCache = isolatedProjects,
                     parallelToolingApiActions = parallelToolingActions,
                     invalidateCoupledProjects = invalidateCoupledProjects,
                     modelAsProjectDependency = modelAsProjectDependency,
