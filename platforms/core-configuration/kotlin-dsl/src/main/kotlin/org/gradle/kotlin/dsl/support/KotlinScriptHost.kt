@@ -34,7 +34,6 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ObjectConfigurationAction
 
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.resiliency.ResilientSyncListener
 
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
@@ -69,11 +68,6 @@ class KotlinScriptHost<out T : Any> internal constructor(
 
     internal
     val objectFactory: ObjectFactory by unsafeLazy {
-        serviceRegistry.get()
-    }
-
-    internal
-    val resilientSyncListener: ResilientSyncListener by unsafeLazy {
         serviceRegistry.get()
     }
 

@@ -74,6 +74,7 @@ data class StandardKotlinDslScriptsModel(
 }
 
 
+internal
 data class StandardKotlinDslScriptModel(
     private val classPath: List<File>,
     private val sourcePath: List<File>,
