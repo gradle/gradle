@@ -21,8 +21,8 @@ trait ToolchainPropertiesDeprecationsFixture {
     void expectToolchainPropertyDeprecationFor(String propertyName, String value) {
         executer.expectDocumentedDeprecationWarning(
             "Specifying '${propertyName}' as a project property on the command line has been deprecated." +
-                " This will fail with an error in Gradle 10." +
-                " Instead, specify it as a Gradle property, i.e. `-D${propertyName}=${value}`." +
+                " This is scheduled to be removed in Gradle 10." +
+                " Instead, specify it as a Gradle property: '-D${propertyName}=${value}'." +
                 " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#toolchain-project-properties"
         )
     }

@@ -78,8 +78,8 @@ public class DefaultJvmToolchainsConfigurationValidator implements JvmToolchains
 
     private static void emitDeprecatedWarning(String propertyName, String value) {
         DeprecationLogger.deprecateAction("Specifying '" + propertyName + "' as a project property on the command line")
-            .withAdvice("Instead, specify it as a Gradle property, i.e. `-D" + propertyName + "=" + value + "`.")
-            .willBecomeAnErrorInGradle10()
+            .withAdvice("Instead, specify it as a Gradle property: '-D" + propertyName + "=" + value + "'.")
+            .willBeRemovedInGradle10()
             .withUpgradeGuideSection(9, "toolchain-project-properties")
             .nagUser();
     }

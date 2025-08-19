@@ -312,7 +312,7 @@ tasks.register('nestedBuild', GradleBuild) {
 ==== Deprecation of project properties for toolchain configuration
 
 In previous versions of Gradle, you could configure toolchains using <<build_environment.adoc#sec:project_properties, project properties>> on the command line with the `-P` flag.
-For example, to enable toolchain auto-detection, you could use `-Porg.gradle.java.installations.auto-detect=false`.
+For example, to disable toolchain auto-detection, you could use `-Porg.gradle.java.installations.auto-detect=false`.
 This behavior is deprecated and will be removed in Gradle 10.0.0.
 Instead, you should specify these settings as <<build_environment.adoc#sec:gradle_configuration_properties, Gradle properties>> using the `-D` flag:
 
