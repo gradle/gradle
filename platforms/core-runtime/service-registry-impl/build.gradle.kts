@@ -19,6 +19,7 @@ dependencies {
     implementation(projects.concurrent)
     implementation(projects.stdlibJavaExtensions)
 
+    implementation(libs.fastutil)
     implementation(libs.inject)
 }
 

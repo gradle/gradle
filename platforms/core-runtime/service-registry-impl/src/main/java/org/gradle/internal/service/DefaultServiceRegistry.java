@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.service;
 
+import it.unimi.dsi.fastutil.objects.ObjectArraySet;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
@@ -33,7 +34,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Formatter;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -1389,7 +1389,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         private static class ClassDetails {
-            private final Set<Class<?>> types = new HashSet<Class<?>>();
+            private final Set<Class<?>> types = new ObjectArraySet<>();
             private final ConcurrentMap<Class<? extends Annotation>, Boolean> annotations = new ConcurrentHashMap<Class<? extends Annotation>, Boolean>();
 
             public ClassDetails(Class<?> type) {
