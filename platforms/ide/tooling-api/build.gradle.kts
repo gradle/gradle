@@ -107,10 +107,6 @@ jvmCompile {
             // The cross version tests depend on the test fixtures
             targetJvmVersion = 8
         }
-        named("crossVersionTest") {
-            // The TAPI tests must be able to run the TAPI client, which is still JVM 8 compatible
-            targetJvmVersion = compilations.named("main").flatMap { it.targetJvmVersion }
-        }
     }
 }
 
