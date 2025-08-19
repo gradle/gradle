@@ -69,7 +69,6 @@ import org.gradle.kotlin.dsl.accessors.hashCodeFor
 import org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.writeFile
-import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptException
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPlugin
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.scriptPluginFilesOf
@@ -152,7 +151,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
      * hash code.
      * 5. For each group, for each script plugin in the group, write the generated package name to a file named
      * after the contents of the script plugin file. This is so the file can be easily found by
-     * [PrecompiledScriptDependenciesResolver].
+     * [org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment].
      */
     @TaskAction
     fun generate() {
