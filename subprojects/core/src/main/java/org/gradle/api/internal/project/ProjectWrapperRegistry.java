@@ -18,6 +18,7 @@ package org.gradle.api.internal.project;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * A registry to synchronize the lifetime of wrappers with the projects they wrap.
  * Since {@link DefaultProject} instances are stored in various kinds of registries, they have a dedicated lifetime.
