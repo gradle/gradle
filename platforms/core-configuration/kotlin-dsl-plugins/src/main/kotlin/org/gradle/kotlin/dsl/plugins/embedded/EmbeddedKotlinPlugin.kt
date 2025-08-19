@@ -63,14 +63,12 @@ abstract class EmbeddedKotlinPlugin @Inject internal constructor(
 
 fun Logger.warnOnDifferentKotlinVersion(kotlinVersion: String?) {
     if (kotlinVersion != embeddedKotlinVersion) {
-        warn(
+        val warning =
             """
                 WARNING: Unsupported Kotlin plugin version.
-                The `embedded-kotlin` and `kotlin-dsl` plugins rely on features of Kotlin `{}` that might work differently than in the requested version `{}`.
-            """.trimIndent(),
-            embeddedKotlinVersion,
-            kotlinVersion
-        )
+                The `embedded-kotlin` and `kotlin-dsl` plugins rely on features of Kotlin `$embeddedKotlinVersion` that might work differently than in the requested version `$kotlinVersion`.
+            """.trimIndent()
+        warn(warning)
     }
 }
 
