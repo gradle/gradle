@@ -18,6 +18,7 @@ package org.gradle.workers.internal
 
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -309,6 +310,76 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         isolationMode << ISOLATION_MODES
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/34667")
+    def "can provide object property with #valueType value with isolation mode #isolationMode"(def isolationMode, String valueType, String value, String expectedOutput) {
+        buildFile """
+            ${parameterWorkAction('Property<Object>', 'println parameters.testParam.get()')}
+
+            task runWork(type: ParameterTask) {
+                isolationMode = ${isolationMode}
+                def value = $value
+                parameters {
+                    testParam.set(value)
+                }
+            }
+        """
+
+        when:
+        succeeds("runWork")
+
+        then:
+        outputContains(expectedOutput)
+
+        where:
+        [isolationMode, valueType, value, expectedOutput] << [ISOLATION_MODES, [
+            ["String", "'some string'", "some string"],
+            ["List", "['a'] as List<String>", "[a]"],
+            ["Set", "['a'] as Set<String>", "[a]"],
+            ["Map", "[a: 'b'] as Map<String, String>", "[a:b]"],
+            ["Directory", "layout.projectDirectory.dir('foo')", File.separator + "foo"],
+            ["RegularFile", "layout.projectDirectory.file('foo')", File.separator + "foo"],
+        ]].combinations { mode, valueData ->
+            [mode] + valueData
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/34667")
+    def "can provide managed object property with #valueType value with isolation mode #isolationMode"(def isolationMode, String valueType, String value, String expectedOutput) {
+        buildFile """
+            interface MyManagedObject {
+                Property<Object> getValue()
+            }
+
+            ${parameterWorkAction('Property<MyManagedObject>', 'println parameters.testParam.get().value.get()')}
+
+            task runWork(type: ParameterTask) {
+                isolationMode = ${isolationMode}
+                def value = objects.newInstance(MyManagedObject).tap { value = $value }
+                parameters {
+                    testParam.set(value)
+                }
+            }
+        """
+
+        when:
+        succeeds("runWork")
+
+        then:
+        outputContains(expectedOutput)
+
+        where:
+        [isolationMode, valueType, value, expectedOutput] << [ISOLATION_MODES, [
+            ["String", "'some string'", "some string"],
+            ["List", "['a'] as List<String>", "[a]"],
+            ["Set", "['a'] as Set<String>", "[a]"],
+            ["Map", "[a: 'b'] as Map<String, String>", "[a:b]"],
+            ["Directory", "layout.projectDirectory.dir('foo')", File.separator + "foo"],
+            ["RegularFile", "layout.projectDirectory.file('foo')", File.separator + "foo"],
+        ]].combinations { mode, valueData ->
+            [mode] + valueData
+        }
     }
 
     def "can provide build service parameters with isolation mode #isolationMode"() {

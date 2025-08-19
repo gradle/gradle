@@ -16,10 +16,10 @@
 package org.gradle.testfixtures.internal;
 
 import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.api.internal.properties.GradlePropertiesController;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
-import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.installation.CurrentGradleInstallation;

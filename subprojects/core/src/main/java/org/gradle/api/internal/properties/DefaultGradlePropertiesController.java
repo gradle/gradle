@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.api.internal.properties;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectIdentity;
-import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.initialization.properties.DefaultGradleProperties;
 import org.gradle.initialization.properties.GradlePropertiesLoader;
 import org.gradle.initialization.properties.SystemPropertiesInstaller;
@@ -52,6 +50,14 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
     }
 
     @Override
+    public void unloadAll() {
+        projectProperties.clear();
+        for (BuildScopedGradleProperties entry : buildProperties.values()) {
+            entry.unload();
+        }
+    }
+
+    @Override
     public GradleProperties getGradleProperties(BuildIdentifier buildId) {
         return getOrCreateGradleProperties(buildId);
     }
@@ -75,6 +81,17 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
     }
 
     @Override
+    public GradleProperties getGradleProperties(GradlePropertyScope propertyScope) {
+        if (propertyScope instanceof GradlePropertyScope.Build) {
+            return getGradleProperties(((GradlePropertyScope.Build) propertyScope).getBuildIdentifier());
+        }
+        if (propertyScope instanceof GradlePropertyScope.Project) {
+            return getGradleProperties(((GradlePropertyScope.Project) propertyScope).getProjectIdentity());
+        }
+        throw new IllegalArgumentException("Unsupported scope " + propertyScope);
+    }
+
+    @Override
     public void loadGradleProperties(ProjectIdentity projectId, File projectDir) {
         LoadedBuildScopedState loadedBuildProperties = getOrCreateGradleProperties(projectId.getBuildIdentifier())
             .checkLoaded();
@@ -91,13 +108,13 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
             new ProjectScopedGradleProperties(gradlePropertiesLoader, id, listener));
     }
 
-    private static abstract class ScopedGradleProperties implements GradleProperties {
+    public static abstract class ScopedGradleProperties implements GradleProperties {
 
-        private final GradlePropertiesListener.PropertyScope propertyScope;
+        private final GradlePropertyScope propertyScope;
         private final GradlePropertiesListener listener;
 
         protected ScopedGradleProperties(
-            GradlePropertiesListener.PropertyScope propertyScope,
+            GradlePropertyScope propertyScope,
             GradlePropertiesListener listener
         ) {
             this.propertyScope = propertyScope;
@@ -105,6 +122,10 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         }
 
         protected abstract GradleProperties gradleProperties();
+
+        public GradlePropertyScope getPropertyScope() {
+            return propertyScope;
+        }
 
         @Override
         public @Nullable String find(String propertyName) {
@@ -132,6 +153,10 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
             Map<String, String> snapshot = gradleProperties().getPropertiesWithPrefix(prefix);
             listener.onGradlePropertiesByPrefix(propertyScope, prefix, snapshot);
             return snapshot;
+        }
+
+        protected void onGradlePropertiesLoaded(File propertiesDir) {
+            listener.onGradlePropertiesLoaded(propertyScope, propertiesDir);
         }
 
         private void onGradleProperties(Map<String, String> snapshot) {
@@ -191,6 +216,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
                 ));
             }
 
+            onGradlePropertiesLoaded(buildRootDir);
             this.loaded = loadNewState(buildRootDir, setSystemProperties);
         }
 
@@ -200,14 +226,13 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
             Map<String, String> fromGradleUserHome = loader.loadFromGradleUserHome();
 
             if (setSystemProperties) {
-                boolean isRootBuild = DefaultBuildIdentifier.ROOT.equals(buildId);
                 GradleProperties systemPropertiesSource = new DefaultGradleProperties(mergeMaps(
                     fromGradleHome,
                     fromBuildRoot,
                     fromGradleUserHome
                 ));
                 // TODO:configuration-cache consider whether to track property access from here (perhaps tracking system property consumers is enough?)
-                systemPropertiesInstaller.setSystemPropertiesFrom(systemPropertiesSource, isRootBuild);
+                systemPropertiesInstaller.setSystemPropertiesFrom(systemPropertiesSource);
             }
 
             Map<String, String> fromEnvVariables = loader.loadFromEnvironmentVariables();
@@ -314,6 +339,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
                 ));
             }
 
+            onGradlePropertiesLoaded(projectDir);
             this.loaded = loadNewState(loadedBuildProperties, projectDir);
         }
 
@@ -345,7 +371,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         return builder.buildKeepingLast();
     }
 
-    private static class BuildPropertyScope implements GradlePropertiesListener.PropertyScope.Build {
+    private static class BuildPropertyScope implements GradlePropertyScope.Build {
         private final BuildIdentifier buildId;
 
         public BuildPropertyScope(BuildIdentifier buildId) {
@@ -377,7 +403,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         }
     }
 
-    private static class ProjectPropertyScope implements GradlePropertiesListener.PropertyScope.Project {
+    private static class ProjectPropertyScope implements GradlePropertyScope.Project {
         private final ProjectIdentity projectId;
 
         public ProjectPropertyScope(ProjectIdentity projectId) {

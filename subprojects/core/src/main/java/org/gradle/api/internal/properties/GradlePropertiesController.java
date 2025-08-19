@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.api.internal.properties;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.project.ProjectIdentity;
-import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -88,6 +87,11 @@ public interface GradlePropertiesController {
     GradleProperties getGradleProperties(ProjectIdentity projectId);
 
     /**
+     * Returns the {@link GradleProperties} associated with the given scope.
+     */
+    GradleProperties getGradleProperties(GradlePropertyScope propertyScope);
+
+    /**
      * Loads build-scoped {@link GradleProperties} from the specified build root directory.
      * <p>
      * See {@link #getGradleProperties(BuildIdentifier) build-scoped properties} on which sources are considered.
@@ -126,5 +130,13 @@ public interface GradlePropertiesController {
      * @param projectDir directory containing the project's {@code gradle.properties} file
      */
     void loadGradleProperties(ProjectIdentity projectId, File projectDir);
+
+    /**
+     * Unloads all project-scoped and build-scoped properties.
+     * <p>
+     * Subsequent calls to {@link #loadGradleProperties(BuildIdentifier, File, boolean)} will
+     * reload properties and re-evaluate system property assignments.
+     */
+    void unloadAll();
 
 }

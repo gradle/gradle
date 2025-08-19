@@ -34,6 +34,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.reflect.Instantiator;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -50,9 +51,11 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     private final FilterChain filterChain;
     private final PropertyFactory propertyFactory;
     private boolean defaultDuplicatesStrategy;
+    @Nullable
     private RelativePath relativePath;
     private boolean excluded;
 
+    @Nullable
     private DefaultConfigurableFilePermissions permissions;
     private DuplicatesStrategy duplicatesStrategy;
 

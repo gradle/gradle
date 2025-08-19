@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/**
+ * Internal API for loading and accessing {@link org.gradle.api.internal.properties.GradleProperties properties}
+ * from different {@link org.gradle.api.internal.properties.GradlePropertyScope scopes}.
+ * <p>
+ * Entry point is {@link org.gradle.api.internal.properties.GradlePropertiesController}.
+ * </p>
+ */
+@NullMarked
+package org.gradle.api.internal.properties;
 
-package org.gradle.internal.cc.impl.services
-
-import org.gradle.initialization.EnvironmentChangeTracker
-
-
-internal
-class VintageEnvironmentChangeTracker : EnvironmentChangeTracker {
-
-    override fun systemPropertyChanged(key: Any, value: Any?, consumer: String?) = Unit
-
-    override fun systemPropertyLoaded(key: Any, value: Any?, oldValue: Any?) = Unit
-
-    override fun systemPropertyOverridden(key: Any) = Unit
-}
+import org.jspecify.annotations.NullMarked;

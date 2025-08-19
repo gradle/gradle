@@ -21,13 +21,14 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.internal.properties.GradlePropertiesController
+import org.gradle.api.internal.properties.GradlePropertyScope
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.initialization.buildsrc.BuildSrcDetector
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildModelParameters
-import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.cc.impl.ConfigurationCacheStateFile
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore.StateFile
 import org.gradle.internal.cc.impl.InputTrackingState
@@ -88,7 +89,6 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val report: CommonReport,
     private val problemFactory: ProblemFactory,
     private val workExecutionTracker: WorkExecutionTracker,
-    private val environmentChangeTracker: ConfigurationCacheEnvironmentChangeTracker,
     private val inputTrackingState: InputTrackingState,
     private val scriptFileResolverListeners: ScriptFileResolverListeners,
     private val remoteScriptUpToDateChecker: RemoteScriptUpToDateChecker,
@@ -97,6 +97,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val encryptionService: EncryptionService,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val buildStateRegistry: BuildStateRegistry,
+    private val propertiesController: GradlePropertiesController,
 ) : Stoppable, ProjectScopedScriptResolution {
 
     interface Host {
@@ -161,7 +162,6 @@ class ConfigurationCacheFingerprintController internal constructor(
                 fileCollectionFactory,
                 directoryFileTreeFactory,
                 workExecutionTracker,
-                environmentChangeTracker,
                 inputTrackingState,
                 buildStateRegistry
             )
@@ -380,9 +380,6 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val gradleUserHomeDir: File
             get() = startParameter.gradleUserHomeDir
 
-        override val startParameterProperties: Map<String, Any?>
-            get() = startParameter.gradleProperties
-
         override val allInitScripts: List<File>
             get() = startParameter.allInitScripts
 
@@ -456,9 +453,6 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val allInitScripts: List<File>
             get() = startParameter.allInitScripts
 
-        override val startParameterProperties: Map<String, Any?>
-            get() = startParameter.gradleProperties
-
         override val buildStartTime: Long
             get() = buildCommencedTimeProvider.currentTime
 
@@ -495,6 +489,41 @@ class ConfigurationCacheFingerprintController internal constructor(
         override fun hasValidBuildSrc(candidateBuildSrc: File): Boolean {
             return BuildSrcDetector.isValidBuildSrcBuild(candidateBuildSrc)
         }
+
+        override fun loadProperties(propertyScope: GradlePropertyScope, propertiesDir: File) {
+            when (propertyScope) {
+                is GradlePropertyScope.Build -> {
+                    propertiesController.loadGradleProperties(
+                        propertyScope.buildIdentifier,
+                        propertiesDir,
+                        true
+                    )
+                }
+
+                is GradlePropertyScope.Project -> {
+                    propertiesController.loadGradleProperties(
+                        propertyScope.projectIdentity,
+                        propertiesDir,
+                    )
+                }
+
+                else -> error("Unsupported propertyScope $propertyScope")
+            }
+        }
+
+        override fun gradleProperty(
+            propertyScope: GradlePropertyScope,
+            propertyName: String
+        ): Any? = propertiesController
+            .getGradleProperties(propertyScope)
+            .findUnsafe(propertyName)
+
+        override fun gradlePropertiesPrefixedBy(
+            propertyScope: GradlePropertyScope,
+            prefix: String
+        ): Map<String, String> = propertiesController
+            .getGradleProperties(propertyScope)
+            .getPropertiesWithPrefix(prefix)
     }
 
     private

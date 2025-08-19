@@ -67,6 +67,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.api.internal.properties.GradlePropertiesController;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
 import org.gradle.api.internal.provider.ValueSourceProviderFactory;
@@ -132,7 +133,6 @@ import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.initialization.DefaultSettingsLoaderFactory;
 import org.gradle.initialization.DefaultSettingsPreparer;
 import org.gradle.initialization.DefaultToolchainManagement;
-import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.InitScriptHandler;
 import org.gradle.initialization.InstantiatingBuildLoader;
@@ -423,9 +423,16 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         ValueSourceProviderFactory valueSourceProviderFactory,
         ProcessOutputProviderFactory processOutputProviderFactory,
         ListenerManager listenerManager,
-        ObjectFactory objectFactory
+        ObjectFactory objectFactory,
+        GradleProperties gradleProperties
     ) {
-        return instantiator.newInstance(DefaultProviderFactory.class, valueSourceProviderFactory, processOutputProviderFactory, listenerManager, objectFactory);
+        return instantiator.newInstance(DefaultProviderFactory.class,
+            valueSourceProviderFactory,
+            processOutputProviderFactory,
+            listenerManager,
+            objectFactory,
+            gradleProperties
+        );
     }
 
     @Provides

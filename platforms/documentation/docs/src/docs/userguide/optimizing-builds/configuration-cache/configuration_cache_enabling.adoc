@@ -117,7 +117,7 @@ org.gradle.configuration-cache.parallel=true
 ====
 The parallel configuration caching feature is _incubating_, and some builds may not work correctly.
 A common symptom of incompatibility is `ConcurrentModificationException` errors during the <<build_lifecycle_intermediate.adoc#sec:configuration,configuration phase>>.
-However, this feature is expected to work well for <<multi_project_configuration_and_execution.adoc#sec:decoupled_projects,decoupled>> multi-project builds.
+However, this feature is expected to work well for <<configuration_on_demand.adoc#sec:decoupled_projects,decoupled>> multi-project builds.
 ====
 
 [[config_cache:usage:read_only]]
@@ -148,9 +148,9 @@ The read-only configuration caching feature is _incubating_.
 ====
 
 [[config_cache:stable]]
-== Enabling the Configuration Cache Feature Flag
+== Enabling Strict Configuration Cache Mode
 
-To help teams prepare for the stabilization of configuration caching, Gradle provides a strict mode behind a dedicated feature flag.
+To help teams adopt configuration caching, Gradle provides a strict mode behind a dedicated feature flag.
 
 You can enable this feature flag in your build using the following configuration:
 
@@ -353,7 +353,7 @@ To temporarily revert to the previous behavior, set the Gradle property `org.gra
 With the evolution of the Configuration Cache, Gradle may impose additional restrictions on build logic.
 To make adoption smoother, it is possible to _temporarily_ opt out of these restrictions in specific cases:
 
-1. Starting with Gradle 9.0, it is an error to use any provider, except a provider of `BuildService` returned from
+1. Starting with Gradle 9.0.0, it is an error to use any provider, except a provider of `BuildService` returned from
 link:{javadocPath}/org/gradle/api/services/BuildServiceRegistry.html#registerIfAbsent(java.lang.String,java.lang.Class,org.gradle.api.Action)[`BuildServiceRegistry.registerIfAbsent`]
 or
 link:{javadocPath}/org/gradle/api/services/BuildServiceRegistration.html#getService()[`BuildServiceRegistration.getService`]
