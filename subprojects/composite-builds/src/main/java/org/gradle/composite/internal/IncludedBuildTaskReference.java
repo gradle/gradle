@@ -18,6 +18,7 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskReference;
@@ -25,17 +26,17 @@ import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.util.Path;
 
 public class IncludedBuildTaskReference implements TaskReference, TaskDependencyContainer {
-    private final String taskPath;
+    private final Path absoluteTaskPath;
     private final IncludedBuildState includedBuild;
 
-    public IncludedBuildTaskReference(IncludedBuildState includedBuild, String taskPath) {
+    public IncludedBuildTaskReference(IncludedBuildState includedBuild, Path absoluteTaskPath) {
         this.includedBuild = includedBuild;
-        this.taskPath = taskPath;
+        this.absoluteTaskPath = absoluteTaskPath;
     }
 
     @Override
     public String getName() {
-        return Path.path(taskPath).getName();
+        return absoluteTaskPath.getName();
     }
 
     public BuildIdentifier getBuildIdentifier() {
@@ -49,6 +50,9 @@ public class IncludedBuildTaskReference implements TaskReference, TaskDependency
 
     private Task resolveTask() {
         includedBuild.ensureProjectsConfigured();
-        return includedBuild.getMutableModel().getRootProject().getTasks().getByPath(taskPath);
+        Path projectPath = absoluteTaskPath.getParent();
+        ProjectState projectState = includedBuild.getProjects().getProject(projectPath == null ? Path.ROOT : projectPath);
+        projectState.ensureTasksDiscovered();
+        return projectState.getMutableModel().getTasks().getByName(absoluteTaskPath.getName());
     }
 }

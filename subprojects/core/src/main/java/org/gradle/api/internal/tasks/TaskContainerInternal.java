@@ -27,7 +27,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Collection;
 
 @ServiceScope(Scope.Project.class)
-public interface TaskContainerInternal extends TaskContainer, TaskResolver, PolymorphicDomainObjectContainerInternal<Task> {
+public interface TaskContainerInternal extends TaskContainer, PolymorphicDomainObjectContainerInternal<Task> {
 
     // The path to the project's task container in the model registry
     ModelPath MODEL_PATH = ModelPath.path("tasks");

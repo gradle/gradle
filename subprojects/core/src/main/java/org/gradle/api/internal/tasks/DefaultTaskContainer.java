@@ -15,16 +15,13 @@
  */
 package org.gradle.api.internal.tasks;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
-import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -32,18 +29,21 @@ import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskCollection;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.build.BuildProjectRegistry;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -90,7 +90,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private final ITaskFactory taskFactory;
     private final NamedEntityInstantiator<Task> taskInstantiator;
     private final BuildOperationRunner buildOperationRunner;
-    private final ProjectRegistry<ProjectInternal> projectRegistry;
+    private final BuildProjectRegistry buildProjectRegistry;
 
     private final TaskStatistics statistics;
     private final boolean eagerlyCreateLazyTasks;
@@ -106,7 +106,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         BuildOperationRunner buildOperationRunner,
         CrossProjectConfigurator crossProjectConfigurator,
         CollectionCallbackActionDecorator callbackDecorator,
-        ProjectRegistry<ProjectInternal> projectRegistry
+        BuildProjectRegistry buildProjectRegistry
     ) {
         super(Task.class, instantiator, project, crossProjectConfigurator.getLazyBehaviorGuard(), callbackDecorator);
         this.taskIdentityFactory = taskIdentityFactory;
@@ -115,7 +115,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         this.statistics = statistics;
         this.eagerlyCreateLazyTasks = Boolean.getBoolean(EAGERLY_CREATE_LAZY_TASKS_PROPERTY);
         this.buildOperationRunner = buildOperationRunner;
-        this.projectRegistry = projectRegistry;
+        this.buildProjectRegistry = buildProjectRegistry;
     }
 
     @Deprecated
@@ -475,31 +475,48 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public Task findByPath(String path) {
-        Path.validatePath(path);
-        if (!path.contains(Project.PATH_SEPARATOR)) {
-            return findByName(path);
+    @Deprecated
+    public @Nullable Task findByPath(String pathStr) {
+        DeprecationLogger.deprecateMethod(TaskContainer.class, "findByPath(String)")
+            .replaceWith("findByName(String)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_task_by_path")
+            .nagUser();
+
+        return doFindByPath(pathStr);
+    }
+
+    private @Nullable Task doFindByPath(String pathStr) {
+        Path path = Path.path(pathStr);
+        if (!path.isAbsolute() && path.getParent() == null) {
+            return findByName(pathStr);
         }
 
-        String projectPath = StringUtils.substringBeforeLast(path, Project.PATH_SEPARATOR);
-        String projectPathOrRoot = Strings.isNullOrEmpty(projectPath) ? Project.PATH_SEPARATOR : projectPath;
-        ProjectInternal project = projectRegistry.getProject(this.project.absoluteProjectPath(projectPathOrRoot));
-        if (project == null) {
+        Path projectPath = path.getParent();
+        Path actualProjectPath = projectPath != null
+            ? this.project.getProjectIdentity().getProjectPath().absolutePath(projectPath)
+            : Path.ROOT;
+
+        ProjectState projectState = buildProjectRegistry.findProject(actualProjectPath);
+        if (projectState == null) {
             return null;
         }
-        project.getOwner().ensureTasksDiscovered();
 
-        return project.getTasks().findByName(StringUtils.substringAfterLast(path, Project.PATH_SEPARATOR));
+        projectState.ensureTasksDiscovered();
+
+        return projectState.getMutableModel().getTasks().findByName(path.getName());
     }
 
     @Override
-    public Task resolveTask(String path) {
-        return getByPath(path);
-    }
-
-    @Override
+    @Deprecated
     public Task getByPath(String path) throws UnknownTaskException {
-        Task task = findByPath(path);
+        DeprecationLogger.deprecateMethod(TaskContainer.class, "getByPath(String)")
+            .replaceWith("getByName(String)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_task_by_path")
+            .nagUser();
+
+        Task task = doFindByPath(path);
         if (task == null) {
             throw new UnknownTaskException(String.format("Task with path '%s' not found in %s.", path, project));
         }

@@ -150,8 +150,9 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         }
 
         @Override
-        public TaskReference task(String path) {
-            Preconditions.checkArgument(path.startsWith(":"), "Task path '%s' is not a qualified task path (e.g. ':task' or ':project:task').", path);
+        public TaskReference task(String pathStr) {
+            Path path = Path.path(pathStr);
+            Preconditions.checkArgument(path.isAbsolute(), "Task path '%s' is not a qualified task path (e.g. ':task' or ':project:task').", pathStr);
             return new IncludedBuildTaskReference(buildState, path);
         }
 
