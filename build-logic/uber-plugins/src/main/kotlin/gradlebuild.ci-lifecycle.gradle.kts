@@ -85,8 +85,4 @@ fun TaskContainer.configureCICrossVersionTestDistributionLifecycleTasks() {
     named("quickFeedbackCrossVersionTest") {
         dependsOn("quickFeedbackCrossVersionTests")
     }
-
-    named("allVersionsCrossVersionTest") {
-        dependsOn("allVersionsCrossVersionTests")
-    }
 }
