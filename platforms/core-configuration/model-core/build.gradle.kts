@@ -41,10 +41,11 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.serviceRegistryBuilder)
 
+    implementation(libs.commonsLang)
+    implementation(libs.fastutil)
     implementation(libs.jsr305)
     implementation(libs.kotlinStdlib)
     implementation(libs.slf4jApi)
-    implementation(libs.commonsLang)
 
     compileOnly(libs.errorProneAnnotations)
 

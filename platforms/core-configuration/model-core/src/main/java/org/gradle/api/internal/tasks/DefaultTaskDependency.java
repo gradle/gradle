@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
@@ -34,7 +35,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -212,7 +212,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
     }
 
     private static class TaskDependencySet implements Set<Object> {
-        private final Set<Object> delegate = new HashSet<>();
+        private final Set<Object> delegate = new ObjectOpenHashSet<>();
         private final static String REMOVE_ERROR = "Removing a task dependency from a task instance is not supported.";
 
         @Override
