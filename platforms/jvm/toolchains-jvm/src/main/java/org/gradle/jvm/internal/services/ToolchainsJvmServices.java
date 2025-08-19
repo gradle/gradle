@@ -23,6 +23,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.initialization.GradleUserHomeDirProvider;
+import org.gradle.initialization.JvmToolchainsConfigurationValidator;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.DefaultJavaInstallationRegistry;
@@ -138,6 +139,7 @@ public class ToolchainsJvmServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
         registration.add(JvmInstallationProblemReporter.class);
+        registration.add(JvmToolchainsConfigurationValidator.class, DefaultJvmToolchainsConfigurationValidator.class);
     }
 
     @Override

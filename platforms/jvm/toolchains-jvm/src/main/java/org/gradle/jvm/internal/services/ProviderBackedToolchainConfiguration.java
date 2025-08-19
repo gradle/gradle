@@ -16,11 +16,14 @@
 
 package org.gradle.jvm.internal.services;
 
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.initialization.JvmToolchainsConfigurationValidator;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.jspecify.annotations.Nullable;
@@ -41,20 +44,31 @@ import java.util.Collection;
 public class ProviderBackedToolchainConfiguration implements ToolchainConfiguration {
     private final ProviderFactory providerFactory;
     private final SystemProperties systemProperties;
+    private final JvmToolchainsConfigurationValidator jvmToolchainsConfigurationValidator;
 
     @Inject
-    public ProviderBackedToolchainConfiguration(ProviderFactory providerFactory) {
-        this(providerFactory, SystemProperties.getInstance());
+    public ProviderBackedToolchainConfiguration(ProviderFactory providerFactory, JvmToolchainsConfigurationValidator jvmToolchainsConfigurationValidator) {
+        this(providerFactory, SystemProperties.getInstance(), jvmToolchainsConfigurationValidator);
+
     }
 
-    ProviderBackedToolchainConfiguration(ProviderFactory providerFactory, SystemProperties systemProperties) {
+    ProviderBackedToolchainConfiguration(ProviderFactory providerFactory, SystemProperties systemProperties, JvmToolchainsConfigurationValidator jvmToolchainsConfigurationValidator) {
         this.providerFactory = providerFactory;
         this.systemProperties = systemProperties;
+        this.jvmToolchainsConfigurationValidator = jvmToolchainsConfigurationValidator;
+    }
+
+    /**
+     * Retrieves a Gradle property, and emits a deprecation warning if it was specified as a project property.
+     */
+    private Provider<String> fromGradleProperty(String propertyName) {
+        jvmToolchainsConfigurationValidator.validatePropertyConfiguration(propertyName);
+        return providerFactory.gradleProperty(propertyName);
     }
 
     @Override
     public Collection<String> getJavaInstallationsFromEnvironment() {
-        return Arrays.asList(providerFactory.gradleProperty(EnvironmentVariableListInstallationSupplier.JAVA_INSTALLATIONS_FROM_ENV_PROPERTY).getOrElse("").split(","));
+        return Arrays.asList(fromGradleProperty(EnvironmentVariableListInstallationSupplier.JAVA_INSTALLATIONS_FROM_ENV_PROPERTY).getOrElse("").split(","));
     }
 
     @Override
@@ -64,7 +78,7 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
 
     @Override
     public Collection<String> getInstallationsFromPaths() {
-        return Arrays.asList(providerFactory.gradleProperty(LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY).getOrElse("").split(","));
+        return Arrays.asList(fromGradleProperty(LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY).getOrElse("").split(","));
     }
 
     @Override
@@ -74,7 +88,7 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
 
     @Override
     public boolean isAutoDetectEnabled() {
-        return providerFactory.gradleProperty(ToolchainConfiguration.AUTO_DETECT).map(Boolean::parseBoolean).getOrElse(Boolean.TRUE);
+        return fromGradleProperty(ToolchainConfiguration.AUTO_DETECT).map(Boolean::parseBoolean).getOrElse(Boolean.TRUE);
     }
 
     @Override
@@ -84,7 +98,7 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
 
     @Override
     public boolean isDownloadEnabled() {
-        return providerFactory.gradleProperty(AutoInstalledInstallationSupplier.AUTO_DOWNLOAD).map(Boolean::parseBoolean).getOrElse(Boolean.TRUE);
+        return fromGradleProperty(AutoInstalledInstallationSupplier.AUTO_DOWNLOAD).map(Boolean::parseBoolean).getOrElse(Boolean.TRUE);
     }
 
     @Override
@@ -103,7 +117,7 @@ public class ProviderBackedToolchainConfiguration implements ToolchainConfigurat
 
     @Override
     public File getIntelliJdkDirectory() {
-        return providerFactory.gradleProperty("org.gradle.java.installations.idea-jdks-directory").map(File::new).getOrElse(defaultJdksDirectory(OperatingSystem.current()));
+        return fromGradleProperty(IntellijInstallationSupplier.INTELLIJ_JDK_DIR_PROPERTY).map(File::new).getOrElse(defaultJdksDirectory(OperatingSystem.current()));
     }
 
     @Override

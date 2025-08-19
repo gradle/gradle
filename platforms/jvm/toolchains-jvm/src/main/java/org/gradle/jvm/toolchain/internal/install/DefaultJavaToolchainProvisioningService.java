@@ -33,6 +33,7 @@ import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRequest;
 import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal;
 import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository;
+import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainDownloadException;
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningException;
 import org.gradle.platform.internal.CurrentBuildPlatform;
@@ -49,8 +50,6 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
-
-import static org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier.AUTO_DOWNLOAD;
 
 public class DefaultJavaToolchainProvisioningService implements JavaToolchainProvisioningService {
 
@@ -69,21 +68,22 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         JavaToolchainResolverRegistry toolchainResolverRegistry,
         SecureFileDownloader downloader,
         JdkCacheDirectory cacheDirProvider,
-        ProviderFactory factory,
+        ProviderFactory providerFactory,
+        ToolchainConfiguration toolchainConfiguration,
         BuildOperationRunner executor,
         CurrentBuildPlatform currentBuildPlatform
     ) {
         this.toolchainResolverRegistry = (JavaToolchainResolverRegistryInternal) toolchainResolverRegistry;
         this.downloader = downloader;
         this.cacheDirProvider = (DefaultJdkCacheDirectory)cacheDirProvider;
-        this.downloadEnabled = factory.gradleProperty(AUTO_DOWNLOAD).map(Boolean::parseBoolean);
+        this.downloadEnabled = providerFactory.provider(toolchainConfiguration::isDownloadEnabled);
         this.buildOperationRunner = executor;
         this.currentBuildPlatform = currentBuildPlatform;
     }
 
     @Override
     public boolean isAutoDownloadEnabled() {
-        return downloadEnabled.getOrElse(true);
+        return downloadEnabled.get();
     }
 
     @Override
