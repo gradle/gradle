@@ -31,18 +31,12 @@ import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.GlobalDependencySubstitutionRegistry;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resiliency.ResilientSyncListener;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
-
-import java.io.File;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class CompositeBuildServices extends AbstractGradleModuleServices {
 
@@ -78,24 +72,6 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
             } else {
                 return new DefaultIncludedBuildRegistry(includedBuildFactory, listenerManager, buildStateFactory);
             }
-        }
-
-        @Provides
-        public ResilientSyncListener createResilientSyncListener() {
-            return new ResilientSyncListener() {
-                private final Map<File, KotlinCompilationInternalModel> models = new ConcurrentHashMap<>();
-
-                @Override
-                public void onKotlinScriptCompilationStarted(File scriptFile, List<File> classpath, List<String> implicitImports, Runnable runnable) {
-                    models.put(scriptFile, new KotlinCompilationInternalModel(classpath, implicitImports));
-                    runnable.run();
-                }
-
-                @Override
-                public Map<File, KotlinCompilationInternalModel> getModels() {
-                    return models;
-                }
-            };
         }
 
         @Provides
