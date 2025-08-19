@@ -263,7 +263,6 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         resilientModels.failureMessage.contains("Failing script")
     }
 
-    @ToBeImplemented
     def "returns scripts models when project convention plugin is failing with compile error"() {
         given:
         settingsKotlinFile << """
@@ -300,12 +299,12 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             }
 
         """
-        file("b/build.gradle.kts") << """
+        def b = file("b/build.gradle.kts") << """
             plugins {
                 id("build-logic")
             }
         """
-        file("c/build.gradle.kts") << """
+        def c = file("c/build.gradle.kts") << """
             plugins {
                 id("java")
             }
@@ -322,13 +321,38 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         projectPlugin << """ broken !!! """
-        fails {
+        def resilientModels = succeeds {
             action(new ResilientModelAction()).withArguments("-Dorg.gradle.internal.resilient-model-building=true").run()
         }
 
         then:
-        def e = thrown(GradleConnectionException)
-        e.message.startsWith("The supplied build action failed with an exception.")
+        def originalScripts = original.scriptModels.keySet()
+        def resilientScripts = resilientModels.scriptModels.keySet()
+        resilientScripts.size() == originalScripts.size()
+        for (File scriptFile : original.scriptModels.keySet()) {
+            if (scriptFile == b) {
+                assert resilientScripts.contains(scriptFile)
+                def originalModel = original.scriptModels.get(scriptFile)
+                def resilientModel = new Tuple2<>(scriptFile, resilientModels.scriptModels.get(scriptFile))
+                // In this case we don't have accessors and build-logic in the classpath
+                assert resilientModel.v2.classPath == originalModel.classPath.findAll { !it.absolutePath.contains("/accessors/") }.findAll { !it.absolutePath.contains("/build-logic.jar") }
+                assert resilientModel.v2.implicitImports == originalModel.implicitImports
+            } else if (scriptFile == c) {
+                assert resilientScripts.contains(scriptFile)
+                def originalModel = original.scriptModels.get(scriptFile)
+                def resilientModel = new Tuple2<>(scriptFile, resilientModels.scriptModels.get(scriptFile))
+                // In this case we don't have accessors, since this project is not configured
+                assert resilientModel.v2.classPath == originalModel.classPath.findAll { !it.absolutePath.contains("/accessors/") }
+                assert resilientModel.v2.implicitImports == originalModel.implicitImports
+            } else {
+                assert resilientScripts.contains(scriptFile)
+                def originalModel = original.scriptModels.get(scriptFile)
+                def resilientModel = new Tuple2<>(scriptFile, resilientModels.scriptModels.get(scriptFile))
+                assert resilientModel.v2.classPath == originalModel.classPath
+                assert resilientModel.v2.implicitImports == originalModel.implicitImports
+            }
+        }
+        resilientModels.failureMessage.contains("Execution failed for task ':build-logic:compileKotlin'")
     }
 
     @ToBeImplemented("Needs resilient GradleBuild model")
@@ -426,7 +450,6 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             GradleBuild gradleBuild = controller.getModel(GradleBuild.class)
             Map<File, KotlinDslScriptModel> scriptModels = [:]
             Failure failure = null
-            println "Here"
             ResilientKotlinDslScriptsModel buildScriptModel = controller.getModel(gradleBuild.rootProject, ResilientKotlinDslScriptsModel.class)
             scriptModels += buildScriptModel.model.scriptModels
             if (buildScriptModel.failure) {
