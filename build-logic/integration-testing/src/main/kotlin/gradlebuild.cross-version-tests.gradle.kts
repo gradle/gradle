@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonArray
 import gradlebuild.basics.capitalize
 import gradlebuild.basics.testing.TestType
+import gradlebuild.identity.extension.ReleasedVersionsDetails
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.configureIde
 import gradlebuild.integrationtests.createTestTask
 import gradlebuild.integrationtests.setSystemPropertiesOfTestJVM
+import java.nio.charset.StandardCharsets
 
 plugins {
     java
@@ -28,15 +32,25 @@ plugins {
     id("gradlebuild.jvm-compile")
 }
 
-val sourceSet = sourceSets.create("${TestType.CROSSVERSION.prefix}Test")
-jvmCompile {
-    addCompilationFrom(sourceSet)
+project.layout.settingsDirectory.file(".teamcity/subprojects.json").asFile.apply {
+    if (exists()) {
+        val json = GsonBuilder().create().fromJson(readText(StandardCharsets.UTF_8), JsonArray::class.java)
+        val subprojectInfo = json.firstOrNull { jsonElement ->
+            jsonElement.asJsonObject.get("name").asString.equals(project.name)
+        }
+
+        if (subprojectInfo?.asJsonObject?.get("crossVersionTests")?.asBoolean == true) {
+            val sourceSet = sourceSets.create("${TestType.CROSSVERSION.prefix}Test")
+            val releasedVersions = gradleModule.identity.releasedVersions.orNull
+
+            addDependenciesAndConfigurations(TestType.CROSSVERSION.prefix)
+            createQuickFeedbackTasks(sourceSet, releasedVersions)
+            createAggregateTasks(sourceSet, releasedVersions)
+            configureIde(TestType.CROSSVERSION)
+            configureTestFixturesForCrossVersionTests()
+        }
+    }
 }
-addDependenciesAndConfigurations(TestType.CROSSVERSION.prefix)
-createQuickFeedbackTasks()
-createAggregateTasks(sourceSet)
-configureIde(TestType.CROSSVERSION)
-configureTestFixturesForCrossVersionTests()
 
 fun configureTestFixturesForCrossVersionTests() {
     // do not attempt to find projects when the plugin is applied just to generate accessors
@@ -46,9 +60,8 @@ fun configureTestFixturesForCrossVersionTests() {
         }
     }
 }
-val releasedVersions = gradleModule.identity.releasedVersions.orNull
 
-fun createQuickFeedbackTasks() {
+fun createQuickFeedbackTasks(sourceSet: SourceSet, releasedVersions: ReleasedVersionsDetails?) {
     val testType = TestType.CROSSVERSION
     val defaultExecuter = "embedded"
     val prefix = testType.prefix
@@ -70,7 +83,7 @@ fun createQuickFeedbackTasks() {
     }
 }
 
-fun createAggregateTasks(sourceSet: SourceSet) {
+fun createAggregateTasks(sourceSet: SourceSet, releasedVersions: ReleasedVersionsDetails?) {
     val allVersionsCrossVersionTests = tasks.register("allVersionsCrossVersionTests") {
         group = "verification"
         description = "Runs the cross-version tests against all Gradle versions with 'forking' executer"
