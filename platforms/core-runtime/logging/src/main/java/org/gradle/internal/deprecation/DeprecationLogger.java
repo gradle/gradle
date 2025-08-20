@@ -248,8 +248,7 @@ public class DeprecationLogger {
         }
     }
 
-    @Nullable
-    public static <T> T whileDisabled(Factory<T> factory) {
+    public static <T extends @Nullable Object> T whileDisabled(Factory<T> factory) {
         disable();
         try {
             return factory.create();
@@ -313,7 +312,6 @@ public class DeprecationLogger {
      */
     private static <T, E extends Exception> Factory<T> toUncheckedThrowingFactory(final ThrowingFactory<T, E> throwingFactory) {
         return new Factory<T>() {
-            @Nullable
             @Override
             public T create() {
                 @SuppressWarnings("unchecked")
