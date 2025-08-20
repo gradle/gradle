@@ -33,6 +33,7 @@ import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.TaskExecutionLockRegistry;
 import org.gradle.util.Path;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +56,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     private final ResourceLockCoordinationService coordinationService;
     private final WorkerLeaseLockRegistry workerLeaseLockRegistry;
     private final ResourceLockStatistics resourceLockStatistics;
-    private final AtomicReference<Registries> registries = new AtomicReference<Registries>(new NoRegistries());
+    private final AtomicReference<Registries> registries = new AtomicReference<>(new NoRegistries());
 
     public DefaultWorkerLeaseService(
         ResourceLockCoordinationService coordinationService,
@@ -71,7 +72,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
 
     @Override
     public void startProjectExecution(boolean parallel) {
-        Registries current = registries.get();
+        Registries current = getRegistries();
         Registries next = current.startProjectExecution(parallel);
         setProjectExecutionState(current, next);
     }
@@ -79,7 +80,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     @Override
     public void finishProjectExecution() {
         // TODO - check no locks are currently held
-        Registries current = registries.get();
+        Registries current = getRegistries();
         Registries next = current.finishProjectExecution();
         setProjectExecutionState(current, next);
     }
@@ -163,32 +164,37 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
 
     @Override
     public boolean getAllowsParallelExecution() {
-        return registries.get().getProjectLockRegistry().getAllowsParallelExecution();
+        return getRegistries().getProjectLockRegistry().getAllowsParallelExecution();
     }
 
     @Override
     public ResourceLock getAllProjectsLock(Path buildIdentityPath) {
-        return registries.get().getProjectLockRegistry().getAllProjectsLock(buildIdentityPath);
+        return getRegistries().getProjectLockRegistry().getAllProjectsLock(buildIdentityPath);
     }
 
     @Override
     public ResourceLock getProjectLock(Path buildIdentityPath, Path projectIdentityPath) {
-        return registries.get().getProjectLockRegistry().getProjectLock(buildIdentityPath, projectIdentityPath);
+        return getRegistries().getProjectLockRegistry().getProjectLock(buildIdentityPath, projectIdentityPath);
     }
 
     @Override
     public ResourceLock getTaskExecutionLock(Path buildIdentityPath, Path projectIdentityPath) {
-        return registries.get().getTaskExecutionLockRegistry().getTaskExecutionLock(buildIdentityPath, projectIdentityPath);
+        return getRegistries().getTaskExecutionLockRegistry().getTaskExecutionLock(buildIdentityPath, projectIdentityPath);
     }
 
     @Override
     public Collection<? extends ResourceLock> getCurrentProjectLocks() {
-        return registries.get().getProjectLockRegistry().getResourceLocksByCurrentThread();
+        return getRegistries().getProjectLockRegistry().getResourceLocksByCurrentThread();
+    }
+
+    @SuppressWarnings("NullAway") // TODO(https://github.com/uber/NullAway/issues/681) Can't infer that AtomicReference holds non-nullable type
+    private Registries getRegistries() {
+        return registries.get();
     }
 
     @Override
     public void runAsIsolatedTask() {
-        Registries registries = this.registries.get();
+        Registries registries = getRegistries();
         releaseLocks(registries.getProjectLockRegistry().getResourceLocksByCurrentThread());
         releaseLocks(registries.getTaskExecutionLockRegistry().getResourceLocksByCurrentThread());
     }
@@ -199,8 +205,8 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     }
 
     @Override
-    public <T> T runAsIsolatedTask(Factory<T> factory) {
-        Registries registries = this.registries.get();
+    public <T extends @Nullable Object> T runAsIsolatedTask(Factory<T> factory) {
+        Registries registries = getRegistries();
         Collection<? extends ResourceLock> projectLocks = registries.getProjectLockRegistry().getResourceLocksByCurrentThread();
         Collection<? extends ResourceLock> taskLocks = registries.getTaskExecutionLockRegistry().getResourceLocksByCurrentThread();
         List<ResourceLock> locks = new ArrayList<ResourceLock>(projectLocks.size() + taskLocks.size());
@@ -211,7 +217,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
 
     @Override
     public void blocking(Runnable action) {
-        Registries registries = this.registries.get();
+        Registries registries = getRegistries();
         if (registries.getProjectLockRegistry().mayAttemptToChangeLocks()) {
             final Collection<? extends ResourceLock> projectLocks = registries.getProjectLockRegistry().getResourceLocksByCurrentThread();
             if (!projectLocks.isEmpty()) {
@@ -230,17 +236,17 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
 
     @Override
     public <T> T whileDisallowingProjectLockChanges(Factory<T> action) {
-        return registries.get().getProjectLockRegistry().whileDisallowingLockChanges(action);
+        return getRegistries().getProjectLockRegistry().whileDisallowingLockChanges(action);
     }
 
     @Override
     public <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory) {
-        return registries.get().getProjectLockRegistry().allowUncontrolledAccessToAnyResource(factory);
+        return getRegistries().getProjectLockRegistry().allowUncontrolledAccessToAnyResource(factory);
     }
 
     @Override
     public boolean isAllowedUncontrolledAccessToAnyProject() {
-        return registries.get().getProjectLockRegistry().isAllowedUncontrolledAccessToAnyResource();
+        return getRegistries().getProjectLockRegistry().isAllowedUncontrolledAccessToAnyResource();
     }
 
     @Override
@@ -249,7 +255,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     }
 
     @Override
-    public <T> T withLocks(Collection<? extends ResourceLock> locks, Factory<T> factory) {
+    public <T extends @Nullable Object> T withLocks(Collection<? extends ResourceLock> locks, Factory<T> factory) {
         Collection<? extends ResourceLock> locksToAcquire = locksNotHeld(locks);
 
         if (locksToAcquire.isEmpty()) {
@@ -332,7 +338,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     }
 
     @Override
-    public <T> T withoutLocks(Collection<? extends ResourceLock> locks, Factory<T> factory) {
+    public <T extends @Nullable Object> T withoutLocks(Collection<? extends ResourceLock> locks, Factory<T> factory) {
         if (locks.isEmpty()) {
             return factory.create();
         }
