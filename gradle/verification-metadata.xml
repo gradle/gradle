@@ -1162,11 +1162,6 @@
             <pgp value="6A814B1F869C2BBEAB7CB7271A2A1C94BDE89688"/>
          </artifact>
       </component>
-      <component group="org.apache.mina" name="mina-core" version="2.0.17">
-         <artifact name="mina-core-2.0.17.jar">
-            <pgp value="4D2DB2916149BAA9D0C92F3731474E5E7C6B7034"/>
-         </artifact>
-      </component>
       <component group="org.apache.velocity" name="velocity" version="1.7">
          <artifact name="velocity-1.7.jar">
             <pgp value="7B9751FC3F01F134F476464CD0EB627D4885CED1"/>
