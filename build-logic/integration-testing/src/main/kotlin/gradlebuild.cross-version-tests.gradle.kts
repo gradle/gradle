@@ -60,9 +60,10 @@ fun configureDependenciesForCrossVersionTests() {
 val releasedVersions = gradleModule.identity.releasedVersions.orNull
 
 fun Test.addTapiShadedJarDependency() {
-    inputs.file(tapiShadedResolvable).withPathSensitivity(PathSensitivity.NONE)
+    inputs.files(tapiShadedResolvable).withPathSensitivity(PathSensitivity.NONE)
+    val tapiShadedConfiguration = tapiShadedResolvable.get()
     doFirst {
-        systemProperty("toolingApi.shadedJar", tapiShadedResolvable.get().resolve().single())
+        systemProperty("toolingApi.shadedJar", tapiShadedConfiguration.singleFile)
     }
 }
 
