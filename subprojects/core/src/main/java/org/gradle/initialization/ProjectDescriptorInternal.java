@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.initialization;
 
+import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.util.Path;
-import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
-public interface ProjectDescriptorRegistry {
+/**
+ * Internal counterpart of {@link ProjectDescriptor}.
+ */
+public interface ProjectDescriptorInternal extends ProjectDescriptor {
 
-    void addProject(ProjectDescriptorInternal project);
+    Path absolutePath(String path);
 
-    @Nullable ProjectDescriptorInternal getRootProject();
+    boolean isExplicitName();
 
-    @Nullable ProjectDescriptorInternal getProject(String path);
+    @Override
+    ProjectDescriptorInternal getParent();
 
-    int size();
+    Set<ProjectDescriptorInternal> children();
 
-    Set<ProjectDescriptorInternal> getAllProjects();
+    void setPath(Path path);
 
-    void changeDescriptorPath(Path oldPath, Path newPath);
+    Path path();
 
 }

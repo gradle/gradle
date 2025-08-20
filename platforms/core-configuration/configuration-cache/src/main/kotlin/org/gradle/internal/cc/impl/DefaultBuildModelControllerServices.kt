@@ -22,7 +22,6 @@ import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultDynamicLookupRoutine
 import org.gradle.api.internal.project.DynamicLookupRoutine
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.configuration.ProjectsPreparer
 import org.gradle.configuration.ScriptPluginFactory
@@ -158,7 +157,7 @@ class DefaultBuildModelControllerServices(
     class ConfigurationCacheIsolatedProjectsProvider : ServiceRegistrationProvider {
         @Provides
         fun createCrossProjectModelAccess(
-            projectRegistry: ProjectRegistry<ProjectInternal>,
+            projectRegistry: ProjectRegistry,
             problemsListener: ProblemsListener,
             problemFactory: ProblemFactory,
             listenerManager: ListenerManager,
@@ -199,7 +198,7 @@ class DefaultBuildModelControllerServices(
     class VintageIsolatedProjectsProvider : ServiceRegistrationProvider {
         @Provides
         fun createCrossProjectModelAccess(
-            projectRegistry: ProjectRegistry<ProjectInternal>
+            projectRegistry: ProjectRegistry
         ): CrossProjectModelAccess {
             return DefaultCrossProjectModelAccess(projectRegistry)
         }

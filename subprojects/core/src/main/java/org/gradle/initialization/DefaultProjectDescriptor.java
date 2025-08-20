@@ -20,7 +20,6 @@ import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.internal.Cast;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.PathToFileResolver;
@@ -34,7 +33,7 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdentifier {
+public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
     public static final String INVALID_NAME_IN_INCLUDE_HINT = "Set the 'rootProject.name' or adjust the 'include' statement (see "
         + new DocumentationRegistry().getDslRefForProperty(Settings.class, "include(java.lang.String[])") + " for more details).";
 
@@ -46,21 +45,21 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     private final ScriptFileResolver scriptFileResolver;
     private File dir;
     private File canonicalDir;
-    private final DefaultProjectDescriptor parent;
-    private final Set<DefaultProjectDescriptor> children = new LinkedHashSet<>();
+    private final ProjectDescriptorInternal parent;
+    private final Set<ProjectDescriptorInternal> children = new LinkedHashSet<>();
     private ProjectDescriptorRegistry projectDescriptorRegistry;
     private Path path;
     private String buildFileName;
 
     public DefaultProjectDescriptor(
-        @Nullable DefaultProjectDescriptor parent, String name, File dir,
+        @Nullable ProjectDescriptorInternal parent, String name, File dir,
         ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver
     ) {
         this(parent, name, dir, projectDescriptorRegistry, fileResolver, null);
     }
 
     public DefaultProjectDescriptor(
-        @Nullable DefaultProjectDescriptor parent, String name, File dir,
+        @Nullable ProjectDescriptorInternal parent, String name, File dir,
         ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver,
         @Nullable ScriptFileResolver scriptFileResolver
     ) {
@@ -76,7 +75,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
 
         projectDescriptorRegistry.addProject(this);
         if (parent != null) {
-            parent.getChildren().add(this);
+            parent.children().add(this);
         }
     }
 
@@ -88,7 +87,8 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         }
     }
 
-    private Path absolutePath(String path) {
+    @Override
+    public Path absolutePath(String path) {
         return this.path.child(path);
     }
 
@@ -110,6 +110,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         this.nameExplicitlySet = true;
     }
 
+    @Override
     public boolean isExplicitName() {
         return nameExplicitlySet;
     }
@@ -129,12 +130,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     }
 
     @Override
-    public DefaultProjectDescriptor getParent() {
-        return parent;
-    }
-
-    @Override
-    public ProjectIdentifier getParentIdentifier() {
+    public ProjectDescriptorInternal getParent() {
         return parent;
     }
 
@@ -143,7 +139,8 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         return Cast.uncheckedCast(children);
     }
 
-    public Set<? extends DefaultProjectDescriptor> children() {
+    @Override
+    public Set<ProjectDescriptorInternal> children() {
         return children;
     }
 
@@ -152,7 +149,8 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         return path.toString();
     }
 
-    void setPath(Path path) {
+    @Override
+    public void setPath(Path path) {
         this.path = path;
     }
 
@@ -215,6 +213,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         return getPath();
     }
 
+    @Override
     public Path path() {
         return path;
     }

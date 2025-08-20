@@ -58,7 +58,7 @@ import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectFactory;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
@@ -358,8 +358,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected DefaultProjectRegistry<ProjectInternal> createProjectRegistry() {
-        return new DefaultProjectRegistry<>();
+    protected ProjectRegistry createProjectRegistry() {
+        return new DefaultProjectRegistry();
     }
 
     @Provides
