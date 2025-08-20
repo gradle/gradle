@@ -16,6 +16,7 @@ dependencies {
     implementation(projects.workers)
 
     implementation(libs.commonsIo)
+    implementation(libs.fastutil)
     implementation(libs.guava)
 
     api(projects.baseServices)
