@@ -16,7 +16,9 @@
 
 package org.gradle.integtests.tooling.r920
 
+
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildAction
@@ -28,6 +30,8 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.tooling.model.kotlin.dsl.ResilientKotlinDslScriptsModel
 import org.gradle.util.internal.ToBeImplemented
+
+import java.util.function.Function
 
 @ToolingApiVersion('>=9.2')
 @TargetGradleVersion('>=9.2')
@@ -86,11 +90,10 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         def resilientScripts = resilientModels.scriptModels.keySet()
         resilientScripts.size() == originalScripts.size()
         for (File scriptFile : original.scriptModels.keySet()) {
-            assert resilientScripts.contains(scriptFile)
-            def originalModel = original.scriptModels.get(scriptFile)
-            def resilientModel = resilientModels.scriptModels.get(scriptFile)
-            assert resilientModel.classPath == originalModel.classPath
-            assert resilientModel.implicitImports == originalModel.implicitImports
+            def modelAssert = new ResilientKotlinModelAssert(scriptFile, resilientModels, original)
+            modelAssert.assertBothModelsExist()
+            modelAssert.assertClassPathsAreEqual()
+            modelAssert.assertImplicitImportsAreEqual()
         }
         resilientModels.failureMessages.isEmpty()
     }
@@ -145,17 +148,15 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         def resilientScripts = resilientModels.scriptModels.keySet()
         resilientScripts.size() == originalScripts.size()
         for (File scriptFile : original.scriptModels.keySet()) {
-            if (scriptFile != d) {
-                assert resilientScripts.contains(scriptFile)
-                def originalModel = original.scriptModels.get(scriptFile)
-                def resilientModel = resilientModels.scriptModels.get(scriptFile)
-                assert resilientModel.classPath == originalModel.classPath
-                assert resilientModel.implicitImports == originalModel.implicitImports
+            def modelAssert = new ResilientKotlinModelAssert(scriptFile, resilientModels, original)
+            modelAssert.assertBothModelsExist()
+            if (scriptFile == d) {
+                // In this case we don't have accessors in the classpath
+                modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { !it.contains("/accessors/") }
+                modelAssert.assertImplicitImportsAreEqual()
             } else {
-                def originalModel = original.scriptModels.get(scriptFile)
-                def resilientModel = resilientModels.scriptModels.get(scriptFile)
-                assert resilientModel.classPath == originalModel.classPath.findAll { !it.absolutePath.contains("/accessors/") }
-                assert resilientModel.implicitImports == originalModel.implicitImports
+                modelAssert.assertClassPathsAreEqual()
+                modelAssert.assertImplicitImportsAreEqual()
             }
         }
         resilientModels.failureMessages.size() == 1
@@ -237,27 +238,20 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         def resilientScripts = resilientModels.scriptModels.keySet()
         resilientScripts.size() == originalScripts.size()
         for (File scriptFile : original.scriptModels.keySet()) {
+            def modelAssert = new ResilientKotlinModelAssert(scriptFile, resilientModels, original)
+            modelAssert.assertBothModelsExist()
             if (scriptFile == b) {
-                assert resilientScripts.contains(scriptFile)
-                def originalModel = original.scriptModels.get(scriptFile)
-                def resilientModel = new Tuple2<>(scriptFile, resilientModels.scriptModels.get(scriptFile))
                 // For some reason the build logic and accessors are included but different
-                assert resilientModel.v2.classPath.findAll { !it.absolutePath.contains("/build-logic.jar") }.findAll { !it.absolutePath.contains("/accessors/") } == originalModel.classPath.findAll { !it.absolutePath.contains("/accessors/") }.findAll { !it.absolutePath.contains("/build-logic.jar") }
-                assert resilientModel.v2.classPath.find { it.absolutePath.contains("/accessors/") }
-                assert resilientModel.v2.classPath.find { it.absolutePath.contains("/build-logic.jar") }
-                assert resilientModel.v2.implicitImports == originalModel.implicitImports
+                modelAssert.assertClassPathsAreEqualIfIgnoringSomeEntries { !it.contains("/accessors/") && !it.contains("/build-logic.jar") }
+                modelAssert.assertResilientModelContainsClassPathEntriesWithPath("/accessors/")
+                modelAssert.assertResilientModelContainsClassPathEntriesWithPath("/build-logic.jar")
+                modelAssert.assertImplicitImportsAreEqual()
             } else if (scriptFile == c) {
-                assert resilientScripts.contains(scriptFile)
-                def originalModel = original.scriptModels.get(scriptFile)
-                def resilientModel = new Tuple2<>(scriptFile, resilientModels.scriptModels.get(scriptFile))
-                assert resilientModel.v2.classPath == originalModel.classPath.findAll { !it.absolutePath.contains("/accessors/") }
-                assert resilientModel.v2.implicitImports == originalModel.implicitImports
+                modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { !it.contains("/accessors/") }
+                modelAssert.assertImplicitImportsAreEqual()
             } else {
-                assert resilientScripts.contains(scriptFile)
-                def originalModel = original.scriptModels.get(scriptFile)
-                def resilientModel = new Tuple2<>(scriptFile, resilientModels.scriptModels.get(scriptFile))
-                assert resilientModel.v2.classPath == originalModel.classPath
-                assert resilientModel.v2.implicitImports == originalModel.implicitImports
+                modelAssert.assertClassPathsAreEqual()
+                modelAssert.assertImplicitImportsAreEqual()
             }
         }
         resilientModels.failureMessages.size() == 1
@@ -332,26 +326,19 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         def resilientScripts = resilientModels.scriptModels.keySet()
         resilientScripts.size() == originalScripts.size()
         for (File scriptFile : original.scriptModels.keySet()) {
+            def modelAssert = new ResilientKotlinModelAssert(scriptFile, resilientModels, original)
+            modelAssert.assertBothModelsExist()
             if (scriptFile == b) {
-                assert resilientScripts.contains(scriptFile)
-                def originalModel = original.scriptModels.get(scriptFile)
-                def resilientModel = new Tuple2<>(scriptFile, resilientModels.scriptModels.get(scriptFile))
                 // In this case we don't have accessors and build-logic in the classpath
-                assert resilientModel.v2.classPath == originalModel.classPath.findAll { !it.absolutePath.contains("/accessors/") }.findAll { !it.absolutePath.contains("/build-logic.jar") }
-                assert resilientModel.v2.implicitImports == originalModel.implicitImports
+                modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { !it.contains("/accessors/") && !it.contains("/build-logic.jar") }
+                modelAssert.assertImplicitImportsAreEqual()
             } else if (scriptFile == c) {
-                assert resilientScripts.contains(scriptFile)
-                def originalModel = original.scriptModels.get(scriptFile)
-                def resilientModel = new Tuple2<>(scriptFile, resilientModels.scriptModels.get(scriptFile))
                 // In this case we don't have accessors, since this project is not configured
-                assert resilientModel.v2.classPath == originalModel.classPath.findAll { !it.absolutePath.contains("/accessors/") }
-                assert resilientModel.v2.implicitImports == originalModel.implicitImports
+                modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { !it.contains("/accessors/") }
+                modelAssert.assertImplicitImportsAreEqual()
             } else {
-                assert resilientScripts.contains(scriptFile)
-                def originalModel = original.scriptModels.get(scriptFile)
-                def resilientModel = new Tuple2<>(scriptFile, resilientModels.scriptModels.get(scriptFile))
-                assert resilientModel.v2.classPath == originalModel.classPath
-                assert resilientModel.v2.implicitImports == originalModel.implicitImports
+                modelAssert.assertClassPathsAreEqual()
+                modelAssert.assertImplicitImportsAreEqual()
             }
         }
         resilientModels.failureMessages.size() == 2
@@ -471,6 +458,84 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
                 scriptModels,
                 failures
             )
+        }
+    }
+
+    static class ResilientKotlinModelAssert {
+
+        MyCustomModel resilientCustomModel
+        MyCustomModel originalCustomModel
+        KotlinDslScriptModel resilientModel
+        KotlinDslScriptModel originalModel
+        File scriptFile
+
+        ResilientKotlinModelAssert(File scriptFile, MyCustomModel resilientModel, MyCustomModel originalModel) {
+            this.scriptFile = scriptFile
+            this.resilientCustomModel = resilientModel
+            this.originalCustomModel = originalModel
+            this.resilientModel = resilientModel.scriptModels.get(scriptFile)
+            this.originalModel = originalModel.scriptModels.get(scriptFile)
+        }
+
+        ResilientKotlinModelAssert assertBothModelsExist() {
+            if (!originalModel) {
+                throw new AssertionError("Original model for script ${scriptFile} is missing, scripts that have original model are:\n" +
+                    " ${originalCustomModel.scriptModels.keySet()}")
+            }
+            if (!resilientModel) {
+                throw new AssertionError("Resilient model for script ${scriptFile} is missing, scripts that have resilient model are:\n" +
+                    " ${resilientCustomModel.scriptModels.keySet()}")
+            }
+            return this
+        }
+
+
+        ResilientKotlinModelAssert assertClassPathsAreEqual() {
+            if (resilientModel.classPath != originalModel.classPath) {
+                throw new AssertionError("Class paths are not equal for script ${scriptFile}:\n" +
+                    " - Resilient classPath: ${resilientModel.classPath}\n" +
+                    " - Original classPath:  ${originalModel.classPath}")
+            }
+            return this
+        }
+
+        ResilientKotlinModelAssert assertClassPathsAreEqualIfIgnoringSomeOriginalEntries(Function<String, Boolean> filter) {
+            def filteredOriginalClassPath = originalModel.classPath.findAll { filter.apply(TextUtil.normaliseFileSeparators(it.absolutePath)) }
+            if (resilientModel.classPath != filteredOriginalClassPath) {
+                throw new AssertionError("Class paths are not equal after filtering original entries for script ${scriptFile}:\n" +
+                    " - Resilient classPath:         ${resilientModel.classPath}\n" +
+                    " - Filtered original classPath: ${filteredOriginalClassPath}")
+            }
+            return this
+        }
+
+        ResilientKotlinModelAssert assertClassPathsAreEqualIfIgnoringSomeEntries(Function<String, Boolean> filter) {
+            def filteredResilient = resilientModel.classPath.findAll { filter.apply(TextUtil.normaliseFileSeparators(it.absolutePath)) }
+            def filteredOriginalClassPath = originalModel.classPath.findAll { filter.apply(TextUtil.normaliseFileSeparators(it.absolutePath)) }
+            if (filteredResilient != filteredOriginalClassPath) {
+                throw new AssertionError("Class paths are not equal after filtering some entries for script ${scriptFile}:\n" +
+                    " - Riltered resilient: ${filteredResilient}\n" +
+                    " - Riltered original:  ${filteredOriginalClassPath}")
+            }
+            return this
+        }
+
+        ResilientKotlinModelAssert assertResilientModelContainsClassPathEntriesWithPath(String path) {
+            def filteredResilient = resilientModel.classPath.findAll { TextUtil.normaliseFileSeparators(it.absolutePath).contains(path) }
+            if (filteredResilient.isEmpty()) {
+                throw new AssertionError("Resilient Class paths for script ${scriptFile} did not contain entries with path '${path}':\n" +
+                    " - Resilient classPath: ${resilientModel.classPath}")
+            }
+            return this
+        }
+
+        ResilientKotlinModelAssert assertImplicitImportsAreEqual() {
+            if (resilientModel.implicitImports != originalModel.implicitImports) {
+                throw new AssertionError("Implicit imports are not equal for script ${scriptFile}:\n" +
+                    " - Resilient imports: ${resilientModel.implicitImports}\n" +
+                    " - Original imports:  ${originalModel.implicitImports}")
+            }
+            return this
         }
     }
 }
