@@ -901,3 +901,7 @@ tasks.withType<CheckLinks>().configureEach {
 tasks.register("checkLinks") {
     dependsOn(tasks.withType<CheckLinks>())
 }
+
+errorprone {
+    nullawayEnabled = true
+}
