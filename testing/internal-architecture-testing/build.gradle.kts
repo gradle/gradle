@@ -13,3 +13,7 @@ dependencies {
         because("This is what we use to write our architecture tests")
     }
 }
+
+errorprone {
+    nullawayEnabled = true
+}

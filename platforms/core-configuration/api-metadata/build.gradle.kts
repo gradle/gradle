@@ -4,3 +4,7 @@ plugins {
 }
 
 description = "Generated metadata about Gradle API needed by Kotlin DSL"
+
+errorprone {
+    nullawayEnabled = true
+}
