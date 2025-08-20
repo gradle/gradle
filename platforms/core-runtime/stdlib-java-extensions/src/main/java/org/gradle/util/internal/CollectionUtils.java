@@ -17,7 +17,6 @@ package org.gradle.util.internal;
 
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
-import org.gradle.internal.InternalTransformers;
 import org.gradle.internal.Pair;
 import org.jspecify.annotations.Nullable;
 
@@ -195,7 +194,7 @@ public abstract class CollectionUtils {
     }
 
     public static List<String> toStringList(Iterable<?> iterable) {
-        return collect(iterable, new LinkedList<String>(), InternalTransformers.asString());
+        return stringize(iterable, new LinkedList<>());
     }
 
     /**
@@ -365,8 +364,12 @@ public abstract class CollectionUtils {
         return compacted != null ? compacted : list;
     }
 
+    @SuppressWarnings("NullAway")
+    // TODO(mlopatkin) This is a polynull function in disguise.
+    //  You may end up here when fighting with NullAway because your source can contain nulls.
+    //  Consider adding a null-taking overload then.
     public static <C extends Collection<String>> C stringize(Iterable<?> source, C destination) {
-        return collect(source, destination, InternalTransformers.asString());
+        return collect(source, destination, value -> value == null ? null : value.toString());
     }
 
     public static List<String> stringize(Collection<?> source) {
