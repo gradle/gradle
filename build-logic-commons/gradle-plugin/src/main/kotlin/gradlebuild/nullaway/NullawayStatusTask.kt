@@ -55,7 +55,7 @@ internal abstract class NullawayStatusTask : DefaultTask() {
         when {
             nullawayEnabled.get() -> service.addProjectWithNullawayEnabled(projectPath)
             nullawayIncompatibleDeps.isEmpty() -> service.addProjectToEnableNullawayIn(projectPath)
-            else -> service.addProjectWithUncheckedDeps(projectPath)
+            else -> service.addProjectWithUncheckedDeps(projectPath, nullawayIncompatibleDeps.map { it.id.toString() })
         }
     }
 
