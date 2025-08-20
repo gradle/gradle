@@ -17,14 +17,14 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.artifacts.FileCollectionDependency;
+import org.gradle.api.internal.GradleApiImplicitImportsProvider;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
+import org.gradle.api.internal.classpath.GradleApiClasspathProvider;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider;
-import org.gradle.kotlin.dsl.support.ImplicitImports;
 import org.gradle.tooling.model.dsl.DslBaseScriptModel;
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder;
 import org.jspecify.annotations.NullMarked;
@@ -47,13 +47,13 @@ public class DslBaseScriptModelBuilder implements BuildScopeModelBuilder {
     public @Nullable Object create(BuildState target) {
         GradleInternal gradle = target.getMutableModel();
         ModuleRegistry moduleRegistry = gradle.getServices().get(ModuleRegistry.class);
-        ImplicitImports implicitImports = gradle.getServices().get(ImplicitImports.class);
-        KotlinScriptClassPathProvider kotlinScriptClassPathProvider = gradle.getServices().get(KotlinScriptClassPathProvider.class);
+        GradleApiImplicitImportsProvider implicitImports = gradle.getServices().get(GradleApiImplicitImportsProvider.class);
+        GradleApiClasspathProvider apiClasspathProvider = gradle.getServices().get(GradleApiClasspathProvider.class);
         DependencyFactoryInternal dependencyFactory = gradle.getServices().get(DependencyFactoryInternal.class);
         return new StandardDslBaseScriptModel(
             getGradleApiClassPath(dependencyFactory).getAsFiles(),
             getScriptTemplatesClassPath(moduleRegistry).getAsFiles(),
-            kotlinScriptClassPathProvider.getGradleKotlinDslApi().getAsFiles(),
+            apiClasspathProvider.getGradleKotlinDslApi().getAsFiles(),
             implicitImports.getKotlinDslImplicitImports()
         );
     }
