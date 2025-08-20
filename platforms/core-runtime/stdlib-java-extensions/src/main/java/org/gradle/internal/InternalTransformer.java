@@ -16,6 +16,8 @@
 
 package org.gradle.internal;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Equivalent to {@code Transformer}, but does not declare nullability due to Java 6 restrictions.
  *
@@ -26,7 +28,7 @@ package org.gradle.internal;
  * @param <OUT> The type the value is transformed to.
  * @param <IN> The type of the value to be transformed.
  */
-public interface InternalTransformer<OUT, IN> {
+public interface InternalTransformer<OUT extends @Nullable Object, IN extends @Nullable Object> {
     /**
      * Transforms the given object, and returns the transformed value.
      *
