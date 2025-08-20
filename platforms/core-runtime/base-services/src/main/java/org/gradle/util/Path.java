@@ -123,6 +123,12 @@ public class Path implements Comparable<Path> {
         return asString();
     }
 
+    /**
+     * Returns the full path as a string.
+     *
+     * @since 9.2.0
+     */
+    @Incubating
     public String asString() {
         if (fullPath == null) {
             fullPath = createFullPath();
