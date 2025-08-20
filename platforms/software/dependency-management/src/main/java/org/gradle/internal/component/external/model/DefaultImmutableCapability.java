@@ -29,6 +29,7 @@ public class DefaultImmutableCapability implements ImmutableCapability {
 
     private final String group;
     private final String name;
+    @Nullable
     private final String version;
     private final int hashCode;
     private final String cachedId;
@@ -58,7 +59,7 @@ public class DefaultImmutableCapability implements ImmutableCapability {
         int hash = safeHash(version);
         hash = 31 * hash + name.hashCode();
         hash = 31 * hash + group.hashCode();
-        return  hash;
+        return hash;
     }
 
     private static int safeHash(@Nullable String o) {
