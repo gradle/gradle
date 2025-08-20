@@ -676,12 +676,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
             this.accessScope = accessScope;
             this.serviceTypes = serviceTypes;
-            serviceTypesAsClasses = collect(serviceTypes, new InternalTransformer<Class<?>, Type>() {
-                @Override
-                public Class<?> transform(Type type) {
-                    return unwrap(type);
-                }
-            });
+            serviceTypesAsClasses = collect(serviceTypes, DefaultServiceRegistry::unwrap);
         }
 
         @Override
