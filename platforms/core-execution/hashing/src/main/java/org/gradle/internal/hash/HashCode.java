@@ -217,7 +217,7 @@ public abstract class HashCode implements Serializable, Comparable<HashCode> {
         }
 
         @Override
-        public boolean equals(Object o) {
+        public boolean equals(@Nullable Object o) {
             if (this == o) {
                 return true;
             }
