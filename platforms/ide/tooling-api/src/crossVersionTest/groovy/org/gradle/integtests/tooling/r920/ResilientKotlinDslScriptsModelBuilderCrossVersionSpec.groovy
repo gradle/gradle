@@ -409,7 +409,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         MyCustomModel(Map<File, KotlinDslScriptModel> scriptModels, Map<File, Failure> failure) {
             this.scriptModels = scriptModels
-            this.failureMessages = failure.collectEntries { k, v -> [(k): v.description] }
+            this.failureMessages = failure.collectEntries { k, v -> [(k): TextUtil.normaliseFileSeparators(v.description)] }
         }
     }
 
