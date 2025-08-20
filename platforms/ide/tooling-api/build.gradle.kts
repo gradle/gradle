@@ -42,7 +42,7 @@ shadedJar {
 configurations.consumable("shadedTapi") {
     outgoing.artifact(tasks.named<ShadedJar>("toolingApiShadedJar"))
     attributes {
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("ShadedTapi"))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("Shaded"))
     }
 }
 

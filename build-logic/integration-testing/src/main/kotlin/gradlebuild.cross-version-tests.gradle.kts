@@ -36,10 +36,18 @@ addDependenciesAndConfigurations(TestType.CROSSVERSION.prefix)
 createQuickFeedbackTasks()
 createAggregateTasks(sourceSet)
 configureIde(TestType.CROSSVERSION)
-val tapiProjectDependency = configurations.dependencyScope("tapiProjectDependency")
-configureTestFixturesForCrossVersionTests()
 
-fun configureTestFixturesForCrossVersionTests() {
+val tapiProjectDependency = configurations.dependencyScope("tapiProjectDependency")
+val tapiShadedResolvable = configurations.resolvable("tapiShadedResolvable") {
+    extendsFrom(tapiProjectDependency.get())
+    attributes {
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("Shaded"))
+    }
+}
+
+configureDependenciesForCrossVersionTests()
+
+fun configureDependenciesForCrossVersionTests() {
     // do not attempt to find projects when the plugin is applied just to generate accessors
     if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "test" /* remove once wrapper is updated */) {
         dependencies {
@@ -51,18 +59,10 @@ fun configureTestFixturesForCrossVersionTests() {
 
 val releasedVersions = gradleModule.identity.releasedVersions.orNull
 
-val tapiShadedResolvable = configurations.resolvable("tapiShadedResolvable") {
-    extendsFrom(tapiProjectDependency.get())
-    attributes {
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("ShadedTapi"))
-    }
-}
-
-fun Test.addShadedJarDependency() {
+fun Test.addTapiShadedJarDependency() {
     inputs.file(tapiShadedResolvable).withPathSensitivity(PathSensitivity.NONE)
-
     doFirst {
-        systemProperty("toolingApi.shadedJar", tapiShadedResolvable.get().resolve().first())
+        systemProperty("toolingApi.shadedJar", tapiShadedResolvable.get().resolve().single())
     }
 }
 
@@ -73,7 +73,7 @@ fun createQuickFeedbackTasks() {
     testType.executers.forEach { executer ->
         val taskName = "$executer${prefix.capitalize()}Test"
         val testTask = createTestTask(taskName, executer, sourceSet, testType) {
-            addShadedJarDependency()
+            addTapiShadedJarDependency()
             this.setSystemPropertiesOfTestJVM("latest")
             this.systemProperties["org.gradle.integtest.crossVersion"] = "true"
             this.systemProperties["org.gradle.integtest.crossVersion.lowestTestedVersion"] = releasedVersions?.lowestTestedVersion?.version
@@ -103,7 +103,7 @@ fun createAggregateTasks(sourceSet: SourceSet) {
     val releasedVersions = gradleModule.identity.releasedVersions.orNull
     releasedVersions?.allTestedVersions?.forEach { targetVersion ->
         val crossVersionTest = createTestTask("gradle${targetVersion.version}CrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION) {
-            addShadedJarDependency()
+            addTapiShadedJarDependency()
             this.description = "Runs the cross-version tests against Gradle ${targetVersion.version}"
             this.systemProperties["org.gradle.integtest.versions"] = targetVersion.version
             this.systemProperties["org.gradle.integtest.crossVersion"] = "true"
@@ -119,5 +119,3 @@ fun createAggregateTasks(sourceSet: SourceSet) {
         }
     }
 }
-
-
