@@ -20,6 +20,7 @@ package org.gradle.util.internal;
 import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GradleVersion;
+import org.jspecify.annotations.Nullable;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -43,6 +44,7 @@ public final class DefaultGradleVersion extends GradleVersion {
 
     private final String version;
     private final int majorPart;
+    @Nullable
     private final String buildTime;
     private final String commitId;
     private final Long snapshot;
@@ -105,7 +107,7 @@ public final class DefaultGradleVersion extends GradleVersion {
         return new DefaultGradleVersion(version, null, null);
     }
 
-    private DefaultGradleVersion(String version, String buildTime, String commitId) {
+    private DefaultGradleVersion(String version, @Nullable String buildTime, @Nullable String commitId) {
         this.version = version;
         this.buildTime = buildTime;
         Matcher matcher = VERSION_PATTERN.matcher(version);
