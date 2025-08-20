@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
@@ -59,7 +60,10 @@ public class DefaultProjectDependencyFactory {
     }
 
     public ProjectDependency create(Path projectIdentityPath) {
-        ProjectState projectState = projectStateRegistry.stateFor(projectIdentityPath);
+        ProjectState projectState = projectStateRegistry.findProjectState(projectIdentityPath);
+        if (projectState == null) {
+            throw new UnknownProjectException(String.format("Project with path '%s' could not be found.", projectIdentityPath.getPath()));
+        }
         return create(projectState);
     }
 
