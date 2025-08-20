@@ -16,16 +16,24 @@
 
 package org.gradle.execution.plan;
 
+import it.unimi.dsi.fastutil.objects.ObjectIterators;
+import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
+
+import java.util.AbstractSet;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
 import java.util.List;
-import java.util.NavigableSet;
 import java.util.Set;
-import java.util.TreeSet;
+
+import static org.gradle.internal.Cast.uncheckedCast;
 
 public final class NodeSets {
 
-    public static NavigableSet<Node> newSortedNodeSet() {
-        return new TreeSet<>(NodeComparator.INSTANCE);
+    public static Set<Node> newSortedNodeSet() {
+        return new LazySortedReferenceHashSet<>(NodeComparator.INSTANCE);
     }
 
     public static List<Node> sortedListOf(Set<Node> nodes) {
@@ -35,5 +43,143 @@ public final class NodeSets {
     }
 
     private NodeSets() {
+    }
+
+    /**
+     * A {@link ReferenceOpenHashSet reference-based hash-set} with iteration order based on a given comparator.
+     *
+     * @param <E> the element type
+     */
+    static final class LazySortedReferenceHashSet<E> extends AbstractSet<E> {
+
+        private final Comparator<? super E> comparator;
+        private final ReferenceOpenHashSet<E> set = new ReferenceOpenHashSet<>();
+        private Object[] array = INITIAL_CAPACITY_MARKER;
+        private int size = 0;
+        private int version = 0; // positive means unsorted, negative means sorted
+
+        public LazySortedReferenceHashSet(Comparator<? super E> comparator) {
+            this.comparator = comparator;
+        }
+
+        @Override
+        public boolean add(E e) {
+            if (!set.add(e)) {
+                return false;
+            }
+            if (size >= array.length) {
+                array = growArray(array);
+            }
+            array[size++] = e;
+            version = Math.abs(version) + 1;
+            return true;
+        }
+
+
+        @Override
+        public boolean contains(Object o) {
+            return set.contains(o);
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            if (set.remove(o)) {
+                removeIndex(indexOf(o));
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public Iterator<E> iterator() {
+            if (size == 0) {
+                return ObjectIterators.emptyIterator();
+            }
+
+            sort();
+            return new Iterator<E>() {
+
+                int iteratorVersion = version;
+                int index = 0;
+
+                @Override
+                public void remove() {
+                    E e = uncheckedCast(array[index - 1]);
+                    if (!set.remove(e)) {
+                        throw new ConcurrentModificationException();
+                    }
+                    removeIndex(index - 1);
+                    index--;
+                    iteratorVersion = version;
+                }
+
+                @Override
+                public boolean hasNext() {
+                    return index < size;
+                }
+
+                @Override
+                public E next() {
+                    if (version != iteratorVersion) {
+                        throw new ConcurrentModificationException();
+                    }
+                    return uncheckedCast(array[index++]);
+                }
+            };
+        }
+
+        @Override
+        public int size() {
+            return size;
+        }
+
+        @Override
+        public int hashCode() {
+            return set.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == this) {
+                return true;
+            }
+            if (!(o instanceof Set)) {
+                return false;
+            }
+            return set.equals(o);
+        }
+
+        private void sort() {
+            if (version <= 0) {
+                return;
+            }
+            Arrays.sort(uncheckedCast(array), 0, size, comparator);
+            version = -version;
+        }
+
+        private int indexOf(Object o) {
+            for (int i = size - 1; i >= 0; i--) {
+                if (array[i] == o) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        private void removeIndex(int index) {
+            System.arraycopy(array, index + 1, array, index, size - index);
+            size--;
+            version = version < 0 ? version - 1 : version + 1;
+        }
+
+        private static Object[] growArray(Object[] array) {
+            Object[] grow = new Object[array == INITIAL_CAPACITY_MARKER ? INITIAL_CAPACITY : array.length * 3 / 2];
+            System.arraycopy(array, 0, grow, 0, array.length);
+            return grow;
+        }
+
+        private static final int INITIAL_CAPACITY = 8;
+
+        private static final String[] INITIAL_CAPACITY_MARKER = {};
     }
 }
