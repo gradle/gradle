@@ -22,26 +22,26 @@ import java.io.File;
 import java.util.List;
 
 /**
- * This interface represents the base Kotlin DSL script models.
- *
- * This model can be queried very early in the build lifecycle, without any script evaluation or build configuration.
+ * This interface describes the Groovy DSL specific part of {@link DslBaseScriptModel}.
  *
  * @since 9.2.0
  */
 @Incubating
-public interface DslBaseScriptModel {
+public interface GroovyDslBaseScriptModel {
 
     /**
-     * The Groovy DSL specific part of the model.
+     * The compilation classpath for Groovy DSL scripts.
      *
      * @since 9.2.0
      */
-    GroovyDslBaseScriptModel getGroovyDslBaseScriptModel();
+    @Incubating
+    List<File> getCompileClassPath();
 
     /**
-     * The Kotlin DSL specific part of the model.
+     * The implicit imports that are added to all Groovy DSL scripts.
      *
      * @since 9.2.0
      */
-    KotlinDslBaseScriptModel getKotlinDslBaseScriptModel();
+    @Incubating
+    List<String> getImplicitImports();
 }

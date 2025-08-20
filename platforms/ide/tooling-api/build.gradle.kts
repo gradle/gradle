@@ -12,6 +12,9 @@ gradleModule {
     }
 }
 
+BigInteger.valueOf(7)
+File("")
+
 jvmCompile {
     compilations {
         named("main") {

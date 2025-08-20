@@ -19,6 +19,10 @@ package org.gradle.kotlin.dsl.tooling.builders.r92
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.tooling.model.dsl.DslBaseScriptModel
+import org.gradle.tooling.model.dsl.GroovyDslBaseScriptModel
+import org.gradle.tooling.model.dsl.KotlinDslBaseScriptModel
+
+import java.nio.file.Files
 
 @TargetGradleVersion(">=9.2")
 class DslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
@@ -37,15 +41,29 @@ class DslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossV
         then:
         model != null
 
-        and: "gradle api classpath"
-        model.gradleApiClassPath.find { it.name.contains("gradle-api-") && it.name.endsWith(".jar") }
-        model.gradleApiClassPath.find { it.name.contains("groovy-") && it.name.endsWith(".jar") }
-        model.gradleApiClassPath.find { it.name.contains("kotlin-stdlib-") && it.name.endsWith(".jar") }
-        model.gradleApiClassPath.find { it.name.contains("gradle-kotlin-dsl-") && it.name.endsWith(".jar") } == null
+        and:
+        def groovyModel = model.groovyDslBaseScriptModel
+        groovyModel != null
 
-        and: "script templates classpath"
+        and:
+        def kotlinModel = model.kotlinDslBaseScriptModel
+        kotlinModel != null
+
+        and: "Groovy DSL script compile classpath"
+        groovyModel.compileClassPath.find { it.name.contains("gradle-api-") && it.name.endsWith(".jar") }
+        groovyModel.compileClassPath.find { it.name.contains("groovy-") && it.name.endsWith(".jar") }
+        groovyModel.compileClassPath.find { it.name.contains("kotlin-stdlib-") && it.name.endsWith(".jar") }
+        groovyModel.compileClassPath.find { it.name.contains("gradle-kotlin-dsl-") && it.name.endsWith(".jar") } == null
+
+        and: "Groovy DSL implicit imports"
+        groovyModel.implicitImports.find {it.equals("org.gradle.api.Action")}
+        groovyModel.implicitImports.find {it.equals("org.gradle.api.artifacts.ComponentMetadata")}
+        groovyModel.implicitImports.find {it.equals("java.math.BigDecimal")}
+        groovyModel.implicitImports.find {it.equals("java.io.*")}
+
+        and: "Kotlin DSL script templates classpath"
         loadClassesFrom(
-            model.scriptTemplatesClassPath,
+                kotlinModel.scriptTemplatesClassPath,
             // Script templates for IDE support
             "org.gradle.kotlin.dsl.KotlinGradleScriptTemplate",
             "org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate",
@@ -58,14 +76,19 @@ class DslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossV
             "org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver"
         )
 
-        and: "implicit imports"
-        !model.kotlinScriptImplicitImports.isEmpty()
+        and: "Kotlin DSL script compile classpath"
+        !kotlinModel.compileClassPath.isEmpty()
+        kotlinModel.compileClassPath.find { it.name.contains("gradle-api-") && it.name.endsWith(".jar") }
+        kotlinModel.compileClassPath.find { it.name.contains("groovy-") && it.name.endsWith(".jar") }
+        kotlinModel.compileClassPath.find { it.name.contains("kotlin-stdlib-") && it.name.endsWith(".jar") }
+        kotlinModel.compileClassPath.find { it.name.contains("gradle-kotlin-dsl-") && it.name.endsWith(".jar") }
 
-        and: "base classpath"
-        !model.kotlinDslClassPath.isEmpty()
-        model.kotlinDslClassPath.find { it.name.contains("gradle-api-") && it.name.endsWith(".jar") }
-        model.kotlinDslClassPath.find { it.name.contains("groovy-") && it.name.endsWith(".jar") }
-        model.kotlinDslClassPath.find { it.name.contains("gradle-kotlin-dsl-") && it.name.endsWith(".jar") }
+        and: "Kotlin DSL script implicit imports"
+        kotlinModel.implicitImports.find {it.equals("org.gradle.api.Action")}
+        kotlinModel.implicitImports.find {it.equals("org.gradle.api.artifacts.ComponentMetadata")}
+        kotlinModel.implicitImports.find {it.equals("org.gradle.kotlin.dsl.*")}
+        kotlinModel.implicitImports.find {it.equals("java.math.BigDecimal")}
+        kotlinModel.implicitImports.find {it.equals("java.io.File")}
 
         and: "no configuration"
         listener.hasSeenSomeEvents && listener.configPhaseStartEvents.isEmpty()
