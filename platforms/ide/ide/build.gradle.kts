@@ -36,7 +36,6 @@ dependencies {
     implementation(projects.war)
 
     implementation(libs.groovyXml)
-    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)

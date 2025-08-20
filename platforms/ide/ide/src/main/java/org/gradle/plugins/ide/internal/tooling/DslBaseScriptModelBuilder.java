@@ -30,7 +30,6 @@ import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
@@ -38,6 +37,7 @@ import java.util.stream.Stream;
 
 @NullMarked
 public class DslBaseScriptModelBuilder implements BuildScopeModelBuilder {
+
     @Override
     public boolean canBuild(String modelName) {
         return "org.gradle.tooling.model.dsl.DslBaseScriptModel".equals(modelName);
@@ -58,7 +58,6 @@ public class DslBaseScriptModelBuilder implements BuildScopeModelBuilder {
         );
     }
 
-    @Nonnull
     private static ClassPath getGradleApiClassPath(DependencyFactoryInternal dependencyFactory) {
         return DefaultClassPath.of(((FileCollectionDependency) dependencyFactory.gradleApi()).getFiles().getFiles());
     }

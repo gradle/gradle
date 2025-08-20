@@ -33,6 +33,8 @@ public interface DslBaseScriptModel {
 
     /**
      * Classpath required to use the Gradle API.
+     *
+     * @since 9.2.0
      */
     @Incubating
     List<File> getGradleApiClassPath();
