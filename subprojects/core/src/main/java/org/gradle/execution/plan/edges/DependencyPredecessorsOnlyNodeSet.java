@@ -19,17 +19,17 @@ package org.gradle.execution.plan.edges;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.NodeSets;
 
-import java.util.SortedSet;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
  * Only incoming dependencies, no incoming must-run-after or finalizes relationships.
  */
 class DependencyPredecessorsOnlyNodeSet implements DependentNodesSet {
-    private final SortedSet<Node> dependencyPredecessors = NodeSets.newSortedNodeSet();
+    private final Set<Node> dependencyPredecessors = NodeSets.newSortedNodeSet();
 
     @Override
-    public SortedSet<Node> getDependencyPredecessors() {
+    public Set<Node> getDependencyPredecessors() {
         return dependencyPredecessors;
     }
 
