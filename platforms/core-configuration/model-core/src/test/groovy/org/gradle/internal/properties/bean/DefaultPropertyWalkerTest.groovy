@@ -76,12 +76,12 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         1 * visitor.visitInputProperty('bean.nestedInput', { it.call() == 'nested' }, false)
         1 * visitor.visitInputFileProperty('bean.inputDir', _, _, _, _, _, _, InputFilePropertyType.DIRECTORY)
 
-        1 * visitor.visitOutputFileProperty('outputFile', false, { it.call().path == 'output' }, OutputFilePropertyType.FILE)
-        1 * visitor.visitOutputFileProperty('bean.outputDir', false, { it.call().path == 'outputDir' }, OutputFilePropertyType.DIRECTORY)
+        1 * visitor.visitOutputFileProperty('outputFile', false, { it.call().asString() == 'output' }, OutputFilePropertyType.FILE)
+        1 * visitor.visitOutputFileProperty('bean.outputDir', false, { it.call().asString() == 'outputDir' }, OutputFilePropertyType.DIRECTORY)
 
-        1 * visitor.visitDestroyableProperty({ it.call().path == 'destroyed' })
+        1 * visitor.visitDestroyableProperty({ it.call().asString() == 'destroyed' })
 
-        1 * visitor.visitLocalStateProperty({ it.call().path == 'localState' })
+        1 * visitor.visitLocalStateProperty({ it.call().asString() == 'localState' })
 
         0 * _
     }
