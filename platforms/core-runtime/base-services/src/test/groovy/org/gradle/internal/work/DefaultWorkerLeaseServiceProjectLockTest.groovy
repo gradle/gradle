@@ -17,7 +17,6 @@
 package org.gradle.internal.work
 
 
-import org.gradle.internal.InternalTransformer
 import org.gradle.internal.MutableBoolean
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.resources.ResourceLockState
@@ -724,13 +723,10 @@ class DefaultWorkerLeaseServiceProjectLockTest extends AbstractWorkerLeaseServic
 
     boolean lockIsHeld(final ResourceLock resourceLock) {
         MutableBoolean held = new MutableBoolean()
-        coordinationService.withStateLock(new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
-            @Override
-            ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                held.set(resourceLock.locked && resourceLock.isLockedByCurrentThread())
-                return ResourceLockState.Disposition.FINISHED
-            }
-        })
+        coordinationService.withStateLock {
+            held.set(resourceLock.locked && resourceLock.isLockedByCurrentThread())
+            return ResourceLockState.Disposition.FINISHED
+        }
         return held.get()
     }
 }

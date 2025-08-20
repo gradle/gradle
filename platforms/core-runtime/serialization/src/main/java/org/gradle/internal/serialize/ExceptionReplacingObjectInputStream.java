@@ -16,7 +16,6 @@
 
 package org.gradle.internal.serialize;
 
-import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
@@ -24,14 +23,11 @@ import java.io.InputStream;
 import java.util.function.Function;
 
 public class ExceptionReplacingObjectInputStream extends ClassLoaderObjectInputStream {
-    private Function<Object, Object> objectTransformer = new InternalTransformer<Object, Object>() {
-        @Override
-        public Object transform(Object o) {
-            try {
-                return doResolveObject(o);
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
+    private Function<Object, Object> objectTransformer = o -> {
+        try {
+            return doResolveObject(o);
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     };
 
@@ -41,14 +37,11 @@ public class ExceptionReplacingObjectInputStream extends ClassLoaderObjectInputS
     }
 
     public final Function<InputStream, ExceptionReplacingObjectInputStream> getObjectInputStreamCreator() {
-        return new InternalTransformer<ExceptionReplacingObjectInputStream, InputStream>() {
-            @Override
-            public ExceptionReplacingObjectInputStream transform(InputStream inputStream) {
-                try {
-                    return createNewInstance(inputStream);
-                } catch (IOException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
+        return inputStream -> {
+            try {
+                return createNewInstance(inputStream);
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         };
     }
@@ -70,14 +63,11 @@ public class ExceptionReplacingObjectInputStream extends ClassLoaderObjectInputS
     }
 
     protected final Function<String, Class<?>> getClassNameTransformer() {
-        return new InternalTransformer<Class<?>, String>() {
-            @Override
-            public Class<?> transform(String type) {
-                try {
-                    return lookupClass(type);
-                } catch (ClassNotFoundException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
+        return type -> {
+            try {
+                return lookupClass(type);
+            } catch (ClassNotFoundException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         };
     }

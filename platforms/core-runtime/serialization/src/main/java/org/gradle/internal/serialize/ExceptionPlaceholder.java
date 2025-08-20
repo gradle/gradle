@@ -18,7 +18,6 @@ package org.gradle.internal.serialize;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.Cast;
-import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -110,11 +109,11 @@ class ExceptionPlaceholder implements Serializable {
 
         StreamByteBuffer buffer = new StreamByteBuffer();
         ExceptionReplacingObjectOutputStream oos = objectOutputStreamCreator.apply(buffer.getOutputStream());
-        oos.setObjectTransformer(new InternalTransformer<Object, Object>() {
+        oos.setObjectTransformer(new Function<Object, Object>() {
             boolean seenFirst;
 
             @Override
-            public Object transform(Object obj) {
+            public Object apply(Object obj) {
                 if (!seenFirst) {
                     seenFirst = true;
                     return obj;
@@ -201,21 +200,18 @@ class ExceptionPlaceholder implements Serializable {
         if (serializedException != null) {
             // try to deserialize the original exception
             final ExceptionReplacingObjectInputStream ois = objectInputStreamCreator.apply(new ByteArrayInputStream(serializedException));
-            ois.setObjectTransformer(new InternalTransformer<Object, Object>() {
-                @Override
-                public Object transform(Object obj) {
-                    if (obj instanceof NestedExceptionPlaceholder) {
-                        NestedExceptionPlaceholder placeholder = (NestedExceptionPlaceholder) obj;
-                        int index = placeholder.getIndex();
-                        switch (placeholder.getKind()) {
-                            case cause:
-                                return causes.get(index);
-                            case suppressed:
-                                return suppressed.get(index);
-                        }
+            ois.setObjectTransformer(obj -> {
+                if (obj instanceof NestedExceptionPlaceholder) {
+                    NestedExceptionPlaceholder placeholder = (NestedExceptionPlaceholder) obj;
+                    int index = placeholder.getIndex();
+                    switch (placeholder.getKind()) {
+                        case cause:
+                            return causes.get(index);
+                        case suppressed:
+                            return suppressed.get(index);
                     }
-                    return obj;
                 }
+                return obj;
             });
 
             try {

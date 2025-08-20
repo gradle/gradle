@@ -21,7 +21,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.ProblemLocator;
-import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
@@ -67,12 +66,7 @@ public class DefaultFailureFactory implements FailureFactory {
 
         private final Set<Throwable> seen;
 
-        private final Function<Throwable, Failure> recursiveConverter = new InternalTransformer<Failure, Throwable>() {
-            @Override
-            public Failure transform(Throwable throwable) {
-                return convertRecursively(throwable);
-            }
-        };
+        private final Function<Throwable, Failure> recursiveConverter = this::convertRecursively;
 
         private Job(StackTraceClassifier stackTraceClassifier, ProblemLocator problemLocator) {
             this(stackTraceClassifier, problemLocator, null);
@@ -177,17 +171,12 @@ public class DefaultFailureFactory implements FailureFactory {
                 return recursiveConverter;
             } else {
                 // when we branch, we need to have separate seen sets on each branch, since we there cannot be cycles between branches
-                return multiChildTransformer();
+                return this::multiChildTransformer;
             }
         }
 
-        private Function<Throwable, Failure> multiChildTransformer() {
-            return new InternalTransformer<Failure, Throwable>() {
-                @Override
-                public Failure transform(Throwable throwable) {
-                    return new Job(stackTraceClassifier, problemLocator, seen).convert(throwable);
-                }
-            };
+        private Failure multiChildTransformer(Throwable throwable) {
+            return new Job(stackTraceClassifier, problemLocator, seen).convert(throwable);
         }
 
         private static class SuppressedAndCauses {

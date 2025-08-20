@@ -16,7 +16,6 @@
 
 package org.gradle.internal.serialize;
 
-import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
@@ -25,14 +24,11 @@ import java.io.OutputStream;
 import java.util.function.Function;
 
 public class ExceptionReplacingObjectOutputStream extends ObjectOutputStream {
-    private Function<Object, Object> objectTransformer = new InternalTransformer<Object, Object>() {
-        @Override
-        public Object transform(Object obj) {
-            try {
-                return doReplaceObject(obj);
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
+    private Function<Object, Object> objectTransformer = obj -> {
+        try {
+            return doReplaceObject(obj);
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     };
 
@@ -42,14 +38,11 @@ public class ExceptionReplacingObjectOutputStream extends ObjectOutputStream {
     }
 
     public final Function<OutputStream, ExceptionReplacingObjectOutputStream> getObjectOutputStreamCreator() {
-        return new InternalTransformer<ExceptionReplacingObjectOutputStream, OutputStream>() {
-            @Override
-            public ExceptionReplacingObjectOutputStream transform(OutputStream outputStream) {
-                try {
-                    return createNewInstance(outputStream);
-                } catch (IOException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
+        return outputStream -> {
+            try {
+                return createNewInstance(outputStream);
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         };
     }

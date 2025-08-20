@@ -18,7 +18,6 @@ package org.gradle.internal.resources;
 
 import com.google.common.base.Supplier;
 import org.gradle.api.Action;
-import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
@@ -73,24 +72,18 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
 
     @Override
     public void withStateLock(final Runnable action) {
-        withStateLock(new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
-            @Override
-            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                action.run();
-                return ResourceLockState.Disposition.FINISHED;
-            }
+        withStateLock(resourceLockState -> {
+            action.run();
+            return ResourceLockState.Disposition.FINISHED;
         });
     }
 
     @Override
     public <T> T withStateLock(final Supplier<T> action) {
         final MutableReference<T> result = MutableReference.empty();
-        withStateLock(new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
-            @Override
-            public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                result.set(action.get());
-                return ResourceLockState.Disposition.FINISHED;
-            }
+        withStateLock(resourceLockState -> {
+            result.set(action.get());
+            return ResourceLockState.Disposition.FINISHED;
         });
         return result.get();
     }
