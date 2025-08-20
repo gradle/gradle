@@ -24,6 +24,7 @@ import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 public class ArgWriter implements ArgCollector {
@@ -48,7 +49,7 @@ public class ArgWriter implements ArgCollector {
         return new ArgWriter(writer, true, WHITESPACE);
     }
 
-    public static InternalTransformer<ArgWriter, PrintWriter> unixStyleFactory() {
+    public static Function<PrintWriter, ArgWriter> unixStyleFactory() {
         return new InternalTransformer<ArgWriter, PrintWriter>() {
             @Override
             public ArgWriter transform(PrintWriter original) {
@@ -66,7 +67,7 @@ public class ArgWriter implements ArgCollector {
         return new ArgWriter(writer, true, WHITESPACE_OR_HASH);
     }
 
-    public static InternalTransformer<ArgWriter, PrintWriter> javaStyleFactory() {
+    public static Function<PrintWriter, ArgWriter> javaStyleFactory() {
         return new InternalTransformer<ArgWriter, PrintWriter>() {
             @Override
             public ArgWriter transform(PrintWriter original) {
@@ -82,7 +83,7 @@ public class ArgWriter implements ArgCollector {
         return new ArgWriter(writer, false, WHITESPACE);
     }
 
-    public static InternalTransformer<ArgWriter, PrintWriter> windowsStyleFactory() {
+    public static Function<PrintWriter, ArgWriter> windowsStyleFactory() {
         return new InternalTransformer<ArgWriter, PrintWriter>() {
             @Override
             public ArgWriter transform(PrintWriter original) {
@@ -94,7 +95,7 @@ public class ArgWriter implements ArgCollector {
     /**
      * Returns an args transformer that replaces the provided args with a generated args file containing the args. Uses platform text encoding.
      */
-    public static InternalTransformer<List<String>, List<String>> argsFileGenerator(final File argsFile, final InternalTransformer<ArgWriter, PrintWriter> argWriterFactory) {
+    public static Function<List<String>, List<String>> argsFileGenerator(final File argsFile, final Function<PrintWriter, ArgWriter> argWriterFactory) {
         return new InternalTransformer<List<String>, List<String>>() {
             @Override
             public List<String> transform(List<String> args) {
@@ -107,7 +108,7 @@ public class ArgWriter implements ArgCollector {
                     @SuppressWarnings("DefaultCharset") // This method is documented as "uses platform text encoding"
                     PrintWriter writer = new PrintWriter(argsFile);
                     try {
-                        ArgWriter argWriter = argWriterFactory.transform(writer);
+                        ArgWriter argWriter = argWriterFactory.apply(writer);
                         argWriter.args(args);
                     } finally {
                         writer.close();

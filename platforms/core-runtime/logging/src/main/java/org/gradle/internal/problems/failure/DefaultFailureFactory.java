@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 public class DefaultFailureFactory implements FailureFactory {
 
@@ -66,7 +67,7 @@ public class DefaultFailureFactory implements FailureFactory {
 
         private final Set<Throwable> seen;
 
-        private final InternalTransformer<Failure, Throwable> recursiveConverter = new InternalTransformer<Failure, Throwable>() {
+        private final Function<Throwable, Failure> recursiveConverter = new InternalTransformer<Failure, Throwable>() {
             @Override
             public Failure transform(Throwable throwable) {
                 return convertRecursively(throwable);
@@ -171,7 +172,7 @@ public class DefaultFailureFactory implements FailureFactory {
             );
         }
 
-        private InternalTransformer<Failure, Throwable> determineRecursiveConverter(int size) {
+        private Function<Throwable, Failure> determineRecursiveConverter(int size) {
             if (size <= 1) {
                 return recursiveConverter;
             } else {
@@ -180,7 +181,7 @@ public class DefaultFailureFactory implements FailureFactory {
             }
         }
 
-        private InternalTransformer<Failure, Throwable> multiChildTransformer() {
+        private Function<Throwable, Failure> multiChildTransformer() {
             return new InternalTransformer<Failure, Throwable>() {
                 @Override
                 public Failure transform(Throwable throwable) {

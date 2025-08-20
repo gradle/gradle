@@ -22,9 +22,10 @@ import org.gradle.internal.UncheckedException;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.util.function.Function;
 
 public class ExceptionReplacingObjectOutputStream extends ObjectOutputStream {
-    private InternalTransformer<Object, Object> objectTransformer = new InternalTransformer<Object, Object>() {
+    private Function<Object, Object> objectTransformer = new InternalTransformer<Object, Object>() {
         @Override
         public Object transform(Object obj) {
             try {
@@ -40,7 +41,7 @@ public class ExceptionReplacingObjectOutputStream extends ObjectOutputStream {
         enableReplaceObject(true);
     }
 
-    public final InternalTransformer<ExceptionReplacingObjectOutputStream, OutputStream> getObjectOutputStreamCreator() {
+    public final Function<OutputStream, ExceptionReplacingObjectOutputStream> getObjectOutputStreamCreator() {
         return new InternalTransformer<ExceptionReplacingObjectOutputStream, OutputStream>() {
             @Override
             public ExceptionReplacingObjectOutputStream transform(OutputStream outputStream) {
@@ -59,7 +60,7 @@ public class ExceptionReplacingObjectOutputStream extends ObjectOutputStream {
 
     @Override
     protected final Object replaceObject(Object obj) throws IOException {
-        return getObjectTransformer().transform(obj);
+        return getObjectTransformer().apply(obj);
     }
 
     protected Object doReplaceObject(Object obj) throws IOException {
@@ -69,11 +70,11 @@ public class ExceptionReplacingObjectOutputStream extends ObjectOutputStream {
         return obj;
     }
 
-    public InternalTransformer<Object, Object> getObjectTransformer() {
+    public Function<Object, Object> getObjectTransformer() {
         return objectTransformer;
     }
 
-    public void setObjectTransformer(InternalTransformer<Object, Object> objectTransformer) {
+    public void setObjectTransformer(Function<Object, Object> objectTransformer) {
         this.objectTransformer = objectTransformer;
     }
 }

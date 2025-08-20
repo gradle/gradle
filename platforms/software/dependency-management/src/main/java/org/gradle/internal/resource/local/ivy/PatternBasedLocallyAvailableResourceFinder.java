@@ -29,6 +29,7 @@ import org.gradle.internal.resource.local.AbstractLocallyAvailableResourceFinder
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Function;
 
 public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> {
 
@@ -36,7 +37,7 @@ public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyA
         super(createProducer(baseDir, pattern), checksumService);
     }
 
-    private static InternalTransformer<Factory<List<File>>, ModuleComponentArtifactMetadata> createProducer(final File baseDir, final ResourcePattern pattern) {
+    private static Function<ModuleComponentArtifactMetadata, Factory<List<File>>> createProducer(final File baseDir, final ResourcePattern pattern) {
         return new InternalTransformer<Factory<List<File>>, ModuleComponentArtifactMetadata>() {
             @Override
             public Factory<List<File>> transform(final ModuleComponentArtifactMetadata artifact) {
