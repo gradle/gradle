@@ -23,12 +23,12 @@ import java.util.concurrent.ConcurrentHashMap
 
 internal abstract class NullawayStatusService : BuildService<BuildServiceParameters.None>, Closeable {
     private val projectsWithNullAwayEnabled = ConcurrentHashMap.newKeySet<String>()
-    private val projectsWithUncheckedDeps = ConcurrentHashMap.newKeySet<String>()
+    private val projectsWithUncheckedDeps = ConcurrentHashMap<String, Set<String>>()
     private val projectsToEnableNullaway = ConcurrentHashMap.newKeySet<String>()
 
     private fun ensureProjectNotSeen(projectPath: String) {
         require(projectPath !in projectsWithNullAwayEnabled)
-        require(projectPath !in projectsWithUncheckedDeps)
+        require(!projectsWithUncheckedDeps.contains(projectPath))
         require(projectPath !in projectsToEnableNullaway)
     }
 
@@ -38,10 +38,10 @@ internal abstract class NullawayStatusService : BuildService<BuildServiceParamet
         projectsWithNullAwayEnabled.add(projectPath)
     }
 
-    fun addProjectWithUncheckedDeps(projectPath: String) {
+    fun addProjectWithUncheckedDeps(projectPath: String, deps: Iterable<String>) {
         ensureProjectNotSeen(projectPath)
 
-        projectsWithUncheckedDeps.add(projectPath)
+        projectsWithUncheckedDeps.merge(projectPath, deps.toSet()) { old, new -> old + new }
     }
 
     fun addProjectToEnableNullawayIn(projectPath: String) {
@@ -77,6 +77,12 @@ internal abstract class NullawayStatusService : BuildService<BuildServiceParamet
                     }
                 } else if (projectsWithUncheckedDeps.isNotEmpty()) {
                     println("Unchecked dependencies of $uncheckedCount ${projectS(uncheckedCount)} need NullAway enabled first (run `./gradlew nullawayStatus` to see those).")
+                    projectsWithUncheckedDeps.toSortedMap().forEach { path, dependencies ->
+                        println("  * $path")
+                        dependencies.sorted().forEach { dependency ->
+                            println("    * $dependency")
+                        }
+                    }
                 } else {
                     // This should not happen.
                     error("Invalid projects count: $seenProjectsCount != $enabledCount + $toEnableCount + $uncheckedCount")
