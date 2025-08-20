@@ -69,6 +69,59 @@ publishing {
 }
 ```
 
+#### New provider-based methods for publishing configurations
+
+Two new methods have been added to [`AdhocComponentWithVariants`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html) which accept providers of consumable configurations:
+
+- [`void addVariantsFromConfiguration(Provider<ConsumableConfiguration>, Action<? super ConfigurationVariantDetails>)`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html#addVariantsFromConfiguration(org.gradle.api.provider.Provider,org.gradle.api.Action))
+- [`void withVariantsFromConfiguration(Provider<ConsumableConfiguration>, Action<? super ConfigurationVariantDetails>)`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html#withVariantsFromConfiguration(org.gradle.api.provider.Provider,org.gradle.api.Action))
+
+These complement the existing methods that accept realized configuration instances.
+
+With this new API, configurations can remain lazy and are only realized when actually needed for publishing.
+Consider the following example:
+
+```kotlin
+plugins {
+    id("base")
+    id("maven-publish")
+}
+
+group = "org.example"
+version = "1.0"
+
+val myTask = tasks.register<Jar>("myTask")
+val variantDependencies = configurations.dependencyScope("variantDependencies")
+val myNewVariant: NamedDomainObjectProvider<ConsumableConfiguration> = configurations.consumable("myNewVariant") {
+    extendsFrom(variantDependencies.get())
+    outgoing {
+        artifact(myTask)
+    }
+    attributes {
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("foo"))
+    }
+}
+
+publishing {
+    val component = softwareComponentFactory.adhoc("component")
+    // This new overload now accepts a lazy provider of consumable configuration
+    component.addVariantsFromConfiguration(myNewVariant) {}
+
+    repositories {
+        maven {
+            url = uri("<your repo url>")
+        }
+    }
+    publications {
+        create<MavenPublication>("myPublication") {
+            from(component)
+        }
+    }
+}
+```
+
+With this approach, the `myNewVariant` configuration will only be realized if the `myPublication` publication is actually published.
+
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
 <!--
