@@ -20,20 +20,19 @@ import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.NodeSets;
 
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.function.Consumer;
 
 class ComplexDependentNodesSet implements DependentNodesSet {
     private final DependencyPredecessorsOnlyNodeSet dependencyPredecessors;
-    private final SortedSet<Node> mustPredecessors = NodeSets.newSortedNodeSet();
-    private final SortedSet<Node> finalizers = NodeSets.newSortedNodeSet();
+    private final Set<Node> mustPredecessors = NodeSets.newSortedNodeSet();
+    private final Set<Node> finalizers = NodeSets.newSortedNodeSet();
 
     public ComplexDependentNodesSet(DependencyPredecessorsOnlyNodeSet dependencyPredecessors) {
         this.dependencyPredecessors = dependencyPredecessors;
     }
 
     @Override
-    public SortedSet<Node> getDependencyPredecessors() {
+    public Set<Node> getDependencyPredecessors() {
         return dependencyPredecessors.getDependencyPredecessors();
     }
 
@@ -44,7 +43,7 @@ class ComplexDependentNodesSet implements DependentNodesSet {
     }
 
     @Override
-    public SortedSet<Node> getFinalizers() {
+    public Set<Node> getFinalizers() {
         return finalizers;
     }
 
@@ -52,11 +51,6 @@ class ComplexDependentNodesSet implements DependentNodesSet {
     public DependentNodesSet addFinalizer(Node finalizer) {
         finalizers.add(finalizer);
         return this;
-    }
-
-    @Override
-    public Set<Node> getMustPredecessors() {
-        return mustPredecessors;
     }
 
     @Override

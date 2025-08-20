@@ -554,7 +554,7 @@ class WorkNodeCodec(
 
     private
     fun WriteContext.writeSuccessorReferences(
-        successors: Collection<Node>,
+        successors: Iterable<Node>,
         idForNode: IdForNode
     ) {
         for (successor in successors) {

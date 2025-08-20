@@ -21,7 +21,6 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.gradle.execution.plan.Node;
 
 import java.util.Iterator;
-import java.util.NavigableSet;
 import java.util.Set;
 
 import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
@@ -32,13 +31,13 @@ import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
  * <p>Attempts to efficiently determine whether a node can start or not based on the state of its dependencies, by tracking those dependencies that are still to complete.</p>
  */
 public class DependencySuccessorsOnlyNodeSet implements DependencyNodesSet {
-    private final NavigableSet<Node> orderedDependencies = newSortedNodeSet();
+    private final Set<Node> orderedDependencies = newSortedNodeSet();
     private Set<Node> waitingFor;
     private boolean nodeCannotStart;
     private boolean pruned;
 
     @Override
-    public NavigableSet<Node> getDependencySuccessors() {
+    public Set<Node> getDependencySuccessors() {
         return orderedDependencies;
     }
 
@@ -58,7 +57,7 @@ public class DependencySuccessorsOnlyNodeSet implements DependencyNodesSet {
     }
 
     @Override
-    public NavigableSet<Node> getMustSuccessors() {
+    public Set<Node> getMustSuccessors() {
         return ImmutableSortedSet.of();
     }
 
