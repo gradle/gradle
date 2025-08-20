@@ -50,7 +50,7 @@ Root project 'test'
 ------------------------------------------------------------
 """ + normalised + """
 Note: currently not all plugins register their components, so some components may not be visible here."""
-        return formatter.transform(raw).readLines().findAll { !it.isEmpty() }.join('\n')
+        return formatter.apply(raw).readLines().findAll { !it.isEmpty() }.join('\n')
     }
 
     AvailableToolChains.InstalledToolChain getToolChain() {
