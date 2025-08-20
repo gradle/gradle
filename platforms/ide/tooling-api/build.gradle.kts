@@ -1,3 +1,5 @@
+import gradlebuild.shade.tasks.ShadedJar
+
 plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.publish-public-libraries")
@@ -35,6 +37,13 @@ shadedJar {
     keepPackages = listOf("org.gradle.tooling")
     unshadedPackages = listOf("org.gradle", "org.slf4j", "sun.misc")
     ignoredPackages = setOf("org.gradle.tooling.provider.model")
+}
+
+configurations.consumable("shadedTapi") {
+    outgoing.artifact(tasks.named<ShadedJar>("toolingApiShadedJar"))
+    attributes {
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("ShadedTapi"))
+    }
 }
 
 errorprone {

@@ -36,6 +36,7 @@ addDependenciesAndConfigurations(TestType.CROSSVERSION.prefix)
 createQuickFeedbackTasks()
 createAggregateTasks(sourceSet)
 configureIde(TestType.CROSSVERSION)
+val tapiProjectDependency = configurations.dependencyScope("tapiProjectDependency")
 configureTestFixturesForCrossVersionTests()
 
 fun configureTestFixturesForCrossVersionTests() {
@@ -43,23 +44,26 @@ fun configureTestFixturesForCrossVersionTests() {
     if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "test" /* remove once wrapper is updated */) {
         dependencies {
             "crossVersionTestImplementation"(testFixtures(project(":tooling-api")))
+            add(tapiProjectDependency.name, project(":tooling-api"))
         }
     }
 }
 
 val releasedVersions = gradleModule.identity.releasedVersions.orNull
 
-fun Test.addShadedJarDependency() {
-    val moduleIdentity = gradleModule.identity
-    val shadedJarFile: Provider<String> = moduleIdentity.baseName.zip(moduleIdentity.version) { baseName, version ->
-        "shaded-jar/gradle-tooling-api-shaded-${version.baseVersion.version}.jar"
+val tapiShadedResolvable = configurations.resolvable("tapiShadedResolvable") {
+    extendsFrom(tapiProjectDependency.get())
+    attributes {
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("ShadedTapi"))
     }
-    val jarFile = project(":tooling-api").layout.buildDirectory.file(shadedJarFile)
-    inputs.file(jarFile).withPathSensitivity(PathSensitivity.NONE)
+}
 
-    systemProperty("toolingApi.shadedJar", jarFile.get().asFile.absolutePath)
+fun Test.addShadedJarDependency() {
+    inputs.file(tapiShadedResolvable).withPathSensitivity(PathSensitivity.NONE)
 
-    dependsOn(":tooling-api:toolingApiShadedJar")
+    doFirst {
+        systemProperty("toolingApi.shadedJar", tapiShadedResolvable.get().resolve().first())
+    }
 }
 
 fun createQuickFeedbackTasks() {
@@ -115,3 +119,5 @@ fun createAggregateTasks(sourceSet: SourceSet) {
         }
     }
 }
+
+
