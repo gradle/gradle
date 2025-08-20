@@ -730,12 +730,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     private static BuildOperationDescriptor.Builder realizeDescriptor(TaskIdentity<?> identity, boolean replacement, boolean eager) {
-        return BuildOperationDescriptor.displayName("Realize task " + identity.getBuildTreePath().getPath())
+        return BuildOperationDescriptor.displayName("Realize task " + identity.getBuildTreePath().asString())
             .details(new RealizeDetails(identity, replacement, eager));
     }
 
     private static BuildOperationDescriptor.Builder registerDescriptor(TaskIdentity<?> identity) {
-        return BuildOperationDescriptor.displayName("Register task " + identity.getBuildTreePath().getPath())
+        return BuildOperationDescriptor.displayName("Register task " + identity.getBuildTreePath().asString())
             .details(new RegisterDetails(identity));
     }
 
@@ -807,12 +807,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         @Override
         public String getBuildPath() {
-            return identity.getProjectIdentity().getBuildPath().getPath();
+            return identity.getProjectIdentity().getBuildPath().asString();
         }
 
         @Override
         public String getTaskPath() {
-            return identity.getPath().getPath();
+            return identity.getPath().asString();
         }
 
         @Override
@@ -842,12 +842,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         @Override
         public String getBuildPath() {
-            return identity.getProjectIdentity().getBuildPath().getPath();
+            return identity.getProjectIdentity().getBuildPath().asString();
         }
 
         @Override
         public String getTaskPath() {
-            return identity.getPath().getPath();
+            return identity.getPath().asString();
         }
 
         @Override

@@ -422,7 +422,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
         @Override
         public String getBuildPath() {
-            return buildPath.getPath();
+            return buildPath.asString();
         }
 
     }

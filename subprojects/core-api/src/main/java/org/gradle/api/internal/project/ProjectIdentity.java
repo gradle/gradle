@@ -123,7 +123,7 @@ public final class ProjectIdentity implements DisplayName {
         // TODO: This is inconsistent with DefaultProject.getDisplayName.
         // We should change this to match that of DefaultProject.
         String prefix = Path.ROOT.equals(buildTreePath) ? "root project" : "project";
-        this.displayName = Describables.memoize(Describables.of(prefix, buildTreePath.getPath()));
+        this.displayName = Describables.memoize(Describables.of(prefix, buildTreePath.asString()));
     }
 
     /**

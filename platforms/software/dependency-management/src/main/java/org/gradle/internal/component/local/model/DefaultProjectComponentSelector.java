@@ -74,7 +74,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
 
     @Override
     public String getBuildPath() {
-        return projectIdentity.getBuildPath().getPath();
+        return projectIdentity.getBuildPath().asString();
     }
 
     @Override
@@ -84,7 +84,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
 
     @Override
     public String getProjectPath() {
-        return projectIdentity.getProjectPath().getPath();
+        return projectIdentity.getProjectPath().asString();
     }
 
     @Override

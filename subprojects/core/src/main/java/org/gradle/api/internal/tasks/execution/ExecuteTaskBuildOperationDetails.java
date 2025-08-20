@@ -44,12 +44,12 @@ public class ExecuteTaskBuildOperationDetails implements ExecuteTaskBuildOperati
 
     @Override
     public String getBuildPath() {
-        return taskIdentity().getProjectIdentity().getBuildPath().getPath();
+        return taskIdentity().getProjectIdentity().getBuildPath().asString();
     }
 
     @Override
     public String getTaskPath() {
-        return taskIdentity().getPath().getPath();
+        return taskIdentity().getPath().asString();
     }
 
     @Override

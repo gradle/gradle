@@ -238,7 +238,7 @@ public class TaskExecution implements MutableUnitOfWork {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor
-                    .displayName(actionDisplayName + " for " + task.getIdentityPath().getPath())
+                    .displayName(actionDisplayName + " for " + task.getIdentityPath().asString())
                     .name(actionDisplayName)
                     .details(ExecuteTaskActionBuildOperationType.DETAILS_INSTANCE);
             }

@@ -132,7 +132,7 @@ public abstract class AbstractBuildCacheControllerFactory<L extends BuildCacheSe
             @Override
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor.displayName("Finalize build cache configuration")
-                    .details(new DetailsImpl(buildIdentityPath.getPath()));
+                    .details(new DetailsImpl(buildIdentityPath.asString()));
             }
         });
     }

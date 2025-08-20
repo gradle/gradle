@@ -77,7 +77,7 @@ public abstract class DefaultTaskSelector implements TaskSelector {
         TaskSelectionResult tasks = taskNameResolver.selectWithName(taskName, targetProject.getMutableModel(), includeSubprojects);
         if (tasks != null) {
             LOGGER.info("Task name matched '{}'", taskName);
-            return new TaskSelection(targetProject.getProjectPath().getPath(), taskName, tasks);
+            return new TaskSelection(targetProject.getProjectPath().asString(), taskName, tasks);
         }
 
         Map<String, TaskSelectionResult> tasksByName = taskNameResolver.selectAll(targetProject.getMutableModel(), includeSubprojects);
@@ -88,13 +88,13 @@ public abstract class DefaultTaskSelector implements TaskSelector {
             throw throwTaskSelectionException(context, targetProject, taskName, includeSubprojects, matcher);
         }
         LOGGER.info("Abbreviated task name '{}' matched '{}'", taskName, actualName);
-        return new TaskSelection(targetProject.getProjectPath().getPath(), taskName, tasksByName.get(actualName));
+        return new TaskSelection(targetProject.getProjectPath().asString(), taskName, tasksByName.get(actualName));
     }
 
     private RuntimeException throwTaskSelectionException(SelectionContext context, ProjectState targetProject, String taskName, boolean includeSubprojects, NameMatcher matcher) {
         String searchContext = getSearchContext(targetProject, includeSubprojects);
 
-        if (context.getOriginalPath().getPath().equals(taskName)) {
+        if (context.getOriginalPath().asString().equals(taskName)) {
             String message = matcher.formatErrorMessage("Task", searchContext);
             throw getProblemsService().getInternalReporter().throwing(new TaskSelectionException(message), matcher.problemId(), spec -> {
                 configureProblem(spec, context);
@@ -111,7 +111,7 @@ public abstract class DefaultTaskSelector implements TaskSelector {
     }
 
     private static ProblemSpec configureProblem(ProblemSpec spec, SelectionContext context) {
-        ((InternalProblemSpec) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(context.getOriginalPath().getPath())));
+        ((InternalProblemSpec) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(context.getOriginalPath().asString())));
         spec.severity(Severity.ERROR);
         return spec;
     }

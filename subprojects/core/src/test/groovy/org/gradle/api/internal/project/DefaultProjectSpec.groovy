@@ -298,7 +298,7 @@ class DefaultProjectSpec extends Specification {
 
         def projectPath = parent == null ? Path.ROOT : parent.projectPath.child(name)
         def buildPath
-        if (build.identityPath.getPath().isEmpty()) {
+        if (build.identityPath.asString().isEmpty()) {
             // No identity path was configured
             buildPath = Path.ROOT
         } else {
