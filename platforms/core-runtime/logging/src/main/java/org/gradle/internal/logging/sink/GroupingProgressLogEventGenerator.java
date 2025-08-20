@@ -47,8 +47,10 @@ import java.util.concurrent.TimeUnit;
  * <p>This listener forwards nothing unless it receives periodic {@link UpdateNowEvent} clock events.</p>
  */
 public class GroupingProgressLogEventGenerator implements OutputEventListener {
-    private static final long HIGH_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
-    private static final long LOW_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(2);
+    public static final long HIGH_WATERMARK_BUFFER_LENGTH = 10000;
+    public static final long HIGH_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
+    public static final long LOW_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(2);
+
     private final OutputEventListener listener;
     private final LogHeaderFormatter headerFormatter;
     private final boolean verbose;
@@ -104,6 +106,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         OperationGroup group = getGroupFor(event.getBuildOperationId());
         if (group != null) {
             group.bufferOutput(event);
+            group.maybeFlushOutput(event.getTimestamp());
         } else {
             onUngroupedOutput(event);
         }
@@ -249,6 +252,9 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         @Override
         void maybeFlushOutput(long eventTimestamp) {
             if (timeoutExpired(eventTimestamp, HIGH_WATERMARK_FLUSH_TIMEOUT) || (timeoutExpired(eventTimestamp, LOW_WATERMARK_FLUSH_TIMEOUT) && canClaimForeground())) {
+                flushOutput();
+            }
+            if (bufferedLogs.size() >= HIGH_WATERMARK_BUFFER_LENGTH) {
                 flushOutput();
             }
         }
