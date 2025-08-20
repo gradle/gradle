@@ -256,7 +256,6 @@ val jvm = platform("jvm") {
     subproject("scala")
     subproject("testing-jvm")
     subproject("testing-jvm-infrastructure")
-    subproject("testing-junit-platform")
     subproject("war")
 }
 

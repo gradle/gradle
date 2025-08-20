@@ -40,10 +40,18 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.concurrent)
+    implementation(projects.stdlibJavaExtensions)
 
+    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
     compileOnly(libs.junit) {
+        because("The actual version is provided by the user on the testRuntimeClasspath")
+    }
+    compileOnly(libs.junitPlatform) {
+        because("The actual version is provided by the user on the testRuntimeClasspath")
+    }
+    compileOnly(libs.junitPlatformEngine) {
         because("The actual version is provided by the user on the testRuntimeClasspath")
     }
     compileOnly(libs.testng) {
@@ -77,5 +85,4 @@ dependencies {
     testFixturesImplementation(projects.testingBase)
     testFixturesImplementation(libs.junit)
     testFixturesImplementation(libs.testng)
-
 }

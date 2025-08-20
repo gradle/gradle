@@ -1337,13 +1337,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "testing-junit-platform",
-    "path": "platforms/jvm/testing-junit-platform",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "testing-jvm",
     "path": "platforms/jvm/testing-jvm",
     "unitTests": true,
