@@ -90,7 +90,7 @@ public class IsolatedGradleProjectInternalBuilder implements ParameterizedToolin
     }
 
     private static String getBuildTreePath(Task task) {
-        return ((TaskInternal) task).getIdentityPath().getPath();
+        return ((TaskInternal) task).getIdentityPath().asString();
     }
 
 }

@@ -45,7 +45,7 @@ public class PathSerializer extends AbstractSerializer<Path> {
         encoder.writeBoolean(isRoot);
 
         if (!isRoot) {
-            encoder.writeString(value.getPath());
+            encoder.writeString(value.asString());
         }
     }
 
