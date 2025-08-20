@@ -61,9 +61,9 @@ val releasedVersions = gradleModule.identity.releasedVersions.orNull
 
 fun Test.addTapiShadedJarDependency() {
     inputs.files(tapiShadedResolvable).withPathSensitivity(PathSensitivity.NONE)
-    val tapiShadedConfiguration = tapiShadedResolvable.get()
     doFirst {
-        systemProperty("toolingApi.shadedJar", tapiShadedConfiguration.singleFile)
+        val tapiJarPath = inputs.files.filter { it.name.contains("gradle-tooling-api-shaded") }.singleFile.absolutePath
+        systemProperty("toolingApi.shadedJar", tapiJarPath)
     }
 }
 
