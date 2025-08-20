@@ -53,8 +53,8 @@ public class DslBaseScriptModelBuilder implements BuildScopeModelBuilder {
         return new StandardDslBaseScriptModel(
             getGradleApiClassPath(dependencyFactory).getAsFiles(),
             getScriptTemplatesClassPath(moduleRegistry).getAsFiles(),
-            kotlinScriptClassPathProvider.getGradleKotlinDsl().getAsFiles(),
-            implicitImports.getList()
+            kotlinScriptClassPathProvider.getGradleKotlinDslApi().getAsFiles(),
+            implicitImports.getKotlinDslImplicitImports()
         );
     }
 
