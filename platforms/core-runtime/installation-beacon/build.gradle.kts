@@ -9,3 +9,7 @@ description = "Marker class file used to locate the Gradle distribution base dir
 configurations.remove(configurations.apiStubElements.get())
 
 // This lib should not have any dependencies.
+
+errorprone {
+    nullawayEnabled = true
+}
