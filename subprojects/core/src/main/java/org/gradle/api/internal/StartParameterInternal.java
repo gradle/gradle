@@ -91,6 +91,7 @@ public class StartParameterInternal extends StartParameter {
         p.searchUpwards = searchUpwards;
         p.useEmptySettings = useEmptySettings;
         p.enableProblemReportGeneration = enableProblemReportGeneration;
+        p.daemonJvmCriteriaConfigured = daemonJvmCriteriaConfigured;
         return p;
     }
 

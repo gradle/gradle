@@ -117,13 +117,13 @@ class DaemonToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec i
         captureJavaHome()
 
         expect:
-        executer.withArgument("-Dorg.gradle.java.installations.paths=" + otherJvm.javaHome.absolutePath)
-        executer.withArgument("-Porg.gradle.java.installations.paths=" + Jvm.current().javaHome.absolutePath)
+        executer.withArgument("-Dorg.gradle.java.installations.paths=" + Jvm.current().javaHome.absolutePath)
+        executer.withArgument("-Porg.gradle.java.installations.paths=" + otherJvm.javaHome.absolutePath)
         fails("help")
 
         and:
-        failure.assertHasDescription("The Gradle property 'org.gradle.java.installations.paths' (set to '${otherJvm.javaHome.absolutePath}')" +
-                " has a different value than the project property 'org.gradle.java.installations.paths' (set to '${Jvm.current().javaHome.absolutePath}')." +
+        failure.assertHasDescription("The Gradle property 'org.gradle.java.installations.paths' (set to '${Jvm.current().javaHome.absolutePath}')" +
+                " has a different value than the project property 'org.gradle.java.installations.paths' (set to '${otherJvm.javaHome.absolutePath}')." +
                 " Please set them to the same value or only set the Gradle property.")
     }
 }
