@@ -18,18 +18,18 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.Path;
 
-import java.io.File;
 import java.util.Set;
 
 @UsedByScanPlugin("test-distribution, test-retry")
 public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final TestFramework testFramework;
-    private final Iterable<? extends File> classpath;
-    private final Iterable<? extends File> modulePath;
+    private final ClassPath classpath;
+    private final ClassPath modulePath;
     private final FileTree candidateClassFiles;
     private final boolean scanForTestClasses;
     private final FileCollection testClassesDirs;
@@ -41,7 +41,21 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final Set<String> previousFailedTestClasses;
     private final boolean testIsModule;
 
-    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses, boolean testIsModule) {
+    public JvmTestExecutionSpec(
+        TestFramework testFramework,
+        ClassPath classpath,
+        ClassPath  modulePath,
+        FileTree candidateClassFiles,
+        boolean scanForTestClasses,
+        FileCollection testClassesDirs,
+        String path,
+        Path identityPath,
+        long forkEvery,
+        JavaForkOptions javaForkOptions,
+        int maxParallelForks,
+        Set<String> previousFailedTestClasses,
+        boolean testIsModule
+    ) {
         this.testFramework = testFramework;
         this.classpath = classpath;
         this.modulePath = modulePath;
@@ -70,11 +84,11 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
         return testFramework;
     }
 
-    public Iterable<? extends File> getClasspath() {
+    public ClassPath getClasspath() {
         return classpath;
     }
 
-    public Iterable<? extends File> getModulePath() {
+    public ClassPath getModulePath() {
         return modulePath;
     }
 

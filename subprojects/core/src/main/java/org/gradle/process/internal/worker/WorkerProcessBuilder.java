@@ -18,11 +18,10 @@ package org.gradle.process.internal.worker;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 
 import java.io.File;
-import java.net.URL;
-import java.util.List;
 
 /**
  * <p>A builder which configures and creates worker processes.</p>
@@ -54,9 +53,9 @@ public interface WorkerProcessBuilder extends WorkerProcessSettings {
 
     Action<? super WorkerProcessContext> getWorker();
 
-    void setImplementationClasspath(List<URL> implementationClasspath);
+    void setImplementationClasspath(ClassPath implementationClasspath);
 
-    void setImplementationModulePath(List<URL> implementationModulePath);
+    void setImplementationModulePath(ClassPath implementationModulePath);
 
     void enableJvmMemoryInfoPublishing(boolean shouldPublish);
 

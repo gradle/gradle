@@ -67,6 +67,8 @@ import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.actor.ActorFactory;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
@@ -664,8 +666,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         javaForkOptions.systemProperty(TestWorker.WORKER_TMPDIR_SYS_PROPERTY, new File(getTemporaryDir(), "work"));
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
-        FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
-        FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
+        ClassPath classpath = DefaultClassPath.of(javaModuleDetector.inferClasspath(testIsModule, stableClasspath));
+        ClassPath modulePath = DefaultClassPath.of(javaModuleDetector.inferModulePath(testIsModule, stableClasspath));
         return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
     }
 

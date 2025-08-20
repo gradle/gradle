@@ -18,6 +18,7 @@ package org.gradle.process.internal.worker;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.jvm.JpmsConfiguration;
 import org.gradle.internal.jvm.Jvm;
@@ -43,11 +44,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -69,8 +68,8 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private String baseName = "Gradle Worker";
     private int connectTimeoutSeconds;
-    private List<URL> implementationClassPath;
-    private List<URL> implementationModulePath;
+    private ClassPath implementationClassPath;
+    private ClassPath implementationModulePath;
     private boolean shouldPublishJvmMemoryInfo;
     private NativeServicesMode nativeServicesMode = NativeServicesMode.NOT_SET;
     private boolean addJpmsCompatibilityFlags = true;
@@ -190,12 +189,12 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     }
 
     @Override
-    public void setImplementationClasspath(List<URL> implementationClassPath) {
+    public void setImplementationClasspath(ClassPath implementationClassPath) {
         this.implementationClassPath = implementationClassPath;
     }
 
     @Override
-    public void setImplementationModulePath(List<URL> implementationModulePath) {
+    public void setImplementationModulePath(ClassPath implementationModulePath) {
         this.implementationModulePath = implementationModulePath;
     }
 
