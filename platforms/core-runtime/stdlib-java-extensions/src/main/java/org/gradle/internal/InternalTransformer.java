@@ -18,6 +18,8 @@ package org.gradle.internal;
 
 import org.jspecify.annotations.Nullable;
 
+import java.util.function.Function;
+
 /**
  * Equivalent to {@code Transformer}, but does not declare nullability due to Java 6 restrictions.
  *
@@ -28,7 +30,8 @@ import org.jspecify.annotations.Nullable;
  * @param <OUT> The type the value is transformed to.
  * @param <IN> The type of the value to be transformed.
  */
-public interface InternalTransformer<OUT extends @Nullable Object, IN extends @Nullable Object> {
+@FunctionalInterface
+public interface InternalTransformer<OUT extends @Nullable Object, IN extends @Nullable Object> extends Function<IN, OUT> {
     /**
      * Transforms the given object, and returns the transformed value.
      *
@@ -36,4 +39,9 @@ public interface InternalTransformer<OUT extends @Nullable Object, IN extends @N
      * @return The transformed object.
      */
     OUT transform(IN in);
+
+    @Override
+    default OUT apply(IN in)  {
+        return transform(in);
+    }
 }
