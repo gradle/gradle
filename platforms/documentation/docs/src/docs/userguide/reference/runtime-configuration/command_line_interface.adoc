@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[command_line_interface_reference]]
+[[command_line_interface]]
 = Command-Line Interface
 :keywords: cli, clean, check, projects, tasks, rerun-tasks, continue, build-cache, no-build-cache, configuration-cache, no-configuration-cache, configuration-cache-problems, configure-on-demand, no-configure-on-demand, max-workers, parallel, no-parallel, priority, profile, scan, watch-fs, no-watch-fs, help, version, show-version, full-stacktrace, stacktrace, org.gradle.debug, org.gradle.debug.host, org.gradle.debug.port, org.gradle.debug.server, org.gradle.debug.suspend, project-cache-dir, system-prop, init-script, project-prop, org.gradle.jvmargs, org.gradle.java.home, gradle-user-home, dependency-verification, write-verification-metadata, refresh-keys, export-keys, include-build, offline, refresh-dependencies, dry-run, continuous, write-locks, update-locks , no-rebuild, org.gradle.warning.mode, warning-mode, no-problems-report, problems-report, org.gradle.console, console, org.gradle.logging.level, quiet, warn, info, debug, daemon, no-daemon, foreground, status, stop, org.gradle.daemon.idletimeout, exclude-task, distribution-type, gradle-distribution-url, gradle-distribution-sha256-sum, gradle-version
 
@@ -21,7 +21,7 @@ The command-line interface is the **primary method of interacting with Gradle**.
 The following is a reference for executing and customizing the Gradle command-line.
 It also serves as a reference when writing scripts or configuring continuous integration.
 
-**Use of the <<gradle_wrapper.adoc#gradle_wrapper_reference, Gradle Wrapper>> is highly encouraged**.
+**Use of the <<gradle_wrapper.adoc#gradle_wrapper, Gradle Wrapper>> is highly encouraged**.
 Substitute `./gradlew` (in macOS / Linux) or `gradlew.bat` (in Windows) for `gradle` in the following examples.
 
 Executing Gradle on the command-line conforms to the following structure:
@@ -870,7 +870,7 @@ $ gradle wrapper --gradle-version=8.1
 ----
 
 You can also specify `--distribution-type=(bin|all)`, `--gradle-distribution-url`, `--gradle-distribution-sha256-sum` in addition to `--gradle-version`. +
-Full details on using these options are documented in the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle wrapper section>>.
+Full details on using these options are documented in the <<gradle_wrapper.adoc#gradle_wrapper,Gradle wrapper section>>.
 
 [[sec:continuous_build]]
 == Continuous build
