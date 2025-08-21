@@ -21,7 +21,6 @@ import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.Checkstyle;
 import org.gradle.api.plugins.quality.CheckstyleExtension;
 import org.gradle.api.specs.Spec;
@@ -39,6 +38,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 /**
  * Generates Javadocs in a particular way.
@@ -60,21 +60,20 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
     }
 
     private void generateJavadocs(Project project, ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {
+        Javadocs javadocs = extension.getJavadocs();
+        javadocs.getJavadocCss().convention(extension.getSourceRoot().file("css/javadoc-dark-theme.css"));
+
         // TODO: Staging directory should be a part of the Javadocs extension
         // TODO: Pull out more of this configuration into the extension if it makes sense
         // TODO: in a typical project, this may need to be the regular javadoc task vs javadocAll
 
-        ObjectFactory objects = project.getObjects();
-        // TODO: This breaks if version is changed later
-        Object version = project.getVersion();
 
         TaskProvider<Javadoc> javadocAll = tasks.register("javadocAll", Javadoc.class, task -> {
             task.setGroup("documentation");
             task.setDescription("Generate Javadocs for all API classes");
 
-            task.setTitle("Gradle API " + version);
-
-            Javadocs javadocs = extension.getJavadocs();
+            // TODO: This breaks if version is changed later
+            task.setTitle("Gradle API " + project.getVersion());
 
             StandardJavadocDocletOptions options = (StandardJavadocDocletOptions) task.getOptions();
             options.setEncoding("utf-8");
@@ -110,7 +109,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.setClasspath(extension.getClasspath());
 
             // TODO: This should be in Javadoc task
-            DirectoryProperty generatedJavadocDirectory = objects.directoryProperty();
+            DirectoryProperty generatedJavadocDirectory = project.getObjects().directoryProperty();
             generatedJavadocDirectory.set(layout.getBuildDirectory().dir("javadoc"));
             task.getOutputs().dir(generatedJavadocDirectory);
             task.getExtensions().getExtraProperties().set("destinationDirectory", generatedJavadocDirectory);
@@ -118,13 +117,8 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.setDestinationDir(generatedJavadocDirectory.get().getAsFile());
 
         });
-
-        extension.javadocs(javadocs -> {
-            javadocs.getJavadocCss().convention(extension.getSourceRoot().file("css/javadoc-dark-theme.css"));
-
-            // TODO: destinationDirectory should be part of Javadoc
-            javadocs.getRenderedDocumentation().from(javadocAll.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));
-        });
+        // TODO: destinationDirectory should be part of Javadoc
+        javadocs.getRenderedDocumentation().from(javadocAll.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));
 
         CheckstyleExtension checkstyle = project.getExtensions().getByType(CheckstyleExtension.class);
         tasks.register("checkstyleApi", Checkstyle.class, task -> {
@@ -159,15 +153,16 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
         }
 
         private String getPackageName(File file) throws IOException {
-            String packageLine = Files.lines(file.toPath())
-                .filter(line -> line.startsWith("package"))
-                .findFirst()
-                .orElseThrow(() -> new IOException("Can't find package definition in file " + file));
-            Matcher matcher = pattern.matcher(packageLine);
-            if (matcher.find()) {
-                return matcher.group(1);
-            } else {
-                throw new IOException("Can't extract package name from file " + file);
+            try (Stream<String> lines = Files.lines(file.toPath())) {
+                String packageLine = lines.filter(line -> line.startsWith("package"))
+                    .findFirst()
+                    .orElseThrow(() -> new IOException("Can't find package definition in file " + file));
+                Matcher matcher = pattern.matcher(packageLine);
+                if (matcher.find()) {
+                    return matcher.group(1);
+                } else {
+                    throw new IOException("Can't extract package name from file " + file);
+                }
             }
         }
     }
