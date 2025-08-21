@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.List;
 
 /**
- * This interface describes the Groovy DSL specific part of {@link DslBaseScriptModel}.
+ * This interface describes the Groovy DSL specific part of {@link GradleDslBaseScriptModel}.
  *
  * @since 9.2.0
  */

@@ -76,7 +76,7 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
                     registry.register(new IsolatedGradleProjectInternalBuilder());
                     registry.register(new IsolatedIdeaModuleInternalBuilder());
                     registry.register(new PluginApplyingBuilder());
-                    registry.register(new DslBaseScriptModelBuilder());
+                    registry.register(new GradleDslBaseScriptModelBuilder());
                 }
 
                 private IdeaModelBuilderInternal createIdeaModelBuilder(boolean isolatedProjects, GradleProjectBuilderInternal gradleProjectBuilder) {

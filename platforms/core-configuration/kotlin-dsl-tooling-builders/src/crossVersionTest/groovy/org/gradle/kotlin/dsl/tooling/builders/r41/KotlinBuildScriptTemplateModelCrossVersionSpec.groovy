@@ -29,10 +29,12 @@ class KotlinBuildScriptTemplateModelCrossVersionSpec extends AbstractKotlinScrip
     def "can load script template using classpath model"() {
 
         if (targetVersion.baseVersion >= GradleVersion.version("9.1")) {
+            GradleVersion tapiVersion = GradleVersion.version(toolingApi.distribution.version.baseVersion.version)
+            def replacementType = tapiVersion.baseVersion >= GradleVersion.version("9.2") ? "org.gradle.tooling.model.dsl.GradleDslBaseScriptModel" : "org.gradle.tooling.model.kotlin.dsl.KotlinDslBaseScriptModel"
             expectDocumentedDeprecationWarning(
                 "The org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel type has been deprecated. " +
                     "This will fail with an error in Gradle 10. " +
-                    "Please use the org.gradle.tooling.model.dsl.DslBaseScriptModel type instead."
+                    "Please use the " + replacementType + " type instead."
             )
         }
 

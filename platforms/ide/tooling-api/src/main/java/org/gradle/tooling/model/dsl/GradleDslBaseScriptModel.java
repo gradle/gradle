@@ -18,9 +18,6 @@ package org.gradle.tooling.model.dsl;
 
 import org.gradle.api.Incubating;
 
-import java.io.File;
-import java.util.List;
-
 /**
  * This interface represents the base Kotlin DSL script models.
  *
@@ -29,7 +26,7 @@ import java.util.List;
  * @since 9.2.0
  */
 @Incubating
-public interface DslBaseScriptModel {
+public interface GradleDslBaseScriptModel {
 
     /**
      * The Groovy DSL specific part of the model.
