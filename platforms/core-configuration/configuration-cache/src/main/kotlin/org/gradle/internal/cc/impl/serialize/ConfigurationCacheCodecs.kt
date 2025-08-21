@@ -325,6 +325,8 @@ class DefaultConfigurationCacheCodecs(
     val internalTypesBindings = Bindings.of {
         baseTypes()
 
+        bind(ConfigurationCacheFingerprintCodec)
+
         providerTypes(propertyFactory, filePropertyFactory, nestedProviderCodec(buildStateRegistry))
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory, fileLookup, taskDependencyFactory)
 
