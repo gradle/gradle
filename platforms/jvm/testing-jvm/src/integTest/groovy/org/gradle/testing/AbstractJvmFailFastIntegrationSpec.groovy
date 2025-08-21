@@ -122,12 +122,32 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         then:
         testExecution.release(1)
         gradleHandle.waitForFailure()
-        def result = new DefaultTestExecutionResult(testDirectory)
-        assert 1 == resourceForTest.keySet().count { result.testClassExists(it) && result.testClass(it).testFailed('failedTest', CoreMatchers.anything()) }
-        assert testOmitted == resourceForTest.keySet().with {
-            count { !result.testClassExists(it) } +
-                count { result.testClassExists(it) && result.testClass(it).testCount == 0 } +
-                count { result.testClassExists(it) && result.testClass(it).testSkippedCount == 1 }
+
+        and:
+        GenericTestExecutionResult testResults = resultsFor("test")
+        assert 1 == resourceForTest.keySet().sum {
+            def path = ":Gradle suite:Gradle test:" + it
+            if (testResults.testPathExists(path)) {
+                TestPathExecutionResult test = testResults.testPath(path)
+                test.onlyRoot().getFailedChildCount()
+            } else {
+                0
+            }
+        }
+        resourceForTest.keySet().with {
+            def doesntExist = count {
+                def path = ":Gradle suite:Gradle test:" + it
+                !testResults.testPathExists(path)
+            }
+            def zeroChildren = count {
+                def path = ":Gradle suite:Gradle test:" + it
+                testResults.testPathExists(path) && testResults.testPath(path).rootNames.size() == 0
+            }
+            def skipped = count {
+                def path = ":Gradle suite:Gradle test:" + it
+                testResults.testPathExists(path) && testResults.testPath(path).onlyRoot().getSkippedChildCount()
+            }
+            assert testOmitted == (doesntExist + zeroChildren + skipped)
         }
 
         where:
