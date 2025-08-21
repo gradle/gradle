@@ -106,8 +106,11 @@ tasks.withType<AsciidoctorTask>().configureEach {
 
 gradleDocumentation {
     javadocs {
-        javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
+        val jvmVersion = jvmCompile.compilations.named("main").flatMap { it.targetJvmVersion }
+        javaApi = jvmVersion.map { v -> uri("https://docs.oracle.com/javase/$v/docs/api/") }
+        javaPackageListLoc = jvmVersion.map { v -> project.layout.projectDirectory.dir("src/docs/javaPackageList/$v/") }
         groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-${libs.groovyVersion}/html/gapi")
+        groovyPackageListSrc = "org.apache.groovy:groovy-all:${libs.groovyVersion}:groovydoc"
     }
 }
 
