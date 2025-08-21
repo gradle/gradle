@@ -47,7 +47,16 @@ import java.util.concurrent.TimeUnit;
  * <p>This listener forwards nothing unless it receives periodic {@link UpdateNowEvent} clock events.</p>
  */
 public class GroupingProgressLogEventGenerator implements OutputEventListener {
-    public static final long HIGH_WATERMARK_BUFFER_LENGTH = 10000;
+    /**
+     * Maximum amount of lines we allow to buffer before we flush the output.
+     * The calculation targets 1MiB of buffer space with 2 byte per codepoint (worst case scenario).
+     */
+    public static final long HIGH_WATERMARK_BUFFER_LENGTH = 1000000L / (80L * 2L);
+    /**
+     * Maximum amount of codepoints we allow to buffer before we flush the output.
+     * The calculation targets 1MiB of buffer space with 2 byte per codepoint (worst case scenario).
+     */
+    public static final long HIGH_WATERMARK_CODEPOINTS = 1000000L / 2L;
     public static final long HIGH_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
     public static final long LOW_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(2);
 
@@ -106,7 +115,6 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         OperationGroup group = getGroupFor(event.getBuildOperationId());
         if (group != null) {
             group.bufferOutput(event);
-            group.maybeFlushOutput(event.getTimestamp());
         } else {
             onUngroupedOutput(event);
         }
@@ -199,6 +207,11 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         private boolean headerSent;
         private boolean outputRendered;
 
+        /**
+         * Approximate size of the buffered logs.
+         * This marks a best-case scenario, as codepoints varies in size depending on the character encoding.
+         */
+        private long bufferCodepointsSize = 0L;
         private List<RenderableOutputEvent> bufferedLogs = new ArrayList<RenderableOutputEvent>();
 
         OperationGroup(String category, String description, long startTime, @Nullable OperationIdentifier parentBuildOp, OperationIdentifier buildOpIdentifier, BuildOperationCategory buildOperationCategory) {
@@ -220,7 +233,32 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
                 lastUpdateTime = currentTimePeriod;
                 needHeaderSeparator = true;
             } else {
+                // This block is not exhaustive
+                // We cover here the two main output types we expect to contain large amounts of text
+                if (output instanceof LogEvent) {
+                    LogEvent logEvent = (LogEvent) output;
+                    int logMessageCodepoints = logEvent.getMessage().length();
+                    if (bufferCodepointsSize + logMessageCodepoints >= HIGH_WATERMARK_CODEPOINTS) {
+                        flushOutput();
+                    } else {
+                        bufferCodepointsSize += logMessageCodepoints;
+                    }
+                } else if (output instanceof StyledTextOutputEvent) {
+                    StyledTextOutputEvent styledTextOutputEvent = (StyledTextOutputEvent) output;
+                    // Sum up the raw codepoints of all spans in the StyledTextOutputEvent
+                    // This is also approximative, as we don't count the style tags
+                    int logMessageCodepoints = styledTextOutputEvent.getSpans().stream().mapToInt(span -> span.getText().length()).sum();
+                    if (bufferCodepointsSize + logMessageCodepoints >= HIGH_WATERMARK_CODEPOINTS) {
+                        flushOutput();
+                    } else {
+                        bufferCodepointsSize += logMessageCodepoints;
+                    }
+                }
+
                 bufferedLogs.add(output);
+                if (bufferedLogs.size() >= HIGH_WATERMARK_BUFFER_LENGTH) {
+                    flushOutput();
+                }
             }
         }
 
@@ -244,6 +282,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
                 GroupingProgressLogEventGenerator.this.needHeaderSeparator = hasContent;
 
                 bufferedLogs.clear();
+                bufferCodepointsSize = 0;
                 lastUpdateTime = currentTimePeriod;
                 lastRenderedBuildOpId = buildOpIdentifier;
             }
