@@ -711,12 +711,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
         return delegate.ant(configureAction);
     }
 
-    @Nullable
-    @Override
-    public ProjectIdentifier getParentIdentifier() {
-        return delegate.getParentIdentifier();
-    }
-
     @Override
     public String getBuildTreePath() {
         return delegate.getBuildTreePath();

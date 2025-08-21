@@ -23,6 +23,8 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.resources.ResourceLock;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
@@ -36,6 +38,7 @@ import java.util.function.Function;
  * Encapsulates the identity and state of a particular project in a build tree.
  */
 @ThreadSafe
+@ServiceScope(Scope.Project.class)
 public interface ProjectState extends ModelContainer<ProjectInternal> {
     DisplayName getDisplayName();
 

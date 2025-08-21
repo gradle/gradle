@@ -69,7 +69,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                                       | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 89, column 9 > create(myBinary) > create(myBinarySource)
                                       | Rules:
                                          ⤷ DeclarationRules#mutateMyBinarySource(UnmanagedLanguageSourceSet)
-                                         ⤷ ComponentModelBasePlugin.PluginRules#applyFallbackSourceConventions(LanguageSourceSet, ProjectIdentifier)
+                                         ⤷ ComponentModelBasePlugin.PluginRules#applyFallbackSourceConventions(LanguageSourceSet, ServiceRegistry)
                             + tasks
                                   | Type:   	org.gradle.platform.base.BinaryTasksCollection
                                   | Value:  	Task collection
@@ -84,7 +84,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                               | Rules:
                                  ⤷ DeclarationRules#mutateMyComponentSource(UnmanagedLanguageSourceSet)
                                  ⤷ ComponentModelBasePlugin.PluginRules#addComponentSourcesSetsToProjectSourceSet(SourceComponentSpec, ProjectSourceSet) > afterEach()
-                                 ⤷ ComponentModelBasePlugin.PluginRules#applyFallbackSourceConventions(LanguageSourceSet, ProjectIdentifier)
+                                 ⤷ ComponentModelBasePlugin.PluginRules#applyFallbackSourceConventions(LanguageSourceSet, ServiceRegistry)
             """.stripIndent().trim()
     }
 
@@ -138,7 +138,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                                       | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 89, column 9 > create(myBinary) > create(myBinarySource)
                                       | Rules:
                                          ⤷ DeclarationRules#mutateMyBinarySource(ManagedLanguageSourceSet)
-                                         ⤷ ComponentModelBasePlugin.PluginRules#applyFallbackSourceConventions(LanguageSourceSet, ProjectIdentifier)
+                                         ⤷ ComponentModelBasePlugin.PluginRules#applyFallbackSourceConventions(LanguageSourceSet, ServiceRegistry)
                                     + data
                                           | Type:   	java.lang.String
                                           | Value:  	my binary sources
@@ -160,7 +160,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                               | Rules:
                                  ⤷ DeclarationRules#mutateMyComponentSource(ManagedLanguageSourceSet)
                                  ⤷ ComponentModelBasePlugin.PluginRules#addComponentSourcesSetsToProjectSourceSet(SourceComponentSpec, ProjectSourceSet) > afterEach()
-                                 ⤷ ComponentModelBasePlugin.PluginRules#applyFallbackSourceConventions(LanguageSourceSet, ProjectIdentifier)
+                                 ⤷ ComponentModelBasePlugin.PluginRules#applyFallbackSourceConventions(LanguageSourceSet, ServiceRegistry)
                             + data
                                   | Type:   	java.lang.String
                                   | Value:  	my component sources

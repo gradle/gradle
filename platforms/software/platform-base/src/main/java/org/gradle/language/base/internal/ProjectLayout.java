@@ -16,21 +16,13 @@
 
 package org.gradle.language.base.internal;
 
-import org.gradle.api.internal.project.ProjectIdentifier;
-
 import java.io.File;
 
 public class ProjectLayout {
-    private final ProjectIdentifier projectIdentifier;
     private final File buildDir;
 
-    public ProjectLayout(ProjectIdentifier projectIdentifier, File buildDir) {
-        this.projectIdentifier = projectIdentifier;
+    public ProjectLayout(File buildDir) {
         this.buildDir = buildDir;
-    }
-
-    public ProjectIdentifier getProjectIdentifier() {
-        return projectIdentifier;
     }
 
     public File getBuildDir() {

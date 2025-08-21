@@ -19,7 +19,7 @@ package org.gradle.platform.base.component.internal;
 import org.gradle.api.Task;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
-import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
@@ -38,12 +38,18 @@ import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 import org.jspecify.annotations.Nullable;
 
 public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
-    private final ProjectIdentifier projectIdentifier;
+    private final ProjectIdentity projectIdentity;
 
-    public ComponentSpecFactory(final ProjectIdentifier projectIdentifier, final Instantiator instantiator, final NamedEntityInstantiator<Task> taskInstantiator, final ObjectFactory objectFactory,
-                                final CollectionCallbackActionDecorator collectionCallbackActionDecorator, final DomainObjectCollectionFactory domainObjectCollectionFactory) {
+    public ComponentSpecFactory(
+        final ProjectIdentity projectIdentity,
+        final Instantiator instantiator,
+        final NamedEntityInstantiator<Task> taskInstantiator,
+        final ObjectFactory objectFactory,
+        final CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+        final DomainObjectCollectionFactory domainObjectCollectionFactory
+    ) {
         super(ComponentSpec.class);
-        this.projectIdentifier = projectIdentifier;
+        this.projectIdentity = projectIdentity;
         registerFactory(DefaultComponentSpec.class, new ImplementationFactory<ComponentSpec, DefaultComponentSpec>() {
             @Override
             public <T extends DefaultComponentSpec> T create(ModelType<? extends ComponentSpec> publicType, ModelType<T> implementationType, String name, MutableModelNode componentNode) {
@@ -84,7 +90,7 @@ public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
             return componentSpec.getIdentifier().child(name);
         }
 
-        return new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
+        return new DefaultComponentSpecIdentifier(projectIdentity.getProjectPath().getPath(), name);
     }
 
     @Nullable

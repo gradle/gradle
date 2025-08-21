@@ -21,7 +21,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Creates a {@link ProjectInternal} implementation.
@@ -32,7 +31,6 @@ public interface IProjectFactory {
         GradleInternal gradle,
         ProjectDescriptor projectDescriptor,
         ProjectState owner,
-        @Nullable ProjectInternal parent,
         ServiceRegistryFactory serviceRegistryFactory,
         ClassLoaderScope selfClassLoaderScope,
         ClassLoaderScope baseClassLoaderScope
