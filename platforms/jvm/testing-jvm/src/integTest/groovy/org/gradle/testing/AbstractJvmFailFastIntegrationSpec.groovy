@@ -19,7 +19,6 @@ package org.gradle.testing
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.internal.tasks.testing.report.generic.TestPathExecutionResult
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -37,6 +36,8 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
     JvmBlockingTestClassGenerator generator
+
+    abstract String getPathToTestPackages()
 
     def setup() {
         server.start()
@@ -63,15 +64,15 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         and:
         GenericTestExecutionResult testResults = resultsFor("test")
 
-        TestPathExecutionResult gradleTest = testResults.testPath(":Gradle suite:Gradle test")
+        TestPathExecutionResult gradleTest = testResults.testPath(pathToTestPackages)
         gradleTest.rootNames == ['Gradle Test Run :test']
         gradleTest.onlyRoot().assertChildCount(2, 1)
         gradleTest.onlyRoot().assertChildrenExecuted("pkg.FailedTest", "pkg.OtherTest")
 
-        TestPathExecutionResult failedTest = testResults.testPath(":Gradle suite:Gradle test:pkg.FailedTest")
+        TestPathExecutionResult failedTest = testResults.testPath("${pathToTestPackages}pkg.FailedTest")
         failedTest.onlyRoot().assertChildCount(1, 1)
 
-        TestPathExecutionResult otherTest = testResults.testPath(":Gradle suite:Gradle test:pkg.OtherTest")
+        TestPathExecutionResult otherTest = testResults.testPath("${pathToTestPackages}pkg.OtherTest")
         otherTest.onlyRoot().assertChildCount(1, 0)
 
         where:
@@ -98,10 +99,10 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
 
         and:
         GenericTestExecutionResult testResults = resultsFor("test")
-        TestPathExecutionResult failedTest = testResults.testPath(":Gradle suite:Gradle test:pkg.FailedTest:failTest")
-        failedTest.onlyRoot().assertHasResult(TestResult.ResultType.FAILURE)
-        TestPathExecutionResult otherTest = testResults.testPath(":Gradle suite:Gradle test:pkg.OtherTest:passingTest")
-        otherTest.onlyRoot().assertHasResult(TestResult.ResultType.SKIPPED)
+        TestPathExecutionResult failedTest = testResults.testPath("${pathToTestPackages}pkg.FailedTest")
+        failedTest.onlyRoot().getFailedChildCount() == 1
+        TestPathExecutionResult otherTest = testResults.testPath("${pathToTestPackages}pkg.OtherTest")
+        otherTest.onlyRoot().getSkippedChildCount() == 1
 
         where:
         description       | taskList                   | buildConfig
@@ -126,7 +127,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         and:
         GenericTestExecutionResult testResults = resultsFor("test")
         assert 1 == resourceForTest.keySet().sum {
-            def path = ":Gradle suite:Gradle test:" + it
+            def path = pathToTestPackages + it
             if (testResults.testPathExists(path)) {
                 TestPathExecutionResult test = testResults.testPath(path)
                 test.onlyRoot().getFailedChildCount()
@@ -136,15 +137,15 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         }
         resourceForTest.keySet().with {
             def doesntExist = count {
-                def path = ":Gradle suite:Gradle test:" + it
+                def path = pathToTestPackages + it
                 !testResults.testPathExists(path)
             }
             def zeroChildren = count {
-                def path = ":Gradle suite:Gradle test:" + it
+                def path = pathToTestPackages + it
                 testResults.testPathExists(path) && testResults.testPath(path).rootNames.size() == 0
             }
             def skipped = count {
-                def path = ":Gradle suite:Gradle test:" + it
+                def path = pathToTestPackages + it
                 testResults.testPathExists(path) && testResults.testPath(path).onlyRoot().getSkippedChildCount()
             }
             assert testOmitted == (doesntExist + zeroChildren + skipped)
