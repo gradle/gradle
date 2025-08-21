@@ -17,14 +17,14 @@
 package org.gradle.internal.serialize.graph
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet
-import java.util.IdentityHashMap
 
 
 class WriteIdentities {
 
     private
-    val instanceIds = IdentityHashMap<Any, Int>()
+    val instanceIds = Reference2ObjectOpenHashMap<Any, Int>()
 
     fun getId(instance: Any): Int? = instanceIds[instance]
 
