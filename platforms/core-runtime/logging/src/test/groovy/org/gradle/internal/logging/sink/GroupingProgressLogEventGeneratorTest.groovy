@@ -20,7 +20,6 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.events.EndOutputEvent
 import org.gradle.internal.logging.events.LogEvent
-import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
@@ -396,47 +395,6 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         0 * downstreamListener._
     }
 
-    def "forwards a batched group of events after reaching the buffer line limit"() {
-        given:
-        def taskStartEvent = new ProgressStartEvent(
-            new OperationIdentifier(-3L),
-            new OperationIdentifier(-4L),
-            tenAm,
-            CATEGORY,
-            "Execute :a",
-            null,
-            null,
-            0,
-            true,
-            new OperationIdentifier(-3L),
-            BuildOperationCategory.TASK
-        )
-
-        when:
-        listener.onOutput(taskStartEvent)
-        // We emit a lot of messages with the same timestamp: this should not trigger the time-based flushing
-        for (long i in 1..GroupingProgressLogEventGenerator.HIGH_WATERMARK_BUFFER_LENGTH - 1) {
-            listener.onOutput(
-                event("filler", LogLevel.INFO, taskStartEvent.buildOperationId)
-            )
-        }
-
-        then:
-        0 * downstreamListener.onOutput(_)
-
-        when:
-        // Now we should be above the buffer size limit, and it should trigger a flush
-        listener.onOutput(
-            event("overflow", LogLevel.INFO, taskStartEvent.buildOperationId)
-        )
-
-        then:
-        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] " })
-        1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :a</Normal>" })
-        (GroupingProgressLogEventGenerator.HIGH_WATERMARK_BUFFER_LENGTH - 1) * downstreamListener.onOutput({ it.toString().startsWith("[INFO] [category] filler") })
-        1 * downstreamListener.onOutput({ it.toString() == "[INFO] [category] overflow" })
-    }
-
     def "forwards a batched group of events after reaching the buffer size limit using LogEvent"() {
         given:
         def taskStartEvent = new ProgressStartEvent(
@@ -475,6 +433,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] " })
         1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :a</Normal>" })
         1 * downstreamListener.onOutput({ it.toString() == "[INFO] [category] ${largeMessage}" })
+        0 * downstreamListener._
     }
 
     def "forwards a batched group of events after reaching the buffer size limit using StyledTextOutputEvent"() {
@@ -515,6 +474,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] " })
         1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :a</Normal>" })
         1 * downstreamListener.onOutput({ it.toString() == "[INFO] [category] <Normal>${largeMessage}</Normal>" })
+        0 * downstreamListener._
     }
 
     def "forwards multiple batched groups of events after receiving update now event after flush period"() {

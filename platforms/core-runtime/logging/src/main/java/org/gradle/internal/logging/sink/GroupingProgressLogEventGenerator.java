@@ -48,11 +48,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class GroupingProgressLogEventGenerator implements OutputEventListener {
     /**
-     * Maximum amount of lines we allow to buffer before we flush the output.
-     * The calculation targets 1MiB of buffer space with 2 byte per codepoint (worst case scenario).
-     */
-    public static final long HIGH_WATERMARK_BUFFER_LENGTH = 1000000L / (80L * 2L);
-    /**
      * Maximum amount of codepoints we allow to buffer before we flush the output.
      * The calculation targets 1MiB of buffer space with 2 byte per codepoint (worst case scenario).
      */
@@ -233,8 +228,6 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
                 lastUpdateTime = currentTimePeriod;
                 needHeaderSeparator = true;
             } else {
-                // This block is not exhaustive
-                // We cover here the two main output types we expect to contain large amounts of text
                 if (output instanceof LogEvent) {
                     LogEvent logEvent = (LogEvent) output;
                     int logMessageCodepoints = logEvent.getMessage().length();
@@ -256,9 +249,6 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
                 }
 
                 bufferedLogs.add(output);
-                if (bufferedLogs.size() >= HIGH_WATERMARK_BUFFER_LENGTH) {
-                    flushOutput();
-                }
             }
         }
 
@@ -291,9 +281,6 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         @Override
         void maybeFlushOutput(long eventTimestamp) {
             if (timeoutExpired(eventTimestamp, HIGH_WATERMARK_FLUSH_TIMEOUT) || (timeoutExpired(eventTimestamp, LOW_WATERMARK_FLUSH_TIMEOUT) && canClaimForeground())) {
-                flushOutput();
-            }
-            if (bufferedLogs.size() >= HIGH_WATERMARK_BUFFER_LENGTH) {
                 flushOutput();
             }
         }
