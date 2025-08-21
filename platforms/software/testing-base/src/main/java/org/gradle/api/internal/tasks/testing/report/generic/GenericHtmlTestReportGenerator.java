@@ -48,9 +48,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -196,11 +194,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
                         rootDisplayNames,
                         metadataRendererRegistry
                     ));
-                    Set<String> allChildren = new LinkedHashSet<>();
-                    for (TestTreeModel.PerRootInfo perRootInfo : tree.getPerRootInfo().values()) {
-                        allChildren.addAll(perRootInfo.getChildren());
-                    }
-                    for (String child : allChildren) {
+                    for (String child : tree.getChildren().keySet()) {
                         queueTree(queue, tree.getChildren().get(child), output);
                     }
                 }
