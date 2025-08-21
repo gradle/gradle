@@ -42,18 +42,6 @@ public class TestTreeModelResultsProvider implements TestResultsProvider {
     public TestTreeModelResultsProvider(TestTreeModel root, SerializableTestResultStore.OutputReader outputReader) {
         this.root = root;
         this.outputReader = outputReader;
-        checkRootDepth();
-    }
-
-    private void checkRootDepth() {
-        // 1 is root level
-        // 2 is class level
-        // 3 is test level
-        if (root.getDepth() > 3) {
-            StringBuilder out = new StringBuilder();
-            root.dumpStructure(out);
-            throw new IllegalStateException("Test tree root depth must be less than or equal to 3, but was " + root.getDepth() + ". Structure:\n" + out);
-        }
     }
 
     private long getModelId(TestTreeModel model) {

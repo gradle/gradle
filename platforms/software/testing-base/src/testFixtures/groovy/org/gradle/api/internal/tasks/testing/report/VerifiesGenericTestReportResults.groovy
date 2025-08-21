@@ -29,7 +29,7 @@ import org.gradle.internal.logging.ConsoleRenderer
 trait VerifiesGenericTestReportResults {
     String resultsUrlFor(String name) {
         def expectedReportFile = file("build/reports/tests/${name}/index.html")
-        String renderedUrl = new ConsoleRenderer().asClickableFileUrl(expectedReportFile);
+        String renderedUrl = new ConsoleRenderer().asClickableFileUrl(expectedReportFile)
         renderedUrl
     }
 
