@@ -23,4 +23,8 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 
 @TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec implements JUnitJupiterMultiVersionTest {
+    @Override
+    String getPathToTestPackages() {
+        return ":"
+    }
 }
