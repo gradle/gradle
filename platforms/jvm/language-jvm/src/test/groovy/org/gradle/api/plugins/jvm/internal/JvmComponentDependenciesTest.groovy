@@ -69,12 +69,8 @@ class JvmComponentDependenciesTest extends Specification {
     }
 
     def "GAV notation is supported"() {
-        given:
-        TestUtil.initDeprecationLogger("We are testing a deprecated method")
-
         def example = Mock(ExternalModuleDependency)
         def example2 = Mock(ExternalModuleDependency)
-
         when:
         dependencies {
             implementation module(group: "com.example", name: "example", version: "1.0")
