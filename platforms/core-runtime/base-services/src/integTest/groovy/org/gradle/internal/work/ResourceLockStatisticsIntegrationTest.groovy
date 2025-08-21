@@ -17,6 +17,7 @@
 package org.gradle.internal.work
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.operations.DefaultBuildOperationsParameters
 
 class ResourceLockStatisticsIntegrationTest extends AbstractIntegrationSpec {
     def "displays resource lock statistics after build finishes"() {
@@ -52,7 +53,7 @@ class ResourceLockStatisticsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.withArguments("--parallel", "-D${ResourceLockStatistics.PROJECT_LOCK_STATS_PROPERTY}")
+        executer.withArguments("--parallel", "-D${DefaultBuildOperationsParameters.VERBOSE_LOCKING_OPERATIONS_OPTION.systemPropertyName}")
         succeeds(":wait", ":child:blocked")
 
         then:

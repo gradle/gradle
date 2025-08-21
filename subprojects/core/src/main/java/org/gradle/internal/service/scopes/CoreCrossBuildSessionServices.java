@@ -31,6 +31,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.BuildOperationsParameters;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationExecutor;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
@@ -63,13 +64,13 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
     @Provides
     ResourceLockStatistics createResourceLockStatistics(
         BuildOperationRunner buildOperationRunner,
-        CrossBuildSessionParameters buildSessionParameters
+        BuildOperationsParameters buildOperationsParameters
     ) {
-        // This service is initialized before the system properties on the command line are "installed"
-        // into System.getProperties(). So, we also need to check the start parameter for the property.
-        boolean statisticsEnabled = System.getProperty(ResourceLockStatistics.PROJECT_LOCK_STATS_PROPERTY) != null ||
-            buildSessionParameters.getStartParameter().getSystemPropertiesArgs().containsKey(ResourceLockStatistics.PROJECT_LOCK_STATS_PROPERTY);
-        return statisticsEnabled ? new DefaultResourceLockStatistics(buildOperationRunner) : ResourceLockStatistics.NO_OP;
+        if (buildOperationsParameters.emitLockingOperations()) {
+            return new DefaultResourceLockStatistics(buildOperationRunner);
+        } else {
+            return ResourceLockStatistics.NO_OP;
+        }
     }
 
     @Provides

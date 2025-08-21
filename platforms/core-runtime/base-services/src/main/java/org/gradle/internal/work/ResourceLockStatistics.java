@@ -29,11 +29,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface ResourceLockStatistics {
 
     /**
-     * If set to any value, enables the collection of resource lock statistics.
-     */
-    String PROJECT_LOCK_STATS_PROPERTY = "org.gradle.internal.project.lock.stats";
-
-    /**
      * A {@link ResourceLockStatistics} which does not collect any statistics.
      */
     ResourceLockStatistics NO_OP = new ResourceLockStatistics() {
