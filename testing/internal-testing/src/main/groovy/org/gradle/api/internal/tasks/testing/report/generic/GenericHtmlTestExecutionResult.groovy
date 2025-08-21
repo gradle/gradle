@@ -218,6 +218,17 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         }
 
         @Override
+        TestPathRootExecutionResult assertChildrenFailed(String... testNames) {
+            assertThat(testsFailures.keys(), equalTo(ImmutableMultiset.copyOf(testNames)))
+            return null
+        }
+
+        @Override
+        int getFailedChildCount() {
+            return testsFailures.size()
+        }
+
+        @Override
         TestPathRootExecutionResult assertStdout(Matcher<? super String> matcher) {
             return assertOutput('standard output', matcher)
         }

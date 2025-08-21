@@ -58,6 +58,16 @@ public interface TestPathRootExecutionResult {
      */
     int getSkippedChildCount();
 
+
+    TestPathRootExecutionResult assertChildrenFailed(String... testNames);
+
+    /**
+     * Returns the number of child tests that were failed for the current test path.
+     *
+     * @return the number of failed child tests
+     */
+    int getFailedChildCount();
+
     TestPathRootExecutionResult assertStdout(Matcher<? super String> matcher);
 
     TestPathRootExecutionResult assertStderr(Matcher<? super String> matcher);
