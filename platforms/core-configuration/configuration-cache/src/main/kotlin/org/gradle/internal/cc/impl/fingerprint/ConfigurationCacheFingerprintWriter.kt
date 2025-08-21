@@ -116,8 +116,6 @@ class ConfigurationCacheFingerprintWriter(
     ConfigurationCacheEnvironment.Listener {
 
     interface Host {
-        val isEncrypted: Boolean
-        val encryptionKeyHashCode: HashCode
         val gradleUserHomeDir: File
         val allInitScripts: List<File>
         val buildStartTime: Long
