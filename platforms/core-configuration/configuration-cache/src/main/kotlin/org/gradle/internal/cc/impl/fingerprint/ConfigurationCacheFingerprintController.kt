@@ -135,7 +135,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         open fun <T> resolveScriptsForProject(project: ProjectIdentity, action: () -> T): T =
             illegalStateFor("resolveScriptsForProject")
 
-        open fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, action: () -> T): T =
+        open fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, keepAlive: Boolean, action: () -> T): T =
             illegalStateFor("collectFingerprintForProject")
 
         open fun projectObserved(consumingProjectPath: Path?, targetProjectPath: Path): Unit =
@@ -194,11 +194,11 @@ class ConfigurationCacheFingerprintController internal constructor(
         }
 
         override fun <T> resolveScriptsForProject(project: ProjectIdentity, action: () -> T): T {
-            return fingerprintWriter.runCollectingFingerprintForProject(project, action)
+            return fingerprintWriter.runCollectingFingerprintForProject(project, keepAlive = true, action)
         }
 
-        override fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, action: () -> T): T {
-            return fingerprintWriter.runCollectingFingerprintForProject(project, action)
+        override fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, keepAlive: Boolean, action: () -> T): T {
+            return fingerprintWriter.runCollectingFingerprintForProject(project, keepAlive, action)
         }
 
         override fun pause(): WritingState {
@@ -318,11 +318,18 @@ class ConfigurationCacheFingerprintController internal constructor(
     }
 
     /**
-     * Runs the given action that is specific to the given project, and associates any build inputs read by the current thread
+     * Runs the given action that is specific to the given project and associates any build inputs read by the current thread
      * with the project.
+     *
+     * @param keepAlive whether the information associated with the project must be kept alive for future requests (for input deduplication, for example)
      */
-    fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, action: () -> T): T {
-        return writingState.runCollectingFingerprintForProject(project, action)
+    fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, keepAlive: Boolean, action: () -> T): T {
+        return writingState.runCollectingFingerprintForProject(
+            project,
+            // always keep project context alive when building models since model requests can come at any point
+            keepAlive || modelParameters.isRequiresToolingModels,
+            action
+        )
     }
 
     override fun stop() {

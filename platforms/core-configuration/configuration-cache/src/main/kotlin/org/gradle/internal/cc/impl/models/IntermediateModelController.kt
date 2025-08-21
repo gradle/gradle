@@ -66,7 +66,7 @@ class IntermediateModelController(
         return loadOrCreateValue(key) {
             try {
                 val model = if (project != null) {
-                    cacheFingerprintController.runCollectingFingerprintForProject(project, creator)
+                    cacheFingerprintController.runCollectingFingerprintForProject(project, true, creator)
                 } else {
                     creator()
                 }
