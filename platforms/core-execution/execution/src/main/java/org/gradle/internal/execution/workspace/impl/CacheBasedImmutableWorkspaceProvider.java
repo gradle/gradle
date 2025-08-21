@@ -24,7 +24,10 @@ import org.gradle.cache.FineGrainedPersistentCache;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.Closeable;
 import java.io.File;
@@ -115,7 +118,11 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             }
 
             @Override
-            public boolean isStale() {
+            public boolean isStale(FileSystemAccess fileSystemAccess) {
+                FileSystemLocationSnapshot snapshot = fileSystemAccess.read(deleter.getStaleMarkerFile(workspace).getAbsolutePath());
+                if (snapshot.getType() == FileType.RegularFile) {
+                    return true;
+                }
                 return deleter.isStale(workspace);
             }
 

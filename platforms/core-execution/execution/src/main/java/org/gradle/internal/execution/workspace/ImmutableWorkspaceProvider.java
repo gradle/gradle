@@ -16,6 +16,8 @@
 
 package org.gradle.internal.execution.workspace;
 
+import org.gradle.internal.vfs.FileSystemAccess;
+
 import java.io.File;
 import java.util.function.Supplier;
 
@@ -35,7 +37,7 @@ public interface ImmutableWorkspaceProvider {
     interface LockingImmutableWorkspace extends ImmutableWorkspace {
 
 
-        boolean isStale();
+        boolean isStale(FileSystemAccess fileSystemAccess);
 
         /**
          * Executes the given action under the global scoped lock.

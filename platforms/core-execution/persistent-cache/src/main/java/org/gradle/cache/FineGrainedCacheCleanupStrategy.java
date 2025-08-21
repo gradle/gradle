@@ -40,6 +40,8 @@ public interface FineGrainedCacheCleanupStrategy {
          */
         boolean isStale(File entry);
 
+        File getStaleMarkerFile(File entry);
+
         /**
          * Unstales the given cache entry.
          * This method is called when an entry is accessed, indicating that it is still valid and should not be deleted.
