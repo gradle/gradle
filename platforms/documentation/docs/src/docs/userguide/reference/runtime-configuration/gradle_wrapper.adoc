@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[gradle_wrapper_reference]]
+[[gradle_wrapper]]
 = Gradle Wrapper
 :keywords: wrapper, distributionUrl, gradle-version, systemProp.gradle.wrapperUser, systemProp.gradle.wrapperPassword, gradle-wrapper.jar, gradle-wrapper.properties, gradlew, gradlew.bat, gradle-version, distribution-type, gradle-distribution-url, gradle-distribution-sha256-sum, network-timeout, no-validate-url, validate-url,
 
