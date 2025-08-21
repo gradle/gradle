@@ -25,6 +25,11 @@ import org.gradle.testing.fixture.TestNGCoverage
 @TargetCoverage({ [TestNGCoverage.NEWEST] })
 class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec implements TestNGMultiVersionTest {
 
+    @Override
+    String getPathToTestPackages() {
+        return ":Gradle suite:Gradle test:"
+    }
+
     def "parallel #parallel execution with #threadCount threads, #maxWorkers workers fails fast"() {
         given:
         buildFile.text = generator.initBuildFile(maxWorkers)
@@ -50,7 +55,7 @@ class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec i
         and:
         GenericTestExecutionResult testResults = resultsFor("test")
         assert 1 == resourceForTest.keySet().sum {
-            def path = ":Gradle suite:Gradle test:" + it
+            def path = pathToTestPackages + it
             if (testResults.testPathExists(path)) {
                 TestPathExecutionResult test = testResults.testPath(path)
                 test.onlyRoot().getFailedChildCount()
@@ -60,15 +65,15 @@ class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec i
         }
         resourceForTest.keySet().with {
             def doesntExist = count {
-                def path = ":Gradle suite:Gradle test:" + it
+                def path = pathToTestPackages + it
                 !testResults.testPathExists(path)
             }
             def zeroChildren = count {
-                def path = ":Gradle suite:Gradle test:" + it
+                def path = pathToTestPackages + it
                 testResults.testPathExists(path) && testResults.testPath(path).rootNames.size() == 0
             }
             def skipped = count {
-                def path = ":Gradle suite:Gradle test:" + it
+                def path = pathToTestPackages + it
                 testResults.testPathExists(path) && testResults.testPath(path).onlyRoot().getSkippedChildCount()
             }
             assert 5 == (doesntExist + zeroChildren + skipped)
