@@ -18,12 +18,16 @@ package gradlebuild.docs;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.plugins.quality.Checkstyle;
 import org.gradle.api.plugins.quality.CheckstyleExtension;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.Copy;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.javadoc.Javadoc;
@@ -33,6 +37,7 @@ import org.gradle.internal.UncheckedException;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.Set;
@@ -67,6 +72,19 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
         // TODO: Pull out more of this configuration into the extension if it makes sense
         // TODO: in a typical project, this may need to be the regular javadoc task vs javadocAll
 
+        var groovyPackageListBucket = project.getConfigurations().dependencyScope("groovyPackageListBucket");
+        var groovyPackageListConf = project.getConfigurations().resolvable("groovyPackageList", conf -> {
+            conf.setTransitive(false);
+            conf.extendsFrom(groovyPackageListBucket.get());
+        });
+        project.getDependencies().add(groovyPackageListBucket.getName(), javadocs.getGroovyPackageListSrc());
+
+        var extractGroovyPackageListTask = tasks.register("extractGroovyPackageList", Copy.class, task -> {
+            task.from(project.zipTree(groovyPackageListConf.map(Configuration::getSingleFile)));
+            // See https://docs.oracle.com/en/java/javase/21/docs/specs/man/javadoc.html#option-linkoffline
+            task.include("package-list", "element-list");
+            task.into(layout.getBuildDirectory().dir("groovyPackageList"));
+        });
 
         TaskProvider<Javadoc> javadocAll = tasks.register("javadocAll", Javadoc.class, task -> {
             task.setGroup("documentation");
@@ -99,7 +117,17 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             options.addStringOption("source", "8");
             options.tags("apiNote:a:API Note:", "implSpec:a:Implementation Requirements:", "implNote:a:Implementation Note:");
             // TODO: This breaks the provider
-            options.links(javadocs.getJavaApi().get().toString(), javadocs.getGroovyApi().get().toString());
+            task.getInputs().dir(javadocs.getJavaPackageListLoc());
+            var javaApiLink = javadocs.getJavaApi().map(URI::toString).map(v -> {
+                if (v.endsWith("/")) {
+                    return v.substring(0, v.length() - 1);
+                }
+                return v;
+            }).get();
+            options.linksOffline(javaApiLink, javadocs.getJavaPackageListLoc().map(Directory::getAsFile).get().getAbsolutePath());
+            // TODO: This breaks the provider
+            task.getInputs().dir(extractGroovyPackageListTask.map(Copy::getDestinationDir)).withPathSensitivity(PathSensitivity.NONE);
+            options.linksOffline(javadocs.getGroovyApi().get().toString(), extractGroovyPackageListTask.map(Copy::getDestinationDir).get().getAbsolutePath());
 
             task.source(extension.getDocumentedSource()
                 .filter(f -> f.getName().endsWith(".java"))
