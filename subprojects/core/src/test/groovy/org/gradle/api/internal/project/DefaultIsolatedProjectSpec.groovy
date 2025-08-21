@@ -16,19 +16,19 @@
 
 package org.gradle.api.internal.project
 
-
+import org.gradle.api.internal.file.FileFactory
 import spock.lang.Specification
 
 class DefaultIsolatedProjectSpec extends Specification {
 
     def "delegates equals and hashCode to project"() {
         given:
-        def project = Mock(ProjectInternal)
-        def subject = new DefaultIsolatedProject(project, project)
+        def project = Mock(ProjectState)
+        def subject = new DefaultIsolatedProject(project, Mock(FileFactory))
 
         when:
         def hashCode = subject.hashCode()
-        def equality = subject.equals(new DefaultIsolatedProject(project, project))
+        def equality = subject.equals(new DefaultIsolatedProject(project, Mock(FileFactory)))
 
         then:
         hashCode == 42
@@ -36,4 +36,5 @@ class DefaultIsolatedProjectSpec extends Specification {
         1 * project.hashCode() >> 42
         1 * project.equals(project) >> true
     }
+
 }

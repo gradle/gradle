@@ -20,7 +20,6 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.ProjectDescriptorInternal
-import org.gradle.internal.build.BuildState
 import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.DefaultTextFileResourceLoader
@@ -37,13 +36,14 @@ class ProjectFactoryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def instantiator = Mock(Instantiator)
-    def projectDescriptor = Stub(ProjectDescriptorInternal)
-    def gradle = Stub(GradleInternal)
+    def projectDescriptor = Stub(ProjectDescriptorInternal) {
+       getName() >> "name"
+       getProjectDir() >> tmpDir.file("project")
+       getBuildFile() >> tmpDir.file("build.gradle")
+    }
     def serviceRegistryFactory = Stub(ServiceRegistryFactory)
-    def projectRegistry = Mock(ProjectRegistry)
     def project = Stub(DefaultProject)
     def buildId = Path.ROOT
-    def owner = Stub(BuildState)
     def projectState = Stub(ProjectState) {
         getIdentity() >> { ProjectIdentity.forRootProject(buildId, projectDescriptor.name) }
     }
@@ -53,75 +53,39 @@ class ProjectFactoryTest extends Specification {
     def factory = new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(), scriptResolution)
     def rootProjectScope = Mock(ClassLoaderScope)
     def baseScope = Mock(ClassLoaderScope)
-    def serviceRegistry = Mock(ServiceRegistry)
     def dependencyResolutionManagement = Mock(DependencyResolutionManagementInternal)
-
-    def setup() {
-        owner.identityPath >> buildId
+    def serviceRegistry = Mock(ServiceRegistry) {
+        get(DependencyResolutionManagementInternal) >> dependencyResolutionManagement
+    }
+    def gradle = Stub(GradleInternal) {
+        getServices() >> serviceRegistry
     }
 
     def "creates a project with build script"() {
-        def buildFile = tmpDir.createFile("build.gradle")
-        def projectDir = tmpDir.createFile("project")
-
         given:
-        projectDescriptor.name >> "name"
-        projectDescriptor.projectDir >> projectDir
-        projectDescriptor.buildFile >> buildFile
-        gradle.projectRegistry >> projectRegistry
-        gradle.services >> serviceRegistry
-        serviceRegistry.get(DependencyResolutionManagementInternal) >> dependencyResolutionManagement
+        projectDescriptor.projectDir.mkdirs()
+        projectDescriptor.buildFile.createNewFile()
 
         when:
-        def result = factory.createProject(gradle, projectDescriptor, projectState, null, serviceRegistryFactory, rootProjectScope, baseScope)
+        def result = factory.createProject(gradle, projectDescriptor, projectState, serviceRegistryFactory, rootProjectScope, baseScope)
 
         then:
         result == project
-        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, buildFile, { it instanceof TextResourceScriptSource }, gradle, projectState, serviceRegistryFactory, rootProjectScope, baseScope) >> project
-        1 * projectRegistry.addProject(project)
+        1 * instantiator.newInstance(DefaultProject, projectDescriptor.buildFile, { it instanceof TextResourceScriptSource }, projectState, serviceRegistryFactory, rootProjectScope, baseScope) >> project
         1 * dependencyResolutionManagement.configureProject(project)
     }
 
     def "creates a project with missing build script"() {
-        def buildFile = tmpDir.file("build.gradle")
-        def projectDir = tmpDir.createFile("project")
-
         given:
-        projectDescriptor.name >> "name"
-        projectDescriptor.projectDir >> projectDir
-        projectDescriptor.buildFile >> buildFile
-        gradle.projectRegistry >> projectRegistry
-        gradle.services >> serviceRegistry
-        serviceRegistry.get(DependencyResolutionManagementInternal) >> dependencyResolutionManagement
+        projectDescriptor.projectDir.mkdirs()
+        assert !projectDescriptor.buildFile.exists()
+
         when:
-        def result = factory.createProject(gradle, projectDescriptor, projectState, null, serviceRegistryFactory, rootProjectScope, baseScope)
+        def result = factory.createProject(gradle, projectDescriptor, projectState, serviceRegistryFactory, rootProjectScope, baseScope)
 
         then:
         result == project
-        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, buildFile, { it.resource instanceof EmptyFileTextResource }, gradle, projectState, serviceRegistryFactory, rootProjectScope, baseScope) >> project
-        1 * projectRegistry.addProject(project)
-        1 * dependencyResolutionManagement.configureProject(project)
-    }
-
-    def "creates a child project"() {
-        def parent = Mock(ProjectInternal)
-        def buildFile = tmpDir.file("build.gradle")
-        def projectDir = tmpDir.createFile("project")
-
-        given:
-        projectDescriptor.name >> "name"
-        projectDescriptor.projectDir >> projectDir
-        projectDescriptor.buildFile >> buildFile
-        gradle.projectRegistry >> projectRegistry
-        gradle.services >> serviceRegistry
-        serviceRegistry.get(DependencyResolutionManagementInternal) >> dependencyResolutionManagement
-        when:
-        def result = factory.createProject(gradle, projectDescriptor, projectState, parent, serviceRegistryFactory, rootProjectScope, baseScope)
-
-        then:
-        result == project
-        1 * instantiator.newInstance(DefaultProject, "name", parent, projectDir, buildFile, _, gradle, projectState, serviceRegistryFactory, rootProjectScope, baseScope) >> project
-        1 * projectRegistry.addProject(project)
+        1 * instantiator.newInstance(DefaultProject, projectDescriptor.buildFile, { it.resource instanceof EmptyFileTextResource }, projectState, serviceRegistryFactory, rootProjectScope, baseScope) >> project
         1 * dependencyResolutionManagement.configureProject(project)
     }
 }

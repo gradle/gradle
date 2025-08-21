@@ -58,7 +58,7 @@ import java.util.Set;
 
 @UsedByScanPlugin("scan, test-retry")
 @ServiceScope(Scope.Project.class)
-public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptServices, DomainObjectContext, ModelRegistryScope, PluginAwareInternal {
+public interface ProjectInternal extends Project, HasScriptServices, DomainObjectContext, ModelRegistryScope, PluginAwareInternal {
 
     // These constants are defined here and not with the rest of their kind in HelpTasksPlugin because they are referenced
     // in the ‘core’ modules, which don't depend on ‘plugins’ where HelpTasksPlugin is defined.

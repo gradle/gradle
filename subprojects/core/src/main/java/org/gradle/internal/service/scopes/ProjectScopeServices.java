@@ -152,6 +152,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         DependencyManagementServices dependencyManagementServices
     ) {
         registration.add(ProjectInternal.class, project);
+        registration.add(ProjectState.class, project.getOwner());
         dependencyManagementServices.addDslServices(registration, project);
         for (GradleModuleServices services : gradleModuleServiceProviders) {
             services.registerProjectServices(registration);

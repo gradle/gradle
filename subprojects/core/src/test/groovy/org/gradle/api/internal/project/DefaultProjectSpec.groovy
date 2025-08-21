@@ -29,6 +29,7 @@ import org.gradle.api.internal.MutationGuard
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
 import org.gradle.api.internal.file.DefaultProjectLayout
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileFactory
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
@@ -128,7 +129,7 @@ class DefaultProjectSpec extends Specification {
         isolatedProject.name == 'root'
         isolatedProject.path == ':'
         isolatedProject.buildTreePath == ':'
-        isolatedProject.projectDirectory === project.layout.projectDirectory
+        isolatedProject.projectDirectory == project.layout.projectDirectory
         isolatedProject.rootProject === isolatedProject
     }
 
@@ -244,6 +245,7 @@ class DefaultProjectSpec extends Specification {
             property(Object) >> propertyFactory.property(Object)
             newInstance(SoftwareFeaturesDynamicObject, _) >> Stub(SoftwareFeaturesDynamicObject)
         }
+        def fileResolver = TestFiles.resolver(tmpDir.testDirectory)
 
         def serviceRegistry = new DefaultServiceRegistry()
 
@@ -262,11 +264,12 @@ class DefaultProjectSpec extends Specification {
         })
         serviceRegistry.add(ListenerBuildOperationDecorator, Mock(ListenerBuildOperationDecorator))
         serviceRegistry.add(ArtifactHandler, Mock(ArtifactHandler))
-        serviceRegistry.add(FileResolver, Stub(FileResolver))
+        serviceRegistry.add(FileResolver, fileResolver)
         serviceRegistry.add(FileCollectionFactory, Stub(FileCollectionFactory))
         serviceRegistry.add(GradleLifecycleActionExecutor, Stub(GradleLifecycleActionExecutor))
         serviceRegistry.add(SoftwareTypeRegistry, Stub(SoftwareTypeRegistry))
         serviceRegistry.add(SoftwareFeatureApplicator, Stub(SoftwareFeatureApplicator))
+        serviceRegistry.add(FileFactory, TestFiles.fileFactory())
 
         def antBuilder = Mock(AntBuilder)
         serviceRegistry.add(AntBuilderFactory, Mock(AntBuilderFactory) {
@@ -275,12 +278,12 @@ class DefaultProjectSpec extends Specification {
 
         serviceRegistry.addProvider(new ServiceRegistrationProvider() {
             @Provides
-            DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
-                def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)
+            DefaultProjectLayout createProjectLayout(FileResolver fileRes, FileCollectionFactory fileCollectionFactory) {
+                def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileRes, fileCollectionFactory)
                 return new DefaultProjectLayout(
-                    fileResolver.resolve("."),
-                    fileResolver.resolve("."),
-                    fileResolver,
+                    fileRes.resolve("."),
+                    fileRes.resolve("."),
+                    fileRes,
                     DefaultTaskDependencyFactory.withNoAssociatedProject(),
                     PatternSets.getNonCachingPatternSetFactory(),
                     PropertyHost.NO_OP,
@@ -312,18 +315,20 @@ class DefaultProjectSpec extends Specification {
             identity = ProjectIdentity.forSubproject(buildPath, projectPath)
         }
 
+        def descriptor = Mock(ProjectDescriptor) {
+            getName() >> name
+            getProjectDir() >> fileResolver.resolve(".")
+            getBuildFile() >> fileResolver.resolve("build file")
+        }
+
         def container = Mock(ProjectState)
         _ * container.projectPath >> identity.projectPath
         _ * container.identityPath >> identity.buildTreePath
         _ * container.owner >> build.owner
         _ * container.displayName >> Describables.of(name)
         _ * container.identity >> identity
-
-        def descriptor = Mock(ProjectDescriptor) {
-            getName() >> name
-            getProjectDir() >> new File("project")
-            getBuildFile() >> new File("build file")
-        }
+        _ * container.getName() >> name
+        _ * container.projectDir >> descriptor.projectDir
 
         def scriptResolution = Stub(ProjectScopedScriptResolution) {
             resolveScriptsForProject(_, _) >> { project, action -> action.get() }
@@ -331,6 +336,6 @@ class DefaultProjectSpec extends Specification {
 
         def instantiator = TestUtil.instantiatorFactory().decorateLenient(serviceRegistry)
         def factory = new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(null), scriptResolution)
-        return factory.createProject(build, descriptor, container, parent, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope))
+        return factory.createProject(build, descriptor, container, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope))
     }
 }
