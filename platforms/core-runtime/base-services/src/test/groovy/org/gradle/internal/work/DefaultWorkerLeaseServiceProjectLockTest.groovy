@@ -20,8 +20,6 @@ import org.gradle.internal.MutableBoolean
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.resources.ResourceLockState
-import org.gradle.util.SetSystemProperties
-import org.junit.Rule
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.locks.ReentrantLock
@@ -32,8 +30,7 @@ import static org.gradle.internal.resources.DefaultResourceLockCoordinationServi
 import static org.gradle.util.Path.path
 
 class DefaultWorkerLeaseServiceProjectLockTest extends AbstractWorkerLeaseServiceTest {
-    @Rule
-    SetSystemProperties properties = new SetSystemProperties()
+
     def workerLeaseService = workerLeaseService(1)
 
     def "can lock and unlock a project"() {
