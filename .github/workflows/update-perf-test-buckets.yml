@@ -32,7 +32,7 @@ jobs:
             PERFORMANCE_DB_USERNAME, gha/gradle/_all/PERFORMANCE_DB_USERNAME
             PERFORMANCE_DB_PASSWORD_TCAGENT, gha/gradle/_all/PERFORMANCE_DB_PASSWORD
       - name: Setup java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
