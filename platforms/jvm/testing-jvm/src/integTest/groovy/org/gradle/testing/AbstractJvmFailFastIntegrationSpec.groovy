@@ -16,8 +16,10 @@
 
 package org.gradle.testing
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.TestPathExecutionResult
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -25,7 +27,6 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.testing.fixture.JvmBlockingTestClassGenerator
-import org.hamcrest.CoreMatchers
 import org.junit.Rule
 
 import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.DEFAULT_MAX_WORKERS
@@ -58,9 +59,20 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         testExecution.release(FAILED_RESOURCE)
         testExecution.release(OTHER_RESOURCE)
         gradleHandle.waitForFailure()
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass('pkg.FailedTest').assertTestFailed('failTest', CoreMatchers.anything())
-        result.testClass('pkg.OtherTest').assertTestPassed('passingTest')
+
+        and:
+        GenericTestExecutionResult testResults = resultsFor("test")
+
+        TestPathExecutionResult gradleTest = testResults.testPath(":Gradle suite:Gradle test")
+        gradleTest.rootNames == ['Gradle Test Run :test']
+        gradleTest.onlyRoot().assertChildCount(2, 1)
+        gradleTest.onlyRoot().assertChildrenExecuted("pkg.FailedTest", "pkg.OtherTest")
+
+        TestPathExecutionResult failedTest = testResults.testPath(":Gradle suite:Gradle test:pkg.FailedTest")
+        failedTest.onlyRoot().assertChildCount(1, 1)
+
+        TestPathExecutionResult otherTest = testResults.testPath(":Gradle suite:Gradle test:pkg.OtherTest")
+        otherTest.onlyRoot().assertChildCount(1, 0)
 
         where:
         description        | taskList                   | buildConfig
@@ -83,9 +95,13 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         then:
         testExecution.release(FAILED_RESOURCE)
         gradleHandle.waitForFailure()
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass('pkg.FailedTest').assertTestFailed('failTest', CoreMatchers.anything())
-        result.testClass('pkg.OtherTest').assertTestSkipped('passingTest')
+
+        and:
+        GenericTestExecutionResult testResults = resultsFor("test")
+        TestPathExecutionResult failedTest = testResults.testPath(":Gradle suite:Gradle test:pkg.FailedTest:failTest")
+        failedTest.onlyRoot().assertHasResult(TestResult.ResultType.FAILURE)
+        TestPathExecutionResult otherTest = testResults.testPath(":Gradle suite:Gradle test:pkg.OtherTest:passingTest")
+        otherTest.onlyRoot().assertHasResult(TestResult.ResultType.SKIPPED)
 
         where:
         description       | taskList                   | buildConfig

@@ -73,6 +73,7 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
             }
         }
 
+        @NullMarked
         final class NoTestsRun implements FailureReportResult {
             private final String failureMessage;
 
