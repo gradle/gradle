@@ -71,7 +71,7 @@ public abstract class FindMissingDocumentationFiles extends DefaultTask {
         "build_github_actions",
         "sec:configure_github_actions",
         "build_travis",
-        // fixed in redirection (javascript)
+        // fixed with redirection (javascript in deleted pages)
         "sec:component_selection_rules",
         "sub:declaring_dependency_with_dynamic_version",
         "sub:declaring_dependency_with_changing_version",
