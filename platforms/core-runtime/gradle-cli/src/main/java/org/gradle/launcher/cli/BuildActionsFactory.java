@@ -22,6 +22,8 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
@@ -72,6 +74,8 @@ class BuildActionsFactory implements CommandLineActionCreator {
     private final ServiceRegistry loggingServices;
     private final FileCollectionFactory fileCollectionFactory;
     private final ServiceRegistry basicServices;
+    private static final Logger LOGGER = Logging.getLogger(BuildActionsFactory.class);
+    public static final String CAN_USE_CURRENT_PROCESS_MESSAGE = "The current JVM process isn't compatible with build requirement. Reason: {}";
 
     public BuildActionsFactory(ServiceRegistry loggingServices, ServiceRegistry basicServices) {
         this.basicServices = basicServices;
@@ -142,14 +146,17 @@ class BuildActionsFactory implements CommandLineActionCreator {
         // Pretend like the current process is actually a daemon, and see if it satisfies the compatibility spec
         CurrentProcess currentProcess = new CurrentProcess(fileCollectionFactory);
         DaemonContext contextForCurrentProcess = buildDaemonContextForCurrentProcess(requestContext, currentProcess);
-
         DaemonCompatibilitySpec comparison = new DaemonCompatibilitySpec(requestContext);
-        if (!currentProcess.isLowMemoryProcess()) {
-            return comparison.isSatisfiedBy(contextForCurrentProcess);
+        if (currentProcess.isLowMemoryProcess()) {
+            LOGGER.debug(CAN_USE_CURRENT_PROCESS_MESSAGE, "The maximum heap size is insufficient.\n");
+            return false;
         }
-        return false;
+        String msg = comparison.whyUnsatisfied(contextForCurrentProcess);
+        if (msg != null) {
+            LOGGER.debug(CAN_USE_CURRENT_PROCESS_MESSAGE, msg);
+        }
+        return msg == null;
     }
-
     @VisibleForTesting
     static DaemonContext buildDaemonContextForCurrentProcess(DaemonRequestContext requestContext, CurrentProcess currentProcess) {
         return new DefaultDaemonContext(
