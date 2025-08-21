@@ -16,6 +16,7 @@
 
 package org.gradle.testing.fixture
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 
 /**
@@ -43,7 +44,7 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
  *  └──────────────────────────────────────────────┘      └──────────────────────────────────────────────┘
  *
  */
-abstract class AbstractTestingMultiVersionIntegrationTest extends MultiVersionIntegrationSpec {
+abstract class AbstractTestingMultiVersionIntegrationTest extends MultiVersionIntegrationSpec implements VerifiesGenericTestReportResults {
     abstract BuildScriptConfiguration getBuildScriptConfiguration()
     abstract TestSourceConfiguration getTestSourceConfiguration()
 
