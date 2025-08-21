@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.antlr
 
 import org.gradle.api.Action
+import org.gradle.api.tasks.TaskCollection
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import spock.lang.Issue
 
@@ -116,6 +117,6 @@ class AntlrPluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(AntlrPlugin)
 
         then:
-        project.tasks.withType(AntlrTask).all { it.group == 'Antlr' }
+        project.tasks.withType(AntlrTask).every { it.group == 'antlr' }
     }
 }
