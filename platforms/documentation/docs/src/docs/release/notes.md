@@ -14,11 +14,13 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 
 Gradle now supports [Java 25](#java-25).
 
-This release adds support for [diagnostics and preview improvements](#diagnostics), and includes [console enhancements](#cli) such as a rich console off-screen line indicator and a new plain console with colors.
+This release introduces new ways to [visualize task graphs](#task-graph) and [inspect project structures](#project-report).
+[Build initialization](#build-init) for Kotlin projects now uses the kotlin-test dependency for more flexible test framework selection.
+Command-line usability is improved with [console enhancements](#cli) and [clearer error messages](#error) for version conflicts.
 
-Gradle @version@ introduces [improved error messages](#error) for version conflicts and enhancements to the [Configuration Cache](#configuration-cache). This includes a new read-only mode, finer-grained tracking of `-P` command-line properties, and improved handling of keystore types.
+Gradle @version@ introduces enhancements to the [Configuration Cache](#configuration-cache), a new read-only mode optimized for CI workflows, smarter reuse of cache entries when command-line properties change, and better compatibility with customized JVM security policies.
 
-Additionally, this release provides [build authoring improvements](#build-authoring), such as a new `Gradle.getBuildPath()` method and type-safe accessors for `compileOnly` plugin dependencies in precompiled Kotlin scripts.
+This release also includes several [build authoring improvements](#build-authoring), enhancements to the [Antlr](#antlr) and [EAR](#ear) plugins, and fixes for [composite builds using `--dry-run`](#dry-run).
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Eng Zer Jun](https://github.com/Juneezee),
@@ -61,21 +63,18 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 <a name="java-25"></a>
 ### Support for Java 25
 
-With this release, Gradle supports [Java 25](https://openjdk.org/projects/jdk/25/). 
-This means you can use Java 25 for the [daemon](userguide/gradle_daemon.html) in addition to [toolchains](userguide/toolchains.html).
-Third-party tool compatibility with Java 25 may still be limited. 
-
-If you're using the [Tooling API](userguide/tooling_api.html), you’ll need to enable native access at startup due to its use of JNI. 
+With this release, Gradle supports [Java 25](https://openjdk.org/projects/jdk/25/).
+This means you can now use Java 25 for the [daemon](userguide/gradle_daemon.html) in addition to [toolchains](userguide/toolchains.html).
+Third-party tool compatibility with Java 25 may still be limited.
+If you're using the [Tooling API](userguide/tooling_api.html), you’ll need to enable native access at startup due to its use of JNI.
 See [JEP 472](https://openjdk.org/jeps/472) for details.
+
 See [the compatibility documentation](userguide/compatibility.html#java_runtime) for more details.
 
-<a name="diagnostics"></a>
-### Diagnostics and preview improvements
-Gradle includes built-in tasks and [tools](userguide/logging.html) to help you diagnose and preview build behavior.
+<a name="task-graph"></a>
+### Task graph visualization
 
-#### Task graph visualization
-
-Gradle offers a new way to visualize [task dependencies](userguide/build_lifecycle.html#task_graph) without executing the build.
+Gradle offers a new way to visualize [task dependencies](userguide/build_lifecycle.html#task_graph) without executing the tasks.
 
 Enable it with the `--task-graph` option:
 
@@ -83,7 +82,7 @@ Enable it with the `--task-graph` option:
 ./gradlew root r2 --task-graph
 ```
 
-This will print a tree-style visualization of the task graph for the specified tasks:
+This will print a textual tree-style visualization of the task graph for the specified tasks:
 
 ```text
 Tasks graph for: root r2
@@ -105,7 +104,8 @@ This feature provides a quick overview of the task graph, helping users understa
 
 This feature is _incubating_ and may change in future versions.
 
-#### Enhanced Project Report
+<a name="project-report"></a>
+### Enhanced Project Report
 
 The [Project Report](userguide/project_report_plugin.html) has been updated to show the physical locations of projects in the file system, as well as their logical build paths:
 
@@ -134,29 +134,27 @@ For example, try running gradle :app:tasks
 
 This helps authors better understand the structure of hierarchical builds that use non-standard project directories.
 
-#### Fixed `--dry-run` behavior in Composite Builds
+<a name="build-init"></a>
+### Build initialization uses the `kotlin-test` dependency for Kotlin projects
 
-Gradle correctly respects [`--dry-run`](userguide/command_line_interface.html#sec:command_line_execution_options) in [Composite Builds](userguide/composite_builds.html), ensuring that tasks are not executed during the execution phase of included builds.
+The [`init` task](userguide/build_init_plugin.html) generates Kotlin project builds using the `org.jetbrains.kotlin:kotlin-test` dependency instead of the more specific `kotlin-test-junit5`.
+This change allows the test framework variant (e.g., JUnit5, JUnit4, TestNG) to be inferred automatically based on the configured test runner.
 
-Note that tasks from some included builds may still be executed during configuration time, as part of their configuration logic.
-
-This restores expected behavior and makes `--dry-run` safer for previewing task execution plans across composite builds.
+For more details, see the [Kotlin Gradle Configuration documentation](https://kotlinlang.org/docs/gradle-configure-project.html#set-dependencies-on-test-libraries) and the `kotlin-test` API reference.
 
 <a name="cli"></a>
 ### CLI improvements
 
-The [command-line interface](userguide/command_line_interface.html) is the primary way users interact with Gradle.
+Most developers interact with Gradle through the [command-line interface](userguide/command_line_interface.html).
 This release introduces several enhancements to improve usability and feedback in the terminal.
 
 #### Rich console off-screen line indicator
 
-When there are more ongoing events than the console can display, the [ `rich` console](userguide/command_line_interface.html#sec:rich_console) shows a helpful status line indicating how many lines are not currently visible:
+When a build produces more console output than fits in the terminal, for example, due to parallel task execution, verbose logging, or frequent progress updates, the [ `rich` console](userguide/command_line_interface.html#sec:rich_console) shows a helpful status line indicating how many lines are not currently visible:
 
 ```console
 > (2 lines not showing)
 ```
-
-This makes it easier to understand when output is being truncated due to limited terminal height.
 
 ![Console Shows Off Screen Lines](release-notes-assets/off-screen-lines.gif)
 
@@ -168,7 +166,9 @@ A new value for the [`--console` command line option](userguide/command_line_int
 ./gradlew [...] --console=colored
 ```
 
-This mode enables color output for the console while omitting rich features such as progress bars.
+The new `colored` console mode provides color highlighting without rich features like progress bars.
+This makes it easier to spot errors and warnings in plain logs, especially in CI environments or
+simple terminals where rich console output may not render well.
 
 ![Console Shows Rich Color Output](release-notes-assets/colored-console.gif)
 
@@ -220,27 +220,29 @@ Additionally, the error message concludes with a suggested [`dependencyInsight` 
 <a name="configuration-cache"></a>
 ### Configuration Cache improvements
 
-The [Configuration Cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing it for subsequent builds. This feature can significantly improve build performance.
+The [Configuration Cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
+This feature can significantly improve build performance.
 
 #### Configuration Cache read-only mode
 
 This release introduces a new read-only mode of operation for the [Configuration Cache](userguide/configuration_cache_enabling.html#config_cache:usage:read_only).
-In this mode, Gradle will only run with the configuration cache feature enabled if there is a cache hit.
+In this mode, Gradle reuses existing cache entries (on a hit) but does not create new ones.
 
-In case of a cache miss, Gradle will not attempt to create a new cache entry.
-Instead, Gradle will fall back to vintage execution mode.
+This may speed up CI builds that do not contribute their results to caches.
+For example, a typical CI configuration might have main branch builds populate caches, while pull request builds only reuse them.
+In such cases, enabling read-only mode can improve PR build times when the overhead of writing new cache entries outweighs the benefit of faster parallel task execution within the same project.
 
-To enable the feature, specify the following flag in the command-line when invoking Gradle:
+To enable the feature, specify the following flag in the command line when invoking Gradle:
 
-```console
+```
 ./gradlew --configuration-cache -Dorg.gradle.configuration-cache.read-only=true
 ```
 
-Even though the option may also be enabled via `gradle.properties`, that would not be recommended, as that would effectively always lead to the [Configuration Cache](userguide/configuration_cache.html) becoming disabled.
+For more information, see [Making the Configuration Cache Read-Only](userguide/configuration_cache_enabling.html#config_cache:usage:read_only).
 
-#### Finer grained tracking of `-P` command-line properties
+#### Improved hit rates for changes of `-P` command-line properties
 
-Previously, changing any `-P` [command-line property](userguide/build_environment.html#sec:project_properties) would invalidate the [Configuration Cache](userguide/configuration_cache.html), even if the property wasn't used during the configuration phase.
+Previously, changing any `-P` [project property](userguide/build_environment.html#sec:project_properties) on the command line invalidated the [Configuration Cache](userguide/configuration_cache.html), even if the property wasn't used during the configuration phase.
 
 Consider the following Kotlin DSL example:
 
@@ -253,7 +255,7 @@ tasks.register("echo") {
 }
 ```
 
-With previous versions of Gradle, multiple executions of the `echo` task with different `-P` arguments would be unable to reuse the Configuration Cache:
+With previous versions of Gradle, multiple executions of the `echo` task with different `-P` arguments were unable to reuse the Configuration Cache:
 
 ```console
 $ ./gradlew --configuration-cache echo -Pvalue=1
@@ -279,7 +281,7 @@ value: 2
 Configuration cache entry stored.
 ```
 
-By detecting that the `value` property is never mentioned during the configuration phase, this release can reuse the configuration cache for faster builds:
+By detecting that the `value` property is never realized during the configuration phase, this release can reuse the configuration cache and make more scenarios run faster.
 
 ```console
 $ ./gradlew --configuration-cache echo -Pvalue=1
@@ -295,6 +297,7 @@ Configuration cache entry stored.
 
 ```console
 $ ./gradlew --configuration-cache echo -Pvalue=2
+
 Reusing configuration cache.
 
 > Task :echo
@@ -309,95 +312,16 @@ Additionally, the [Configuration Cache report](userguide/configuration_cache_deb
 #### Encryption honors the JVM’s default keystore type
 
 Previously, Gradle always used the `PKCS12` keystore format for its encryption keystore (used by the [Configuration Cache](userguide/configuration_cache_requirements.html#config_cache:secrets)), ignoring the JVM’s default setting.
+This caused problems for users running Gradle on JDKs with customized Java security policies, like those using FIPS-compliant mode with Bouncy Castle security provider.
 
-Starting with this release, Gradle honors the JVM’s default keystore type, as long as it supports storing symmetric keys.
+Starting with this release, Gradle now honors the JVM’s default keystore type, as long as it supports storing symmetric keys.
 If the default keystore is a known format that only supports asymmetric keys, Gradle will automatically fall back to `PKCS12`.
+This makes Gradle more compatible with secure or customized JVM environments, while ensuring safe defaults for everyone else.
 
 <a name="build-authoring"></a>
 ### Build authoring improvements
 
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for plugin authors and build engineers to develop custom build logic.
-
-#### Declare distribution repository in `MavenPublication.distributionManagement{}`
-
-You can explicitly declare the distribution repository in the [POM](userguide/publishing_maven.html#sec:modifying_the_generated_pom) when publishing a [Maven publication](userguide/publishing_maven.html).
-
-For example, to include GitHub Packages as the [distribution repository](javadoc/org/gradle/api/publish/maven/MavenPomDistributionManagement.html#repository(org.gradle.api.Action)) in the generated POM:
-
-```kotlin
-plugins {
-  id("maven-publish")
-}
-
-publications.withType<MavenPublication>().configureEach {
-  pom {
-    distributionManagement {
-      repository {
-        id = "github"
-        name = "GitHub OWNER Apache Maven Packages"
-        url = "https://maven.pkg.github.com/OWNER/REPOSITORY"
-      }
-    }
-  }
-}
-```
-
-#### New `Gradle.getBuildPath()`
-
-This release introduces a new method on the [`Gradle`](javadoc/org/gradle/api/invocation/Gradle.html) interface called [`getBuildPath()`](javadoc/org/gradle/api/invocation/Gradle.html#getBuildPath()).
-It returns the path of the build relative to the root of the build tree:
-
-* For the root build, it returns `:`.
-* For included builds, it returns their path relative to the root build (e.g., `:my-included-build`).
-
-This is equivalent to what [`BuildIdentifier.getBuildPath()`](Javadoc/org/gradle/api/artifacts/component/BuildIdentifier.html#getBuildPath()) provides, but it’s available directly from the `Gradle` instance, making it easier to determine which build a given project belongs to.
-
-For example, to get the build path for a project:
-
-```kotlin
-val project: Project = getProjectInstance()
-val buildPath: String = project.gradle.buildPath
-```
-
-This complements existing APIs like [`Project.path`](javadoc/org/gradle/api/Project.html#getPath()).
-
-#### Type-safe accessors for `compileOnly` plugin dependencies in precompiled Kotlin scripts
-
-Previously, plugins added via a `compileOnly` dependency could not be applied or configured using [precompiled Kotlin script plugins](userguide/implementing_gradle_plugins_precompiled.html).
-Precompiled Kotlin script plugins can use [type-safe accessors](userguide/kotlin_dsl.html#type-safe-accessors) for plugins added via `compileOnly` dependencies.
-
-For example, the `buildSrc/build.gradle.kts` file below declares a `compileOnly` dependency on a third-party plugin:
-
-```kotlin
-plugins {
-    `kotlin-dsl`
-}
-
-dependencies {
-    compileOnly("com.android.tools.build:gradle:x.y.z")
-}
-```
-
-A precompiled convention plugin in `buildSrc/src/main/kotlin/my-convention-plugin.gradle.kts` can apply the plugin and use type-safe accessors to configure it:
-
-```kotlin
-plugins {
-    id("com.android.application")
-}
-
-android {
-    // Now accessible via type-safe accessor
-}
-```
-
-This improvement makes it easier to use and configure third-party plugins in custom build logic.
-
-#### Build initialization uses the `kotlin-test` dependency for Kotlin projects
-
-The [`init` task](userguide/build_init_plugin.html) generates Kotlin project builds using the `org.jetbrains.kotlin:kotlin-test` dependency instead of the more specific `kotlin-test-junit5`.
-This change allows the test framework variant (e.g., JUnit5, JUnit4, TestNG) to be inferred automatically based on the configured test runner.
-
-For more details, see the [Kotlin Gradle Configuration documentation](https://kotlinlang.org/docs/gradle-configure-project.html#set-dependencies-on-test-libraries) and the `kotlin-test` API reference.
 
 #### New `AttributeContainer.addAllLater()`
 
@@ -432,6 +356,85 @@ assert(bar.getAttribute(shape) == "square") // `shape` remains the same
 
 This API is particularly useful for cases where attributes need to be configured in a deferred or conditional way, such as in plugin development or complex dependency resolution logic.
 
+#### Type-safe accessors for `compileOnly` plugin dependencies in precompiled Kotlin scripts
+
+Previously, plugins added via a `compileOnly` dependency could not be applied or configured using [precompiled Kotlin script plugins](userguide/implementing_gradle_plugins_precompiled.html).
+Precompiled Kotlin script plugins can use [type-safe accessors](userguide/kotlin_dsl.html#type-safe-accessors) for plugins added via `compileOnly` dependencies.
+
+For example, the `buildSrc/build.gradle.kts` file below declares a `compileOnly` dependency on a third-party plugin:
+
+```kotlin
+plugins {
+    `kotlin-dsl`
+}
+
+dependencies {
+    compileOnly("com.android.tools.build:gradle:x.y.z")
+}
+```
+
+A precompiled convention plugin in `buildSrc/src/main/kotlin/my-convention-plugin.gradle.kts` can now apply the plugin and use type-safe accessors to configure it:
+
+```kotlin
+plugins {
+    id("com.android.application")
+}
+
+android {
+    // The accessor to the `android` extension registered by the Android plugin is now available
+}
+```
+
+This improvement makes it easier to use and configure third-party plugins in custom build logic.
+
+#### New `Gradle.getBuildPath()`
+
+This release introduces a new method on the [`Gradle`](javadoc/org/gradle/api/invocation/Gradle.html) interface called [`getBuildPath()`](javadoc/org/gradle/api/invocation/Gradle.html#getBuildPath()).
+It returns the path of the build relative to the root of the build tree:
+
+* For the root build, it returns `:`.
+* For included builds, it returns their path relative to the root build (e.g., `:my-included-build`).
+
+This is equivalent to what [`BuildIdentifier.getBuildPath()`](javadoc/org/gradle/api/artifacts/component/BuildIdentifier.html#getBuildPath()) provides, but it’s now available directly from the `Gradle` instance, making it easier to determine which build a given project belongs to.
+
+For example, you can get the build path of a build that a given project belongs to.
+
+```kotlin
+val project: Project = getProjectInstance()
+val buildPath: String = project.gradle.buildPath
+```
+
+This complements existing APIs like [`Project.path`](javadoc/org/gradle/api/Project.html#getPath()).
+
+#### Declare distribution repository in `MavenPublication.distributionManagement{}`
+
+You can explicitly declare the distribution repository in the [POM](userguide/publishing_maven.html#sec:modifying_the_generated_pom) when publishing a [Maven publication](userguide/publishing_maven.html).
+
+For example, to include GitHub Packages as the [distribution repository](javadoc/org/gradle/api/publish/maven/MavenPomDistributionManagement.html#repository(org.gradle.api.Action)) in the generated POM:
+
+```kotlin
+plugins {
+  id("maven-publish")
+}
+
+publications.withType<MavenPublication>().configureEach {
+  pom {
+    distributionManagement {
+      repository {
+        id = "github"
+        name = "GitHub OWNER Apache Maven Packages"
+        url = "https://maven.pkg.github.com/OWNER/REPOSITORY"
+      }
+    }
+  }
+}
+```
+
+<a name="antlr"></a>
+### Antlr plugin improvements
+
+The [Antlr plugin](userguide/antlr_plugin.html) integrates the [ANTLR](https://www.antlr.org/) parser generator into builds, automatically generating Java sources from grammar definitions for compilation.
+
 #### Simpler target package configuration for Antlr 4
 
 The [`AntlrTask`](userguide/antlr_plugin.html) class supports a new [`packageName`](javadoc/org/gradle/api/plugins/antlr/AntlrTask.html#getPackageName()) property for setting the target package of generated code when using Antlr 4.
@@ -439,7 +442,7 @@ Previously, specifying the `-package` argument also required manually configurin
 
 The new `packageName` property simplifies this by automatically setting both the `-package` argument and the correct output directory based on the package.
 
-Setting the `-package` argument directly is deprecated and will become an error in Gradle 10.0.0.
+Setting the `-package` argument directly is now deprecated and will become an error in Gradle 10.0.0.
 
 ```kotlin
 tasks.named("generateGrammarSource").configure {
@@ -450,18 +453,22 @@ tasks.named("generateGrammarSource").configure {
 
 This option is only available when using Antlr 4 and will fail if used with earlier versions.
 
-#### Antlr generated sources are automatically tracked
+#### Antlr-generated sources are automatically tracked
 
 In previous Gradle versions, if the [`Antlr`](userguide/antlr_plugin.html)-generated sources directory was changed, the associated Java source set was not updated automatically.
 This required manual updates to ensure the source set included the new directory.
 
-With this release, the generated sources directory is automatically tracked.
+With this release, the generated sources directory is now automatically tracked.
 When the output directory changes, the Java source set is updated accordingly.
 Additionally, a task dependency is created between the source generation task and the source set, so tasks that consume the source set will correctly depend on Antlr code generation.
 
-#### Ear plugin
+<a name="ear"></a>
+### Ear plugin improvements
 
-The [EAR plugin](userguide/ear_plugin.html) provides a way to create an enterprise application archive (EAR) file from your project.
+The [EAR plugin](userguide/ear_plugin.html) facilitates the assembly of Enterprise Archive (EAR) files for Java EE applications, packaging modules and deployment descriptors into a standard distributable format.
+
+#### Support for Jakarta EE 11 deployment descriptors
+
 
 It is possible to generate valid deployment descriptors for [Jakarta EE 11](https://jakarta.ee/release/11/) by specifying the corresponding version in the `deploymentDescriptor` instead of having to use a custom descriptor file.
 
@@ -472,6 +479,15 @@ tasks.ear {
     }
 }
 ```
+
+<a name="dry-run"></a>
+### Fixed `--dry-run` behavior in Composite Builds
+
+Gradle now correctly respects [`--dry-run`](userguide/command_line_interface.html#sec:command_line_execution_options) option in [Composite Builds](userguide/composite_builds.html), ensuring that tasks are not executed during the execution phase of included builds.
+
+Note that tasks from some included builds may still be executed during configuration time, as part of their configuration logic.
+
+This restores expected behavior and makes `--dry-run` safer for previewing task execution plans across composite builds.
 
 ## Promoted features
 
