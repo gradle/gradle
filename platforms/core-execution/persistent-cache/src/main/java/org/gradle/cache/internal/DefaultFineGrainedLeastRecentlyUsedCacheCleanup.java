@@ -16,9 +16,6 @@
 
 package org.gradle.cache.internal;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import org.gradle.cache.CleanableStore;
 import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.cache.FineGrainedCacheCleanupStrategy.FineGrainedCacheDeleter;
@@ -92,18 +89,6 @@ public class DefaultFineGrainedLeastRecentlyUsedCacheCleanup extends LeastRecent
     public static class FineGrainedLeastRecentlyUsedCacheDeleter implements FineGrainedCacheDeleter {
 
         private final static Duration STALE_DURATION = Duration.ofHours(1);
-        private final LoadingCache<File, Boolean> staleMarkerCache = CacheBuilder.newBuilder()
-            .concurrencyLevel(4)
-            // This has to be shorter than the STALE_DURATION
-            .expireAfterWrite(Duration.ofMinutes(20))
-            // Maximum entries is actually maximumSize / concurrencyLevel
-            .maximumSize(10_000)
-            .build(new CacheLoader<File, Boolean>() {
-                @Override
-                public Boolean load(File key) {
-                    return isStaleUncached(key);
-                }
-            });
         private final Deleter deleter;
 
         public FineGrainedLeastRecentlyUsedCacheDeleter(Deleter deleter) {
@@ -114,7 +99,6 @@ public class DefaultFineGrainedLeastRecentlyUsedCacheCleanup extends LeastRecent
         public void unstale(File entry) {
             try {
                 deleter.deleteRecursively(getStaleMarkerFile(entry));
-                staleMarkerCache.invalidate(entry);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
@@ -163,8 +147,8 @@ public class DefaultFineGrainedLeastRecentlyUsedCacheCleanup extends LeastRecent
             return staleMarker.exists() && (System.currentTimeMillis() - staleMarker.lastModified()) >= STALE_DURATION.toMillis();
         }
 
-        @SuppressWarnings("MethodMayBeStatic")
-        private File getStaleMarkerFile(File entry) {
+        @Override
+        public File getStaleMarkerFile(File entry) {
             return new File(entry, ".stale");
         }
     }

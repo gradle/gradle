@@ -29,6 +29,7 @@ import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider
+import org.gradle.internal.vfs.FileSystemAccess
 import spock.lang.Ignore
 
 import java.time.Duration
@@ -160,7 +161,7 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
                 }
 
                 @Override
-                boolean isStale() {
+                boolean isStale(FileSystemAccess fileSystemAccess) {
                     return false
                 }
 
