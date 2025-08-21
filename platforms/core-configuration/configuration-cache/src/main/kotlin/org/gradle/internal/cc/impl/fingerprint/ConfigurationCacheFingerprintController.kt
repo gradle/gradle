@@ -371,12 +371,6 @@ class ConfigurationCacheFingerprintController internal constructor(
     inner class CacheFingerprintWriterHost :
         ConfigurationCacheFingerprintWriter.Host {
 
-        override val isEncrypted: Boolean
-            get() = encryptionService.isEncrypting
-
-        override val encryptionKeyHashCode: HashCode
-            get() = encryptionService.encryptionKeyHashCode
-
         override val gradleUserHomeDir: File
             get() = startParameter.gradleUserHomeDir
 
