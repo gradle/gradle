@@ -140,20 +140,26 @@ public abstract class PersistentList<T> implements Iterable<T> {
 
         @Override
         public Iterator<T> iterator() {
-            return new AbstractIterator<T>() {
-                PersistentList<T> next = Cons.this;
+            return new PersistentListIterator<>(this);
+        }
 
-                @Nullable
-                @Override
-                protected T computeNext() {
-                    if (next.isEmpty()) {
-                        return endOfData();
-                    }
-                    Cons<T> current = (Cons<T>) next;
-                    next = current.tail;
-                    return current.head;
+        private static class PersistentListIterator<T> extends AbstractIterator<T> {
+            PersistentList<T> next;
+
+            public PersistentListIterator(Cons<T> next) {
+                this.next = next;
+            }
+
+            @Nullable
+            @Override
+            protected T computeNext() {
+                if (next.isEmpty()) {
+                    return endOfData();
                 }
-            };
+                Cons<T> current = (Cons<T>) next;
+                next = current.tail;
+                return current.head;
+            }
         }
     }
 }
