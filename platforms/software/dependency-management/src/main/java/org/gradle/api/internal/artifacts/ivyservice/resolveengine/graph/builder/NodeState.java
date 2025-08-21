@@ -29,7 +29,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
-import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ArtifactSelectionDetailsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
@@ -52,6 +51,7 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
@@ -119,9 +119,10 @@ public class NodeState implements DependencyGraphNode {
     private long incomingHash;
     private @Nullable ExcludeSpec cachedModuleResolutionFilter;
 
-    private @Nullable StrictVersionConstraints ancestorsStrictVersionConstraints;
+    private boolean visitedDependencies = false;
+    private @Nullable StrictVersionConstraints ancestorsStrictVersions;
     private @Nullable StrictVersionConstraints ownStrictVersionConstraints;
-    private @Nullable List<EdgeState> endorsesStrictVersionsFrom;
+
     private boolean removingOutgoingEdges;
     private boolean findingExternalVariants;
 
@@ -244,11 +245,12 @@ public class NodeState implements DependencyGraphNode {
 
         // Determine the net exclusion for this node, by inspecting all transitive incoming edges
         ExcludeSpec resolutionFilter = computeModuleResolutionFilter(incomingEdges);
+        StrictVersionConstraints strictVersions = collectAncestorsStrictVersions();
 
         // Virtual platforms require their constraints to be recomputed each time as each module addition can cause a shift in versions
-        if (!isVirtualPlatformNeedsRefresh()) {
+        if (!isVirtualPlatformNeedsRefresh() && visitedDependencies) {
             // Check if node was previously traversed with the same net exclusion when not a virtual platform
-            if (excludesSameDependenciesAsPreviousTraversal(resolutionFilter)) {
+            if (excludesSameDependenciesAsPreviousTraversal(resolutionFilter) && strictVersions.equals(ancestorsStrictVersions)) {
                 boolean newConstraints = handleNewConstraints(discoveredEdges);
                 boolean edgesToRecompute = handleEdgesToRecompute(discoveredEdges);
                 if (!newConstraints && !edgesToRecompute) {
@@ -257,25 +259,29 @@ public class NodeState implements DependencyGraphNode {
                     LOGGER.debug("Changed edges for {} selects same versions as previous traversal. ignoring", this);
                 }
                 previousTraversalExclusions = resolutionFilter;
+                ancestorsStrictVersions = strictVersions;
                 return;
             }
         }
 
         // The exclusions changed or we are in a virtual platform needing refresh.
         // Clear previous traversal state, if any
+        assert (previousTraversalExclusions == null) == (ancestorsStrictVersions == null);
         if (previousTraversalExclusions != null) {
             removeOutgoingEdges();
             edgesToRecompute = null;
             potentiallyActivatedConstraints = null;
             ownStrictVersionConstraints = null;
+            visitedDependencies = false;
         }
+
+        previousTraversalExclusions = resolutionFilter;
+        ancestorsStrictVersions = strictVersions;
 
         // We are processing dependencies, anything in the previous state will be handled
         upcomingNoLongerPendingConstraints = null;
         visitDependencies(resolutionFilter, discoveredEdges);
         visitOwners(discoveredEdges);
-
-        previousTraversalExclusions = resolutionFilter;
     }
 
     private boolean canIgnoreExternalVariant() {
@@ -328,6 +334,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     private boolean excludesSameDependenciesAsPreviousTraversal(ExcludeSpec newResolutionFilter) {
+        assert (previousTraversalExclusions == null) == (ancestorsStrictVersions == null);
         if (previousTraversalExclusions == null) {
             // There was no previous traversal. This traversal can't be the same.
             return false;
@@ -407,12 +414,21 @@ public class NodeState implements DependencyGraphNode {
     private void handleNonTransitiveNode(Collection<EdgeState> discoveredEdges) {
         cleanupConstraints();
         // If node was previously traversed, need to remove outgoing edges.
+        assert (previousTraversalExclusions == null) == (ancestorsStrictVersions == null);
         if (previousTraversalExclusions != null) {
             removeOutgoingEdges();
         }
         if (!incomingEdges.isEmpty()) {
             LOGGER.debug("{} has no transitive incoming edges. ignoring outgoing edges.", this);
+            this.previousTraversalExclusions = moduleExclusions.nothing();
+            if (this.ownStrictVersionConstraints == null) {
+                collectOwnStrictVersions(this.previousTraversalExclusions);
+            }
+            if (this.ancestorsStrictVersions == null) {
+                this.ancestorsStrictVersions = collectAncestorsStrictVersions();
+            }
             visitOwners(discoveredEdges);
+            visitedDependencies = false;
         } else {
             LOGGER.debug("{} has no incoming edges. ignoring.", this);
         }
@@ -431,7 +447,6 @@ public class NodeState implements DependencyGraphNode {
         Set<ModuleIdentifier> strictVersionsSet = null;
         boolean shouldComputeOwnStrictVersions = ownStrictVersionConstraints == null;
         try {
-            collectAncestorsStrictVersions(incomingEdges);
             for (DependencyState dependencyState : dependencies(resolutionFilter)) {
                 PendingDependenciesVisitor.PendingState pendingState = pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState);
                 if (dependencyState.getDependency().isConstraint()) {
@@ -452,6 +467,7 @@ public class NodeState implements DependencyGraphNode {
             if (shouldComputeOwnStrictVersions) {
                 storeOwnStrictVersions(strictVersionsSet);
             }
+            visitedDependencies = true;
         }
     }
 
@@ -664,9 +680,22 @@ public class NodeState implements DependencyGraphNode {
         if (!incomingEdges.contains(dependencyEdge)) {
             incomingEdges.add(dependencyEdge);
             incomingHash += dependencyEdge.hashCode();
+            requeueChildrenOfEndorsingParent(dependencyEdge);
             clearTransitiveExclusionsAndEnqueue();
             if (dependencyEdge.isTransitive()) {
                 transitiveEdgeCount++;
+            }
+        }
+    }
+
+    private void requeueChildrenOfEndorsingParent(EdgeState incomingEdge) {
+        if (incomingEdge.getDependencyMetadata().isEndorsingStrictVersions()) {
+            for (EdgeState edge : incomingEdge.getFrom().getOutgoingEdges()) {
+                for (NodeState node : edge.getTargetNodes()) {
+                    if (node != this) {
+                        resolveState.onMoreSelected(node);
+                    }
+                }
             }
         }
     }
@@ -683,6 +712,7 @@ public class NodeState implements DependencyGraphNode {
             if (dependencyEdge.isTransitive()) {
                 transitiveEdgeCount--;
             }
+            requeueChildrenOfEndorsingParent(dependencyEdge);
             resolveState.onFewerSelected(this);
         }
     }
@@ -841,8 +871,8 @@ public class NodeState implements DependencyGraphNode {
         return edgeExclusions;
     }
 
-    private void collectOwnStrictVersions() {
-        List<DependencyState> dependencies = dependencies(computeModuleResolutionFilter(incomingEdges));
+    private void collectOwnStrictVersions(ExcludeSpec moduleResolutionFilter) {
+        List<DependencyState> dependencies = dependencies(moduleResolutionFilter);
         Set<ModuleIdentifier> constraintsSet = null;
         for (DependencyState dependencyState : dependencies) {
             constraintsSet = maybeCollectStrictVersions(constraintsSet, dependencyState);
@@ -873,149 +903,84 @@ public class NodeState implements DependencyGraphNode {
     }
 
     /**
-     * This methods computes the intersection of ancestors' strict versions coming in from different edges.
-     * This is, because only if all paths to this node provides a strict version constraint for a module,
-     * {@link #versionProvidedByAncestors(DependencyState)} is true for that module.
-     *
-     * The result of this method is stored in the 'ancestorsStrictVersionConstraints' field for consumption by downstream nodes.
-     *
-     * Since the most common case it that there is only one incoming edge, this case is handled first and, if possible,
-     * the method returns early.
+     * Determines all strict versions inherited from ancestors. When a node declares strict
+     * versions, either through its own dependencies, or by endorsement, those strict versions apply
+     * to all descendants of that node's exclusive subgraph. If a given node belongs to multiple
+     * exclusive subgraphs, a strict version is only inherited if all parent subgraphs provide a
+     * strict version for that module. For this reason, we compute the intersection of strict
+     * versions coming from all incoming edges.
      */
-    private void collectAncestorsStrictVersions(List<EdgeState> incomingEdges) {
+    private StrictVersionConstraints collectAncestorsStrictVersions() {
         if (incomingEdges.isEmpty()) {
-            ancestorsStrictVersionConstraints = StrictVersionConstraints.EMPTY;
-            return;
-        }
-
-        if (incomingEdges.size() == 1) {
-            collectAncestorsStrictVersionsSingleEdge(incomingEdges);
-            return;
-        }
-
-        collectAncestorsStrictVersionsMultiEdges(incomingEdges);
-    }
-
-    private void collectAncestorsStrictVersionsMultiEdges(List<EdgeState> incomingEdges) {
-        StrictVersionConstraints constraints = null;
-        for (EdgeState dependencyEdge : incomingEdges) {
-            StrictVersionConstraints parentStrictVersionConstraints = notNull(dependencyEdge.getFrom().ownStrictVersionConstraints);
-            StrictVersionConstraints parentAncestorsStrictVersionConstraints = notNull(dependencyEdge.getFrom().ancestorsStrictVersionConstraints);
-            StrictVersionConstraints parentEndorsedStrictVersionConstraints = getEndorsedStrictVersions(dependencyEdge);
-            if (constraints == null) {
-                constraints = parentStrictVersionConstraints
-                    .union(parentAncestorsStrictVersionConstraints)
-                    .union(parentEndorsedStrictVersionConstraints);
-            } else {
-                constraints = constraints.intersect(
-                    parentStrictVersionConstraints
-                        .union(parentAncestorsStrictVersionConstraints)
-                        .union(parentEndorsedStrictVersionConstraints)
-                );
-            }
-            if (constraints == StrictVersionConstraints.EMPTY) {
-                ancestorsStrictVersionConstraints = constraints;
-                return;
-            }
-        }
-        ancestorsStrictVersionConstraints = constraints;
-    }
-
-    private void collectAncestorsStrictVersionsSingleEdge(List<EdgeState> incomingEdges) {
-        EdgeState dependencyEdge = incomingEdges.get(0);
-        StrictVersionConstraints parentStrictVersionConstraints = notNull(dependencyEdge.getFrom().ownStrictVersionConstraints);
-        StrictVersionConstraints parentAncestorsStrictVersionConstraints = notNull(dependencyEdge.getFrom().ancestorsStrictVersionConstraints);
-        StrictVersionConstraints parentEndorsedStrictVersionConstraints = getEndorsedStrictVersions(dependencyEdge);
-        ancestorsStrictVersionConstraints = parentStrictVersionConstraints
-            .union(parentAncestorsStrictVersionConstraints)
-            .union(parentEndorsedStrictVersionConstraints);
-    }
-
-    private static StrictVersionConstraints notNull(@Nullable StrictVersionConstraints strictVersionConstraints) {
-        return strictVersionConstraints == null ? StrictVersionConstraints.EMPTY : strictVersionConstraints;
-    }
-
-    private StrictVersionConstraints getEndorsedStrictVersions(EdgeState incomingEdge) {
-        if (incomingEdge.getFrom().endorsesStrictVersionsFrom == null) {
             return StrictVersionConstraints.EMPTY;
         }
 
-        boolean filterOwn = false;
-        StrictVersionConstraints singleStrictVersionConstraints = StrictVersionConstraints.EMPTY;
-        Set<ModuleIdentifier> collectedConstraints = null;
-        for (EdgeState edgeState : incomingEdge.getFrom().endorsesStrictVersionsFrom) {
-            if (edgeState == incomingEdge) {
-                // These are my own constraints. I can not treat them as inherited,
-                // because that assumes that they are defined in another node as well and might be ignored.
-                filterOwn = true;
-                continue;
-            }
-            ComponentState targetComponent = edgeState.getTargetComponent();
-            if (targetComponent != null) { // may be null if the build is about to fail
-                for (NodeState sourceNode : targetComponent.getNodes()) {
-                    if (sourceNode.ownStrictVersionConstraints == null) {
-                        // node's dependencies were not yet visited
-                        sourceNode.collectOwnStrictVersions();
-                    }
-                    if (singleStrictVersionConstraints.isEmpty()) {
-                        singleStrictVersionConstraints = sourceNode.ownStrictVersionConstraints;
-                    } else {
-                        if (collectedConstraints == null) {
-                            collectedConstraints = new HashSet<>();
-                            collectedConstraints.addAll(singleStrictVersionConstraints.getModules());
-                        }
-                        collectedConstraints.addAll(sourceNode.ownStrictVersionConstraints.getModules());
-                    }
-                }
-            }
+        if (incomingEdges.size() == 1) {
+            return getStrictVersionsForEdge(incomingEdges.get(0));
         }
 
-        if (filterOwn) {
-            Set<ModuleIdentifier> resultSet;
-            if (collectedConstraints != null) {
-                resultSet = collectedConstraints;
-            } else {
-                resultSet = singleStrictVersionConstraints.getModules();
-            }
-            if (ownStrictVersionConstraints == null) {
-                collectOwnStrictVersions();
-            }
-            for (ModuleIdentifier ownConstraint : ownStrictVersionConstraints.getModules()) {
-                if (resultSet.contains(ownConstraint)) {
-                    if (collectedConstraints == null) {
-                        collectedConstraints = new HashSet<>();
-                        collectedConstraints.addAll(singleStrictVersionConstraints.getModules());
-                    }
-                    collectedConstraints.remove(ownConstraint);
-                }
-            }
-        }
+        // Our declared version is important if any incoming edge does not provide a
+        // strict version for a given module.
+        StrictVersionConstraints ancestorsStrictVersions = null;
+        for (EdgeState dependencyEdge : incomingEdges) {
+            StrictVersionConstraints allEdgeStrictVersions = getStrictVersionsForEdge(dependencyEdge);
 
-        if (collectedConstraints != null) {
-            return StrictVersionConstraints.of(collectedConstraints);
-        } else {
-            return singleStrictVersionConstraints;
+            ancestorsStrictVersions = ancestorsStrictVersions == null
+                ? allEdgeStrictVersions
+                : ancestorsStrictVersions.intersect(allEdgeStrictVersions);
+
+            if (ancestorsStrictVersions == StrictVersionConstraints.EMPTY) {
+                // No need to continue. Empty intersected with anything is empty.
+                break;
+            }
         }
+        return ancestorsStrictVersions;
     }
 
-    void collectEndorsedStrictVersions(List<EdgeState> dependencies) {
-        if (endorsesStrictVersionsFrom != null) {
-            // we are revisiting this node
-            endorsesStrictVersionsFrom.clear();
+    /**
+     * Determine the strict versions inherited through one given edge.
+     */
+    private StrictVersionConstraints getStrictVersionsForEdge(EdgeState dependencyEdge) {
+        NodeState from = dependencyEdge.getFrom();
+
+        // Strong strict versions are those sourced from higher up in the graph. These strong strict
+        // versions override our strict versions even if we are endorsed.
+        assert from.ancestorsStrictVersions != null;
+        StrictVersionConstraints parentStrongStrictVersions = from.ownStrictVersionConstraints.union(from.ancestorsStrictVersions);
+
+        // If the source node endorses us, then we might be the source of a strict version that it
+        // endorses. For this reason, we inherit a parent's endorsed strict versions only if we may
+        // not be the source of that strict version.
+        StrictVersionConstraints parentEndorsedStrictVersions;
+        if (dependencyEdge.getDependencyMetadata().isEndorsingStrictVersions()) {
+            parentEndorsedStrictVersions = from.computeEndorsedStrictVersions().minus(ownStrictVersionConstraints);
+        } else {
+            parentEndorsedStrictVersions = from.computeEndorsedStrictVersions();
         }
-        for (EdgeState edgeState : dependencies) {
+
+        return parentStrongStrictVersions.union(parentEndorsedStrictVersions);
+    }
+
+    private StrictVersionConstraints computeEndorsedStrictVersions() {
+        StrictVersionConstraints collected = StrictVersionConstraints.EMPTY;
+        for (EdgeState edgeState : outgoingEdges) {
             if (!DependencyGraphBuilder.ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC.isSatisfiedBy(edgeState)) {
                 continue;
             }
-            if (endorsesStrictVersionsFrom == null) {
-                endorsesStrictVersionsFrom = new ArrayList<>();
+            for (NodeState sourceNode : edgeState.getTargetNodes()) {
+                if (sourceNode.ownStrictVersionConstraints == null) {
+                    // node's dependencies were not yet visited
+                    sourceNode.collectOwnStrictVersions(sourceNode.computeModuleResolutionFilter(sourceNode.incomingEdges));
+                }
+                collected = collected.union(sourceNode.ownStrictVersionConstraints);
             }
-            endorsesStrictVersionsFrom.add(edgeState);
         }
+        return collected;
     }
 
     boolean versionProvidedByAncestors(DependencyState dependencyState) {
-        return !dependencyState.isForced() && ancestorsStrictVersionConstraints != null && ancestorsStrictVersionConstraints.contains(dependencyState.getModuleIdentifier());
+        assert ancestorsStrictVersions != null;
+        return !dependencyState.isForced() && ancestorsStrictVersions.contains(dependencyState.getModuleIdentifier());
     }
 
     private boolean sameIncomingEdgesAsPreviousPass(int incomingEdgeCount) {
@@ -1032,7 +997,7 @@ public class NodeState implements DependencyGraphNode {
         removingOutgoingEdges = true;
         if (!outgoingEdges.isEmpty() && !alreadyRemoving) {
             for (EdgeState outgoingEdge : outgoingEdges) {
-                outgoingEdge.markUnused();
+                outgoingEdge.markUnused(); // Track that these edges have been removed from out but maybe not from in, in case we hit one of these continues and do not call disconnectOutgoingEdge
                 ComponentState targetComponent = outgoingEdge.getTargetComponent();
                 if (targetComponent == component) {
                     // if the same component depends on itself: do not attempt to cleanup the same thing several times
@@ -1055,6 +1020,7 @@ public class NodeState implements DependencyGraphNode {
             virtualEdges = null;
         }
         previousTraversalExclusions = null;
+        ancestorsStrictVersions = null;
         cachedFilteredDependencyStates = null;
         virtualPlatformNeedsRefresh = false;
         removingOutgoingEdges = alreadyRemoving;
@@ -1102,30 +1068,6 @@ public class NodeState implements DependencyGraphNode {
     }
 
     public void deselect() {
-        removeOutgoingEdges();
-        reselectEndorsingNode();
-    }
-
-    private void reselectEndorsingNode() {
-        if (incomingEdges.size() == 1) {
-            EdgeState singleEdge = incomingEdges.get(0);
-            NodeState from = singleEdge.getFrom();
-            if (singleEdge.getDependencyState().getDependency().isEndorsingStrictVersions()) {
-                // pass my own component because we are already in the process of re-selecting it
-                from.reselect();
-            }
-        } else {
-            for (EdgeState incoming : new ArrayList<>(incomingEdges)) {
-                if (incoming.getDependencyState().getDependency().isEndorsingStrictVersions()) {
-                    // pass my own component because we are already in the process of re-selecting it
-                    incoming.getFrom().reselect();
-                }
-            }
-        }
-    }
-
-    private void reselect() {
-        resolveState.onMoreSelected(this);
         removeOutgoingEdges();
     }
 

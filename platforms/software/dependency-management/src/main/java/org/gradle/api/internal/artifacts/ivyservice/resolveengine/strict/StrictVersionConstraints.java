@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Set;
@@ -33,6 +34,11 @@ public class StrictVersionConstraints {
 
         @Override
         public final StrictVersionConstraints intersect(StrictVersionConstraints other) {
+            return EMPTY;
+        }
+
+        @Override
+        public StrictVersionConstraints minus(@Nullable StrictVersionConstraints other) {
             return EMPTY;
         }
 
@@ -112,4 +118,38 @@ public class StrictVersionConstraints {
     public String toString() {
         return "modules=" + modules;
     }
+
+    public StrictVersionConstraints minus(@Nullable StrictVersionConstraints other) {
+        if (other == EMPTY) {
+            return this;
+        }
+
+        if (this == other || this == EMPTY) {
+            return EMPTY;
+        }
+
+        ImmutableSet.Builder<ModuleIdentifier> builder = ImmutableSet.builderWithExpectedSize(modules.size());
+        for (ModuleIdentifier module : modules) {
+            if (!other.modules.contains(module)) {
+                builder.add(module);
+            }
+        }
+        return of(builder.build());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        StrictVersionConstraints that = (StrictVersionConstraints) o;
+        return modules.equals(that.modules);
+    }
+
+    @Override
+    public int hashCode() {
+        return modules.hashCode();
+    }
+
 }

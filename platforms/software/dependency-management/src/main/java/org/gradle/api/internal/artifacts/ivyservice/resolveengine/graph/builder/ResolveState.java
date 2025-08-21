@@ -264,11 +264,26 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
      * Called when a change is made to a configuration node, such that its dependency graph <em>may</em> now be smaller than it previously was, and the node should be visited.
      */
     public void onFewerSelected(NodeState node) {
-        // Add to the front of the queue, to flush out configurations that are no longer required.
+//        if (node.enqueue()) {
+//            // Add to the front of the queue, to potentially disassemble child sub-graphs that are no longer required.
+//            queue.addFirst(node);
+//        } else if (!node.isSelected()) {
+//            // This node was already in the queue. But, since it no longer has incoming edges,
+//            // force it to the beginning so we can eagerly disassemble its child sub-graph.
+//            queue.remove(node);
+//            queue.addFirst(node);
+//        }
         if (node.enqueue()) {
             queue.addFirst(node);
         }
     }
+
+
+
+    // During root deselection:
+    // - Why does junit-bom:5.12.0 still have an incoming edge from the root?
+    // - Why is wisp-config ahead of misk and misk-config in the queue?
+    // - Why is google-cloud-kms at the end?
 
     public ImmutableAttributes getConsumerAttributes() {
         return consumerAttributes;

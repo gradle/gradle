@@ -207,8 +207,8 @@ public class DependencyGraphBuilder {
                 // Initialize and collect any new outgoing edges of this node
                 dependencies.clear();
                 node.visitOutgoingDependencies(dependencies);
+                // TODO: Merge these now?
                 boolean edgeWasProcessed = resolveEdges(node, dependencies, ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC, false, resolveState);
-                node.collectEndorsedStrictVersions(dependencies);
                 resolveEdges(node, dependencies, NOT_ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC, edgeWasProcessed, resolveState);
             } else {
                 // We have some batched up conflicts. Resolve the first, and continue traversing the graph
@@ -282,7 +282,7 @@ public class DependencyGraphBuilder {
         if (dependencies.isEmpty()) {
             return false;
         }
-        if (performSelectionSerially(dependencies, edgeFilter, resolveState, recomputeSelectors)) {
+        if (performSelectionSerially(dependencies, edgeFilter, resolveState, recomputeSelectors)/* && node.isSelected()*/) { // We check this node is selected since sometimes performing selection can deselect this node. We don't want to attach our edges to our children so that we can make sure to properly disassemble our subgraph
             maybeDownloadMetadataInParallel(node, dependencies, edgeFilter, buildOperationExecutor, resolveState.getComponentMetadataResolver());
             attachToTargetRevisionsSerially(dependencies, edgeFilter);
             return true;
@@ -310,8 +310,9 @@ public class DependencyGraphBuilder {
                 // Have an unprocessed/new selector for this module. Need to re-select the target version (if there are any selectors that can be used).
                 performSelection(resolveState, module);
             }
+
+            // Some corner case results in the edge being marked unused, in that case we should not mark it as unattached.
             if (edge.isUsed()) {
-                // Some corner case result in the edge being removed, in that case it needs to be "removed"
                 module.addUnattachedEdge(edge);
             }
             processed = true;

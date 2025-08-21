@@ -212,6 +212,11 @@ class DependencyState {
         return hashCode;
     }
 
+    @Override
+    public String toString() {
+        return dependency.toString();
+    }
+
     public DependencyState withSubstitution(DependencySubstitutionApplicator.SubstitutionResult substitutionResult, Function<DependencySubstitutionApplicator.SubstitutionResult, DependencyState> mappingFunction) {
         if (substitutionResultMap == null) {
             substitutionResultMap = new HashMap<>();

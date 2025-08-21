@@ -35,6 +35,7 @@ import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -420,6 +421,10 @@ class EdgeState implements DependencyGraphEdge {
             assert node.getComponent() == getSelectedComponent();
             return node.getNodeId();
         }
+    }
+
+    public Collection<NodeState> getTargetNodes() {
+        return targetNodes;
     }
 
     @Nullable

@@ -39,7 +39,12 @@ class PotentialEdge {
     final ComponentGraphResolveState state;
     final ComponentState component;
 
-    private PotentialEdge(EdgeState edge, ModuleVersionIdentifier toModuleVersionId, @Nullable ComponentGraphResolveState state, ComponentState component) {
+    private PotentialEdge(
+        EdgeState edge,
+        ModuleVersionIdentifier toModuleVersionId,
+        @Nullable ComponentGraphResolveState state,
+        ComponentState component
+    ) {
         this.edge = edge;
         this.toModuleVersionId = toModuleVersionId;
         this.state = state;
@@ -47,11 +52,7 @@ class PotentialEdge {
     }
 
     static PotentialEdge of(ResolveState resolveState, NodeState from, ModuleComponentIdentifier toComponent, ModuleComponentSelector toSelector, ComponentIdentifier owner) {
-        return of(resolveState, from, toComponent, toSelector, owner, false, true);
-    }
-
-    static PotentialEdge of(ResolveState resolveState, NodeState from, ModuleComponentIdentifier toComponent, ModuleComponentSelector toSelector, ComponentIdentifier owner, boolean force, boolean transitive) {
-        DependencyState dependencyState = new DependencyState(new LenientPlatformDependencyMetadata(resolveState, from, toSelector, toComponent, owner, force || hasStrongOpinion(from), transitive), resolveState.getComponentSelectorConverter());
+        DependencyState dependencyState = new DependencyState(new LenientPlatformDependencyMetadata(resolveState, from, toSelector, toComponent, owner, hasStrongOpinion(from), true), resolveState.getComponentSelectorConverter());
         dependencyState = NodeState.maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
         ExcludeSpec exclusions = from.previousTraversalExclusions;
         if (exclusions == null) {
@@ -64,8 +65,8 @@ class PotentialEdge {
         ComponentState version = resolveState.getModule(toSelector.getModuleIdentifier()).getVersion(toModuleVersionId, toComponent);
         // We need to check if the target version exists. For this, we have to try to get metadata for the aligned version.
         // If it's there, it means we can align, otherwise, we must NOT add the edge, or resolution would fail
-        ComponentGraphResolveState metadata = version.getResolveStateOrNull();
-        return new PotentialEdge(edge, toModuleVersionId, metadata, version);
+        ComponentGraphResolveState componentState = version.getResolveStateOrNull();
+        return new PotentialEdge(edge, toModuleVersionId, componentState, version);
     }
 
     private static boolean hasStrongOpinion(NodeState node) {
