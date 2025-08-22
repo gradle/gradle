@@ -217,6 +217,6 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
         if (!classpath.isEmpty()) {
             argumentList.addAll(Arrays.asList("-cp", Joiner.on(File.pathSeparator).join(classpath)));
         }
-        return ArgWriter.argsFileGenerator(optionsFile, ArgWriter.javaStyleFactory()).transform(argumentList);
+        return ArgWriter.argsFileGenerator(optionsFile, ArgWriter.javaStyleFactory()).apply(argumentList);
     }
 }

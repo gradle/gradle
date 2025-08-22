@@ -18,7 +18,6 @@ package org.gradle.internal.event;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.Cast;
-import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.dispatch.ProxyDispatchAdapter;
@@ -224,12 +223,7 @@ public class DefaultListenerManager implements ScopedListenerManager {
             return "service scope '" + scopes[0].getSimpleName() + "'";
         }
 
-        return "service scopes " + join(", ", scopes, new InternalTransformer<String, Class<? extends Scope>>() {
-            @Override
-            public String transform(Class<? extends Scope> aClass) {
-                return "'" + aClass.getSimpleName() + "'";
-            }
-        });
+        return "service scopes " + join(", ", scopes, aClass -> "'" + aClass.getSimpleName() + "'");
     }
 
     /**

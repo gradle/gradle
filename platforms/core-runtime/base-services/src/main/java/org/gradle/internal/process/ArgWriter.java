@@ -16,14 +16,13 @@
 
 package org.gradle.internal.process;
 
-import org.gradle.internal.InternalTransformer;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 public class ArgWriter implements ArgCollector {
@@ -48,13 +47,8 @@ public class ArgWriter implements ArgCollector {
         return new ArgWriter(writer, true, WHITESPACE);
     }
 
-    public static InternalTransformer<ArgWriter, PrintWriter> unixStyleFactory() {
-        return new InternalTransformer<ArgWriter, PrintWriter>() {
-            @Override
-            public ArgWriter transform(PrintWriter original) {
-                return unixStyle(original);
-            }
-        };
+    public static Function<PrintWriter, ArgWriter> unixStyleFactory() {
+        return ArgWriter::unixStyle;
     }
 
     /**
@@ -66,13 +60,8 @@ public class ArgWriter implements ArgCollector {
         return new ArgWriter(writer, true, WHITESPACE_OR_HASH);
     }
 
-    public static InternalTransformer<ArgWriter, PrintWriter> javaStyleFactory() {
-        return new InternalTransformer<ArgWriter, PrintWriter>() {
-            @Override
-            public ArgWriter transform(PrintWriter original) {
-                return javaStyle(original);
-            }
-        };
+    public static Function<PrintWriter, ArgWriter> javaStyleFactory() {
+        return ArgWriter::javaStyle;
     }
 
     /**
@@ -82,42 +71,36 @@ public class ArgWriter implements ArgCollector {
         return new ArgWriter(writer, false, WHITESPACE);
     }
 
-    public static InternalTransformer<ArgWriter, PrintWriter> windowsStyleFactory() {
-        return new InternalTransformer<ArgWriter, PrintWriter>() {
-            @Override
-            public ArgWriter transform(PrintWriter original) {
-                return windowsStyle(original);
-            }
-        };
+    public static Function<PrintWriter, ArgWriter> windowsStyleFactory() {
+        return ArgWriter::windowsStyle;
     }
 
     /**
      * Returns an args transformer that replaces the provided args with a generated args file containing the args. Uses platform text encoding.
      */
-    public static InternalTransformer<List<String>, List<String>> argsFileGenerator(final File argsFile, final InternalTransformer<ArgWriter, PrintWriter> argWriterFactory) {
-        return new InternalTransformer<List<String>, List<String>>() {
-            @Override
-            public List<String> transform(List<String> args) {
-                if (args.isEmpty()) {
-                    return args;
-                }
-                argsFile.getParentFile().mkdirs();
-                try {
-                    // TODO(https://github.com/gradle/gradle/issues/29303)
-                    @SuppressWarnings("DefaultCharset") // This method is documented as "uses platform text encoding"
-                    PrintWriter writer = new PrintWriter(argsFile);
-                    try {
-                        ArgWriter argWriter = argWriterFactory.transform(writer);
-                        argWriter.args(args);
-                    } finally {
-                        writer.close();
-                    }
-                } catch (IOException e) {
-                    throw new UncheckedIOException(String.format("Could not write options file '%s'.", argsFile.getAbsolutePath()), e);
-                }
-                return Collections.singletonList("@" + argsFile.getAbsolutePath());
+    public static Function<List<String>, List<String>> argsFileGenerator(final File argsFile, final Function<PrintWriter, ArgWriter> argWriterFactory) {
+        return args -> generateArgsFile(argsFile, argWriterFactory, args);
+    }
+
+    private static List<String> generateArgsFile(File argsFile, Function<PrintWriter, ArgWriter> argWriterFactory, List<String> args) {
+        if (args.isEmpty()) {
+            return args;
+        }
+        argsFile.getParentFile().mkdirs();
+        try {
+            // TODO(https://github.com/gradle/gradle/issues/29303)
+            @SuppressWarnings("DefaultCharset") // This method is documented as "uses platform text encoding"
+            PrintWriter writer = new PrintWriter(argsFile);
+            try {
+                ArgWriter argWriter = argWriterFactory.apply(writer);
+                argWriter.args(args);
+            } finally {
+                writer.close();
             }
-        };
+        } catch (IOException e) {
+            throw new UncheckedIOException(String.format("Could not write options file '%s'.", argsFile.getAbsolutePath()), e);
+        }
+        return Collections.singletonList("@" + argsFile.getAbsolutePath());
     }
 
     /**
