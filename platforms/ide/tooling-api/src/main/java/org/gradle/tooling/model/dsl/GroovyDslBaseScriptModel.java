@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,34 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.tooling.models;
+package org.gradle.tooling.model.dsl;
+
+import org.gradle.api.Incubating;
 
 import java.io.File;
 import java.util.List;
 
-
 /**
- * Kotlin build script template model.
+ * This interface describes the Groovy DSL specific part of {@link GradleDslBaseScriptModel}.
  *
- * @deprecated Will be removed in Gradle 10, use GradleDslBaseScriptModel instead.
+ * @since 9.2.0
  */
-@Deprecated
-public interface KotlinBuildScriptTemplateModel {
+@Incubating
+public interface GroovyDslBaseScriptModel {
 
     /**
-     * Classpath required to load Kotlin build script template class.
+     * The compilation classpath for Groovy DSL scripts.
+     *
+     * @since 9.2.0
      */
-    List<File> getClassPath();
+    @Incubating
+    List<File> getCompileClassPath();
+
+    /**
+     * The implicit imports that are added to all Groovy DSL scripts.
+     *
+     * @since 9.2.0
+     */
+    @Incubating
+    List<String> getImplicitImports();
 }

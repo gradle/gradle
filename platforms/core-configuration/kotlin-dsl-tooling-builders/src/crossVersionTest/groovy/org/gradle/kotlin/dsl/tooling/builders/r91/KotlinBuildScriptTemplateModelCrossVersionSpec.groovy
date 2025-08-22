@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,12 @@ class KotlinBuildScriptTemplateModelCrossVersionSpec extends AbstractKotlinScrip
     def "KotlinBuildScriptTemplateModel is obtained without configuring projects"() {
 
         if (targetVersion.baseVersion >= GradleVersion.version("9.1")) {
+            GradleVersion tapiVersion = GradleVersion.version(toolingApi.distribution.version.baseVersion.version)
+            def replacementType = tapiVersion.baseVersion >= GradleVersion.version("9.2") ? "org.gradle.tooling.model.dsl.GradleDslBaseScriptModel" : "org.gradle.tooling.model.kotlin.dsl.KotlinDslBaseScriptModel"
             expectDocumentedDeprecationWarning(
                 "The org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel type has been deprecated. " +
                     "This will fail with an error in Gradle 10. " +
-                    "Please use the org.gradle.tooling.model.kotlin.dsl.KotlinDslBaseScriptModel type instead."
+                    "Please use the " + replacementType + " type instead."
             )
         }
 

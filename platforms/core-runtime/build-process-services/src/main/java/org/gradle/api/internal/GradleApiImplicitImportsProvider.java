@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.tooling.models;
+package org.gradle.api.internal;
 
-import java.io.File;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.NullMarked;
+
 import java.util.List;
 
-
 /**
- * Kotlin build script template model.
- *
- * @deprecated Will be removed in Gradle 10, use GradleDslBaseScriptModel instead.
+ * Provides the lists of imports implicitly added to build script (for the various DSLs).
  */
-@Deprecated
-public interface KotlinBuildScriptTemplateModel {
+@NullMarked
+@ServiceScope(Scope.Global.class)
+public interface GradleApiImplicitImportsProvider {
 
-    /**
-     * Classpath required to load Kotlin build script template class.
-     */
-    List<File> getClassPath();
+    List<String> getGroovyDslImplicitImports();
+
+    List<String> getKotlinDslImplicitImports();
 }

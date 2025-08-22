@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.tooling.models;
-
-import java.io.File;
-import java.util.List;
-
-
 /**
- * Kotlin build script template model.
- *
- * @deprecated Will be removed in Gradle 10, use GradleDslBaseScriptModel instead.
+ * Generic DSL related tooling models.
  */
-@Deprecated
-public interface KotlinBuildScriptTemplateModel {
-
-    /**
-     * Classpath required to load Kotlin build script template class.
-     */
-    List<File> getClassPath();
-}
+@org.jspecify.annotations.NullMarked
+package org.gradle.tooling.model.dsl;
