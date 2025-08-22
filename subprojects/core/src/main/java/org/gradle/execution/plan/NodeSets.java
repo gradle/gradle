@@ -54,7 +54,7 @@ public final class NodeSets {
 
         private final Comparator<? super E> comparator;
         private final ReferenceOpenHashSet<E> set = new ReferenceOpenHashSet<>();
-        private Object[] array = INITIAL_CAPACITY_MARKER;
+        private Object[] array = NO_ELEMENTS;
         private int size = 0;
         private int version = 0; // positive means unsorted, negative means sorted
 
@@ -173,13 +173,13 @@ public final class NodeSets {
         }
 
         private static Object[] growArray(Object[] array) {
-            Object[] grow = new Object[array == INITIAL_CAPACITY_MARKER ? INITIAL_CAPACITY : array.length * 3 / 2];
+            Object[] grow = new Object[Math.max(INITIAL_CAPACITY, array.length * 3 / 2)];
             System.arraycopy(array, 0, grow, 0, array.length);
             return grow;
         }
 
         private static final int INITIAL_CAPACITY = 8;
 
-        private static final String[] INITIAL_CAPACITY_MARKER = {};
+        private static final Object[] NO_ELEMENTS = {};
     }
 }
