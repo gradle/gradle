@@ -38,6 +38,7 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -106,7 +107,8 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         bodyContainsExact("Second section 0 error")
     }
 
-    def "reports sticky tip"() {
+    @Issue("https://github.com/gradle/gradle/issues/20135")
+    def "suggests way to download keys when dependency verification fails"() {
         given:
         renderer.startNewSection(":someConfiguration")
 
@@ -117,7 +119,7 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         bodyContains("Troubleshooting")
         bodyContains("Please review the errors reported above carefully.")
         bodyContains("In this case, you can ask Gradle to export all keys it used for verification of this build to the keyring with the following command-line")
-        bodyContains("./gradlew --write-verification-metadata")
+        bodyContains("./gradlew --write-verification-metadata pgp,sha512 --export-keys")
     }
 
     @Unroll("reports verification errors (#failure)")
