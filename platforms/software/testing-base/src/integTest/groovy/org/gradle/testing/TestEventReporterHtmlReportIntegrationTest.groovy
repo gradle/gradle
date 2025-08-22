@@ -91,7 +91,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         then:
         failure.assertHasCause("Test(s) failed.")
         failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing"))
-        resultsFor("failing")
+        resultsFor("tests/failing")
             .testPath(":failing suite")
             .onlyRoot()
             .assertChildCount(1, 1)
@@ -137,14 +137,14 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         then:
         failure.assertHasDescription("Execution failed for task ':failing1'.")
         failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing1"))
-        resultsFor("failing1")
+        resultsFor("tests/failing1")
             .testPath("failing1 suite")
             .onlyRoot()
             .assertChildCount(1, 1)
 
         failure.assertHasDescription("Execution failed for task ':failing2'.")
         failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing2"))
-        resultsFor("failing2")
+        resultsFor("tests/failing2")
             .testPath("failing2 suite")
             .onlyRoot()
             .assertChildCount(1, 1)

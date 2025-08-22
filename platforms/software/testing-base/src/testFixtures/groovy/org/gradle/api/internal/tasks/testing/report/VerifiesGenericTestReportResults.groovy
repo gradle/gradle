@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecu
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.logging.ConsoleRenderer
+import org.gradle.test.fixtures.file.TestFile
 
 /**
  * A trait to be applied to tests that verify the results of the {@link GenericHtmlTestReportGenerator}.
@@ -35,7 +36,11 @@ trait VerifiesGenericTestReportResults {
     }
 
     GenericTestExecutionResult resultsFor(String name) {
-        return new GenericHtmlTestExecutionResult(testDirectory, "build/reports/tests/${name}")
+        return new GenericHtmlTestExecutionResult(testDirectory, "build/reports/${name}")
+    }
+
+    GenericTestExecutionResult resultsFor(TestFile directory, String name) {
+        return new GenericHtmlTestExecutionResult(directory, "build/reports/${name}")
     }
 
     GenericTestExecutionResult aggregateResults() {
