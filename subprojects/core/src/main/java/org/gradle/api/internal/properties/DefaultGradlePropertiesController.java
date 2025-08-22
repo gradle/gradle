@@ -207,10 +207,6 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         private void loadProperties(File buildRootDir, boolean setSystemProperties) {
             LoadedBuildScopedState loaded = this.loaded;
             if (loaded != null) {
-                if (loaded.buildRootDir.equals(buildRootDir)) {
-                    // Ignore repeated loads from the same location
-                    return;
-                }
                 throw new IllegalStateException(String.format(
                     "GradleProperties has already been loaded from '%s' and cannot be loaded from '%s'.",
                     loaded.buildRootDir, buildRootDir
