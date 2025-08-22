@@ -27,11 +27,11 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
     private final TestFile testResultsDir
     private final TestResultOutputAssociation outputAssociation
 
-    def JUnitXmlTestExecutionResult(TestFile projectDir, String testResultsDir = 'build/test-results/test') {
+    JUnitXmlTestExecutionResult(TestFile projectDir, String testResultsDir = 'build/test-results/test') {
         this(projectDir, TestResultOutputAssociation.WITH_SUITE, testResultsDir)
     }
 
-    def JUnitXmlTestExecutionResult(TestFile projectDir, TestResultOutputAssociation outputAssociation, String testResultsDir = 'build/test-results/test') {
+    JUnitXmlTestExecutionResult(TestFile projectDir, TestResultOutputAssociation outputAssociation, String testResultsDir = 'build/test-results/test') {
         this.outputAssociation = outputAssociation
         this.testResultsDir = projectDir.file(testResultsDir)
     }
