@@ -123,7 +123,7 @@ project.plugins.withType<JavaBasePlugin> {
         // don't forget to update the version in distributions-dependencies/build.gradle.kts
         // 2.31.0 is the latest version that works with JDK 11
         addErrorProneDependency("com.google.errorprone:error_prone_core:2.31.0")
-        addErrorProneDependency("com.uber.nullaway:nullaway:0.12.7")
+        addErrorProneDependency("com.uber.nullaway:nullaway:0.12.10")
 
         project.tasks.named<JavaCompile>(this.compileJavaTaskName) {
             options.errorprone {
