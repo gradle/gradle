@@ -131,6 +131,7 @@ include::sample[dir="snippets/providers/property/kotlin",files="build.gradle.kts
 include::sample[dir="snippets/providers/property/groovy",files="build.gradle[tags=prov-managed]"]
 ====
 
+[[mutable_managed_properties]]
 === Mutable Managed Properties
 
 A mutable managed property is declared using a getter method of type `Property<T>`, where `T` can be any serializable type or a <<#managed_types,fully managed Gradle type>>.
