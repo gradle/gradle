@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl.fingerprint
 
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.gradle.api.Describable
 import org.gradle.api.internal.GeneratedSubclasses.unpackType
 import org.gradle.api.internal.file.FileCollectionInternal
@@ -463,7 +464,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         var _invalidationReason: InvalidationReason? = null
 
         private
-        val consumedBy = mutableSetOf<ProjectInvalidationState>()
+        val consumedBy = ObjectOpenHashSet<ProjectInvalidationState>()
 
         val isInvalid: Boolean
             get() = _invalidationReason != null
