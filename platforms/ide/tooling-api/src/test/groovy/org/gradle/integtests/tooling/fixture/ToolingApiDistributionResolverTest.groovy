@@ -22,6 +22,7 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.util.environment.RestoreSystemProperties
 
 import java.nio.file.Files
 import java.nio.file.attribute.FileTime
@@ -40,15 +41,17 @@ class ToolingApiDistributionResolverTest extends Specification {
 
     ToolingApiDistributionResolver underTest = new ToolingApiDistributionResolver()
 
+    @RestoreSystemProperties
     def "uses distribution from classpath when resolving current version"() {
         given:
+        System.setProperty("toolingApi.shadedJar", "path/to/fake-unexisted-shaded.jar")
         def version = GradleVersion.current().baseVersion.version
 
         when:
         def result = underTest.resolve(version)
 
         then:
-        result instanceof TestClasspathToolingApiDistribution
+        result instanceof ExternalToolingApiDistribution
     }
 
     def "can resolve local distributions"() {
