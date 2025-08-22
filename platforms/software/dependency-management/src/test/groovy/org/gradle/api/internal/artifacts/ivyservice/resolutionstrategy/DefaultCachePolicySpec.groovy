@@ -249,9 +249,9 @@ class DefaultCachePolicySpec extends Specification {
         !copy.moduleCacheRules.is(cachePolicy.moduleCacheRules)
         !copy.artifactCacheRules.is(cachePolicy.artifactCacheRules)
 
-        copy.dependencyCacheRules == cachePolicy.dependencyCacheRules
-        copy.moduleCacheRules == cachePolicy.moduleCacheRules
-        copy.artifactCacheRules == cachePolicy.artifactCacheRules
+        copy.dependencyCacheRules.toList() == cachePolicy.dependencyCacheRules.toList()
+        copy.moduleCacheRules.toList() == cachePolicy.moduleCacheRules.toList()
+        copy.artifactCacheRules.toList() == cachePolicy.artifactCacheRules.toList()
     }
 
     def "mutation is checked"() {

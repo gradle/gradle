@@ -20,6 +20,7 @@ package org.gradle.util.internal;
 import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GradleVersion;
+import org.jspecify.annotations.Nullable;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -40,12 +41,14 @@ public final class DefaultGradleVersion extends GradleVersion {
     private static final int STAGE_UNKNOWN = 1;
     private static final int STAGE_PREVIEW = 2;
     private static final int STAGE_RC = 3;
+    private static final long NO_SNAPSHOT = Long.MIN_VALUE;
 
     private final String version;
     private final int majorPart;
+    @Nullable
     private final String buildTime;
     private final String commitId;
-    private final Long snapshot;
+    private final long snapshot;
     private final String versionPart;
     private final Stage stage;
     private static final DefaultGradleVersion CURRENT;
@@ -105,7 +108,7 @@ public final class DefaultGradleVersion extends GradleVersion {
         return new DefaultGradleVersion(version, null, null);
     }
 
-    private DefaultGradleVersion(String version, String buildTime, String commitId) {
+    private DefaultGradleVersion(String version, @Nullable String buildTime, @Nullable String commitId) {
         this.version = version;
         this.buildTime = buildTime;
         Matcher matcher = VERSION_PATTERN.matcher(version);
@@ -121,11 +124,11 @@ public final class DefaultGradleVersion extends GradleVersion {
         this.snapshot = parseSnapshot(matcher);
     }
 
-    private Long parseSnapshot(Matcher matcher) {
+    private long parseSnapshot(Matcher matcher) {
         if ("snapshot".equals(matcher.group(5)) || isCommitVersion(matcher)) {
             return 0L;
         } else if (matcher.group(8) == null) {
-            return null;
+            return NO_SNAPSHOT;
         } else if ("SNAPSHOT".equals(matcher.group(8))) {
             return 0L;
         } else {
@@ -198,7 +201,7 @@ public final class DefaultGradleVersion extends GradleVersion {
 
     @Override
     public boolean isSnapshot() {
-        return snapshot != null;
+        return snapshot != NO_SNAPSHOT;
     }
 
     @Override
@@ -211,7 +214,7 @@ public final class DefaultGradleVersion extends GradleVersion {
 
     @Override
     public boolean isFinal() {
-        return stage == null && snapshot == null;
+        return stage == null && snapshot == NO_SNAPSHOT;
     }
 
     public DefaultGradleVersion getNextMajorVersion() {
@@ -264,8 +267,8 @@ public final class DefaultGradleVersion extends GradleVersion {
             return -1;
         }
 
-        Long thisSnapshot = snapshot == null ? Long.MAX_VALUE : snapshot;
-        Long theirSnapshot = gradleVersion.snapshot == null ? Long.MAX_VALUE : gradleVersion.snapshot;
+        Long thisSnapshot = snapshot == NO_SNAPSHOT ? Long.MAX_VALUE : snapshot;
+        Long theirSnapshot = gradleVersion.snapshot == NO_SNAPSHOT ? Long.MAX_VALUE : gradleVersion.snapshot;
 
         if (thisSnapshot.equals(theirSnapshot)) {
             return version.compareTo(gradleVersion.version);

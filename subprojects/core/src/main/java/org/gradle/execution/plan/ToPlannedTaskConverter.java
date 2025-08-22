@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.initialization.DefaultPlannedTask;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TaskIdentity;
 import org.gradle.internal.taskgraph.NodeIdentity;
@@ -25,7 +26,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * A {@link ToPlannedTaskConverter} for {@link TaskNode}s.
@@ -131,7 +131,7 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
             .filter(TaskNode.class::isInstance)
             .map(TaskNode.class::cast)
             .map(this::getNodeIdentity)
-            .collect(Collectors.toList());
+            .collect(ImmutableList.toImmutableList());
     }
 
     @Override

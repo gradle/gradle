@@ -17,6 +17,8 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.ImmutableList;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.RealizeTaskBuildOperationType;
 import org.gradle.api.internal.tasks.RegisterTaskBuildOperationType;
@@ -28,12 +30,13 @@ import org.gradle.tooling.internal.provider.runner.PluginApplicationTracker.Plug
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 class TaskOriginTracker implements BuildOperationTracker {
 
-    private final Map<Long, InternalPluginIdentifier> origins = new ConcurrentHashMap<>();
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
+    private final Long2ObjectMap<InternalPluginIdentifier> origins = new Long2ObjectOpenHashMap<>();
     private final PluginApplicationTracker pluginApplicationTracker;
 
     TaskOriginTracker(PluginApplicationTracker pluginApplicationTracker) {
@@ -47,7 +50,12 @@ class TaskOriginTracker implements BuildOperationTracker {
 
     @Nullable
     InternalPluginIdentifier getOriginPlugin(TaskIdentity<?> taskIdentity) {
-        return origins.get(taskIdentity.getId());
+        lock.readLock().lock();
+        try {
+            return origins.get(taskIdentity.getId());
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     @Override
@@ -62,10 +70,23 @@ class TaskOriginTracker implements BuildOperationTracker {
     }
 
     private void storeOrigin(BuildOperationDescriptor buildOperation, long taskId) {
-        origins.computeIfAbsent(taskId, key -> {
+        lock.readLock().lock();
+        try {
+            if (origins.containsKey(taskId)) {
+                return;
+            }
+        } finally {
+            lock.readLock().unlock();
+        }
+        lock.writeLock().lock();
+        try {
             PluginApplication pluginApplication = pluginApplicationTracker.findRunningPluginApplication(buildOperation.getParentId());
-            return pluginApplication == null ? null : pluginApplication.getPlugin();
-        });
+            if (pluginApplication != null) {
+                origins.putIfAbsent(taskId, pluginApplication.getPlugin());
+            }
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     @Override

@@ -22,11 +22,11 @@ import org.gradle.api.internal.artifacts.cache.DependencyResolutionControl;
 import org.gradle.api.internal.artifacts.cache.ModuleResolutionControl;
 import org.gradle.api.internal.artifacts.configurations.CachePolicy;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheExpirationControl;
 import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheExpirationControl;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.concurrent.TimeUnit;
 
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
@@ -35,9 +35,9 @@ public class DefaultCachePolicy implements CachePolicy {
     private static final int SECONDS_IN_DAY = 24 * 60 * 60;
     private static final int MILLISECONDS_IN_DAY = SECONDS_IN_DAY * 1000;
 
-    final List<Action<? super DependencyResolutionControl>> dependencyCacheRules;
-    final List<Action<? super ModuleResolutionControl>> moduleCacheRules;
-    final List<Action<? super ArtifactResolutionControl>> artifactCacheRules;
+    final Deque<Action<? super DependencyResolutionControl>> dependencyCacheRules;
+    final Deque<Action<? super ModuleResolutionControl>> moduleCacheRules;
+    final Deque<Action<? super ArtifactResolutionControl>> artifactCacheRules;
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
     private long keepDynamicVersionsFor = MILLISECONDS_IN_DAY;
     private long keepChangingModulesFor = MILLISECONDS_IN_DAY;
@@ -45,9 +45,9 @@ public class DefaultCachePolicy implements CachePolicy {
     private boolean refresh = false;
 
     public DefaultCachePolicy() {
-        this.dependencyCacheRules = new ArrayList<>(1);
-        this.moduleCacheRules = new ArrayList<>(1);
-        this.artifactCacheRules = new ArrayList<>(2);
+        this.dependencyCacheRules = new ArrayDeque<>(1);
+        this.moduleCacheRules = new ArrayDeque<>(1);
+        this.artifactCacheRules = new ArrayDeque<>(2);
 
         cacheDynamicVersionsFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
         cacheChangingModulesFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
@@ -55,9 +55,9 @@ public class DefaultCachePolicy implements CachePolicy {
     }
 
     private DefaultCachePolicy(DefaultCachePolicy policy) {
-        this.dependencyCacheRules = new ArrayList<>(policy.dependencyCacheRules);
-        this.moduleCacheRules = new ArrayList<>(policy.moduleCacheRules);
-        this.artifactCacheRules = new ArrayList<>(policy.artifactCacheRules);
+        this.dependencyCacheRules = new ArrayDeque<>(policy.dependencyCacheRules);
+        this.moduleCacheRules = new ArrayDeque<>(policy.moduleCacheRules);
+        this.artifactCacheRules = new ArrayDeque<>(policy.artifactCacheRules);
         this.keepDynamicVersionsFor = policy.keepDynamicVersionsFor;
         this.keepChangingModulesFor = policy.keepChangingModulesFor;
         this.offline = policy.offline;
@@ -88,7 +88,7 @@ public class DefaultCachePolicy implements CachePolicy {
     public void cacheDynamicVersionsFor(final int value, final TimeUnit unit) {
         keepDynamicVersionsFor = unit.toMillis(value);
         mutationValidator.validateMutation(STRATEGY);
-        dependencyCacheRules.add(0, dependencyResolutionControl -> {
+        dependencyCacheRules.addFirst(dependencyResolutionControl -> {
             if (!dependencyResolutionControl.getCachedResult().isEmpty()) {
                 dependencyResolutionControl.cacheFor(value, unit);
             }
@@ -100,13 +100,13 @@ public class DefaultCachePolicy implements CachePolicy {
         keepChangingModulesFor = units.toMillis(value);
         mutationValidator.validateMutation(STRATEGY);
 
-        moduleCacheRules.add(0, moduleResolutionControl -> {
+        moduleCacheRules.addFirst(moduleResolutionControl -> {
             if (moduleResolutionControl.isChanging()) {
                 moduleResolutionControl.cacheFor(value, units);
             }
         });
 
-        artifactCacheRules.add(0, artifactResolutionControl -> {
+        artifactCacheRules.addFirst(artifactResolutionControl -> {
             if (artifactResolutionControl.belongsToChangingModule()) {
                 artifactResolutionControl.cacheFor(value, units);
             }
@@ -115,7 +115,7 @@ public class DefaultCachePolicy implements CachePolicy {
 
     private void cacheMissingArtifactsFor(final int value, final TimeUnit units) {
         mutationValidator.validateMutation(STRATEGY);
-        artifactCacheRules.add(0, artifactResolutionControl -> {
+        artifactCacheRules.addFirst(artifactResolutionControl -> {
             if (artifactResolutionControl.getCachedResult() == null) {
                 artifactResolutionControl.cacheFor(value, units);
             }

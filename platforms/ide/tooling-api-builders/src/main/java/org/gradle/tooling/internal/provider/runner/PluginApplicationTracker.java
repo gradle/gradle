@@ -17,6 +17,8 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.base.MoreObjects;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.internal.ExecuteDomainObjectCollectionCallbackBuildOperationType;
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType;
@@ -38,6 +40,8 @@ import java.io.File;
 import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -46,7 +50,8 @@ class PluginApplicationTracker implements BuildOperationTracker {
     private static final String PROJECT_TARGET_TYPE = "project";
 
     private final Map<OperationIdentifier, PluginApplication> runningPluginApplications = new ConcurrentHashMap<>();
-    private final Map<Long, PluginApplication> pluginApplicationRegistry = new ConcurrentHashMap<>();
+    private final Long2ObjectMap<PluginApplication> pluginApplicationRegistry = new Long2ObjectOpenHashMap<>();
+    private final ReadWriteLock pluginApplicationRegistryLock = new ReentrantReadWriteLock();
     private final BuildOperationAncestryTracker ancestryTracker;
 
     PluginApplicationTracker(BuildOperationAncestryTracker ancestryTracker) {
@@ -93,14 +98,25 @@ class PluginApplicationTracker implements BuildOperationTracker {
             InternalPluginIdentifier plugin = pluginSupplier.get();
             if (plugin != null) {
                 PluginApplication pluginApplication = new PluginApplication(applicationId, plugin);
-                pluginApplicationRegistry.put(applicationId, pluginApplication);
+                pluginApplicationRegistryLock.writeLock().lock();
+                try {
+                    pluginApplicationRegistry.put(applicationId, pluginApplication);
+                } finally {
+                    pluginApplicationRegistryLock.writeLock().unlock();
+                }
                 track(buildOperation, pluginApplication);
             }
         }
     }
 
     private void lookupAndTrack(BuildOperationDescriptor buildOperation, long applicationId) {
-        PluginApplication pluginApplication = pluginApplicationRegistry.get(applicationId);
+        PluginApplication pluginApplication;
+        pluginApplicationRegistryLock.readLock().lock();
+        try {
+            pluginApplication = pluginApplicationRegistry.get(applicationId);
+        } finally {
+            pluginApplicationRegistryLock.readLock().unlock();
+        }
         if (pluginApplication != null) {
             track(buildOperation, pluginApplication);
         } // else either user code is not a plugin or script or the target is not a project
