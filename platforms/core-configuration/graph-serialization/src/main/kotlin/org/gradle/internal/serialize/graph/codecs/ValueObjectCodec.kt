@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl.serialize
+package org.gradle.internal.serialize.graph.codecs
 
-import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprint
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
@@ -25,16 +24,20 @@ import org.gradle.internal.serialize.graph.decodeBean
 import org.gradle.internal.serialize.graph.encodeBean
 
 
-/**
- * Writes [ConfigurationCacheFingerprint] nodes without preserving identity.
- */
-internal
-object ConfigurationCacheFingerprintCodec : Codec<ConfigurationCacheFingerprint> {
+object ValueObjectCodec : Codec<ValueObject> {
 
-    override suspend fun WriteContext.encode(value: ConfigurationCacheFingerprint) {
+    override suspend fun WriteContext.encode(value: ValueObject) {
         encodeBean(value)
     }
 
-    override suspend fun ReadContext.decode(): ConfigurationCacheFingerprint =
+    override suspend fun ReadContext.decode(): ValueObject =
         decodeBean().uncheckedCast()
 }
+
+
+/**
+ * Marker interface for types that should be serialized as values (i.e., without identity-preserving deserialization).
+ *
+ * This makes them slightly more efficient to serialize.
+ */
+interface ValueObject

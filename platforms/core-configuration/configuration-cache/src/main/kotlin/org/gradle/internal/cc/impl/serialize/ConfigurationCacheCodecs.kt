@@ -136,6 +136,7 @@ import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
 import org.gradle.internal.serialize.graph.codecs.DelegatingCodec
 import org.gradle.internal.serialize.graph.codecs.NotImplementedCodec
 import org.gradle.internal.serialize.graph.codecs.ServicesCodec
+import org.gradle.internal.serialize.graph.codecs.ValueObjectCodec
 import org.gradle.internal.serialize.graph.reentrant
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
@@ -303,6 +304,7 @@ class DefaultConfigurationCacheCodecs(
     fun Bindings.completeWithStatefulCodecs() = append {
         bind(ExternalizableCodec)
         bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup))
+        bind(ValueObjectCodec)
 
         // This protects the BeanCodec against StackOverflowErrors, but
         // we can still get them for the other codecs, for instance,
@@ -318,8 +320,6 @@ class DefaultConfigurationCacheCodecs(
     private
     val internalTypesBindings = Bindings.of {
         baseTypes()
-
-        bind(ConfigurationCacheFingerprintCodec)
 
         providerTypes(propertyFactory, filePropertyFactory, nestedProviderCodec(buildStateRegistry))
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory, fileLookup, taskDependencyFactory)

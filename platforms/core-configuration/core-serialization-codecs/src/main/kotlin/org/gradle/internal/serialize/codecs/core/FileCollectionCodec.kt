@@ -41,6 +41,7 @@ import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.codecs.BeanSpec
+import org.gradle.internal.serialize.graph.codecs.ValueObject
 import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.gradle.internal.serialize.graph.readList
@@ -115,19 +116,23 @@ class FileCollectionCodec(
 
 
 private
-class SubtractingFileCollectionSpec(val left: FileCollection, val right: FileCollection)
+class SubtractingFileCollectionSpec(val left: FileCollection, val right: FileCollection) :
+    ValueObject
 
 
 private
-class FilteredFileCollectionSpec(val collection: FileCollection, val filter: Spec<in File>)
+class FilteredFileCollectionSpec(val collection: FileCollection, val filter: Spec<in File>) :
+    ValueObject
 
 
 private
-class ProviderBackedFileCollectionSpec(val resolver: PathToFileResolver, val provider: ProviderInternal<*>)
+class ProviderBackedFileCollectionSpec(val resolver: PathToFileResolver, val provider: ProviderInternal<*>) :
+    ValueObject
 
 
 private
-class ResolutionBackedFileCollectionSpec(val displayName: String, val lenient: Boolean, val elements: List<Any>)
+class ResolutionBackedFileCollectionSpec(val displayName: String, val lenient: Boolean, val elements: List<Any>) :
+    ValueObject
 
 
 private
