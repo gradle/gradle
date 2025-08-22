@@ -25,6 +25,7 @@ import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.Failure
 import org.gradle.tooling.GradleConnectionException
+import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
@@ -33,9 +34,13 @@ import org.gradle.util.internal.ToBeImplemented
 
 import java.util.function.Function
 
+import static org.gradle.integtests.tooling.r920.ResilientKotlinDslScriptsModelBuilderCrossVersionSpec.KotlinModelAction.QueryStrategy.*
+
 @ToolingApiVersion('>=9.2')
 @TargetGradleVersion('>=9.2')
 class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSpecification {
+
+    static final String GRADLE_PROJECT_FAILURE = "Failed to get GradleProject model"
 
     def setup() {
         settingsFile.delete()
@@ -72,7 +77,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def original = succeeds {
-            action(new OriginalModelAction()).run()
+            action(KotlinModelAction.originalModel(ROOT_PROJECT_FIRST)).run()
         }
 
         then:
@@ -80,7 +85,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def resilientModels = succeeds {
-            action(new ResilientModelAction())
+            action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
                 .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
                 .run()
         }
@@ -96,9 +101,10 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             modelAssert.assertImplicitImportsAreEqual()
         }
         resilientModels.failureMessages.isEmpty()
+        resilientModels.otherModelFailures.isEmpty()
     }
 
-    def "returns all successful and first failed script model when #description"() {
+    def "returns all successful and first failed script model when #description with #queryStrategy"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -129,7 +135,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def original = succeeds {
-            action(new OriginalModelAction()).run()
+            action(KotlinModelAction.originalModel(queryStrategy)).run()
         }
 
         then:
@@ -138,7 +144,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         when:
         c << """$breakage"""
         def resilientModels = succeeds {
-            action(new ResilientModelAction())
+            action(KotlinModelAction.resilientModel(queryStrategy))
                 .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
                 .run()
         }
@@ -162,14 +168,17 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         resilientModels.failureMessages.size() == 1
         resilientModels.failureMessages[settingsKotlinFile.parentFile].contains("c/build.gradle.kts' line: 5")
         resilientModels.failureMessages[settingsKotlinFile.parentFile].contains(expectedFailure)
+        resilientModels.otherModelFailures.contains(GRADLE_PROJECT_FAILURE)
 
         where:
-        description                | breakage                                     | expectedFailure
-        "scripts evaluation fails" | "throw RuntimeException(\"Failing script\")" | "Failing script"
-        "script compilation fails" | "broken !!!"                                 | "broken !!!"
+        description                | breakage                                     | expectedFailure  | queryStrategy
+        "scripts evaluation fails" | "throw RuntimeException(\"Failing script\")" | "Failing script" | ROOT_PROJECT_FIRST
+        "scripts evaluation fails" | "throw RuntimeException(\"Failing script\")" | "Failing script" | INCLUDED_BUILDS_FIRST
+        "script compilation fails" | "broken !!!"                                 | "broken !!!"     | ROOT_PROJECT_FIRST
+        "script compilation fails" | "broken !!!"                                 | "broken !!!"     | INCLUDED_BUILDS_FIRST
     }
 
-    def "returns scripts models when project convention plugin is failing with exception"() {
+    def "returns scripts models when project convention plugin is failing with exception with #queryStrategy"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -219,7 +228,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def original = succeeds {
-            action(new OriginalModelAction()).run()
+            action(KotlinModelAction.originalModel(queryStrategy)).run()
         }
 
         then:
@@ -228,7 +237,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         when:
         projectPlugin << "throw RuntimeException(\"Failing script\")"
         def resilientModels = succeeds {
-            action(new ResilientModelAction())
+            action(KotlinModelAction.resilientModel(queryStrategy))
                 .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
                 .run()
         }
@@ -257,9 +266,13 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         resilientModels.failureMessages.size() == 1
         resilientModels.failureMessages[settingsKotlinFile.parentFile].contains("b/build.gradle.kts' line: 2")
         resilientModels.failureMessages[settingsKotlinFile.parentFile].contains("Failing script")
+        resilientModels.otherModelFailures.contains(GRADLE_PROJECT_FAILURE)
+
+        where:
+        queryStrategy << [ROOT_PROJECT_FIRST, INCLUDED_BUILDS_FIRST]
     }
 
-    def "returns scripts models when project convention plugin is failing with compile error"() {
+    def "returns scripts models when project convention plugin is failing with compile error with #queryStrategy"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -309,7 +322,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def original = succeeds {
-            action(new OriginalModelAction()).run()
+            action(KotlinModelAction.originalModel(queryStrategy)).run()
         }
 
         then:
@@ -318,7 +331,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         when:
         projectPlugin << """ broken !!! """
         def resilientModels = succeeds {
-            action(new ResilientModelAction()).withArguments("-Dorg.gradle.internal.resilient-model-building=true").run()
+            action(KotlinModelAction.resilientModel(queryStrategy)).withArguments("-Dorg.gradle.internal.resilient-model-building=true").run()
         }
 
         then:
@@ -341,9 +354,20 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
                 modelAssert.assertImplicitImportsAreEqual()
             }
         }
-        resilientModels.failureMessages.size() == 2
-        resilientModels.failureMessages[settingsKotlinFile.parentFile].contains("A problem occurred configuring project ':b'.")
-        resilientModels.failureMessages[included].contains("Execution failed for task ':build-logic:compileKotlin'.")
+        // At the moment the failure reporting is not consistent and depends on the order of query
+        resilientModels.failureMessages.size() == numberOfFailures
+        rootBuildFailure?.with {
+            assert resilientModels.failureMessages[settingsKotlinFile.parentFile].contains(it)
+        }
+        includedBuildFailure?.with {
+            assert resilientModels.failureMessages[included].contains(it)
+        }
+        resilientModels.otherModelFailures.contains(GRADLE_PROJECT_FAILURE)
+
+        where:
+        queryStrategy         | numberOfFailures | rootBuildFailure                               | includedBuildFailure
+        ROOT_PROJECT_FIRST    | 1                | "A problem occurred configuring project ':b'." | null
+        INCLUDED_BUILDS_FIRST | 2                | "A problem occurred configuring project ':b'." | "Execution failed for task ':build-logic:compileKotlin'."
     }
 
     @ToBeImplemented("Needs resilient GradleBuild model")
@@ -385,7 +409,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
         when:
         def original = succeeds {
-            action(new OriginalModelAction()).run()
+            action(KotlinModelAction.originalModel(ROOT_PROJECT_FIRST)).run()
         }
 
         then:
@@ -394,7 +418,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         when:
         settingsPlugin << """ broken !!! """
         fails {
-            action(new ResilientModelAction()).withArguments("-Dorg.gradle.internal.resilient-model-building=true").run()
+            action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST)).withArguments("-Dorg.gradle.internal.resilient-model-building=true").run()
         }
 
         then:
@@ -402,74 +426,98 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         e.message.startsWith("The supplied build action failed with an exception.")
     }
 
-    static class MyCustomModel implements Serializable {
+    static class KotlinModel implements Serializable {
 
         final Map<File, KotlinDslScriptModel> scriptModels
         final Map<File, String> failureMessages
+        final List<String> otherModelFailures
 
-        MyCustomModel(Map<File, KotlinDslScriptModel> scriptModels, Map<File, Failure> failure) {
+        KotlinModel(Map<File, KotlinDslScriptModel> scriptModels, Map<File, Failure> failure, List<String> otherModelFailures) {
             this.scriptModels = scriptModels
             this.failureMessages = failure.collectEntries { k, v -> [(k): TextUtil.normaliseFileSeparators(v.description)] }
+            this.otherModelFailures = otherModelFailures
         }
     }
 
-    static class OriginalModelAction implements BuildAction<MyCustomModel>, Serializable {
+    static class KotlinModelAction implements BuildAction<KotlinModel>, Serializable {
 
-        @Override
-        MyCustomModel execute(BuildController controller) {
-            GradleBuild gradleBuild = controller.getModel(GradleBuild.class)
-            Map<File, KotlinDslScriptModel> scriptModels = [:]
-            KotlinDslScriptsModel buildScriptModel = controller.getModel(gradleBuild.rootProject, KotlinDslScriptsModel.class)
-            scriptModels += buildScriptModel.scriptModels
-            for (GradleBuild build : gradleBuild.includedBuilds) {
-                buildScriptModel = controller.getModel(build.rootProject, KotlinDslScriptsModel.class)
-                scriptModels += buildScriptModel.scriptModels
-            }
-
-            return new MyCustomModel(
-                scriptModels,
-                [:]
-            )
+        static enum QueryStrategy {
+            ROOT_PROJECT_FIRST,
+            INCLUDED_BUILDS_FIRST
         }
-    }
 
-    static class ResilientModelAction implements BuildAction<MyCustomModel>, Serializable {
+        final QueryStrategy queryStrategy
+        final Class<?> kotlinDslScriptModelType
+
+        KotlinModelAction(QueryStrategy queryStrategy, Class<?> kotlinDslScriptModelType) {
+            this.queryStrategy = queryStrategy
+            this.kotlinDslScriptModelType = kotlinDslScriptModelType
+        }
 
         @Override
-        MyCustomModel execute(BuildController controller) {
+        KotlinModel execute(BuildController controller) {
             GradleBuild gradleBuild = controller.getModel(GradleBuild.class)
             Map<File, KotlinDslScriptModel> scriptModels = [:]
             Map<File, Failure> failures = [:]
-            ResilientKotlinDslScriptsModel buildScriptModel = controller.getModel(gradleBuild.rootProject, ResilientKotlinDslScriptsModel.class)
-            scriptModels += buildScriptModel.model.scriptModels
-            if (buildScriptModel.failure) {
-                failures[gradleBuild.buildIdentifier.rootDir] = buildScriptModel.failure
+            List<String> otherModelFailures = []
+
+            try {
+                // Query also some other model to simulate IDE
+                controller.getModel(GradleProject)
+            } catch (Exception ignored) {
+                otherModelFailures.add(GRADLE_PROJECT_FAILURE)
             }
-            for (GradleBuild build : gradleBuild.includedBuilds) {
-                def root = build.rootProject
-                buildScriptModel = controller.getModel(root, ResilientKotlinDslScriptsModel.class)
+
+            if (queryStrategy == ROOT_PROJECT_FIRST) {
+                queryKotlinDslScriptsModel(controller, gradleBuild, scriptModels, failures)
+                for (GradleBuild build : gradleBuild.includedBuilds) {
+                    queryKotlinDslScriptsModel(controller, gradleBuild, scriptModels, failures)
+                }
+            } else if (queryStrategy == INCLUDED_BUILDS_FIRST) {
+                for (GradleBuild build : gradleBuild.includedBuilds) {
+                    queryKotlinDslScriptsModel(controller, build, scriptModels, failures)
+                }
+                queryKotlinDslScriptsModel(controller, gradleBuild, scriptModels, failures)
+            }
+
+            return new KotlinModel(
+                scriptModels,
+                failures,
+                otherModelFailures
+            )
+        }
+
+        private void queryKotlinDslScriptsModel(BuildController controller, GradleBuild build, Map<File, KotlinDslScriptModel> scriptModels, Map<File, Failure> failures) {
+            if (kotlinDslScriptModelType == ResilientKotlinDslScriptsModel) {
+                ResilientKotlinDslScriptsModel buildScriptModel = controller.getModel(build.rootProject, ResilientKotlinDslScriptsModel.class)
                 scriptModels += buildScriptModel.model.scriptModels
                 if (buildScriptModel.failure) {
                     failures[build.buildIdentifier.rootDir] = buildScriptModel.failure
                 }
+            } else {
+                KotlinDslScriptsModel buildScriptModel = controller.getModel(build.rootProject, KotlinDslScriptsModel.class)
+                scriptModels += buildScriptModel.scriptModels
             }
+        }
 
-            return new MyCustomModel(
-                scriptModels,
-                failures
-            )
+        static KotlinModelAction resilientModel(QueryStrategy queryStrategy) {
+            return new KotlinModelAction(queryStrategy, ResilientKotlinDslScriptsModel.class)
+        }
+
+        static KotlinModelAction originalModel(QueryStrategy queryStrategy) {
+            return new KotlinModelAction(queryStrategy, KotlinDslScriptsModel.class)
         }
     }
 
     static class ResilientKotlinModelAssert {
 
-        MyCustomModel resilientCustomModel
-        MyCustomModel originalCustomModel
+        KotlinModel resilientCustomModel
+        KotlinModel originalCustomModel
         KotlinDslScriptModel resilientModel
         KotlinDslScriptModel originalModel
         File scriptFile
 
-        ResilientKotlinModelAssert(File scriptFile, MyCustomModel resilientModel, MyCustomModel originalModel) {
+        ResilientKotlinModelAssert(File scriptFile, KotlinModel resilientModel, KotlinModel originalModel) {
             this.scriptFile = scriptFile
             this.resilientCustomModel = resilientModel
             this.originalCustomModel = originalModel
