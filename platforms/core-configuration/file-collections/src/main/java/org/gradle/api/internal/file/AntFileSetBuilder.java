@@ -41,6 +41,7 @@ public class AntFileSetBuilder implements AntBuilderAware {
             }
 
             dynamicObject.invokeMethod(nodeName == null ? "fileset" : nodeName, Collections.singletonMap("dir", AntUtil.maskFilename(tree.getDir().getAbsolutePath())), new Closure<Void>(this) {
+                @SuppressWarnings("unused") // Magic Groovy method
                 public Object doCall(Object ignore) {
                     return tree.getPatterns().addToAntBuilder(node, null);
                 }

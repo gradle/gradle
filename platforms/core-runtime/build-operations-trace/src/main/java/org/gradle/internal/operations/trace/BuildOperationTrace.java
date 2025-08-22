@@ -164,7 +164,7 @@ public class BuildOperationTrace implements Stoppable {
 
         InternalOptions internalOptions = new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
         String basePath = internalOptions.getOption(TRACE_OPTION).get();
-        if (basePath == null || basePath.equals(Boolean.FALSE.toString())) {
+        if (basePath == null || basePath.equals("false")) {
             this.outputTree = false;
             this.listener = null;
             this.writer = null;
