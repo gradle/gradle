@@ -22,6 +22,7 @@ image:gradle.png[float=left] Gradle Build Tool is a fast, dependable, and adapta
 
 In this User Manual, Gradle Build Tool is abbreviated **Gradle**.
 
+[[reference]]
 == Supported Languages and Frameworks
 
 Gradle supports Android, Java, Kotlin Multiplatform, Groovy, Scala, Javascript, and C/C++.
@@ -34,7 +35,7 @@ All major IDEs support Gradle, including Android Studio, IntelliJ IDEA, Visual S
 
 image::userguide-ides.png[]
 
-You can also invoke Gradle via its <<command_line_interface.adoc#command_line_interface_reference,command-line interface>> (CLI) in your terminal or through your continuous integration (CI) server.
+You can also invoke Gradle via its <<command_line_interface.adoc#command_line_interface,command-line interface>> (CLI) in your terminal or through your continuous integration (CI) server.
 
 == Releases
 

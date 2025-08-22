@@ -28,7 +28,7 @@ Gradle provides multiple mechanisms for configuring the behavior of Gradle itsel
 |===
 |Mechanism |Information |Example
 
-|<<command_line_interface#command_line_interface_reference,Command line interface>>
+|<<command_line_interface#command_line_interface,Command line interface>>
 |Flags that configure build behavior and Gradle features
 |`--rerun`
 
@@ -60,7 +60,7 @@ Gradle reads `gradle.properties` configurations in the following order (highest 
 |Priority |Method |Location |Notes
 
 |1
-|<<command_line_interface#command_line_interface_reference,Command-line>>
+|<<command_line_interface#command_line_interface,Command-line>>
 |> Command line
 |Flags have precedence over properties and environment variables
 
@@ -218,7 +218,7 @@ include::{snippetsPath}/tutorial/configureTaskUsingProjectProperty/tests/configu
 [[sec:gradle_command_line_flags]]
 == Command-line flags
 
-The command line interface and the available flags are described in <<command_line_interface#command_line_interface_reference,its own section>>.
+The command line interface and the available flags are described in <<command_line_interface#command_line_interface,its own section>>.
 
 [[sec:gradle_system_properties]]
 == System properties
