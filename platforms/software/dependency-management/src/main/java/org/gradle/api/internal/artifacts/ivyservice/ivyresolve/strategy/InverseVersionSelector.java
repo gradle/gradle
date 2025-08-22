@@ -68,4 +68,9 @@ public class InverseVersionSelector implements VersionSelector {
     public boolean canShortCircuitWhenVersionAlreadyPreselected() {
         return false;
     }
+
+    @Override
+    public boolean noCompatibleVersionsWith(VersionSelector rejectionSelector) {
+        return false;
+    }
 }

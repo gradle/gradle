@@ -111,6 +111,11 @@ public class UnionVersionSelector implements CompositeVersionSelector {
     }
 
     @Override
+    public boolean noCompatibleVersionsWith(VersionSelector rejectionSelector) {
+        return false;
+    }
+
+    @Override
     public String getSelector() {
         throw new UnsupportedOperationException("Union selectors should only be used internally and don't provide a public string representation");
     }

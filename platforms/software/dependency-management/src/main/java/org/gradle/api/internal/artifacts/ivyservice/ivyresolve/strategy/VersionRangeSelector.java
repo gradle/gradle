@@ -173,6 +173,17 @@ public class VersionRangeSelector extends AbstractVersionVersionSelector {
         return upperBound == null || isLower(candidate, upperBoundVersion, upperInclusive);
     }
 
+    @Override
+    public boolean noCompatibleVersionsWith(VersionSelector rejectionSelector) {
+        if (rejectionSelector instanceof InverseVersionSelector) {
+            VersionSelector inverseSelector = ((InverseVersionSelector) rejectionSelector).getInverseSelector();
+            if (inverseSelector instanceof ExactVersionSelector) {
+                return !accept(inverseSelector.getSelector());
+            }
+        }
+        return false;
+    }
+
     /**
      * Tells if version1 is lower than version2.
      */

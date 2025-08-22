@@ -58,4 +58,10 @@ abstract class AbstractVersionSelector implements VersionSelector {
     public int hashCode() {
         return selector.hashCode();
     }
+
+    @Override
+    public boolean noCompatibleVersionsWith(VersionSelector rejectionSelector) {
+        // By default, we do not know
+        return false;
+    }
 }
