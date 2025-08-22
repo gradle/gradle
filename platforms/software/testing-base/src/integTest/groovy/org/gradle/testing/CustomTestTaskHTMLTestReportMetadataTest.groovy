@@ -37,7 +37,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
         failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing"))
 
         and: "Verify the metadata is present in the single test report for the suite"
-        def results = resultsFor("failing")
+        def results = resultsFor("tests/failing")
         results.testPath(":failing suite")
             .onlyRoot()
             .assertMetadata(["suitekey"])
@@ -67,7 +67,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
         failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing"))
 
         and:
-        def results = resultsFor("failing")
+        def results = resultsFor("tests/failing")
         results.testPath(":failing suite:failing test")
             .onlyRoot()
             .assertMetadata(["group1key1", "group1key2", "group2key1", "group2key2"])
@@ -129,7 +129,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
         failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing"))
 
         and:
-        def results = resultsFor("failing")
+        def results = resultsFor("tests/failing")
         results.testPath(":failing suite:failing test")
             .onlyRoot()
             .assertMetadata(["stringKey": "This is a string",
