@@ -9,9 +9,9 @@ import javax.inject.Inject
  * This allows users to configure the plugin in their build script via a DSL block, e.g.:
  *
  * slack {
- *     token.set("...")
- *     channel.set("#general")
- *     message.set("Hello from Gradle!")
+ *     token = "..."
+ *     channel = "#general"
+ *     message = "Hello from Gradle!"
  * }
  */
 abstract class SlackExtension @Inject constructor(objects: ObjectFactory) {

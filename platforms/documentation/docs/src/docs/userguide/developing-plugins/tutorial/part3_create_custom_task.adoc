@@ -34,7 +34,7 @@ Learn about custom task types, create one, and add it to your plugin.
 
 == Step 1: About Custom Tasks
 
-To make your plugin actually *do something*, you need to define a custom task type.
+If your plugin introduces new functionality, you’ll typically define a custom task type.
 This allows you to encapsulate specific logic, like sending a Slack message, into a reusable and configurable Gradle task.
 We'll then register this task in our plugin so users can execute it with a simple command.
 

@@ -57,7 +57,7 @@ abstract class SlackBuildFlowAction : FlowAction<SlackBuildFlowAction.Params> {
         // Send the message via the Slack API and check for success
         val response = methods.chatPostMessage(request)
         if (response.isOk) {
-            logger.lifecycle("Slack message sent successfully to channel $channel")
+            logger.lifecycle("Slack message sent successfully to channel ${response.channel}")
         } else {
             logger.error("Failed to send Slack message: ${response.error}")
             throw RuntimeException("Slack message failed: ${response.error}")

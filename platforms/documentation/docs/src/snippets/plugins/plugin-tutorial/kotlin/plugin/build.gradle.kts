@@ -1,21 +1,32 @@
+// tag::publish[]
 // tag::plugins[]
 // tag::plugin-init[]
 plugins {
     // Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins
     `java-gradle-plugin`
-
+    // end::plugin-init[]
+    // end::plugins[]
+    // Apply the Maven Publishing plugin
+    id("maven-publish")
+    // tag::plugins[]
+    // tag::plugin-init[]
     // Apply the Kotlin JVM plugin to add support for Kotlin.
     // end::plugin-init[]
+    // end::publish[]
     /*
     // tag::plugin-init[]
     alias(libs.plugins.kotlin.jvm)
     // end::plugin-init[]
      */
+    // tag::publish[]
     id("org.jetbrains.kotlin.jvm") version "2.0.0"
     // tag::plugin-init[]
 }
 // end::plugin-init[]
 // end::plugins[]
+
+group = "org.example"
+version = "1.0.0"
 
 repositories {
     // Use Maven Central for resolving dependencies.
@@ -33,6 +44,7 @@ dependencies {
     implementation("com.slack.api:slack-api-client:1.45.3")
 }
 // end::slack-api[]
+// end::publish[]
 
 /*
 // tag::plugin-init[]
@@ -47,6 +59,8 @@ gradlePlugin {
 // end::plugin-init[]
 */
 
+// tag::publish[]
+
 // tag::gradle-plugin[]
 gradlePlugin {
     // Define the plugin
@@ -58,6 +72,18 @@ gradlePlugin {
     }
 }
 // end::gradle-plugin[]
+// end::publish[]
+
+// tag::repo[]
+publishing {
+    repositories {
+        maven {
+            name = "localRepo"
+            url = layout.buildDirectory.dir("local-repo").get().asFile.toURI()
+        }
+    }
+}
+// end::repo[]
 
 // tag::test-config[]
 // Add a source set for the functional test suite

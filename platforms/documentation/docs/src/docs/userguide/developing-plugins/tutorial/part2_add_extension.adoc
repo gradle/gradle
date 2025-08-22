@@ -40,9 +40,9 @@ For example, a user could configure your plugin like this:
 [source,text]
 ----
 slack {
-    token.set("...")
-    channel.set("#builds")
-    message.set("Build completed!")
+    token = "..."
+    channel = "#builds"
+    message = "Build completed!"
 }
 ----
 
@@ -91,7 +91,7 @@ include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/buil
 == Step 3: Define the Extension Class
 
 Now, let's define the class that holds the configurable properties for our plugin.
-We'll use Gradle's `Property<T>` type for these properties, as this makes them lazy and fully compatible with the Configuration Cache.
+We'll use Gradle's `Property<T>` type for these properties, as this makes them configurable lazily and fully compatible with the Configuration Cache.
 
 Create a new file called `plugin/src/main/kotlin/org/example/SlackExtension.kt` and add the following code:
 

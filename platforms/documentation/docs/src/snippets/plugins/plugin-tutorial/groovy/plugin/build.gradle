@@ -1,14 +1,23 @@
+// tag::publish[]
 // tag::plugin-init[]
 // tag::plugins[]
 plugins {
     // Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins
     id 'java-gradle-plugin'
-
+    // end::plugin-init[]
+    // end::plugins[]
+    // Apply the Maven Publishing plugin
+    id('maven-publish')
+    // tag::plugins[]
+    // tag::plugin-init[]
     // Apply the Groovy plugin to add support for Groovy
     id 'groovy'
 }
 // end::plugin-init[]
 // end::plugins[]
+
+group = 'org.example'
+version = '1.0.0'
 
 repositories {
     // Use Maven Central for resolving dependencies.
@@ -20,9 +29,11 @@ repositories {
 dependencies {
     // end::slack-api[]
     // Use the awesome Spock testing and specification framework
+    // end::publish[]
     /*
     testImplementation libs.spock.core
      */
+    // tag::publish[]
     testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     // tag::slack-api[]
@@ -31,6 +42,7 @@ dependencies {
 }
 // end::slack-api[]
 // end::dependencies[]
+// end::publish[]
 
 /*
 // tag::plugin-init[]
@@ -47,6 +59,8 @@ gradlePlugin {
 // end::plugin-init[]
 */
 
+// tag::publish[]
+
 // tag::gradle-plugin[]
 gradlePlugin {
     // Define the plugin
@@ -58,6 +72,18 @@ gradlePlugin {
     }
 }
 // end::gradle-plugin[]
+// end::publish[]
+
+// tag::repo[]
+publishing {
+    repositories {
+        maven {
+            name = 'localRepo'
+            url = layout.buildDirectory.dir('local-repo').get().asFile.toURI()
+        }
+    }
+}
+// end::repo[]
 
 // tag::test-config[]
 // Add a source set for the functional test suite

@@ -73,14 +73,14 @@ First, update your project structure to include a new `consumer` directory:
 =====
 
 Next, we'll configure a **Composite Build** by updating the root `settings.gradle(.kts)` file.
-This tells Gradle to treat your `plugin` and `consumer` projects as part of a single, coordinated build.
+This tells Gradle to treat the `plugin` project as an included build.
 
 ====
 include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="settings.gradle.kts[]"]
 include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="settings.gradle[]"]
 ====
 
-The key line here is `includeBuild("plugin")`.
+The key line here is `includeBuild("plugin")` inside the `pluginManagement {}` block.
 This makes all the plugins from the `plugin` project available to other projects in the composite build by their ID.
 
 Finally, we need to update the `plugin`'s build file to account for the composite build setup.
@@ -100,8 +100,8 @@ Now we'll configure the `consumer` project's settings file to apply our plugin.
 Add this code to `consumer/settings.gradle(.kts)`:
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="consumer/settings.gradle.kts[]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="consumer/settings.gradle[]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="consumer/settings.gradle.kts[tags=entire]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="consumer/settings.gradle[tags=entire]"]
 ====
 
 This tells Gradle that when it encounters a `plugins` block that references your `org.example.slack` plugin, it should look for the plugin in the `plugin` project of the composite build.
@@ -142,6 +142,8 @@ You can also run a standard lifecycle task like `build`, which will automaticall
 $ ./gradlew :consumer:build
 ----
 
-That's it! You can now iterate on your plugin in the `plugin` directory and test it immediately in the `consumer` project without any publishing overhead.
+You can now iterate on your plugin in the `plugin` directory and test it immediately in the `consumer` project without any publishing overhead.
 
-Congratulations, you have completed the tutorial!
+[.text-right]
+**Next Step:** <<part8_publish_locally.adoc#part8_publish_locally,Publish your Plugin Locally>> >>
+

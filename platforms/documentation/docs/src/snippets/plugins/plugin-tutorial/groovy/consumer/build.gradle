@@ -10,6 +10,17 @@ plugins {
     // tag::build[]
 }
 
+// end::build[]
+/*
+// tag::repo[]
+plugins {
+    id("java")
+    id 'org.example.slack' version '1.0.0'
+}
+// end::repo[]
+*/
+// tag::build[]
+
 repositories {
     mavenCentral()
 }
