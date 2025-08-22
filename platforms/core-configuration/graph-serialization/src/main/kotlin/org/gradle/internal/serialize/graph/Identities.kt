@@ -16,21 +16,25 @@
 
 package org.gradle.internal.serialize.graph
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
-import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap
+import it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap
 import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet
 
 
 class WriteIdentities {
 
     private
-    val instanceIds = Reference2ObjectOpenHashMap<Any, Int>()
+    val instanceIds = Reference2IntOpenHashMap<Any>()
 
-    fun getId(instance: Any): Int? = instanceIds[instance]
+    /**
+     * Returns `-1` when the instance cannot be found to avoid boxing.
+     */
+    fun getId(instance: Any): Int =
+        instanceIds.getOrDefault(instance, -1)
 
     fun putInstance(instance: Any): Int {
         val id = instanceIds.size
-        instanceIds[instance] = id
+        instanceIds.put(instance, id)
         return id
     }
 }
@@ -39,12 +43,13 @@ class WriteIdentities {
 class ReadIdentities {
 
     private
-    val instanceIds = Int2ObjectOpenHashMap<Any>()
+    val instanceIds = Int2ReferenceOpenHashMap<Any>()
 
-    fun getInstance(id: Int): Any? = instanceIds[id]
+    fun getInstance(id: Int): Any? =
+        instanceIds.get(id)
 
     fun putInstance(id: Int, instance: Any) {
-        instanceIds[id] = instance
+        instanceIds.put(id, instance)
     }
 }
 
