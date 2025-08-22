@@ -24,21 +24,21 @@ import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.work.WorkerLimits;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable {
+
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
     private final BuildOperationRunner runner;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
-    private final Map<BuildOperationConstraint, ManagedExecutor> managedExecutors = new HashMap<>();
     private final CurrentBuildOperationRef currentBuildOperationRef;
+
+    private final BuildOperationExecutionContext maxWorkersExecutionContext;
+    private final BuildOperationExecutionContext unconstrainedExecutionContext;
 
     public DefaultBuildOperationExecutor(
         BuildOperationRunner buildOperationRunner,
@@ -50,8 +50,17 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         this.runner = buildOperationRunner;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
-        managedExecutors.put(BuildOperationConstraint.MAX_WORKERS, executorFactory.create("Build operations", workerLimits.getMaxWorkerCount()));
-        managedExecutors.put(BuildOperationConstraint.UNCONSTRAINED, executorFactory.create("Unconstrained build operations", workerLimits.getMaxWorkerCount() * 10));
+
+        maxWorkersExecutionContext = new DefaultBuildOperationExecutionContext(
+            executorFactory.create("Build operations", workerLimits.getMaxWorkerCount()),
+            workerLimits.getMaxWorkerCount(),
+            true
+        );
+        unconstrainedExecutionContext = new DefaultBuildOperationExecutionContext(
+            executorFactory.create("Unconstrained build operations", workerLimits.getMaxWorkerCount() * 10),
+            workerLimits.getMaxWorkerCount() * 10,
+            false // Unconstrained operations do not require a worker lease since they are not intended for CPU intensive work
+        );
     }
 
     @Override
@@ -84,23 +93,18 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         executeInParallel(false, worker, schedulingAction, buildOperationConstraint);
     }
 
-    @Nullable
-    private BuildOperationState getCurrentBuildOperation() {
-        return (BuildOperationState) currentBuildOperationRef.get();
-    }
-
     private <O extends BuildOperation> void executeInParallel(
         boolean allowAccessToProjectState,
         BuildOperationWorker<O> worker,
         Action<BuildOperationQueue<O>> queueAction,
         BuildOperationConstraint buildOperationConstraint
     ) {
-        ManagedExecutor executor = managedExecutors.get(buildOperationConstraint);
+        BuildOperationExecutionContext executionContext = getExecutionContextFor(buildOperationConstraint);
         BuildOperationQueue<O> queue = buildOperationQueueFactory.create(
-            executor,
+            executionContext,
             allowAccessToProjectState,
             operation -> runner.execute(operation, worker),
-            getCurrentBuildOperation()
+            currentBuildOperationRef.get()
         );
 
         List<GradleException> failures = new ArrayList<>();
@@ -124,6 +128,14 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         }
     }
 
+    private BuildOperationExecutionContext getExecutionContextFor(BuildOperationConstraint buildOperationConstraint) {
+        switch (buildOperationConstraint) {
+            case UNCONSTRAINED: return unconstrainedExecutionContext;
+            case MAX_WORKERS: return maxWorkersExecutionContext;
+            default: throw new IllegalArgumentException("Unknown build operation constraint: " + buildOperationConstraint);
+        }
+    }
+
     private static String formatMultipleFailureMessage(List<GradleException> failures) {
         return failures.stream()
             .map(Throwable::getMessage)
@@ -132,9 +144,37 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public void stop() {
-        for (ManagedExecutor pool : managedExecutors.values()) {
-            pool.stop();
+        maxWorkersExecutionContext.getExecutor().stop();
+        unconstrainedExecutionContext.getExecutor().stop();
+    }
+
+    private static class DefaultBuildOperationExecutionContext implements BuildOperationExecutionContext {
+
+        private final ManagedExecutor executor;
+        private final int maxConcurrency;
+        private final boolean requiresWorkerLease;
+
+        private DefaultBuildOperationExecutionContext(ManagedExecutor executor, int maxConcurrency, boolean requiresWorkerLease) {
+            this.executor = executor;
+            this.maxConcurrency = maxConcurrency;
+            this.requiresWorkerLease = requiresWorkerLease;
         }
+
+        @Override
+        public ManagedExecutor getExecutor() {
+            return executor;
+        }
+
+        @Override
+        public int getMaxConcurrency() {
+            return maxConcurrency;
+        }
+
+        @Override
+        public boolean requiresWorkerLease() {
+            return requiresWorkerLease;
+        }
+
     }
 
 }

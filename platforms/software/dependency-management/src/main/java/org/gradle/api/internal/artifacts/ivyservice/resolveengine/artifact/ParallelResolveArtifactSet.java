@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
-import org.gradle.internal.operations.BuildOperationConstraint;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
@@ -63,7 +62,14 @@ public abstract class ParallelResolveArtifactSet {
         public void visit(ArtifactVisitor visitor) {
             // Start preparing the result
             StartVisitAction visitAction = new StartVisitAction(visitor);
-            buildOperationProcessor.runAll(visitAction, BuildOperationConstraint.UNCONSTRAINED);
+
+            // TODO: Ideally we'd execute this work on an unconstrained executor, allowing us to download
+            // more artifacts in parallel than the number of worker leases. However, if there are artifact
+            // transforms in this artifact set that have not yet executed, they will execute here on-demand.
+            // We need a way to split the downloading work and transform computations into separate queues,
+            // potentially allowing `Artifact#startFinalization` to submit work to separate queues -- one for
+            // CPU-bound work and one for IO-bound work.
+            buildOperationProcessor.runAll(visitAction);
 
             // Now visit the result in order
             visitAction.visitResults();
