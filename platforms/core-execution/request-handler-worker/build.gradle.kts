@@ -26,7 +26,7 @@ dependencies {
     api(projects.serialization)
     api(projects.workerMain)
 
-    implementation(libs.jspecify)
+    compileOnly(libs.jspecify)
 
     implementation(projects.modelCore)
     implementation(projects.persistentCache)

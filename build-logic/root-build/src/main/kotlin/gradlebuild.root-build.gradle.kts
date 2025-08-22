@@ -39,5 +39,5 @@ configure<DependencyAnalysisExtension> {
         }
     }
 
-    useTypesafeProjectAccessors(true) // FIXME: has no effect
+    useTypesafeProjectAccessors(true)
 }

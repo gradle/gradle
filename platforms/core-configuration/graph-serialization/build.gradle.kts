@@ -36,5 +36,6 @@ dependencies {
     implementation(projects.stdlibKotlinExtensions)
 
     implementation(libs.fastutil)
-    implementation(libs.jspecify)
+
+    compileOnly(libs.jspecify)
 }
