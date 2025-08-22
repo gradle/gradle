@@ -48,6 +48,11 @@ abstract class AbstractGradleMetadataMavenSnapshotCrossVersionIntegrationTest ex
                 implementation 'org.apache.commons:commons-lang3:3.8.1'
             }
 
+            java {
+                sourceCompatibility = JavaVersion.VERSION_1_8
+                targetCompatibility = JavaVersion.VERSION_1_8
+            }
+
             publishing {
                 repositories {
                     maven { url = rootProject.layout.buildDirectory.dir("repo") }

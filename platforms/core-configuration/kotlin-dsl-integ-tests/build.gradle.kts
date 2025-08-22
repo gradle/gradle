@@ -5,6 +5,14 @@ plugins {
 
 description = "Kotlin DSL Integration Tests"
 
+jvmCompile {
+    compilations {
+        named("main") {
+            targetJvmVersion = 8
+        }
+    }
+}
+
 dependencies {
     testImplementation(testFixtures(projects.kotlinDsl))
 
