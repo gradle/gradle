@@ -359,6 +359,17 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
         return addBlockingHandler(concurrent, expectations);
     }
 
+    /**
+     * {@link #expectConcurrentAndBlock(int, ExpectedRequest...)}, but accepts a collection.
+     */
+    public BlockingHandler expectConcurrentAndBlock(int concurrent, Collection<ExpectedRequest> expectedRequests) {
+        List<ResourceExpectation> expectations = new ArrayList<>();
+        for (ExpectedRequest request : expectedRequests) {
+            expectations.add((ResourceExpectation) request);
+        }
+        return addBlockingHandler(concurrent, expectations);
+    }
+
     private BlockingHandler addBlockingHandler(final int concurrent, final Collection<? extends ResourceExpectation> expectations) {
         return handler.addHandler(previous -> new ExpectMaxNConcurrentRequests(lock, serverId, timeout, concurrent, previous, expectations));
     }
