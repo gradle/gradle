@@ -53,7 +53,7 @@ class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec i
         gradleHandle.waitForFailure()
 
         and:
-        GenericTestExecutionResult testResults = resultsFor("test")
+        GenericTestExecutionResult testResults = resultsFor("tests/test")
         assert 1 == resourceForTest.keySet().sum {
             def path = pathToTestPackages + it
             if (testResults.testPathExists(path)) {

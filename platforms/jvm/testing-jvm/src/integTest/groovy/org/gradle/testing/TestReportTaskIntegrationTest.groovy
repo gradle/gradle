@@ -16,6 +16,10 @@
 
 package org.gradle.testing
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.TestPathExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitTestClassExecutionResult
@@ -27,14 +31,12 @@ import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.Issue
 
-import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
-import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT4_VERSION
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.equalTo
 
-class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
+class TestReportTaskIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
     @Rule
     Sample sample = new Sample(temporaryFolder)
 
@@ -47,9 +49,15 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
         run "testReport"
 
         then:
-        def htmlReport = new HtmlTestExecutionResult(sample.dir, "build/reports/allTests")
-        htmlReport.testClass("org.gradle.sample.CoreTest").assertTestCount(1, 0).assertTestPassed("ok").assertStdout(equalTo("hello from CoreTest.\n"))
-        htmlReport.testClass("org.gradle.sample.UtilTest").assertTestCount(1, 0).assertTestPassed("ok").assertStdout(equalTo("hello from UtilTest.\n"))
+        GenericTestExecutionResult testResults = resultsFor(testDirectory.file("testReport"), "allTests")
+
+        TestPathExecutionResult coreTest = testResults.testPath("org.gradle.sample.CoreTest:ok")
+        coreTest.onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        coreTest.onlyRoot().assertStdout(equalTo("hello from CoreTest.\n"))
+
+        TestPathExecutionResult utilTest = testResults.testPath("org.gradle.sample.UtilTest:ok")
+        utilTest.onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        utilTest.onlyRoot().assertStdout(equalTo("hello from UtilTest.\n"))
     }
 
     def "merges report with duplicated classes and methods"() {
@@ -166,6 +174,32 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
                 containsString('org.gradle.testing.SubTest#passing super\n'),
                 containsString('org.gradle.testing.SubTest#onlySub sub\n'),
                 containsString('org.gradle.testing.SubTest#onlySub super\n')))
+
+        // TODO: Doesn't work
+//        GenericTestExecutionResult testResults = resultsFor("aggregate-test-results")
+//
+//        TestPathExecutionResult fooTest = testResults.testPath("org.gradle.testing.UnitTest:foo")
+//        fooTest.onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+//        fooTest.onlyRoot().assertStdout(equalTo('org.gradle.testing.UnitTest#foo\n'))
+//
+//        TestPathExecutionResult superTest = testResults.testPath("org.gradle.testing.SuperTest")
+//        superTest.onlyRoot().assertChildCount(2, 1)
+//
+//        TestPathExecutionResult failingTest = testResults.testPath("org.gradle.testing.SuperTest:failing")
+//        failingTest.onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+//        failingTest.onlyRoot().assertStdout(equalTo('java.lang.AssertionError: failing test'))
+//
+//        TestPathExecutionResult passingTest = testResults.testPath("org.gradle.testing.SuperTest:passing")
+//        passingTest.onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+//        passingTest.onlyRoot().assertStdout(equalTo('org.gradle.testing.SuperTest#passing\n'))
+//
+//        TestPathExecutionResult subTest = testResults.testPath("org.gradle.testing.SubTest")
+//        subTest.onlyRoot().assertChildCount(4, 1)
+//        subTest.onlyRoot().assertStdout(allOf(containsString('org.gradle.testing.SubTest#passing sub\n'),
+//            containsString('org.gradle.testing.SubTest#passing super\n'),
+//            containsString('org.gradle.testing.SubTest#onlySub sub\n'),
+//            containsString('org.gradle.testing.SubTest#onlySub super\n')))
+//        testResults.testPath("org.gradle.testing.SubTest#passing").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     def "report includes results of most recent invocation"() {
@@ -199,17 +233,20 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
         run "test"
 
         then:
-        def result = new HtmlTestExecutionResult(testDirectory)
-        result.testClass("LoggingTest").assertStdout(equalTo("This is stdout.\n"))
-        result.testClass("LoggingTest").assertStderr(equalTo("This is stderr.\n"))
+        resultsFor("tests").testPath("test:LoggingTest:test").onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+            .assertStdout(equalTo("This is stdout.\n"))
+            .assertStderr(equalTo("This is stderr.\n"))
 
         when:
         executer.withArguments("-DLogLessStuff=true")
         run "test"
 
         then:
-        result.testClass("LoggingTest").assertStdout(equalTo("stdout.\n"))
-        result.testClass("LoggingTest").assertStderr(equalTo("stderr.\n"))
+        resultsFor("tests").testPath("test:LoggingTest:test").onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+            .assertStdout(equalTo("stdout.\n"))
+            .assertStderr(equalTo("stderr.\n"))
     }
 
     @Issue("https://issues.gradle.org//browse/GRADLE-2915")
@@ -377,14 +414,6 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-    }
-
-    private getTestReportLink(sectionPart) {
-        String.format(RECOMMENDATION, "information", "${BASE_URL}/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:${sectionPart}")
-    }
-
-    private void failingTestClass(String name) {
-        testClass(name, true)
     }
 
     private void testClass(String name, boolean failing = false) {
