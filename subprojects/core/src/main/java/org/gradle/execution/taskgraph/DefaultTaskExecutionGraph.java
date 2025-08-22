@@ -314,6 +314,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public void resetState() {
+        internalGraphListeners.removeAll();
         graphListeners.removeAll();
         taskListeners.removeAll();
         executionPlan.close();
