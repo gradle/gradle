@@ -47,6 +47,8 @@ val keepPatterns = mapOf(
         // For the configuration cache module
         "it.unimi.dsi.fastutil.objects.ReferenceArrayList",
         "it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet",
+        "it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap",
+        "it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap",
     )
 )
 plugins.withId("java-base") {
