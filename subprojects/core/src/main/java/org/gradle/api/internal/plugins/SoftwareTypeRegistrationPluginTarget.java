@@ -33,7 +33,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+import org.gradle.plugin.software.internal.SoftwareFeatureRegistry;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -45,18 +45,18 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 
 /**
  * A {@link PluginTarget} that inspects the plugin for {@link RegistersSoftwareTypes} annotations and registers the
- * specified software type plugins with the {@link SoftwareTypeRegistry} prior to applying the plugin via the delegate.
+ * specified software type plugins with the {@link SoftwareFeatureRegistry} prior to applying the plugin via the delegate.
  */
 @NullMarked
 public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
     private final PluginTarget delegate;
-    private final SoftwareTypeRegistry softwareTypeRegistry;
+    private final SoftwareFeatureRegistry softwareFeatureRegistry;
     private final InspectionScheme inspectionScheme;
     private final InternalProblems problems;
 
-    public SoftwareTypeRegistrationPluginTarget(PluginTarget delegate, SoftwareTypeRegistry softwareTypeRegistry, InspectionScheme inspectionScheme, InternalProblems problems) {
+    public SoftwareTypeRegistrationPluginTarget(PluginTarget delegate, SoftwareFeatureRegistry softwareFeatureRegistry, InspectionScheme inspectionScheme, InternalProblems problems) {
         this.delegate = delegate;
-        this.softwareTypeRegistry = softwareTypeRegistry;
+        this.softwareFeatureRegistry = softwareFeatureRegistry;
         this.inspectionScheme = inspectionScheme;
         this.problems = problems;
     }
@@ -70,7 +70,7 @@ public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
     public void applyImperative(@Nullable String pluginId, Plugin<?> plugin) {
         TypeToken<?> pluginType = TypeToken.of(plugin.getClass());
         TypeMetadata typeMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(pluginType.getRawType());
-        registerSoftwareTypes(typeMetadata);
+        registerSoftwareTypes(pluginId, typeMetadata);
 
         delegate.applyImperative(pluginId, plugin);
     }
@@ -90,13 +90,13 @@ public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
         return delegate.toString();
     }
 
-    private void registerSoftwareTypes(TypeMetadata typeMetadata) {
+    private void registerSoftwareTypes(@Nullable String pluginId, TypeMetadata typeMetadata) {
         Optional<RegistersSoftwareTypes> registersSoftwareType = typeMetadata.getTypeAnnotationMetadata().getAnnotation(RegistersSoftwareTypes.class);
         registersSoftwareType.ifPresent(registration -> {
             Class<? extends Plugin<Settings>> registeringPlugin = Cast.uncheckedCast(typeMetadata.getType());
             for (Class<? extends Plugin<Project>> softwareTypeImplClass : registration.value()) {
                 validateSoftwareTypePluginExposesExactlyOneSoftwareType(softwareTypeImplClass, typeMetadata.getType());
-                softwareTypeRegistry.register(softwareTypeImplClass, registeringPlugin);
+                softwareFeatureRegistry.register(pluginId, softwareTypeImplClass, registeringPlugin);
             }
         });
     }
@@ -114,26 +114,31 @@ public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
             .sorted()
             .collect(Collectors.toList());
 
-        if (exposedSoftwareTypes.isEmpty()) {
-            typeValidationContext.visitTypeProblem(problem ->
-                problem.withAnnotationType(softwareTypePluginImplClass)
-                    .id("missing-software-type", "Missing software type annotation", GradleCoreProblemGroup.validation().type())
-                    .contextualLabel("is registered as a software type plugin but does not expose a software type")
-                    .severity(Severity.ERROR)
-                    .details("This class was registered as a software type plugin, but it does not expose a software type. Software type plugins must expose exactly one software type via a property with the @SoftwareType annotation.")
-                    .solution("Add @SoftwareType annotations to properties of " + softwareTypePluginImplClass.getSimpleName())
-                    .solution("Remove " + softwareTypePluginImplClass.getSimpleName() + " from the @RegistersSoftwareTypes annotation on " + registeringPlugin.getSimpleName())
-            );
-        } else if (exposedSoftwareTypes.size() > 1) {
-            typeValidationContext.visitTypeProblem(problem ->
-                problem.withAnnotationType(softwareTypePluginImplClass)
-                    .id("multiple-software-types", "Multiple software type annotations", GradleCoreProblemGroup.validation().type())
-                    .contextualLabel("is registered as a software type plugin, but it exposes multiple software types")
-                    .severity(Severity.ERROR)
-                    .details("This class was registered as a software type plugin, but it exposes multiple software types: [" + String.join(", ", exposedSoftwareTypes) + "]. Software type plugins must expose exactly one software type via a property with the @SoftwareType annotation.")
-                    .solution("Add the @SoftwareType annotation to only one property of " + softwareTypePluginImplClass.getSimpleName())
-                    .solution("Split " + softwareTypePluginImplClass.getSimpleName() + " into multiple plugins, each exposing a single software type and register all plugins in " + registeringPlugin.getSimpleName() + " using the @RegistersSoftwareTypes annotation")
-            );
+        boolean isBinding = softwareTypePluginImplClass.getAnnotation(BindsSoftwareType.class) != null ||
+            softwareTypePluginImplClass.getAnnotation(BindsSoftwareFeature.class) != null;
+
+        if (!isBinding) {
+            if (exposedSoftwareTypes.isEmpty()) {
+                typeValidationContext.visitTypeProblem(problem ->
+                    problem.withAnnotationType(softwareTypePluginImplClass)
+                        .id("missing-software-type", "Missing software type annotation", GradleCoreProblemGroup.validation().type())
+                        .contextualLabel("is registered as a software type plugin but does not expose a software type")
+                        .severity(Severity.ERROR)
+                        .details("This class was registered as a software type plugin, but it does not expose a software type. Software type plugins must expose exactly one software type via a property with the @SoftwareType annotation.")
+                        .solution("Add @SoftwareType annotations to properties of " + softwareTypePluginImplClass.getSimpleName())
+                        .solution("Remove " + softwareTypePluginImplClass.getSimpleName() + " from the @RegistersSoftwareTypes annotation on " + registeringPlugin.getSimpleName())
+                );
+            } else if (exposedSoftwareTypes.size() > 1) {
+                typeValidationContext.visitTypeProblem(problem ->
+                    problem.withAnnotationType(softwareTypePluginImplClass)
+                        .id("multiple-software-types", "Multiple software type annotations", GradleCoreProblemGroup.validation().type())
+                        .contextualLabel("is registered as a software type plugin, but it exposes multiple software types")
+                        .severity(Severity.ERROR)
+                        .details("This class was registered as a software type plugin, but it exposes multiple software types: [" + String.join(", ", exposedSoftwareTypes) + "]. Software type plugins must expose exactly one software type via a property with the @SoftwareType annotation.")
+                        .solution("Add the @SoftwareType annotation to only one property of " + softwareTypePluginImplClass.getSimpleName())
+                        .solution("Split " + softwareTypePluginImplClass.getSimpleName() + " into multiple plugins, each exposing a single software type and register all plugins in " + registeringPlugin.getSimpleName() + " using the @RegistersSoftwareTypes annotation")
+                );
+            }
         }
 
         if (!typeValidationContext.getProblems().isEmpty()) {

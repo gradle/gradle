@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.SkipDsl
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
+import org.gradle.internal.declarativedsl.DeclarativeTestUtils
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 @PolyglotDslTest
@@ -39,7 +40,7 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
 
         settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults(modelDefault)
 
-        buildFile() << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(buildConfiguration)
+        buildFile() << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(buildConfiguration) << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration")
@@ -66,7 +67,7 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
 
         settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults(modelDefault)
 
-        buildFile() << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("")
+        buildFile() << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("") << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
         fails(":printTestSoftwareTypeExtensionConfiguration")
@@ -91,7 +92,7 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         buildFile() << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("""
             ${setId("foo")}
             ${dependencies(buildConfiguration)}
-        """)
+        """) << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
         run(":printTestSoftwareTypeExtensionWithDependenciesConfiguration")
@@ -122,7 +123,7 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         buildFile() << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("""
             ${setId("foo")}
             ${dependencies(buildConfiguration)}
-        """)
+        """) << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
         run(":printTestSoftwareTypeExtensionWithDependenciesConfiguration")
@@ -235,11 +236,11 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         buildFileForProject("foo") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("""
             ${setAll("foo", "fooBar")}
             ${addToBaz("foo")}
-        """)
+        """) << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
         buildFileForProject("bar") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("""
             ${setAll("bar", "barBar")}
             ${dependencies(implementation("bar:foo:2.0"))}
-        """)
+        """) << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
         run(":foo:printTestSoftwareTypeExtensionWithDependenciesConfiguration")
@@ -271,7 +272,7 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         """
 
         and: 'a build file that only specifies the software type'
-        buildFileForProject("foo") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType()
+        buildFileForProject("foo") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType() << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
         run(":foo:printTestSoftwareTypeExtensionWithDependenciesConfiguration")
@@ -369,7 +370,7 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
 
         settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults()
 
-        buildFile() << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setId("test"))
+        buildFile() << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setId("test")) << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration")

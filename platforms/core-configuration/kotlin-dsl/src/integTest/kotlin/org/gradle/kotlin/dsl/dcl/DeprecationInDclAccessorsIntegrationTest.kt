@@ -53,9 +53,10 @@ class DeprecationInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest()
             assertOutputContains("build.gradle.kts:3:9: 'fun NamedDomainObjectContainer<MyElement>.myElement(name: String, configure: Action<in MyElement>): Unit' is deprecated. Deprecated element type.")
 
             assertOutputContains("""
+            |    @Incubating
             |    @Suppress("deprecation")
             |    @Deprecated("Deprecated model type", level = DeprecationLevel.WARNING)
-            |    fun Project.`mySoftwareType`(configure: Action<in com.example.MyExtension>) {
+            |    fun org.gradle.api.Project.`mySoftwareType`(configure: Action<in com.example.MyExtension>) {
             """.trimMargin())
 
             assertOutputContains("""

@@ -38,11 +38,11 @@ import org.gradle.kotlin.dsl.accessors.ProjectSchema
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
 import org.gradle.kotlin.dsl.accessors.SchemaType
-import org.gradle.kotlin.dsl.accessors.SoftwareTypeEntry
+import org.gradle.kotlin.dsl.accessors.SoftwareFeatureEntry
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 import org.gradle.kotlin.dsl.accessors.isDclEnabledForScriptTarget
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry
+import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
 import java.lang.reflect.Modifier
 import kotlin.reflect.KVisibility
 
@@ -69,7 +69,7 @@ internal class DefaultProjectSchemaProvider(
                         ?: emptyList(),
                     targetSchema.modelDefaults,
                     targetSchema.containerElementFactories,
-                    targetSchema.softwareTypeEntries,
+                    targetSchema.softwareFeatureEntries,
                     scriptTarget
                 ).map(::SchemaType)
             }
@@ -107,8 +107,8 @@ internal class DefaultProjectSchemaProvider(
                 }
             }
             if (target is Settings) {
-                val softwareTypeRegistry = target.serviceOf<SoftwareTypeRegistry>()
-                accessibleContainerSchema(softwareTypeRegistry.schema).forEach { schema ->
+                val softwareFeatureRegistry = target.serviceOf<SoftwareFeatureRegistry>()
+                accessibleContainerSchema(softwareFeatureRegistry.schema).forEach { schema ->
                     buildModelDefaults.add(ProjectSchemaEntry(typeOfModelDefaults, schema.name, schema.publicType))
                 }
             }
@@ -131,7 +131,7 @@ internal class DefaultProjectSchemaProvider(
             tasks,
             containerElements,
             buildModelDefaults,
-            dclSchema?.softwareTypes.orEmpty(),
+            dclSchema?.softwareFeatures.orEmpty(),
             dclSchema?.containerElementFactories.orEmpty()
         )
     }
@@ -145,7 +145,7 @@ data class TargetTypedSchema(
     val containerElements: List<ProjectSchemaEntry<TypeOf<*>>>,
     // DCL:
     val modelDefaults: List<ProjectSchemaEntry<TypeOf<*>>>,
-    val softwareTypeEntries: List<SoftwareTypeEntry<TypeOf<*>>>,
+    val softwareFeatureEntries: List<SoftwareFeatureEntry<TypeOf<*>>>,
     val containerElementFactories: List<ContainerElementFactoryEntry<TypeOf<*>>>
 )
 

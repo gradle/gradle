@@ -37,5 +37,5 @@ class ModelDefaultsDefinitionCollector(private val defaultsRegistrar: ModelDefau
 
 
 interface ModelDefaultsDefinitionRegistrar {
-    fun registerDefaults(modelDefaultsBySoftwareType: Map<String, ModelDefaultsResolutionResults>)
+    fun registerDefaults(modelDefaultsBySoftwareFeature: Map<String, ModelDefaultsResolutionResults>)
 }
