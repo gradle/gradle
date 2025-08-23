@@ -16,8 +16,6 @@
 
 package org.gradle.internal.execution.workspace;
 
-import org.gradle.internal.vfs.FileSystemAccess;
-
 import java.io.File;
 import java.util.function.Supplier;
 
@@ -37,17 +35,21 @@ public interface ImmutableWorkspaceProvider {
     interface LockingImmutableWorkspace extends ImmutableWorkspace {
 
 
-        boolean isStale(FileSystemAccess fileSystemAccess);
+        boolean isStale();
 
         /**
          * Executes the given action under the global scoped lock.
          */
-        <T> T withWorkspaceLock(Supplier<T> supplier);
-
         <T> T withProcessLock(Supplier<T> supplier);
+
+        <T> T withThreadLock(Supplier<T> supplier);
 
         void unstale();
 
         boolean deleteStaleFiles();
+
+        boolean isMarkedComplete();
+
+        void markCompleted();
     }
 }

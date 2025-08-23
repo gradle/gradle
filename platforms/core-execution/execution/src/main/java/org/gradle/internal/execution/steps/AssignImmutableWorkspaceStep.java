@@ -29,7 +29,6 @@ import org.gradle.internal.execution.history.ImmutableWorkspaceMetadata;
 import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore;
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
-import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ImmutableWorkspace;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.LockingImmutableWorkspace;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.HashCode;
@@ -110,23 +109,23 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         String uniqueId = context.getIdentity().getUniqueId();
 
         LockingImmutableWorkspace workspace = workspaceProvider.getLockingWorkspace(uniqueId);
-        // We are reading/invalidating snapshots, so only one thread can do that at a time.
-        return workspace.withProcessLock(() -> loadImmutableWorkspaceIfExists(work, workspace)
+        // We are reading/invalidating snapshots, only one thread should do that at a time.
+        return workspace.withThreadLock(() -> loadImmutableWorkspaceIfExists(work, workspace)
             .orElseGet(() ->
-                workspace.withWorkspaceLock(() -> {
-                    if (workspaceMetadataStore.workspaceMetadataExists(workspace.getImmutableLocation().getAbsoluteFile())) {
-                        // If the workspace metadata exists, it means one process could already create/fix the workspace, and we need to invalidate snapshots.
-                        fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
-                    }
-                    return loadImmutableWorkspaceIfConsistent(work, workspace)
+                workspace.withProcessLock(() -> {
+                    // If the workspace is marked as completed, it means one process could already create/fix the workspace,
+                    // and we need to invalidate snapshots, since we could read stale snapshots before.
+                    boolean invalidateSnapshotsIfCompleted = true;
+                    return loadImmutableWorkspaceIfCompleted(work, workspace, invalidateSnapshotsIfCompleted)
                         .map(result -> {
-                            // If we got result make sure to unstale in case it was stale
+                            // If we got result make sure to unstale in case it was stale,
+                            // we don't need to invalidate snapshots after, since we already did it with invalidateSnapshotsIfCompleted
                             workspace.unstale();
                             return result;
                         }).orElseGet(() -> {
                             workspace.deleteStaleFiles();
                             fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
-                            return executeInWorkspace(work, context, workspace.getImmutableLocation());
+                            return executeInWorkspace(work, context, workspace);
                         });
                 })));
     }
@@ -136,11 +135,11 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         FileSystemLocationSnapshot snapshot = fileSystemAccess.read(immutableLocation.getAbsolutePath());
         switch (snapshot.getType()) {
             case Directory:
-                if (workspace.isStale(fileSystemAccess)) {
-                    // If the workspace is stale, we need to delete it and re-execute the work
+                if (workspace.isStale()) {
+                    // If the workspace is stale, we need to use process lock
                     return Optional.empty();
                 }
-                return loadImmutableWorkspaceIfConsistent(work, workspace);
+                return loadImmutableWorkspaceIfCompleted(work, workspace, false);
             case RegularFile:
                 throw new IllegalStateException(
                     "Immutable workspace is occupied by a file: " + immutableLocation.getAbsolutePath() + ". " +
@@ -152,7 +151,16 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         }
     }
 
-    private Optional<WorkspaceResult> loadImmutableWorkspaceIfConsistent(UnitOfWork work, ImmutableWorkspace workspace) {
+    private Optional<WorkspaceResult> loadImmutableWorkspaceIfCompleted(UnitOfWork work, LockingImmutableWorkspace workspace, boolean invalidateSnapshotsIfCompleted) {
+        if (!workspace.isMarkedComplete()) {
+            // Workspace is not complete, so there could be one process still writing to it, or it just doesn't exist
+            return Optional.empty();
+        }
+
+        if (invalidateSnapshotsIfCompleted) {
+            fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
+        }
+
         File immutableLocation = workspace.getImmutableLocation();
         Optional<ImmutableWorkspaceMetadata> metadata = workspaceMetadataStore.loadWorkspaceMetadata(immutableLocation);
 
@@ -193,8 +201,8 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             immutableLocation);
     }
 
-    private WorkspaceResult executeInWorkspace(UnitOfWork work, C context, File workspace) {
-        WorkspaceContext workspaceContext = new WorkspaceContext(context, workspace);
+    private WorkspaceResult executeInWorkspace(UnitOfWork work, C context, LockingImmutableWorkspace workspace) {
+        WorkspaceContext workspaceContext = new WorkspaceContext(context, workspace.getImmutableLocation());
 
         // There is no previous execution in the immutable case
         PreviousExecutionContext previousExecutionContext = new PreviousExecutionContext(workspaceContext, null);
@@ -207,9 +215,10 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             ExecutionOutputState executionOutputState = delegateResult.getAfterExecutionOutputState().get();
             ImmutableListMultimap<String, HashCode> outputHashes = calculateOutputHashes(executionOutputState.getOutputFilesProducedByWork());
             ImmutableWorkspaceMetadata metadata = new ImmutableWorkspaceMetadata(executionOutputState.getOriginMetadata(), outputHashes);
-            workspaceMetadataStore.storeWorkspaceMetadata(workspace, metadata);
+            workspaceMetadataStore.storeWorkspaceMetadata(workspace.getImmutableLocation(), metadata);
+            workspace.markCompleted();
 
-            return new WorkspaceResult(delegateResult, workspace);
+            return new WorkspaceResult(delegateResult, workspace.getImmutableLocation());
         } else {
             // TODO Do not capture a null workspace in case of a failure
             return new WorkspaceResult(delegateResult, null);
