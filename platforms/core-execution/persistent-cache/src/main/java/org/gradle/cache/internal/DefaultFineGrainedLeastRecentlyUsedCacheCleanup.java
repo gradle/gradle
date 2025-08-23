@@ -54,17 +54,16 @@ public class DefaultFineGrainedLeastRecentlyUsedCacheCleanup extends LeastRecent
 
     @Override
     protected boolean doDelete(File file) {
-        if (!deleter.isStaleUncached(file)) {
+        if (!deleter.isStale(file)) {
             // If the entry is not stale, we add a stale marker to it
             // to indicate that it should be cleaned next time if still stale.
             deleter.addStaleMarker(file);
             return false;
         } else if (deleter.shouldBeDeleted(file)) {
-            // If the entry is stale for more than 1 hour, we delete it immediately.
             return cache.useCache(asKey(file), () -> {
                 // We need to recheck if the entry is still stale
                 // or some other process deleted it/recreated it before we acquired the lock.
-                if (deleter.isStaleUncached(file)) {
+                if (deleter.isStale(file)) {
                     deleter.delete(file);
                     return true;
                 }
@@ -106,10 +105,6 @@ public class DefaultFineGrainedLeastRecentlyUsedCacheCleanup extends LeastRecent
 
         @Override
         public boolean isStale(File entry) {
-            return getStaleMarkerFile(entry).exists();
-        }
-
-        private boolean isStaleUncached(File entry) {
             return getStaleMarkerFile(entry).exists();
         }
 

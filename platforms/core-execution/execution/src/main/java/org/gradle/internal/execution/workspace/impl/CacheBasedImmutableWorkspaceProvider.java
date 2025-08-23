@@ -24,13 +24,12 @@ import org.gradle.cache.FineGrainedPersistentCache;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.function.Supplier;
 
 import static org.gradle.cache.FineGrainedCacheCleanupStrategy.FineGrainedCacheDeleter;
@@ -99,6 +98,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
     @Override
     public LockingImmutableWorkspace getLockingWorkspace(String path) {
         File workspace = new File(baseDirectory, path);
+        File completeMarker = new File(workspace, "gradle.complete");
         fileAccessTracker.markAccessed(workspace);
         return new LockingImmutableWorkspace() {
 
@@ -108,21 +108,17 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             }
 
             @Override
-            public <T> T withWorkspaceLock(Supplier<T> supplier) {
+            public <T> T withProcessLock(Supplier<T> supplier) {
                 return cache.useCache(path, supplier);
             }
 
             @Override
-            public <T> T withProcessLock(Supplier<T> supplier) {
+            public <T> T withThreadLock(Supplier<T> supplier) {
                 return guard.guardByKey(path, supplier);
             }
 
             @Override
-            public boolean isStale(FileSystemAccess fileSystemAccess) {
-                FileSystemLocationSnapshot snapshot = fileSystemAccess.read(deleter.getStaleMarkerFile(workspace).getAbsolutePath());
-                if (snapshot.getType() == FileType.RegularFile) {
-                    return true;
-                }
+            public boolean isStale() {
                 return deleter.isStale(workspace);
             }
 
@@ -134,6 +130,20 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             @Override
             public boolean deleteStaleFiles() {
                 return deleter.delete(workspace);
+            }
+
+            @Override
+            public boolean isMarkedComplete() {
+                return completeMarker.exists();
+            }
+
+            @Override
+            public void markCompleted() {
+                try {
+                    completeMarker.createNewFile();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
             }
         };
     }

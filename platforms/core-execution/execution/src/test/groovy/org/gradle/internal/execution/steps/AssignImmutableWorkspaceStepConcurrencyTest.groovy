@@ -29,7 +29,6 @@ import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider
-import org.gradle.internal.vfs.FileSystemAccess
 import spock.lang.Ignore
 
 import java.time.Duration
@@ -154,6 +153,7 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
 
         @Override
         LockingImmutableWorkspace getLockingWorkspace(String path) {
+            File completeMarker = new File(immutableWorkspace, immutableWorkspace.name + ".complete")
             return new LockingImmutableWorkspace() {
                 @Override
                 File getImmutableLocation() {
@@ -161,19 +161,19 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
                 }
 
                 @Override
-                boolean isStale(FileSystemAccess fileSystemAccess) {
+                boolean isStale() {
                     return false
                 }
 
                 @Override
-                <T> T withWorkspaceLock(Supplier<T> supplier) {
+                <T> T withProcessLock(Supplier<T> supplier) {
                     immutableWorkspace.mkdirs()
                     immutableWorkspace.file(immutableWorkspace.name + ".lock").createFile()
                     return supplier.get()
                 }
 
                 @Override
-                def <T> T withProcessLock(Supplier<T> supplier) {
+                def <T> T withThreadLock(Supplier<T> supplier) {
                     return supplier.get()
                 }
 
@@ -185,6 +185,16 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
                 @Override
                 boolean deleteStaleFiles() {
                     return false
+                }
+
+                @Override
+                boolean isMarkedComplete() {
+                    return completeMarker.exists()
+                }
+
+                @Override
+                void markCompleted() {
+                    completeMarker.createNewFile()
                 }
             }
         }

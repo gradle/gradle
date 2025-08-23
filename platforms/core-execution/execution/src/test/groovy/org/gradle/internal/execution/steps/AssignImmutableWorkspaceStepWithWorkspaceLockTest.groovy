@@ -47,7 +47,7 @@ class AssignImmutableWorkspaceStepWithWorkspaceLockTest extends StepSpec<Identit
     def immutableWorkspace = workspaceBaseDir.file("immutable-workspace")
     def workspace = Stub(LockingImmutableWorkspace) {
         immutableLocation >> immutableWorkspace
-        withWorkspaceLock(_ as Supplier)
+        withProcessLock(_ as Supplier)
             >>
             { Supplier action ->
                 workspaceBaseDir.mkdirs()
