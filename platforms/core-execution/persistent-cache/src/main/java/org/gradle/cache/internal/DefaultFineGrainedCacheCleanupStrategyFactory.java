@@ -32,18 +32,18 @@ import java.util.function.Supplier;
 public class DefaultFineGrainedCacheCleanupStrategyFactory implements FineGrainedCacheCleanupStrategyFactory {
 
     private final FileAccessTimeJournal fileAccessTimeJournal;
-    private final FineGrainedLeastRecentlyUsedCacheDeleter deleter;
+    private final Deleter deleter;
     private final CacheCleanupStrategyFactory cacheCleanupStrategyFactory;
 
     public DefaultFineGrainedCacheCleanupStrategyFactory(CacheCleanupStrategyFactory cacheCleanupStrategyFactory, FileAccessTimeJournal fileAccessTimeJournal, Deleter deleter) {
         this.cacheCleanupStrategyFactory = cacheCleanupStrategyFactory;
         this.fileAccessTimeJournal = fileAccessTimeJournal;
-        // Use single instance of deleter for all cleanup strategies, so it can share the same cache
-        this.deleter = new FineGrainedLeastRecentlyUsedCacheDeleter(deleter);
+        this.deleter = deleter;
     }
 
     @Override
     public FineGrainedCacheCleanupStrategy leastRecentlyUsedStrategy(int cacheDepth, Supplier<Long> cacheEntryRetentionTimestamp, Supplier<CleanupFrequency> frequency) {
+        FineGrainedLeastRecentlyUsedCacheDeleter deleter = new FineGrainedLeastRecentlyUsedCacheDeleter(this.deleter);
         return new FineGrainedCacheCleanupStrategy() {
             @Override
             public CacheCleanupStrategy getCleanupStrategy(FineGrainedPersistentCache cache) {
