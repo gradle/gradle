@@ -196,6 +196,11 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
                 void markCompleted() {
                     completeMarker.createNewFile()
                 }
+
+                @Override
+                void withDeletionLock(Runnable supplier) {
+
+                }
             }
         }
     }
