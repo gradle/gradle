@@ -25,6 +25,7 @@ import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 import java.io.File;
@@ -102,6 +103,9 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
         fileAccessTracker.markAccessed(workspace);
         return new LockingImmutableWorkspace() {
 
+            @Nullable
+            private Boolean isStale;
+
             @Override
             public File getImmutableLocation() {
                 return workspace;
@@ -119,12 +123,16 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
 
             @Override
             public boolean isStale() {
-                return deleter.isStale(workspace);
+                if (isStale == null) {
+                    isStale = deleter.isStale(workspace);
+                }
+                return isStale;
             }
 
             @Override
             public void unstale() {
                 deleter.unstale(workspace);
+                isStale = false;
             }
 
             @Override
@@ -144,6 +152,11 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
+            }
+
+            @Override
+            public void withDeletionLock(Runnable supplier) {
+                // TODO supplier.run();
             }
         };
     }
