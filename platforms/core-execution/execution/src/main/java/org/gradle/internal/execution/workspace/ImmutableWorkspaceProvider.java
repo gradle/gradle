@@ -51,5 +51,7 @@ public interface ImmutableWorkspaceProvider {
         boolean isMarkedComplete();
 
         void markCompleted();
+
+        void withDeletionLock(Runnable supplier);
     }
 }

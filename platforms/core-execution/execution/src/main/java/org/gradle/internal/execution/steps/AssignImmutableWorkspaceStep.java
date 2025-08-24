@@ -111,23 +111,24 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         LockingImmutableWorkspace workspace = workspaceProvider.getLockingWorkspace(uniqueId);
         // We are reading/invalidating snapshots, only one thread should do that at a time.
         return workspace.withThreadLock(() -> loadImmutableWorkspaceIfExists(work, workspace)
-            .orElseGet(() ->
-                workspace.withProcessLock(() -> {
+            .orElseGet(() -> {
+                if (workspace.isStale()) {
+                    // Deletion could run right now, so we either need to wait for it to finish
+                    // or prevent it from deleting the workspace by unstaling it
+                    workspace.withDeletionLock(workspace::unstale);
+                }
+                return workspace.withProcessLock(() -> {
                     // If the workspace is marked as completed, it means one process could already create/fix the workspace,
-                    // and we need to invalidate snapshots, since we could read stale snapshots before.
+                    // and we need to invalidate snapshots, since snapshots were cached, when we read it in loadImmutableWorkspaceIfExists step
                     boolean invalidateSnapshotsIfCompleted = true;
                     return loadImmutableWorkspaceIfCompleted(work, workspace, invalidateSnapshotsIfCompleted)
-                        .map(result -> {
-                            // If we got result make sure to unstale in case it was stale,
-                            // we don't need to invalidate snapshots after, since we already did it with invalidateSnapshotsIfCompleted
-                            workspace.unstale();
-                            return result;
-                        }).orElseGet(() -> {
+                        .orElseGet(() -> {
                             workspace.deleteStaleFiles();
                             fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
                             return executeInWorkspace(work, context, workspace);
                         });
-                })));
+                });
+            }));
     }
 
     private Optional<WorkspaceResult> loadImmutableWorkspaceIfExists(UnitOfWork work, LockingImmutableWorkspace workspace) {
