@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl
 import com.google.common.collect.ImmutableMap
 import org.gradle.api.Task
 import org.gradle.api.internal.ConfigurationCacheDegradationController
+import org.gradle.api.internal.project.HoldsProjectState
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Provider
@@ -33,7 +34,7 @@ internal class DefaultConfigurationCacheDegradationController(
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val vcsMappingsStore: VcsMappingsStore,
     private val buildModelParameters: BuildModelParameters
-) : ConfigurationCacheDegradationController {
+) : ConfigurationCacheDegradationController, HoldsProjectState {
 
     private val logger = Logging.getLogger(DefaultConfigurationCacheDegradationController::class.java)
     private val tasksDegradationRequests = ConcurrentHashMap<Task, List<Provider<String>>>()
@@ -48,6 +49,10 @@ internal class DefaultConfigurationCacheDegradationController(
         tasksDegradationRequests.compute(task) { _, reasons ->
             reasons?.plus(reason) ?: listOf(reason)
         }
+    }
+
+    override fun discardAll() {
+        tasksDegradationRequests.clear()
     }
 
     private fun collectDegradationReasons(): DegradationDecision =
