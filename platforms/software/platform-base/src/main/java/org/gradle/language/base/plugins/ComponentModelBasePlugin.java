@@ -25,7 +25,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.api.plugins.ExtensionContainer;
@@ -142,8 +142,8 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
         }
 
         @Model
-        public ProjectLayout projectLayout(ProjectIdentifier projectIdentifier, @Path("buildDir") File buildDir) {
-            return new ProjectLayout(projectIdentifier, buildDir);
+        public ProjectLayout projectLayout(@Path("buildDir") File buildDir) {
+            return new ProjectLayout(buildDir);
         }
 
         @Model
@@ -227,10 +227,11 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
         }
 
         @Finalize
-        void applyFallbackSourceConventions(@Each LanguageSourceSet languageSourceSet, ProjectIdentifier projectIdentifier) {
+        void applyFallbackSourceConventions(@Each LanguageSourceSet languageSourceSet, ServiceRegistry serviceRegistry) {
             // Only apply default locations when none explicitly configured
             if (languageSourceSet.getSource().getSourceDirectories().isEmpty()) {
-                File baseDir = projectIdentifier.getProjectDir();
+                ProjectState project = serviceRegistry.get(ProjectState.class);
+                File baseDir = project.getProjectDir();
                 String defaultSourceDir = Joiner.on(File.separator).skipNulls().join(baseDir.getPath(), "src", emptyToNull(languageSourceSet.getParentName()), emptyToNull(languageSourceSet.getName()));
                 languageSourceSet.getSource().srcDir(defaultSourceDir);
             }

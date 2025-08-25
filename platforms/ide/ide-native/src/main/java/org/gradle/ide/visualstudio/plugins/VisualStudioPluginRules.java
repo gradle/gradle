@@ -17,9 +17,10 @@
 package org.gradle.ide.visualstudio.plugins;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -46,11 +47,12 @@ class VisualStudioPluginRules {
     static class VisualStudioPluginRootRules extends RuleSource {
         // This ensures that subprojects are realized and register their project and project configuration IDE artifacts
         @Mutate
-        public static void ensureSubprojectsAreRealized(TaskContainer tasks, ProjectIdentifier projectIdentifier, ServiceRegistry serviceRegistry) {
+        public static void ensureSubprojectsAreRealized(ServiceRegistry serviceRegistry) {
             ProjectModelResolver projectModelResolver = serviceRegistry.get(ProjectModelResolver.class);
             ProjectRegistry projectRegistry = Cast.uncheckedCast(serviceRegistry.get(ProjectRegistry.class));
+            ProjectIdentity projectIdentity = serviceRegistry.get(ProjectState.class).getIdentity();
 
-            for (ProjectInternal subproject : projectRegistry.getSubProjects(projectIdentifier.getPath())) {
+            for (ProjectInternal subproject : projectRegistry.getSubProjects(projectIdentity.getProjectPath().getPath())) {
                 projectModelResolver.resolveProjectModel(subproject.getPath()).find("visualStudio", VisualStudioExtension.class);
             }
         }

@@ -38,7 +38,6 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.MutableStateAccessAwareProject
-import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
@@ -381,10 +380,6 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getConfigurationTargetIdentifier(): ConfigurationTargetIdentifier {
-            shouldNotBeUsed()
-        }
-
-        override fun getParentIdentifier(): ProjectIdentifier {
             shouldNotBeUsed()
         }
 
