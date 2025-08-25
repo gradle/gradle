@@ -6,7 +6,6 @@ plugins {
 description = "Package build cache results"
 
 dependencies {
-
     api(projects.buildCacheBase)
     api(projects.files)
     api(projects.hashing)
@@ -17,7 +16,8 @@ dependencies {
 
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
-    implementation(libs.jspecify)
+
+    compileOnly(libs.jspecify)
 
     testImplementation(projects.fileCollections)
     testImplementation(projects.processServices)
