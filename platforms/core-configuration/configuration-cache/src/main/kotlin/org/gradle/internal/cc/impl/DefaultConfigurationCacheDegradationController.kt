@@ -19,7 +19,9 @@ package org.gradle.internal.cc.impl
 import com.google.common.collect.ImmutableMap
 import org.gradle.api.Task
 import org.gradle.api.internal.ConfigurationCacheDegradationController
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.HoldsProjectState
+import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Provider
@@ -62,9 +64,9 @@ internal class DefaultConfigurationCacheDegradationController(
             DegradationDecision(collectTaskDegradationReasons(), collectFeatureDegradationReasons())
         }
 
-    private fun collectTaskDegradationReasons(): Map<Task, List<String>> =
+    private fun collectTaskDegradationReasons(): Map<TaskIdentity<*>, List<String>> =
         if (tasksDegradationRequests.isNotEmpty()) {
-            val builder = ImmutableMap.builderWithExpectedSize<Task, List<String>>(tasksDegradationRequests.size)
+            val builder = ImmutableMap.builderWithExpectedSize<TaskIdentity<*>, List<String>>(tasksDegradationRequests.size)
             for ((task, reasons) in tasksDegradationRequests) {
                 if (workGraphContains(task)) {
                     val reasonsInEffect = reasons
@@ -72,7 +74,7 @@ internal class DefaultConfigurationCacheDegradationController(
                         .sorted()
 
                     if (reasonsInEffect.isNotEmpty()) {
-                        builder.put(task, reasonsInEffect)
+                        builder.put(task.identity, reasonsInEffect)
                     }
                 }
             }
@@ -94,7 +96,7 @@ internal class DefaultConfigurationCacheDegradationController(
         vcsMappingsStore.asResolver().hasRules()
 
     internal data class DegradationDecision(
-        private val taskDegradationReasons: Map<Task, List<String>>,
+        private val taskDegradationReasons: Map<TaskIdentity<*>, List<String>>,
         private val featureDegradationReasons: Map<String, List<String>>
     ) {
         val shouldDegrade: Boolean
@@ -103,9 +105,9 @@ internal class DefaultConfigurationCacheDegradationController(
         val degradedTaskCount: Int
             get() = taskDegradationReasons.size
 
-        fun degradationReasonForTask(task: Task): List<String>? = taskDegradationReasons[task]
+        fun degradationReasonForTask(task: Task): List<String>? = taskDegradationReasons[task.identity]
 
-        fun onDegradedTask(consumer: (Task, List<String>) -> Unit) {
+        fun onDegradedTask(consumer: (TaskIdentity<*>, List<String>) -> Unit) {
             taskDegradationReasons.forEach(consumer)
         }
 
@@ -118,3 +120,6 @@ internal class DefaultConfigurationCacheDegradationController(
         }
     }
 }
+
+private val Task.identity: TaskIdentity<*>
+    get() = (this as TaskInternal).taskIdentity

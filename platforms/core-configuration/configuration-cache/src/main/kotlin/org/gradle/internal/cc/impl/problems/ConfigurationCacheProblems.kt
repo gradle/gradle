@@ -19,8 +19,8 @@ package org.gradle.internal.cc.impl.problems
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.Task
-import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.logging.Logging
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemSpec
@@ -198,7 +198,10 @@ class ConfigurationCacheProblems(
     override fun forTask(task: Task): ProblemsListener {
         val degradationReasons = degradationDecision.degradationReasonForTask(task)
         return if (!degradationReasons.isNullOrEmpty()) {
-            onIncompatibleTask(locationForTask(task), degradationReasons.joinToString())
+            onIncompatibleTask(
+                locationForTask((task as TaskInternal).taskIdentity),
+                degradationReasons.joinToString()
+            )
             ErrorsAreProblemsProblemsListener(ProblemSeverity.SuppressedSilently)
         } else this
     }
@@ -365,8 +368,8 @@ class ConfigurationCacheProblems(
 
     private
     fun addNotReportedDegradingTasks() {
-        degradationDecision.onDegradedTask { task, reasons ->
-            val trace = locationForTask(task)
+        degradationDecision.onDegradedTask { taskIdentity, reasons ->
+            val trace = locationForTask(taskIdentity)
             if (!incompatibleTasks.contains(trace)) {
                 reportIncompatibleTask(trace, reasons.joinToString())
             }
@@ -495,7 +498,7 @@ class ConfigurationCacheProblems(
     val logger = Logging.getLogger(ConfigurationCacheProblems::class.java)
 
     private
-    fun locationForTask(task: Task) = PropertyTrace.Task(GeneratedSubclasses.unpackType(task), (task as TaskInternal).identityPath.path)
+    fun locationForTask(taskIdentity: TaskIdentity<*>) = PropertyTrace.Task(taskIdentity.taskType, taskIdentity.buildTreePath.path)
 
     private
     fun Int.counter(singular: String, plural: String = "${singular}s"): String {
