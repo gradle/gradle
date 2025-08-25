@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.antlr
 
 import org.gradle.api.Action
+import org.gradle.api.tasks.TaskCollection
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import spock.lang.Issue
 
@@ -109,5 +110,13 @@ class AntlrPluginTest extends AbstractProjectBuilderSpec {
         def generateGrammarSource = project.tasks.generateGrammarSource
         def sourcesJar = project.tasks.sourcesJar
         sourcesJar.taskDependencies.getDependencies(null).contains(generateGrammarSource)
+    }
+
+    def "Antlr tasks are assigned to the correct group"() {
+        when:
+        project.pluginManager.apply(AntlrPlugin)
+
+        then:
+        project.tasks.withType(AntlrTask).every { it.group == 'antlr' }
     }
 }
