@@ -17,25 +17,29 @@
 package org.gradle.api.internal.tasks.testing.report
 
 import groovy.transform.SelfType
-import org.gradle.api.internal.tasks.testing.GenericTestReportGenerator
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.logging.ConsoleRenderer
+import org.gradle.test.fixtures.file.TestFile
 
 /**
- * A trait to be applied to tests that verify the results of the {@link GenericTestReportGenerator}.
+ * A trait to be applied to tests that verify the results of the {@link org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReportGenerator}.
  */
 @SelfType(AbstractIntegrationSpec)
 trait VerifiesGenericTestReportResults {
     String resultsUrlFor(String name) {
         def expectedReportFile = file("build/reports/tests/${name}/index.html")
-        String renderedUrl = new ConsoleRenderer().asClickableFileUrl(expectedReportFile);
+        String renderedUrl = new ConsoleRenderer().asClickableFileUrl(expectedReportFile)
         renderedUrl
     }
 
     GenericTestExecutionResult resultsFor(String name) {
-        return new GenericHtmlTestExecutionResult(testDirectory, "build/reports/tests/${name}")
+        return new GenericHtmlTestExecutionResult(testDirectory, "build/reports/${name}")
+    }
+
+    GenericTestExecutionResult resultsFor(TestFile directory, String name) {
+        return new GenericHtmlTestExecutionResult(directory, "build/reports/${name}")
     }
 
     GenericTestExecutionResult aggregateResults() {

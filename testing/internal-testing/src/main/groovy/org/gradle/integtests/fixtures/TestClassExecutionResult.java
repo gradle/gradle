@@ -34,7 +34,7 @@ public interface TestClassExecutionResult {
      */
     TestClassExecutionResult assertTestsExecuted(TestCase... testCases);
 
-    TestClassExecutionResult assertTestCount(int tests, int failures, int errors);
+    TestClassExecutionResult assertTestCount(int tests, int failures);
 
     int getTestCount();
 

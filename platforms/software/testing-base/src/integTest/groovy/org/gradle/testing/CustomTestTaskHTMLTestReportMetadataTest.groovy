@@ -37,7 +37,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
         failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing"))
 
         and: "Verify the metadata is present in the single test report for the suite"
-        def results = resultsFor("failing")
+        def results = resultsFor("tests/failing")
         results.testPath(":failing suite")
             .onlyRoot()
             .assertMetadata(["suitekey"])
@@ -49,7 +49,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
         def aggregateResults = aggregateResults()
         aggregateResults.testPath(":failing suite")
             .onlyRoot()
-            .assertChildCount(1, 1, 0)
+            .assertChildCount(1, 1)
         aggregateResults.testPath(":failing suite:failing test")
             .onlyRoot()
             .assertMetadata(["testkey", "testkey2", "testkey3", "testkey4"])
@@ -67,7 +67,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
         failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing"))
 
         and:
-        def results = resultsFor("failing")
+        def results = resultsFor("tests/failing")
         results.testPath(":failing suite:failing test")
             .onlyRoot()
             .assertMetadata(["group1key1", "group1key2", "group2key1", "group2key2"])
@@ -89,7 +89,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
 
         aggregateResults.testPath("Unit Tests Suite")
             .onlyRoot()
-            .assertChildCount(2, 0, 0)
+            .assertChildCount(2, 0)
         aggregateResults.testPath("Unit Tests Suite:test1")
             .onlyRoot()
             .assertMetadata(["key1"])
@@ -99,7 +99,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
 
         aggregateResults.testPath("Slow Integration Tests Suite")
             .onlyRoot()
-            .assertChildCount(1, 0, 0)
+            .assertChildCount(1, 0)
             .assertMetadata(["suitekey1"])
         aggregateResults.testPath("Slow Integration Tests Suite:intTest1")
             .onlyRoot()
@@ -107,7 +107,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
 
         aggregateResults.testPath("Slower Integration Tests Suite")
             .onlyRoot()
-            .assertChildCount(2, 1, 0)
+            .assertChildCount(2, 1)
             .assertMetadata(["suitekey2", "suitekey2-another"])
         aggregateResults.testPath("Slower Integration Tests Suite:intTest2")
             .onlyRoot()
@@ -129,7 +129,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
         failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing"))
 
         and:
-        def results = resultsFor("failing")
+        def results = resultsFor("tests/failing")
         results.testPath(":failing suite:failing test")
             .onlyRoot()
             .assertMetadata(["stringKey": "This is a string",

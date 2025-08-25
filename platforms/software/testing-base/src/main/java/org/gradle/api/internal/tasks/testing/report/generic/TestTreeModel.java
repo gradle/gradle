@@ -25,12 +25,15 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.util.Path;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalLong;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -113,8 +116,15 @@ public class TestTreeModel {
 
         private void finalizePath(Path path, long id, PerRootInfo rootInfo) {
             // We use LinkedHashMap for the roots to keep them in the order of declaration in TestReport.
-            TestTreeModel model = modelsByPath.computeIfAbsent(path, p -> new TestTreeModel(p, new LinkedHashMap<>(), new HashMap<>()));
-            model.perRootInfo.put(rootIndex, rootInfo);
+            // We use LinkedHashMap for the children to keep them in the order of results in the store.
+            TestTreeModel model = modelsByPath.computeIfAbsent(path, p -> new TestTreeModel(p, new LinkedHashMap<>(), new LinkedHashMap<>()));
+
+            if (model.perRootInfo.containsKey(rootIndex)) {
+                model.perRootInfo.get(rootIndex).merge(rootInfo);
+            } else {
+                model.perRootInfo.put(rootIndex, rootInfo);
+            }
+
             for (Child child : childrenByParentId.get(id)) {
                 Path childPath = path.child(child.info.outputTrackedResult.getInnerResult().getName());
                 finalizePath(childPath, child.id, child.info);
@@ -125,14 +135,14 @@ public class TestTreeModel {
 
     public static final class PerRootInfo {
         private final SerializableTestResultStore.OutputTrackedResult outputTrackedResult;
-        private final List<String> children;
-        private final int totalLeafCount;
-        private final int failedLeafCount;
-        private final int skippedLeafCount;
+        private final Set<String> children;
+        private int totalLeafCount;
+        private int failedLeafCount;
+        private int skippedLeafCount;
 
         public PerRootInfo(SerializableTestResultStore.OutputTrackedResult outputTrackedResult, List<String> children, int totalLeafCount, int failedLeafCount, int skippedLeafCount) {
             this.outputTrackedResult = outputTrackedResult;
-            this.children = children;
+            this.children = new HashSet<>(children);
             this.totalLeafCount = totalLeafCount;
             this.failedLeafCount = failedLeafCount;
             this.skippedLeafCount = skippedLeafCount;
@@ -147,7 +157,7 @@ public class TestTreeModel {
         }
 
         public List<String> getChildren() {
-            return Collections.unmodifiableList(children);
+            return Collections.unmodifiableList(new ArrayList<>(children));
         }
 
         public int getTotalLeafCount() {
@@ -164,6 +174,13 @@ public class TestTreeModel {
 
         public List<SerializedMetadata> getMetadatas() {
             return outputTrackedResult.getInnerResult().getMetadatas();
+        }
+
+        public void merge(PerRootInfo rootInfo) {
+            children.addAll(rootInfo.children);
+            totalLeafCount += rootInfo.totalLeafCount;
+            failedLeafCount += rootInfo.failedLeafCount;
+            skippedLeafCount += rootInfo.skippedLeafCount;
         }
     }
 
@@ -205,5 +222,49 @@ public class TestTreeModel {
 
     public Iterable<TestTreeModel> getChildrenOf(int rootIndex) {
         return Iterables.transform(perRootInfo.get(rootIndex).getChildren(), children::get);
+    }
+
+    /**
+     * Returns the maximum number of levels of children in this tree.
+     *
+     * @return the depth of the tree, where 1 is the root level
+     */
+    public int getDepth() {
+        int deepest = 0;
+        for (TestTreeModel treeModel : children.values()) {
+            int depth = treeModel.getDepth();
+            if (depth > deepest) {
+                deepest = depth;
+            }
+        }
+        return deepest + 1;
+    }
+
+    private static final int INDENT_SIZE = 2;
+
+    /**
+     * Dumps the basic tree structure to an appendable, for debugging purposes.
+     *
+     * @param appendable the appendable to dump to
+     */
+    // This may be used for debugging, so keep it around even when not used.
+    @SuppressWarnings("unused")
+    public void dumpStructure(Appendable appendable) {
+        dumpStructure(appendable, 0);
+    }
+
+    private void dumpStructure(Appendable appendable, int indent) {
+        try {
+            for (int i = 0; i < indent; i++) {
+                appendable.append(' ');
+            }
+            String name = path.segmentCount() == 0 ? ":" : path.getName();
+            appendable.append("- ").append(name).append('\n');
+            for (TestTreeModel child : children.values()) {
+                child.dumpStructure(appendable, indent + INDENT_SIZE);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to dump test tree structure", e);
+        }
     }
 }
