@@ -350,6 +350,118 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         configurationCache.assertStateLoaded()
     }
 
+    def "reuses cache when unused project property changes on disk"() {
+        buildFile """
+            tasks.register("some")
+        """
+
+        when:
+        propertiesFile.writeProperties(foo: 'one')
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        propertiesFile.writeProperties(foo: 'two')
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateLoaded()
+    }
+
+    def "invalidates cache when properties file is added"() {
+        buildFile """
+            def access = project.hasProperty('foo')
+            println("Access: '\${access}'")
+            tasks.register("some")
+        """
+
+        when:
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        propertiesFile.writeProperties(foo: 'one')
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains "configuration cache cannot be reused because Gradle property 'foo' has changed."
+    }
+
+    def "invalidates cache when builtin project property changes on disk"() {
+        buildFile """
+            tasks.register("some")
+        """
+
+        when:
+        propertiesFile.writeProperties((property): 'one')
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        propertiesFile.writeProperties((property): 'two')
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains "configuration cache cannot be reused because Gradle property '$property' has changed."
+
+        where:
+        property << ['version', 'group', 'status', 'buildDir', 'description']
+    }
+
+    def "invalidates cache when project property used at configuration time changes on disk"() {
+        buildFile """
+            def access = project.foo
+            println("Access: '\${access}'")
+            tasks.register("some")
+        """
+
+        when:
+        propertiesFile.writeProperties(foo: 'one')
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        propertiesFile.writeProperties(foo: 'two')
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains "configuration cache cannot be reused because Gradle property 'foo' has changed."
+    }
+
+    def "invalidates cache when system property used at configuration time changes on disk"() {
+        buildFile """
+            def access = System.getProperty('foo')
+            println("Access: '\${access}'")
+            tasks.register("some")
+        """
+
+        when:
+        propertiesFile.writeProperties('systemProp.foo': 'one')
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        propertiesFile.writeProperties('systemProp.foo': 'two')
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains "configuration cache cannot be reused because system property 'foo' has changed."
+    }
+
     def "invalidates cache when project property changes on command-line, if used at configuration time via #description"() {
         buildFile """
             tasks.register("some")
@@ -454,6 +566,32 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
 
         when:
         configurationCacheRun "some", "-Pfoo=two"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains "Execution: 'two'"
+    }
+
+    def "reuses cache when project property changes on disk if used only at execution time via extra container"() {
+        buildFile """
+            def props = project.ext
+            tasks.register("some") {
+                doLast {
+                    println("Execution: '\${props.foo}'")
+                }
+            }
+        """
+
+        when:
+        propertiesFile.writeProperties(foo: 'one')
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        propertiesFile.writeProperties(foo: 'two')
+        configurationCacheRun "some"
 
         then:
         configurationCache.assertStateLoaded()
