@@ -229,27 +229,28 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
                 lastUpdateTime = currentTimePeriod;
                 needHeaderSeparator = true;
             } else {
+                // We add the output to the buffer
+                // This won't consume significant memory as only the reference to `output` is stored
+                bufferedLogs.add(output);
+
+                // Update the approximate size of the buffered logs
                 if (output instanceof LogEvent) {
                     LogEvent logEvent = (LogEvent) output;
                     int logMessageCodepoints = logEvent.getMessage().length();
-                    if (bufferCodepointsSize + logMessageCodepoints >= HIGH_WATERMARK_CODEPOINTS) {
-                        flushOutput();
-                    } else {
-                        bufferCodepointsSize += logMessageCodepoints;
-                    }
+                    bufferCodepointsSize += logMessageCodepoints;
                 } else if (output instanceof StyledTextOutputEvent) {
                     StyledTextOutputEvent styledTextOutputEvent = (StyledTextOutputEvent) output;
-                    // Sum up the raw codepoints of all spans in the StyledTextOutputEvent
-                    // This is also approximative, as we don't count the style tags
-                    int logMessageCodepoints = styledTextOutputEvent.getSpans().stream().mapToInt(span -> span.getText().length()).sum();
-                    if (bufferCodepointsSize + logMessageCodepoints >= HIGH_WATERMARK_CODEPOINTS) {
-                        flushOutput();
-                    } else {
-                        bufferCodepointsSize += logMessageCodepoints;
-                    }
+                    int logMessageCodepoints = styledTextOutputEvent
+                        .getSpans()
+                        .stream()
+                        .mapToInt(span -> span.getText().length())
+                        .sum();
+                    bufferCodepointsSize += logMessageCodepoints;
                 }
 
-                bufferedLogs.add(output);
+                if (bufferCodepointsSize >= HIGH_WATERMARK_CODEPOINTS) {
+                    flushOutput();
+                }
             }
         }
 
