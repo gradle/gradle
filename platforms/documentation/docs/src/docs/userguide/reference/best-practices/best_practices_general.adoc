@@ -194,7 +194,6 @@ include::sample[dir="snippets/bestPractices/avoidInternal-do/groovy",files="buil
 
 <<tags_reference.adoc#tag:upgrades,`#upgrades`>>
 
-
 [[use_the_gradle_properties_file]]
 == Set build flags in `gradle.properties`
 
@@ -285,3 +284,51 @@ Now it can be executed using only `gradle run`, and the continue property will a
 === Tags
 
 <<tags_reference.adoc#tag:properties,`#properties`>>
+
+
+[[name_your_root_project]]
+== Name Your Root Project
+
+Always name your root project in the `settings.gradle(.kts)` file.
+
+=== Explanation
+
+While an empty `settings.gradle(.kts)` file is all that is minimally necessary for a multi-project build, you should always set the `rootProject.name` property in it.
+
+Without setting a name explicitly, the root project's name implicitly defaults to the name of the directory containing the build.
+Some directory names may not be valid or suitable as project names, such as those containing spaces, Gradle logical path separators or other special characters.
+The paths to tasks in build should be able to be specified reliably regardless of where the build lives.
+
+Explicitly setting the root project's name also ensures that it referred to consistently.
+Project names are used in various places, such as error messages, logs, and reports.
+Builds may execute on a variety of machines or environments, such as CI servers, and should report the same root project name anywhere to make the project more comprehensible.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/nameYourRootProject-avoid/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/bestPractices/nameYourRootProject-avoid/groovy",files="settings.gradle[]"]
+====
+
+In this build, the settings file is empty and the root project is unnamed.
+If you try running the `projects` report, you will see an implicit name used for the root project that is based on the build's current location.
+
+==== Do This Instead
+
+====
+include::sample[dir="snippets/bestPractices/nameYourRootProject-do/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/bestPractices/nameYourRootProject-do/groovy",files="settings.gradle[]"]
+====
+
+In this build, the root project is explicitly named.
+The explicit name `my-example-project` will be used in all reports, logs, and error messages.
+
+=== References
+
+- <<multi_project_builds.adoc#sec:naming_recommendations,Naming recommendations>>
+
+=== Tags
+
+<<tags_reference.adoc#tag:settings,`#settings`>>
