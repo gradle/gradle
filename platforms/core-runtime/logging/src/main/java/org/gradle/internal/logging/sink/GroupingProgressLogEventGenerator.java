@@ -49,7 +49,8 @@ import java.util.concurrent.TimeUnit;
 public class GroupingProgressLogEventGenerator implements OutputEventListener {
     /**
      * Maximum amount of codepoints we allow to buffer before we flush the output.
-     * The calculation targets 1MiB of buffer space with 2 byte per codepoint (worst case scenario).
+     * The calculation targets 1MiB of buffer space with 2 byte per codepoint
+     * (worst case scenario when each codepoint will be stored as UTF-16).
      */
     public static final long HIGH_WATERMARK_CODEPOINTS = 1000000L / 2L;
     public static final long HIGH_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
