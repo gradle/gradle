@@ -1,5 +1,6 @@
 import gradlebuild.basics.configurationCacheEnabledForDocsTests
 import gradlebuild.basics.googleApisJs
+import gradlebuild.basics.isBundleGroovy4
 import gradlebuild.basics.repoRoot
 import gradlebuild.basics.runBrokenForConfigurationCacheDocsTests
 import gradlebuild.integrationtests.model.GradleDistribution
@@ -103,8 +104,15 @@ tasks.withType<AsciidoctorTask>().configureEach {
 
 gradleDocumentation {
     javadocs {
-        javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
+        val jvmVersion = gradlebuildJava.targetVersion
+        javaApi = jvmVersion.map { v -> uri("https://docs.oracle.com/javase/$v/docs/api/") }
+        javaPackageListLoc = jvmVersion.map { v -> project.layout.projectDirectory.dir("src/docs/javaPackageList/$v/") }
         groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-${libs.groovyVersion}/html/gapi")
+        groovyPackageListSrc = if (isBundleGroovy4) {
+            "org.apache.groovy:groovy-all:${libs.groovyVersion}:groovydoc"
+        } else {
+            "org.codehaus.groovy:groovy-all:${libs.groovyVersion}:groovydoc"
+        }
     }
 }
 
