@@ -433,6 +433,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] " })
         1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :a</Normal>" })
         1 * downstreamListener.onOutput({ it.toString() == "[INFO] [category] ${largeMessage}" })
+        1 * downstreamListener.onOutput({ it.toString() == "[INFO] [category] f" })
         0 * downstreamListener._
     }
 
@@ -474,6 +475,7 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] " })
         1 * downstreamListener.onOutput({ it.toString() == "[LIFECYCLE] [category] <Normal>Header Execute :a</Normal>" })
         1 * downstreamListener.onOutput({ it.toString() == "[INFO] [category] <Normal>${largeMessage}</Normal>" })
+        1 * downstreamListener.onOutput({ it.toString() == "[INFO] [category] <Normal>f</Normal>" })
         0 * downstreamListener._
     }
 
