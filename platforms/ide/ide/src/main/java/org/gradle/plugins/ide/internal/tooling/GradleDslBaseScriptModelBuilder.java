@@ -30,6 +30,8 @@ import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -66,10 +68,30 @@ public class GradleDslBaseScriptModelBuilder implements BuildScopeModelBuilder {
     }
 
     private static ClassPath getKotlinScriptTemplatesClassPath(ModuleRegistry moduleRegistry) {
-        return Stream.of("gradle-core", "gradle-tooling-api")
+        return Stream.of("gradle-core")
             .map(moduleRegistry::getModule)
             .flatMap(it -> it.getAllRequiredModules().stream())
-            .reduce(ClassPath.EMPTY, (classPath, module) -> classPath.plus(module.getClasspath()), ClassPath::plus);
+            .flatMap(it -> it.getClasspath().getAsFiles().stream())
+            .filter(GradleDslBaseScriptModelBuilder::isNeededOnScriptTemplateClassPath)
+            .sorted()
+            .reduce(ClassPath.EMPTY, (classPath, file) -> classPath.plus(Collections.singleton(file)), ClassPath::plus);
+    }
+
+    private static boolean isNeededOnScriptTemplateClassPath(File file) {
+        String name = file.getName();
+        if (!name.endsWith(".jar")) {
+            return false;
+        }
+        if (name.startsWith("gradle-kotlin-dsl-")) {
+            return true;
+        }
+        if (name.startsWith("gradle-core-api-")) {
+            return true;
+        }
+        if (name.startsWith("kotlin-script-runtime-")) {
+            return true;
+        }
+        return false;
     }
 }
 
@@ -145,5 +167,25 @@ class DefaultKotlinDslBaseScriptModel implements KotlinDslBaseScriptModel, Seria
     @Override
     public List<String> getImplicitImports() {
         return implicitImports;
+    }
+
+    @Override
+    public List<String> getTemplateClassNames() {
+        ArrayList<String> names = new ArrayList<>();
+
+        // Script templates for IDE support
+        names.add("org.gradle.kotlin.dsl.KotlinGradleScriptTemplate");
+        names.add("org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate");
+        names.add("org.gradle.kotlin.dsl.KotlinProjectScriptTemplate");
+
+        // Legacy script templates for IDE support
+        names.add("org.gradle.kotlin.dsl.KotlinInitScript");
+        names.add("org.gradle.kotlin.dsl.KotlinSettingsScript");
+        names.add("org.gradle.kotlin.dsl.KotlinBuildScript");
+
+        // Legacy script dependencies resolver for IDE support
+        names.add("org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver");
+
+        return names;
     }
 }
