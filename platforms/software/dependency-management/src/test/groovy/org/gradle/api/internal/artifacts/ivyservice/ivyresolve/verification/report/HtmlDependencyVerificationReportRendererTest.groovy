@@ -106,6 +106,20 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         bodyContainsExact("Second section 0 error")
     }
 
+    def "reports sticky tip"() {
+        given:
+        renderer.startNewSection(":someConfiguration")
+
+        when:
+        generateReport()
+
+        then:
+        bodyContains("Troubleshooting")
+        bodyContains("Please review the errors reported above carefully.")
+        bodyContains("In this case, you can ask Gradle to export all keys it used for verification of this build to the keyring with the following command-line")
+        bodyContains("./gradlew --write-verification-metadata")
+    }
+
     @Unroll("reports verification errors (#failure)")
     def "reports verification errors"() {
         given:
@@ -119,7 +133,7 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
 
         def errors = errorsFor(":someConfiguration")
         then:
-
+        bodyContains("./gradlew --write-verification-metadata")
         verifyAll(errors[0]) {
             module == 'org:foo:1.0'
             artifact == 'foo-1.0.jar'
