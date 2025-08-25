@@ -105,7 +105,7 @@ internal class DefaultConfigurationCacheDegradationController(
         val degradedTaskCount: Int
             get() = taskDegradationReasons.size
 
-        fun degradationReasonForTask(task: Task): List<String>? = taskDegradationReasons[task.identity]
+        fun degradationReasonForTask(taskIdentity: TaskIdentity<*>): List<String>? = taskDegradationReasons[taskIdentity]
 
         fun onDegradedTask(consumer: (TaskIdentity<*>, List<String>) -> Unit) {
             taskDegradationReasons.forEach(consumer)

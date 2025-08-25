@@ -196,10 +196,10 @@ class ConfigurationCacheProblems(
     }
 
     override fun forTask(task: Task): ProblemsListener {
-        val degradationReasons = degradationDecision.degradationReasonForTask(task)
+        val degradationReasons = degradationDecision.degradationReasonForTask(task.identity)
         return if (!degradationReasons.isNullOrEmpty()) {
             onIncompatibleTask(
-                locationForTask((task as TaskInternal).taskIdentity),
+                locationForTask(task.identity),
                 degradationReasons.joinToString()
             )
             ErrorsAreProblemsProblemsListener(ProblemSeverity.SuppressedSilently)
@@ -207,6 +207,10 @@ class ConfigurationCacheProblems(
     }
 
     fun shouldDegradeGracefully(): Boolean = degradationDecision.shouldDegrade
+
+    private
+    val Task.identity: TaskIdentity<*>
+        get() = (this as TaskInternal).taskIdentity
 
     private
     fun onIncompatibleTask(trace: PropertyTrace, reason: String) {
