@@ -363,10 +363,10 @@ abstract class AbstractIsolateContext<T>(
     fun getCodec() = currentCodec
 
     private
-    val contexts = ArrayList<Pair<T?, Codec<Any?>>>()
+    val contexts = mutableListOf<Pair<T?, Codec<Any?>>>()
 
     override fun push(codec: Codec<Any?>) {
-        contexts.add(0, Pair(currentIsolate, currentCodec))
+        contexts.add(Pair(currentIsolate, currentCodec))
         currentCodec = codec
     }
 
@@ -380,7 +380,7 @@ abstract class AbstractIsolateContext<T>(
     }
 
     override fun pop() {
-        val previousValues = contexts.removeAt(0)
+        val previousValues = contexts.removeLast()
         currentIsolate = previousValues.first
         currentCodec = previousValues.second
     }

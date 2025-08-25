@@ -17,17 +17,18 @@
 package org.gradle.internal.cc.impl.fingerprint
 
 import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.properties.GradlePropertyScope
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.provider.ValueSourceParameters
-import org.gradle.api.internal.properties.GradlePropertyScope
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.serialize.graph.codecs.ValueObject
 import java.io.File
 import java.net.URI
 
 
 internal
-sealed class ConfigurationCacheFingerprint {
+sealed class ConfigurationCacheFingerprint : ValueObject {
 
     data class GradleEnvironment(
         val gradleUserHomeDir: File,
