@@ -26,6 +26,7 @@ class BuildLogicTest(
                 listOf(
                     stage.getBuildScanCustomValueParam(),
                     buildScanTagParam("BuildLogitTest"),
+                    "-Dorg.gradle.java.installations.auto-download=false",
                     "-Porg.gradle.java.installations.auto-download=false",
                 ).joinToString(" "),
         )

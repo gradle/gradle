@@ -190,9 +190,12 @@ class ApplyDefaultConfigurationTest {
             "%additional.gradle.parameters%",
             "--continue $extraParameters -Dscan.tag.Check",
             "-Dscan.tag.PullRequestFeedback -PteamCityBuildId=%teamcity.build.id%",
-            "\"-Porg.gradle.java.installations.paths=$expectedInstallationPaths\"",
+            "-Dorg.gradle.java.installations.auto-download=false",
             "-Porg.gradle.java.installations.auto-download=false",
+            "-Dorg.gradle.java.installations.auto-detect=false",
             "-Porg.gradle.java.installations.auto-detect=false",
+            "\"-Dorg.gradle.java.installations.paths=$expectedInstallationPaths\"",
+            "\"-Porg.gradle.java.installations.paths=$expectedInstallationPaths\"",
         ).joinToString(" ")
     }
 }
