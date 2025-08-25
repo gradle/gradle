@@ -26,7 +26,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
 
 @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
-class DaemonToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture, ToolchainPropertiesDeprecationsFixture {
+class DaemonToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture, ToolchainPropertiesFixture {
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "nags when the daemon jdk is specified as a project property on the command line"() {
         given:
@@ -35,10 +35,11 @@ class DaemonToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec i
         captureJavaHome()
 
         expect:
-        expectToolchainPropertyDeprecationFor('org.gradle.java.installations.paths', otherJvm.javaHome.absolutePath)
         executer.withArgument("-Porg.gradle.java.installations.paths=" + otherJvm.javaHome.absolutePath)
-        succeeds("help")
-        assertDaemonUsedJvm(otherJvm)
+        fails("help")
+
+        and:
+        failure.assertHasDescription(toolchainPropertyErrorMessageFor('org.gradle.java.installations.paths', otherJvm.javaHome.absolutePath))
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
@@ -51,9 +52,10 @@ class DaemonToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec i
         expect:
         file("gradle.properties") << "org.gradle.java.installations.paths=" + otherJvm.javaHome.absolutePath
         executer.withArgument("-Porg.gradle.java.installations.paths=" + otherJvm.javaHome.absolutePath)
-        expectToolchainPropertyDeprecationFor('org.gradle.java.installations.paths', otherJvm.javaHome.absolutePath)
-        succeeds("help")
-        assertDaemonUsedJvm(otherJvm)
+        fails("help")
+
+        and:
+        failure.assertHasDescription(toolchainPropertyErrorMessageFor('org.gradle.java.installations.paths', otherJvm.javaHome.absolutePath))
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
@@ -123,8 +125,6 @@ class DaemonToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec i
         fails("help")
 
         and:
-        failure.assertHasDescription("The Gradle property 'org.gradle.java.installations.paths' (set to '${Jvm.current().javaHome.absolutePath}')" +
-                " has a different value than the project property 'org.gradle.java.installations.paths' (set to '${otherJvm.javaHome.absolutePath}')." +
-                " Please set them to the same value or only set the Gradle property.")
+        failure.assertHasDescription(toolchainPropertyMisMatchErrorFor('org.gradle.java.installations.paths', Jvm.current().javaHome.absolutePath, otherJvm.javaHome.absolutePath))
     }
 }

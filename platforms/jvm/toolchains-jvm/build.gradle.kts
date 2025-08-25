@@ -46,11 +46,12 @@ dependencies {
 
     implementation(projects.baseDiagnostics)
     implementation(projects.fileTemp)
-    implementation(projects.logging)
     implementation(projects.modelCore)
 
     implementation(libs.guava)
     implementation(libs.slf4jApi)
+
+    runtimeOnly(projects.logging)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))

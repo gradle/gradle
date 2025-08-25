@@ -20,7 +20,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.JvmToolchainsConfigurationValidator;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
@@ -57,7 +56,8 @@ public class DefaultJvmToolchainsConfigurationValidator implements JvmToolchains
                     );
                 }
             } else {
-                emitDeprecatedWarning(propertyName, startParameter.getProjectProperties().get(propertyName));
+                throw new InvalidUserDataException("Specifying '" + propertyName + "' as a project property on the command line is no longer supported. " +
+                    "Instead, specify it as a Gradle property: '-D" + propertyName + "=" + startParameter.getProjectProperties().get(propertyName) + "'.");
             }
         }
     }
@@ -75,13 +75,4 @@ public class DefaultJvmToolchainsConfigurationValidator implements JvmToolchains
             validatePropertyConfiguration(IntellijInstallationSupplier.INTELLIJ_JDK_DIR_PROPERTY);
         }
     }
-
-    private static void emitDeprecatedWarning(String propertyName, String value) {
-        DeprecationLogger.deprecateAction("Specifying '" + propertyName + "' as a project property on the command line")
-            .withAdvice("Instead, specify it as a Gradle property: '-D" + propertyName + "=" + value + "'.")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "toolchain-project-properties")
-            .nagUser();
-    }
-
 }

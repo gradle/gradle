@@ -18,10 +18,10 @@ package org.gradle.launcher.daemon.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration
-import org.gradle.launcher.daemon.ToolchainPropertiesDeprecationsFixture
+import org.gradle.launcher.daemon.ToolchainPropertiesFixture
 
-class ToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec implements ToolchainPropertiesDeprecationsFixture {
-    def "nags when toolchain property is specified as a project property on the command line"() {
+class ToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec implements ToolchainPropertiesFixture {
+    def "sensible error when toolchain property is specified as a project property on the command line"() {
         given:
         settingsFile << "rootProject.name = 'test'"
         buildFile << printProjectProperty(ToolchainConfiguration.AUTO_DETECT)
@@ -30,16 +30,14 @@ class ToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         args("-P${ToolchainConfiguration.AUTO_DETECT}=false")
 
         then:
-        expectToolchainPropertyDeprecationFor('org.gradle.java.installations.auto-detect', 'false')
         executer.withToolchainDetectionEnabled()
-        succeeds("printProperty")
+        fails("printProperty")
 
         and:
-        outputContains("Project property '${ToolchainConfiguration.AUTO_DETECT}': false")
-        outputContains("Toolchain auto-detect enabled: false")
+        failure.assertHasCause(toolchainPropertyErrorMessageFor('org.gradle.java.installations.auto-detect', 'false'))
     }
 
-    def "nags when toolchain property is specified as a Gradle property in project gradle.properties and as a project property on the command line"() {
+    def "sensible error when toolchain property is specified as a Gradle property in project gradle.properties and as a project property on the command line"() {
         given:
         settingsFile << "rootProject.name = 'test'"
         buildFile << printProjectProperty(ToolchainConfiguration.AUTO_DETECT)
@@ -49,13 +47,11 @@ class ToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         args("-P${ToolchainConfiguration.AUTO_DETECT}=false")
 
         then:
-        expectToolchainPropertyDeprecationFor('org.gradle.java.installations.auto-detect', 'false')
         executer.withToolchainDetectionEnabled()
-        succeeds("printProperty")
+        fails("printProperty")
 
         and:
-        outputContains("Project property '${ToolchainConfiguration.AUTO_DETECT}': false")
-        outputContains("Toolchain auto-detect enabled: false")
+        failure.assertHasCause(toolchainPropertyErrorMessageFor('org.gradle.java.installations.auto-detect', 'false'))
     }
 
     def "does not nag when toolchain property is specified as a Gradle property on the command line"() {
@@ -135,8 +131,7 @@ class ToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         fails("printProperty")
 
         and:
-        failure.assertHasCause("The Gradle property 'org.gradle.java.installations.auto-detect' (set to 'false') has a different value than the project property 'org.gradle.java.installations.auto-detect' (set to 'true')." +
-            " Please set them to the same value or only set the Gradle property.")
+        failure.assertHasCause(toolchainPropertyMisMatchErrorFor('org.gradle.java.installations.auto-detect', 'false', 'true'))
     }
 
     def printProjectProperty(String property) {
