@@ -14,9 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl
+package org.gradle.api.plugins
 
-class ConfigurationCacheProjectReportIntegTest extends AbstractConfigurationCacheIntegrationTest {
+
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+class ConfigurationCacheProjectReportIntegTest extends AbstractIntegrationSpec {
+
+    @Override
+    void setupExecuter() {
+        super.setupExecuter()
+        executer.withConfigurationCacheEnabled()
+    }
 
     def setup() {
         buildFile << """
@@ -26,13 +35,13 @@ class ConfigurationCacheProjectReportIntegTest extends AbstractConfigurationCach
 
     def "configuration cache for Project Report plugin task '#task' on empty project"() {
         given:
-        configurationCacheRun(task, *options)
+        run(task, *options)
         def firstRunOutput = removeVfsLogOutput(result.normalizedOutput)
             .replaceAll(/Calculating task graph as no cached configuration is available for tasks: ${task}.*\n/, '')
             .replaceAll(/Configuration cache entry stored.\n/, '')
 
         when:
-        configurationCacheRun(task, *options)
+        run(task, *options)
         def secondRunOutput = removeVfsLogOutput(result.normalizedOutput)
             .replaceAll(/Reusing configuration cache.\n/, '')
             .replaceAll(/Configuration cache entry reused.\n/, '')
@@ -49,5 +58,14 @@ class ConfigurationCacheProjectReportIntegTest extends AbstractConfigurationCach
         // projectReport depends on the other ones, and task order may not be preserved,
         // causing equality comparison between first and second outputs to fail
         //"projectReport"         | []
+    }
+
+    //TODO: test the expected output directly
+    protected static String removeVfsLogOutput(String normalizedOutput) {
+        normalizedOutput
+            .replaceAll(/Received \d+ file system events .*\n/, '')
+            .replaceAll(/Spent \d+ ms processing file system events since last build\n/, '')
+            .replaceAll(/Spent \d+ ms registering watches for file system events\n/, '')
+            .replaceAll(/Virtual file system .*\n/, '')
     }
 }

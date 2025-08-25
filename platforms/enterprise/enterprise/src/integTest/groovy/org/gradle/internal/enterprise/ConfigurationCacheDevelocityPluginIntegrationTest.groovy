@@ -14,15 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl
+package org.gradle.internal.enterprise
 
 import groovy.test.NotYetImplemented
 import org.gradle.api.initialization.Settings
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 import spock.lang.Issue
 
-class ConfigurationCacheDevelocityPluginIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheDevelocityPluginIntegrationTest extends AbstractIntegrationSpec {
+
+    def configurationCache = new ConfigurationCacheFixture(this)
+
+    @Override
+    void setupExecuter(){
+        super.setupExecuter()
+        executer.withConfigurationCacheEnabled()
+    }
 
     def setup() {
         settingsFile '''
@@ -78,14 +88,12 @@ class ConfigurationCacheDevelocityPluginIntegrationTest extends AbstractConfigur
                 $dvConventionsConfig
             """
         }
-        def configurationCache = newConfigurationCacheFixture()
-
         when:
-        configurationCacheRun 'jar', '--scan', '-Dscan.dump'
+        run 'jar', '--scan', '-Dscan.dump'
 
         then:
         configurationCache.assertStateStored()
-        problems.assertResultHasProblems(result) {
+        configurationCache.problems.assertResultHasProblems(result) {
             // TODO:configuration-cache check problem details
             withTotalProblemsCount(1)
         }
@@ -113,20 +121,19 @@ class ConfigurationCacheDevelocityPluginIntegrationTest extends AbstractConfigur
                 $dvConventionsConfig
             """
         }
-        def configurationCache = newConfigurationCacheFixture()
 
         when:
-        configurationCacheRun 'jar', '--scan', '-Dscan.dump'
+        run 'jar', '--scan', '-Dscan.dump'
 
         then:
         configurationCache.assertStateStored()
-        problems.assertResultHasProblems(result) {
+        configurationCache.problems.assertResultHasProblems(result) {
             withTotalProblemsCount(0)
         }
         postBuildOutputContains 'Build scan written to'
 
         when:
-        configurationCacheRun 'jar', '--scan', '-Dscan.dump'
+        run 'jar', '--scan', '-Dscan.dump'
 
         then:
         configurationCache.assertStateLoaded()

@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl
+package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
-class ConfigurationCacheProcessResourcesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheProcessResourcesIntegrationTest extends AbstractIntegrationSpec {
+
+    def configurationCache = newConfigurationCacheFixture()
+
+    @Override
+    void setupExecuter() {
+        super.setupExecuter()
+        executer.withConfigurationCacheEnabled()
+    }
 
     @Issue('https://github.com/gradle/gradle/issues/16423')
     def 'java source files are excluded by default'() {
@@ -40,11 +49,10 @@ class ConfigurationCacheProcessResourcesIntegrationTest extends AbstractConfigur
                 file('data.txt') << '42'
             }
         }
-        def configurationCache = newConfigurationCacheFixture()
 
         when: ':processResources is executed twice'
-        configurationCacheRun 'processResources'
-        configurationCacheRun 'processResources'
+        run 'processResources'
+        run 'processResources'
 
         then: 'the 2nd time it is loaded from the cache'
         configurationCache.assertStateLoaded()

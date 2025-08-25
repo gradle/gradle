@@ -14,24 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl
+package org.gradle.api.publish.maven
 
 import org.gradle.api.credentials.PasswordCredentials
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.util.TestCredentialUtil
 import org.gradle.util.internal.GUtil
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.util.internal.GFileUtils.deleteDirectory
 import static org.gradle.util.internal.GFileUtils.listFiles
 
-class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-
+class ConfigurationCacheMavenPublishIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
+
+    def configurationCache = newConfigurationCacheFixture()
+
+    @Override
+    void setupExecuter() {
+        super.setupExecuter()
+        executer.withConfigurationCacheEnabled()
+    }
 
     def setup() {
         buildFile """
@@ -80,7 +87,6 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         def username = "someuser"
         def password = "somepassword"
         def projectConfig = configureProject(username, password, "mavenRepo", false)
-        def configurationCache = newConfigurationCacheFixture()
         def metadataFile = file('build/publications/maven/module.json')
 
         expect:
@@ -88,7 +94,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
 
         when:
         prepareMavenHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
-        configurationCacheRun(*(projectConfig.tasks))
+        run(*(projectConfig.tasks))
         server.resetExpectations()
 
         then:
@@ -102,7 +108,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         deleteDirectory(mavenRepo.rootDir)
 
         prepareMavenHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
-        configurationCacheRun(*(projectConfig.tasks))
+        run(*(projectConfig.tasks))
         server.resetExpectations()
 
         then:
@@ -133,7 +139,6 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
                 }
             }
         """)
-        def configurationCache = newConfigurationCacheFixture()
         def metadataFile = file('build/publications/maven/module.json')
         def tasks = [
             "generateMetadataFileForMavenPublication",
@@ -147,7 +152,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
 
         when:
         prepareMavenHttpRepository(remoteRepo, null)
-        configurationCacheRun(*tasks)
+        run(*tasks)
         server.resetExpectations()
 
         then:
@@ -161,7 +166,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         deleteDirectory(mavenRepo.rootDir)
 
         prepareMavenHttpRepository(remoteRepo, null)
-        configurationCacheRun(*tasks)
+        run(*tasks)
         server.resetExpectations()
 
         then:
@@ -178,11 +183,10 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         def password = "somepassword"
         def repositoryName = "testMavenRepo"
         def projectConfig = configureProject(username, password, repositoryName, true)
-        def configurationCache = newConfigurationCacheFixture()
 
         when:
         prepareMavenHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
-        configurationCacheRun(*(projectConfig.tasks))
+        run(*(projectConfig.tasks))
         server.resetExpectations()
 
         then:
@@ -204,11 +208,10 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         def password = "somepassword"
         def repositoryName = "repo-with-invalid-identity-name"
         def projectConfig = configureProject(username, password, repositoryName, true)
-        def configurationCache = newConfigurationCacheFixture()
 
         when:
         prepareMavenHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
-        configurationCacheRun(*(projectConfig.tasks))
+        run(*(projectConfig.tasks))
         server.resetExpectations()
 
         then:
@@ -223,7 +226,6 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
                 maven { url = "${mavenRepo.uri}" }
             }
         """)
-        def configurationCache = newConfigurationCacheFixture()
         def metadataFile = file('build/publications/maven/module.json')
         def tasks = [
             'generateMetadataFileForMavenPublication',
@@ -233,7 +235,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         ]
 
         when:
-        configurationCacheRun(*tasks)
+        run(*tasks)
 
         then:
         configurationCache.assertStateStored()
@@ -244,7 +246,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         def storeTimeMetadata = metadataFile.text
         metadataFile.delete()
         deleteDirectory(mavenRepo.rootDir)
-        configurationCacheRun(*tasks)
+        run(*tasks)
 
         then:
         configurationCache.assertStateLoaded()

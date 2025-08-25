@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl
+package org.gradle.caching.internal
 
-
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import spock.lang.Issue
 
-class ConfigurationCacheBuildCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements DirectoryBuildCacheFixture {
+class ConfigurationCacheBuildCacheIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     def configurationCache = new ConfigurationCacheFixture(this)
+
+    @Override
+    void setupExecuter(){
+        super.setupExecuter()
+        withBuildCache()
+        executer.withConfigurationCacheEnabled()
+    }
 
     @Issue("https://github.com/gradle/gradle/issues/32542")
     def "cacheable task fails and neither task nor configuration are cached due to execution-time problem"() {
@@ -42,8 +49,7 @@ class ConfigurationCacheBuildCacheIntegrationTest extends AbstractConfigurationC
         """
 
         when:
-        withBuildCache()
-        configurationCacheFails "compileJava"
+        fails "compileJava"
 
         then:
         failureDescriptionStartsWith("Execution failed for task ':compileJava'.")
@@ -57,8 +63,7 @@ class ConfigurationCacheBuildCacheIntegrationTest extends AbstractConfigurationC
         }
 
         when: "running again"
-        withBuildCache()
-        configurationCacheFails "compileJava"
+        fails "compileJava"
 
         then: "the task is still executed and fails"
         failureDescriptionStartsWith("Execution failed for task ':compileJava'.")
@@ -88,8 +93,7 @@ class ConfigurationCacheBuildCacheIntegrationTest extends AbstractConfigurationC
         """
 
         when:
-        withBuildCache()
-        configurationCacheRunLenient "compileJava"
+        run("compileJava", configurationCache.LENIENT)
 
         then:
         executedAndNotSkipped(":compileJava")
@@ -101,8 +105,7 @@ class ConfigurationCacheBuildCacheIntegrationTest extends AbstractConfigurationC
         }
 
         when: "running again"
-        withBuildCache()
-        configurationCacheRunLenient "compileJava"
+        run("compileJava", configurationCache.LENIENT)
 
         then:
         skipped(":compileJava")
@@ -113,8 +116,7 @@ class ConfigurationCacheBuildCacheIntegrationTest extends AbstractConfigurationC
         when:
         file("build").deleteDir() // ensure task is not up-to-date without getting a CC miss
 
-        withBuildCache()
-        configurationCacheRunLenient "compileJava"
+        run("compileJava", configurationCache.LENIENT)
 
         then:
         skipped(":compileJava")
