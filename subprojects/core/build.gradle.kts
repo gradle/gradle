@@ -132,6 +132,9 @@ dependencies {
     implementation(projects.modelGroovy)
     implementation(projects.problemsRendering)
     implementation(projects.serviceRegistryBuilder)
+    implementation(projects.coreFlowServicesApi) {
+        because("DefaultBuildServicesRegistry has ordering dependency with FlowScope")
+    }
 
     implementation(libs.asmCommons)
     implementation(libs.commonsCompress)
