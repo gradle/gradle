@@ -113,7 +113,7 @@ public class ParsedCommandLine {
     }
 
     ParsedCommandLineOption addOption(String optionStr, CommandLineOption option) {
-        ParsedCommandLineOption parsedOption = optionsByString.get(optionStr);
+        ParsedCommandLineOption parsedOption = Objects.requireNonNull(optionsByString.get(optionStr));
         presentOptions.addAll(option.getOptions());
         return parsedOption;
     }

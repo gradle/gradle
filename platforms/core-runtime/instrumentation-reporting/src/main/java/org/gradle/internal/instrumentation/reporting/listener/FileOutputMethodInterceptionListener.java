@@ -31,7 +31,7 @@ class FileOutputMethodInterceptionListener implements MethodInterceptionListener
 
     private final OnInterceptedMethodInsFormatter formatter;
     private final Writer writer;
-    private final File source;
+    private final @Nullable File source;
 
     public FileOutputMethodInterceptionListener(@Nullable File source, File output) {
         this.source = source;

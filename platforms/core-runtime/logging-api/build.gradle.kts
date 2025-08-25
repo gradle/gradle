@@ -33,3 +33,7 @@ dependencies {
 
     implementation(projects.internalInstrumentationApi)
 }
+
+errorprone {
+    nullawayEnabled = true
+}
