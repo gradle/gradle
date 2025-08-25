@@ -30,6 +30,7 @@ import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
@@ -166,5 +167,25 @@ class DefaultKotlinDslBaseScriptModel implements KotlinDslBaseScriptModel, Seria
     @Override
     public List<String> getImplicitImports() {
         return implicitImports;
+    }
+
+    @Override
+    public List<String> getTemplateClassNames() {
+        ArrayList<String> names = new ArrayList<>();
+
+        // Script templates for IDE support
+        names.add("org.gradle.kotlin.dsl.KotlinGradleScriptTemplate");
+        names.add("org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate");
+        names.add("org.gradle.kotlin.dsl.KotlinProjectScriptTemplate");
+
+        // Legacy script templates for IDE support
+        names.add("org.gradle.kotlin.dsl.KotlinInitScript");
+        names.add("org.gradle.kotlin.dsl.KotlinSettingsScript");
+        names.add("org.gradle.kotlin.dsl.KotlinBuildScript");
+
+        // Legacy script dependencies resolver for IDE support
+        names.add("org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver");
+
+        return names;
     }
 }
