@@ -66,7 +66,11 @@ public class TestEventReporterAsListener implements TestListenerInternal, AutoCl
 
     @Override
     public void completed(TestDescriptorInternal testDescriptor, TestResult testResult, TestCompleteEvent completeEvent) {
-        TestEventReporter reporter = reportersById.remove(testDescriptor.getId());
+        boolean isRoot = testDescriptor.getParent() == null;
+        // Don't remove or close the root reporter, as we can't trigger full failure reporting until after the executor is finished.
+        TestEventReporter reporter = isRoot
+            ? reportersById.get(testDescriptor.getId())
+            : reportersById.remove(testDescriptor.getId());
         if (reporter == null) {
             throw new IllegalStateException("No reporter found for test descriptor: " + testDescriptor);
         }
@@ -89,7 +93,9 @@ public class TestEventReporterAsListener implements TestListenerInternal, AutoCl
             }
         } catch (Throwable t) {
             try {
-                reporter.close();
+                if (!isRoot) {
+                    reporter.close();
+                }
             } catch (Exception e) {
                 // Suppress exception from close to avoid masking the original exception
                 // In most cases, close will throw an exception if the reporter is not in a valid state.
@@ -98,7 +104,9 @@ public class TestEventReporterAsListener implements TestListenerInternal, AutoCl
             throw t;
         }
         // If successful, we close the reporter without suppressing any exceptions.
-        reporter.close();
+        if (!isRoot) {
+            reporter.close();
+        }
     }
 
     @Override

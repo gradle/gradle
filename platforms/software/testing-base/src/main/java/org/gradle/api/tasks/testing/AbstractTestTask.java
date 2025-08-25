@@ -93,6 +93,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Abstract class for all test tasks.
@@ -500,13 +501,14 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         testListenerInternalBroadcaster.add(testWorkerProgressListener);
 
         TestReportGenerator reportGenerator = createReportGenerator();
+        AtomicBoolean hasExecutorFailure = new AtomicBoolean(false);
         try (TestEventReporterAsListener reporterAsListener = new TestEventReporterAsListener(descriptor -> ((TestEventReporterFactoryInternal) getTestEventReporterFactory()).createInternalTestEventReporter(
             ignored -> descriptor,
             getBinaryResultsDirectory().get(),
             reportGenerator,
             testListenerInternalBroadcaster,
             true,
-            () -> handleCollectedResults(testCountLogger)
+            () -> handleCollectedResults(testCountLogger, hasExecutorFailure)
         ))) {
             TestExecuter<TestExecutionSpec> testExecuter = Cast.uncheckedNonnullCast(createTestExecuter());
             TestListenerInternal resultProcessorDelegate = reporterAsListener;
@@ -518,6 +520,9 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
             try {
                 testExecuter.execute(executionSpec, resultProcessor);
+            } catch (Throwable t) {
+                hasExecutorFailure.set(true);
+                throw t;
             } finally {
                 parentProgressLogger.completed();
                 testWorkerProgressListener.completeAll();
@@ -565,7 +570,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         }
     }
 
-    private TestEventReporterFactoryInternal.FailureReportResult handleCollectedResults(TestCountLogger testCountLogger) {
+    private TestEventReporterFactoryInternal.FailureReportResult handleCollectedResults(TestCountLogger testCountLogger, AtomicBoolean hasExecutorFailure) {
+        if (hasExecutorFailure.get()) {
+            // An executor failure is already going to be reported, so no further action is needed.
+            return TestEventReporterFactoryInternal.FailureReportResult.failureReported();
+        }
+
         if (testCountLogger.hadFailures()) {
             if (testCountLogger.hasWorkerFailures()) {
                 return testCountLogger.handleWorkerFailures();
