@@ -6,12 +6,14 @@ import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.DefaultProblem
 import org.gradle.api.problems.internal.DefaultProblemGroup
 import org.gradle.api.problems.internal.DefaultProblemId
+import org.gradle.api.problems.internal.StackTraceLocation
 import org.gradle.internal.cc.impl.problems.JsonWriter
 import org.gradle.internal.configuration.problems.FailureDecorator
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.problems.internal.impl.JsonProblemWriter
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -31,27 +33,45 @@ class JsonProblemWriterTest {
             on { column } doReturn 5
             on { length } doReturn 10
         }
+        val stackLocationFileLocation = mock<FileLocation> {
+            on { path } doReturn "/path/to/stackfile"
+        }
+        val stackTraceLocation = mock<StackTraceLocation> {
+            on { fileLocation } doReturn stackLocationFileLocation
+        }
 
-        val def = mock<ProblemDefinition> {
+        // Setup problem definition and instance
+        val problemDefinition = mock<ProblemDefinition> {
             on { id } doReturn DefaultProblemId("id", "displayName", DefaultProblemGroup("groupId", "groupDisplayName"))
             on { severity } doReturn Severity.WARNING
         }
-        val problem = DefaultProblem(def, "context", listOf(), listOf(originLocation), listOf(contextualLocation), "details", null, null)
+        val problem = DefaultProblem(
+            problemDefinition,
+            "context",
+            listOf(),
+            listOf(originLocation, stackTraceLocation),
+            listOf(contextualLocation),
+            "details",
+            null,
+            null
+        )
 
-        // Mock dependencies
+        // Setup JSON writing dependencies
         val failureDecorator = FailureDecorator()
         val failureFactory = mock<FailureFactory>()
         val stringWriter = StringWriter()
         val jsonWriter = JsonWriter(stringWriter)
 
-        // Write JSON using JsonProblemWriter
+        // Act: Write JSON
         val jsonProblemWriter = JsonProblemWriter(problem, failureDecorator, failureFactory)
         jsonProblemWriter.writeToJson(jsonWriter)
-
         jsonWriter.flush()
-        val toString = stringWriter.toString()
-        val jsonMap = JsonSlurper().parseText(toString).uncheckedCast() as Map<String, Any>
+        val jsonText = stringWriter.toString()
+        val jsonMap = JsonSlurper().parseText(jsonText).uncheckedCast() as Map<String, Any>
 
-        assertTrue((jsonMap.get("locations")?.uncheckedCast() as List<Map<Any, Any>>).size == 2)
+        // Assert: All locations are present
+        val locations = jsonMap["locations"]?.uncheckedCast<List<Any>>()
+        assertNotNull(locations)
+        assertEquals(3, locations?.size)
     }
 }
