@@ -60,7 +60,6 @@ fun performanceTestCommandLine(
     "-PautoDownloadAndroidStudio=true",
     "-PrunAndroidStudioInHeadlessMode=true",
     "-Dorg.gradle.java.installations.auto-download=false",
-    "-Porg.gradle.java.installations.auto-download=false",
 ) + os.javaInstallationLocations(arch) +
     listOf(
         "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",

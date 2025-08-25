@@ -91,7 +91,6 @@ class PerformanceTestBuildTypeTest {
                 "-Dorg.gradle.java.installations.auto-download=false",
                 "-Porg.gradle.java.installations.auto-download=false",
                 "\"-Dorg.gradle.java.installations.paths=$expectedInstallationPaths\"",
-                "\"-Porg.gradle.java.installations.paths=$expectedInstallationPaths\"",
                 "\"-Porg.gradle.performance.branchName=%teamcity.build.branch%\"",
                 "\"-Porg.gradle.performance.db.url=%performance.db.url%\"",
                 "\"-Porg.gradle.performance.db.username=%performance.db.username%\"",

@@ -101,7 +101,6 @@ enum class Os(
             }.joinToString(",") { javaHome(it, this, arch) }
         return listOf(
             """"-Dorg.gradle.java.installations.paths=$paths"""",
-            """"-Porg.gradle.java.installations.paths=$paths""""
         )
     }
 }
