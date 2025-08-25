@@ -20,17 +20,32 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.properties.GradlePropertiesController
 import org.gradle.initialization.properties.DefaultGradleProperties
+import org.gradle.internal.build.BuildProjectRegistry
+import org.gradle.internal.build.BuildState
 import spock.lang.Specification
 
 class ProjectPropertySettingBuildLoaderTest extends Specification {
 
-    final GradleInternal gradle = Mock()
+    final ProjectState childProjectState = projectState()
+    final ProjectInternal childProject = childProjectState.getMutableModel()
+
+    final ProjectState rootProjectState = projectState([childProjectState] as Set)
+    final ProjectInternal rootProject = rootProjectState.getMutableModel()
+
+    final BuildState buildState = Mock(BuildState) {
+        getProjects() >> Mock(BuildProjectRegistry) {
+            getRootProject() >> rootProjectState
+        }
+    }
+    final GradleInternal gradle = Mock() {
+        getOwner() >> buildState
+    }
     final SettingsInternal settings = Mock()
-    final ProjectInternal rootProject = Mock()
-    final ProjectInternal childProject = Mock()
+
     final GradlePropertiesController gradlePropertiesController = Mock()
     final ProjectPropertySettingBuildLoader loader = new ProjectPropertySettingBuildLoader(gradlePropertiesController, Mock(BuildLoader))
     final ExtraPropertiesExtensionInternal rootExtraProperties = Mock()
@@ -38,8 +53,6 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
 
     def setup() {
         _ * gradle.rootProject >> rootProject
-        _ * rootProject.childProjectsUnchecked >> [child: childProject]
-        _ * childProject.childProjectsUnchecked >> [:]
         _ * rootProject.extensions >> Mock(ExtensionContainerInternal) {
             extraProperties >> { rootExtraProperties }
         }
@@ -131,5 +144,16 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
 
     private static GradleProperties gradleProperties(Map<String, String> props) {
         new DefaultGradleProperties(props)
+    }
+
+    ProjectState projectState(Set<ProjectState> children = []) {
+        def state = Mock(ProjectState) {
+            getChildProjects() >> children
+        }
+        def project = Mock(ProjectInternal) {
+            getOwner() >> state
+        }
+        _ * state.getMutableModel() >> project
+        state
     }
 }
