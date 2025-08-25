@@ -207,7 +207,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
          * Approximate size of the buffered logs.
          * This marks a best-case scenario, as codepoints varies in size depending on the character encoding.
          */
-        private long bufferCodepointsSize = 0L;
+        private long approximateBufferCodepointSize = 0L;
         private List<RenderableOutputEvent> bufferedLogs = new ArrayList<RenderableOutputEvent>();
 
         OperationGroup(String category, String description, long startTime, @Nullable OperationIdentifier parentBuildOp, OperationIdentifier buildOpIdentifier, BuildOperationCategory buildOperationCategory) {
@@ -237,7 +237,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
                 if (output instanceof LogEvent) {
                     LogEvent logEvent = (LogEvent) output;
                     int logMessageCodepoints = logEvent.getMessage().length();
-                    bufferCodepointsSize += logMessageCodepoints;
+                    approximateBufferCodepointSize += logMessageCodepoints;
                 } else if (output instanceof StyledTextOutputEvent) {
                     StyledTextOutputEvent styledTextOutputEvent = (StyledTextOutputEvent) output;
                     int logMessageCodepoints = styledTextOutputEvent
@@ -245,10 +245,10 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
                         .stream()
                         .mapToInt(span -> span.getText().length())
                         .sum();
-                    bufferCodepointsSize += logMessageCodepoints;
+                    approximateBufferCodepointSize += logMessageCodepoints;
                 }
 
-                if (bufferCodepointsSize >= HIGH_WATERMARK_CODEPOINTS) {
+                if (approximateBufferCodepointSize >= HIGH_WATERMARK_CODEPOINTS) {
                     flushOutput();
                 }
             }
@@ -274,7 +274,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
                 GroupingProgressLogEventGenerator.this.needHeaderSeparator = hasContent;
 
                 bufferedLogs.clear();
-                bufferCodepointsSize = 0;
+                approximateBufferCodepointSize = 0;
                 lastUpdateTime = currentTimePeriod;
                 lastRenderedBuildOpId = buildOpIdentifier;
             }
