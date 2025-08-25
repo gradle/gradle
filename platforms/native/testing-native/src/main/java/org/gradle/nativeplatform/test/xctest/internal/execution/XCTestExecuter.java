@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.detection.TestDetector;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.SystemProperties;
@@ -84,7 +85,7 @@ public abstract class XCTestExecuter implements TestExecuter<XCTestTestExecution
 
         TestClassProcessor processor = new XCTestProcessor(getClock(), executable, workingDir, getExecHandleFactory().newExecHandleBuilder(), getIdGenerator(), rootTestSuiteId);
 
-        Runnable detector = new XCTestDetector(processor, testExecutionSpec.getTestSelection());
+        TestDetector detector = new XCTestDetector(processor, testExecutionSpec.getTestSelection());
 
         new TestMainAction(detector, processor, testResultProcessor, getWorkerLeaseService(), getTimeProvider(), rootTestSuiteId, "Gradle Test Run " + testExecutionSpec.getPath()).run();
     }
@@ -94,7 +95,7 @@ public abstract class XCTestExecuter implements TestExecuter<XCTestTestExecution
         throw new UnsupportedOperationException("XCTest does not support failing fast on first test failure.");
     }
 
-    private static class XCTestDetector implements Runnable {
+    private static class XCTestDetector implements TestDetector {
         private final TestClassProcessor testClassProcessor;
         private final XCTestSelection testSelection;
 
@@ -104,7 +105,7 @@ public abstract class XCTestExecuter implements TestExecuter<XCTestTestExecution
         }
 
         @Override
-        public void run() {
+        public void detect() {
             for (String includedTests : testSelection.getIncludedTests()) {
                 TestClassRunInfo testClass = new DefaultTestClassRunInfo(includedTests);
                 testClassProcessor.processTestClass(testClass);
