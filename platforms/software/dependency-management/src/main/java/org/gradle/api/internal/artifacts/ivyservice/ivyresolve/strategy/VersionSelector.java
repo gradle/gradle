@@ -81,4 +81,13 @@ public interface VersionSelector {
      * @return a stringy representation of this selector
      */
     String getSelector();
+
+    /**
+     * Checks if this version selector cannot have versions compatible with the given rejection selector.
+     * {@code false} might mean that version compatibility is not known, or that it is known to be compatible.
+     *
+     * @param rejectionSelector the version selector that is used to reject candidates
+     * @return true if this version selector cannot have compatible versions with the rejection selector, false otherwise
+     */
+    boolean noCompatibleVersionsWith(VersionSelector rejectionSelector);
 }

@@ -73,6 +73,10 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
         if (selector instanceof ModuleComponentSelector) {
             ModuleComponentSelector module = (ModuleComponentSelector) selector;
             if (acceptor.isDynamic()) {
+                if (incompatibleSelectors(acceptor, rejector, module.getModuleIdentifier(), result)) {
+                    return;
+                }
+
                 dynamicRevisionResolver.resolve(module, overrideMetadata, acceptor, rejector, consumerAttributes, result);
             } else {
                 String version = acceptor.getSelector();
@@ -86,5 +90,24 @@ public class RepositoryChainDependencyToComponentIdResolver implements Dependenc
                 }
             }
         }
+    }
+
+    /**
+     * Checks if the provided version selector and rejected version selector are compatible.
+     * If they are not compatible, it will set the result as rejected and return true.
+     *
+     * @param versionSelector The version selector to check.
+     * @param rejectedVersionSelector The rejected version selector to check.
+     * @param result The result to set if they are incompatible.
+     * @return true if they are incompatible, false otherwise.
+     */
+    @SuppressWarnings("unused")
+    private static boolean incompatibleSelectors(VersionSelector versionSelector, @Nullable VersionSelector rejectedVersionSelector, ModuleIdentifier moduleIdentifier, BuildableComponentIdResolveResult result) {
+        if (rejectedVersionSelector != null && versionSelector.noCompatibleVersionsWith(rejectedVersionSelector)) {
+            ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(moduleIdentifier, versionSelector.getSelector());
+            result.rejected(DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier), moduleVersionIdentifier);
+            return true;
+        }
+        return false;
     }
 }
