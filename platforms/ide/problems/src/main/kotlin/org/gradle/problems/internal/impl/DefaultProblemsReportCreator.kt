@@ -28,6 +28,7 @@ import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.api.problems.internal.ProblemReportCreator
 import org.gradle.api.problems.internal.ProblemSummaryData
+import org.gradle.api.problems.internal.StackTraceLocation
 import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.cc.impl.problems.BuildNameProvider
@@ -111,7 +112,9 @@ class JsonProblemWriter(private val problem: InternalProblem, private val failur
     override fun writeToJson(jsonWriter: JsonWriter) {
         with(jsonWriter) {
             jsonObject {
-                val fileLocations = (problem.originLocations + problem.contextualLocations).filter { it is FileLocation || it is PluginIdLocation || it is TaskLocation}
+                val fileLocations = (problem.originLocations + problem.contextualLocations)
+                    .map { location -> if(location is StackTraceLocation) location.fileLocation else location }
+                    .filter { it is FileLocation || it is PluginIdLocation || it is TaskLocation}
                 if (fileLocations.isNotEmpty()) {
                     property("locations") {
                         jsonObjectList(fileLocations) { location ->
