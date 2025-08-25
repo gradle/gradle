@@ -39,10 +39,17 @@ public interface ImmutableWorkspaceProvider {
      */
     interface LockingImmutableWorkspace extends ImmutableWorkspace {
 
+
+        boolean isStale();
+
         /**
          * Executes the given action under the global scoped lock.
          */
         <T> T withWorkspaceLock(Supplier<T> supplier);
+
+        void unstale();
+
+        boolean deleteStaleFiles();
     }
 
     /**
