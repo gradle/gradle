@@ -147,7 +147,7 @@ public final class TaskIdentity<T extends Task> {
      */
     @Deprecated
     public String getTaskPath() {
-        return getPath().getPath();
+        return getPath().asString();
     }
 
     /**
@@ -155,7 +155,7 @@ public final class TaskIdentity<T extends Task> {
      */
     @Deprecated
     public String getProjectPath() {
-        return getProjectIdentity().getProjectPath().getPath();
+        return getProjectIdentity().getProjectPath().asString();
     }
 
     /**
@@ -165,14 +165,14 @@ public final class TaskIdentity<T extends Task> {
      */
     @Deprecated
     public String getIdentityPath() {
-        return getBuildTreePath().getPath();
+        return getBuildTreePath().asString();
     }
     /**
      * @deprecated Use {@link #getProjectIdentity()} instead.
      */
     @Deprecated
     public String getBuildPath() {
-        return getProjectIdentity().getBuildPath().getPath();
+        return getProjectIdentity().getBuildPath().asString();
     }
 
     /**

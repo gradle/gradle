@@ -81,7 +81,7 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
         return delegate.findTask(path).also { task ->
             if (task == null) {
                 // check whether the path refers to a different project
-                val parentPath = Path.path(path).parent?.path
+                val parentPath = Path.path(path).parent?.asString()
                 if (parentPath != referrerProject.path) {
                     // even though the task was not found, the current project is coupled with the other project:
                     // if the configuration of that project changes, the result of this call might be different

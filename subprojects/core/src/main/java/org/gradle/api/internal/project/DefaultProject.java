@@ -621,7 +621,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public String getBuildTreePath() {
-        return getIdentityPath().getPath();
+        return getIdentityPath().asString();
     }
 
     @Override
