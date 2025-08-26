@@ -296,7 +296,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
     private static void configureCodeHighlightingAttributes(Map<String, Object> attributes) {
         attributes.put("source-highlighter", "highlight.js");
-        attributes.put("highlightjs-theme", "atom-one-dark");
+        //attributes.put("highlightjs-theme", "atom-one-dark");
         attributes.put("highlightjs-languages", "java,groovy,kotlin,toml,gradle,properties,text");
     }
 
