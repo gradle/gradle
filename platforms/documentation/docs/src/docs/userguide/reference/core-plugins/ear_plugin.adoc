@@ -86,6 +86,64 @@ include::sample[dir="snippets/ear/earCustomized/groovy/ear",files="build.gradle[
 
 You can also use customization options that the link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear] task provides, such as `from` and `metaInf`.
 
+[[sec:skinny_war_pattern]]
+== Skinny WAR Pattern
+
+The Ear plugin supports the Skinny WAR deployment pattern, where shared libraries are placed in the EAR's `lib` directory rather than being packaged within individual WAR files.
+=== Basic Skinny WAR Setup
+
+To implement the Skinny WAR pattern, configure your multi-module project with separate `war` and `ear` modules:
+
+.Project structure
+----
+.
+├── settings.gradle.kts
+├── war/ // <1>
+│   └── src/main/
+│       ├── java/
+│       └── webapp/
+└── ear/ // <2>
+    └── src/main/application/
+        └── META-INF/
+            └── application.xml
+----
+<1> Contains web application code and resources, produces skinny WAR with compileOnly dependencies
+<2> Assembles complete enterprise application, packages WAR and shared libraries in lib directory
+
+=== WAR Module Configuration
+
+Configure the WAR module to use `compileOnly` dependencies for libraries that will be provided by the EAR:
+
+.WAR module build script
+====
+include::sample[dir="snippets/ear/skinnyWar/kotlin/war",files="build.gradle.kts[]"]
+include::sample[dir="snippets/ear/skinnyWar/groovy/war",files="build.gradle[]"]
+====
+
+=== EAR Module Configuration
+
+Configure the EAR module to include the WAR and place shared libraries in the `lib` directory:
+
+.EAR module build script
+====
+include::sample[dir="snippets/ear/skinnyWar/kotlin/ear",files="build.gradle.kts[]"]
+include::sample[dir="snippets/ear/skinnyWar/groovy/ear",files="build.gradle[]"]
+====
+
+=== Runtime Library Resolution
+
+In the Skinny WAR pattern, shared dependencies are centralized in the EAR's `lib` directory instead of being duplicated in each WAR file. The generated EAR file structure demonstrates this dependency organization:
+
+----
+ear-1.0-SNAPSHOT.ear
+├── META-INF/
+│   ├── MANIFEST.MF
+│   └── application.xml
+├── lib/
+│   └── commons-lang3-3.14.0.jar
+└── war-1.0-SNAPSHOT.war (skinny WAR - no shared libraries)
+----
+
 [[sec:using_custom_app_xml]]
 == Using custom descriptor file
 
