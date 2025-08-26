@@ -97,7 +97,7 @@ public class DependencyVerificationReportWriter {
         // but of there's a fatal failure AND a warning we want to show both
         doRender(displayName, failuresByArtifact, summaryRenderer, useKeyServers);
         doRender(displayName, failuresByArtifact, htmlRenderer, useKeyServers);
-        File htmlReport = htmlRenderer.writeReport();
+        File htmlReport = htmlRenderer.writeReport(useKeyServers);
         return new VerificationReport(summaryRenderer.render(), htmlReport);
     }
 
