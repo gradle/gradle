@@ -17,7 +17,6 @@
 package org.gradle.tooling.model.gradle;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.Failure;
 import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.BuildModel;
 import org.gradle.tooling.model.DomainObjectSet;
@@ -80,7 +79,7 @@ public interface GradleBuild extends Model, BuildModel {
      * Returns whether the project has failed to load the full build.
      *
      * @return {@code true} if the project has failed, {@code false} otherwise.
-     * @since 9.1.0
+     * @since 9.2.0
      */
     @Incubating
     boolean didItFail();
@@ -89,8 +88,8 @@ public interface GradleBuild extends Model, BuildModel {
      * Returns the failure that caused the build to fail, if any.
      *
      * @return the failure, or {@code null} if the build did not fail.
-     * @since 9.1.0
+     * @since 9.2.0
      */
     @Incubating
-    Failure getFailure();
+    String getFailure();
 }

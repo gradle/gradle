@@ -21,7 +21,6 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.event.types.DefaultFailure;
 import org.gradle.internal.composite.BuildIncludeListener;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.problems.failure.Failure;
@@ -39,7 +38,10 @@ public class ResilientGradleBuildBuilder extends GradleBuildBuilder {
     private Map<BuildState, Failure> brokenBuilds = new HashMap<>();
     private Map<SettingsInternal, Failure> brokenSettings = new HashMap<>();
 
-    public ResilientGradleBuildBuilder(BuildStateRegistry buildStateRegistry, BuildIncludeListener failedIncludedBuildsRegistry) {
+    public ResilientGradleBuildBuilder(
+        BuildStateRegistry buildStateRegistry,
+        BuildIncludeListener failedIncludedBuildsRegistry
+    ) {
         super(buildStateRegistry);
         this.failedIncludedBuildsRegistry = failedIncludedBuildsRegistry;
     }
@@ -50,7 +52,7 @@ public class ResilientGradleBuildBuilder extends GradleBuildBuilder {
             target.ensureProjectsLoaded();
             return null;
         } catch (LocationAwareException e) {
-            System.err.println(e.getMessage());
+//            System.err.println(e.getMessage());
             if (e.getCause() instanceof org.gradle.kotlin.dsl.support.ScriptCompilationException) {
                 brokenBuilds.putAll(failedIncludedBuildsRegistry.getBrokenBuilds());
                 brokenSettings.putAll(failedIncludedBuildsRegistry.getBrokenSettings());
@@ -72,19 +74,16 @@ public class ResilientGradleBuildBuilder extends GradleBuildBuilder {
         // Make sure the project tree has been loaded and can be queried (but not necessarily configured)
         ensureProjectsLoaded(targetBuild);
 
-//        what to do with broken brokenSettings?
         Failure failure = brokenBuilds.get(targetBuild);
         if (failure != null) {
-            model.setFailure(DefaultFailure.fromFailure(failure, unused -> null));
-        }
-        else if (!brokenSettings.isEmpty()) {
+            model.setFailure(failure.toString());
+        } else if (!brokenSettings.isEmpty()) {
             Map.Entry<SettingsInternal, Failure> settingsEntry = brokenSettings.entrySet().iterator().next();
             ProjectDescriptor rootProject = settingsEntry.getKey().getRootProject();
             BasicGradleProject root = convertRoot(targetBuild, rootProject);
             model.setRootProject(root);
             model.addProject(root);
-//            model.setBuildIdentifier(new DefaultBuildIdentifier(settingsEntry.getKey().getRootDir()));
-            model.setFailure(DefaultFailure.fromFailure(settingsEntry.getValue(), unused -> null));
+            model.setFailure(settingsEntry.getValue().toString());
         }
 
         GradleInternal gradle = targetBuild.getMutableModel();
@@ -95,7 +94,7 @@ public class ResilientGradleBuildBuilder extends GradleBuildBuilder {
             addFailedBuilds(targetBuild, all, model);
             addIncludedBuilds(gradle, model, all);
         } catch (IllegalStateException e) {
-            System.err.println(e.getMessage());
+            System.err.println("IllegalState " + e.getMessage());
         }
         iterateParents(targetBuild, all, gradle, model);
         return model;
@@ -109,6 +108,7 @@ public class ResilientGradleBuildBuilder extends GradleBuildBuilder {
             .setBuildTreePath(project.getPath())
             .setProjectDirectory(project.getProjectDir());
     }
+
     private void addFailedBuilds(BuildState targetBuild, Map<BuildState, DefaultGradleBuild> all, DefaultGradleBuild model) {
         for (Map.Entry<BuildState, Failure> entry : brokenBuilds.entrySet()) {
             BuildState parent = entry.getKey().getParent();

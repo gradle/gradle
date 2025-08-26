@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.internal.tooling.model;
 
 import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
-import org.gradle.tooling.internal.protocol.InternalFailure;
 
 import java.io.File;
 import java.io.Serializable;
@@ -28,7 +27,7 @@ import java.util.Set;
 
 public class DefaultGradleBuild implements Serializable, GradleBuildIdentity {
     private boolean failed = false;
-    private InternalFailure failure;
+    private String failure;
     private PartialBasicGradleProject rootProject;
     private DefaultBuildIdentifier buildIdentifier;
     private final Set<PartialBasicGradleProject> projects = new LinkedHashSet<>();
@@ -83,7 +82,7 @@ public class DefaultGradleBuild implements Serializable, GradleBuildIdentity {
         return  buildIdentifier.getRootDir();
     }
 
-    public DefaultGradleBuild setFailure(InternalFailure failure) {
+    public DefaultGradleBuild setFailure(String failure) {
         this.failed = failure != null;
         this.failure = failure;
 
@@ -94,7 +93,7 @@ public class DefaultGradleBuild implements Serializable, GradleBuildIdentity {
         return failed || allBuilds.stream().anyMatch(DefaultGradleBuild::didItFail) || includedBuilds.stream().anyMatch(DefaultGradleBuild::didItFail);
     }
 
-    public InternalFailure getFailure() {
+    public String getFailure() {
         return failure;
     }
 
