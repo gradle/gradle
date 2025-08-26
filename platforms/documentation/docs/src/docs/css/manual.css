@@ -1669,6 +1669,11 @@ body.dark-theme {
     }
 
     body.light-theme {
+        * {
+          scrollbar-width: auto;
+          scrollbar-color: #686868 #e7e7e9;
+        }
+
         .docs-navigation {
             scrollbar-width: auto;
             scrollbar-color: #686868 #e7e7e9;
