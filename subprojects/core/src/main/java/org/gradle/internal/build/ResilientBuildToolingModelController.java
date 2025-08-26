@@ -17,6 +17,7 @@
 package org.gradle.internal.build;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.GradleException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 
 import java.util.Set;
@@ -39,7 +40,7 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
     protected void configureProjectsForModel(String modelName) {
         try {
             super.configureProjectsForModel(modelName);
-        } catch (Exception e) {
+        } catch (GradleException e) {
             // For resilient models, ignore configuration failures
             if (!RESILIENT_MODELS.contains(modelName)) {
                 throw e;
