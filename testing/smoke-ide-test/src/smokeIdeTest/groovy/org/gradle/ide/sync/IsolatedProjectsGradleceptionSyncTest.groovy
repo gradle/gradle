@@ -16,6 +16,7 @@
 
 package org.gradle.ide.sync
 
+import org.gradle.ide.starter.IdeCommand
 import org.gradle.ide.sync.fixtures.IsolatedProjectsIdeSyncFixture
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.fixtures.file.TestFile
@@ -33,6 +34,23 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
 
         then:
         fixture.assertHtmlReportHasNoProblems()
+    }
+
+    def "can sync gradle/gradle incrementally without error"() {
+        given:
+        gradle()
+
+        and:
+        ideXmxMb = 6000
+
+        expect:
+        ideaSync(
+            IDEA_COMMUNITY_VERSION,
+            [
+                new IdeCommand.AppendTextToFile("subprojects/core-api/build.gradle.kts", "dependencies {}"),
+                IdeCommand.ImportGradleProject.INSTANCE
+            ]
+        )
     }
 
     private void gradle() {

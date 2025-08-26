@@ -16,6 +16,8 @@
 package org.gradle.ide.sync
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.ide.starter.IdeCommand
+import org.gradle.ide.starter.IdeScenarios
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleDistribution
@@ -26,6 +28,7 @@ import org.gradle.process.internal.ExecHandleState
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.jspecify.annotations.Nullable
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Timeout
@@ -55,6 +58,12 @@ abstract class AbstractIdeSyncTest extends Specification {
 
     private final GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext())
 
+    Integer ideXmxMb = null
+
+    // By default, an IDE is being closed immediately when the job is finished.
+    // For debugging purposes sometimes it's desirable to keep it opened.
+    boolean ideKeepAlive = false
+
     IntegrationTestBuildContext getBuildContext() {
         return IntegrationTestBuildContext.INSTANCE
     }
@@ -62,8 +71,8 @@ abstract class AbstractIdeSyncTest extends Specification {
     /**
      * Runs a full sync process for the build-under-test with a given Android Studio version.
      */
-    protected void androidStudioSync(String version) {
-        ideSync("ai-$version")
+    protected void androidStudioSync(String version, @Nullable List<IdeCommand> commands = null) {
+        ideSync("ai-$version", commands)
     }
 
     /**
@@ -73,17 +82,19 @@ abstract class AbstractIdeSyncTest extends Specification {
      * For instance, {@code 2024.2-eap}. When the build type is not provided, it defaults to {@code release}.
      * <p>
      */
-    protected void ideaSync(String version) {
-        ideSync("ic-$version")
+    protected void ideaSync(String version, @Nullable List<IdeCommand> commands = null) {
+        ideSync("ic-$version", commands)
     }
 
     /**
      * Runs a full sync with a given IDE as an external process.
+     * Optionally, an IDE scenario as a list of {@link IdeCommand} may be provided.
      * The IDE distribution is automatically downloaded if required.
      */
-    private void ideSync(String ide) {
+    private void ideSync(String ide, @Nullable List<IdeCommand> commands) {
+        def scenarioFile = writeScenarioOfCommands(commands)
         def gradleDist = distribution.gradleHomeDir.toPath()
-        runIdeStarterWith(gradleDist, testDirectory.toPath(), ideHome, ide)
+        runIdeStarterWith(gradleDist, testDirectory.toPath(), ideHome, scenarioFile, ide)
     }
 
     protected TestFile getTestDirectory() {
@@ -101,12 +112,27 @@ abstract class AbstractIdeSyncTest extends Specification {
         Path gradleDist,
         Path testProject,
         Path ideHome,
+        @Nullable Path scenario,
         String ide
     ) {
-        def gradleDistOption = "--gradle-dist=$gradleDist"
-        def projectOption = "--project=$testProject"
-        def ideHomeOption = "--ide-home=$ideHome"
-        def ideOption = "--ide=$ide"
+        def args = [
+            "--gradle-dist=$gradleDist",
+            "--project=$testProject",
+            "--ide-home=$ideHome",
+            "--ide=$ide",
+        ]
+
+        if (scenario != null) {
+            args += "--ide-scenario=$scenario"
+        }
+
+        if (ideXmxMb != null) {
+            args += "--ide-xmx=$ideXmxMb"
+        }
+
+        if (ideKeepAlive) {
+            args += "--ide-keep-alive"
+        }
 
         DefaultClientExecHandleBuilder builder = new DefaultClientExecHandleBuilder(
             TestFiles.pathToFileResolver(), Executors.newCachedThreadPool(), new DefaultBuildCancellationToken()
@@ -114,7 +140,7 @@ abstract class AbstractIdeSyncTest extends Specification {
 
         builder
             .setExecutable(findIdeStarter().toString())
-            .args(gradleDistOption, projectOption, ideHomeOption, ideOption)
+            .args(args)
             .setWorkingDir(testDirectory)
             .setStandardOutput(System.out)
             .setErrorOutput(System.err)
@@ -154,5 +180,15 @@ abstract class AbstractIdeSyncTest extends Specification {
             ideHome.mkdirs()
         }
         return ideHome.toPath()
+    }
+
+    @Nullable
+    private Path writeScenarioOfCommands(@Nullable List<IdeCommand> commands) {
+        if (commands == null || commands.isEmpty()) {
+            return null
+        }
+        def scenarioFile = file("scenario.json").touch().toPath()
+        IdeScenarios.writeScenario(scenarioFile, commands)
+        return scenarioFile
     }
 }
