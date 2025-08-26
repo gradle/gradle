@@ -23,7 +23,6 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
-    implementation(projects.buildEvents)
     implementation(projects.problemsApi)
     implementation(projects.baseServicesGroovy)
     implementation(projects.buildProcessServices)
@@ -43,6 +42,7 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
 
+    runtimeOnly(projects.buildEvents)
     runtimeOnly(projects.languageJvm)
     runtimeOnly(projects.testingBase)
     runtimeOnly(projects.testingJvm)
