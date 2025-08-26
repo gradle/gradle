@@ -45,10 +45,9 @@ class KotlinScriptingModelBuildersRegistrationAction : ProjectConfigureAction {
                 KotlinDslScriptsModelBuilder
             }
 
+            builders.register(builder)
             if (modelParameters.isResilientModelBuilding) {
                 builders.register(ResilientKotlinDslScriptsModelBuilder(builder))
-            } else {
-                builders.register(builder)
             }
             project.tasks.register(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
         }
