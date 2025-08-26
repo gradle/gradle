@@ -119,7 +119,7 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         bodyContains("Troubleshooting")
         bodyContains("Please review the errors reported above carefully.")
         bodyContains("In this case, you can ask Gradle to export all keys it used for verification of this build to the keyring with the following command-line")
-        bodyContains("./gradlew --write-verification-metadata pgp,sha512 --export-keys")
+        bodyContains("./gradlew --write-verification-metadata pgp,sha512 help --export-keys")
     }
 
     @Unroll("reports verification errors (#failure)")

@@ -189,7 +189,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
             .append("            It is recommended that you edit the ").append(verificationFileLink()).append(" manually. ")
             .append("            However, if you are confident that those are false positives, Gradle can help you by generating the missing verification metadata.")
             .append("            In this case, you can ask Gradle to export all keys it used for verification of this build to the keyring with the following command-line:</p>")
-            .append("            <pre>./gradlew --write-verification-metadata").append(verificationOptions()).append(" help --export-keys</pre>")
+            .append("            <pre>./gradlew --write-verification-metadata ").append(verificationOptions()).append(" help --export-keys</pre>")
             .append("            <p>In any case you <b>must review the result</b> of this operation.")
             .append("            <p>Please refer to the <a href=\"").append(documentationRegistry.getDocumentationFor("dependency_verification")).append("\" target=\"_blank\">documentation</a> for more information.</p>\n")
             .append("        </div>\n")
