@@ -41,7 +41,7 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
         gradle()
 
         and:
-        ideXmxMb = 6000
+        ideXmxMb = 4096
 
         expect:
         ideaSync(

@@ -44,7 +44,7 @@ import java.util.concurrent.Executors
  * Provisioned IDEs are cached in the {@link AbstractIdeSyncTest#getIdeHome} directory.
  * @see <a href="https://github.com/gradle/gradle-ide-starter">gradle-ide-starter</a>
  */
-@Timeout(900)
+@Timeout(600) // synchronized with gradle-ide-starter timeout
 @CleanupTestDirectory
 abstract class AbstractIdeSyncTest extends Specification {
 
