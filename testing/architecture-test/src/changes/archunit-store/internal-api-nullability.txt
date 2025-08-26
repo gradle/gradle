@@ -1537,7 +1537,6 @@ Class <org.gradle.internal.classpath.InstrumentedExecutionAccess$1> is not annot
 Class <org.gradle.internal.classpath.MethodHandleUtils> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (MethodHandleUtils.java:0)
 Class <org.gradle.internal.classpath.TransformedClassPath$Builder> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TransformedClassPath.java:0)
 Class <org.gradle.internal.classpath.TransformedClassPath> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TransformedClassPath.java:0)
-Class <org.gradle.internal.collections.ImmutableFilteredList> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ImmutableFilteredList.java:0)
 Class <org.gradle.internal.compiler.java.IncrementalCompileTask> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (IncrementalCompileTask.java:0)
 Class <org.gradle.internal.compiler.java.listeners.classnames.ClassNameCollector> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ClassNameCollector.java:0)
 Class <org.gradle.internal.compiler.java.listeners.constants.ConstantDependentsConsumer> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ConstantDependentsConsumer.java:0)
