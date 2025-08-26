@@ -23,8 +23,10 @@ import org.gradle.tooling.events.problems.Severity;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import java.io.Serializable;
+
 @NullMarked
-public class DefaultProblemDefinition implements ProblemDefinition {
+public class DefaultProblemDefinition implements ProblemDefinition, Serializable {
 
     private final ProblemId id;
     private final Severity severity;

@@ -20,14 +20,17 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublica
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
+import org.gradle.api.problems.internal.ExceptionProblemRegistry;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.composite.BuildIncludeListener;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.plugins.ide.internal.configurer.DefaultUniqueProjectNameProvider;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
+import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
@@ -54,7 +57,9 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
             final BuildStateRegistry buildStateRegistry,
             final ProjectStateRegistry projectStateRegistry,
             BuildModelParameters buildModelParameters,
-            IntermediateToolingModelProvider intermediateToolingModelProvider
+            IntermediateToolingModelProvider intermediateToolingModelProvider,
+            BuildIncludeListener failedIncludedBuildsRegistry,
+            ExceptionProblemRegistry problemRegistry
         ) {
 
             return new BuildScopeToolingModelBuilderRegistryAction() {
@@ -68,7 +73,7 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
                     registry.register(new EclipseModelBuilder(gradleProjectBuilder, projectStateRegistry));
                     registry.register(ideaModelBuilder);
                     registry.register(gradleProjectBuilder);
-                    registry.register(new GradleBuildBuilder(buildStateRegistry));
+                    registry.register(createGradleBuildBuiler(buildModelParameters, buildStateRegistry, failedIncludedBuildsRegistry, problemRegistry));
                     registry.register(new BasicIdeaModelBuilder(ideaModelBuilder));
                     registry.register(new BuildInvocationsBuilder(taskLister));
                     registry.register(new PublicationsBuilder(projectPublicationRegistry));
@@ -87,6 +92,18 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
                     return isolatedProjects ? new IsolatedProjectsSafeGradleProjectBuilder(intermediateToolingModelProvider) : new GradleProjectBuilder();
                 }
             };
+        }
+
+        private static ToolingModelBuilder createGradleBuildBuiler(
+            BuildModelParameters buildModelParameters,
+            BuildStateRegistry buildStateRegistry,
+            BuildIncludeListener failedIncludedBuildsRegistry,
+            ExceptionProblemRegistry problemRegistry
+        ) {
+            if (buildModelParameters.isResilientModelBuilding()) {
+                return new ResilientGradleBuildBuilder(buildStateRegistry, failedIncludedBuildsRegistry, problemRegistry);
+            }
+            return new GradleBuildBuilder(buildStateRegistry);
         }
     }
 }

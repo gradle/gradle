@@ -170,7 +170,8 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
                 programHost,
                 scriptHost,
                 stage2ProgramId,
-                ClassPath.EMPTY
+                ClassPath.EMPTY,
+//                mock()
             )
 
             verify(programHost).compileSecondStageOf(
@@ -635,7 +636,9 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
             assertStandardOutputOf(expectedStage1Output) {
                 program.execute(programHost, scriptHost)
                 if (program is ExecutableProgram.StagedProgram) {
-                    program.loadSecondStageFor(programHost, scriptHost, programId, accessorsClassPath)
+                    program.loadSecondStageFor(programHost, scriptHost, programId, accessorsClassPath,
+//                        mock()
+                    )
                 }
             }
         }

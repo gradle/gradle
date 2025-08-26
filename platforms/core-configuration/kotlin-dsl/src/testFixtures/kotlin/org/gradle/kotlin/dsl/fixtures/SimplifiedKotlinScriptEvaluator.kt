@@ -20,6 +20,7 @@ import org.gradle.api.internal.classpath.RuntimeApiInfo
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.configuration.DefaultImportsReader
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeOrigin
@@ -56,6 +57,7 @@ fun eval(
     target: Any,
     baseCacheDir: File,
     baseTempDir: File,
+    problems: InternalProblems,
     scriptCompilationClassPath: ClassPath = testRuntimeClassPath,
     scriptRuntimeClassPath: ClassPath = ClassPath.EMPTY
 ) {
@@ -63,7 +65,8 @@ fun eval(
         baseCacheDir,
         baseTempDir,
         scriptCompilationClassPath,
-        scriptRuntimeClassPath = scriptRuntimeClassPath
+        problems,
+        scriptRuntimeClassPath = scriptRuntimeClassPath,
     ).use {
         it.eval(script, target)
     }
@@ -93,12 +96,13 @@ class SimplifiedKotlinScriptEvaluator(
     private val baseCacheDir: File,
     private val baseTempDir: File,
     private val scriptCompilationClassPath: ClassPath,
+    private val problems: InternalProblems,
     private val serviceRegistry: ServiceRegistry = SimplifiedKotlinDefaultServiceRegistry(baseTempDir),
-    private val scriptRuntimeClassPath: ClassPath = ClassPath.EMPTY
+    private val scriptRuntimeClassPath: ClassPath = ClassPath.EMPTY,
 ) : AutoCloseable {
 
     fun eval(script: String, target: Any, topLevelScript: Boolean = false) {
-        Interpreter(InterpreterHost()).eval(
+        Interpreter(InterpreterHost(), problems).eval(
             target,
             scriptSourceFor(script),
             Hashing.md5().hashString(script),
