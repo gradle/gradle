@@ -121,4 +121,15 @@ class DefaultFailure implements Failure {
         );
     }
 
+    @Override
+    public String toString() {
+        return "DefaultFailure{" +
+            "original=" + original +
+            ", stackTrace=" + stackTrace +
+            ", frameRelevance=" + frameRelevance +
+            ", suppressed=" + suppressed +
+            ", causes=" + causes +
+            ", problems=" + problems +
+            '}';
+    }
 }

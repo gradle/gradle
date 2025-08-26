@@ -51,9 +51,8 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
         return convert(target, new LinkedHashMap<>());
     }
 
-    protected Throwable ensureProjectsLoaded(BuildState target) {
+    protected void ensureProjectsLoaded(BuildState target) {
         target.ensureProjectsLoaded();
-        return null;
     }
 
     protected DefaultGradleBuild convert(BuildState targetBuild, Map<BuildState, DefaultGradleBuild> all) {
@@ -114,7 +113,7 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
     }
 
     protected BasicGradleProject convert(BuildState owner, ProjectState project, Map<ProjectState, BasicGradleProject> convertedProjects) {
-        DefaultProjectIdentifier id = new DefaultProjectIdentifier(owner.getBuildRootDir(), project.getProjectPath().getPath());
+        DefaultProjectIdentifier id = new DefaultProjectIdentifier(owner.getBuildRootDir(), project.getProjectPath().asString());
         BasicGradleProject converted = new BasicGradleProject()
             .setName(project.getName())
             .setProjectIdentifier(id)
