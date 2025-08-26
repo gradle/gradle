@@ -338,6 +338,13 @@ This deprecated behavior will be removed in Gradle 10.0.0.
 
 If you are using non-String values in project properties, convert them to `String` representation:
 
+[[get-path]]
+==== Deprecation of `Path.getPath()`
+
+The link:{javadocPath}/org/gradle/util/Path.html#getPath()[`getPath()` method] on `Path` has been deprecated and will be removed in Gradle 10.0.0.
+
+Instead, use link:{javadocPath}/org/gradle/util/Path.html#asString()[`asString()`] on `Path`.
+
 ====
 [.multi-language-sample]
 =====

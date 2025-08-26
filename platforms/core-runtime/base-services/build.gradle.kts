@@ -35,6 +35,7 @@ dependencies {
     api(libs.jspecify)
     api(libs.guava)
 
+    implementation(projects.gradle.logging)
     implementation(projects.time)
     implementation(projects.baseAsm)
 

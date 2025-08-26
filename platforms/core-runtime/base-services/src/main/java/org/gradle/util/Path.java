@@ -21,6 +21,7 @@ import com.google.common.collect.AbstractIterator;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.Nullable;
 
@@ -120,6 +121,11 @@ public class Path implements Comparable<Path> {
 
     @Deprecated
     public String getPath() {
+        DeprecationLogger.deprecateMethod(Path.class, "getPath")
+            .withAdvice("Use `asString()` instead to get the string representation of this path.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "dependency_management_rules")
+            .nagUser();
         return asString();
     }
 
