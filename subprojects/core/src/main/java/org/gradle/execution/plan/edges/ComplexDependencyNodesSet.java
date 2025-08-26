@@ -18,20 +18,20 @@ package org.gradle.execution.plan.edges;
 
 import org.gradle.execution.plan.Node;
 
-import java.util.NavigableSet;
+import java.util.Set;
 
 import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
 
 public class ComplexDependencyNodesSet implements DependencyNodesSet {
     private final DependencySuccessorsOnlyNodeSet delegate;
-    private final NavigableSet<Node> orderedMustSuccessors = newSortedNodeSet();
+    private final Set<Node> orderedMustSuccessors = newSortedNodeSet();
 
     public ComplexDependencyNodesSet(DependencySuccessorsOnlyNodeSet delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public NavigableSet<Node> getDependencySuccessors() {
+    public Set<Node> getDependencySuccessors() {
         return delegate.getDependencySuccessors();
     }
 
@@ -42,7 +42,7 @@ public class ComplexDependencyNodesSet implements DependencyNodesSet {
     }
 
     @Override
-    public NavigableSet<Node> getMustSuccessors() {
+    public Set<Node> getMustSuccessors() {
         return orderedMustSuccessors;
     }
 
