@@ -48,7 +48,7 @@ public class CompileJavaBuildOperationReportingCompiler implements Compiler<Java
         return buildOperationRunner.call(new CallableBuildOperation<WorkResult>() {
             @Override
             public BuildOperationDescriptor.Builder description() {
-                String taskIdentityPath = task.getIdentityPath().getPath();
+                String taskIdentityPath = task.getIdentityPath().asString();
                 return BuildOperationDescriptor
                     .displayName("Compile Java for " + taskIdentityPath)
                     .details(new CompileJavaBuildOperationType.Details() {

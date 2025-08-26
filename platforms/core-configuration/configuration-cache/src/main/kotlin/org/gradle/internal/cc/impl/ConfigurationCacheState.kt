@@ -250,7 +250,7 @@ class ConfigurationCacheState(
         return converted.computeIfAbsent(project.path) {
             // Root project name is serialized separately, could perhaps move it to this cached project state object
             val projectName = project.path.name ?: rootProjectName
-            BuildStructureOperationProject(projectName, project.path.path, project.path.path, project.projectDir.absolutePath, project.buildFile.absolutePath, childProjects)
+            BuildStructureOperationProject(projectName, project.path.asString(), project.path.asString(), project.projectDir.absolutePath, project.buildFile.absolutePath, childProjects)
         }
     }
 
@@ -429,7 +429,7 @@ class ConfigurationCacheState(
     private
     suspend fun WriteContext.writeBuildWithNoWork(buildState: BuildState) {
         withGradleIsolate(buildState.mutableModel, userTypesCodec) {
-            writeString(buildState.identityPath.path)
+            writeString(buildState.identityPath.asString())
             if (buildState.isProjectsCreated) {
                 writeBoolean(true)
                 writeString(buildState.projects.rootProject.name)
