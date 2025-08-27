@@ -19,7 +19,7 @@ package org.gradle.api.internal.project
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.TextResourceScriptSource
-import org.gradle.initialization.DefaultProjectDescriptor
+import org.gradle.initialization.ProjectDescriptorInternal
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.reflect.Instantiator
@@ -37,7 +37,7 @@ class ProjectFactoryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def instantiator = Mock(Instantiator)
-    def projectDescriptor = Stub(DefaultProjectDescriptor)
+    def projectDescriptor = Stub(ProjectDescriptorInternal)
     def gradle = Stub(GradleInternal)
     def serviceRegistryFactory = Stub(ServiceRegistryFactory)
     def projectRegistry = Mock(ProjectRegistry)

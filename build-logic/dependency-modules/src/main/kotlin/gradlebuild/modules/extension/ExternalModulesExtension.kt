@@ -199,7 +199,6 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val kotlinCoroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm"
     val kotlinCoroutinesDebug = "org.jetbrains.kotlinx:kotlinx-coroutines-debug"
     val littleproxy = "xyz.rogfam:littleproxy"
-    val mina = "org.apache.mina:mina-core"
     val mockitoCore = "org.mockito:mockito-core"
     val mockitoKotlin = "org.mockito.kotlin:mockito-kotlin"
     val mockwebserver = "com.squareup.okhttp3:mockwebserver"

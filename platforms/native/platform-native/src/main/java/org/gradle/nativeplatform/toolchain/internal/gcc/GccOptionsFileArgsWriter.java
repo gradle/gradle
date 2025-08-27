@@ -39,7 +39,7 @@ class GccOptionsFileArgsWriter extends OptionsFileArgsWriter {
     public List<String> transformArgs(List<String> originalArgs, File tempDir) {
         List<String> commandLineOnlyArgs = getCommandLineOnlyArgs(originalArgs);
         List<String> finalArgs = new ArrayList<>();
-        finalArgs.addAll(ArgWriter.argsFileGenerator(new File(tempDir, "options.txt"), ArgWriter.unixStyleFactory()).transform(originalArgs));
+        finalArgs.addAll(ArgWriter.argsFileGenerator(new File(tempDir, "options.txt"), ArgWriter.unixStyleFactory()).apply(originalArgs));
         finalArgs.addAll(commandLineOnlyArgs);
         return finalArgs;
     }

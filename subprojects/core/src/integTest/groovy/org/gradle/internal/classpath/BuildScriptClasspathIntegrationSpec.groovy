@@ -393,14 +393,14 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         def jdk24 = AvailableJavaHomes.getJdk24()
 
         when:
-        executer.withJvm(jdk21).withArguments("-Porg.gradle.java.installations.paths=${jdk21.javaHome},${jdk24.javaHome}")
+        executer.withJvm(jdk21).withArguments("-Dorg.gradle.java.installations.paths=${jdk21.javaHome},${jdk24.javaHome}")
         succeeds("printFoo")
 
         then:
         outputContains("JAR = DEFAULT")
 
         when:
-        executer.withJvm(jdk24).withArguments("-Porg.gradle.java.installations.paths=${jdk21.javaHome},${jdk24.javaHome}")
+        executer.withJvm(jdk24).withArguments("-Dorg.gradle.java.installations.paths=${jdk21.javaHome},${jdk24.javaHome}")
         succeeds("printFoo")
 
         then:

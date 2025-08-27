@@ -227,7 +227,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     ) {
         // TODO - the suffix should be a deterministic function of the known and enabled annotations
         // For now, just assign using a counter
-        String suffix = ClassGeneratorSuffixRegistry.assign("$Inject");
+        String suffix = ClassGeneratorSuffixRegistry.assign("$Inject_");
         return new AsmBackedClassGenerator(false, suffix, allKnownAnnotations, enabledInjectAnnotations, roleHandler, cacheFactory.newClassMap(), factoryId);
     }
 

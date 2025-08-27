@@ -46,6 +46,48 @@ The previous step will help you identify potential problems by issuing deprecati
 The incubating `ObjectFactory#dependencyCollector()` method has been removed.
 DependencyCollectors can still be instantiated within Gradle <<properties_providers.adoc#managed_types, managed types>>.
 
+==== Consumable configurations are initialized lazily
+
+Consumable configurations created by all bundled Gradle plugins are now initialized lazily.
+Configure actions applied to consumable configurations created by Gradle will no longer be executed unless that configuration is published, consumed as a variant, or otherwise realized by build logic.
+
+Consider the following example:
+
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("java-library")
+}
+
+configurations.named("apiElements").configure {
+    println("Configuring apiElements")
+}
+----
+
+The `Configuring apiElements` line will no longer be executed during configuration-time by default.
+Instead, the configuration will only be realized and initialized if it is needed.
+
+To leverage this new laziness, avoid APIs that eagerly realize configurations:
+
+.build.gradle.kts
+[source,kotlin]
+----
+// Instead of
+configurations.all {} // Eagerly realizes all configurations
+
+// Use
+configurations.confgureEach {} // Only called for realized configurations
+
+// Instead of
+configurations.getByName("name").doSomething() // Eagerly realizes the "name" configuration
+
+// Use
+configurations.named("name").configure {
+    doSomething() // Only called if "name" configuration is realized
+}
+----
+
 === Deprecations
 
 [[dependency_management_rules]]
@@ -61,6 +103,21 @@ These APIs include:
 - link:{javadocPath}/org/gradle/api/artifacts/ComponentSelectionRules.html#withModule(java.lang.Object,java.lang.Object)[`ComponentSelectionRules.withModule(Object,Object)`]
 
 Instead of using these APIs, you should use the alternative methods that take a `ComponentMetadataRule` class or an `Action`.
+
+[[deprecate_register_feature_no_java_plugin]]
+==== Deprecated calling `registerFeature` without applying the Java plugin
+
+Creating a JVM feature with link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html#registerFeature(java.lang.String,org.gradle.api.Action)[`JavaPluginExtension#registerFeature`] before the Java plugin is applied has been deprecated and will become an error in Gradle 10.0.0.
+
+Build logic that creates JVM features should ensure the Java plugin is applied before invoking `registerFeature`.
+
+The following bundled plugins apply the Java plugin automatically:
+
+- `java-library`
+- `application`
+- `groovy`
+- `scala`
+- `war`
 
 [[changes_9.1.0]]
 == Upgrading from 9.0.0 and earlier
@@ -307,6 +364,19 @@ tasks.register('nestedBuild', GradleBuild) {
 ----
 =====
 ====
+
+[[toolchain-project-properties]]
+==== Deprecation of project properties for toolchain configuration
+
+In previous versions of Gradle, you could configure toolchains using <<build_environment.adoc#sec:project_properties, project properties>> on the command line with the `-P` flag.
+For example, to disable toolchain auto-detection, you could use `-Porg.gradle.java.installations.auto-detect=false`.
+This behavior is deprecated and will be removed in Gradle 10.0.0.
+Instead, you should specify these settings as <<build_environment.adoc#sec:gradle_configuration_properties, Gradle properties>> using the `-D` flag:
+
+[source,text]
+----
+-Dorg.gradle.java.installations.auto-detect=false
+----
 
 === Potential breaking changes
 

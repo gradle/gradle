@@ -618,8 +618,6 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     void "deprecations are passed to copies when corresponding role is #baseRole"() {
-        TestUtil.initDeprecationLogger("conf configuration emits a deprecation warning")
-
         ConfigurationRole role = new DefaultConfigurationRole("test", baseRole.consumable, baseRole.resolvable, baseRole.declarable, baseRole.consumptionDeprecated, baseRole.resolutionDeprecated, baseRole.declarationAgainstDeprecated)
         def configuration = prepareConfigurationForCopyTest(conf("conf", ":", ":", role))
         def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
@@ -1650,7 +1648,9 @@ This method is only meant to be called on configurations which allow the (non-de
             attributesFactory,
             TestUtil.domainObjectCollectionFactory(),
             CollectionCallbackActionDecorator.NOOP,
-            TestUtil.problemsService()
+            TestUtil.problemsService(),
+            new AttributeDesugaring(attributesFactory),
+            new ResolveExceptionMapper(domainObjectContext, new DocumentationRegistry())
         )
 
         new DefaultConfigurationFactory(
@@ -1658,8 +1658,6 @@ This method is only meant to be called on configurations which allow the (non-de
             listenerManager,
             domainObjectContext,
             publishArtifactNotationParserFactory,
-            new ResolveExceptionMapper(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
-            new AttributeDesugaring(configurationServices.getAttributesFactory()),
             userCodeApplicationContext
         )
     }

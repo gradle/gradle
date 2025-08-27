@@ -16,6 +16,7 @@
 package org.gradle.api;
 
 import org.gradle.api.internal.jvm.JavaVersionParser;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An enumeration of Java versions.
@@ -176,7 +177,7 @@ public enum JavaVersion {
     private static final int FIRST_MAJOR_VERSION_ORDINAL = 9 - 1;
     // Class file versions: 1.1 == 45, 1.2 == 46...
     private static final int CLASS_MAJOR_VERSION_OFFSET = 44;
-    private static JavaVersion currentJavaVersion;
+    private static @Nullable JavaVersion currentJavaVersion;
     private final String versionName;
 
     JavaVersion() {
@@ -190,7 +191,9 @@ public enum JavaVersion {
      * @return The version, or null if the provided value is null.
      * @throws IllegalArgumentException when the provided value cannot be converted.
      */
+    @SuppressWarnings("NullAway") // We cannot annotate it as nullable as it would be a breaking change for Kotlin clients.
     public static JavaVersion toVersion(Object value) throws IllegalArgumentException {
+        //noinspection ConstantValue
         if (value == null) {
             return null;
         }
@@ -211,10 +214,11 @@ public enum JavaVersion {
      * @return The version of the current JVM.
      */
     public static JavaVersion current() {
-        if (currentJavaVersion == null) {
-            currentJavaVersion = toVersion(System.getProperty("java.version"));
+        JavaVersion version = currentJavaVersion;
+        if (version == null) {
+            currentJavaVersion = version = toVersion(System.getProperty("java.version"));
         }
-        return currentJavaVersion;
+        return version;
     }
 
     static void resetCurrent() {

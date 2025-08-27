@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.support
 
+import org.gradle.api.internal.GradleApiImplicitImportsProvider
 import org.gradle.configuration.ImportsReader
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
@@ -28,18 +29,29 @@ import org.gradle.internal.service.scopes.ServiceScope
 class ImplicitImports internal constructor(
     @Transient
     private val importsReader: ImportsReader
-) {
+) : GradleApiImplicitImportsProvider {
 
-    val list by lazy {
-        gradleImports() + gradleKotlinDslImports()
+    private
+    val defaultGradleApiImports by lazy {
+        importsReader.simpleNameToFullClassNamesMapping.values.map { it.first() }
     }
 
     private
-    fun gradleImports() =
-        importsReader.simpleNameToFullClassNamesMapping.values.map { it.first() }
+    val groovySpecificImplicitImports by lazy {
+        listOf(
+            "java.lang.*",
+            "java.io.*",
+            "java.net.*",
+            "java.util.*",
+            "java.time.*",
+            "java.math.BigDecimal",
+            "java.math.BigInteger",
+            "javax.inject.Inject"
+        )
+    }
 
-    private // TODO: sync with the documentation in kotlin_dsl.adoc
-    fun gradleKotlinDslImports() =
+    private
+    val kotlinSpecificImplicitImports by lazy {
         listOf(
             "org.gradle.kotlin.dsl.*",
             // TODO: let this be contributed by :plugins
@@ -52,4 +64,14 @@ class ImplicitImports internal constructor(
             "java.io.File",
             "javax.inject.Inject"
         )
+    }
+
+    override fun getGroovyDslImplicitImports(): List<String> =
+        defaultGradleApiImports + groovySpecificImplicitImports
+
+    override fun getKotlinDslImplicitImports(): List<String> =
+        defaultGradleApiImports + kotlinSpecificImplicitImports
+
+    val list = kotlinDslImplicitImports
+
 }

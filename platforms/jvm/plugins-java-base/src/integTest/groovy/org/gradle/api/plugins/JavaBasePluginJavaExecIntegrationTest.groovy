@@ -36,7 +36,7 @@ class JavaBasePluginJavaExecIntegrationTest extends AbstractIntegrationSpec impl
             }
         """
 
-        executer.withArgument("-Porg.gradle.java.installations.auto-detect=true")
+        executer.withToolchainDetectionEnabled()
     }
 
     def "javaexec defaults to java toolchain when java-base plugin is applied"() {

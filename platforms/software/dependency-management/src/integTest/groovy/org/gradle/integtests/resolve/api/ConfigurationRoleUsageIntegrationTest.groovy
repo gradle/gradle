@@ -67,7 +67,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         succeeds 'help'
 
         where:
-        configuration << ["legacy", "consumable", "resolvable", "consumableLocked", "resolvableLocked", "dependencyScopeUnlocked"]
+        configuration << ["legacy", "consumable", "resolvable", "resolvableLocked", "dependencyScopeUnlocked"]
     }
 
     def "can prevent usage mutation of roleless configurations"() {
@@ -420,7 +420,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
             }
         """                                                                             | ConfigurationRoles.ALL        | "legacy configuration with explicit set consumed = true"
         "configurations.consumable('additionalRuntimeClasspath')"                       | ConfigurationRoles.CONSUMABLE | "role-based configuration"
-        "configurations.consumableLocked('additionalRuntimeClasspath')"                 | ConfigurationRoles.CONSUMABLE | "internal locked role-based configuration"
     }
 
     def "redundantly changing usage on a legacy configuration does not warn even if flag is set"() {

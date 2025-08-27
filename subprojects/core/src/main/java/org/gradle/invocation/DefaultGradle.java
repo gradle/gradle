@@ -575,7 +575,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     @Inject
-    public abstract ProjectRegistry<ProjectInternal> getProjectRegistry();
+    public abstract ProjectRegistry getProjectRegistry();
 
     @Inject
     protected abstract TextUriResourceLoader.Factory getResourceLoaderFactory();
