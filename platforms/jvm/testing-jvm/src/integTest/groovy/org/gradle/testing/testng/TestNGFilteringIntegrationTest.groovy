@@ -23,8 +23,17 @@ import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
 
-@TargetCoverage({ TestNGCoverage.SUPPORTED_BY_JDK })
+@TargetCoverage({ TestNGCoverage.SUPPORTS_GENERIC_TEST_REPORTING })
 class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest implements TestNGMultiVersionTest {
+    @Override
+    String testName(String methodName) {
+        return methodName
+    }
+
+    @Override
+    String getPathToTestPackages() {
+        return ":Gradle suite:Gradle test:"
+    }
 
     void theUsualFiles() {
         buildFile << """
