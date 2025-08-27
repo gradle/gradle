@@ -26,6 +26,16 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 
 @TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest implements JUnitJupiterMultiVersionTest {
+    @Override
+    String testName(String methodName) {
+        return methodName + "()"
+    }
+
+    @Override
+    String getPathToTestPackages() {
+        return ":"
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/19808")
     def "nested classes are executed when filtering by class name"() {
         given:
