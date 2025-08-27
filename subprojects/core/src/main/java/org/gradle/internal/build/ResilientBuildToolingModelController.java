@@ -29,11 +29,16 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
         "org.gradle.tooling.model.kotlin.dsl.ResilientKotlinDslScriptsModel"
     );
 
+    private final Set<String> resilientModels;
+
     public ResilientBuildToolingModelController(
         BuildState buildState,
         BuildLifecycleController buildController,
-        ToolingModelBuilderLookup buildScopeLookup) {
+        ToolingModelBuilderLookup buildScopeLookup,
+        Set<String> resilientModels
+    ) {
         super(buildState, buildController, buildScopeLookup);
+        this.resilientModels = ImmutableSet.copyOf(resilientModels);
     }
 
     @Override
@@ -42,7 +47,7 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
             super.configureProjectsForModel(modelName);
         } catch (GradleException e) {
             // For resilient models, ignore configuration failures
-            if (!RESILIENT_MODELS.contains(modelName)) {
+            if (!RESILIENT_MODELS.contains(modelName) && !resilientModels.contains(modelName)) {
                 throw e;
             }
         }

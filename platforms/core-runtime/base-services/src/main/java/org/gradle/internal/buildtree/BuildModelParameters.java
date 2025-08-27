@@ -67,4 +67,6 @@ public interface BuildModelParameters {
      * @return true if the model building is resilient, false otherwise
      */
     boolean isResilientModelBuilding();
+
+    String getResilientModels();
 }

@@ -152,6 +152,7 @@ class ConfigurationCacheKeyTest {
                     invalidateCoupledProjects = false,
                     modelAsProjectDependency = false,
                     resilientModelBuilding = false,
+                    resilientModels = ""
                 ),
                 ConfigurationCacheLoggingParameters(LogLevel.LIFECYCLE)
             ),

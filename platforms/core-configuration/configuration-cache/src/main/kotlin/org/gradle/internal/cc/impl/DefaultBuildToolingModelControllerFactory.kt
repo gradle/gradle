@@ -33,7 +33,12 @@ class DefaultBuildToolingModelControllerFactory(
     override fun createController(owner: BuildState, controller: BuildLifecycleController): BuildToolingModelController {
         val modelBuilderLookup = controller.gradle.services.get(ToolingModelBuilderLookup::class.java)
         val defaultController = if (modelParameters.isResilientModelBuilding) {
-            ResilientBuildToolingModelController(owner, controller, modelBuilderLookup)
+            val resilientModels = modelParameters.resilientModels
+                .split(",")
+                .map { it.trim() }
+                .filter { it != "" }
+                .toSet()
+            ResilientBuildToolingModelController(owner, controller, modelBuilderLookup, resilientModels)
         } else {
             DefaultBuildToolingModelController(owner, controller, modelBuilderLookup)
         }
