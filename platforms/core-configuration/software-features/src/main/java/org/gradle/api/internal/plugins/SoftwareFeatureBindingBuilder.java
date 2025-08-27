@@ -32,30 +32,32 @@ public interface SoftwareFeatureBindingBuilder {
         SoftwareFeatureTransform<Definition, OwnBuildModel, TargetDefinition> transform
     );
 
-    class ModelBindingTypeInformation<
+    default <
         Definition extends HasBuildModel<OwnBuildModel>,
         OwnBuildModel extends BuildModel,
         TargetDefinition extends HasBuildModel<?>
-        > {
+        >
+    DslBindingBuilder<Definition, OwnBuildModel> bindSoftwareFeatureToDefinition(
+        String name,
+        Class<Definition> definitionClass,
+        Class<TargetDefinition> targetDefinitionClass,
+        SoftwareFeatureTransform<Definition, OwnBuildModel, TargetDefinition> transform
+    ) {
+        return bindSoftwareFeature(name, bindingToTargetDefinition(definitionClass, targetDefinitionClass), transform);
+    }
 
-        private final Class<Definition> definitionType;
-        private final TargetTypeInformation<TargetDefinition> targetType;
-
-        public ModelBindingTypeInformation(
-            Class<Definition> definitionType,
-            TargetTypeInformation<TargetDefinition> targetType
-        ) {
-            this.definitionType = definitionType;
-            this.targetType = targetType;
-        }
-
-        public Class<Definition> getDefinitionType() {
-            return definitionType;
-        }
-
-        public TargetTypeInformation<TargetDefinition> getTargetType() {
-            return targetType;
-        }
+    default <
+        Definition extends HasBuildModel<OwnBuildModel>,
+        OwnBuildModel extends BuildModel,
+        TargetBuildModel extends BuildModel
+        >
+    DslBindingBuilder<Definition, OwnBuildModel> bindSoftwareFeatureToBuildModel(
+        String name,
+        Class<Definition> definitionClass,
+        Class<TargetBuildModel> targetBuildModelClass,
+        SoftwareFeatureTransform<Definition, OwnBuildModel, HasBuildModel<TargetBuildModel>> transform
+    ) {
+        return bindSoftwareFeature(name, bindingToTargetBuildModel(definitionClass, targetBuildModelClass), transform);
     }
 
     static <
@@ -80,6 +82,32 @@ public interface SoftwareFeatureBindingBuilder {
         Class<TargetBuildModel> targetBuildModel
     ) {
         return new ModelBindingTypeInformation<>(definition, new BuildModelTargetTypeInformation<>(targetBuildModel));
+    }
+
+    class ModelBindingTypeInformation<
+        Definition extends HasBuildModel<OwnBuildModel>,
+        OwnBuildModel extends BuildModel,
+        TargetDefinition extends HasBuildModel<?>
+        > {
+
+        private final Class<Definition> definitionType;
+        private final TargetTypeInformation<TargetDefinition> targetType;
+
+        public ModelBindingTypeInformation(
+            Class<Definition> definitionType,
+            TargetTypeInformation<TargetDefinition> targetType
+        ) {
+            this.definitionType = definitionType;
+            this.targetType = targetType;
+        }
+
+        public Class<Definition> getDefinitionType() {
+            return definitionType;
+        }
+
+        public TargetTypeInformation<TargetDefinition> getTargetType() {
+            return targetType;
+        }
     }
 }
 
