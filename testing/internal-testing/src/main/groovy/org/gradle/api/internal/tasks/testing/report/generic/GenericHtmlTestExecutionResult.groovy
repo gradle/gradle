@@ -105,8 +105,13 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
     }
 
     @Override
-    TestPathExecutionResult testPath(String testPath) {
-        return new HtmlTestPathExecutionResult(diskPathForTestPath(testPath).toFile())
+    TestPathExecutionResult testPath(String rootTestPath) {
+        return new HtmlTestPathExecutionResult(diskPathForTestPath(rootTestPath).toFile())
+    }
+
+    @Override
+    TestPathExecutionResult testPath(String rootTestPath, String testMethodName) {
+        return testPath(rootTestPath + ":" + testMethodName)
     }
 
     @Override
