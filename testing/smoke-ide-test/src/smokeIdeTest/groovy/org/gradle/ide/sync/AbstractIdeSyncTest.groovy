@@ -70,7 +70,9 @@ abstract class AbstractIdeSyncTest extends Specification {
     }
 
     /**
-     * Runs a full sync process for the build-under-test with a given Android Studio version.
+     * Runs a full sync with a given Android Studio version as an external process.
+     * Optionally, a list of {@link IdeCommand} to perform after the sync may be provided.
+     * The IDE distribution is automatically downloaded if required.
      */
     protected void androidStudioSync(
         String version,
@@ -81,7 +83,9 @@ abstract class AbstractIdeSyncTest extends Specification {
     }
 
     /**
-     * Runs a full sync process for the build-under-test with a given IntelliJ IDEA Community version.
+     * Runs a full sync with a given IntelliJ IDEA Community version as an external process.
+     * Optionally, a list of {@link IdeCommand} to perform after the sync may be provided.
+     * The IDE distribution is automatically downloaded if required.
      * <p>
      * The version can be optionally suffixed with a "build type", which is one of {@code release}, {@code rc}, {@code eap}.
      * For instance, {@code 2024.2-eap}. When the build type is not provided, it defaults to {@code release}.
@@ -95,11 +99,6 @@ abstract class AbstractIdeSyncTest extends Specification {
         ideSync("ic-$version", testProject, commandsAfterSync)
     }
 
-    /**
-     * Runs a full sync with a given IDE as an external process.
-     * Optionally, an IDE scenario as a list of {@link IdeCommand} may be provided.
-     * The IDE distribution is automatically downloaded if required.
-     */
     private void ideSync(String ide, File testProject, List<IdeCommand> commandsAfterSync) {
         def scenarioFile = writeScenarioOfCommands(commandsAfterSync)
         def gradleDist = distribution.gradleHomeDir.toPath()
