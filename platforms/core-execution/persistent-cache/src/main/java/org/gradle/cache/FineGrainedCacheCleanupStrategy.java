@@ -17,6 +17,7 @@
 package org.gradle.cache;
 
 import java.io.File;
+import java.util.function.Supplier;
 
 /**
  * A strategy for cleaning up fine-grained persistent caches.
@@ -26,12 +27,12 @@ public interface FineGrainedCacheCleanupStrategy {
 
     CacheCleanupStrategy getCleanupStrategy(FineGrainedPersistentCache cache);
 
-    FineGrainedCacheDeleter getCacheDeleter(FineGrainedPersistentCache cache);
+    FineGrainedCacheMarkAndSweepDeleter getCacheDeleter(FineGrainedPersistentCache cache);
 
     /*
      * A deleter for fine-grained cache entries.
      */
-    interface FineGrainedCacheDeleter {
+    interface FineGrainedCacheMarkAndSweepDeleter {
         /**
          * Checks if the given cache entry is stale.
          * A stale entry is one that is no longer valid, for example, if it has not been accessed for a certain period of time.
@@ -39,8 +40,6 @@ public interface FineGrainedCacheCleanupStrategy {
          * Such entry will be deleted by the deleter after some period.
          */
         boolean isStale(File entry);
-
-        File getStaleMarkerFile(File entry);
 
         /**
          * Unstales the given cache entry.
@@ -57,6 +56,6 @@ public interface FineGrainedCacheCleanupStrategy {
          */
         boolean delete(File entry);
 
-        void withDeletionLock(File workspace, Runnable supplier);
+        <T> T withDeletionLock(String key, Supplier<T> supplier);
     }
 }

@@ -33,7 +33,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.function.Supplier;
 
-import static org.gradle.cache.FineGrainedCacheCleanupStrategy.FineGrainedCacheDeleter;
+import static org.gradle.cache.FineGrainedCacheCleanupStrategy.FineGrainedCacheMarkAndSweepDeleter;
 
 public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceProvider, Closeable {
     private static final int DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
@@ -41,7 +41,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
     private final SingleDepthFileAccessTracker fileAccessTracker;
     private final File baseDirectory;
     private final FineGrainedPersistentCache cache;
-    private final FineGrainedCacheDeleter deleter;
+    private final FineGrainedCacheMarkAndSweepDeleter deleter;
     private final ProducerGuard<String> guard;
 
     public static CacheBasedImmutableWorkspaceProvider createWorkspaceProvider(
@@ -117,6 +117,14 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             }
 
             @Override
+            public void withDeletionLock(Runnable supplier) {
+                deleter.withDeletionLock(path, () -> {
+                    supplier.run();
+                    return null;
+                });
+            }
+
+            @Override
             public <T> T withThreadLock(Supplier<T> supplier) {
                 return guard.guardByKey(path, supplier);
             }
@@ -152,11 +160,6 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
-            }
-
-            @Override
-            public void withDeletionLock(Runnable supplier) {
-                deleter.withDeletionLock(workspace, supplier);
             }
         };
     }

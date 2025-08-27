@@ -18,7 +18,7 @@ package org.gradle.cache.internal;
 
 import org.gradle.cache.CleanableStore;
 import org.gradle.cache.CleanupProgressMonitor;
-import org.gradle.cache.FineGrainedCacheCleanupStrategy.FineGrainedCacheDeleter;
+import org.gradle.cache.FineGrainedCacheCleanupStrategy.FineGrainedCacheMarkAndSweepDeleter;
 import org.gradle.cache.FineGrainedLeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.FineGrainedPersistentCache;
 import org.gradle.internal.file.Deleter;
@@ -37,14 +37,12 @@ import java.util.stream.Stream;
 public class DefaultFineGrainedLeastRecentlyUsedCacheCleanup extends LeastRecentlyUsedCacheCleanup implements FineGrainedLeastRecentlyUsedCacheCleanup {
 
     private final FineGrainedPersistentCache cache;
-    private final FineGrainedLeastRecentlyUsedCacheDeleter deleter;
-    private final int cacheDepth;
+    private final FineGrainedCacheLeastRecentlyUsedMarkAndSweepDeleter deleter;
 
-    public DefaultFineGrainedLeastRecentlyUsedCacheCleanup(FineGrainedPersistentCache cache, FineGrainedLeastRecentlyUsedCacheDeleter deleter, int cacheDepth, FileAccessTimeJournal journal, Supplier<Long> removeUnusedEntriesOlderThan) {
+    public DefaultFineGrainedLeastRecentlyUsedCacheCleanup(FineGrainedPersistentCache cache, FineGrainedCacheLeastRecentlyUsedMarkAndSweepDeleter deleter, int cacheDepth, FileAccessTimeJournal journal, Supplier<Long> removeUnusedEntriesOlderThan) {
         super(new SingleDepthFilesFinder(cacheDepth), journal, removeUnusedEntriesOlderThan);
         this.cache = cache;
         this.deleter = deleter;
-        this.cacheDepth = cacheDepth;
     }
 
     @Override
@@ -60,7 +58,7 @@ public class DefaultFineGrainedLeastRecentlyUsedCacheCleanup extends LeastRecent
             deleter.addStaleMarker(file);
             return false;
         } else if (deleter.shouldBeDeleted(file)) {
-            return cache.useCache(asKey(file), () -> {
+            return deleter.withDeletionLock(asKey(file), () -> {
                 // We need to recheck if the entry is still stale
                 // or some other process deleted it/recreated it before we acquired the lock.
                 if (deleter.isStale(file)) {
@@ -74,24 +72,18 @@ public class DefaultFineGrainedLeastRecentlyUsedCacheCleanup extends LeastRecent
         }
     }
 
-    @SuppressWarnings("StringConcatenationInLoop")
     private String asKey(File file) {
-        String key = file.getName();
-        file = file.getParentFile();
-        for (int i = 0; i < cacheDepth - 1; i++) {
-            key = file.getName() + "/" + key;
-            file = file.getParentFile();
-        }
-        return key;
+        Path relativized = cache.getBaseDir().toPath().relativize(file.toPath());
+        return relativized.toString();
     }
 
-    public static class FineGrainedLeastRecentlyUsedCacheDeleter implements FineGrainedCacheDeleter {
+    public static class FineGrainedCacheLeastRecentlyUsedMarkAndSweepDeleter implements FineGrainedCacheMarkAndSweepDeleter {
 
         private final static Duration STALE_DURATION = Duration.ofHours(1);
         private final Deleter deleter;
         private final FineGrainedPersistentCache cache;
 
-        public FineGrainedLeastRecentlyUsedCacheDeleter(FineGrainedPersistentCache cache, Deleter deleter) {
+        public FineGrainedCacheLeastRecentlyUsedMarkAndSweepDeleter(FineGrainedPersistentCache cache, Deleter deleter) {
             this.deleter = deleter;
             this.cache = cache;
         }
@@ -130,8 +122,8 @@ public class DefaultFineGrainedLeastRecentlyUsedCacheCleanup extends LeastRecent
         }
 
         @Override
-        public void withDeletionLock(File workspace, Runnable supplier) {
-            
+        public <T> T withDeletionLock(String path, Supplier<T> supplier) {
+            return cache.useCache(path, "-deletion", supplier);
         }
 
         private void addStaleMarker(File entry) {
