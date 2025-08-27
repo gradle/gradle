@@ -108,8 +108,8 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20135")
-    @Unroll("reports sticky tip for (#failure)")
-    def "reports sticky tip"() {
+    @Unroll("reports sticky tip for (#failure) using a key server")
+    def "reports sticky tip for (#failure) using a key server"() {
         given:
         renderer.startNewSection(":someConfiguration")
         renderer.startNewArtifact(artifact()) {
@@ -135,6 +135,35 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         signatureFailure("Maven", ['abcd': signatureError(IGNORED_KEY)])        | true          | './gradlew --write-verification-metadata pgp,sha512 help'
         signatureFailure("Maven", ['abcd': signatureError(PASSED_NOT_TRUSTED)]) | true          | './gradlew --write-verification-metadata pgp,sha512 help'
         signatureFailure("Maven", ['abcd': signatureError(MISSING_KEY)])        | true          | './gradlew --write-verification-metadata pgp,sha512 help'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20135")
+    @Unroll("reports sticky tip for (#failure) without using a key server")
+    def "reports sticky tip for (#failure) without using a key server"() {
+        given:
+        renderer.startNewSection(":someConfiguration")
+        renderer.startNewArtifact(artifact()) {
+            renderer.reportFailure(failure)
+        }
+
+        when:
+        report
+        generateReport(useKeyServers)
+
+        then:
+        bodyContains(stickyTipMessage)
+
+        where:
+        failure                                                                 | useKeyServers | stickyTipMessage
+        checksumFailure()                                                       | false         | './gradlew --write-verification-metadata pgp,sha512 help'
+        missingChecksums()                                                      | false         | './gradlew --write-verification-metadata pgp,sha512 help'
+        deletedArtifact()                                                       | false         | './gradlew --write-verification-metadata pgp,sha512 help'
+        missingSignature()                                                      | false         | './gradlew --write-verification-metadata pgp,sha512 help'
+        onlyIgnoredKeys()                                                       | false         | './gradlew --write-verification-metadata pgp,sha512 help'
+        signatureFailure()                                                      | false         | './gradlew --write-verification-metadata pgp,sha512 --export-keys help'
+        signatureFailure("Maven", ['abcd': signatureError(FAILED)])             | false         | './gradlew --write-verification-metadata pgp,sha512 help'
+        signatureFailure("Maven", ['abcd': signatureError(IGNORED_KEY)])        | false         | './gradlew --write-verification-metadata pgp,sha512 help'
+        signatureFailure("Maven", ['abcd': signatureError(PASSED_NOT_TRUSTED)]) | false         | './gradlew --write-verification-metadata pgp,sha512 help'
         signatureFailure("Maven", ['abcd': signatureError(MISSING_KEY)])        | false         | './gradlew --write-verification-metadata pgp,sha512 --export-keys help'
     }
 
