@@ -35,15 +35,19 @@ trait VerifiesGenericTestReportResults {
         renderedUrl
     }
 
-    GenericTestExecutionResult resultsFor(String name) {
-        return new GenericHtmlTestExecutionResult(testDirectory, "build/reports/${name}")
+    GenericTestExecutionResult resultsFor(String testTaskReportsDirPath) {
+        return resultsFor(testDirectory, testTaskReportsDirPath)
     }
 
-    GenericTestExecutionResult resultsFor(TestFile directory, String name) {
-        return new GenericHtmlTestExecutionResult(directory, "build/reports/${name}")
+    GenericTestExecutionResult resultsFor(TestFile rootBuildDir, String testTaskReportsDirPath) {
+        return new GenericHtmlTestExecutionResult(rootBuildDir, "build/reports/${testTaskReportsDirPath}")
     }
 
     GenericTestExecutionResult aggregateResults() {
-        return new GenericHtmlTestExecutionResult(testDirectory, "build/reports/aggregate-test-results")
+        return aggregateResults(testDirectory)
+    }
+
+    GenericTestExecutionResult aggregateResults(TestFile rootBuildDir) {
+        return new GenericHtmlTestExecutionResult(rootBuildDir, "build/reports/aggregate-test-results")
     }
 }

@@ -15,20 +15,29 @@
  */
 package org.gradle.testing
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TestOutcome
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.hamcrest.Matchers
 import spock.lang.Issue
 
 abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
+    /**
+     * Translates a method name to the name used in the test report, which can vary by test framework.
+     * <p>
+     * For example, JUnit Jupiter uses the format "methodName()", while TestNG uses "methodName".
+     */
+    abstract String testName(String methodName)
 
-    TestOutcome getPassedTestOutcome() {
-        return dryRun ? TestOutcome.SKIPPED : TestOutcome.PASSED
+    abstract String getPathToTestPackages()
+
+    TestResult.ResultType getPassedTestOutcome() {
+        return dryRun ? TestResult.ResultType.SKIPPED : TestResult.ResultType.SUCCESS
     }
 
-    TestOutcome getFailedTestOutcome() {
-        return dryRun ? TestOutcome.SKIPPED : TestOutcome.FAILED
+    TestResult.ResultType getFailedTestOutcome() {
+        return dryRun ? TestResult.ResultType.SKIPPED : TestResult.ResultType.FAILURE
     }
 
     final List<String> getTestTaskArguments() {
@@ -93,14 +102,18 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         succeedsWithTestTaskArguments("test", "--tests=Ok2*")
 
         then:
-        def testResult = new DefaultTestExecutionResult(testDirectory)
-        testResult.assertTestClassesExecuted('Ok2')
+        GenericTestExecutionResult testResult = resultsFor("tests/test")
+        testResult.testPath("${pathToTestPackages}").onlyRoot().assertChildCount(1, 0)
+        testResult.testPath("${pathToTestPackages}Ok2").onlyRoot().assertChildCount(1, 0)
 
         when:
         succeedsWithTestTaskArguments("cleanTest", "test", "--tests=Ok*")
 
         then:
-        testResult.assertTestClassesExecuted('Ok', 'Ok2')
+        GenericTestExecutionResult testResult2 = resultsFor("tests/test")
+        testResult2.testPath("${pathToTestPackages}").onlyRoot().assertChildCount(2, 0)
+        testResult2.testPath("${pathToTestPackages}Ok").onlyRoot().assertChildCount(1, 0)
+        testResult2.testPath("${pathToTestPackages}Ok2").onlyRoot().assertChildCount(1, 0)
 
         when:
         failsWithTestTaskArguments("test", "--tests=DoesNotMatchAClass*")
@@ -140,7 +153,7 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
             ${testFrameworkImports}
             public class OtherTest {
                 @Test public void pass() {}
-                @Test public void fail() { throw new RuntimeException("Boo!"); }
+                @Test public void fail() { throw new RuntimeException("Yah!"); }
             }
         """
 
@@ -152,21 +165,21 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         }
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("org.gradle.FooTest")
-        result.testClass("org.gradle.FooTest").assertTestOutcomes(testOutcome, testName)
+        GenericTestExecutionResult testResult = resultsFor("tests/test")
+        String frameworkTestPath = "${pathToTestPackages}org.gradle.FooTest"
+        String frameworkTestName = testName(testMethodName)
         if (dryRun) {
-            result.testClassByXml("org.gradle.FooTest").assertStderr(Matchers.emptyString())
+            testResult.testPath(frameworkTestPath, frameworkTestName).onlyRoot().assertStderr(Matchers.emptyString())
         } else {
-            result.testClassByXml("org.gradle.FooTest").assertStderr(Matchers.containsString("ran FooTest.${testName}!"))
+            testResult.testPath(frameworkTestPath, frameworkTestName).onlyRoot().assertStderr(Matchers.containsString("ran FooTest.${baseTestName}!"))
         }
 
         where:
-        pattern                   | testOutcome       | testName | buildSuccess
-        'FooTest.pass'            | passedTestOutcome | 'pass'   | true
-        'org.gradle.FooTest.pass' | passedTestOutcome | 'pass'   | true
-        'FooTest.fail'            | failedTestOutcome | 'fail'   | false
-        'org.gradle.FooTest.fail' | failedTestOutcome | 'fail'   | false
+        pattern                   | testMethodName  | testOutcome       | baseTestName  | buildSuccess
+        'FooTest.pass'            | "pass"          | passedTestOutcome | 'pass'        | true
+        'org.gradle.FooTest.pass' | "pass"          | passedTestOutcome | 'pass'        | true
+        'FooTest.fail'            | "fail"          | failedTestOutcome | 'fail'        | false
+        'org.gradle.FooTest.fail' | "fail"          | failedTestOutcome | 'fail'        | false
     }
 
     def "executes multiple methods from a test class"() {

@@ -98,12 +98,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
             : testReportGenerator.generate(Collections.singletonList(binaryResultsDir));
 
         TestEventReporterFactoryInternal.FailureReportResult reportResult = tryReportFailures.get();
-        String failureMessage;
-        if (reportResult instanceof TestEventReporterFactoryInternal.FailureReportResult.TestFailureDetected) {
-            failureMessage = ((TestEventReporterFactoryInternal.FailureReportResult.TestFailureDetected) reportResult).getFailureMessage();
-        } else {
-            failureMessage = this.failureMessage;
-        }
+        String failureMessage = getFailureMessage(reportResult);
         boolean hasTestFailures = failureMessage != null;
 
         // Notify aggregate listener of final results
@@ -123,6 +118,19 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
             String testResultsUrl = new ConsoleRenderer().asClickableFileUrl(reportIndexFile.toFile());
             throw new MarkedVerificationException(failureMessage + " See the test results for more details: " + testResultsUrl);
         }
+    }
+
+    @Nullable
+    private String getFailureMessage(TestEventReporterFactoryInternal.FailureReportResult reportResult) {
+        String failureMessage;
+        if (reportResult instanceof TestEventReporterFactoryInternal.FailureReportResult.TestFailureDetected) {
+            failureMessage = ((TestEventReporterFactoryInternal.FailureReportResult.TestFailureDetected) reportResult).getFailureMessage();
+        } else if (reportResult instanceof TestEventReporterFactoryInternal.FailureReportResult.NoTestsRun) {
+            failureMessage = ((TestEventReporterFactoryInternal.FailureReportResult.NoTestsRun) reportResult).getFailureMessage();
+        } else {
+            failureMessage = this.failureMessage;
+        }
+        return failureMessage;
     }
 
     @Override
