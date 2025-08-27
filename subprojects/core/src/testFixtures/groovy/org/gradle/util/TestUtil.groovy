@@ -29,6 +29,7 @@ import org.gradle.api.internal.collections.DomainObjectCollectionFactory
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
 import org.gradle.api.internal.file.DefaultProjectLayout
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.model.DefaultObjectFactory
@@ -41,7 +42,6 @@ import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler
-import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.problems.Problem
 import org.gradle.api.problems.ProblemReporter
@@ -57,13 +57,14 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.tasks.util.internal.PatternSets
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.hash.ChecksumService
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
+import org.gradle.internal.instantiation.managed.DefaultManagedObjectRegistry
+import org.gradle.internal.instantiation.managed.ManagedObjectRegistry
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.InMemoryCacheFactory
 import org.gradle.internal.model.StateTransitionControllerFactory
@@ -80,8 +81,6 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.CrossBuildSessionParameters
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.internal.work.DefaultWorkerLimits
-import org.gradle.problems.ProblemDiagnostics
-import org.gradle.problems.buildtree.ProblemStream
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
@@ -161,9 +160,8 @@ class TestUtil {
     }
 
     static ObjectFactory objectFactory(TestFile baseDir) {
-        def fileResolver = TestFiles.resolver(baseDir)
-        def fileCollectionFactory = TestFiles.fileCollectionFactory(baseDir)
-        return createServices(fileResolver, fileCollectionFactory).get(ObjectFactory)
+        ServiceRegistry services = services(baseDir)
+        return services.get(ObjectFactory)
     }
 
     static CalculatedValueContainerFactory calculatedValueContainerFactory() {
@@ -183,32 +181,36 @@ class TestUtil {
         def services = new DefaultServiceRegistry()
         services.register {
             registrations.execute(it)
+            it.add(InstantiatorFactory, instantiatorFactory())
             it.add(ProviderFactory, new TestProviderFactory())
             it.add(TestCrossBuildInMemoryCacheFactory)
             it.add(NamedObjectInstantiator)
             it.add(CollectionCallbackActionDecorator, CollectionCallbackActionDecorator.NOOP)
             it.add(MutationGuard, MutationGuards.identity())
-            it.add(DefaultDomainObjectCollectionFactory)
+            it.add(DomainObjectCollectionFactory, DefaultDomainObjectCollectionFactory)
             it.add(PropertyHost, PropertyHost.NO_OP)
             it.add(TaskDependencyFactory, DefaultTaskDependencyFactory.withNoAssociatedProject())
             it.add(DocumentationRegistry, new DocumentationRegistry())
             it.add(FileCollectionFactory, fileCollectionFactory)
-            it.add(DefaultPropertyFactory)
+            it.add(PropertyFactory, DefaultPropertyFactory)
             it.addProvider(new ServiceRegistrationProvider() {
                 @Provides
-                InstantiatorFactory createInstantiatorFactory() {
-                    TestUtil.instantiatorFactory()
+                ManagedObjectRegistry createManagedObjectRegistry() {
+                    new DefaultManagedObjectRegistry()
                 }
 
                 @Provides
-                ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, NamedObjectInstantiator namedObjectInstantiator, DomainObjectCollectionFactory domainObjectCollectionFactory, TaskDependencyFactory taskDependencyFactory, PropertyFactory propertyFactory) {
-                    def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)
+                FilePropertyFactory createFilePropertyFactory() {
+                    new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)
+                }
+
+                @Provides
+                ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, NamedObjectInstantiator namedObjectInstantiator, DomainObjectCollectionFactory domainObjectCollectionFactory, TaskDependencyFactory taskDependencyFactory, PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory) {
                     return new DefaultObjectFactory(instantiatorFactory.decorate(services), namedObjectInstantiator, TestFiles.directoryFileTreeFactory(), TestFiles.patternSetFactory, propertyFactory, filePropertyFactory, taskDependencyFactory, fileCollectionFactory, domainObjectCollectionFactory)
                 }
 
                 @Provides
-                ProjectLayout createProjectLayout() {
-                    def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)
+                ProjectLayout createProjectLayout(FilePropertyFactory filePropertyFactory) {
                     return new DefaultProjectLayout(
                         fileResolver.resolve("."),
                         fileResolver.resolve("."),
@@ -268,38 +270,18 @@ class TestUtil {
         return services
     }
 
+    static ServiceRegistry services(TestFile baseDir) {
+        def fileResolver = TestFiles.resolver(baseDir)
+        def fileCollectionFactory = TestFiles.fileCollectionFactory(baseDir)
+        createServices(fileResolver, fileCollectionFactory)
+    }
+
     static ServiceRegistry createTestServices(Action<ServiceRegistration> registrations = {}) {
         createServices(TestFiles.resolver().newResolver(new File(".").absoluteFile), TestFiles.fileCollectionFactory(), registrations)
     }
 
     static NamedObjectInstantiator objectInstantiator() {
         return services().get(NamedObjectInstantiator)
-    }
-
-    static void initDeprecationLogger(String reason) {
-        assert reason != null && reason.size() > 10: "Please provide a reason why the deprecation logger is used in unit tests."
-        // initializes the deprecation logger to avoid warnings about it not being initialized in unit tests
-        DeprecationLogger.init(WarningMode.None, null, null, new ProblemStream() {
-            @Override
-            ProblemDiagnostics forCurrentCaller(ProblemStream.StackTraceTransformer transformer) {
-                return null
-            }
-
-            @Override
-            ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception) {
-                return null
-            }
-
-            @Override
-            ProblemDiagnostics forCurrentCaller() {
-                return null
-            }
-
-            @Override
-            ProblemDiagnostics forCurrentCaller(com.google.common.base.Supplier<? extends Throwable> exceptionFactory) {
-                return null
-            }
-        })
     }
 
     static FeaturePreviews featurePreviews() {

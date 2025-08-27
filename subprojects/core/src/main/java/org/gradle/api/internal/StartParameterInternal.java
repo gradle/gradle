@@ -52,6 +52,7 @@ public class StartParameterInternal extends StartParameter {
     private Duration continuousBuildQuietPeriod = Duration.ofMillis(250);
     private boolean propertyUpgradeReportEnabled;
     private boolean enableProblemReportGeneration = true;
+    private boolean daemonJvmCriteriaConfigured = false;
 
     public StartParameterInternal() {
     }
@@ -91,6 +92,7 @@ public class StartParameterInternal extends StartParameter {
         p.searchUpwards = searchUpwards;
         p.useEmptySettings = useEmptySettings;
         p.enableProblemReportGeneration = enableProblemReportGeneration;
+        p.daemonJvmCriteriaConfigured = daemonJvmCriteriaConfigured;
         return p;
     }
 
@@ -281,6 +283,14 @@ public class StartParameterInternal extends StartParameter {
 
     public boolean isProblemReportGenerationEnabled() {
         return this.enableProblemReportGeneration;
+    }
+
+    public boolean isDaemonJvmCriteriaConfigured() {
+        return daemonJvmCriteriaConfigured;
+    }
+
+    public void setDaemonJvmCriteriaConfigured(boolean daemonJvmCriteriaConfigured) {
+        this.daemonJvmCriteriaConfigured = daemonJvmCriteriaConfigured;
     }
 
     public BuildLayoutConfiguration toBuildLayoutConfiguration() {

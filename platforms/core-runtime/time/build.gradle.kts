@@ -32,3 +32,7 @@ dependencies {
 
     implementation(libs.jspecify)
 }
+
+errorprone {
+    nullawayEnabled = true
+}

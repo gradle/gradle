@@ -58,7 +58,7 @@ class DaemonToolchainCrossVersionTest extends ToolingApiSpecification implements
             it.newBuild()
                 .setEnvironmentVariables(["OTHER_JAVA_HOME": otherJvm.javaHome.absolutePath])
                 .forTasks("help").withArguments(
-                    "-Porg.gradle.java.installations.fromEnv=OTHER_JAVA_HOME",
+                    "-Dorg.gradle.java.installations.fromEnv=OTHER_JAVA_HOME",
                     "-Dorg.gradle.java.installations.auto-detect=false",
             ).run()
         }

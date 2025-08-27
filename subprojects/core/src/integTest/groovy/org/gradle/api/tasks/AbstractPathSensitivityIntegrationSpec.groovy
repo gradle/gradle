@@ -40,7 +40,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         when:
         execute "test"
         then:
-        result.assertTaskNotSkipped(":test")
+        result.assertTaskExecuted(":test")
 
         when:
         assert file("sources/input.txt").renameTo(file("sources/input-renamed.txt"))
@@ -76,7 +76,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         when:
         execute "test"
         then:
-        result.assertTaskNotSkipped(":test")
+        result.assertTaskExecuted(":test")
 
         when:
         assert file("src/data1/input.txt").renameTo(file("src/data2/input.txt"))
@@ -109,7 +109,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         when:
         execute "test"
         then:
-        result.assertTaskNotSkipped(":test")
+        result.assertTaskExecuted(":test")
 
         when:
         assert file("src").renameTo(file("source"))

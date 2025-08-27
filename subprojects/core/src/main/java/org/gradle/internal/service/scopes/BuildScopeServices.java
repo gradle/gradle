@@ -58,7 +58,7 @@ import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectFactory;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
@@ -67,6 +67,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.api.internal.properties.GradlePropertiesController;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
 import org.gradle.api.internal.provider.ValueSourceProviderFactory;
@@ -132,7 +133,6 @@ import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.initialization.DefaultSettingsLoaderFactory;
 import org.gradle.initialization.DefaultSettingsPreparer;
 import org.gradle.initialization.DefaultToolchainManagement;
-import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.InitScriptHandler;
 import org.gradle.initialization.InstantiatingBuildLoader;
@@ -188,6 +188,7 @@ import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -264,6 +265,11 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         for (GradleModuleServices services : serviceProviders) {
             services.registerBuildServices(registration);
         }
+    }
+
+    @Provides
+    ManagedObjectRegistry decorateManagedObjectRegistry(ManagedObjectRegistry parent) {
+        return parent.createChild();
     }
 
     @Provides
@@ -351,8 +357,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected DefaultProjectRegistry<ProjectInternal> createProjectRegistry() {
-        return new DefaultProjectRegistry<>();
+    protected ProjectRegistry createProjectRegistry() {
+        return new DefaultProjectRegistry();
     }
 
     @Provides
@@ -422,9 +428,16 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         ValueSourceProviderFactory valueSourceProviderFactory,
         ProcessOutputProviderFactory processOutputProviderFactory,
         ListenerManager listenerManager,
-        ObjectFactory objectFactory
+        ObjectFactory objectFactory,
+        GradleProperties gradleProperties
     ) {
-        return instantiator.newInstance(DefaultProviderFactory.class, valueSourceProviderFactory, processOutputProviderFactory, listenerManager, objectFactory);
+        return instantiator.newInstance(DefaultProviderFactory.class,
+            valueSourceProviderFactory,
+            processOutputProviderFactory,
+            listenerManager,
+            objectFactory,
+            gradleProperties
+        );
     }
 
     @Provides

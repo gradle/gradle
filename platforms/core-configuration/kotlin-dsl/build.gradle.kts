@@ -13,7 +13,6 @@ plugins {
 description = "Kotlin DSL Provider"
 
 dependencies {
-    api(projects.buildDiscoveryApi)
     api(projects.buildProcessServices)
     api(projects.baseServices)
     api(projects.classloaders)

@@ -175,7 +175,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
             })));
         });
 
-        project.getConfigurations().consumableLocked("incrementalScalaAnalysisElements", incrementalAnalysisElements -> {
+        project.getConfigurations().consumable("incrementalScalaAnalysisElements", incrementalAnalysisElements -> {
             incrementalAnalysisElements.setDescription("Incremental compilation analysis files");
             incrementalAnalysisElements.getAttributes().attribute(USAGE_ATTRIBUTE, incrementalAnalysisUsage);
             incrementalAnalysisElements.getAttributes().attribute(CATEGORY_ATTRIBUTE, incrementalAnalysisCategory);

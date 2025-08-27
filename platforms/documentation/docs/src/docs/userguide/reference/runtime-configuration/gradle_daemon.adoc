@@ -226,8 +226,6 @@ You should also check your IDE settings to make sure they match as well.
 [[sec:configuring_daemon_jvm]]
 == Configuring the Daemon JVM
 
-NOTE: Daemon JVM discovery and criteria are <<feature_lifecycle.adoc#sec:incubating_state,incubating>> features and are subject to change in a future release.
-
 By default, the Gradle Daemon runs with the same JVM installation that started the build.
 Gradle defaults to the current shell path and `JAVA_HOME` environment variable to locate a usable JVM.
 

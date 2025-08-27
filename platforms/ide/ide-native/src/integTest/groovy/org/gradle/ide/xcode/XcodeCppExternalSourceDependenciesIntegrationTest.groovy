@@ -73,7 +73,7 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
         succeeds ':xcode'
 
         then:
-        result.assertTasksExecuted(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcodeWorkspaceWorkspaceSettings", ":xcodeWorkspace", ":xcode")
+        result.assertTasksScheduled(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcodeWorkspaceWorkspaceSettings", ":xcodeWorkspace", ":xcode")
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj")
 
         def appProject = xcodeProject("${rootProjectName}.xcodeproj").projectFile
@@ -83,7 +83,7 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
         succeeds ':xcodeProject'
 
         then:
-        result.assertTasksExecuted(":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcodeProject")
+        result.assertTasksScheduled(":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcodeProject")
     }
 
     @ToBeFixedForConfigurationCache
@@ -129,7 +129,7 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
         succeeds ':xcode'
 
         then:
-        result.assertTasksExecuted(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcodeWorkspaceWorkspaceSettings", ":xcodeWorkspace", ":xcode")
+        result.assertTasksScheduled(":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme", ":xcodeWorkspaceWorkspaceSettings", ":xcodeWorkspace", ":xcode")
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj")
 
         def appProject = xcodeProject("${rootProjectName}.xcodeproj").projectFile
@@ -186,7 +186,7 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
         succeeds ':xcode'
 
         then:
-        result.assertTasksExecuted(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
+        result.assertTasksScheduled(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
             ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeWorkspaceWorkspaceSettings", ":xcodeWorkspace", ":xcode")
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj", "app/app.xcodeproj")
 
@@ -245,7 +245,7 @@ class XcodeCppExternalSourceDependenciesIntegrationTest extends AbstractXcodeInt
         succeeds ':xcode'
 
         then:
-        result.assertTasksExecuted(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
+        result.assertTasksScheduled(":app:xcodeProject", ":app:xcodeProjectWorkspaceSettings", ":app:xcodeScheme",
             ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeWorkspaceWorkspaceSettings", ":xcodeWorkspace", ":xcode")
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj", "app/app.xcodeproj")
 

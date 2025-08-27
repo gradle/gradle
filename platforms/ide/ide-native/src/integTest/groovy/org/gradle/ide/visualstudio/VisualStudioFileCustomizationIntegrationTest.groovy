@@ -19,8 +19,6 @@ package org.gradle.ide.visualstudio
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 
 class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioIntegrationSpec {
 
@@ -52,7 +50,6 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
 """
     }
 
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
     def "can specify location of generated files"() {
         when:
         hostGradleWrapperFile << "dummy wrapper"
@@ -80,7 +77,13 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
         assert projectFile.headerFiles == app.headerFiles*.withPath("../../../src/main").sort()
         assert projectFile.sourceFiles == ['../../../build.gradle'] + app.sourceFiles*.withPath("../../../src/main").sort()
         projectFile.projectConfigurations.values().each {
-            assert it.buildCommand == "\"../../../${hostGradleWrapperFile.name}\" -p \"../../..\" :installMain${it.name.capitalize()}Executable"
+            def gradleHomeDir = executer.distribution.gradleHomeDir.file("bin/gradle")
+            def formattedGradleHomeDir = gradleHomeDir.toString()
+            if (OperatingSystem.current().isWindows()) {
+                // For some reason we use forward slashes even on Windows
+                formattedGradleHomeDir = formattedGradleHomeDir.replace("\\", "/")
+            }
+            assert it.buildCommand == "\"${formattedGradleHomeDir}\" -p \"../../..\" :installMain${it.name.capitalize()}Executable"
             assert it.outputFile == OperatingSystem.current().getExecutableName("../../../build/install/main/${it.name}/lib/main")
         }
         def filtersFile = filtersFile("other/filters.vcxproj.filters")

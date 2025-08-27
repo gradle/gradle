@@ -50,7 +50,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         run ":visualStudio"
 
         then:
-        result.assertTasksExecuted(":visualStudio", ":appVisualStudioSolution")
+        result.assertTasksScheduled(":visualStudio", ":appVisualStudioSolution")
 
         and:
         final mainSolution = solutionFile("app.sln")
@@ -79,7 +79,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         run ":visualStudio"
 
         then:
-        result.assertTasksExecuted(":appVisualStudioSolution",
+        result.assertTasksScheduled(":appVisualStudioSolution",
             ":appVisualStudioFilters", ":appVisualStudioProject",
             ":one:oneVisualStudioFilters", ":one:oneVisualStudioProject",
             ":two:twoDllVisualStudioFilters", ":two:twoDllVisualStudioProject",
@@ -121,7 +121,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         run ":visualStudio"
 
         then:
-        result.assertTasksExecuted(":appVisualStudioSolution",
+        result.assertTasksScheduled(":appVisualStudioSolution",
             ":exe:exeVisualStudioFilters", ":exe:exeVisualStudioProject",
             ":lib:libDllVisualStudioFilters", ":lib:libDllVisualStudioProject",
             ":visualStudio")
@@ -186,7 +186,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         run ":visualStudio"
 
         then:
-        result.assertTasksExecuted(":appVisualStudioSolution",
+        result.assertTasksScheduled(":appVisualStudioSolution",
             ":exe:exeVisualStudioFilters", ":exe:exeVisualStudioProject",
             ":lib:libDllVisualStudioFilters", ":lib:libDllVisualStudioProject",
             ":visualStudio")
@@ -257,7 +257,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         succeeds ":visualStudio"
 
         then:
-        result.assertTasksExecuted(":appVisualStudioSolution",
+        result.assertTasksScheduled(":appVisualStudioSolution",
             ":exe:exeVisualStudioFilters", ":exe:exeVisualStudioProject",
             ":greet:greetLibVisualStudioFilters", ":greet:greetLibVisualStudioProject",
             ":lib:libDllVisualStudioFilters", ":lib:libDllVisualStudioProject",
@@ -319,7 +319,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         succeeds ":visualStudio"
 
         then:
-        result.assertTasksExecuted(":appVisualStudioSolution",
+        result.assertTasksScheduled(":appVisualStudioSolution",
             ":exe:exeVisualStudioFilters", ":exe:exeVisualStudioProject",
             ":greet:greetLibVisualStudioFilters", ":greet:greetLibVisualStudioProject",
             ":lib:libDllVisualStudioFilters", ":lib:libDllVisualStudioProject",
@@ -380,7 +380,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
 
         then:
         resultDebug.size() == 1
-        resultDebug[0].assertTasksExecuted(':exe:compileDebugCpp', ':exe:linkDebug', ':exe:installDebug', ':lib:compileDebugCpp', ':lib:createDebug')
+        resultDebug[0].assertTasksScheduled(':exe:compileDebugCpp', ':exe:linkDebug', ':exe:installDebug', ':lib:compileDebugCpp', ':lib:createDebug')
         installation('exe/build/install/main/debug').assertInstalled()
     }
 
@@ -422,7 +422,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
 
         then:
         resultUnbuildableSolution.size() == 1
-        resultUnbuildableSolution[0].assertTasksExecuted()
+        resultUnbuildableSolution[0].assertNoTasksScheduled()
         resultUnbuildableSolution[0].assertOutputContains('The project "exe" is not selected for building in solution configuration "unbuildable|Win32".')
         resultUnbuildableSolution[0].assertOutputContains('The project "libLib" is not selected for building in solution configuration "unbuildable|Win32".')
         installation('exe/build/install/main/debug').assertNotInstalled()
@@ -434,7 +434,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
                 .fails()
 
         then:
-        resultDebug.assertTasksExecuted()
+        resultDebug.assertNoTasksScheduled()
         resultDebug.assertHasCause("Could not resolve all dependencies for configuration ':exe:nativeRuntimeDebug'.")
         resultDebug.assertHasCause("Could not resolve project :lib.")
         installation('exe/build/install/main/debug').assertNotInstalled()

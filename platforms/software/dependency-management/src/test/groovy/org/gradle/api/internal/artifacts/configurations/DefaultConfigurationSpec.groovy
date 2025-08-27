@@ -36,6 +36,7 @@ import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.UnresolvedDependency
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.ConfigurationServicesBundle
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
@@ -617,8 +618,6 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     void "deprecations are passed to copies when corresponding role is #baseRole"() {
-        TestUtil.initDeprecationLogger("conf configuration emits a deprecation warning")
-
         ConfigurationRole role = new DefaultConfigurationRole("test", baseRole.consumable, baseRole.resolvable, baseRole.declarable, baseRole.consumptionDeprecated, baseRole.resolutionDeprecated, baseRole.declarationAgainstDeprecated)
         def configuration = prepareConfigurationForCopyTest(conf("conf", ":", ":", role))
         def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
@@ -1632,30 +1631,34 @@ This method is only meant to be called on configurations which allow the (non-de
         _ * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
         _ * domainObjectContext.equals(_) >> true // In these tests, we assume we're in the same context
 
-        def publishArtifactNotationParser = new PublishArtifactNotationParserFactory(
+        def publishArtifactNotationParserFactory = new PublishArtifactNotationParserFactory(
             TestUtil.objectFactory(),
             metaDataProvider,
             TestFiles.resolver(),
             TestFiles.taskDependencyFactory(),
         )
-        new DefaultConfigurationFactory(
+
+        ConfigurationServicesBundle configurationServices = new DefaultConfigurationServicesBundle(
+            new TestBuildOperationRunner(),
+            projectStateRegistry,
+            calculatedValueContainerFactory,
             TestUtil.objectFactory(),
+            TestFiles.fileCollectionFactory(),
+            TestFiles.taskDependencyFactory(),
+            attributesFactory,
+            TestUtil.domainObjectCollectionFactory(),
+            CollectionCallbackActionDecorator.NOOP,
+            TestUtil.problemsService(),
+            new AttributeDesugaring(attributesFactory),
+            new ResolveExceptionMapper(domainObjectContext, new DocumentationRegistry())
+        )
+
+        new DefaultConfigurationFactory(
+            configurationServices,
             listenerManager,
             domainObjectContext,
-            TestFiles.fileCollectionFactory(),
-            new TestBuildOperationRunner(),
-            publishArtifactNotationParser,
-            attributesFactory,
-            new ResolveExceptionMapper(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
-            new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
-            userCodeApplicationContext,
-            CollectionCallbackActionDecorator.NOOP,
-            projectStateRegistry,
-            TestUtil.domainObjectCollectionFactory(),
-            calculatedValueContainerFactory,
-            TestFiles.taskDependencyFactory(),
-            TestUtil.problemsService(),
-            new DocumentationRegistry()
+            publishArtifactNotationParserFactory,
+            userCodeApplicationContext
         )
     }
 

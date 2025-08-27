@@ -332,10 +332,11 @@ fun functionalTestParameters(
 ): List<String> =
     listOf(
         "-PteamCityBuildId=%teamcity.build.id%",
-        os.javaInstallationLocations(arch),
+        "-Dorg.gradle.java.installations.auto-download=false",
         "-Porg.gradle.java.installations.auto-download=false",
+        "-Dorg.gradle.java.installations.auto-detect=false",
         "-Porg.gradle.java.installations.auto-detect=false",
-    )
+    ) + os.javaInstallationLocations(arch)
 
 fun promotionBuildParameters(
     dependencyBuildId: RelativeId,

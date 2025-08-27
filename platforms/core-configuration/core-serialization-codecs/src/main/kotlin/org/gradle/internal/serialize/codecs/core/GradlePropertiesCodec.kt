@@ -16,29 +16,46 @@
 
 package org.gradle.internal.serialize.codecs.core
 
+import org.gradle.api.internal.properties.DefaultGradlePropertiesController
 import org.gradle.api.internal.properties.GradleProperties
-import org.gradle.initialization.properties.DefaultGradleProperties
-import org.gradle.internal.Cast.uncheckedNonnullCast
+import org.gradle.api.internal.properties.GradlePropertiesController
+import org.gradle.api.internal.properties.GradlePropertyScope
+import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.decodeBean
 import org.gradle.internal.serialize.graph.decodePreservingSharedIdentity
+import org.gradle.internal.serialize.graph.encodeBean
 import org.gradle.internal.serialize.graph.encodePreservingSharedIdentityOf
-import org.gradle.internal.serialize.graph.readMapInto
-import org.gradle.internal.serialize.graph.writeMap
+import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.serviceOf
 
 
 object GradlePropertiesCodec : Codec<GradleProperties> {
+
     override suspend fun WriteContext.encode(value: GradleProperties) {
         encodePreservingSharedIdentityOf(value) {
-            writeMap(value.properties)
+            if (value is DefaultGradlePropertiesController.ScopedGradleProperties) {
+                writeBoolean(true)
+                write(value.propertyScope)
+            } else {
+                writeBoolean(false)
+                encodeBean(value)
+            }
         }
     }
 
-    override suspend fun ReadContext.decode(): GradleProperties? {
+    override suspend fun ReadContext.decode(): GradleProperties {
         return decodePreservingSharedIdentity {
-            val properties = readMapInto { mutableMapOf() }
-            DefaultGradleProperties(uncheckedNonnullCast(properties))
+            if (readBoolean()) {
+                val propertyScope = readNonNull<GradlePropertyScope>()
+                isolate.owner
+                    .serviceOf<GradlePropertiesController>()
+                    .getGradleProperties(propertyScope)
+            } else {
+                decodeBean().uncheckedCast()
+            }
         }
     }
 }

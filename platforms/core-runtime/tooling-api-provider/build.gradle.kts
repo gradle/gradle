@@ -24,9 +24,10 @@ dependencies {
     api(projects.toolingApi)
 
     implementation(projects.baseServices)
-    implementation(projects.buildDiscoveryApi)
+    implementation(projects.buildProcessServices)
     implementation(projects.buildState)
     implementation(projects.classloaders)
+    implementation(projects.coreApi)
     implementation(projects.instrumentationAgentServices)
     implementation(projects.launcher)
     implementation(projects.logging)

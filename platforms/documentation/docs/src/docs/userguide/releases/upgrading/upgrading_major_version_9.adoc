@@ -47,7 +47,7 @@ This is a breaking change from previous versions, which supported JVM 8 and high
 
 Your build can still target lower JVM versions using <<toolchains.adoc#toolchains, Toolchains>> for compilation, testing and other workers (Checkstyle, Javadoc, etc).
 
-The <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle wrapper>> and command-line launcher can run with JVM 8, but it still requires a newer JVM to start the build.
+The <<gradle_wrapper.adoc#gradle_wrapper,Gradle wrapper>> and command-line launcher can run with JVM 8, but it still requires a newer JVM to start the build.
 For more, see the <<upgrading_version_8.adoc#minimum_daemon_jvm_version,Running Gradle on older JVMs>> section below.
 
 <<tooling_api.adoc#embedding,Gradle Tooling API>> and <<test_kit#test_kit, TestKit>> remain compatible with JVM 8 and higher.
@@ -202,9 +202,60 @@ For Gradle 8.x, the minimum supported version was 3.0.
 
 === C++ and Swift plugins no longer depend on software model based plugins
 
-<<cpp_application_plugin.adoc#cpp_application_plugin,Cpp Application Plugin>>, <<cpp_library_plugin.adoc#cpp_library_plugin,Cpp Library Plugin>>, <<swift_application_plugin.adoc#swift_application_plugin,Swift Application Plugin>>, and <<swift_library_plugin.adoc#swift_library_plugin,Swift Library Plugin>> have been updated and no longer rely on the software model plugin infrastructure.
+<<cpp_application_plugin.adoc#cpp_application_plugin,C\++ Application Plugin>>, <<cpp_library_plugin.adoc#cpp_library_plugin,C++ Library Plugin>>, <<swift_application_plugin.adoc#swift_application_plugin,Swift Application Plugin>>, and <<swift_library_plugin.adoc#swift_library_plugin,Swift Library Plugin>> have been updated and no longer rely on the software model plugin infrastructure.
 
-As a result, `toolChains` should now be configured directly at the top-level of your build script instead of within a `model { }` block.
+As a result, `toolChains` should be configured directly at the top-level of your build script instead of within a `model { }` block.
+
+For example, instead of:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id("cpp-library")
+}
+
+model {
+    toolChains {
+        clang(Clang) {
+            eachPlatform {
+                cCompiler.executable = "clang"
+                cppCompiler.executable = "clang++"
+            }
+        }
+    }
+}
+----
+=====
+====
+
+This should become:
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id("cpp-library")
+}
+
+toolChains {
+    clang(Clang) {
+        eachPlatform {
+            cCompiler.executable = "clang"
+            cppCompiler.executable = "clang++"
+        }
+    }
+}
+----
+=====
+====
+
+This change needs to be made in builds using the new C++ or Swift plugins or the existing software model based plugins.
 
 === Scala plugins no longer create unresolvable configurations
 
@@ -273,7 +324,7 @@ If you are already applying one of those, no further action is needed.
 
 NOTE: This change may affect existing builds that relied on the previous behavior of archive tasks, where file order was not deterministic, and file timestamps and permissions were taken from the file system.
 
-In Gradle 9.0, the default behavior of archive tasks (such as `Jar`, `Ear`, `War`, `Zip`, and `AbstractArchiveTask`) has changed to produce reproducible archives by default.
+In Gradle 9.0.0, the default behavior of archive tasks (such as `Jar`, `Ear`, `War`, `Zip`, and `AbstractArchiveTask`) has changed to produce reproducible archives by default.
 That means that:
 
 - File order in the archive is now deterministic.

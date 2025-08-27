@@ -26,6 +26,7 @@ class CompileAll(
                 listOf(
                     stage.getBuildScanCustomValueParam(),
                     buildScanTagParam("CompileAll"),
+                    "-Dorg.gradle.java.installations.auto-download=false",
                     "-Porg.gradle.java.installations.auto-download=false",
                 ).joinToString(" "),
         )

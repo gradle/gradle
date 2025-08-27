@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 import org.gradle.jvm.toolchain.internal.DefaultJavaLanguageVersion;
 
 /**
@@ -24,6 +25,7 @@ import org.gradle.jvm.toolchain.internal.DefaultJavaLanguageVersion;
  *
  * @since 6.7
  */
+@HasInternalProtocol
 public interface JavaLanguageVersion extends Comparable<JavaLanguageVersion> {
 
     static JavaLanguageVersion of(int version) {

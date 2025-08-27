@@ -275,7 +275,7 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         configurationCacheRun "a"
 
         then:
-        result.assertTasksExecutedAndNotSkipped(":a")
+        result.assertTasksExecuted(":a")
         outputFile.assertIsFile()
 
         when:
@@ -289,7 +289,7 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         configurationCacheRun "a"
 
         then:
-        result.assertTasksExecutedAndNotSkipped(":a")
+        result.assertTasksExecuted(":a")
         outputFile.assertIsFile()
     }
 
@@ -307,7 +307,7 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         configurationCacheRun "a"
 
         then:
-        result.assertTasksExecutedAndNotSkipped(":a")
+        result.assertTasksExecuted(":a")
         outputFile.assertIsFile()
 
         when:
@@ -321,7 +321,7 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         configurationCacheRun "a"
 
         then:
-        result.assertTasksExecutedAndNotSkipped(":a")
+        result.assertTasksExecuted(":a")
         outputFile.assertIsFile()
     }
 

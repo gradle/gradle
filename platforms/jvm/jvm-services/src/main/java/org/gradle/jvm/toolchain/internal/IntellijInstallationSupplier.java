@@ -20,6 +20,8 @@ import javax.inject.Inject;
 import java.util.Set;
 
 public class IntellijInstallationSupplier implements InstallationSupplier {
+    public static final String INTELLIJ_JDK_DIR_PROPERTY = "org.gradle.java.installations.idea-jdks-directory";
+
     private final ToolchainConfiguration toolchainConfiguration;
 
     @Inject

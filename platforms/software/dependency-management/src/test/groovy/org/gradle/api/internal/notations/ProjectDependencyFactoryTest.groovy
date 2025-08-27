@@ -40,7 +40,7 @@ class ProjectDependencyFactoryTest extends Specification {
 
     def capabilityNotationParser = new CapabilityNotationParserFactory(false).create()
     def projectStateRegistry = Mock(ProjectStateRegistry) {
-        stateFor(Path.path(":foo:bar")) >> projectState
+        findProjectState(Path.path(":foo:bar")) >> projectState
     }
     def depFactory = new DefaultProjectDependencyFactory(
         TestUtil.instantiatorFactory().decorateLenient(),

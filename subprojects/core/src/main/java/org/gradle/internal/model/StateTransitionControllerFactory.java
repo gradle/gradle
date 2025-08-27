@@ -44,7 +44,7 @@ public class StateTransitionControllerFactory {
 
     public <T extends StateTransitionController.State> StateTransitionController<T> newController(DisplayName displayName, T initialState) {
         Synchronizer synchronizer = workerLeaseService.newResource();
-        if (buildOperationsParameters.isVerbose()) {
+        if (buildOperationsParameters.emitLockingOperations()) {
             synchronizer = new WaitBuildOperationFiringSynchronizer(displayName, synchronizer, buildOperationRunner);
         }
         return new StateTransitionController<>(displayName, initialState, synchronizer);
