@@ -26,6 +26,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.stdlibJavaExtensions)
     api(libs.kotlinStdlib)
+
     implementation(libs.kotlinReflect)
 
     api(libs.inject)

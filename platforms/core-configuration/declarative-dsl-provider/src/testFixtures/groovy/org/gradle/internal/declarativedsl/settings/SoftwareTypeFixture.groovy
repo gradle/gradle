@@ -21,6 +21,7 @@ import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.HasBuildModel
 import org.gradle.api.internal.plugins.SoftwareTypeBindingBuilder
 import org.gradle.api.internal.plugins.SoftwareTypeBindingRegistration
+import org.gradle.api.internal.plugins.software.RegistersSoftwareFeatures
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -369,7 +370,7 @@ trait SoftwareTypeFixture {
         """
     }
 
-    static String getSettingsPluginThatRegistersSoftwareType(List<String> softwareTypeImplPluginClassName = ["SoftwareTypeImplPlugin"]) {
+    static String getSettingsPluginThatRegistersSoftwareType(List<String> softwareTypePluginClasses = ["SoftwareTypeImplPlugin"], List<String> softwareFeaturePluginClasses = []) {
         return """
             package org.gradle.test;
 
@@ -378,8 +379,10 @@ trait SoftwareTypeFixture {
             import org.gradle.api.initialization.Settings;
             import org.gradle.api.internal.SettingsInternal;
             import ${RegistersSoftwareTypes.class.name};
+            import ${RegistersSoftwareFeatures.class.name};
 
-            @RegistersSoftwareTypes({ ${softwareTypeImplPluginClassName.collect { it + ".class" }.join(", ")} })
+            @RegistersSoftwareTypes({ ${softwareTypePluginClasses.collect { it + ".class" }.join(", ")} })
+            @RegistersSoftwareFeatures({ ${softwareFeaturePluginClasses.collect { it + ".class" }.join(", ")} })
             abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
                 @Override
                 public void apply(Settings target) { }

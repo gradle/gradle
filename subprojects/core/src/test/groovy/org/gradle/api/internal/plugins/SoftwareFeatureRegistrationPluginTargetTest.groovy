@@ -31,12 +31,12 @@ import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class SoftwareTypeRegistrationPluginTargetTest extends Specification {
+class SoftwareFeatureRegistrationPluginTargetTest extends Specification {
     def delegate = Mock(PluginTarget)
     def softwareTypeRegistry = Mock(SoftwareFeatureRegistry)
     def inspectionScheme = Mock(InspectionScheme)
     def problems = TestUtil.problemsService()
-    def pluginTarget = new SoftwareTypeRegistrationPluginTarget(delegate, softwareTypeRegistry, inspectionScheme, problems)
+    def pluginTarget = new SoftwareFeatureRegistrationPluginTarget(delegate, softwareTypeRegistry, inspectionScheme, problems)
     def plugin = Mock(Plugin)
     def metadataStore = Mock(TypeMetadataStore)
     def pluginTypeMetadata = Mock(TypeMetadata)

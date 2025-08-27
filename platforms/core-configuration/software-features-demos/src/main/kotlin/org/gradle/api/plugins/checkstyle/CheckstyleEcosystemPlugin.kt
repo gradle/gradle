@@ -18,9 +18,9 @@ package org.gradle.api.plugins.checkstyle
 
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
+import org.gradle.api.internal.plugins.software.RegistersSoftwareFeatures
 
-@RegistersSoftwareTypes(CheckstyleSoftwareFeaturePlugin::class)
+@RegistersSoftwareFeatures(CheckstyleSoftwareFeaturePlugin::class)
 class CheckstyleEcosystemPlugin : Plugin<Settings> {
     override fun apply(target: Settings) = Unit
 }

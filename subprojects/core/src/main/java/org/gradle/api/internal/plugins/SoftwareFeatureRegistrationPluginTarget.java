@@ -22,6 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
+import org.gradle.api.internal.plugins.software.RegistersSoftwareFeatures;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.problems.Severity;
@@ -44,17 +45,17 @@ import java.util.stream.Collectors;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 /**
- * A {@link PluginTarget} that inspects the plugin for {@link RegistersSoftwareTypes} annotations and registers the
- * specified software type plugins with the {@link SoftwareFeatureRegistry} prior to applying the plugin via the delegate.
+ * A {@link PluginTarget} that inspects the plugin for {@link RegistersSoftwareTypes} or {@link RegistersSoftwareFeatures} annotations and registers the
+ * specified plugins with the {@link SoftwareFeatureRegistry} prior to applying the plugin via the delegate.
  */
 @NullMarked
-public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
+public class SoftwareFeatureRegistrationPluginTarget implements PluginTarget {
     private final PluginTarget delegate;
     private final SoftwareFeatureRegistry softwareFeatureRegistry;
     private final InspectionScheme inspectionScheme;
     private final InternalProblems problems;
 
-    public SoftwareTypeRegistrationPluginTarget(PluginTarget delegate, SoftwareFeatureRegistry softwareFeatureRegistry, InspectionScheme inspectionScheme, InternalProblems problems) {
+    public SoftwareFeatureRegistrationPluginTarget(PluginTarget delegate, SoftwareFeatureRegistry softwareFeatureRegistry, InspectionScheme inspectionScheme, InternalProblems problems) {
         this.delegate = delegate;
         this.softwareFeatureRegistry = softwareFeatureRegistry;
         this.inspectionScheme = inspectionScheme;
@@ -71,6 +72,7 @@ public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
         TypeToken<?> pluginType = TypeToken.of(plugin.getClass());
         TypeMetadata typeMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(pluginType.getRawType());
         registerSoftwareTypes(pluginId, typeMetadata);
+        registerSoftwareFeatures(pluginId, typeMetadata);
 
         delegate.applyImperative(pluginId, plugin);
     }
@@ -93,12 +95,22 @@ public class SoftwareTypeRegistrationPluginTarget implements PluginTarget {
     private void registerSoftwareTypes(@Nullable String pluginId, TypeMetadata typeMetadata) {
         Optional<RegistersSoftwareTypes> registersSoftwareType = typeMetadata.getTypeAnnotationMetadata().getAnnotation(RegistersSoftwareTypes.class);
         registersSoftwareType.ifPresent(registration -> {
-            Class<? extends Plugin<Settings>> registeringPlugin = Cast.uncheckedCast(typeMetadata.getType());
-            for (Class<? extends Plugin<Project>> softwareTypeImplClass : registration.value()) {
-                validateSoftwareTypePluginExposesExactlyOneSoftwareType(softwareTypeImplClass, typeMetadata.getType());
-                softwareFeatureRegistry.register(pluginId, softwareTypeImplClass, registeringPlugin);
-            }
+            registerFeatures(registration.value(), Cast.uncheckedCast(typeMetadata.getType()), pluginId);
         });
+    }
+
+    private void registerSoftwareFeatures(@Nullable String pluginId, TypeMetadata typeMetadata) {
+        Optional<RegistersSoftwareFeatures> registersSoftwareFeatures = typeMetadata.getTypeAnnotationMetadata().getAnnotation(RegistersSoftwareFeatures.class);
+        registersSoftwareFeatures.ifPresent(registration -> {
+            registerFeatures(registration.value(), Cast.uncheckedCast(typeMetadata.getType()), pluginId);
+        });
+    }
+
+    private void registerFeatures(Class<? extends Plugin<Project>>[] featurePlugins, Class<? extends Plugin<Settings>> registeringPlugin, @Nullable String pluginId) {
+        for (Class<? extends Plugin<Project>> softwareFeatureImplClass : featurePlugins) {
+            validateSoftwareTypePluginExposesExactlyOneSoftwareType(softwareFeatureImplClass, registeringPlugin);
+            softwareFeatureRegistry.register(pluginId, softwareFeatureImplClass, registeringPlugin);
+        }
     }
 
     void validateSoftwareTypePluginExposesExactlyOneSoftwareType(Class<? extends Plugin<Project>> softwareTypePluginImplClass, Class<?> registeringPlugin) {

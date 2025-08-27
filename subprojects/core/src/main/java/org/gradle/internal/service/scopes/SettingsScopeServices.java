@@ -33,7 +33,7 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginTargetType;
-import org.gradle.api.internal.plugins.SoftwareTypeRegistrationPluginTarget;
+import org.gradle.api.internal.plugins.SoftwareFeatureRegistrationPluginTarget;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
@@ -107,7 +107,7 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
         SoftwareFeatureRegistry softwareFeatureRegistry,
         InternalProblems problems
     ) {
-        PluginTarget target = new SoftwareTypeRegistrationPluginTarget(
+        PluginTarget target = new SoftwareFeatureRegistrationPluginTarget(
             new ImperativeOnlyPluginTarget<>(PluginTargetType.SETTINGS, settings, problems),
             softwareFeatureRegistry,
             pluginScheme.getInspectionScheme(),

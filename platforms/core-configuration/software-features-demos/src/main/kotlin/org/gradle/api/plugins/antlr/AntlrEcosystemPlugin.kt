@@ -18,9 +18,9 @@ package org.gradle.api.plugins.antlr
 
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
+import org.gradle.api.internal.plugins.software.RegistersSoftwareFeatures
 
-@RegistersSoftwareTypes(AntlrSoftwareFeaturePlugin::class)
+@RegistersSoftwareFeatures(AntlrSoftwareFeaturePlugin::class)
 class AntlrEcosystemPlugin : Plugin<Settings> {
     override fun apply(target: Settings) = Unit
 }
