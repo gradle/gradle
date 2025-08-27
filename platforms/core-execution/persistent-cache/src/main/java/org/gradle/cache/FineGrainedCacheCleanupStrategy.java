@@ -26,7 +26,7 @@ public interface FineGrainedCacheCleanupStrategy {
 
     CacheCleanupStrategy getCleanupStrategy(FineGrainedPersistentCache cache);
 
-    FineGrainedCacheDeleter getCacheDeleter();
+    FineGrainedCacheDeleter getCacheDeleter(FineGrainedPersistentCache cache);
 
     /*
      * A deleter for fine-grained cache entries.
@@ -56,5 +56,7 @@ public interface FineGrainedCacheCleanupStrategy {
          * This should be called only if the entry lock is held, to ensure that the entry is not concurrently modified.
          */
         boolean delete(File entry);
+
+        void withDeletionLock(File workspace, Runnable supplier);
     }
 }

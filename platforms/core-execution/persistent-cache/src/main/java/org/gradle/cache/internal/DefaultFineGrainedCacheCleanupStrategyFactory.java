@@ -43,13 +43,12 @@ public class DefaultFineGrainedCacheCleanupStrategyFactory implements FineGraine
 
     @Override
     public FineGrainedCacheCleanupStrategy leastRecentlyUsedStrategy(int cacheDepth, Supplier<Long> cacheEntryRetentionTimestamp, Supplier<CleanupFrequency> frequency) {
-        FineGrainedLeastRecentlyUsedCacheDeleter deleter = new FineGrainedLeastRecentlyUsedCacheDeleter(this.deleter);
         return new FineGrainedCacheCleanupStrategy() {
             @Override
             public CacheCleanupStrategy getCleanupStrategy(FineGrainedPersistentCache cache) {
                 CleanupAction action = new DefaultFineGrainedLeastRecentlyUsedCacheCleanup(
                     cache,
-                    deleter,
+                    (FineGrainedLeastRecentlyUsedCacheDeleter) getCacheDeleter(cache),
                     cacheDepth,
                     fileAccessTimeJournal,
                     cacheEntryRetentionTimestamp
@@ -58,8 +57,8 @@ public class DefaultFineGrainedCacheCleanupStrategyFactory implements FineGraine
             }
 
             @Override
-            public FineGrainedCacheDeleter getCacheDeleter() {
-                return deleter;
+            public FineGrainedCacheDeleter getCacheDeleter(FineGrainedPersistentCache cache) {
+                return new FineGrainedLeastRecentlyUsedCacheDeleter(cache, DefaultFineGrainedCacheCleanupStrategyFactory.this.deleter);
             }
         };
     }

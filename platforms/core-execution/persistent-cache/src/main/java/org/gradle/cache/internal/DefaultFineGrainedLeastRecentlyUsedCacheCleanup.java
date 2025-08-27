@@ -89,9 +89,11 @@ public class DefaultFineGrainedLeastRecentlyUsedCacheCleanup extends LeastRecent
 
         private final static Duration STALE_DURATION = Duration.ofHours(1);
         private final Deleter deleter;
+        private final FineGrainedPersistentCache cache;
 
-        public FineGrainedLeastRecentlyUsedCacheDeleter(Deleter deleter) {
+        public FineGrainedLeastRecentlyUsedCacheDeleter(FineGrainedPersistentCache cache, Deleter deleter) {
             this.deleter = deleter;
+            this.cache = cache;
         }
 
         @Override
@@ -125,6 +127,11 @@ public class DefaultFineGrainedLeastRecentlyUsedCacheCleanup extends LeastRecent
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
+        }
+
+        @Override
+        public void withDeletionLock(File workspace, Runnable supplier) {
+            
         }
 
         private void addStaleMarker(File entry) {

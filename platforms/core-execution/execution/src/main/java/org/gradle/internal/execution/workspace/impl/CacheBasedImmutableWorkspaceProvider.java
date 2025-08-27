@@ -87,10 +87,10 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             cacheConfigurations.getCreatedResources().getEntryRetentionTimestampSupplier(),
             cacheConfigurations.getCleanupFrequency()::get
         );
-        this.deleter = cacheCleanupStrategy.getCacheDeleter();
         this.cache = cacheBuilder
             .withLeastRecentCleanup(cacheCleanupStrategy)
             .open();
+        this.deleter = cacheCleanupStrategy.getCacheDeleter(cache);
         this.baseDirectory = cache.getBaseDir();
         this.guard = ProducerGuard.adaptive();
         this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, treeDepthToTrackAndCleanup);
@@ -156,7 +156,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
 
             @Override
             public void withDeletionLock(Runnable supplier) {
-                // TODO supplier.run();
+                deleter.withDeletionLock(workspace, supplier);
             }
         };
     }

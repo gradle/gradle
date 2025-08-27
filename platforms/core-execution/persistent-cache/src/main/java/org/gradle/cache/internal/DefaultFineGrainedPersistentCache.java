@@ -105,8 +105,13 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
 
     @Override
     public <T> T useCache(String key, Supplier<? extends T> action) {
+        return useCache(key, "", action);
+    }
+
+    @Override
+    public <T> T useCache(String key, String lockSuffix, Supplier<? extends T> action) {
         String cacheKey = normalizeCacheKey(key);
-        return guard.guardByKey(cacheKey, () -> withFileLock(cacheKey, action));
+        return guard.guardByKey(cacheKey, () -> withFileLock(cacheKey, lockSuffix, action));
     }
 
     @Override
@@ -117,15 +122,23 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         });
     }
 
-    private <T> T withFileLock(String cacheKey, Supplier<? extends T> action) {
-        File lockFile = getLockFile(cacheKey);
+    @Override
+    public void useCache(String key, String lockSuffix, Runnable action) {
+        useCache(key, lockSuffix, () -> {
+            action.run();
+            return null;
+        });
+    }
+
+    private <T> T withFileLock(String cacheKey, String lockSuffix, Supplier<? extends T> action) {
+        File lockFile = getLockFile(cacheKey, lockSuffix);
         try (@SuppressWarnings("unused") FileLock lock = fileLockManager.lock(lockFile, DefaultLockOptions.mode(Exclusive), displayName, "")) {
             return action.get();
         }
     }
 
-    private File getLockFile(String path) {
-        return new File(baseDir, path + ".lock");
+    private File getLockFile(String path, String lockSuffix) {
+        return new File(baseDir, path + lockSuffix + ".lock");
     }
 
     @Override
