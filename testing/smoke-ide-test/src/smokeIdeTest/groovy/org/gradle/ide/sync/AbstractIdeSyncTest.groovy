@@ -44,12 +44,13 @@ import java.util.concurrent.Executors
  * Provisioned IDEs are cached in the {@link AbstractIdeSyncTest#getIdeHome} directory.
  * @see <a href="https://github.com/gradle/gradle-ide-starter">gradle-ide-starter</a>
  */
-@Timeout(600) // synchronized with gradle-ide-starter timeout
+// gradle-ide-starter timeout + 30sec for wrap up
+@Timeout(630)
 @CleanupTestDirectory
 abstract class AbstractIdeSyncTest extends Specification {
 
     // https://youtrack.jetbrains.com/articles/IDEA-A-21/IDEA-Latest-Builds-And-Release-Notes
-    final static String IDEA_COMMUNITY_VERSION = "2025.1.3"
+    final static String IDEA_COMMUNITY_VERSION = "2025.2"
     // https://developer.android.com/studio/archive
     final static String ANDROID_STUDIO_VERSION = "2025.1.1.1"
 
@@ -71,8 +72,12 @@ abstract class AbstractIdeSyncTest extends Specification {
     /**
      * Runs a full sync process for the build-under-test with a given Android Studio version.
      */
-    protected void androidStudioSync(String version, @Nullable List<IdeCommand> commands = null) {
-        ideSync("ai-$version", commands)
+    protected void androidStudioSync(
+        String version,
+        File testProject = testDirectory,
+        List<IdeCommand> commandsAfterSync = Collections.emptyList()
+    ) {
+        ideSync("ai-$version", testProject, commandsAfterSync)
     }
 
     /**
@@ -82,8 +87,12 @@ abstract class AbstractIdeSyncTest extends Specification {
      * For instance, {@code 2024.2-eap}. When the build type is not provided, it defaults to {@code release}.
      * <p>
      */
-    protected void ideaSync(String version, @Nullable List<IdeCommand> commands = null) {
-        ideSync("ic-$version", commands)
+    protected void ideaSync(
+        String version,
+        File testProject = testDirectory,
+        List<IdeCommand> commandsAfterSync = Collections.emptyList()
+    ) {
+        ideSync("ic-$version", testProject, commandsAfterSync)
     }
 
     /**
@@ -91,10 +100,10 @@ abstract class AbstractIdeSyncTest extends Specification {
      * Optionally, an IDE scenario as a list of {@link IdeCommand} may be provided.
      * The IDE distribution is automatically downloaded if required.
      */
-    private void ideSync(String ide, @Nullable List<IdeCommand> commands) {
-        def scenarioFile = writeScenarioOfCommands(commands)
+    private void ideSync(String ide, File testProject, List<IdeCommand> commandsAfterSync) {
+        def scenarioFile = writeScenarioOfCommands(commandsAfterSync)
         def gradleDist = distribution.gradleHomeDir.toPath()
-        runIdeStarterWith(gradleDist, testDirectory.toPath(), ideHome, scenarioFile, ide)
+        runIdeStarterWith(gradleDist, testProject.toPath(), ideHome, scenarioFile, ide)
     }
 
     protected TestFile getTestDirectory() {
@@ -183,8 +192,8 @@ abstract class AbstractIdeSyncTest extends Specification {
     }
 
     @Nullable
-    private Path writeScenarioOfCommands(@Nullable List<IdeCommand> commands) {
-        if (commands == null || commands.isEmpty()) {
+    private Path writeScenarioOfCommands(List<IdeCommand> commands) {
+        if (commands.isEmpty()) {
             return null
         }
         def scenarioFile = file("scenario.json").touch().toPath()

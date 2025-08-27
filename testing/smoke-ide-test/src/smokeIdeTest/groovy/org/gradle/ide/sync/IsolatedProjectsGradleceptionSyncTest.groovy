@@ -23,14 +23,15 @@ import org.gradle.test.fixtures.file.TestFile
 
 class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
 
-    private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(testDirectory)
+    private TestFile gradleDir = testDirectory.createDir("gradle")
+    private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(gradleDir)
 
     def "can sync gradle/gradle build without problems"() {
         given:
         gradle()
 
         when:
-        ideaSync(IDEA_COMMUNITY_VERSION)
+        ideaSync(IDEA_COMMUNITY_VERSION, gradleDir)
 
         then:
         fixture.assertHtmlReportHasNoProblems()
@@ -46,6 +47,7 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
         expect:
         ideaSync(
             IDEA_COMMUNITY_VERSION,
+            gradleDir,
             [
                 new IdeCommand.AppendTextToFile("subprojects/core-api/build.gradle.kts", "dependencies {}"),
                 IdeCommand.ImportGradleProject.INSTANCE
@@ -54,9 +56,9 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
     }
 
     private void gradle() {
-        new TestFile("build/gradleSources").copyTo(testDirectory)
+        new TestFile("build/gradleSources").copyTo(gradleDir)
 
-        file("gradle.properties") << """
+        gradleDir.file("gradle.properties") << """
             org.gradle.unsafe.isolated-projects=true
 
             # gradle/gradle build contains gradle/gradle-daemon-jvm.properties, which requires daemon to be run with Java 17.
