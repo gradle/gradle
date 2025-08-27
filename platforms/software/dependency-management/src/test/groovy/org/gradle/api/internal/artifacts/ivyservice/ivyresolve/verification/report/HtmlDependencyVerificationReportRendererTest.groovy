@@ -117,7 +117,6 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         }
 
         when:
-        report
         generateReport(useKeyServers)
 
         then:
