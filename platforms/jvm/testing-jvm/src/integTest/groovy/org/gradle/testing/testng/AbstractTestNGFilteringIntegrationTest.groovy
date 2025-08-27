@@ -22,6 +22,15 @@ import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import spock.lang.Issue
 
 abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest implements TestNGMultiVersionTest {
+    @Override
+    String testName(String methodName) {
+        return methodName
+    }
+
+    @Override
+    String getPathToTestPackages() {
+        return ":Gradle suite:Gradle test:"
+    }
 
     void theUsualFiles() {
         buildFile << """

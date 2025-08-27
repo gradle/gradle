@@ -21,6 +21,15 @@ import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import spock.lang.Issue
 
 abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
+    @Override
+    String testName(String methodName) {
+        return methodName
+    }
+
+    @Override
+    String getPathToTestPackages() {
+        return ":"
+    }
 
     void theParameterizedFiles() {
         file("src/test/java/ParameterizedFoo.java") << """
