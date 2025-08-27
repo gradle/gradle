@@ -24,6 +24,9 @@ import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeWorkController
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor
 import org.gradle.internal.buildtree.BuildTreeWorkPreparer
+import org.gradle.internal.cc.impl.heap.HeapDumper
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 
 class ConfigurationCacheAwareBuildTreeWorkController(
@@ -33,7 +36,13 @@ class ConfigurationCacheAwareBuildTreeWorkController(
     private val cache: BuildTreeConfigurationCache,
     private val buildRegistry: BuildStateRegistry,
     private val startParameter: BuildModelParameters,
+    heapDumpDir: String?,
 ) : BuildTreeWorkController {
+
+    private val heapDumpBaseName = heapDumpDir
+        ?.let { path ->
+            "$path/${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))}"
+        }
 
     override fun scheduleAndRunRequestedTasks(taskSelector: EntryTaskSelector?): ExecutionResult<Void> {
         val scheduleTaskSelectorPostProcessing: BuildTreeWorkGraphBuilder? = taskSelector?.let { selector ->
@@ -58,6 +67,7 @@ class ConfigurationCacheAwareBuildTreeWorkController(
                 // We don't want to fold the code below here so the "live" graph can be garbage collected before execution.
                 null
             } else {
+                dumpHeap("cc-hit")
                 workExecutor.execute(result.graph)
             }
         }
@@ -65,6 +75,8 @@ class ConfigurationCacheAwareBuildTreeWorkController(
             // We have executed the work graph already.
             return executionResult
         }
+
+        dumpHeap("cc-miss-store")
 
         // Store and reload the graph for the execution.
         cache.finalizeCacheEntry()
@@ -77,7 +89,14 @@ class ConfigurationCacheAwareBuildTreeWorkController(
 
         return workGraph.withNewWorkGraph { graph ->
             val finalizedGraph = cache.loadRequestedTasks(graph, scheduleTaskSelectorPostProcessing)
+            dumpHeap("cc-miss-load")
             workExecutor.execute(finalizedGraph)
+        }
+    }
+
+    private fun dumpHeap(tag: String) {
+        heapDumpBaseName?.let {
+            HeapDumper.dumpHeap("$it-$tag.hprof")
         }
     }
 }
