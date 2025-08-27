@@ -126,8 +126,9 @@ public class SoftwareFeatureRegistrationPluginTarget implements PluginTarget {
             .sorted()
             .collect(Collectors.toList());
 
-        boolean isBinding = softwareTypePluginImplClass.getAnnotation(BindsSoftwareType.class) != null ||
-            softwareTypePluginImplClass.getAnnotation(BindsSoftwareFeature.class) != null;
+
+        boolean isBinding = softwareTypePluginImplMetadata.getTypeAnnotationMetadata().getAnnotation(BindsSoftwareType.class).isPresent() ||
+            softwareTypePluginImplMetadata.getTypeAnnotationMetadata().getAnnotation(BindsSoftwareFeature.class).isPresent();
 
         if (!isBinding) {
             if (exposedSoftwareTypes.isEmpty()) {
