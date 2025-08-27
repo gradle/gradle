@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import org.gradle.api.internal.artifacts.TransformRegistration;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
@@ -40,8 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 
 /**
  * Finds all artifact sets that can be created from a given set of producer artifact
@@ -161,11 +162,13 @@ public class ConsumerProvidedVariantFinder {
         /**
          * Creates a new graph with the provided initial state.
          *
-         * @param requestedState The state of the graph to start searching from.
+         * @param startStates The states of the graph to start searching from.
          */
-        public TransformStateGraph(ImmutableAttributes requestedState) {
-            nextStates.add(requestedState);
-            seenStates.put(requestedState, new StateDetails(0, ImmutableLinkedList.of()));
+        public TransformStateGraph(ImmutableList<ImmutableAttributes> startStates) {
+            nextStates.addAll(startStates);
+            for (ImmutableAttributes state : startStates) {
+                seenStates.put(state, new StateDetails(0, ImmutableLinkedList.of()));
+            }
         }
 
         /**
@@ -244,9 +247,9 @@ public class ConsumerProvidedVariantFinder {
     private static class CachedTransformChain {
 
         private final int sourceIndex;
-        private final VariantDefinition chain;
+        private final DefaultVariantDefinition chain;
 
-        public CachedTransformChain(int sourceIndex, VariantDefinition chain) {
+        public CachedTransformChain(int sourceIndex, DefaultVariantDefinition chain) {
             this.sourceIndex = sourceIndex;
             this.chain = chain;
         }
@@ -259,7 +262,7 @@ public class ConsumerProvidedVariantFinder {
      * <p>
      * The first phase performs a breadth-first search of the state-space of attribute combinations
      * reachable by applying all registered transforms at any given depth. The search begins at the
-     * requested attributes and works backwards to either discover all shortest-path states that
+     * source attribute sets and works searches to either discover all shortest-path states that
      * satisfy the requested attributes, or to exhaust the state-space.
      * <p>
      * The second phase consumes the discovered shortest-path states, walking the graph to discover
@@ -271,25 +274,21 @@ public class ConsumerProvidedVariantFinder {
      * de-duplicate the traversal, converting what would otherwise be an exponential-time algorithm into
      * one proportionate to the number of reachable attribute states.
      */
-    private ImmutableList<CachedTransformChain> findShortestTransformChains(List<ImmutableAttributes> sources, ImmutableAttributes requested) {
+    private ImmutableList<CachedTransformChain> findShortestTransformChains(ImmutableList<ImmutableAttributes> sources, ImmutableAttributes requested) {
         AttributeMatcher attributeMatcher = matcher.get();
         ImmutableList<TransformRegistration> transforms = ImmutableList.copyOf(registeredTransforms.getRegistrations());
 
-        TransformStateGraph stateGraph = new TransformStateGraph(requested);
+        TransformStateGraph stateGraph = new TransformStateGraph(sources);
 
         ImmutableList<ImmutableAttributes> toProcess;
         while (!(toProcess = stateGraph.consumeNextStates()).isEmpty()) {
             List<CachedTransformChain> results = new ArrayList<>();
-            // For each candidate state, attempt to find a source attribute set that may sit at the root.
+            // Determine if any of the states at this depth are a solution.
             for (ImmutableAttributes state : toProcess) {
-                StateDetails details = stateGraph.getDetails(state);
-                for (int i = 0; i < sources.size(); i++) {
-                    ImmutableAttributes sourceAttrs = sources.get(i);
-                    if (attributeMatcher.isMatchingCandidate(sourceAttrs, state)) {
-                        visitSolutionTransformChains(
-                            i, sourceAttrs, details, stateGraph, transforms, results::add
-                        );
-                    }
+                if (attributeMatcher.isMatchingCandidate(state, requested)) {
+                    visitSolutionTransformChains(
+                        sources, state, stateGraph, transforms, (solution, usedTransforms) -> results.add(solution)
+                    );
                 }
             }
 
@@ -302,8 +301,10 @@ public class ConsumerProvidedVariantFinder {
             for (ImmutableAttributes state : toProcess) {
                 for (int i = 0; i < transforms.size(); i++) {
                     TransformRegistration nextTransform = transforms.get(i);
-                    if (attributeMatcher.isMatchingCandidate(nextTransform.getTo(), state)) {
-                        ImmutableAttributes newState = attributesFactory.concat(state, nextTransform.getFrom());
+                    if (!Sets.intersection(state.keySet(), nextTransform.getFrom().keySet()).isEmpty() &&
+                        attributeMatcher.isMatchingCandidate(state, nextTransform.getFrom())
+                    ) {
+                        ImmutableAttributes newState = attributesFactory.concat(state, nextTransform.getTo());
                         stateGraph.addEdge(newState, state, i);
                     }
                 }
@@ -314,87 +315,78 @@ public class ConsumerProvidedVariantFinder {
     }
 
     /**
-     * Starting from the given source node with the given attributes, visit all paths
-     * through the state graph starting at the {@code pathDetails} state.
+     * Given a state in the transform graph that solves the requested attributes, walk the graph
+     * to discover all transform chains that lead to this state from any of the source states.
      *
-     * @param sourceIndex The index of the source node.
-     * @param sourceAttrs The attributes of the source node.
-     * @param startTransformNode The details of the node in the state graph to start from.
-     * @param stateGraph The state graph to traverse.
+     * @param sources The source attribute sets.
+     * @param state A state that solves the requested attributes.
+     * @param stateGraph The graph of transform states.
      * @param transforms The list of registered transforms.
-     * @param visitor A visitor to accept each discovered transform chain.
+     * @param visitor A visitor that is called for each discovered transform chain.
      */
     private void visitSolutionTransformChains(
-        int sourceIndex,
-        ImmutableAttributes sourceAttrs,
-        StateDetails startTransformNode,
+        ImmutableList<ImmutableAttributes> sources,
+        ImmutableAttributes state,
         TransformStateGraph stateGraph,
         ImmutableList<TransformRegistration> transforms,
-        Consumer<CachedTransformChain> visitor
+        BiConsumer<CachedTransformChain, ImmutableLinkedList<Integer>> visitor
     ) {
-        // We assume a solution has at least one transform, otherwise there is no need to perform transforms.
-        assert !startTransformNode.incomingEdges.isEmpty();
-        assert startTransformNode.depth != 0;
+        StateDetails stateNode = stateGraph.getDetails(state);
 
-        // For each transform from the start node, visit all paths that transform the
-        // source attributes to the requested attributes.
-        for (TransformStateEdge edge : startTransformNode.incomingEdges) {
+        // We assume a solution has at least one transform, otherwise there is no need to perform transforms.
+        assert !stateNode.incomingEdges.isEmpty();
+        assert stateNode.depth != 0;
+
+        for (TransformStateEdge edge : stateNode.incomingEdges) {
+            ImmutableAttributes prevState = edge.from;
+            StateDetails prevDetails = stateGraph.getDetails(prevState);
             TransformRegistration transform = transforms.get(edge.transformIndex);
-            DefaultVariantDefinition base = new DefaultVariantDefinition(
-                null,
-                attributesFactory.concat(sourceAttrs, transform.getTo()),
-                transform.getTransformStep()
-            );
-            ImmutableLinkedList<Integer> usedTransforms = ImmutableLinkedList.of(edge.transformIndex);
-            StateDetails nextDetails = stateGraph.getDetails(edge.from);
-            visitSolutionTransformChains(base, nextDetails, usedTransforms, stateGraph, transforms, chain -> {
-                visitor.accept(new CachedTransformChain(sourceIndex, chain));
-            });
+
+            if (prevDetails.incomingEdges.isEmpty()) {
+                // The next node is a source node.
+                assert prevDetails.depth == 0;
+                int sourceIndex = findSourceIndex(sources, prevState);
+                visitor.accept(
+                    new CachedTransformChain(sourceIndex, new DefaultVariantDefinition(
+                        null,
+                        attributesFactory.concat(sources.get(sourceIndex), transform.getTo()),
+                        transform.getTransformStep()
+                    )),
+                    ImmutableLinkedList.of(edge.transformIndex)
+                );
+            } else {
+                // We have more transforms to apply.
+                assert prevDetails.depth > 0;
+                visitSolutionTransformChains(sources, prevState, stateGraph, transforms, (solution, usedTransforms) -> {
+                    if (!usedTransforms.contains(edge.transformIndex)) {
+                        // Transform chains may not reuse the same transform twice.
+                        visitor.accept(
+                            new CachedTransformChain(
+                                solution.sourceIndex,
+                                new DefaultVariantDefinition(
+                                    solution.chain,
+                                    attributesFactory.concat(solution.chain.getTargetAttributes(), transform.getTo()),
+                                    transform.getTransformStep()
+                                )
+                            ),
+                            usedTransforms.cons(edge.transformIndex)
+                        );
+                    }
+                });
+            }
         }
     }
 
     /**
-     * Recursively visits all paths through the state graph starting at the given node,
-     * appending each path to the given base variant definition.
-     *
-     * @param base The base variant definition to append to.
-     * @param startTransformNode The details of the node in the state graph to start from.
-     * @param usedTransforms All transforms already used in this path.
-     * @param stateGraph The state graph to traverse.
-     * @param transforms The list of registered transforms.
-     * @param visitor A visitor to accept each discovered transform chain.
+     * Finds the index of the given state in the list of sources.
      */
-    private void visitSolutionTransformChains(
-        DefaultVariantDefinition base,
-        StateDetails startTransformNode,
-        ImmutableLinkedList<Integer> usedTransforms,
-        TransformStateGraph stateGraph,
-        ImmutableList<TransformRegistration> transforms,
-        Consumer<DefaultVariantDefinition> visitor
-    ) {
-        if (startTransformNode.incomingEdges.isEmpty()) {
-            // We've reached the requested attributes.
-            assert startTransformNode.depth == 0;
-            visitor.accept(base);
-        } else {
-            // We have more transforms to apply.
-            assert startTransformNode.depth > 0;
-            for (TransformStateEdge stateChain : startTransformNode.incomingEdges) {
-                if (usedTransforms.contains(stateChain.transformIndex)) {
-                    // Don't allow cycles or reuse of transforms in the transform chain.
-                    continue;
-                }
-
-                TransformRegistration transform = transforms.get(stateChain.transformIndex);
-                DefaultVariantDefinition last = new DefaultVariantDefinition(
-                    base,
-                    attributesFactory.concat(base.getTargetAttributes(), transform.getTo()),
-                    transform.getTransformStep()
-                );
-                StateDetails nextDetails = stateGraph.getDetails(stateChain.from);
-                visitSolutionTransformChains(last, nextDetails, usedTransforms.cons(stateChain.transformIndex), stateGraph, transforms, visitor);
+    private static int findSourceIndex(ImmutableList<ImmutableAttributes> sources, ImmutableAttributes state) {
+        for (int sourceIndex = 0; sourceIndex < sources.size(); sourceIndex++) {
+            if (sources.get(sourceIndex).equals(state)) {
+                return sourceIndex;
             }
         }
+        throw new IllegalStateException("Expected to find a source matching the given state.");
     }
 
     /**
@@ -406,20 +398,20 @@ public class ConsumerProvidedVariantFinder {
     private static class TransformCache {
 
         private final ConcurrentHashMap<CacheKey, List<CachedTransformChain>> cache = new ConcurrentHashMap<>();
-        private final BiFunction<List<ImmutableAttributes>, ImmutableAttributes, List<CachedTransformChain>> action;
+        private final BiFunction<ImmutableList<ImmutableAttributes>, ImmutableAttributes, List<CachedTransformChain>> action;
 
-        public TransformCache(BiFunction<List<ImmutableAttributes>, ImmutableAttributes, List<CachedTransformChain>> action) {
+        public TransformCache(BiFunction<ImmutableList<ImmutableAttributes>, ImmutableAttributes, List<CachedTransformChain>> action) {
             this.action = action;
         }
 
         private List<TransformedVariant> query(
             List<ResolvedVariant> sources, ImmutableAttributes requested
         ) {
-            List<ImmutableAttributes> variantAttributes = new ArrayList<>(sources.size());
+            ImmutableList.Builder<ImmutableAttributes> variantAttributes = ImmutableList.builderWithExpectedSize(sources.size());
             for (ResolvedVariant variant : sources) {
                 variantAttributes.add(variant.getAttributes());
             }
-            List<CachedTransformChain> cached = cache.computeIfAbsent(new CacheKey(variantAttributes, requested), key -> action.apply(key.variantAttributes, key.requested));
+            List<CachedTransformChain> cached = cache.computeIfAbsent(new CacheKey(variantAttributes.build(), requested), key -> action.apply(key.variantAttributes, key.requested));
             List<TransformedVariant> output = new ArrayList<>(cached.size());
             for (CachedTransformChain variant : cached) {
                 output.add(new TransformedVariant(sources.get(variant.sourceIndex), variant.chain));
@@ -429,11 +421,11 @@ public class ConsumerProvidedVariantFinder {
 
         private static class CacheKey {
 
-            private final List<ImmutableAttributes> variantAttributes;
+            private final ImmutableList<ImmutableAttributes> variantAttributes;
             private final ImmutableAttributes requested;
             private final int hashCode;
 
-            public CacheKey(List<ImmutableAttributes> variantAttributes, ImmutableAttributes requested) {
+            public CacheKey(ImmutableList<ImmutableAttributes> variantAttributes, ImmutableAttributes requested) {
                 this.variantAttributes = variantAttributes;
                 this.requested = requested;
                 this.hashCode = 31 * variantAttributes.hashCode() + requested.hashCode();
