@@ -42,9 +42,19 @@ public interface FineGrainedPersistentCache extends Closeable, CleanableStore, H
     <T> T useCache(String key, Supplier<? extends T> action);
 
     /**
+     * Same as {@link #useCache(String, Supplier)} but allows to use a different lock for the same key.
+     */
+    <T> T useCache(String key, String lockSuffix, Supplier<? extends T> action);
+
+    /**
      * Performs some work against the cache key. Acquires exclusive locks on the appropriate resources, so that the given action is the only action to execute across all processes (including this one). Releases the locks and all resources at the end of the action.
      */
     void useCache(String key, Runnable action);
+
+    /**
+     * Same as {@link #useCache(String, Supplier)} but allows to use a different lock for the same key.
+     */
+    void useCache(String key, String lockSuffix, Runnable action);
 
     /**
      * Closes this cache, blocking until all operations are complete.
