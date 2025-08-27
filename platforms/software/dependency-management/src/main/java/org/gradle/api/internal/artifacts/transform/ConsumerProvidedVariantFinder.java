@@ -301,9 +301,14 @@ public class ConsumerProvidedVariantFinder {
             for (ImmutableAttributes state : toProcess) {
                 for (int i = 0; i < transforms.size(); i++) {
                     TransformRegistration nextTransform = transforms.get(i);
-                    if (!Sets.intersection(state.keySet(), nextTransform.getFrom().keySet()).isEmpty() &&
-                        attributeMatcher.isMatchingCandidate(state, nextTransform.getFrom())
-                    ) {
+
+                    // TODO: We should only allow a path if _all_ from attributes are present in the prior state.
+                    //       However, we historically allowed a path if _any_ from attributes were present in the prior state.
+                    //       This is not exactly intuitive or intended, but changing this now would be a breaking change.
+                    //       We should try to change this if we can.
+                    boolean hasRelevantAttributes = !Sets.intersection(state.keySet(), nextTransform.getFrom().keySet()).isEmpty();
+
+                    if (hasRelevantAttributes && attributeMatcher.isMatchingCandidate(state, nextTransform.getFrom())) {
                         ImmutableAttributes newState = attributesFactory.concat(state, nextTransform.getTo());
                         stateGraph.addEdge(newState, state, i);
                     }

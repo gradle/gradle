@@ -129,7 +129,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
 
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        failure.assertHasErrorOutput("""   > Found multiple transformation chains that produce a variant of 'root project :' with requested attributes:
+        failure.assertHasErrorOutput("""> Found multiple transformation chains that produce a variant of 'root project :' with requested attributes:
        - color 'red'
        - matter 'liquid'
        - shape 'round'
@@ -147,12 +147,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
                        - Converts from attributes:
                            - shape 'square'
                        - To attributes:
-                           - shape 'triangle'
-                   - 'BrokenTransform':
-                       - Converts from attributes:
-                           - shape 'triangle'
-                       - To attributes:
-                           - shape 'round'
+                           - shape 'flat'
                    - 'BrokenTransform':
                        - Converts from attributes:
                            - color 'blue'
@@ -165,6 +160,34 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
                            - color 'purple'
                        - To attributes:
                            - color 'red'
+                   - 'BrokenTransform':
+                       - Converts from attributes:
+                           - shape 'flat'
+                       - To attributes:
+                           - shape 'round'
+               - Transformation chain: 'BrokenTransform' -> 'BrokenTransform' -> 'BrokenTransform' -> 'BrokenTransform':
+                   - 'BrokenTransform':
+                       - Converts from attributes:
+                           - shape 'square'
+                       - To attributes:
+                           - shape 'triangle'
+                   - 'BrokenTransform':
+                       - Converts from attributes:
+                           - color 'blue'
+                           - texture 'unknown'
+                       - To attributes:
+                           - color 'purple'
+                           - texture 'rough'
+                   - 'BrokenTransform':
+                       - Converts from attributes:
+                           - color 'purple'
+                       - To attributes:
+                           - color 'red'
+                   - 'BrokenTransform':
+                       - Converts from attributes:
+                           - shape 'triangle'
+                       - To attributes:
+                           - shape 'round'
                - Transformation chain: 'BrokenTransform' -> 'BrokenTransform' -> 'BrokenTransform' -> 'BrokenTransform':
                    - 'BrokenTransform':
                        - Converts from attributes:
@@ -176,19 +199,6 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
                            - shape 'flat'
                        - To attributes:
                            - shape 'round'
-                   - 'BrokenTransform':
-                       - Converts from attributes:
-                           - color 'blue'
-                           - texture 'unknown'
-                       - To attributes:
-                           - color 'purple'
-                           - texture 'rough'
-                   - 'BrokenTransform':
-                       - Converts from attributes:
-                           - color 'purple'
-                       - To attributes:
-                           - color 'red'
-               - Transformation chain: 'BrokenTransform' -> 'BrokenTransform' -> 'BrokenTransform' -> 'BrokenTransform':
                    - 'BrokenTransform':
                        - Converts from attributes:
                            - color 'blue'
@@ -201,25 +211,15 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
                            - color 'yellow'
                        - To attributes:
                            - color 'red'
-                   - 'BrokenTransform':
-                       - Converts from attributes:
-                           - shape 'square'
-                       - To attributes:
-                           - shape 'triangle'
-                   - 'BrokenTransform':
-                       - Converts from attributes:
-                           - shape 'triangle'
-                       - To attributes:
-                           - shape 'round'
                - Transformation chain: 'BrokenTransform' -> 'BrokenTransform' -> 'BrokenTransform' -> 'BrokenTransform':
                    - 'BrokenTransform':
                        - Converts from attributes:
                            - shape 'square'
                        - To attributes:
-                           - shape 'flat'
+                           - shape 'triangle'
                    - 'BrokenTransform':
                        - Converts from attributes:
-                           - shape 'flat'
+                           - shape 'triangle'
                        - To attributes:
                            - shape 'round'
                    - 'BrokenTransform':
