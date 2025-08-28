@@ -23,6 +23,7 @@ import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOption
 import org.gradle.internal.buildoption.InternalOptions
+import org.gradle.internal.buildoption.StringInternalOption
 import org.gradle.internal.cc.base.logger
 
 
@@ -77,6 +78,7 @@ object BuildModelParametersProvider {
     ): BuildModelParameters {
 
         val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
+        warnOnPreviouslyExistingOptions(options)
         val requiresModels = requirements.isCreatesModel
 
         val isolatedProjects = startParameter.isolatedProjects.get()
@@ -164,6 +166,19 @@ object BuildModelParametersProvider {
                     modelAsProjectDependency = modelAsProjectDependency,
                     resilientModelBuilding = resilientModelBuilding
                 )
+            }
+        }
+    }
+
+    private
+    fun warnOnPreviouslyExistingOptions(options: InternalOptions) {
+        val replacements = mapOf(
+            "org.gradle.internal.isolated-projects.configure-on-demand.tooling" to isolatedProjectsConfigureOnDemand.systemPropertyName,
+            "org.gradle.internal.isolated-projects.configure-on-demand.tasks" to isolatedProjectsConfigureOnDemand.systemPropertyName,
+        )
+        for ((previous, current) in replacements) {
+            if (options.getOption(StringInternalOption(previous, null)).isExplicit) {
+                logger.warn("Warning: option '$previous' has been replaced with '$current'")
             }
         }
     }
