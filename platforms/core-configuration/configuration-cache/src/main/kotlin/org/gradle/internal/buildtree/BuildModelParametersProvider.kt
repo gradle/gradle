@@ -23,6 +23,12 @@ import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.cc.base.logger
 
+
+/**
+ * Consolidates features requested by the user into flags controlling various Gradle behaviors.
+ *
+ * @see BuildModelParameters
+ */
 internal
 object BuildModelParametersProvider {
 
@@ -126,8 +132,14 @@ object BuildModelParametersProvider {
         }
     }
 
+    /**
+     * Compute parameters for nested build trees, which are created by the `GradleBuild` tasks.
+     *
+     * Many features are not supported for nested build trees, such as Configuration Cache or Isolated Projects.
+     *
+     * @see org.gradle.internal.build.NestedRootBuildRunner
+     */
     fun parametersForNestedBuildTree(startParameter: StartParameterInternal): BuildModelParameters {
-        // Configuration cache is not supported for nested build trees
         return DefaultBuildModelParameters(
             requiresToolingModels = true,
             parallelProjectExecution = startParameter.isParallelProjectExecutionEnabled,
