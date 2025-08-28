@@ -19,6 +19,7 @@ tasks.isolatedProjectsIntegTest {
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
+    api(projects.buildOption)
     api(projects.concurrent)
     api(projects.configurationCacheBase)
     api(projects.configurationProblemsBase)
@@ -44,7 +45,6 @@ dependencies {
 
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     implementation(projects.buildEvents)
-    implementation(projects.buildOption)
     implementation(projects.buildProcessServices)
     implementation(projects.classloaders)
     implementation(projects.coreKotlinExtensions)
