@@ -16,17 +16,19 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.api.project.IsolatedProject;
 import org.gradle.api.file.Directory;
+import org.gradle.api.internal.file.FileFactory;
+import org.gradle.api.project.IsolatedProject;
+import org.gradle.util.Path;
 
 public final class DefaultIsolatedProject implements IsolatedProject {
 
-    private final ProjectInternal project;
-    private final ProjectInternal rootProject;
+    private final ProjectState project;
+    private final FileFactory fileFactory;
 
-    public DefaultIsolatedProject(ProjectInternal project, ProjectInternal rootProject) {
+    public DefaultIsolatedProject(ProjectState project, FileFactory fileFactory) {
         this.project = project;
-        this.rootProject = rootProject;
+        this.fileFactory = fileFactory;
     }
 
     @Override
@@ -36,24 +38,25 @@ public final class DefaultIsolatedProject implements IsolatedProject {
 
     @Override
     public String getPath() {
-        return project.getPath();
+        return project.getIdentity().getProjectPath().getPath();
     }
 
     @Override
     public String getBuildTreePath() {
-        return project.getBuildTreePath();
+        return project.getIdentity().getBuildTreePath().getPath();
     }
 
     @Override
     public Directory getProjectDirectory() {
-        return project.getLayout().getProjectDirectory();
+        return fileFactory.dir(project.getProjectDir());
     }
 
     @Override
     public IsolatedProject getRootProject() {
-        return project.equals(rootProject)
-            ? this
-            : rootProject.getIsolated();
+        if (project.getIdentity().getProjectPath().equals(Path.ROOT)) {
+            return this;
+        }
+        return new DefaultIsolatedProject(project.getOwner().getProjects().getRootProject(), fileFactory);
     }
 
     @Override
