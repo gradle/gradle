@@ -23,6 +23,7 @@ data class DefaultBuildModelParameters(
     private val configureOnDemand: Boolean,
     private val configurationCache: Boolean,
     private val isolatedProjects: Boolean,
+    private val parallelProjectConfiguration: Boolean,
     private val intermediateModelCache: Boolean,
     private val parallelToolingApiActions: Boolean,
     private val invalidateCoupledProjects: Boolean,
@@ -39,6 +40,8 @@ data class DefaultBuildModelParameters(
     override fun isConfigurationCache(): Boolean = configurationCache
 
     override fun isIsolatedProjects(): Boolean = isolatedProjects
+
+    override fun isParallelProjectConfiguration(): Boolean = parallelProjectConfiguration
 
     override fun isIntermediateModelCache(): Boolean = intermediateModelCache
 

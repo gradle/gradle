@@ -39,6 +39,14 @@ public interface BuildModelParameters {
     boolean isIsolatedProjects();
 
     /**
+     * Whether projects should be configured in parallel.
+     * <p>
+     * This should only take effect if {@link #isConfigureOnDemand() configure-on-demand}
+     * is not making us skip eager project configuration.
+     */
+    boolean isParallelProjectConfiguration();
+
+    /**
      * When {@link  #isIsolatedProjects()} is true, should intermediate tooling models be cached?
      * This is currently true when fetching a tooling model, otherwise false.
      */
@@ -64,6 +72,7 @@ public interface BuildModelParameters {
 
     /**
      * Returns true if the model building is resilient so some failures in model building.
+     *
      * @return true if the model building is resilient, false otherwise
      */
     boolean isResilientModelBuilding();
