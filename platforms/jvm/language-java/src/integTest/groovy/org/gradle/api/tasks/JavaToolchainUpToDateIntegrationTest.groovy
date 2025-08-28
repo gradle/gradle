@@ -93,7 +93,7 @@ class JavaToolchainUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
     def runWithToolchainConfigured(Jvm jvm) {
         result = executer
-            .withArgument("-Porg.gradle.java.installations.paths=" + jvm.javaHome.absolutePath)
+            .withArgument("-Dorg.gradle.java.installations.paths=" + jvm.javaHome.absolutePath)
             .withTasks("check", "javadoc")
             .run()
     }

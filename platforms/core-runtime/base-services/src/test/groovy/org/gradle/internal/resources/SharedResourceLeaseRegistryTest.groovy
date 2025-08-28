@@ -17,11 +17,11 @@
 package org.gradle.internal.resources
 
 
-import org.gradle.internal.InternalTransformer
 import org.gradle.internal.MutableBoolean
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.CountDownLatch
+import java.util.function.Function
 
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.lock
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLock
@@ -132,13 +132,10 @@ class SharedResourceLeaseRegistryTest extends ConcurrentSpec {
 
     boolean lockIsHeld(final ResourceLock resourceLock) {
         MutableBoolean held = new MutableBoolean()
-        coordinationService.withStateLock(new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
-            @Override
-            ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                held.set(resourceLock.locked && resourceLock.isLockedByCurrentThread())
-                return ResourceLockState.Disposition.FINISHED
-            }
-        })
+        coordinationService.withStateLock({
+            held.set(resourceLock.locked && resourceLock.isLockedByCurrentThread())
+            return ResourceLockState.Disposition.FINISHED
+        } as Function)
         return held.get()
     }
 }

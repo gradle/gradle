@@ -247,11 +247,7 @@ class ToolingApi implements TestRule {
 
         connector.forProjectDirectory(projectDir)
 
-        if (embedded) {
-            connector.useClasspathDistribution()
-        } else {
-            connector.useInstallation(dist.gradleHomeDir.absoluteFile)
-        }
+        connector.useInstallation(dist.gradleHomeDir.absoluteFile)
         connector.embedded(embedded)
 
         if (GradleVersion.version(dist.getVersion().version) < GradleVersion.version("6.0")) {

@@ -16,28 +16,23 @@
 package org.gradle.testfixtures.internal;
 
 import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.api.internal.properties.GradlePropertiesController;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
-import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.installation.CurrentGradleInstallation;
-import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 
 public class TestBuildScopeServices extends BuildScopeServices {
-    private final File homeDir;
 
-    public TestBuildScopeServices(File homeDir, BuildModelControllerServices.Supplier supplier) {
+    public TestBuildScopeServices(BuildModelControllerServices.Supplier supplier) {
         super(supplier);
-        this.homeDir = homeDir;
     }
 
     @Provides
@@ -54,11 +49,6 @@ public class TestBuildScopeServices extends BuildScopeServices {
     @Provides
     protected BuildCancellationToken createBuildCancellationToken() {
         return new DefaultBuildCancellationToken();
-    }
-
-    @Provides
-    protected CurrentGradleInstallation createCurrentGradleInstallation() {
-        return new CurrentGradleInstallation(new GradleInstallation(homeDir));
     }
 
     private static class EmptyGradleProperties implements GradleProperties {

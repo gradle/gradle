@@ -63,7 +63,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
         run('publish')
 
         then:
-        result.assertTasksExecuted(
+        result.assertTasksScheduled(
             tasks.debug.allToLink,
             tasks.release.allToLink,
             tasks.release.strip,

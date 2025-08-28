@@ -23,7 +23,7 @@ You can get other tips and search the link:https://discuss.gradle.org/c/help-dis
 
 If you followed the <<installation.adoc#installation,installation instructions>>, and aren’t able to execute your Gradle build, here are some tips that may help.
 
-If you installed Gradle outside of just invoking the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>>, you can check your Gradle installation by running `gradle --version` in a terminal.
+If you installed Gradle outside of just invoking the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>>, you can check your Gradle installation by running `gradle --version` in a terminal.
 
 You should see something like this:
 
@@ -38,7 +38,7 @@ Build time:    2025-05-13 06:56:13 UTC
 Revision:      3c890746756262d3778e12eaa5155d661d7cbdf2
 
 Kotlin:        2.1.21
-Groovy:        4.0.27
+Groovy:        4.0.28
 Ant:           Apache Ant(TM) version 1.10.15 compiled on August 25 2024
 Launcher JVM:  22.0.1 (Oracle Corporation 22.0.1+8-16)
 Daemon JVM:    Compatible with Java 17, any vendor, nativeImageCapable=false (from gradle/gradle-daemon-jvm.properties)

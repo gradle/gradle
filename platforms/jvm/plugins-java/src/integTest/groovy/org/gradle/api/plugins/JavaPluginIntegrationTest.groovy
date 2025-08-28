@@ -494,7 +494,7 @@ Artifacts
         expect:
         succeeds ":subB:test"
         result.assertTaskOrder(":subA:jar", ":subB:test")
-        result.assertTaskNotExecuted(":subA:test")
+        result.assertTasksNotScheduled(":subA:test")
     }
 
     def "classes directories registered on source set output are included in runtime classes variant"() {
@@ -540,7 +540,7 @@ Artifacts
         succeeds "consumer:consumeRuntimeClasses"
 
         then:
-        result.assertTaskExecuted(":customCompile")
+        result.assertTaskScheduled(":customCompile")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22484")
@@ -573,7 +573,7 @@ Artifacts
         succeeds "bar"
 
         then:
-        result.assertTasksExecuted(":compileJava", ":bar")
+        result.assertTasksScheduled(":compileJava", ":bar")
     }
 
     def "changing the role of jvm configurations fails (#configuration - #method(true))"() {
@@ -679,4 +679,65 @@ Artifacts
         expect:
         succeeds("help")
     }
+
+    def "consumable configurations are not realized at configuration-time"() {
+        given:
+        buildFile("""
+            plugins {
+                id("java")
+            }
+            configurations.named(Dependency.DEFAULT_CONFIGURATION).configure {
+                throw new RuntimeException("Should not be called!")
+            }
+            configurations.named(${configuration}).configure {
+                throw new RuntimeException("Should not be called!")
+            }
+        """)
+
+        expect:
+        succeeds("help")
+
+        where:
+        configuration << [
+            "JavaPlatformPlugin.API_ELEMENTS_CONFIGURATION_NAME",
+            "JavaPlatformPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME"
+        ]
+    }
+
+    def "sourcesElements consumable configuration is not realized at configuration-time"() {
+        given:
+        buildFile("""
+            plugins {
+                id("java")
+            }
+            java {
+                withSourcesJar()
+            }
+            configurations.named(JavaPlugin.SOURCES_ELEMENTS_CONFIGURATION_NAME).configure {
+                throw new RuntimeException("Should not be called!")
+            }
+        """)
+
+        expect:
+        succeeds("help")
+    }
+
+    def "javadocElements consumable configuration is not realized at configuration-time"() {
+        given:
+        buildFile("""
+            plugins {
+                id("java")
+            }
+            java {
+                withJavadocJar()
+            }
+            configurations.named(JavaPlugin.JAVADOC_ELEMENTS_CONFIGURATION_NAME).configure {
+                throw new RuntimeException("Should not be called!")
+            }
+        """)
+
+        expect:
+        succeeds("help")
+    }
+
 }

@@ -16,22 +16,19 @@
 
 package org.gradle.internal.serialize;
 
-import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.util.function.Function;
 
 public class ExceptionReplacingObjectOutputStream extends ObjectOutputStream {
-    private InternalTransformer<Object, Object> objectTransformer = new InternalTransformer<Object, Object>() {
-        @Override
-        public Object transform(Object obj) {
-            try {
-                return doReplaceObject(obj);
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
+    private Function<Object, Object> objectTransformer = obj -> {
+        try {
+            return doReplaceObject(obj);
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     };
 
@@ -40,15 +37,12 @@ public class ExceptionReplacingObjectOutputStream extends ObjectOutputStream {
         enableReplaceObject(true);
     }
 
-    public final InternalTransformer<ExceptionReplacingObjectOutputStream, OutputStream> getObjectOutputStreamCreator() {
-        return new InternalTransformer<ExceptionReplacingObjectOutputStream, OutputStream>() {
-            @Override
-            public ExceptionReplacingObjectOutputStream transform(OutputStream outputStream) {
-                try {
-                    return createNewInstance(outputStream);
-                } catch (IOException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
+    public final Function<OutputStream, ExceptionReplacingObjectOutputStream> getObjectOutputStreamCreator() {
+        return outputStream -> {
+            try {
+                return createNewInstance(outputStream);
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         };
     }
@@ -59,7 +53,7 @@ public class ExceptionReplacingObjectOutputStream extends ObjectOutputStream {
 
     @Override
     protected final Object replaceObject(Object obj) throws IOException {
-        return getObjectTransformer().transform(obj);
+        return getObjectTransformer().apply(obj);
     }
 
     protected Object doReplaceObject(Object obj) throws IOException {
@@ -69,11 +63,11 @@ public class ExceptionReplacingObjectOutputStream extends ObjectOutputStream {
         return obj;
     }
 
-    public InternalTransformer<Object, Object> getObjectTransformer() {
+    public Function<Object, Object> getObjectTransformer() {
         return objectTransformer;
     }
 
-    public void setObjectTransformer(InternalTransformer<Object, Object> objectTransformer) {
+    public void setObjectTransformer(Function<Object, Object> objectTransformer) {
         this.objectTransformer = objectTransformer;
     }
 }

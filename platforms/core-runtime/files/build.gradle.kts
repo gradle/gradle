@@ -14,15 +14,20 @@ gradleModule {
 dependencies {
     api(projects.stdlibJavaExtensions)
 
-    api(libs.jspecify)
     api(libs.jsr305)
 
     implementation(libs.guava)
     implementation(libs.slf4jApi)
+
+    implementation(libs.jspecify)
 
     testImplementation(projects.native)
     testImplementation(projects.baseServices) {
         because("TextUtil is needed")
     }
     testImplementation(testFixtures(projects.native))
+}
+
+errorprone {
+    nullawayEnabled = true
 }

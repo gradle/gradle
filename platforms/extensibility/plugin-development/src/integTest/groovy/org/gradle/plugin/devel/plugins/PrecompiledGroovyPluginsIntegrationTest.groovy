@@ -926,7 +926,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains('my-plugin applied')
         cachedTasks.forEach {
-            result.assertTaskExecuted(it)
+            result.assertTaskScheduled(it)
         }
 
         when:

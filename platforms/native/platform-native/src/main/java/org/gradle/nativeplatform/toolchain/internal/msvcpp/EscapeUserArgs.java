@@ -16,26 +16,26 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import org.gradle.internal.InternalTransformer;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.util.List;
+import java.util.function.Function;
 
-class EscapeUserArgs implements InternalTransformer<String, String> {
+class EscapeUserArgs implements Function<String, String> {
     public static String escapeUserArg(String original) {
-        return new EscapeUserArgs().transform(original);
+        return new EscapeUserArgs().apply(original);
     }
 
     public static List<String> escapeUserArgs(List<String> original) {
-        return new EscapeUserArgs().transform(original);
+        return new EscapeUserArgs().applyToAll(original);
     }
 
     @Override
-    public String transform(String original) {
+    public String apply(String original) {
         return original.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
-    public List<String> transform(List<String> args) {
+    private List<String> applyToAll(List<String> args) {
         return CollectionUtils.collect(args, this);
     }
 }

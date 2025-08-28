@@ -320,7 +320,6 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
 
         then:
         resultDebug.assertTasksExecuted(':compileDebugCpp', ':linkDebug', ':installDebug', ':_xcode___App_Debug')
-        resultDebug.assertTasksNotSkipped(':compileDebugCpp', ':linkDebug', ':installDebug', ':_xcode___App_Debug')
         debugBinary.exec().out == app.expectedOutput
         fixture(debugBinary).assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
 
@@ -334,7 +333,6 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
 
         then:
         resultRelease.assertTasksExecuted(':compileReleaseCpp', ':linkRelease', ':stripSymbolsRelease', ':installRelease', ':_xcode___App_Release')
-        resultRelease.assertTasksNotSkipped(':compileReleaseCpp', ':linkRelease', ':stripSymbolsRelease', ':installRelease', ':_xcode___App_Release')
         releaseBinary.exec().out == app.expectedOutput
         fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
     }
@@ -365,7 +363,6 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
 
         then:
         resultDebug.assertTasksExecuted(':compileDebugX86-64Cpp', ':linkDebugX86-64', ':installDebugX86-64', ':_xcode___App_DebugX86-64')
-        resultDebug.assertTasksNotSkipped(':compileDebugX86-64Cpp', ':linkDebugX86-64', ':installDebugX86-64', ':_xcode___App_DebugX86-64')
         debugBinary.exec().out == app.expectedOutput
         fixture(debugBinary).assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
 
@@ -379,7 +376,6 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
 
         then:
         resultRelease.assertTasksExecuted(':compileReleaseX86-64Cpp', ':linkReleaseX86-64', ':stripSymbolsReleaseX86-64', ':installReleaseX86-64', ':_xcode___App_ReleaseX86-64')
-        resultRelease.assertTasksNotSkipped(':compileReleaseX86-64Cpp', ':linkReleaseX86-64', ':stripSymbolsReleaseX86-64', ':installReleaseX86-64', ':_xcode___App_ReleaseX86-64')
         releaseBinary.exec().out == app.expectedOutput
         fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
     }
@@ -408,7 +404,6 @@ apply plugin: 'cpp-library'
 
         then:
         resultDebug.assertTasksExecuted(':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
-        resultDebug.assertTasksNotSkipped(':compileDebugCpp', ':linkDebug', ':_xcode___App_Debug')
         debugBinary.assertExists()
         fixture(debugBinary).assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
 
@@ -422,7 +417,6 @@ apply plugin: 'cpp-library'
 
         then:
         resultRelease.assertTasksExecuted(':compileReleaseCpp', ':linkRelease', ':stripSymbolsRelease', ':_xcode___App_Release')
-        resultRelease.assertTasksNotSkipped(':compileReleaseCpp', ':linkRelease', ':stripSymbolsRelease', ':_xcode___App_Release')
         releaseBinary.assertExists()
         fixture(releaseBinary).assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
     }
@@ -453,7 +447,6 @@ apply plugin: 'cpp-library'
 
         then:
         resultDebug.assertTasksExecuted(':compileDebugX86-64Cpp', ':linkDebugX86-64', ':_xcode___App_DebugX86-64')
-        resultDebug.assertTasksNotSkipped(':compileDebugX86-64Cpp', ':linkDebugX86-64', ':_xcode___App_DebugX86-64')
         debugBinary.assertExists()
         fixture(debugBinary).assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
 
@@ -467,7 +460,6 @@ apply plugin: 'cpp-library'
 
         then:
         resultRelease.assertTasksExecuted(':compileReleaseX86-64Cpp', ':linkReleaseX86-64', ':stripSymbolsReleaseX86-64', ':_xcode___App_ReleaseX86-64')
-        resultRelease.assertTasksNotSkipped(':compileReleaseX86-64Cpp', ':linkReleaseX86-64', ':stripSymbolsReleaseX86-64', ':_xcode___App_ReleaseX86-64')
         releaseBinary.assertExists()
         fixture(releaseBinary).assertHasDebugSymbolsFor(lib.sourceFileNamesWithoutHeaders)
     }

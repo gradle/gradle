@@ -44,7 +44,7 @@ class MethodHandleInvocation implements Invocation {
     }
 
     @Override
-    public Object getReceiver() {
+    public @Nullable Object getReceiver() {
         return unwrap(originalArgs[0]);
     }
 
@@ -54,14 +54,12 @@ class MethodHandleInvocation implements Invocation {
     }
 
     @Override
-    @Nullable
-    public Object getArgument(int pos) {
+    public @Nullable Object getArgument(int pos) {
         return unwrap(unspreadArgs[pos + unspreadArgsOffset]);
     }
 
     @Override
-    @Nullable
-    public Object callNext() throws Throwable {
+    public @Nullable Object callNext() throws Throwable {
         return original.invokeExact(originalArgs);
     }
 }

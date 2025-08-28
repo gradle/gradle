@@ -48,7 +48,7 @@ Isolated Projects is a pre-alpha feature, and as such, the current implementatio
 These will be addressed in future Gradle releases:
 
 * Gradle, IntelliJ IDEA, Android Studio, and Kotlin plugins are not yet 100% compatible with Isolated Projects, so you should expect to see some violations reported. The teams are actively working on fixing these incompatibilities.
-* Parallel configuration does not support <<multi_project_configuration_and_execution.adoc#sec:configuration_on_demand, Configuration on Demand>>. All projects will be configured, even if they aren't running tasks.
+* Parallel configuration does not support <<configuration_on_demand.adoc#sec:configuration_on_demand, Configuration on Demand>>. All projects will be configured, even if they aren't running tasks.
 * Changes to included builds invalidate all cached results, even when the change would not affect the cached results.
 * The implementation does not exploit the isolation to limit peak memory consumption. Currently, peak memory consumption is a function of how many projects must be configured.
 * All caching, including the configuration cache, is done on the local machine. Remote caching is not supported yet.

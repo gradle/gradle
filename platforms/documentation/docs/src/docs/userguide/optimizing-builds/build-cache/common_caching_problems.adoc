@@ -233,7 +233,7 @@ A task depending on this task output would then not be able to load outputs from
 As described in the <<build_cache_concepts.adoc#stable_task_inputs,stable task inputs section>>, you can either make the task outputs repeatable or use input normalization.
 You already learned about the possibilities with <<build_cache_concepts.adoc#filter_runtime_classpath,configurable input normalization>>.
 
-Tasks that produce archives (`tar`, `zip`) are <<working_with_files.adoc#sec:reproducible_archives,reproducible>> by default, starting with Gradle 9.0.
+Tasks that produce archives (`tar`, `zip`) are <<working_with_files.adoc#sec:reproducible_archives,reproducible>> by default, starting with Gradle 9.0.0.
 For earlier Gradle versions or if you want explicit configuration, you can make archives reproducible configuring a task in the following way:
 
 ====

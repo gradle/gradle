@@ -77,7 +77,7 @@ USAGE: gradle [option...] [task...]
 --rerun-tasks                      Ignore previously cached task results.
 -S, --full-stacktrace              Print out the full (very verbose) stacktrace for all exceptions.
 -s, --stacktrace                   Print out the stacktrace for all exceptions.
---scan                             Generate a Build Scan (Powered by Develocity).
+--scan                             Generate a Build Scan (powered by Develocity).
                                    Build Scan and Develocity are registered trademarks of Gradle, Inc.
                                    For more information, please visit https://gradle.com/develocity/product/build-scan/.
 --no-scan                          Disables the creation of a Build Scan.

@@ -56,6 +56,7 @@ import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.test.fixtures.ResettableExpectations;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.util.DebugUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.CollectionUtils;
@@ -69,7 +70,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.lang.management.ManagementFactory;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -102,7 +102,6 @@ import static org.gradle.util.internal.DefaultGradleVersion.VERSION_OVERRIDE_VAR
 public abstract class AbstractGradleExecuter implements GradleExecuter, ResettableExpectations {
     private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";
     private static final String LAUNCHER_DEBUG_SYSPROP = "org.gradle.integtest.launcher.debug";
-    public static final int DAEMON_DEBUG_PORT = 5005;
     public static final int LAUNCHER_DEBUG_PORT = 5006;
     private static final String PROFILE_SYSPROP = "org.gradle.integtest.profile";
     private static final String ALLOW_INSTRUMENTATION_AGENT_SYSPROP = "org.gradle.integtest.agent.allowed";
@@ -192,7 +191,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     protected final GradleDistribution distribution;
     private GradleVersion gradleVersionOverride;
 
-    private JavaDebugOptionsInternal debug = new JavaDebugOptionsInternal(Boolean.getBoolean(DEBUG_SYSPROP), DAEMON_DEBUG_PORT);
+    private JavaDebugOptionsInternal debug = new JavaDebugOptionsInternal(Boolean.getBoolean(DEBUG_SYSPROP), DebugUtil.DAEMON_DEBUG_PORT);
 
     private JavaDebugOptionsInternal debugLauncher = new JavaDebugOptionsInternal(Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP), LAUNCHER_DEBUG_PORT);
 
@@ -235,11 +234,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         maybeApplyDebugMode();
     }
 
-    protected static boolean isDebuggerAttachedImpl() {
-        return ManagementFactory.getRuntimeMXBean().getInputArguments().toString().indexOf("-agentlib:jdwp") > 0;
-    }
-
-
     protected boolean isDebuggerAttached() {
         return false; // no need for remote debugging for embedded executor
     }
@@ -277,7 +271,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         renderWelcomeMessage = false;
         disableToolchainDownload = true;
         disableToolchainDetection = true;
-        debug = new JavaDebugOptionsInternal(Boolean.getBoolean(DEBUG_SYSPROP), DAEMON_DEBUG_PORT);
+        debug = new JavaDebugOptionsInternal(Boolean.getBoolean(DEBUG_SYSPROP), DebugUtil.DAEMON_DEBUG_PORT);
         debugLauncher = new JavaDebugOptionsInternal(Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP), LAUNCHER_DEBUG_PORT);
         profiler = System.getProperty(PROFILE_SYSPROP, "");
         interactive = false;
@@ -1141,10 +1135,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
 
         if (disableToolchainDownload) {
-            allArgs.add("-P" + AutoInstalledInstallationSupplier.AUTO_DOWNLOAD + "=false");
+            allArgs.add("-D" + AutoInstalledInstallationSupplier.AUTO_DOWNLOAD + "=false");
         }
         if (disableToolchainDetection) {
-            allArgs.add("-P" + ToolchainConfiguration.AUTO_DETECT + "=false");
+            allArgs.add("-D" + ToolchainConfiguration.AUTO_DETECT + "=false");
         }
 
         boolean hasAgentArgument = args.stream().anyMatch(s -> s.contains(DaemonBuildOptions.ApplyInstrumentationAgentOption.GRADLE_PROPERTY));

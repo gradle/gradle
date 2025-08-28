@@ -23,9 +23,9 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface BuildOperationsParameters {
 
     /**
-     * Whether build operations should be emitted more extensively
-     * for observability purposes.
+     * Whether build operations measuring resource locks should be emitted.
+     * For observability purposes, potentially at the cost of some performance.
      */
-    boolean isVerbose();
+    boolean emitLockingOperations();
 
 }

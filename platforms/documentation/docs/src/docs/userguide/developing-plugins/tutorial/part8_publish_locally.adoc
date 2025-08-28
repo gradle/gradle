@@ -1,0 +1,113 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[part8_publish_locally]]
+= Part 8: Publish your Plugin Locally
+
+Learn how to verify your plugin can be published by pushing it to a local Maven repository, then consuming it like any external plugin.
+
+****
+**In this section, you'll:**
+
+- Update your plugin with publishable metadata
+- Publish your plugin to a local throwable Maven repository
+- Use the published version of the plugin in the `consumer` project
+****
+
+[[part8_begin]]
+== Step 0: Before you Begin
+
+1. You initialized your plugin in <<part1_gradle_init_plugin.adoc#part1_begin,part 1>>.
+2. You added an extension to your plugin in <<part2_add_extension.adoc#part2_begin,part 2>>.
+3. You created a custom task in <<part3_create_custom_task.adoc#part3_begin, part3>>.
+4. You wrote a unit test in <<part4_unit_test.adoc#part4_begin,part 4>>.
+5. You added a dataflow action to your plugin in <<part5_add_dataflow_action.adoc#part5_begin,part 5>>.
+6. You wrote a functional test in <<part6_functional_test.adoc#part6_begin,part 6>>.
+7. You created a dummy consumer project in <<part7_use_consumer_project.adoc#part7_begin,part 7>>.
+
+== Step 1: Add Plugin Metadata
+
+In your `plugin/build.gradle(.kts)` file, apply the `maven-publish` plugin and make sure you have the `group` and `version` defined:
+
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=publish]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/build.gradle[tags=publish]"]
+====
+
+TIP: The `group` and `version` **must** be set or the `publish` task will fail.
+
+== Step 2: Publish to a Local Folder
+
+Use the `publishing {}` block from the `maven-publish` plugin to add a Maven repository that points to `build/local-repo` in your plugin's build file:
+
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=repo]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/build.gradle[tags=repo]"]
+====
+
+Publish the plugin:
+
+[source,bash]
+----
+./gradlew :plugin:publishAllPublicationsToLocalRepoRepository
+
+> Task :plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :plugin:pluginDescriptors UP-TO-DATE
+> Task :plugin:processResources UP-TO-DATE
+> Task :plugin:generatePomFileForPluginMavenPublication
+> Task :plugin:generatePomFileForSlackPluginMarkerMavenPublication
+> Task :plugin:publishSlackPluginMarkerMavenPublicationToLocalRepoRepository
+> Task :plugin:compileKotlin
+> Task :plugin:compileJava NO-SOURCE
+> Task :plugin:classes UP-TO-DATE
+> Task :plugin:jar
+> Task :plugin:generateMetadataFileForPluginMavenPublication
+> Task :plugin:publishPluginMavenPublicationToLocalRepoRepository
+> Task :plugin:publishAllPublicationsToLocalRepoRepository
+
+BUILD SUCCESSFUL in 1s
+9 actionable tasks: 7 executed, 2 up-to-date
+----
+
+You should now see artifacts under `plugin/build/local-repo/`.
+Take a moment to look at these files.
+
+== Step 3: Configure the Local Repository in `consumer`
+
+Point your **consumer** build to that repo and apply the plugin **with a version**:
+
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="consumer/settings.gradle.kts[tags=repo]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="consumer/settings.gradle[tags=repo]"]
+====
+
+== Step 4: Apply the Plugin in the `consumer` Project
+
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="consumer/build.gradle.kts[tags=repo]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="consumer/build.gradle[tags=repo]"]
+====
+
+Now run something in the consumer (e.g., your `test` task or `build`):
+
+[source,bash]
+----
+./gradlew :consumer:build
+----
+
+You’ve now proven the plugin is **publishable** and **consumable** like a real, external plugin, no portals or private repos required.
+
+You can easily clean up the artifacts by running `rm -rf plugin/build/local-repo` if you want to republish from scratch.
+
+Congratulations, you have completed the tutorial!

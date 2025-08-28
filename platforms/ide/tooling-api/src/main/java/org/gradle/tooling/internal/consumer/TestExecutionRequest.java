@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.internal.InternalTransformer;
-import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.OperationDescriptorWrapper;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
@@ -84,12 +82,7 @@ public class TestExecutionRequest implements InternalTestExecutionRequest {
     }
 
     private Collection<InternalTestDescriptor> adaptDescriptors(Iterable<TestOperationDescriptor> operationDescriptors) {
-        return CollectionUtils.collect(operationDescriptors, new InternalTransformer<InternalTestDescriptor, OperationDescriptor>() {
-            @Override
-            public InternalTestDescriptor transform(OperationDescriptor operationDescriptor) {
-                return (InternalTestDescriptor) ((OperationDescriptorWrapper) operationDescriptor).getInternalOperationDescriptor();
-            }
-        });
+        return CollectionUtils.collect(operationDescriptors, operationDescriptor -> (InternalTestDescriptor) ((OperationDescriptorWrapper) operationDescriptor).getInternalOperationDescriptor());
     }
 
     @Override

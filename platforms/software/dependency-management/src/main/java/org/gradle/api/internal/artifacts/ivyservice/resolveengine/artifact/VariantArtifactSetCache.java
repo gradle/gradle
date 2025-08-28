@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple.DefaultExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
@@ -35,11 +36,16 @@ import java.util.concurrent.ConcurrentHashMap;
  * This cache contains ArtifactSets for the entire build tree.
  */
 @ServiceScope(Scope.BuildTree.class)
-public class VariantArtifactSetCache {
+public class VariantArtifactSetCache implements HoldsProjectState {
 
     private static final ExcludeSpec EXCLUDE_NOTHING = new DefaultExcludeFactory().nothing();
 
     private final Map<Long, ArtifactSet> cache = new ConcurrentHashMap<>();
+
+    @Override
+    public void discardAll() {
+        cache.clear();
+    }
 
     /**
      * Caches the implicit artifact set for the given node of the given component.

@@ -23,5 +23,5 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scope.BuildTree.class)
 public interface SystemPropertiesInstaller {
 
-    void setSystemPropertiesFrom(GradleProperties gradleProperties, boolean isRootBuild);
+    void setSystemPropertiesFrom(GradleProperties gradleProperties);
 }

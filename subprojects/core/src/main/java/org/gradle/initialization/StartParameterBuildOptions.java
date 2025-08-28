@@ -342,7 +342,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         public BuildScanOption() {
             super(null, BooleanCommandLineOptionConfiguration.create(LONG_OPTION,
-                "Generate a Build Scan (Powered by Develocity).\n" +
+                "Generate a Build Scan (powered by Develocity).\n" +
                     "                                   Build Scan and Develocity are registered trademarks of Gradle, Inc.\n" +
                     "                                   For more information, please visit https://gradle.com/develocity/product/build-scan/.",
                 "Disables the creation of a Build Scan."));

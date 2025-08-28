@@ -28,9 +28,9 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
-    private final ProjectRegistry<ProjectInternal> projectRegistry;
+    private final ProjectRegistry projectRegistry;
 
-    public DefaultCrossProjectModelAccess(ProjectRegistry<ProjectInternal> projectRegistry) {
+    public DefaultCrossProjectModelAccess(ProjectRegistry projectRegistry) {
         this.projectRegistry = projectRegistry;
     }
 

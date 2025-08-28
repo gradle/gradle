@@ -17,6 +17,7 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.api.file.BuildLayout;
@@ -36,7 +37,6 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
-import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.toolchain.management.ToolchainManagement;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
@@ -61,6 +61,8 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.time.Instant.now;
 import static org.apache.commons.lang3.ArrayUtils.contains;
@@ -73,9 +75,9 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     private File settingsDir;
 
-    private DefaultProjectDescriptor rootProjectDescriptor;
+    private final ProjectDescriptorInternal rootProjectDescriptor;
 
-    private DefaultProjectDescriptor defaultProjectDescriptor;
+    private ProjectDescriptorInternal defaultProjectDescriptor;
 
     private final GradleInternal gradle;
 
@@ -147,23 +149,31 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         return scriptHandler;
     }
 
-    public DefaultProjectDescriptor createProjectDescriptor(@Nullable DefaultProjectDescriptor parent, String name, File dir) {
+    public ProjectDescriptorInternal createProjectDescriptor(@Nullable ProjectDescriptorInternal parent, String name, File dir) {
         return new DefaultProjectDescriptor(parent, name, dir, getProjectDescriptorRegistry(), getFileResolver(), getScriptFileResolver());
     }
 
     @Override
-    public DefaultProjectDescriptor findProject(String path) {
+    public ProjectDescriptorInternal findProject(String path) {
         return getProjectDescriptorRegistry().getProject(path);
     }
 
     @Override
-    public DefaultProjectDescriptor findProject(File projectDir) {
-        return getProjectDescriptorRegistry().getProject(projectDir);
+    public @Nullable ProjectDescriptorInternal findProject(File projectDir) {
+        Set<ProjectDescriptorInternal> matches = getProjectDescriptorRegistry().getAllProjects().stream()
+            .filter(project -> project.getProjectDir().equals(projectDir))
+            .collect(Collectors.toSet());
+
+        if (matches.size() > 1) {
+            throw new InvalidUserDataException(String.format("Found multiple projects with project directory '%s': %s", projectDir, matches));
+        }
+
+        return matches.size() == 1 ? matches.iterator().next() : null;
     }
 
     @Override
-    public DefaultProjectDescriptor project(String path) {
-        DefaultProjectDescriptor projectDescriptor = getProjectDescriptorRegistry().getProject(path);
+    public ProjectDescriptorInternal project(String path) {
+        ProjectDescriptorInternal projectDescriptor = getProjectDescriptorRegistry().getProject(path);
         if (projectDescriptor == null) {
             throw new UnknownProjectException(String.format("Project with path '%s' could not be found.", path));
         }
@@ -171,8 +181,8 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Override
-    public DefaultProjectDescriptor project(File projectDir) {
-        DefaultProjectDescriptor projectDescriptor = getProjectDescriptorRegistry().getProject(projectDir);
+    public ProjectDescriptorInternal project(File projectDir) {
+        ProjectDescriptorInternal projectDescriptor = findProject(projectDir);
         if (projectDescriptor == null) {
             throw new UnknownProjectException(String.format("Project with path '%s' could not be found.", projectDir));
         }
@@ -184,10 +194,10 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         for (String projectPath : projectPaths) {
             String subPath = "";
             String[] pathElements = removeTrailingColon(projectPath).split(":");
-            DefaultProjectDescriptor parentProjectDescriptor = rootProjectDescriptor;
+            ProjectDescriptorInternal parentProjectDescriptor = rootProjectDescriptor;
             for (String pathElement : pathElements) {
                 subPath = subPath + ":" + pathElement;
-                DefaultProjectDescriptor projectDescriptor = getProjectDescriptorRegistry().getProject(subPath);
+                ProjectDescriptorInternal projectDescriptor = getProjectDescriptorRegistry().getProject(subPath);
                 if (projectDescriptor == null) {
                     parentProjectDescriptor = createProjectDescriptor(parentProjectDescriptor, pathElement, new File(parentProjectDescriptor.getProjectDir(), pathElement));
                 } else {
@@ -217,17 +227,13 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         return rootProjectDescriptor;
     }
 
-    public void setRootProjectDescriptor(DefaultProjectDescriptor rootProjectDescriptor) {
-        this.rootProjectDescriptor = rootProjectDescriptor;
-    }
-
     @Override
-    public DefaultProjectDescriptor getDefaultProject() {
+    public ProjectDescriptorInternal getDefaultProject() {
         return defaultProjectDescriptor;
     }
 
     @Override
-    public void setDefaultProject(DefaultProjectDescriptor defaultProjectDescriptor) {
+    public void setDefaultProject(ProjectDescriptorInternal defaultProjectDescriptor) {
         this.defaultProjectDescriptor = defaultProjectDescriptor;
     }
 
@@ -277,7 +283,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     public abstract ScriptFileResolver getScriptFileResolver();
 
     @Override
-    public ProjectRegistry<DefaultProjectDescriptor> getProjectRegistry() {
+    public ProjectDescriptorRegistry getProjectRegistry() {
         return getProjectDescriptorRegistry();
     }
 

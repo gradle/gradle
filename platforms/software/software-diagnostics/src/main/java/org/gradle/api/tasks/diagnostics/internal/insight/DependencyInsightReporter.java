@@ -38,7 +38,6 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RequestedVersion;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.ResolvedDependencyEdge;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.Section;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependencyEdge;
-import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.exceptions.ResolutionProvider;
@@ -60,14 +59,6 @@ public class DependencyInsightReporter {
     private final VersionSelectorScheme versionSelectorScheme;
     private final VersionComparator versionComparator;
     private final VersionParser versionParser;
-
-    private static final InternalTransformer<DependencyEdge, DependencyResult> TO_EDGES = result -> {
-        if (result instanceof UnresolvedDependencyResult) {
-            return new UnresolvedDependencyEdge((UnresolvedDependencyResult) result);
-        } else {
-            return new ResolvedDependencyEdge((ResolvedDependencyResult) result);
-        }
-    };
 
     public DependencyInsightReporter(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser) {
         this.versionSelectorScheme = versionSelectorScheme;
@@ -128,8 +119,16 @@ public class DependencyInsightReporter {
     }
 
     private Collection<DependencyEdge> toDependencyEdges(Collection<DependencyResult> dependencies) {
-        List<DependencyEdge> edges = CollectionUtils.collect(dependencies, TO_EDGES);
+        List<DependencyEdge> edges = CollectionUtils.collect(dependencies, DependencyInsightReporter::resultToEdge);
         return DependencyResultSorter.sort(edges, versionSelectorScheme, versionComparator, versionParser);
+    }
+
+    private static DependencyEdge resultToEdge(DependencyResult result) {
+        if (result instanceof UnresolvedDependencyResult) {
+            return new UnresolvedDependencyEdge((UnresolvedDependencyResult) result);
+        } else {
+            return new ResolvedDependencyEdge((ResolvedDependencyResult) result);
+        }
     }
 
     private static void buildFailureSection(DependencyEdge edge, Set<Throwable> alreadyReportedErrors, List<Section> sections) {

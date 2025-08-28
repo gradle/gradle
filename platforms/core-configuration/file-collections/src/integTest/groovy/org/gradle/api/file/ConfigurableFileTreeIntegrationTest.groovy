@@ -86,7 +86,7 @@ class ConfigurableFileTreeIntegrationTest extends AbstractIntegrationSpec {
         run 'copy'
 
         then:
-        result.assertTaskNotSkipped(':copy')
+        result.assertTaskExecuted(':copy')
         file('dest').assertHasDescendants(
             'one.txt',
             'a/one.txt',
@@ -142,7 +142,7 @@ class ConfigurableFileTreeIntegrationTest extends AbstractIntegrationSpec {
         run 'copy'
 
         then:
-        result.assertTaskNotSkipped(':copy')
+        result.assertTaskExecuted(':copy')
         file('dest').assertHasDescendants(
             'one.txt',
             'a/one.txt',
@@ -207,7 +207,7 @@ class ConfigurableFileTreeIntegrationTest extends AbstractIntegrationSpec {
         run("generate")
 
         then:
-        result.assertTaskNotSkipped(":generate")
+        result.assertTaskExecuted(":generate")
         output.count("checking") == 22 // checked twice, once to snapshot and once when the task action runs. Should be memoized when snapshotting
         outputContains("checking a/a.txt")
         outputContains("checking d/d.txt")
@@ -269,7 +269,7 @@ class ConfigurableFileTreeIntegrationTest extends AbstractIntegrationSpec {
         run("generate")
 
         then:
-        result.assertTaskNotSkipped(":generate")
+        result.assertTaskExecuted(":generate")
         output.count("checking") == 20 // checked twice, once for snapshots and once when the task action runs. Should be memoized when snapshotting
         outputContains("checking a.txt")
         outputContains("checking d/e/f.txt")
@@ -321,7 +321,7 @@ class ConfigurableFileTreeIntegrationTest extends AbstractIntegrationSpec {
         run 'copy'
 
         then:
-        result.assertTaskNotSkipped(':copy')
+        result.assertTaskExecuted(':copy')
         file('dest').assertHasDescendants(
             'one.txt',
             'a/one.txt',

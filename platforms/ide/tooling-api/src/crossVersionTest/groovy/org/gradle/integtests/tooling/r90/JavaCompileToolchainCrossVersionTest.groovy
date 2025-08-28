@@ -23,6 +23,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.util.GradleVersion
 
 @TargetGradleVersion(">=9.0")
 class JavaCompileToolchainCrossVersionTest extends ToolingApiSpecification implements JavaToolchainFixture {
@@ -54,13 +55,21 @@ class JavaCompileToolchainCrossVersionTest extends ToolingApiSpecification imple
             it.newBuild().setEnvironmentVariables(System.getenv() + ["OTHER_JAVA_HOME": otherJvm.javaHome.absolutePath])
                 .forTasks(":compileJava").withArguments(
                     "--info",
-                    "-Porg.gradle.java.installations.fromEnv=OTHER_JAVA_HOME",
-                    "-Porg.gradle.java.installations.auto-detect=false",
+                    cliOption("org.gradle.java.installations.fromEnv=OTHER_JAVA_HOME"),
+                    cliOption("org.gradle.java.installations.auto-detect=false"),
             ).run()
         }
 
         then:
         outputContains("Compiling with toolchain '${otherJvm.javaHome.absolutePath}'")
         classJavaVersion(javaClassFile("Foo.class")) == JavaVersion.toVersion(otherJvm.javaVersion)
+    }
+
+    String cliOption(String propertySetting) {
+        if (targetVersion < GradleVersion.version('9.2.0')) {
+            return "-P$propertySetting"
+        } else {
+            return "-D$propertySetting"
+        }
     }
 }

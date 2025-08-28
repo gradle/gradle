@@ -41,12 +41,20 @@
                 <td><literal>project.distsDir</literal></td>
             </tr>
             <tr>
+                <td>dirPermissions</td>
+                <td><literal>-rwxr-xr-x</literal></td>
+            </tr>
+            <tr>
+                <td>filePermissions</td>
+                <td><literal>-rw-r--r--</literal></td>
+            </tr>
+            <tr>
                 <td>preserveFileTimestamps</td>
-                <td><literal>true</literal></td>
+                <td><literal>false</literal></td>
             </tr>
             <tr>
                 <td>reproducibleFileOrder</td>
-                <td><literal>false</literal></td>
+                <td><literal>true</literal></td>
             </tr>
         </table>
     </section>

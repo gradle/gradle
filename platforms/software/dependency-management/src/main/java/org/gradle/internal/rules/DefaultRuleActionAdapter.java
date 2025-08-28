@@ -53,6 +53,7 @@ public class DefaultRuleActionAdapter implements RuleActionAdapter {
     }
 
     @Override
+    @Deprecated
     public <T> RuleAction<? super T> createFromRuleSource(Class<T> subjectType, Object ruleSource) {
         try {
             return ruleActionValidator.validate(RuleSourceBackedRuleAction.create(ModelType.of(subjectType), ruleSource));

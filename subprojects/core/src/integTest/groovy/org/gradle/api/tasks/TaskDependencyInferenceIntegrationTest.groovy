@@ -37,7 +37,7 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         run("c")
 
         then:
-        result.assertTasksExecuted(":a", ":b", ":c")
+        result.assertTasksScheduled(":a", ":b", ":c")
     }
 
     def "dependency declared using mapped task provider implies dependency on task and does not run mapping function"() {
@@ -55,7 +55,7 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         run("c")
 
         then:
-        result.assertTasksExecuted(":a", ":b", ":c")
+        result.assertTasksScheduled(":a", ":b", ":c")
     }
 
     def "dependency declared using provider that returns task implies dependency on task"() {
@@ -71,7 +71,7 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         run("b")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
     }
 
     def "dependency declared using provider mapping that returns task implies dependency on task"() {
@@ -87,7 +87,7 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         run("b")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
     }
 
     def "dependency declared using task output file property implies dependency on task"() {
@@ -105,7 +105,7 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         run("b")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
     }
 
     def "dependency declared using mapped task output file property implies dependency on task and does not run mapping function"() {
@@ -123,7 +123,7 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         run("b")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
     }
 
     def "dependency declared using property whose value is a task output provider implies dependency on task"() {
@@ -143,7 +143,7 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         run("b")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
     }
 
     def "dependency declared using flat map provider whose value is a task output property implies dependency on task"() {
@@ -161,7 +161,7 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         run("b")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
     }
 
     def "dependency declared using property whose value is a mapped task output provider implies dependency on task and does not run mapping function"() {
@@ -181,7 +181,7 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         run("b")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
     }
 
     def "dependency declared using orElse provider whose original value is task output file property implies dependency on task"() {
@@ -202,7 +202,7 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         run("c")
 
         then:
-        result.assertTasksExecuted(":a", ":c")
+        result.assertTasksScheduled(":a", ":c")
     }
 
     def "dependency declared using orElse provider whose original value is task output file property and alternative value is constant implies dependency on task"() {
@@ -220,7 +220,7 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         run("c")
 
         then:
-        result.assertTasksExecuted(":a", ":c")
+        result.assertTasksScheduled(":a", ":c")
     }
 
     def "dependency declared using orElse provider whose original value is missing and alternative value is task output file property implies dependency on task"() {
@@ -241,7 +241,7 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         run("c")
 
         then:
-        result.assertTasksExecuted(":b", ":c")
+        result.assertTasksScheduled(":b", ":c")
     }
 
     def "dependency declared using orElse provider whose original value is missing and alternative value is missing task output file property doesn't imply dependency on task"() {
@@ -262,7 +262,7 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         run("c")
 
         then:
-        result.assertTasksExecuted(":c")
+        result.assertTasksScheduled(":c")
     }
 
     def "dependency declared using orElse provider whose original value is missing and alternative value is constant does not imply task dependency"() {
@@ -280,7 +280,7 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         run("b")
 
         then:
-        result.assertTasksExecuted(":b")
+        result.assertTasksScheduled(":b")
     }
 
     def "dependency declared using provider that returns task name implies dependency on task"() {
@@ -296,7 +296,7 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         run("b")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
     }
 
     def "dependency declared using mapped provider that returns task name implies dependency on task"() {
@@ -312,7 +312,7 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         run("b")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
     }
 
     def "dependency declared using #value fails"() {
@@ -472,7 +472,7 @@ The following types/formats are supported:
         run("b")
 
         then:
-        result.assertTasksExecuted(":b")
+        result.assertTasksScheduled(":b")
     }
 
     def "produces reasonable error message when task dependency closure throws exception"() {
@@ -526,7 +526,7 @@ The following types/formats are supported:
         run("b")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
         file("out.txt").text == "1,2"
     }
 
@@ -548,7 +548,7 @@ The following types/formats are supported:
         run("b")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
         file("out.txt").text == "1"
     }
 
@@ -570,7 +570,7 @@ The following types/formats are supported:
         run("b")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
         file("out.txt").text == "content,content"
     }
 
@@ -593,7 +593,7 @@ The following types/formats are supported:
         run("b")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
         file("out.txt").text == "content,content"
     }
 
@@ -616,7 +616,7 @@ The following types/formats are supported:
         run("b")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
         file("out.txt").text == "1"
     }
 
@@ -642,7 +642,7 @@ The following types/formats are supported:
         run("c")
 
         then:
-        result.assertTasksExecuted(":a", ":c")
+        result.assertTasksScheduled(":a", ":c")
         file("out.txt").text == "a"
     }
 
@@ -664,7 +664,7 @@ The following types/formats are supported:
         run("c")
 
         then:
-        result.assertTasksExecuted(":a", ":c")
+        result.assertTasksScheduled(":a", ":c")
         file("out.txt").text == "a"
     }
 
@@ -689,7 +689,7 @@ The following types/formats are supported:
         run("c")
 
         then:
-        result.assertTasksExecuted(":b", ":c")
+        result.assertTasksScheduled(":b", ":c")
         file("out.txt").text == "b"
     }
 
@@ -711,7 +711,7 @@ The following types/formats are supported:
         run("c")
 
         then:
-        result.assertTasksExecuted(":c")
+        result.assertTasksScheduled(":c")
         file("out.txt").text == "b"
     }
 
@@ -733,7 +733,7 @@ The following types/formats are supported:
         run("b")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
         file("out.txt").text == "1"
     }
 
@@ -755,7 +755,7 @@ The following types/formats are supported:
         run("b")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
         file("out.txt").text == "1"
     }
 
@@ -784,7 +784,7 @@ The following types/formats are supported:
         run("c")
 
         then:
-        result.assertTasksExecuted(":a", ":b", ":c")
+        result.assertTasksScheduled(":a", ":b", ":c")
         file("out.txt").text == "1,2"
     }
 
@@ -806,7 +806,7 @@ The following types/formats are supported:
         run("b")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
         file("out.txt").text == "1"
     }
 
@@ -828,7 +828,7 @@ The following types/formats are supported:
         run("b")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
         file("out.txt").text == "1"
     }
 
@@ -852,7 +852,7 @@ The following types/formats are supported:
         run("b")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
         file("out.txt").text == "content"
     }
 
@@ -870,7 +870,7 @@ The following types/formats are supported:
         run("b")
 
         then:
-        result.assertTasksExecuted(":b")
+        result.assertTasksScheduled(":b")
         file("out.txt").text == "1"
 
         where:
@@ -901,7 +901,7 @@ The following types/formats are supported:
         run("b")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
         file("out.txt").text == "22"
     }
 
@@ -925,7 +925,7 @@ The following types/formats are supported:
         run("b")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
         file("out.txt").text == "22"
     }
 
@@ -945,7 +945,7 @@ The following types/formats are supported:
         run("b")
 
         then:
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
     }
 
     def "input property with value of mapped task output location does not imply dependency on the task"() {
@@ -966,7 +966,7 @@ The following types/formats are supported:
         run("b")
 
         then:
-        result.assertTasksExecuted(":b")
+        result.assertTasksScheduled(":b")
         file("out.txt").text == "18"
     }
 
@@ -983,7 +983,7 @@ The following types/formats are supported:
         run("b")
 
         then:
-        result.assertTasksExecuted(":b")
+        result.assertTasksScheduled(":b")
         file("out.txt").text == "17"
     }
 
@@ -1010,7 +1010,7 @@ The following types/formats are supported:
         run("c")
 
         then:
-        result.assertTasksExecuted(":a", ":b", ":c")
+        result.assertTasksScheduled(":a", ":b", ":c")
         file("out.txt").text == "22,25,10"
     }
 
@@ -1037,7 +1037,7 @@ The following types/formats are supported:
         run("c")
 
         then:
-        result.assertTasksExecuted(":a", ":b", ":c")
+        result.assertTasksScheduled(":a", ":b", ":c")
         file("out.txt").text == "a1=22,a2=25,b=10"
     }
 }

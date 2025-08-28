@@ -28,6 +28,7 @@ public class InstrumentedInputs {
      * @deprecated do not use outside of this class
      */
     @Deprecated
+    @SuppressWarnings("NullAway") // https://github.com/uber/NullAway/issues/681, this method may be heavily used
     public static InstrumentedInputsListener listener() {
         // TODO(mlopatkin): Reduce the visibility of this method once everything moves into this project.
         return LISTENER.get();

@@ -43,3 +43,7 @@ dependencyAnalysis {
         ignoreSourceSet(sourceSets.performanceTest.name)
     }
 }
+
+errorprone {
+    nullawayEnabled = true
+}

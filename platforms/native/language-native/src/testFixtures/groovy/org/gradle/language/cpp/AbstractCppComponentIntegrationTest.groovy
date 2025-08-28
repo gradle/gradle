@@ -34,7 +34,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
-        result.assertTasksExecutedAndNotSkipped(tasksToAssembleDevelopmentBinary, ":$taskNameToAssembleDevelopmentBinary")
+        result.assertTasksExecuted(tasksToAssembleDevelopmentBinary, ":$taskNameToAssembleDevelopmentBinary")
     }
 
     def "assemble task warns when current operating system family is excluded"() {
@@ -103,7 +103,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
-        result.assertTasksExecutedAndNotSkipped getTasksToAssembleDevelopmentBinary(currentOsFamilyName.toLowerCase()), ":${taskNameToAssembleDevelopmentBinary}"
+        result.assertTasksExecuted getTasksToAssembleDevelopmentBinary(currentOsFamilyName.toLowerCase()), ":${taskNameToAssembleDevelopmentBinary}"
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
@@ -117,7 +117,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
 
         expect:
         succeeds getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86), getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86_64)
-        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinary(MachineArchitecture.X86),
+        result.assertTasksExecuted(getTasksToAssembleDevelopmentBinary(MachineArchitecture.X86),
                 getTasksToAssembleDevelopmentBinary(MachineArchitecture.X86_64),
                 getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86),
                 getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86_64))
@@ -153,7 +153,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
-        result.assertTasksExecutedAndNotSkipped(getTasksToAssembleDevelopmentBinary(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
+        result.assertTasksExecuted(getTasksToAssembleDevelopmentBinary(currentArchitecture), ":$taskNameToAssembleDevelopmentBinary")
     }
 
     def "ignores duplicate target machines"() {

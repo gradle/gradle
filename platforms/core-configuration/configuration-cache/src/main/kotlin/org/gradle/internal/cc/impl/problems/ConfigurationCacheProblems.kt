@@ -19,8 +19,8 @@ package org.gradle.internal.cc.impl.problems
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.Task
-import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.logging.Logging
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemSpec
@@ -182,7 +182,11 @@ class ConfigurationCacheProblems(
     }
 
     override fun onExecutionTimeProblem(problem: PropertyProblem) {
-        val severity = if (isWarningMode) ProblemSeverity.Deferred else ProblemSeverity.Interrupting
+        val severity = when {
+            isWarningMode -> ProblemSeverity.Deferred
+            cacheAction == SkipStore || degradationDecision.shouldDegrade -> ProblemSeverity.SuppressedSilently
+            else -> ProblemSeverity.Interrupting
+        }
         onProblem(problem, severity)
     }
 
@@ -192,14 +196,21 @@ class ConfigurationCacheProblems(
     }
 
     override fun forTask(task: Task): ProblemsListener {
-        val degradationReasons = degradationDecision.degradationReasonForTask(task)
+        val degradationReasons = degradationDecision.degradationReasonForTask(task.identity)
         return if (!degradationReasons.isNullOrEmpty()) {
-            onIncompatibleTask(locationForTask(task), degradationReasons.joinToString())
+            onIncompatibleTask(
+                locationForTask(task.identity),
+                degradationReasons.joinToString()
+            )
             ErrorsAreProblemsProblemsListener(ProblemSeverity.SuppressedSilently)
         } else this
     }
 
     fun shouldDegradeGracefully(): Boolean = degradationDecision.shouldDegrade
+
+    private
+    val Task.identity: TaskIdentity<*>
+        get() = (this as TaskInternal).taskIdentity
 
     private
     fun onIncompatibleTask(trace: PropertyTrace, reason: String) {
@@ -361,8 +372,8 @@ class ConfigurationCacheProblems(
 
     private
     fun addNotReportedDegradingTasks() {
-        degradationDecision.onDegradedTask { task, reasons ->
-            val trace = locationForTask(task)
+        degradationDecision.onDegradedTask { taskIdentity, reasons ->
+            val trace = locationForTask(taskIdentity)
             if (!incompatibleTasks.contains(trace)) {
                 reportIncompatibleTask(trace, reasons.joinToString())
             }
@@ -431,7 +442,7 @@ class ConfigurationCacheProblems(
                 cacheAction is Update -> log("Configuration cache entry updated for {} with {}, {} up-to-date.", updatedProjectsString, problemCountString, reusedProjectsString)
                 cacheAction is Load && !hasProblems -> log("Configuration cache entry reused.")
                 cacheAction is Load -> log("Configuration cache entry reused with {}.", problemCountString)
-                cacheAction == SkipStore -> log("Configuration cache entry discarded as cache is in read-only mode.")
+                cacheAction == SkipStore -> log("Configuration cache disabled as cache is in read-only mode.")
                 hasTooManyProblems -> log("Too many configuration cache problems found ({}).", problemCountString)
                 hasProblems -> log("Configuration cache problems found ({}).", problemCountString)
                 // else not storing or loading and no problems to report
@@ -491,7 +502,7 @@ class ConfigurationCacheProblems(
     val logger = Logging.getLogger(ConfigurationCacheProblems::class.java)
 
     private
-    fun locationForTask(task: Task) = PropertyTrace.Task(GeneratedSubclasses.unpackType(task), (task as TaskInternal).identityPath.path)
+    fun locationForTask(taskIdentity: TaskIdentity<*>) = PropertyTrace.Task(taskIdentity.taskType, taskIdentity.buildTreePath.path)
 
     private
     fun Int.counter(singular: String, plural: String = "${singular}s"): String {

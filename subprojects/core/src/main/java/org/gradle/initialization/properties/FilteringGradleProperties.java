@@ -17,6 +17,7 @@
 package org.gradle.initialization.properties;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.internal.lambdas.SerializableLambdas.SerializablePredicate;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.jspecify.annotations.Nullable;
 
@@ -30,7 +31,7 @@ public class FilteringGradleProperties implements GradleProperties {
     private final GradleProperties delegate;
     private final Predicate<String> propertyNameFilter;
 
-    public FilteringGradleProperties(GradleProperties delegate, Predicate<String> propertyNameFilter) {
+    public FilteringGradleProperties(GradleProperties delegate, SerializablePredicate<String> propertyNameFilter) {
         this.delegate = delegate;
         this.propertyNameFilter = propertyNameFilter;
     }

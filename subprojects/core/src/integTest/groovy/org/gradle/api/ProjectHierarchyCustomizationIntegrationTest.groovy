@@ -49,6 +49,6 @@ class ProjectHierarchyCustomizationIntegrationTest extends AbstractIntegrationSp
         run("test")
 
         then:
-        result.assertTasksExecuted(":modules:project-a:test", ":modules:projectA:project-b:test")
+        result.assertTasksScheduled(":modules:project-a:test", ":modules:projectA:project-b:test")
     }
 }

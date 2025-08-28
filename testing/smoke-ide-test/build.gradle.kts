@@ -92,3 +92,9 @@ dependencies {
     }
     smokeIdeTestImplementation(testFixtures(projects.core))
 }
+
+integTest.testJvmXmx = "1g"
+
+errorprone {
+    nullawayEnabled = true
+}

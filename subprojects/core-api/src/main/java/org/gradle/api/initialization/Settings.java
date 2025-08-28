@@ -35,7 +35,6 @@ import org.gradle.declarative.dsl.model.annotations.Adding;
 import org.gradle.declarative.dsl.model.annotations.Configuring;
 import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.initialization.BuildLogicFiles;
 import org.gradle.plugin.management.PluginManagementSpec;
 import org.gradle.vcs.SourceControl;
 import org.jspecify.annotations.Nullable;
@@ -86,7 +85,7 @@ public interface Settings extends PluginAware, ExtensionAware {
     /**
      * <p>The default name for the settings file.</p>
      */
-    String DEFAULT_SETTINGS_FILE = BuildLogicFiles.DEFAULT_SETTINGS_FILE;
+    String DEFAULT_SETTINGS_FILE = "settings.gradle";
 
     /**
      * <p>Adds the given projects to the build. Each path in the supplied list is treated as the path of a project to

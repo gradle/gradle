@@ -99,8 +99,8 @@ class AbstractGradleExecuterTest extends Specification {
         def allArgs = executer.getAllArgs()
 
         then:
-        allArgs.contains("-Porg.gradle.java.installations.auto-detect=false")
-        allArgs.contains("-Porg.gradle.java.installations.auto-download=false")
+        allArgs.contains("-Dorg.gradle.java.installations.auto-detect=false")
+        allArgs.contains("-Dorg.gradle.java.installations.auto-download=false")
     }
 
     def "toolchain detection can be enabled"() {
@@ -109,8 +109,8 @@ class AbstractGradleExecuterTest extends Specification {
         def allArgs = executer.getAllArgs()
 
         then:
-        !allArgs.toString().contains("-Porg.gradle.java.installations.auto-detect")
-        allArgs.contains("-Porg.gradle.java.installations.auto-download=false")
+        !allArgs.toString().contains("-Dorg.gradle.java.installations.auto-detect")
+        allArgs.contains("-Dorg.gradle.java.installations.auto-download=false")
     }
 
     def "toolchain provisioning can be enabled"() {
@@ -119,7 +119,7 @@ class AbstractGradleExecuterTest extends Specification {
         def allArgs = executer.getAllArgs()
 
         then:
-        !allArgs.toString().contains("-Porg.gradle.java.installations.auto-download")
+        !allArgs.toString().contains("-Dorg.gradle.java.installations.auto-download")
     }
 
     def "does not allow you to use startBuildProcessInDebugger on CI"() {

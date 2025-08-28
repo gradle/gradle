@@ -53,7 +53,6 @@ import org.gradle.internal.serialize.BaseSerializerFactory.HASHCODE_SERIALIZER
 import org.gradle.internal.serialize.codecs.core.BooleanValueSnapshotCodec
 import org.gradle.internal.serialize.codecs.core.BuildServiceParameterCodec
 import org.gradle.internal.serialize.codecs.core.BuildServiceProviderCodec
-import org.gradle.internal.serialize.codecs.core.CachedEnvironmentStateCodec
 import org.gradle.internal.serialize.codecs.core.CalculatedValueContainerCodec
 import org.gradle.internal.serialize.codecs.core.ConfigurableFileCollectionCodec
 import org.gradle.internal.serialize.codecs.core.ConfigurableFileTreeCodec
@@ -140,6 +139,7 @@ import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
 import org.gradle.internal.serialize.graph.codecs.DelegatingCodec
 import org.gradle.internal.serialize.graph.codecs.NotImplementedCodec
 import org.gradle.internal.serialize.graph.codecs.ServicesCodec
+import org.gradle.internal.serialize.graph.codecs.ValueObjectCodec
 import org.gradle.internal.serialize.graph.reentrant
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
@@ -261,9 +261,6 @@ class DefaultConfigurationCacheCodecs(
             bind(DestinationRootCopySpecCodec(fileResolver))
 
             bind(TaskReferenceCodec)
-            bind(GradlePropertiesCodec)
-
-            bind(CachedEnvironmentStateCodec)
 
             bind(IsolatedManagedValueCodec(managedFactoryRegistry))
             bind(IsolatedImmutableManagedValueCodec(managedFactoryRegistry))
@@ -280,6 +277,7 @@ class DefaultConfigurationCacheCodecs(
             bind(BooleanValueSnapshotCodec)
             bind(NullValueSnapshotCodec)
 
+            bind(GradlePropertiesCodec)
             bind(ServicesCodec)
 
             bind(ProxyCodec)
@@ -303,8 +301,7 @@ class DefaultConfigurationCacheCodecs(
             providerTypes(
                 propertyFactory,
                 filePropertyFactory,
-                nestedProviderCodecForFingerprint(
-                )
+                nestedProviderCodecForFingerprint()
             )
         }
     }
@@ -313,6 +310,7 @@ class DefaultConfigurationCacheCodecs(
     fun Bindings.completeWithStatefulCodecs() = append {
         bind(ExternalizableCodec)
         bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup))
+        bind(ValueObjectCodec)
 
         // This protects the BeanCodec against StackOverflowErrors, but
         // we can still get them for the other codecs, for instance,

@@ -23,7 +23,7 @@ Binary plugins must implement the link:{javadocPath}/org/gradle/api/Plugin.html[
 
 == Implementing the Plugin Interface
 
-For example, this is a "hello world" *plugin*:
+For example, this is a very simple "Hello World" *plugin*:
 
 ====
 include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[tags=plugin]"]

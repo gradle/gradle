@@ -63,7 +63,7 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
 
         expect:
         succeeds ":hello:assemble"
-        result.assertTasksExecuted(
+        result.assertTasksScheduled(
             ":cppGreeter:compileDebugCpp", ":cppGreeter:${createOrLink(linkage)}Debug",
             ":hello:compileDebugSwift", ":hello:linkDebug", ":hello:assemble")
 
@@ -111,7 +111,7 @@ class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedL
 
         expect:
         succeeds ":hello:assemble"
-        result.assertTasksExecuted(
+        result.assertTasksScheduled(
             ":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug",
             ":logger:compileDebugCpp", ":logger:${createOrLink(linkage)}Debug",
             ":hello:compileDebugSwift", ":hello:linkDebug", ":hello:assemble")

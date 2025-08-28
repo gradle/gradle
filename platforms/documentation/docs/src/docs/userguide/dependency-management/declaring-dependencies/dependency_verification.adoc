@@ -858,6 +858,7 @@ gpg:               imported: 1
 [[sec:troubleshooting-verification]]
 == Dealing with a verification failure
 
+[[sec:dealing-verification-failure]]
 Dependency verification can fail in different ways, this section explains how you should deal with the various cases.
 
 === Missing verification metadata

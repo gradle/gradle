@@ -134,8 +134,8 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
         }
 
         build(firstDir, "classes", "--build-cache").apply {
-            cachedTasks.forEach { assertTaskExecuted(it) }
-            assertTaskExecuted(downstreamKotlinCompileTask)
+            cachedTasks.forEach { assertTaskScheduled(it) }
+            assertTaskScheduled(downstreamKotlinCompileTask)
         }
 
         build(firstDir, "classes", "--build-cache").apply {
@@ -261,7 +261,7 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
         withKotlinDslPluginIn("consumer").appendText("""dependencies { implementation(project(":producer")) }""")
         withFile("consumer/src/main/kotlin/some.gradle.kts", "")
         build(":consumer:classes").apply {
-            assertTaskExecuted(":consumer:compilePluginsBlocks")
+            assertTaskScheduled(":consumer:compilePluginsBlocks")
             assertNotOutput("w: Classpath entry points to a non-existent location")
         }
         assertFalse(file("producer/build/classes/java/main").exists())

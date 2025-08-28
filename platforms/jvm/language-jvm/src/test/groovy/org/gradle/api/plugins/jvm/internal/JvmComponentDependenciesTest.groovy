@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.internal.artifacts.DependencyManagementManagedTypesFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.jvm.JvmComponentDependencies
@@ -42,6 +43,7 @@ class JvmComponentDependenciesTest extends Specification {
         def of = TestUtil.createTestServices {
             it.add(DependencyFactoryInternal, dependencyFactory)
             it.add(Project, currentProject)
+            it.add(DependencyManagementManagedTypesFactory)
         }.get(ObjectFactory)
 
         dependencies = of.newInstance(JvmComponentDependencies)
@@ -67,12 +69,8 @@ class JvmComponentDependenciesTest extends Specification {
     }
 
     def "GAV notation is supported"() {
-        given:
-        TestUtil.initDeprecationLogger("We are testing a deprecated method")
-
         def example = Mock(ExternalModuleDependency)
         def example2 = Mock(ExternalModuleDependency)
-
         when:
         dependencies {
             implementation module(group: "com.example", name: "example", version: "1.0")

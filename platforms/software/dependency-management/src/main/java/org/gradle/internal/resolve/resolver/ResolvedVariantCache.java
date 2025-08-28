@@ -18,6 +18,7 @@ package org.gradle.internal.resolve.resolver;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -33,9 +34,14 @@ import java.util.function.Function;
  * This cache contains ResolvedVariants for the entire build tree.
  */
 @ServiceScope(Scope.BuildTree.class)
-public class ResolvedVariantCache  {
+public class ResolvedVariantCache implements HoldsProjectState {
 
     private final Map<CacheKey, ResolvedVariant> cache = new ConcurrentHashMap<>();
+
+    @Override
+    public void discardAll() {
+        cache.clear();
+    }
 
     /**
      * Get the resolved variant associated with the key, if present.

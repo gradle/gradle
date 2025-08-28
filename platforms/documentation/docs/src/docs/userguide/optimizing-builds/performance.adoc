@@ -104,7 +104,7 @@ Using an outdated version means missing out on these gains.
 Upgrading is low-risk since Gradle maintains backward compatibility between minor versions.
 Staying up to date also makes major version upgrades smoother by providing early deprecation warnings.
 
-You can use the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>> to update the version of Gradle by running `gradle wrapper --gradle-version X.X` where `X.X` is the desired version.
+You can use the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>> to update the version of Gradle by running `gradle wrapper --gradle-version X.X` where `X.X` is the desired version.
 
 When our reference project is updated to use Gradle 8.13, the build (`./gradlew clean build`) takes *8 seconds*:
 

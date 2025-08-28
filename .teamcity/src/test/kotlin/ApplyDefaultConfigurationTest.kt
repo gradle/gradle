@@ -173,7 +173,7 @@ class ApplyDefaultConfigurationTest {
                 "%linux.java11.openjdk.64bit%",
                 "%linux.java17.openjdk.64bit%",
                 "%linux.java21.openjdk.64bit%",
-                "%linux.java24.openjdk.64bit%",
+                "%linux.java25.openjdk.64bit%",
             )
         val windowsPaths =
             listOf(
@@ -181,7 +181,7 @@ class ApplyDefaultConfigurationTest {
                 "%windows.java11.openjdk.64bit%",
                 "%windows.java17.openjdk.64bit%",
                 "%windows.java21.openjdk.64bit%",
-                "%windows.java24.openjdk.64bit%",
+                "%windows.java25.openjdk.64bit%",
             )
         val expectedInstallationPaths = (if (os == Os.WINDOWS) windowsPaths else linuxPaths).joinToString(",")
         return listOf(
@@ -190,9 +190,12 @@ class ApplyDefaultConfigurationTest {
             "%additional.gradle.parameters%",
             "--continue $extraParameters -Dscan.tag.Check",
             "-Dscan.tag.PullRequestFeedback -PteamCityBuildId=%teamcity.build.id%",
-            "\"-Porg.gradle.java.installations.paths=$expectedInstallationPaths\"",
+            "-Dorg.gradle.java.installations.auto-download=false",
             "-Porg.gradle.java.installations.auto-download=false",
+            "-Dorg.gradle.java.installations.auto-detect=false",
             "-Porg.gradle.java.installations.auto-detect=false",
+            "\"-Dorg.gradle.java.installations.paths=$expectedInstallationPaths\"",
+            "\"-Porg.gradle.java.installations.paths=$expectedInstallationPaths\"",
         ).joinToString(" ")
     }
 }

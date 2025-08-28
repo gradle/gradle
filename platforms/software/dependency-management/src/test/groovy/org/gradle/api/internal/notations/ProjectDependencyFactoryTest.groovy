@@ -16,7 +16,6 @@
 package org.gradle.api.internal.notations
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
@@ -32,7 +31,7 @@ import spock.lang.Specification
 class ProjectDependencyFactoryTest extends Specification {
 
     def projectState = Mock(ProjectState) {
-        getIdentity() >> new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "foo")
+        getIdentity() >> ProjectIdentity.forRootProject(Path.ROOT, "foo")
     }
 
     def projectFinder = Mock(ProjectFinder) {
@@ -41,7 +40,7 @@ class ProjectDependencyFactoryTest extends Specification {
 
     def capabilityNotationParser = new CapabilityNotationParserFactory(false).create()
     def projectStateRegistry = Mock(ProjectStateRegistry) {
-        stateFor(Path.path(":foo:bar")) >> projectState
+        findProjectState(Path.path(":foo:bar")) >> projectState
     }
     def depFactory = new DefaultProjectDependencyFactory(
         TestUtil.instantiatorFactory().decorateLenient(),

@@ -30,3 +30,7 @@ dependencies {
     api(libs.asm)
     api(libs.jspecify)
 }
+
+errorprone {
+    nullawayEnabled = true
+}

@@ -19,6 +19,8 @@ package org.gradle.internal.serialize.codecs.core
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
@@ -54,14 +56,12 @@ import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.gradle.internal.serialize.graph.ownerService
 import org.gradle.internal.serialize.graph.readCollectionInto
-import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.readWith
 import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.util.Path
-import java.util.IdentityHashMap
 import java.util.concurrent.atomic.AtomicReference
 
 private
@@ -130,7 +130,11 @@ class WorkNodeCodec(
         val nodeForId = readNodes(nodeIdCount)
         val entryNodes = readEntryNodes(nodeForId)
         val nodes = readEdgesAndGroupMembership(nodeForId)
-        return ScheduledWork(nodes, entryNodes)
+        return ScheduledWork(nodes, entryNodes).also {
+            // ensure no unnecessary copying happens (for performance)
+            assert(it.scheduledNodes === nodes)
+            assert(it.entryNodes === entryNodes)
+        }
     }
 
     private
@@ -163,14 +167,13 @@ class WorkNodeCodec(
     }
 
     private
-    fun ReadContext.readEdgesAndGroupMembership(nodeForId: NodeForId): List<Node> {
-        return readList {
+    fun ReadContext.readEdgesAndGroupMembership(nodeForId: NodeForId): List<Node> =
+        buildCollection({ ImmutableList.builderWithExpectedSize<Node>(it) }) {
             val node = nodeForId(readSmallInt())
             readSuccessorReferencesOf(node, nodeForId)
             node.group = readNodeGroup(nodeForId)
-            node
-        }
-    }
+            add(node)
+        }.build()
 
     private
     fun assignNodeIds(
@@ -202,6 +205,32 @@ class WorkNodeCodec(
         nodes: List<Node>,
         idForNode: IdForNode
     ): (ActionNode) -> List<Node>? {
+        val postNodesByNode = flatten(
+            writeNodeBatchesInParallel(nodes, idForNode).iterator(),
+            Reference2ObjectOpenHashMap<ActionNode, List<Node>>()
+        ) { (node, successors) ->
+            this[node] = successors
+        }
+        return postNodesByNode::get
+    }
+
+    private
+    fun ReadContext.readNodes(nodeIdCount: Int): NodeForId {
+        val nodesById = flatten(
+            readNodeBatchesInParallel().iterator(),
+            Array<Node?>(nodeIdCount) { null }
+        ) { (node, id) ->
+            this[id] = node
+        }
+        return { id: Int -> nodesById[id]!! }
+    }
+
+    private
+    fun WriteContext.writeNodeBatchesInParallel(
+        nodes: List<Node>,
+        idForNode: IdForNode
+    ): PersistentList<Iterable<PostExecutionNodes>> {
+
         val groupedNodes = nodes.groupBy(NodeOwner::of)
         writeCollection(groupedNodes.keys) { nodeOwner ->
             val groupPath = nodeOwner.path()
@@ -226,28 +255,20 @@ class WorkNodeCodec(
                 }
             }
         }
-
-        return combineActionNodeSuccessors(batchedActionNodeSuccessors)::get
+        return batchedActionNodeSuccessors.get()
     }
 
     private
-    fun combineActionNodeSuccessors(batchedActionNodeSuccessors: AtomicReference<PersistentList<Iterable<PostExecutionNodes>>>) =
-        batchedActionNodeSuccessors.get()
-            .combineInto(IdentityHashMap<ActionNode, List<Node>>()) { (node, successors) ->
-                this[node] = successors
-            }
-
-    private
-    fun ReadContext.readNodes(nodeIdCount: Int): NodeForId {
+    fun ReadContext.readNodeBatchesInParallel(): PersistentList<List<NodeWithId>> {
+        val baseContext = this
         val batchedGroupNodes = AtomicReference<PersistentList<List<NodeWithId>>>(PersistentList.of())
         val groupPaths = readCollectionInto<Path, MutableList<Path>>(::ArrayList) {
             Path.path(readString())
         }
-
         runBuildOperations(parallel = parallelLoad, message = "reading task graph") {
             groupPaths.map { groupPath ->
                 OperationInfo(displayName = "Loading configuration for $groupPath", context = groupPath) {
-                    contextSource.readContextFor(this@readNodes, groupPath).readWith(Unit) {
+                    contextSource.readContextFor(baseContext, groupPath).readWith(Unit) {
                         val nodesInGroup = readGroupedNodes()
                         batchedGroupNodes.updateAndGet {
                             it.plus(nodesInGroup)
@@ -256,22 +277,7 @@ class WorkNodeCodec(
                 }
             }
         }
-
-        val nodesById = batchedGroupNodes.get()
-            .combineInto(Array<Node?>(nodeIdCount) { null }) { (node, id) ->
-                this[id] = node
-            }
-        return { id: Int -> nodesById[id]!! }
-    }
-
-    private
-    inline fun <T, O> Iterable<Iterable<T>>.combineInto(destination: O, combine: O.(T) -> Unit): O {
-        this.forEach { batch ->
-            batch.forEach {
-                destination.combine(it)
-            }
-        }
-        return destination
+        return batchedGroupNodes.get()
     }
 
     private
@@ -457,7 +463,7 @@ class WorkNodeCodec(
                 2 -> {
                     val reachableFromCommandLine = readBoolean()
                     val ordinalGroup = readNodeGroup(nodeForId)
-                    val groups = readCollectionInto(::HashSet) { readNodeGroup(nodeForId) as FinalizerGroup }
+                    val groups = readCollectionInto(::ObjectOpenHashSet) { readNodeGroup(nodeForId) as FinalizerGroup }
                     CompositeNodeGroup(reachableFromCommandLine, ordinalGroup, groups)
                 }
 
@@ -531,7 +537,7 @@ class WorkNodeCodec(
                 readSuccessorReferences(nodeForId) {
                     node.addFinalizingSuccessor(it)
                 }
-                val lifecycleSuccessors = mutableSetOf<Node>()
+                val lifecycleSuccessors = ObjectOpenHashSet<Node>()
                 readSuccessorReferences(nodeForId) {
                     lifecycleSuccessors.add(it)
                 }
@@ -553,7 +559,7 @@ class WorkNodeCodec(
 
     private
     fun WriteContext.writeSuccessorReferences(
-        successors: Collection<Node>,
+        successors: Iterable<Node>,
         idForNode: IdForNode
     ) {
         for (successor in successors) {
@@ -643,3 +649,14 @@ fun asBuildOperation(displayName: String, contextPath: Path, action: () -> Unit)
                 .progressDisplayName(contextPath.path)
         }
     }
+
+
+private
+fun <T, O> flatten(iterables: Iterator<Iterable<T>>, destination: O, combine: O.(T) -> Unit): O {
+    iterables.forEach { batch ->
+        batch.forEach {
+            destination.combine(it)
+        }
+    }
+    return destination
+}

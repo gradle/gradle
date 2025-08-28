@@ -440,7 +440,7 @@ For example, when the <<java_plugin.adoc#java_plugin,Java plugin>> is applied, G
 
 Other language plugins follow a similar convention: the last part of the source directory (e.g., `java`, `groovy`, `kotlin`) indicates the language of the source files it contains.
 
-Some compilers support cross-compilation of multiple languages from the same directory.
+Some compilers support compiling multiple languages from the same directory.
 For example, the Groovy compiler can compile both Java and Groovy source files from `src/main/groovy`.
 
 However, Gradle recommends separating source files by language into distinct directories (e.g., `src/main/java` and `src/main/kotlin`).

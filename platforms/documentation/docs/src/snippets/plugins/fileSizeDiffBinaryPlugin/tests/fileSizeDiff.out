@@ -1,0 +1,5 @@
+> Task :fileSizeDiff
+Files have the same size: 0 bytes
+Wrote diff result to /home/user/gradle/samples/build/diff-result.txt
+
+BUILD SUCCESSFUL in 0s

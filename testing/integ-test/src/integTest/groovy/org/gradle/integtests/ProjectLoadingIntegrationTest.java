@@ -43,11 +43,11 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         testFile("build.gradle").write("task('do-stuff')");
         testFile("child/build.gradle").write("task('do-stuff')");
 
-        inDirectory(rootDir).withTasks("do-stuff").run().assertTasksExecuted(":do-stuff", ":child:do-stuff");
-        inDirectory(rootDir).withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
+        inDirectory(rootDir).withTasks("do-stuff").run().assertTasksScheduled(":do-stuff", ":child:do-stuff");
+        inDirectory(rootDir).withTasks(":do-stuff").run().assertTasksScheduled(":do-stuff");
 
-        inDirectory(childDir).withTasks("do-stuff").run().assertTasksExecuted(":child:do-stuff");
-        inDirectory(childDir).withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
+        inDirectory(childDir).withTasks("do-stuff").run().assertTasksScheduled(":child:do-stuff");
+        inDirectory(childDir).withTasks(":do-stuff").run().assertTasksScheduled(":do-stuff");
     }
 
     @Test
@@ -59,11 +59,11 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         testFile("build.gradle").write("task('do-stuff')");
         testFile("child/build.gradle").write("task('do-stuff')");
 
-        usingProjectDir(rootDir).withTasks("do-stuff").run().assertTasksExecuted(":do-stuff", ":child:do-stuff");
-        usingProjectDir(rootDir).withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
+        usingProjectDir(rootDir).withTasks("do-stuff").run().assertTasksScheduled(":do-stuff", ":child:do-stuff");
+        usingProjectDir(rootDir).withTasks(":do-stuff").run().assertTasksScheduled(":do-stuff");
 
-        usingProjectDir(childDir).withTasks("do-stuff").run().assertTasksExecuted(":child:do-stuff");
-        usingProjectDir(childDir).withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
+        usingProjectDir(childDir).withTasks("do-stuff").run().assertTasksScheduled(":child:do-stuff");
+        usingProjectDir(childDir).withTasks(":do-stuff").run().assertTasksScheduled(":do-stuff");
     }
 
     @Test
@@ -76,11 +76,11 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         TestFile childBuildFile = testFile("child/build.gradle");
         childBuildFile.write("task('do-stuff')");
 
-        executer.withTasks("do-stuff").run().assertTasksExecuted(":do-stuff", ":child:do-stuff");
-        executer.withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
+        executer.withTasks("do-stuff").run().assertTasksScheduled(":do-stuff", ":child:do-stuff");
+        executer.withTasks(":do-stuff").run().assertTasksScheduled(":do-stuff");
 
-        executer.inDirectory(testFile("child")).withTasks("do-stuff").run().assertTasksExecuted(":child:do-stuff");
-        executer.inDirectory(testFile("child")).withTasks(":do-stuff").run().assertTasksExecuted(":do-stuff");
+        executer.inDirectory(testFile("child")).withTasks("do-stuff").run().assertTasksScheduled(":child:do-stuff");
+        executer.inDirectory(testFile("child")).withTasks(":do-stuff").run().assertTasksScheduled(":do-stuff");
     }
 
     @Test
@@ -214,7 +214,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         );
         testFile("shared/build.gradle").write("task('do-stuff')");
 
-        inTestDirectory().withTasks("do-stuff").run().assertTasksExecuted(":child1:do-stuff", ":child2:do-stuff");
+        inTestDirectory().withTasks("do-stuff").run().assertTasksScheduled(":child1:do-stuff", ":child2:do-stuff");
     }
 
     @Test
@@ -227,7 +227,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         );
         testFile("child.gradle").write("task('do-stuff')");
 
-        inTestDirectory().withTasks("do-stuff").run().assertTasksExecuted(":child1:do-stuff", ":child2:do-stuff");
+        inTestDirectory().withTasks("do-stuff").run().assertTasksScheduled(":child1:do-stuff", ":child2:do-stuff");
     }
 
     @Test
@@ -242,8 +242,8 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
         getTestDirectory().createDir("root").file("build.gradle").writelns("allprojects { task thing }");
 
-        inTestDirectory().withTasks(":thing").run().assertTasksExecuted(":thing");
-        inTestDirectory().withTasks(":sub:thing").run().assertTasksExecuted(":sub:thing");
+        inTestDirectory().withTasks(":thing").run().assertTasksScheduled(":thing");
+        inTestDirectory().withTasks(":sub:thing").run().assertTasksScheduled(":sub:thing");
     }
 
     @Test
@@ -258,7 +258,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         );
         getTestDirectory().createDir("root").file("build.gradle").writelns("allprojects { task thing }");
 
-        inDirectory(settingsDir).withTasks("thing").run().assertTasksExecuted(":thing", ":sub:thing");
+        inDirectory(settingsDir).withTasks("thing").run().assertTasksScheduled(":thing", ":sub:thing");
     }
 
     @Test
@@ -273,7 +273,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         );
         getTestDirectory().createDir("sub").file("build.gradle").writelns("task thing");
 
-        inDirectory(settingsDir).withTasks("thing").run().assertTasksExecuted(":sub:thing");
+        inDirectory(settingsDir).withTasks("thing").run().assertTasksScheduled(":sub:thing");
     }
 
     @Test

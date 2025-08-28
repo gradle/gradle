@@ -30,12 +30,12 @@ public class InstantiatingBuildLoader implements BuildLoader {
         attachDefaultProject(gradle, settings.getDefaultProject());
     }
 
-    private void attachDefaultProject(GradleInternal gradle, DefaultProjectDescriptor defaultProjectDescriptor) {
+    private void attachDefaultProject(GradleInternal gradle, ProjectDescriptorInternal defaultProjectDescriptor) {
         ProjectState defaultProject = gradle.getOwner().getProjects().getProject(defaultProjectDescriptor.path());
         gradle.setDefaultProject(defaultProject.getMutableModel());
     }
 
-    private void createProjects(GradleInternal gradle, DefaultProjectDescriptor rootProjectDescriptor) {
+    private void createProjects(GradleInternal gradle, ProjectDescriptorInternal rootProjectDescriptor) {
         ClassLoaderScope baseProjectClassLoaderScope = gradle.baseProjectClassLoaderScope();
         ClassLoaderScope rootProjectClassLoaderScope = baseProjectClassLoaderScope.createChild("root-project[" + gradle.getIdentityPath() + "]", null);
 
@@ -47,8 +47,8 @@ public class InstantiatingBuildLoader implements BuildLoader {
         createChildProjectsRecursively(gradle.getOwner(), rootProjectDescriptor, rootProjectClassLoaderScope, baseProjectClassLoaderScope);
     }
 
-    private void createChildProjectsRecursively(BuildState owner, DefaultProjectDescriptor parentProjectDescriptor, ClassLoaderScope parentProjectClassLoaderScope, ClassLoaderScope baseProjectClassLoaderScope) {
-        for (DefaultProjectDescriptor childProjectDescriptor : parentProjectDescriptor.children()) {
+    private void createChildProjectsRecursively(BuildState owner, ProjectDescriptorInternal parentProjectDescriptor, ClassLoaderScope parentProjectClassLoaderScope, ClassLoaderScope baseProjectClassLoaderScope) {
+        for (ProjectDescriptorInternal childProjectDescriptor : parentProjectDescriptor.children()) {
             ClassLoaderScope childProjectClassLoaderScope = parentProjectClassLoaderScope.createChild("project-" + childProjectDescriptor.getName(), null);
             ProjectState projectState = owner.getProjects().getProject(childProjectDescriptor.path());
             projectState.createMutableModel(childProjectClassLoaderScope, baseProjectClassLoaderScope);

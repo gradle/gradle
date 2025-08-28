@@ -130,7 +130,7 @@ NOTE: Setting the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.ap
 
 When you include a subproject in your `settings.gradle(.kts)` file, Gradle expects that the associated directory for that project exists and is writable.
 
-WARNING: Starting with **Gradle 9.0**, this is enforced strictly: **If a project directory is missing or read-only, the build will fail.** This replaces earlier behavior where Gradle would silently allow missing project directories.
+WARNING: Starting with **Gradle 9.0.0**, this is enforced strictly: **If a project directory is missing or read-only, the build will fail.** This replaces earlier behavior where Gradle would silently allow missing project directories.
 
 Here's how you can create a missing directory at configuration time:
 

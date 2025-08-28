@@ -1,3 +1,5 @@
+import gradlebuild.shade.tasks.ShadedJar
+
 plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.publish-public-libraries")
@@ -37,6 +39,13 @@ shadedJar {
     ignoredPackages = setOf("org.gradle.tooling.provider.model")
 }
 
+configurations.consumable("shadedTapi") {
+    outgoing.artifact(tasks.named<ShadedJar>("toolingApiShadedJar"))
+    attributes {
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("Shaded"))
+    }
+}
+
 errorprone {
     disabledChecks.addAll(
         "EqualsUnsafeCast", // 1 occurrences
@@ -59,9 +68,8 @@ dependencies {
 
     api(libs.jspecify)
 
-    implementation(projects.buildDiscovery)
-    implementation(projects.buildProcessServices)
     implementation(projects.core)
+    implementation(projects.buildProcessServices)
     implementation(projects.logging)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
@@ -75,15 +83,16 @@ dependencies {
 
     testImplementation(projects.internalIntegTesting)
 
-    testFixturesImplementation(projects.coreApi)
-    testFixturesImplementation(projects.core)
-    testFixturesImplementation(projects.logging)
-    testFixturesImplementation(projects.modelCore)
     testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.baseServicesGroovy)
-    testFixturesImplementation(projects.internalTesting)
+    testFixturesImplementation(projects.core)
+    testFixturesImplementation(projects.coreApi)
     testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.internalTesting)
+    testFixturesImplementation(projects.logging)
+    testFixturesImplementation(projects.modelCore)
     testFixturesImplementation(testFixtures(projects.buildProcessServices))
+    testFixturesImplementation(testFixtures(projects.enterpriseLogging))
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.slf4jApi)
 
@@ -93,6 +102,7 @@ dependencies {
     integTestImplementation(testFixtures(projects.buildProcessServices))
 
     crossVersionTestImplementation(projects.jvmServices)
+    crossVersionTestImplementation(projects.internalTesting)
     crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
     crossVersionTestImplementation(testFixtures(projects.problemsApi))
     crossVersionTestImplementation(libs.jettyWebApp)

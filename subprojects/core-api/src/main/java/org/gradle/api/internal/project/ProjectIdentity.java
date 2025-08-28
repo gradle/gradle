@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.util.Path;
@@ -58,39 +57,73 @@ import org.jspecify.annotations.Nullable;
  */
 public final class ProjectIdentity implements DisplayName {
 
-    private final BuildIdentifier buildIdentifier;
     private final Path buildPath;
-    private final Path buildTreePath;
     private final Path projectPath;
     private final String projectName;
 
+    private final Path buildTreePath;
     private final DisplayName displayName;
 
-    public ProjectIdentity(
-        BuildIdentifier buildIdentifier,
-        Path buildTreePath,
+    /**
+     * Given the path of a build and the path of a project within that build,
+     * compute the identity path of the project within the build tree.
+     */
+    public static Path computeProjectIdentityPath(
+        Path buildPath,
+        Path projectPath
+    ) {
+        return buildPath.append(projectPath);
+    }
+
+    /**
+     * Create a project identity for the root project of a build.
+     */
+    public static ProjectIdentity forRootProject(
+        Path buildPath,
+        String projectName
+    ) {
+        return new ProjectIdentity(
+            buildPath,
+            Path.ROOT,
+            projectName
+        );
+    }
+
+    /**
+     * Create a project identity for a non-root project of a build.
+     */
+    public static ProjectIdentity forSubproject(
+        Path buildPath,
+        Path projectPath
+    ) {
+        if (projectPath.equals(Path.ROOT)) {
+            throw new IllegalStateException("Use ProjectIdentity.forRootProject() for the root project.");
+        } else if (!projectPath.isAbsolute()) {
+            throw new IllegalArgumentException("Project path must be absolute: " + projectPath);
+        }
+
+        return new ProjectIdentity(
+            buildPath,
+            projectPath,
+            projectPath.getName()
+        );
+    }
+
+    private ProjectIdentity(
+        Path buildPath,
         Path projectPath,
         String projectName
     ) {
-        this.buildIdentifier = buildIdentifier;
-        this.buildPath = Path.path(buildIdentifier.getBuildPath()); // TODO: Construct BuildIdentifier from the raw path, don't derive this path from the identifier's string
-        this.buildTreePath = buildTreePath;
+        this.buildPath = buildPath;
         this.projectPath = projectPath;
         this.projectName = projectName;
+
+        this.buildTreePath = computeProjectIdentityPath(buildPath, projectPath);
 
         // TODO: This is inconsistent with DefaultProject.getDisplayName.
         // We should change this to match that of DefaultProject.
         String prefix = Path.ROOT.equals(buildTreePath) ? "root project" : "project";
         this.displayName = Describables.memoize(Describables.of(prefix, buildTreePath.getPath()));
-    }
-
-    /**
-     * The identity of the build that owns this project.
-     * <p>
-     * Prefer {@link #getBuildPath()}.
-     */
-    public BuildIdentifier getBuildIdentifier() {
-        return buildIdentifier;
     }
 
     /**

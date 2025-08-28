@@ -16,10 +16,9 @@
 
 package org.gradle.initialization.properties
 
+import org.gradle.api.internal.lambdas.SerializableLambdas.SerializablePredicate
 import org.gradle.api.internal.properties.GradleProperties
 import spock.lang.Specification
-
-import java.util.function.Predicate
 
 class FilteringGradlePropertiesTest extends Specification {
 
@@ -27,7 +26,7 @@ class FilteringGradlePropertiesTest extends Specification {
 
     def "find returns null when property name is filtered out"() {
         given:
-        def predicate = { String name -> name.startsWith("allowed") } as Predicate<String>
+        def predicate = { String name -> name.startsWith("allowed") } as SerializablePredicate<String>
         def filteringProperties = new FilteringGradleProperties(delegate, predicate)
 
         when:
@@ -40,7 +39,7 @@ class FilteringGradlePropertiesTest extends Specification {
 
     def "find delegates to underlying implementation when property name passes filter"() {
         given:
-        def predicate = { String name -> name.startsWith("allowed") } as Predicate<String>
+        def predicate = { String name -> name.startsWith("allowed") } as SerializablePredicate<String>
         def filteringProperties = new FilteringGradleProperties(delegate, predicate)
         1 * delegate.findUnsafe("allowed.property") >> "value"
         0 * delegate.find(_)
@@ -54,7 +53,7 @@ class FilteringGradlePropertiesTest extends Specification {
 
     def "find returns null when property name passes filter but delegate returns null"() {
         given:
-        def predicate = { String name -> name.startsWith("allowed") } as Predicate<String>
+        def predicate = { String name -> name.startsWith("allowed") } as SerializablePredicate<String>
         def filteringProperties = new FilteringGradleProperties(delegate, predicate)
         1 * delegate.findUnsafe("allowed.property") >> null
         0 * delegate.find(_)
@@ -68,7 +67,7 @@ class FilteringGradlePropertiesTest extends Specification {
 
     def "getProperties filters out properties that don't match predicate"() {
         given:
-        def predicate = { String name -> name.startsWith("keep") } as Predicate<String>
+        def predicate = { String name -> name.startsWith("keep") } as SerializablePredicate<String>
         def filteringProperties = new FilteringGradleProperties(delegate, predicate)
         delegate.getProperties() >> [
             "keep.prop1": "value1",
@@ -89,7 +88,7 @@ class FilteringGradlePropertiesTest extends Specification {
 
     def "getProperties returns empty map when no properties match filter"() {
         given:
-        def predicate = { String name -> name.startsWith("nonexistent") } as Predicate<String>
+        def predicate = { String name -> name.startsWith("nonexistent") } as SerializablePredicate<String>
         def filteringProperties = new FilteringGradleProperties(delegate, predicate)
         delegate.getProperties() >> [
             "prop1": "value1",
@@ -105,7 +104,7 @@ class FilteringGradlePropertiesTest extends Specification {
 
     def "getProperties returns all properties when filter accepts everything"() {
         given:
-        def predicate = { String name -> true } as Predicate<String>
+        def predicate = { String name -> true } as SerializablePredicate<String>
         def filteringProperties = new FilteringGradleProperties(delegate, predicate)
         def allProps = [
             "prop1": "value1",
@@ -123,7 +122,7 @@ class FilteringGradlePropertiesTest extends Specification {
 
     def "getPropertiesWithPrefix applies both prefix and filter constraints"() {
         given:
-        def predicate = { String name -> !name.contains("exclude") } as Predicate<String>
+        def predicate = { String name -> !name.contains("exclude") } as SerializablePredicate<String>
         def filteringProperties = new FilteringGradleProperties(delegate, predicate)
         delegate.getProperties() >> [
             "org.gradle.prop1": "value1",
@@ -145,7 +144,7 @@ class FilteringGradlePropertiesTest extends Specification {
 
     def "getPropertiesWithPrefix returns empty map when no properties match both prefix and filter"() {
         given:
-        def predicate = { String name -> name.startsWith("allowed") } as Predicate<String>
+        def predicate = { String name -> name.startsWith("allowed") } as SerializablePredicate<String>
         def filteringProperties = new FilteringGradleProperties(delegate, predicate)
         delegate.getProperties() >> [
             "org.gradle.prop1": "value1",
@@ -161,7 +160,7 @@ class FilteringGradlePropertiesTest extends Specification {
 
     def "getPropertiesWithPrefix works with empty prefix"() {
         given:
-        def predicate = { String name -> name.startsWith("keep") } as Predicate<String>
+        def predicate = { String name -> name.startsWith("keep") } as SerializablePredicate<String>
         def filteringProperties = new FilteringGradleProperties(delegate, predicate)
         delegate.getProperties() >> [
             "keep.prop1": "value1",

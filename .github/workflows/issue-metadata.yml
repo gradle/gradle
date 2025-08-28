@@ -2,7 +2,7 @@ name: Check issues metadata
 
 on:
   issues:
-    types: [ opened, unlabeled, closed, reopened ]
+    types: [ opened, labeled, unlabeled, closed, reopened, milestoned, demilestoned ]
 
 permissions: {}
 

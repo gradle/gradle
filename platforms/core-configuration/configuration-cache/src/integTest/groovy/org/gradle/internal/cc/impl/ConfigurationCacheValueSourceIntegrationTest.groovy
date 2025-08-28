@@ -554,10 +554,8 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
         configurationCacheRun()
 
         then:
-        // TODO(mlopatkin) This behavior is correct but suboptimal, as we're never going to have a cache hit.
-        //  We may want to warn the user about it.
-        configurationCache.assertStateStored()
-        outputContains("configuration value = someValue")
+        configurationCache.assertStateLoaded()
+        outputDoesNotContain("configuration value = someValue")
         outputContains("execution value = someValue")
     }
 

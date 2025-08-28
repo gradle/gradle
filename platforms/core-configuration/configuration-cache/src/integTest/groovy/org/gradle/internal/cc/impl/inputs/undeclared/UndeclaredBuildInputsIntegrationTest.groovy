@@ -868,7 +868,7 @@ internal property sun.java.command changes.
         outputContains("Configuration: some.property.1 = 1")
         outputDoesNotContain("Configuration: some.property.2 = 2")
         problems.assertResultHasProblems(result) {
-            withNoInputs()
+            withInput("Gradle runtime: Gradle property 'some.property.*'")
         }
 
         when:
@@ -886,7 +886,7 @@ internal property sun.java.command changes.
         outputContains("Configuration: some.property.1 = 1")
         outputContains("Configuration: some.property.2 = 2")
         problems.assertResultHasProblems(result) {
-            withNoInputs()
+            withInput("Gradle runtime: Gradle property 'some.property.*'")
         }
     }
 

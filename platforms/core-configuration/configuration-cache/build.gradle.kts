@@ -43,8 +43,6 @@ dependencies {
     api(libs.kotlinStdlib)
 
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
-    implementation(projects.buildDiscovery)
-    implementation(projects.buildDiscoveryApi)
     implementation(projects.buildEvents)
     implementation(projects.buildOption)
     implementation(projects.buildProcessServices)
@@ -75,6 +73,7 @@ dependencies {
 
     implementation(libs.guava)
     implementation(libs.jspecify)
+    implementation(libs.fastutil)
     implementation(libs.kryo)
     implementation(libs.slf4jApi)
 
@@ -121,6 +120,14 @@ dependencies {
         because("Includes tests for builds with the enterprise plugin and TestKit involved; ConfigurationCacheJacocoIntegrationTest requires JVM distribution")
     }
     crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
+}
+
+jvmCompile {
+    compilations {
+        named("main") {
+            targetJvmVersion = 17
+        }
+    }
 }
 
 packageCycles {

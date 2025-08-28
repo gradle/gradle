@@ -300,7 +300,7 @@ inline fun <T : Any> WriteContext.encodePreservingSharedIdentityOf(reference: T,
 
 inline fun <T : Any> WriteContext.encodePreservingIdentityOf(identities: WriteIdentities, reference: T, encode: WriteContext.(T) -> Unit) {
     val id = identities.getId(reference)
-    if (id != null) {
+    if (id >= 0) {
         writeSmallInt(id)
     } else {
         val newId = identities.putInstance(reference)

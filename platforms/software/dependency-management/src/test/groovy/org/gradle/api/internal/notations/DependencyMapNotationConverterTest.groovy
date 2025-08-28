@@ -27,10 +27,6 @@ class DependencyMapNotationConverterTest extends Specification {
 
     def parser = NotationParserBuilder.toType(ExternalModuleDependency).converter(new DependencyMapNotationConverter<DefaultExternalModuleDependency>(TestUtil.instantiatorFactory().decorateLenient(), DefaultExternalModuleDependency.class)).toComposite()
 
-    def setup() {
-        TestUtil.initDeprecationLogger("We are testing deprecated behavior")
-    }
-
     def "with artifact"() {
         when:
         def d = parser.parseNotation([group: 'org.gradle', name: 'gradle-core', version: '4.4-beta2', ext: 'mytype'])

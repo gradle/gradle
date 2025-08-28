@@ -16,8 +16,6 @@
 package org.gradle.initialization;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.internal.project.ProjectRegistry;
 
 import java.io.File;
 import java.util.List;
@@ -35,13 +33,13 @@ public class ProjectDirectoryProjectSpec extends AbstractProjectSpec {
     }
 
     @Override
-    protected String formatMultipleMatchesMessage(Iterable<? extends ProjectIdentifier> matches) {
+    protected String formatMultipleMatchesMessage(Iterable<ProjectDescriptorInternal> matches) {
         return String.format("Multiple projects in this build have project directory '%s': %s", dir, matches);
     }
 
     @Override
-    protected <T extends ProjectIdentifier> void select(ProjectRegistry<? extends T> candidates, List<? super T> matches) {
-        for (T candidate : candidates.getAllProjects()) {
+    protected void select(ProjectDescriptorRegistry candidates, List<ProjectDescriptorInternal> matches) {
+        for (ProjectDescriptorInternal candidate : candidates.getAllProjects()) {
             if (candidate.getProjectDir().equals(dir)) {
                 matches.add(candidate);
             }
@@ -49,7 +47,7 @@ public class ProjectDirectoryProjectSpec extends AbstractProjectSpec {
     }
 
     @Override
-    protected void checkPreconditions(ProjectRegistry<?> registry) {
+    protected void checkPreconditions(ProjectDescriptorRegistry registry) {
         if (!dir.exists()) {
             throw new InvalidUserDataException(String.format("Project directory '%s' does not exist.", dir));
         }

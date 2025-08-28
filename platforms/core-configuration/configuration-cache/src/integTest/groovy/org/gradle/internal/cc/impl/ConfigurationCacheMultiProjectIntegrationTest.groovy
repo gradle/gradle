@@ -71,7 +71,7 @@ class ConfigurationCacheMultiProjectIntegrationTest extends AbstractConfiguratio
         configurationCacheRun 'ok'
 
         then:
-        result.assertTasksExecuted(':ok', ':a:ok', ':b:ok')
+        result.assertTasksScheduled(':ok', ':a:ok', ':b:ok')
         configurationCache.assertStateStored()
 
         when:
@@ -79,7 +79,7 @@ class ConfigurationCacheMultiProjectIntegrationTest extends AbstractConfiguratio
         configurationCacheRun 'ok'
 
         then:
-        result.assertTasksExecuted(':a:ok')
+        result.assertTasksScheduled(':a:ok')
         configurationCache.assertStateStored()
 
         when:
@@ -87,7 +87,7 @@ class ConfigurationCacheMultiProjectIntegrationTest extends AbstractConfiguratio
         configurationCacheRun 'ok'
 
         then:
-        result.assertTasksExecuted(':b:ok')
+        result.assertTasksScheduled(':b:ok')
         configurationCache.assertStateStored()
 
         when:
@@ -95,7 +95,7 @@ class ConfigurationCacheMultiProjectIntegrationTest extends AbstractConfiguratio
         configurationCacheRun 'ok'
 
         then:
-        result.assertTasksExecuted(':a:ok')
+        result.assertTasksScheduled(':a:ok')
         configurationCache.assertStateLoaded()
 
         when:
@@ -103,7 +103,7 @@ class ConfigurationCacheMultiProjectIntegrationTest extends AbstractConfiguratio
         configurationCacheRun 'ok'
 
         then:
-        result.assertTasksExecuted(':b:ok')
+        result.assertTasksScheduled(':b:ok')
         configurationCache.assertStateLoaded()
 
         when:
@@ -111,7 +111,7 @@ class ConfigurationCacheMultiProjectIntegrationTest extends AbstractConfiguratio
         configurationCacheRun 'ok'
 
         then:
-        result.assertTasksExecuted(':ok', ':a:ok', ':b:ok')
+        result.assertTasksScheduled(':ok', ':a:ok', ':b:ok')
         configurationCache.assertStateLoaded()
     }
 }

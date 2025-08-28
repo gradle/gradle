@@ -18,6 +18,7 @@ package org.gradle.initialization;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.properties.GradlePropertiesController;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 
 public class GradlePropertiesHandlingSettingsLoader implements SettingsLoader {

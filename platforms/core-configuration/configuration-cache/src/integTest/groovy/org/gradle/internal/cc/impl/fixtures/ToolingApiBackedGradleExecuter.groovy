@@ -27,6 +27,7 @@ import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.tooling.ProjectConnection
+import org.gradle.util.DebugUtil
 
 import java.util.function.Function
 
@@ -39,7 +40,7 @@ class ToolingApiBackedGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     protected boolean isDebuggerAttached() {
-        return isDebuggerAttachedImpl();
+        return DebugUtil.isDebuggerAttached();
     }
 
     void withToolingApiJvmArgs(String... args) {

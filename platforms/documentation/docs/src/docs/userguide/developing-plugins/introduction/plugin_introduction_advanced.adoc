@@ -19,14 +19,14 @@ A Gradle plugin is an add-on that enhances your build by adding tasks, applying 
 
 *Plugins* lets you *extend and organize build logic* in a modular and reusable way.
 
-You apply plugins using the plugins block:
+You *apply* plugins using the plugins block:
 
 ====
 include::sample[dir="snippets/plugins/dsl/kotlin", files="build.gradle.kts[tags=use-community-plugin]"]
 include::sample[dir="snippets/plugins/dsl/groovy", files="build.gradle[tags=use-community-plugin]"]
 ====
 
-When you apply a plugin, it typically does one or both of the following:
+When you *apply* a plugin, it typically does one or both of the following:
 
 1. *Adds tasks to your build* - Plugins often expose tasks that perform a specific action.
 +
