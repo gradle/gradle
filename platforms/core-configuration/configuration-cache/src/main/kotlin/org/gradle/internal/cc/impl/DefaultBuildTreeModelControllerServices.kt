@@ -91,13 +91,15 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val modelParameters = BuildModelParametersProvider.parameters(requirements, startParameter, configurationCacheLogLevel)
         logger.debug("Operational build model parameters: {}", modelParameters.toDisplayMap())
 
-        if (!startParameter.isConfigurationCacheQuiet) {
-            if (modelParameters.isIsolatedProjects) {
-                IncubationLogger.incubatingFeatureUsed("Isolated projects")
+        if (modelParameters.isIsolatedProjects) {
+            IncubationLogger.incubatingFeatureUsed("Isolated projects")
+        } else {
+            if (modelParameters.isConfigurationCacheParallelStore) {
+                IncubationLogger.incubatingFeatureUsed("Parallel Configuration Cache")
             }
-        }
-        if (!modelParameters.isIsolatedProjects && modelParameters.isConfigureOnDemand) {
-            IncubationLogger.incubatingFeatureUsed("Configuration on demand")
+            if (modelParameters.isConfigureOnDemand) {
+                IncubationLogger.incubatingFeatureUsed("Configuration on demand")
+            }
         }
 
         val loggingParameters = ConfigurationCacheLoggingParameters(configurationCacheLogLevel)
