@@ -40,8 +40,7 @@ public abstract class TestSuiteBasePlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        TestingExtension testing = project.getObjects().newInstance(TestingExtension.class);
-        project.getExtensions().add("testing", testing);
+        TestingExtension testing = project.getExtensions().create("testing", TestingExtension.class);
 
         testing.getSuites().configureEach(suite -> {
             // TODO: Eventually, we want a test results variant for each target, but cannot do so now because:
