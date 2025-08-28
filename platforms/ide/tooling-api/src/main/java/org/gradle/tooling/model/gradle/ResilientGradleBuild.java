@@ -21,20 +21,22 @@ import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.BuildModel;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.Model;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Provides information about the structure of a Gradle build.
  * This is a "resilient" version of {@link GradleBuild} that provides information about build failures.
  *
- * @since 9.2
+ * @since 9.2.0
  */
 @Incubating
+@NullMarked
 public interface ResilientGradleBuild  extends Model, BuildModel {
 
     /**
      * Returns the identifier for this Gradle build.
      *
-     * @since 2.13
+     * @since 9.2.0
      */
     @Override
     BuildIdentifier getBuildIdentifier();
@@ -43,6 +45,7 @@ public interface ResilientGradleBuild  extends Model, BuildModel {
      * Returns the root project for this build.
      *
      * @return The root project
+     * @since 9.2.0
      */
     BasicGradleProject getRootProject();
 
@@ -50,6 +53,7 @@ public interface ResilientGradleBuild  extends Model, BuildModel {
      * Returns the set of all projects for this build.
      *
      * @return The set of all projects.
+     * @since 9.2.0
      */
     DomainObjectSet<? extends BasicGradleProject> getProjects();
 
@@ -61,7 +65,7 @@ public interface ResilientGradleBuild  extends Model, BuildModel {
      *
      * <p>In general, it is better to use {@link #getEditableBuilds()} instead of this method.</p>
      *
-     * @since 3.3
+     * @since 9.2.0
      */
     DomainObjectSet<? extends ResilientGradleBuild> getIncludedBuilds();
 
@@ -74,7 +78,7 @@ public interface ResilientGradleBuild  extends Model, BuildModel {
      *
      * <p>Note that this set does not include the root build itself.</p>
      *
-     * @since 4.10
+     * @since 9.2.0
      */
     DomainObjectSet<? extends ResilientGradleBuild> getEditableBuilds();
     /**

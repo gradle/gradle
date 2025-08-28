@@ -16,6 +16,9 @@
 
 package org.gradle.plugins.ide.internal.tooling.model;
 
+import org.jspecify.annotations.NullMarked;
+
+@NullMarked
 public class DefaultResilientGradleBuild extends DefaultGradleBuild {
     private boolean failed = false;
     private String failure;
