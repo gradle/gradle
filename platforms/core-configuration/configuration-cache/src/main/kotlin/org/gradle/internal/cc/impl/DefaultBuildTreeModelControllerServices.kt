@@ -29,7 +29,7 @@ import org.gradle.initialization.Environment
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
-import org.gradle.internal.buildtree.BuildModelParametersProvider
+import org.gradle.internal.cc.buildtree.BuildModelParametersProvider
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor

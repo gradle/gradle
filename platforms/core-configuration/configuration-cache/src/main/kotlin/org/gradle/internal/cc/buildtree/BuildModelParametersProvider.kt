@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.buildtree
+package org.gradle.internal.cc.buildtree
 
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
@@ -24,13 +24,16 @@ import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOption
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildoption.StringInternalOption
+import org.gradle.internal.buildtree.BuildActionModelRequirements
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.base.logger
+import kotlin.collections.iterator
 
 
 /**
  * Consolidates features requested by the user into flags controlling various Gradle behaviors.
  *
- * @see BuildModelParameters
+ * @see org.gradle.internal.buildtree.BuildModelParameters
  */
 internal
 object BuildModelParametersProvider {
