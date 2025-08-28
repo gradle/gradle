@@ -669,77 +669,234 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         return optionFile.addOption(new JavadocOptionFileOptionInternalAdapter<T>(option));
     }
 
+    /**
+     * Adds an option that will have one string value supplied as a separate argument.
+     * Calling this method behaves exactly like calling {@code addStringOption(option, null)}.
+     * <p>
+     * {@code addStringOption("foo")} will not produce any arguments.
+     * </p>
+     * <p>
+     * {@code addStringOption("foo").setValue("bar baz")} will produce the command-line
+     * </p>
+     * <pre>
+     *     -foo 'bar baz'
+     * </pre>
+     * @param option command-line option
+     * @return an option object to further configure the value
+     */
     public JavadocOptionFileOption<String> addStringOption(String option) {
         return optionFile.addStringOption(option);
     }
 
+    /**
+     * Adds an option that will have one string value supplied as a separate argument.
+     * <p>
+     * {@code addStringOption("foo", "bar baz")} will produce the command-line
+     * </p>
+     * <pre>
+     *     -foo 'bar baz'
+     * </pre>
+     * <p>
+     * A value of {@code null} will make the option not be supplied and can
+     * be used to unset an option that previously was set.
+     * </p>
+     * <p>
+     * The returned option object can also be used to further configure the value.
+     * </p>
+     * <p>
+     * {@code addStringOption("foo", "bar baz").setValue("bam")} will produce the command-line
+     * </p>
+     * <pre>
+     *     -foo bam
+     * </pre>
+     * @param option command-line option
+     * @param value the value to supply or {@code null} to suppress the option
+     * @return an option object to further configure the value
+     */
     public JavadocOptionFileOption<String> addStringOption(String option, String value) {
         return optionFile.addStringOption(option, value);
     }
 
+    /**
+     * Adds an option that will use the lowercased {@code toString()} value of an enum constant as option.
+     * Calling this method behaves exactly like calling {@code addEnumOption(option, null)}.
+     * <p>
+     * {@code addEnumOption("foo")} will not produce any arguments.
+     * </p>
+     * <pre>{@code
+     * enum Foo { BAR }
+     * // ...
+     * addEnumOption("foo").setValue(Foo.BAR)
+     * }</pre>
+     * <p>
+     * will produce the command-line
+     * </p>
+     * <pre>
+     *     -bar
+     * </pre>
+     * @param option command-line option identifier
+     * @return an option object to further configure the value
+     */
     public <T extends Enum<T>> JavadocOptionFileOption<T> addEnumOption(String option) {
         return optionFile.addEnumOption(option);
     }
 
+    /**
+     * Adds an option that will use the lowercased {@code toString()} value of an enum constant as option.
+     * The option name is only used to further configure the value and will not make it into the argument list.
+     * <pre>{@code
+     * enum Foo { BAR, BAZ }
+     * // ...
+     * addEnumOption("foo", Foo.BAR)
+     * }</pre>
+     * <p>
+     * will produce the command-line
+     * </p>
+     * <pre>
+     *     -bar
+     * </pre>
+     * <p>
+     * A value of {@code null} will make the option not be supplied and can
+     * be used to unset an option that previously was set.
+     * </p>
+     * <p>
+     * The returned option object can also be used to further configure the value.
+     * </p>
+     * <p>
+     * {@code addEnumOption("foo", Foo.BAR).setValue(Foo.BAZ)} will produce the command-line
+     * </p>
+     * <pre>
+     *     -baz
+     * </pre>
+     * @param option command-line option identifier
+     * @param value the option to supply or {@code null} to suppress the option
+     * @return an option object to further configure the value
+     */
     public <T extends Enum<T>> JavadocOptionFileOption<T> addEnumOption(String option, T value) {
         return optionFile.addEnumOption(option, value);
     }
 
+    /**
+     * Adds an option that will have multiple absolute file paths joined by {@code path.separator} supplied as a separate argument.
+     * Calling this method behaves exactly like calling {@code addPathOption(option, System.getProperty("path.separator"))}.
+     * <p>
+     * {@code addPathOption("foo").setValue(asList(file("bar"), file("baz")))} with the path separator being {@code :}
+     * will produce the command-line
+     * </p>
+     * <pre>
+     *     -foo 'path/to/bar:path/to/baz'
+     * </pre>
+     * @param option command-line option
+     * @return an option object to further configure the value
+     */
     public JavadocOptionFileOption<List<File>> addPathOption(String option) {
         return optionFile.addPathOption(option);
     }
 
+    /**
+     * Adds an option that will have multiple absolute file paths joined by the provided separator supplied as a separate argument.
+     * The returned option object must be used to configure the value unless the option should not be supplied.
+     * <p>
+     * {@code addPathOption("foo", "|").setValue(asList(file("bar"), file("baz")))} will produce the command-line
+     * </p>
+     * <pre>
+     *     -foo 'path/to/bar|path/to/baz'
+     * </pre>
+     * <p>
+     * A value of {@code null} or an empty list will make the option not be supplied and can
+     * be used to unset an option that previously was set.
+     * </p>
+     * @param option command-line option
+     * @param joinBy separator
+     * @return an option object to further configure the value
+     */
     public JavadocOptionFileOption<List<File>> addPathOption(String option, String joinBy) {
         return optionFile.addPathOption(option, joinBy);
     }
 
+    /**
+     * Adds an option that will have multiple values joined by {@code path.separator} supplied as a separate argument.
+     * Calling this method behaves exactly like calling {@code addStringsOption(option, System.getProperty("path.separator"))}.
+     * <p>
+     * {@code addStringsOption("foo").setValue(asList("bar", "baz"))} with the path separator being {@code :}
+     * will produce the command-line
+     * </p>
+     * <pre>
+     *     -foo 'bar:baz'
+     * </pre>
+     * @param option command-line option
+     * @return an option object to further configure the value
+     */
     public JavadocOptionFileOption<List<String>> addStringsOption(String option) {
         return optionFile.addStringsOption(option);
     }
 
     /**
-     * Adds an option that will have multiple values joined by the provided separator.
+     * Adds an option that will have multiple values joined by the provided separator supplied as a separate argument.
+     * The returned option object must be used to configure the value unless the option should not be supplied.
      * <p>
-     * {@code addStringsOption("foo", ",").setValue(["a", "b", "c"])} will produce the command-line
+     * {@code addStringsOption("foo", "|").setValue(asList("bar", "baz"))} will produce the command-line
      * </p>
      * <pre>
-     *     -foo 'a,b,c'
+     *     -foo 'bar|baz'
      * </pre>
+     * <p>
+     * A value of {@code null} or an empty list will make the option not be supplied and can
+     * be used to unset an option that previously was set.
+     * </p>
      * @param option command-line option
      * @param joinBy separator
+     * @return an option object to further configure the value
      */
     public JavadocOptionFileOption<List<String>> addStringsOption(String option, String joinBy) {
         return optionFile.addStringsOption(option, joinBy);
     }
 
     /**
-     * Adds an option that will appear multiple times to the javadoc tool. Each line can have one value.
+     * Adds an option that will appear multiple times each with one value supplied as a separate argument.
+     * The returned option object must be used to configure the value unless the option should not be supplied.
      * <p>
-     * {@code addMultilineStringsOption("foo").setValue(["a", "b", "c"])} will produce the command-line
+     * {@code addMultilineStringsOption("foo").setValue(asList("bar", "baz bam"))} will produce the command-line
      * </p>
      * <pre>
-     *     -foo 'a'
-     *     -foo 'b'
-     *     -foo 'c'
+     *     -foo bar
+     *     -foo 'baz bam'
      * </pre>
+     * <p>
+     * A value of {@code null} or an empty list will make the option not be supplied and can
+     * be used to unset an option that previously was set.
+     * </p>
      * @param option command-line option
+     * @return an option object to further configure the value
      */
     public JavadocOptionFileOption<List<String>> addMultilineStringsOption(String option) {
         return optionFile.addMultilineStringsOption(option);
     }
 
-
     /**
-     * Adds an option that will appear multiple times to the javadoc tool. Each line can have more than one value separated by spaces.
-     *
+     * Adds an option that will appear multiple times each with zero, one, or multiple values supplied as individual argument each.
+     * The returned option object must be used to configure the value unless the option should not be supplied.
      * <p>
-     * {@code addMultilineMultiValueOption("foo").setValue([ ["a"], ["b", "c"] ])} will produce the command-line
+     * {@code addMultilineMultiValueOption("foo").setValue(asList(asList("bar"), asList("baz", "bam boo"), emptyList()))}
+     * will produce the command-line
      * </p>
      * <pre>
-     *     -foo 'a'
-     *     -foo 'b' 'c'
+     *     -foo bar
+     *     -foo baz 'bam boo'
+     *     -foo
      * </pre>
+     * <p>
+     * A value of {@code null} or an empty list will make the option not be supplied and can
+     * be used to unset an option that previously was set.
+     * </p>
+     * <p>
+     * A value of {@code null} for one of the inner lists is not supported and will result in a {@code NullPointerException}.
+     * </p>
+     * <p>
+     * An empty list for one of the inner lists will cause the option to be supplied without an additional argument.
+     * </p>
      * @param option command-line option
+     * @return an option object to further configure the value
      *
      * @since 3.5
      */
@@ -747,18 +904,98 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         return optionFile.addMultilineMultiValueOption(option);
     }
 
+    /**
+     * Adds an option that will be supplied or not without further arguments.
+     * Calling this method behaves exactly like calling {@code addBooleanOption(option, false)}.
+     * <p>
+     * {@code addBooleanOption("Xdoclint:all,-missing")} will not produce any arguments.
+     * </p>
+     * <p>
+     * {@code addBooleanOption("Xdoclint:all,-missing").setValue(true)} will produce the command-line
+     * </p>
+     * <pre>
+     *     -Xdoclint:all,-missing
+     * </pre>
+     * @param option command-line option identifier
+     * @return an option object to further configure the value
+     */
     public JavadocOptionFileOption<Boolean> addBooleanOption(String option) {
         return optionFile.addBooleanOption(option);
     }
 
+    /**
+     * Adds an option that will be supplied or not without further arguments.
+     * <p>
+     * {@code addBooleanOption("Xdoclint:all,-missing", true)} will produce the command-line
+     * </p>
+     * <pre>
+     *     -Xdoclint:all,-missing
+     * </pre>
+     * <p>
+     * A value of {@code false} will make the option not be supplied and can
+     * be used to unset an option that previously was set.
+     * </p>
+     * <p>
+     * The returned option object can also be used to further configure the value.
+     * </p>
+     * <p>
+     * {@code addBooleanOption("Xdoclint:all,-missing", false).setValue(true)} will produce the command-line
+     * </p>
+     * <pre>
+     *     -Xdoclint:all,-missing
+     * </pre>
+     * @param option command-line option
+     * @param value whether to supply the option or not
+     * @return an option object to further configure the value
+     */
     public JavadocOptionFileOption<Boolean> addBooleanOption(String option, boolean value) {
         return optionFile.addBooleanOption(option, value);
     }
 
+    /**
+     * Adds an option that will have an absolute file path supplied as a separate argument.
+     * Calling this method behaves exactly like calling {@code addFileOption(option, null)}.
+     * <p>
+     * {@code addFileOption("foo")} will not produce any arguments.
+     * </p>
+     * <p>
+     * {@code addFileOption("foo").setValue(file("bar"))} will produce the command-line
+     * </p>
+     * <pre>
+     *     -foo 'path/to/bar'
+     * </pre>
+     * @param option command-line option
+     * @return an option object to further configure the value
+     */
     public JavadocOptionFileOption<File> addFileOption(String option) {
         return optionFile.addFileOption(option);
     }
 
+    /**
+     * Adds an option that will have an absolute file path supplied as a separate argument.
+     * <p>
+     * {@code addFileOption("foo", file("bar"))} will produce the command-line
+     * </p>
+     * <pre>
+     *     -foo 'path/to/bar'
+     * </pre>
+     * <p>
+     * A value of {@code null} will make the option not be supplied and can
+     * be used to unset an option that previously was set.
+     * </p>
+     * <p>
+     * The returned option object can also be used to further configure the value.
+     * </p>
+     * <p>
+     * {@code addFileOption("foo", file("bar")).setValue(file("baz"))} will produce the command-line
+     * </p>
+     * <pre>
+     *     -foo 'path/to/baz'
+     * </pre>
+     * @param option command-line option
+     * @param value the value to supply or {@code null} to suppress the option
+     * @return an option object to further configure the value
+     */
     public JavadocOptionFileOption<File> addFileOption(String option, File value) {
         return optionFile.addFileOption(option, value);
     }
