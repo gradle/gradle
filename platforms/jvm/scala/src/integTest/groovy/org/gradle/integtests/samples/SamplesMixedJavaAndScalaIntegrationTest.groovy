@@ -66,10 +66,7 @@ class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can build docs"() {
-        if (GradleContextualExecuter.isDaemon()) {
-            // don't load scala into the daemon as it exhausts permgen
-            return
-        } else if (!IntegrationTestBuildContext.isEmbedded() && !GradleContextualExecuter.isParallel() && !JavaVersion.current().isJava8Compatible()) {
+        if (!IntegrationTestBuildContext.isEmbedded() && !GradleContextualExecuter.isParallel() && !JavaVersion.current().isJava8Compatible()) {
             executer.withBuildJvmOpts('-XX:MaxPermSize=128m')
         }
 
