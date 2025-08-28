@@ -38,6 +38,10 @@ public interface BuildModelParameters {
 
     boolean isConfigurationCache();
 
+    boolean isConfigurationCacheParallelStore();
+
+    boolean isConfigurationCacheParallelLoad();
+
     boolean isIsolatedProjects();
 
     /**

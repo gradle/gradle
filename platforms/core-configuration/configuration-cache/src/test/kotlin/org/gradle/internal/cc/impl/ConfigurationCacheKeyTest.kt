@@ -136,6 +136,7 @@ class ConfigurationCacheKeyTest {
     private
     fun cacheKeyStringFromStartParameter(configure: StartParameterInternal.() -> Unit): String {
         val startParameter = StartParameterInternal().apply(configure)
+        val isolatedProjects = startParameter.isolatedProjects.get()
         return ConfigurationCacheKey(
             ConfigurationCacheStartParameter(
                 BuildTreeLocations(BuildLayout(file("root"), null, DefaultScriptFileResolver())),
@@ -146,8 +147,10 @@ class ConfigurationCacheKeyTest {
                     parallelProjectExecution = false,
                     configureOnDemand = false,
                     configurationCache = true,
-                    isolatedProjects = startParameter.isolatedProjects.get(),
-                    parallelProjectConfiguration = startParameter.isolatedProjects.get(),
+                    configurationCacheParallelStore = isolatedProjects,
+                    configurationCacheParallelLoad = isolatedProjects,
+                    isolatedProjects = isolatedProjects,
+                    parallelProjectConfiguration = isolatedProjects,
                     intermediateModelCache = false,
                     parallelToolingApiActions = false,
                     invalidateCoupledProjects = false,

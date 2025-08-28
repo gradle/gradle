@@ -35,6 +35,12 @@ internal
 object BuildModelParametersProvider {
 
     private
+    val configurationCacheParallelStore = InternalFlag("org.gradle.configuration-cache.internal.parallel-store", true)
+
+    private
+    val configurationCacheParallelLoad = InternalFlag("org.gradle.configuration-cache.internal.parallel-load", true)
+
+    private
     val parallelBuilding = InternalFlag("org.gradle.internal.tooling.parallel", true)
 
     private
@@ -82,6 +88,13 @@ object BuildModelParametersProvider {
             if (isolatedProjects) parallelIsolatedProjectsAllowed
             else vintageParallel
 
+        // Isolated projects without parallelism must be safe, so we ignore the Parallel CC flag
+        val parallelConfigurationCacheStore =
+            if (isolatedProjects) parallelIsolatedProjectsAllowed && options[configurationCacheParallelStore]
+            else startParameter.isConfigurationCacheParallel && options[configurationCacheParallelStore]
+        // Parallel load is always safe, as opposed to parallel store
+        val parallelConfigurationCacheLoad = options[configurationCacheParallelLoad]
+
         val parallelToolingActions = parallelProjectExecution && options[parallelBuilding]
         val invalidateCoupledProjects = isolatedProjects && options[invalidateCoupledProjects]
         val modelAsProjectDependency = isolatedProjects && options[modelProjectDependencies]
@@ -93,6 +106,8 @@ object BuildModelParametersProvider {
                 parallelProjectExecution = parallelProjectExecution,
                 configureOnDemand = configureOnDemand,
                 configurationCache = isolatedProjects,
+                configurationCacheParallelStore = parallelConfigurationCacheStore,
+                configurationCacheParallelLoad = parallelConfigurationCacheLoad,
                 isolatedProjects = isolatedProjects,
                 parallelProjectConfiguration = parallelProjectConfiguration,
                 intermediateModelCache = isolatedProjects,
@@ -111,6 +126,8 @@ object BuildModelParametersProvider {
                     parallelProjectExecution = parallelProjectExecution,
                     configureOnDemand = configureOnDemand,
                     configurationCache = false,
+                    configurationCacheParallelStore = false,
+                    configurationCacheParallelLoad = false,
                     isolatedProjects = false,
                     parallelProjectConfiguration = parallelProjectConfiguration,
                     intermediateModelCache = false,
@@ -131,6 +148,8 @@ object BuildModelParametersProvider {
                     parallelProjectExecution = parallelProjectExecution,
                     configureOnDemand = configureOnDemand,
                     configurationCache = configurationCache,
+                    configurationCacheParallelStore = parallelConfigurationCacheStore,
+                    configurationCacheParallelLoad = parallelConfigurationCacheLoad,
                     isolatedProjects = isolatedProjects,
                     parallelProjectConfiguration = parallelProjectConfiguration,
                     intermediateModelCache = false,
@@ -157,6 +176,8 @@ object BuildModelParametersProvider {
             parallelProjectExecution = startParameter.isParallelProjectExecutionEnabled,
             configureOnDemand = startParameter.isConfigureOnDemand,
             configurationCache = false,
+            configurationCacheParallelStore = false,
+            configurationCacheParallelLoad = false,
             isolatedProjects = false,
             parallelProjectConfiguration = false,
             intermediateModelCache = false,
