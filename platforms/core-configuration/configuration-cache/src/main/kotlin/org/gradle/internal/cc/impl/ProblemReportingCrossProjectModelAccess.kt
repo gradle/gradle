@@ -97,21 +97,21 @@ class ProblemReportingCrossProjectModelAccess(
         return project.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, project), instantiator)
     }
 
-    override fun getChildProjects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableMap<String, Project> {
-        return delegate.getChildProjects(referrer, relativeTo).mapValuesTo(LinkedHashMap()) {
-            (it.value as ProjectInternal).wrap(referrer, CrossProjectModelAccessInstance(CHILD, relativeTo), instantiator)
+    override fun getChildProjects(referrer: ProjectInternal, target: ProjectInternal): MutableMap<String, Project> {
+        return delegate.getChildProjects(referrer, target).mapValuesTo(LinkedHashMap()) {
+            (it.value as ProjectInternal).wrap(referrer, CrossProjectModelAccessInstance(CHILD, target), instantiator)
         }
     }
 
-    override fun getSubprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
-        return delegate.getSubprojects(referrer, relativeTo).mapTo(LinkedHashSet()) {
-            it.wrap(referrer, CrossProjectModelAccessInstance(SUBPROJECT, relativeTo), instantiator)
+    override fun getSubprojects(referrer: ProjectInternal, target: ProjectInternal): MutableSet<out ProjectInternal> {
+        return delegate.getSubprojects(referrer, target).mapTo(LinkedHashSet()) {
+            it.wrap(referrer, CrossProjectModelAccessInstance(SUBPROJECT, target), instantiator)
         }
     }
 
-    override fun getAllprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
-        return delegate.getAllprojects(referrer, relativeTo).mapTo(LinkedHashSet()) {
-            it.wrap(referrer, CrossProjectModelAccessInstance(ALLPROJECTS, relativeTo), instantiator)
+    override fun getAllprojects(referrer: ProjectInternal, target: ProjectInternal): MutableSet<out ProjectInternal> {
+        return delegate.getAllprojects(referrer, target).mapTo(LinkedHashSet()) {
+            it.wrap(referrer, CrossProjectModelAccessInstance(ALLPROJECTS, target), instantiator)
         }
     }
 
