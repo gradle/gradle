@@ -97,9 +97,11 @@ abstract class CrossVersionIntegrationSpec extends Specification {
         if (gradleUserHomeDir) {
             executer.withGradleUserHomeDir(gradleUserHomeDir)
         }
-        File javaHome = dist.daemonWorksWith(Jvm.current().javaVersionMajor) ? Jvm.current().javaHome :
-            AvailableJavaHomes.getAvailableJdk {dist.daemonWorksWith(it.javaMajorVersion) }.javaHome
-        executer.withJavaHome(javaHome.absolutePath)
+
+        if (!dist.daemonWorksWith(Jvm.current().javaVersionMajor)) {
+            Jvm jvm = AvailableJavaHomes.getAvailableJdk { dist.daemonWorksWith(it.javaMajorVersion) }
+            executer.withJavaHome(jvm.javaHome.absolutePath)
+        }
 
         executer.inDirectory(testDirectory)
         executers << executer
