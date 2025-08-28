@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.logging.Logging
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.execution.EntryTaskSelector
 import org.gradle.internal.build.BuildStateRegistry
@@ -67,7 +68,7 @@ class ConfigurationCacheAwareBuildTreeWorkController(
                 // We don't want to fold the code below here so the "live" graph can be garbage collected before execution.
                 null
             } else {
-                dumpHeap("cc-hit")
+                maybeDumpHeap("cc-hit")
                 workExecutor.execute(result.graph)
             }
         }
@@ -76,7 +77,7 @@ class ConfigurationCacheAwareBuildTreeWorkController(
             return executionResult
         }
 
-        dumpHeap("cc-miss-store")
+        maybeDumpHeap("cc-miss-store")
 
         // Store and reload the graph for the execution.
         cache.finalizeCacheEntry()
@@ -89,14 +90,21 @@ class ConfigurationCacheAwareBuildTreeWorkController(
 
         return workGraph.withNewWorkGraph { graph ->
             val finalizedGraph = cache.loadRequestedTasks(graph, scheduleTaskSelectorPostProcessing)
-            dumpHeap("cc-miss-load")
+            maybeDumpHeap("cc-miss-load")
             workExecutor.execute(finalizedGraph)
         }
     }
 
-    private fun dumpHeap(tag: String) {
+    private fun maybeDumpHeap(tag: String) {
         heapDumpBaseName?.let {
-            HeapDumper.dumpHeap("$it-$tag.hprof")
+            val filePath = "$it-$tag.hprof"
+            try {
+                HeapDumper.dumpHeap(filePath)
+            } catch (e: Exception) {
+                Logging.getLogger(ConfigurationCacheAwareBuildTreeWorkController::class.java).apply {
+                    error("Could not dump heap to file '$filePath'.", e)
+                }
+            }
         }
     }
 }
