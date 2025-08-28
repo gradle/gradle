@@ -30,6 +30,9 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
         given:
         gradle()
 
+        and:
+        ideXmxMb = 4096
+
         when:
         ideaSync(IDEA_COMMUNITY_VERSION, gradleDir)
 
@@ -65,6 +68,9 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
             # However, on CI JDK's installed not in the default location, and Gradle can't find appropriate toolchain to run.
             # So we need to specify required JDK explicitly.
             org.gradle.java.installations.paths=$AvailableJavaHomes.jdk17.javaHome.absolutePath
+
+            # we don't want to publish scans
+            systemProp.scan.dump=true
         """
     }
 }
