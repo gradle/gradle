@@ -90,7 +90,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        MyCustomModel model =runCustomModelAction()
+        MyCustomModel model = runCustomModelAction()
 
         then:
         model.paths == [":", ":included"]
@@ -120,7 +120,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
     """
 
         when:
-        MyCustomModel model =runCustomModelAction()
+        MyCustomModel model = runCustomModelAction()
 
         then:
         model.paths == [":", ":included-plugin"]
@@ -176,13 +176,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
 
         @Override
         public MyCustomModel execute(BuildController controller) {
-            ResilientGradleBuild build
-            try {
-                build = controller.getModel(ResilientGradleBuild.class);
-            }
-            catch (Exception e) {
-                System.err.println(e.toString());
-            }
+            ResilientGradleBuild build = controller.getModel(ResilientGradleBuild.class);
 
             if (build.didItFail()) {
                 System.err.println("Build failed: " + build.failure);
