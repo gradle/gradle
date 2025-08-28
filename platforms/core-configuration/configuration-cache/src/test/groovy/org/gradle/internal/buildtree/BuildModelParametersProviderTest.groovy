@@ -22,6 +22,7 @@ import groovy.transform.stc.SimpleType
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.buildoption.Option
+import org.gradle.internal.cc.buildtree.BuildModelParametersProvider
 import spock.lang.Specification
 
 class BuildModelParametersProviderTest extends Specification {
