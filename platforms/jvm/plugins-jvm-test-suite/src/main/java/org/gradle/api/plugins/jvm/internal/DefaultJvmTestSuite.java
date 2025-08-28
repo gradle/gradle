@@ -18,7 +18,6 @@ package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.tasks.JvmConstants;
@@ -88,15 +87,10 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
         this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
 
-        Configuration compileOnly = configurations.getByName(sourceSet.getCompileOnlyConfigurationName());
-        Configuration implementation = configurations.getByName(sourceSet.getImplementationConfigurationName());
-        Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
-        Configuration annotationProcessor = configurations.getByName(sourceSet.getAnnotationProcessorConfigurationName());
-
-        implementation.fromDependencyCollector(getDependencies().getImplementation());
-        runtimeOnly.fromDependencyCollector(getDependencies().getRuntimeOnly());
-        compileOnly.fromDependencyCollector(getDependencies().getCompileOnly());
-        annotationProcessor.fromDependencyCollector(getDependencies().getAnnotationProcessor());
+        configurations.named(sourceSet.getCompileOnlyConfigurationName(), compileOnly -> compileOnly.fromDependencyCollector(getDependencies().getCompileOnly()));
+        configurations.named(sourceSet.getImplementationConfigurationName(), implementation -> implementation.fromDependencyCollector(getDependencies().getImplementation()));
+        configurations.named(sourceSet.getRuntimeOnlyConfigurationName(), runtimeOnly -> runtimeOnly.fromDependencyCollector(getDependencies().getRuntimeOnly()));
+        configurations.named(sourceSet.getAnnotationProcessorConfigurationName(), annotationProcessor -> annotationProcessor.fromDependencyCollector(getDependencies().getAnnotationProcessor()));
 
         if (name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             // for the built-in test suite, we don't express an opinion, so we will not add any dependencies
