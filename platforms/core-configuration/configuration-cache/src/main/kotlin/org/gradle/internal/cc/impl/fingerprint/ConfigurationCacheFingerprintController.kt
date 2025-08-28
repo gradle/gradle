@@ -378,6 +378,9 @@ class ConfigurationCacheFingerprintController internal constructor(
     inner class CacheFingerprintWriterHost :
         ConfigurationCacheFingerprintWriter.Host {
 
+        override val isFineGrainedPropertyTracking: Boolean
+            get() = startParameter.isFineGrainedPropertyTracking
+
         override val isEncrypted: Boolean
             get() = encryptionService.isEncrypting
 
@@ -386,6 +389,9 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override val gradleUserHomeDir: File
             get() = startParameter.gradleUserHomeDir
+
+        override val startParameterProperties: Map<String, Any?>
+            get() = startParameter.gradleProperties
 
         override val allInitScripts: List<File>
             get() = startParameter.allInitScripts
@@ -456,6 +462,9 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override val gradleUserHomeDir: File
             get() = startParameter.gradleUserHomeDir
+
+        override val startParameterProperties: Map<String, Any?>
+            get() = startParameter.gradleProperties
 
         override val allInitScripts: List<File>
             get() = startParameter.allInitScripts

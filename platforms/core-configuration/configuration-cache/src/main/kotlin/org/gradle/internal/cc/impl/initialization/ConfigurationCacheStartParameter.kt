@@ -89,6 +89,12 @@ class ConfigurationCacheStartParameter internal constructor(
     val isSharingObjects: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.share-objects", true)
 
     /**
+     * See [org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheFineGrainedPropertyTracking].
+     */
+    val isFineGrainedPropertyTracking: Boolean
+        get() = startParameter.isConfigurationCacheFineGrainedPropertyTracking
+
+    /**
      * Whether configuration cache storing/loading should be done in parallel.
      *
      * Same as [StartParameterInternal.configurationCacheParallel].
@@ -145,7 +151,7 @@ class ConfigurationCacheStartParameter internal constructor(
     /**
      * Whether we should skip creating an entry in case of a cache miss.
      */
-    val isReadOnlyCache : Boolean by lazy {
+    val isReadOnlyCache: Boolean by lazy {
         startParameter.isConfigurationCacheReadOnly.also { enabled ->
             if (enabled) {
                 IncubationLogger.incubatingFeatureUsed("Read-only Configuration Cache")

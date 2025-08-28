@@ -50,6 +50,7 @@ import org.gradle.initialization.buildsrc.BuildSrcDetector
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildoption.FeatureFlag
 import org.gradle.internal.buildoption.FeatureFlagListener
+import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.impl.CoupledProjectsListener
 import org.gradle.internal.cc.impl.InputTrackingState
 import org.gradle.internal.cc.impl.UndeclaredBuildInputListener
@@ -118,6 +119,8 @@ class ConfigurationCacheFingerprintWriter(
     interface Host {
         val isEncrypted: Boolean
         val encryptionKeyHashCode: HashCode
+        val isFineGrainedPropertyTracking: Boolean
+        val startParameterProperties: Map<String, Any?>
         val gradleUserHomeDir: File
         val allInitScripts: List<File>
         val buildStartTime: Long
@@ -181,22 +184,70 @@ class ConfigurationCacheFingerprintWriter(
     var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
 
     private
-    val gradleProperties = ConcurrentHashMap<GradlePropertyScope, MutableSet<String>>()
-
-    private
-    val gradlePropertiesByPrefix = ConcurrentHashMap<GradlePropertyScope, MutableSet<String>>()
+    val propertyTracking: PropertyTracking
 
     init {
+        propertyTracking = when {
+            host.isFineGrainedPropertyTracking -> FineGrainedPropertyTracking()
+            else -> {
+                logger.info("Configuration Cache fine-grained property tracking is disabled.")
+                NoPropertyTracking
+            }
+        }
         buildScopedSink.initScripts(host.allInitScripts)
         buildScopedSink.write(
             ConfigurationCacheFingerprint.GradleEnvironment(
                 host.gradleUserHomeDir,
                 jvmFingerprint(),
+                if (host.isFineGrainedPropertyTracking) null else host.startParameterProperties,
                 host.ignoreInputsDuringConfigurationCacheStore,
                 host.instrumentationAgentUsed,
                 host.ignoredFileSystemCheckInputs
             )
         )
+    }
+
+    private
+    sealed interface PropertyTracking {
+
+        fun shouldTrackPropertyAccess(propertyScope: GradlePropertyScope, propertyName: String): Boolean
+
+        fun shouldTrackPropertiesByPrefix(propertyScope: GradlePropertyScope, prefix: String): Boolean
+    }
+
+    private
+    object NoPropertyTracking : PropertyTracking {
+        override fun shouldTrackPropertyAccess(propertyScope: GradlePropertyScope, propertyName: String): Boolean =
+            false
+
+        override fun shouldTrackPropertiesByPrefix(propertyScope: GradlePropertyScope, prefix: String): Boolean =
+            false
+    }
+
+    private
+    class FineGrainedPropertyTracking : PropertyTracking {
+
+        private
+        val gradleProperties = ConcurrentHashMap<GradlePropertyScope, MutableSet<String>>()
+
+        private
+        val gradlePropertiesByPrefix = ConcurrentHashMap<GradlePropertyScope, MutableSet<String>>()
+
+        override fun shouldTrackPropertyAccess(propertyScope: GradlePropertyScope, propertyName: String): Boolean =
+            (shouldTrackGradlePropertyInput(gradleProperties, propertyScope, propertyName)
+                && !Workarounds.isIgnoredStartParameterProperty(propertyName))
+
+        override fun shouldTrackPropertiesByPrefix(propertyScope: GradlePropertyScope, prefix: String): Boolean =
+            shouldTrackGradlePropertyInput(gradlePropertiesByPrefix, propertyScope, prefix)
+
+        private
+        fun shouldTrackGradlePropertyInput(
+            keysPerScope: ConcurrentHashMap<GradlePropertyScope, MutableSet<String>>,
+            propertyScope: GradlePropertyScope,
+            propertyKey: String
+        ): Boolean = keysPerScope
+            .computeIfAbsent(propertyScope) { newConcurrentHashSet() }
+            .add(propertyKey)
     }
 
     /**
@@ -947,7 +998,7 @@ class ConfigurationCacheFingerprintWriter(
         prefix: String,
         snapshot: Map<String, String>
     ) {
-        if (shouldTrackGradlePropertyInput(gradlePropertiesByPrefix, propertyScope, prefix)) {
+        if (propertyTracking.shouldTrackPropertiesByPrefix(propertyScope, prefix)) {
             // TODO:isolated consider tracking per project
             buildScopedSink.write(
                 ConfigurationCacheFingerprint.GradlePropertiesPrefixedBy(
@@ -965,9 +1016,7 @@ class ConfigurationCacheFingerprintWriter(
         propertyName: String,
         propertyValue: Any?
     ) {
-        if (shouldTrackGradlePropertyInput(gradleProperties, propertyScope, propertyName)
-            && !Workarounds.isIgnoredStartParameterProperty(propertyName)
-        ) {
+        if (propertyTracking.shouldTrackPropertyAccess(propertyScope, propertyName)) {
             // TODO:isolated could tracking per project
             buildScopedSink.write(
                 ConfigurationCacheFingerprint.GradleProperty(
@@ -979,15 +1028,6 @@ class ConfigurationCacheFingerprintWriter(
             reportGradlePropertyInput(propertyScope, propertyName)
         }
     }
-
-    private
-    fun shouldTrackGradlePropertyInput(
-        keysPerScope: ConcurrentHashMap<GradlePropertyScope, MutableSet<String>>,
-        propertyScope: GradlePropertyScope,
-        propertyKey: String
-    ): Boolean = keysPerScope
-        .computeIfAbsent(propertyScope) { newConcurrentHashSet() }
-        .add(propertyKey)
 
     private
     fun reportGradlePropertyInput(

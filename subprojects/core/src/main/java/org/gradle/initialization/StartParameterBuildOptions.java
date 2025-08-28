@@ -83,6 +83,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigurationCacheIntegrityCheckOption(),
         new ConfigurationCacheEntriesPerKeyOption(),
         new ConfigurationCacheHeapDumpDir(),
+        new ConfigurationCacheFineGrainedPropertyTracking(),
         new IsolatedProjectsOption(),
         new ProblemReportGenerationOption(),
         new PropertyUpgradeReportOption(),
@@ -709,6 +710,30 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
             settings.setConfigurationCacheHeapDumpDir(value);
         }
     }
+
+    /**
+     * Whether [project property accesses][org.gradle.api.internal.properties.GradleProperties] are tracked individually
+     * to increase cache hit rates.
+     *
+     * Increases memory usage proportionally to the number of projects and property accesses.
+     *
+     * It can be disabled to save on memory.
+     *
+     * The default is `true`.
+     */
+    public static class ConfigurationCacheFineGrainedPropertyTracking extends BooleanBuildOption<StartParameterInternal> {
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.fine-grained-property-tracking";
+
+        public ConfigurationCacheFineGrainedPropertyTracking() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheFineGrainedPropertyTracking(value);
+        }
+    }
+
     public static class PropertyUpgradeReportOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
 
         public static final String LONG_OPTION = "property-upgrade-report";
