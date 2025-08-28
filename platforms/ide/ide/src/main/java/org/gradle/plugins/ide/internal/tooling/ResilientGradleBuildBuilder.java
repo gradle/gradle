@@ -26,6 +26,7 @@ import org.gradle.internal.composite.BuildIncludeListener;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.plugins.ide.internal.tooling.model.BasicGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleBuild;
+import org.gradle.plugins.ide.internal.tooling.model.DefaultResilientGradleBuild;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.jspecify.annotations.NullMarked;
 
@@ -47,6 +48,11 @@ public class ResilientGradleBuildBuilder extends GradleBuildBuilder {
     }
 
     @Override
+    public boolean canBuild(String modelName) {
+        return modelName.equals("org.gradle.tooling.model.gradle.ResilientGradleBuild");
+    }
+
+    @Override
     protected Throwable ensureProjectsLoaded(BuildState target) {
         try {
             target.ensureProjectsLoaded();
@@ -63,11 +69,11 @@ public class ResilientGradleBuildBuilder extends GradleBuildBuilder {
 
     @Override
     protected DefaultGradleBuild convert(BuildState targetBuild, Map<BuildState, DefaultGradleBuild> all) {
-        DefaultGradleBuild model = all.get(targetBuild);
+        DefaultResilientGradleBuild model = (DefaultResilientGradleBuild) all.get(targetBuild);
         if (model != null) {
             return model;
         }
-        model = new DefaultGradleBuild();
+        model = new DefaultResilientGradleBuild();
         all.put(targetBuild, model);
 
         // Make sure the project tree has been loaded and can be queried (but not necessarily configured)

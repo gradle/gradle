@@ -22,7 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.ProjectIdentifier
-import org.gradle.tooling.model.gradle.GradleBuild
+import org.gradle.tooling.model.gradle.ResilientGradleBuild
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 
 @ToolingApiVersion('>=9.2')
@@ -159,12 +159,12 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         List<ProjectIdentifier> projectIdentifiers;
         List<String> paths;
         Map<File, KotlinDslScriptModel> scriptModels;
-        GradleBuild build
+        ResilientGradleBuild build
 
         MyCustomModel(Map<File, KotlinDslScriptModel> models,
                       List<ProjectIdentifier> projectIdentifiers,
                       List<String> paths,
-                      GradleBuild build) {
+                      ResilientGradleBuild build) {
             this.build = build
             this.projectIdentifiers = projectIdentifiers;
             this.paths = paths;
@@ -176,10 +176,9 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
 
         @Override
         public MyCustomModel execute(BuildController controller) {
-            GradleBuild build
+            ResilientGradleBuild build
             try {
-
-                build = controller.getModel(GradleBuild.class);
+                build = controller.getModel(ResilientGradleBuild.class);
             }
             catch (Exception e) {
                 System.err.println(e.toString());
@@ -190,8 +189,9 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
             }
 
 
-            if (build.includedBuilds.size() > 0) {
-                GradleBuild b = build.includedBuilds.getAt(0)
+            def includedBuilds = build.includedBuilds
+            if (includedBuilds.size() > 0) {
+                ResilientGradleBuild b = includedBuilds.getAt(0) as ResilientGradleBuild
                 if (b.didItFail()) {
                     System.err.println("Build failed: " + b.failure);
                 }
@@ -200,7 +200,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
             def paths = build.projects.collect { project ->
                 project.buildTreePath
             }
-            build.includedBuilds.each { gb ->
+            includedBuilds.each { gb ->
                 gb.projects.each { project ->
                     paths << project.buildTreePath
                 }
