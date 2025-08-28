@@ -109,25 +109,15 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             target.getTestTask().configure(this::initializeTestFramework);
         });
 
-        // This is a workaround for strange behavior from the Kotlin plugin.
-        // It seems Kotlin is not doing this anymore in the newest version, so we should re-evaluate
-        // whether we need withDependencies anymore.
-        //
-        // The Kotlin plugin attempts to look at the declared dependencies to know if it needs to add its own dependencies.
-        // We avoid triggering realization of getTestSuiteTestingFramework by only adding our dependencies just before
-        // resolution.
-        implementation.withDependencies(dependencySet ->
-            dependencySet.addAllLater(getTestToolchain().map(JvmTestToolchain::getImplementationDependencies)
-                .orElse(Collections.emptyList()))
-        );
-        runtimeOnly.withDependencies(dependencySet ->
-            dependencySet.addAllLater(getTestToolchain().map(JvmTestToolchain::getRuntimeOnlyDependencies)
-                .orElse(Collections.emptyList()))
-        );
-        compileOnly.withDependencies(dependenciesSet ->
-            dependenciesSet.addAllLater(getTestToolchain().map(JvmTestToolchain::getCompileOnlyDependencies)
-                .orElse(Collections.emptyList()))
-        );
+        addTestFrameworkDependenciesToDependencies();
+    }
+
+    private void addTestFrameworkDependenciesToDependencies() {
+        JvmComponentDependencies dependencies = getDependencies();
+
+        dependencies.getCompileOnly().bundle(getTestToolchain().map(JvmTestToolchain::getCompileOnlyDependencies));
+        dependencies.getImplementation().bundle(getTestToolchain().map(JvmTestToolchain::getImplementationDependencies));
+        dependencies.getRuntimeOnly().bundle(getTestToolchain().map(JvmTestToolchain::getRuntimeOnlyDependencies));
     }
 
     private void initializeTestFramework(Test task) {
