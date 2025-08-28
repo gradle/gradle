@@ -52,4 +52,18 @@ data class DefaultBuildModelParameters(
     override fun isModelAsProjectDependency(): Boolean = modelAsProjectDependency
 
     override fun isResilientModelBuilding(): Boolean = resilientModelBuilding
+
+    override fun toDisplayMap(): Map<String, Boolean> = mapOf(
+        "requiresToolingModels" to requiresToolingModels,
+        "parallelProjectExecution" to parallelProjectExecution,
+        "configureOnDemand" to configureOnDemand,
+        "configurationCache" to configurationCache,
+        "isolatedProjects" to isolatedProjects,
+        "parallelProjectConfiguration" to parallelProjectConfiguration,
+        "intermediateModelCache" to intermediateModelCache,
+        "parallelToolingApiActions" to parallelToolingApiActions,
+        "invalidateCoupledProjects" to invalidateCoupledProjects,
+        "modelAsProjectDependency" to modelAsProjectDependency,
+        "resilientModelBuilding" to resilientModelBuilding
+    )
 }

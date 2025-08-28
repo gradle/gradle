@@ -19,6 +19,8 @@ package org.gradle.internal.buildtree;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.Map;
+
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildModelParameters {
 
@@ -76,4 +78,9 @@ public interface BuildModelParameters {
      * @return true if the model building is resilient, false otherwise
      */
     boolean isResilientModelBuilding();
+
+    /**
+     * Collects all properties and their values in a map for logging and testing purposes.
+     */
+    Map<String, Boolean> toDisplayMap();
 }

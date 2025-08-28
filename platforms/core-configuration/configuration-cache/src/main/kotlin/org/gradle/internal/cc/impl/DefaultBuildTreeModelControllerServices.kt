@@ -23,6 +23,7 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentCache
 import org.gradle.api.internal.configuration.DefaultBuildFeatures
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.Logging
 import org.gradle.execution.selection.BuildTaskSelector
 import org.gradle.initialization.Environment
 import org.gradle.internal.build.BuildStateRegistry
@@ -74,6 +75,8 @@ import org.gradle.util.internal.IncubationLogger
 
 class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices {
 
+    private val logger = Logging.getLogger(BuildTreeModelControllerServices::class.java)
+
     override fun servicesForBuildTree(requirements: BuildActionModelRequirements): BuildTreeModelControllerServices.Supplier {
         val startParameter = requirements.startParameter
 
@@ -86,6 +89,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
         val configurationCacheLogLevel = if (startParameter.isConfigurationCacheQuiet) LogLevel.INFO else LogLevel.LIFECYCLE
         val modelParameters = BuildModelParametersProvider.parameters(requirements, startParameter, configurationCacheLogLevel)
+        logger.debug("Operational build model parameters: {}", modelParameters.toDisplayMap())
 
         if (!startParameter.isConfigurationCacheQuiet) {
             if (modelParameters.isIsolatedProjects) {
