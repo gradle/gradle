@@ -61,6 +61,10 @@ object BuildModelParametersProvider {
     val isolatedProjectsParallel =
         InvocationScenarioParameter.Option("org.gradle.internal.isolated-projects.parallel", InvocationScenarioParameter.ANY)
 
+    @JvmStatic
+    val isolatedProjectsCaching =
+        InvocationScenarioParameter.Option("org.gradle.internal.isolated-projects.caching", InvocationScenarioParameter.TOOLING)
+
     private
     val resilientModelBuilding =
         InternalFlag("org.gradle.internal.resilient-model-building", false)
@@ -95,6 +99,8 @@ object BuildModelParametersProvider {
         // Parallel load is always safe, as opposed to parallel store
         val parallelConfigurationCacheLoad = options[configurationCacheParallelLoad]
 
+        validateIsolatedProjectsCachingOption(options)
+
         val parallelToolingActions = parallelProjectExecution && options[parallelBuilding]
         val invalidateCoupledProjects = isolatedProjects && options[invalidateCoupledProjects]
         val modelAsProjectDependency = isolatedProjects && options[modelProjectDependencies]
@@ -110,7 +116,7 @@ object BuildModelParametersProvider {
                 configurationCacheParallelLoad = parallelConfigurationCacheLoad,
                 isolatedProjects = isolatedProjects,
                 parallelProjectConfiguration = parallelProjectConfiguration,
-                intermediateModelCache = isolatedProjects,
+                intermediateModelCache = isolatedProjects && options[isolatedProjectsCaching].buildingModels,
                 parallelToolingApiActions = parallelToolingActions,
                 invalidateCoupledProjects = invalidateCoupledProjects,
                 modelAsProjectDependency = modelAsProjectDependency,
@@ -159,6 +165,16 @@ object BuildModelParametersProvider {
                     resilientModelBuilding = resilientModelBuilding
                 )
             }
+        }
+    }
+
+    private
+    fun validateIsolatedProjectsCachingOption(options: DefaultInternalOptions) {
+        val param = options[isolatedProjectsCaching]
+        val supported = listOf(InvocationScenarioParameter.TOOLING, InvocationScenarioParameter.NONE)
+        require(param in supported) {
+            "Unsupported value for '%s' option: %s. Supported values: %s".format(
+                isolatedProjectsCaching.systemPropertyName, param.value, supported.map { it.value })
         }
     }
 
