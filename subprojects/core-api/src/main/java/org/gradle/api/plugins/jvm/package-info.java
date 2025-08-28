@@ -17,4 +17,7 @@
 /**
  * Dependency modifiers that can access platform and enforced platforms in {@code dependencies} blocks.
  */
+@NullMarked
 package org.gradle.api.plugins.jvm;
+
+import org.jspecify.annotations.NullMarked;
