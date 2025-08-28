@@ -53,7 +53,6 @@ object BuildModelParametersProvider {
     val isolatedProjectsTasksConfigureOnDemand =
         InternalFlag("org.gradle.internal.isolated-projects.configure-on-demand.tasks", false)
 
-    // Experimental flag to enable resilient model building.
     private
     val resilientModelBuilding =
         InternalFlag("org.gradle.internal.resilient-model-building", false)
