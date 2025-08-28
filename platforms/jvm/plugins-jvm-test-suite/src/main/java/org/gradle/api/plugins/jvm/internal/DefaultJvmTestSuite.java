@@ -71,7 +71,6 @@ import static org.gradle.internal.Cast.uncheckedCast;
  * JUnit 4 test framework for backwards compatibility.  Any other test suite will default to using the JUnit Jupiter test framework.
  */
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
-    private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> targets;
     private final SourceSet sourceSet;
     private final String name;
     private final TaskDependencyFactory taskDependencyFactory;
@@ -84,8 +83,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         this.taskDependencyFactory = taskDependencyFactory;
         this.toolchainFactory = new ToolchainFactory(getObjectFactory(), getParentServices(), getInstantiatorFactory());
 
-        this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
-        this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
+        getTargets().registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
 
         configurations.named(sourceSet.getCompileOnlyConfigurationName(), compileOnly -> compileOnly.fromDependencyCollector(getDependencies().getCompileOnly()));
         configurations.named(sourceSet.getImplementationConfigurationName(), implementation -> implementation.fromDependencyCollector(getDependencies().getImplementation()));
@@ -105,9 +103,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
         addDefaultTestTarget();
 
-        this.targets.withType(JvmTestSuiteTarget.class).configureEach(target -> {
-            target.getTestTask().configure(this::initializeTestFramework);
-        });
+        getTargets().withType(JvmTestSuiteTarget.class).configureEach(target -> target.getTestTask().configure(this::initializeTestFramework));
 
         addTestFrameworkDependenciesToDependencies();
     }
@@ -133,7 +129,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             target = getName(); // For now, we'll just name the test task for the single target for the suite with the suite name
         }
 
-        targets.register(target);
+        getTargets().register(target);
     }
 
     protected abstract Property<JvmTestToolchain<?>> getTestToolchain();
@@ -166,9 +162,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     }
 
     @Override
-    public ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> getTargets() {
-        return targets;
-    }
+    public abstract ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> getTargets();
 
     @Override
     public void useJUnit() {
