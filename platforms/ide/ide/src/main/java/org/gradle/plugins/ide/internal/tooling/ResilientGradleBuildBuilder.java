@@ -16,13 +16,13 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.composite.BuildIncludeListener;
-import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.plugins.ide.internal.tooling.model.BasicGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleBuild;
@@ -51,8 +51,7 @@ public class ResilientGradleBuildBuilder extends GradleBuildBuilder {
         try {
             target.ensureProjectsLoaded();
             return null;
-        } catch (LocationAwareException e) {
-//            System.err.println(e.getMessage());
+        } catch (GradleException e) {
             if (e.getCause() instanceof org.gradle.kotlin.dsl.support.ScriptCompilationException) {
                 brokenBuilds.putAll(failedIncludedBuildsRegistry.getBrokenBuilds());
                 brokenSettings.putAll(failedIncludedBuildsRegistry.getBrokenSettings());
@@ -94,7 +93,7 @@ public class ResilientGradleBuildBuilder extends GradleBuildBuilder {
             addFailedBuilds(targetBuild, all, model);
             addIncludedBuilds(gradle, model, all);
         } catch (IllegalStateException e) {
-            System.err.println("IllegalState " + e.getMessage());
+            //ignore, happens when included builds are not accessible, but we need this for resiliency
         }
         iterateParents(targetBuild, all, gradle, model);
         return model;

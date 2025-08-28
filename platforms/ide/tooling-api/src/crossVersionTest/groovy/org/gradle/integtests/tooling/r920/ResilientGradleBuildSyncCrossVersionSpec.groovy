@@ -56,9 +56,6 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         model.build.didItFail()
         model.build.failure != null
         model.build.failure.toString().contains("Script compilation error")
-//        model.build.problems.size() == 1
-//        model.build.problems.get(0).definition.id.displayName.contains("Kotlin DSL script compilation")
-//            .message.contains("Script compilation error")
     }
 
     def "basic project - broken root build file with build action"() {
@@ -199,8 +196,6 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
                     System.err.println("Build failed: " + b.failure);
                 }
             }
-//        KotlinDslScriptsModel buildScriptModel = controller.getModel(KotlinDslScriptsModel.class);
-
 
             def paths = build.projects.collect { project ->
                 project.buildTreePath
