@@ -98,7 +98,9 @@ public abstract class FindBadMultiLangSnippets extends DefaultTask {
                 continue;
             }
 
-            if (!inExample) continue;
+            if (!inExample) {
+                continue;
+            }
 
             if (line.equals("[.multi-language-sample]")) {
                 int headerLine = i + 1; // 1-based
@@ -113,11 +115,17 @@ public abstract class FindBadMultiLangSnippets extends DefaultTask {
                     }
                     if (sourceLang == null) {
                         String parsed = parseSourceLang(look);
-                        if (parsed != null) sourceLang = parsed;
+                        if (parsed != null) {
+                            sourceLang = parsed;
+                        }
                     }
 
-                    if (filename != null && sourceLang != null) break;
-                    if (look.equals("[.multi-language-sample]") || look.equals("====")) break;
+                    if (filename != null && sourceLang != null) {
+                        break;
+                    }
+                    if (look.equals("[.multi-language-sample]") || look.equals("====")) {
+                        break;
+                    }
                 }
 
                 Language detected = deduceLanguage(filename, sourceLang);
@@ -141,10 +149,14 @@ public abstract class FindBadMultiLangSnippets extends DefaultTask {
         for (Snippet s : snippets) {
             if (s.lang != Language.UNKNOWN) {
                 pair.add(s);
-                if (pair.size() == 2) break;
+                if (pair.size() == 2) {
+                    break;
+                }
             }
         }
-        if (pair.size() < 2) return;
+        if (pair.size() < 2) {
+            return;
+        }
 
         if (pair.get(0).lang == Language.GROOVY && pair.get(1).lang == Language.KOTLIN) {
             addError(errors, file, new Error(pair.get(0).line,
@@ -153,12 +165,16 @@ public abstract class FindBadMultiLangSnippets extends DefaultTask {
     }
 
     private static String parseSourceLang(String lineTrimmed) {
-        if (!lineTrimmed.startsWith("[source")) return null;
+        if (!lineTrimmed.startsWith("[source")) {
+            return null;
+        }
         int comma = lineTrimmed.indexOf(',');
         int close = lineTrimmed.indexOf(']');
         if (comma >= 0 && close > comma) {
             String lang = lineTrimmed.substring(comma + 1, close).trim().toLowerCase(Locale.ROOT);
-            if (!lang.isEmpty()) return lang;
+            if (!lang.isEmpty()) {
+                return lang;
+            }
         }
         return null;
     }
@@ -166,12 +182,20 @@ public abstract class FindBadMultiLangSnippets extends DefaultTask {
     private static Language deduceLanguage(String filename, String sourceLang) {
         // Prefer filename if present; otherwise source; no mismatch checking.
         if (filename != null) {
-            if (filename.endsWith(".kts")) return Language.KOTLIN;
-            if (filename.equals(".build.gradle")) return Language.GROOVY;
+            if (filename.endsWith(".kts")) {
+                return Language.KOTLIN;
+            }
+            if (filename.equals(".build.gradle")) {
+                return Language.GROOVY;
+            }
         }
         if (sourceLang != null) {
-            if ("kotlin".equalsIgnoreCase(sourceLang)) return Language.KOTLIN;
-            if ("groovy".equalsIgnoreCase(sourceLang)) return Language.GROOVY;
+            if ("kotlin".equalsIgnoreCase(sourceLang)) {
+                return Language.KOTLIN;
+            }
+            if ("groovy".equalsIgnoreCase(sourceLang)) {
+                return Language.GROOVY;
+            }
         }
         return Language.UNKNOWN;
     }
