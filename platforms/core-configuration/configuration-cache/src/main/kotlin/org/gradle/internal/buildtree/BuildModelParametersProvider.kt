@@ -47,11 +47,11 @@ object BuildModelParametersProvider {
     private
     val modelProjectDependencies = InternalFlag("org.gradle.internal.model-project-dependencies", true)
 
-    private
+    @JvmStatic
     val isolatedProjectsConfigureOnDemand =
         InvocationScenarioParameter.Option("org.gradle.internal.isolated-projects.configure-on-demand", InvocationScenarioParameter.NONE)
 
-    private
+    @JvmStatic
     val isolatedProjectsParallel =
         InvocationScenarioParameter.Option("org.gradle.internal.isolated-projects.parallel", InvocationScenarioParameter.ANY)
 
@@ -59,6 +59,7 @@ object BuildModelParametersProvider {
     val resilientModelBuilding =
         InternalFlag("org.gradle.internal.resilient-model-building", false)
 
+    @JvmStatic
     fun parameters(
         requirements: BuildActionModelRequirements,
         startParameter: StartParameterInternal,
@@ -149,6 +150,7 @@ object BuildModelParametersProvider {
      *
      * @see org.gradle.internal.build.NestedRootBuildRunner
      */
+    @JvmStatic
     fun parametersForNestedBuildTree(startParameter: StartParameterInternal): BuildModelParameters {
         return DefaultBuildModelParameters(
             requiresToolingModels = true,
