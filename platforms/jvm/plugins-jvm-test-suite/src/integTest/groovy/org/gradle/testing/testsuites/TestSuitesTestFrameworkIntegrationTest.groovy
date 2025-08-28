@@ -36,12 +36,12 @@ class TestSuitesTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
                 test {
                     useJUnit()
                 }
-                integTest(JvmTestSuite) // implicitly uses JUnit Jupiter
+                integTest(JvmTestSuite) { // implicitly uses JUnit Jupiter
+                    tasks.named('check') {
+                        dependsOn targets.integTest.testTask
+                    }
+                }
             }
-        }
-
-        tasks.named('check') {
-            dependsOn testing.suites.integTest
         }
         """
 
@@ -102,12 +102,11 @@ class TestSuitesTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
                 }
                 integTest(JvmTestSuite) {
                     useTestNG()
+                    tasks.named('check') {
+                      dependsOn targets.integTest.testTask
+                    }
                 }
             }
-        }
-
-        tasks.named('check') {
-            dependsOn testing.suites.integTest
         }
         """
 

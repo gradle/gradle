@@ -21,7 +21,6 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.tasks.JvmConstants;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.jvm.JvmComponentDependencies;
@@ -32,7 +31,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.testing.toolchains.internal.FrameworkCachingJvmTestToolchain;
 import org.gradle.api.testing.toolchains.internal.JUnit4TestToolchain;
@@ -73,14 +71,12 @@ import static org.gradle.internal.Cast.uncheckedCast;
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private final SourceSet sourceSet;
     private final String name;
-    private final TaskDependencyFactory taskDependencyFactory;
     private final ToolchainFactory toolchainFactory;
 
     @Inject
-    public DefaultJvmTestSuite(String name, SourceSetContainer sourceSets, ConfigurationContainer configurations, TaskDependencyFactory taskDependencyFactory) {
+    public DefaultJvmTestSuite(String name, SourceSetContainer sourceSets, ConfigurationContainer configurations) {
         this.name = name;
         this.sourceSet = sourceSets.create(getName());
-        this.taskDependencyFactory = taskDependencyFactory;
         this.toolchainFactory = new ToolchainFactory(getObjectFactory(), getParentServices(), getInstantiatorFactory());
 
         getTargets().registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
@@ -283,13 +279,6 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     @Override
     public void dependencies(Action<? super JvmComponentDependencies> action) {
         action.execute(getDependencies());
-    }
-
-    @Override
-    public TaskDependency getBuildDependencies() {
-        return taskDependencyFactory.visitingDependencies(context -> {
-            getTargets().forEach(context::add);
-        });
     }
 
     /**
