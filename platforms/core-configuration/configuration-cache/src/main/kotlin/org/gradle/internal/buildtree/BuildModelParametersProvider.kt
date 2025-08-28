@@ -52,6 +52,10 @@ object BuildModelParametersProvider {
         InvocationScenarioParameter.Option("org.gradle.internal.isolated-projects.configure-on-demand", InvocationScenarioParameter.NONE)
 
     private
+    val isolatedProjectsParallel =
+        InvocationScenarioParameter.Option("org.gradle.internal.isolated-projects.parallel", InvocationScenarioParameter.ANY)
+
+    private
     val resilientModelBuilding =
         InternalFlag("org.gradle.internal.resilient-model-building", false)
 
@@ -62,24 +66,34 @@ object BuildModelParametersProvider {
     ): BuildModelParameters {
 
         val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
-        val requiresTasks = requirements.isRunsTasks
-        val isolatedProjects = startParameter.isolatedProjects.get()
-        val parallelProjectExecution = isolatedProjects || requirements.startParameter.isParallelProjectExecutionEnabled
-        val parallelToolingActions = parallelProjectExecution && options.getOption(parallelBuilding).get()
-        val invalidateCoupledProjects = isolatedProjects && options.getOption(invalidateCoupledProjects).get()
-        val modelAsProjectDependency = isolatedProjects && options.getOption(modelProjectDependencies).get()
-        val resilientModelBuilding = options.getOption(resilientModelBuilding).get()
+        val requiresModels = requirements.isCreatesModel
 
-        return if (requirements.isCreatesModel) {
-            val configureOnDemand = isolatedProjects &&
-                options[isolatedProjectsConfigureOnDemand].buildingModels &&
-                (!requiresTasks || options[isolatedProjectsConfigureOnDemand].runningTasks)
+        val isolatedProjects = startParameter.isolatedProjects.get()
+        val configureOnDemand =
+            if (isolatedProjects) isolatedProjectsConfigureOnDemand.forInvocation(requirements, options)
+            else !requiresModels && startParameter.isConfigureOnDemand
+
+        // --parallel
+        val vintageParallel = requirements.startParameter.isParallelProjectExecutionEnabled
+        val parallelIsolatedProjectsAllowed = isolatedProjectsParallel.forInvocation(requirements, options)
+        val parallelProjectConfiguration = isolatedProjects && parallelIsolatedProjectsAllowed
+        val parallelProjectExecution =
+            if (isolatedProjects) parallelIsolatedProjectsAllowed
+            else vintageParallel
+
+        val parallelToolingActions = parallelProjectExecution && options[parallelBuilding]
+        val invalidateCoupledProjects = isolatedProjects && options[invalidateCoupledProjects]
+        val modelAsProjectDependency = isolatedProjects && options[modelProjectDependencies]
+        val resilientModelBuilding = options[resilientModelBuilding]
+
+        return if (requiresModels) {
             DefaultBuildModelParameters(
                 requiresToolingModels = true,
                 parallelProjectExecution = parallelProjectExecution,
                 configureOnDemand = configureOnDemand,
                 configurationCache = isolatedProjects,
                 isolatedProjects = isolatedProjects,
+                parallelProjectConfiguration = parallelProjectConfiguration,
                 intermediateModelCache = isolatedProjects,
                 parallelToolingApiActions = parallelToolingActions,
                 invalidateCoupledProjects = invalidateCoupledProjects,
@@ -88,9 +102,6 @@ object BuildModelParametersProvider {
             )
         } else {
             val configurationCache = isolatedProjects || startParameter.configurationCache.get()
-            val configureOnDemand =
-                if (isolatedProjects) options[isolatedProjectsConfigureOnDemand].runningTasks
-                else startParameter.isConfigureOnDemand
 
             fun disabledConfigurationCacheBuildModelParameters(buildOptionReason: String): BuildModelParameters {
                 logger.log(configurationCacheLogLevel, "{} as configuration cache cannot be reused due to --{}", requirements.actionDisplayName.capitalizedDisplayName, buildOptionReason)
@@ -100,6 +111,7 @@ object BuildModelParametersProvider {
                     configureOnDemand = configureOnDemand,
                     configurationCache = false,
                     isolatedProjects = false,
+                    parallelProjectConfiguration = parallelProjectConfiguration,
                     intermediateModelCache = false,
                     parallelToolingApiActions = parallelToolingActions,
                     invalidateCoupledProjects = invalidateCoupledProjects,
@@ -119,6 +131,7 @@ object BuildModelParametersProvider {
                     configureOnDemand = configureOnDemand,
                     configurationCache = configurationCache,
                     isolatedProjects = isolatedProjects,
+                    parallelProjectConfiguration = parallelProjectConfiguration,
                     intermediateModelCache = false,
                     parallelToolingApiActions = parallelToolingActions,
                     invalidateCoupledProjects = invalidateCoupledProjects,
@@ -143,6 +156,7 @@ object BuildModelParametersProvider {
             configureOnDemand = startParameter.isConfigureOnDemand,
             configurationCache = false,
             isolatedProjects = false,
+            parallelProjectConfiguration = false,
             intermediateModelCache = false,
             parallelToolingApiActions = false,
             invalidateCoupledProjects = false,
@@ -151,5 +165,16 @@ object BuildModelParametersProvider {
         )
     }
 
-    private operator fun <T> InternalOptions.get(option: InternalOption<T>): T = getOption(option).get()
+    private
+    fun InvocationScenarioParameter.Option.forInvocation(
+        requirements: BuildActionModelRequirements,
+        options: InternalOptions
+    ): Boolean {
+        val value = options[this]
+        return (!requirements.isCreatesModel || value.buildingModels) &&
+            (!requirements.isRunsTasks || value.runningTasks)
+    }
+
+    private
+    operator fun <T> InternalOptions.get(option: InternalOption<T>): T = getOption(option).get()
 }
