@@ -173,6 +173,56 @@ class BuildModelParametersProviderTest extends Specification {
         description = tasks && models ? "running tasks and building models" : (tasks ? 'running tasks' : 'building models')
     }
 
+    def "parameters when isolated projects are enabled for #description with caching-ip=#ipCaching"() {
+        given:
+        def params = parameters(runsTasks: tasks, createsModel: models) {
+            isolatedProjects = Option.Value.value(true)
+            systemPropertiesArgs[BuildModelParametersProvider.isolatedProjectsCaching.systemPropertyName] = ipCaching
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), [
+            requiresToolingModels: models,
+            configureOnDemand: false,
+            parallelProjectExecution: true,
+            configurationCache: true,
+            configurationCacheParallelStore: true,
+            configurationCacheParallelLoad: true,
+            isolatedProjects: true,
+            parallelProjectConfiguration: true,
+            parallelToolingApiActions: true,
+            intermediateModelCache: ipCachingExpected,
+            invalidateCoupledProjects: true,
+            modelAsProjectDependency: true,
+            resilientModelBuilding: false
+        ])
+
+        where:
+        tasks | models | ipCaching | ipCachingExpected
+        true  | false  | "tooling" | false
+        true  | false  | "false"   | false
+        false | true   | "tooling" | true
+        false | true   | "false"   | false
+        true  | true   | "tooling" | true
+        true  | true   | "false"   | false
+
+        description = tasks && models ? "running tasks and building models" : (tasks ? 'running tasks' : 'building models')
+    }
+
+    def "caching-ip parameter is unsupported for #value"() {
+        when:
+        parameters(runsTasks: true, createsModel: false) {
+            systemPropertiesArgs[BuildModelParametersProvider.isolatedProjectsCaching.systemPropertyName] = value
+        }
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.startsWith("Unsupported value for 'org.gradle.internal.isolated-projects.caching' option")
+
+        where:
+        value << ['true', 'tasks']
+    }
+
     private BuildModelParameters parameters(
         Map args,
         @DelegatesTo(StartParameterInternal)
