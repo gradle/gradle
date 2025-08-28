@@ -43,7 +43,7 @@ public class DefaultGradleBuild implements Serializable, GradleBuildIdentity {
 
     public DefaultGradleBuild setRootProject(PartialBasicGradleProject rootProject) {
         this.rootProject = rootProject;
-        this.setBuildIdentifier(new DefaultBuildIdentifier(rootProject.getRootDir()));
+        this.buildIdentifier = new DefaultBuildIdentifier(rootProject.getRootDir());
         return this;
     }
 

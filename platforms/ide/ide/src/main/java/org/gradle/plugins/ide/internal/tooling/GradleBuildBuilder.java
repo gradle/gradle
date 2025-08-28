@@ -113,7 +113,7 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
     }
 
     protected BasicGradleProject convert(BuildState owner, ProjectState project, Map<ProjectState, BasicGradleProject> convertedProjects) {
-        DefaultProjectIdentifier id = new DefaultProjectIdentifier(owner.getBuildRootDir(), project.getProjectPath().getPath());
+        DefaultProjectIdentifier id = new DefaultProjectIdentifier(owner.getBuildRootDir(), project.getProjectPath().asString());
         BasicGradleProject converted = new BasicGradleProject()
             .setName(project.getName())
             .setProjectIdentifier(id)
