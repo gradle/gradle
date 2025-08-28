@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl
+package org.gradle.internal.buildtree
 
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.InternalFlag
-import org.gradle.internal.buildtree.BuildActionModelRequirements
-import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.base.logger
-import org.gradle.internal.cc.impl.services.DefaultBuildModelParameters
 
 internal
 object BuildModelParametersProvider {
