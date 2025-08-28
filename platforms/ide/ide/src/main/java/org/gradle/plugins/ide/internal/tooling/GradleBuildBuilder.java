@@ -51,9 +51,8 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
         return convert(target, new LinkedHashMap<>());
     }
 
-    protected Throwable ensureProjectsLoaded(BuildState target) {
+    protected void ensureProjectsLoaded(BuildState target) {
         target.ensureProjectsLoaded();
-        return null;
     }
 
     protected DefaultGradleBuild convert(BuildState targetBuild, Map<BuildState, DefaultGradleBuild> all) {

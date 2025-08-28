@@ -53,15 +53,14 @@ public class ResilientGradleBuildBuilder extends GradleBuildBuilder {
     }
 
     @Override
-    protected Throwable ensureProjectsLoaded(BuildState target) {
+    protected void ensureProjectsLoaded(BuildState target) {
         try {
             target.ensureProjectsLoaded();
-            return null;
         } catch (GradleException e) {
             if (e.getCause() instanceof org.gradle.kotlin.dsl.support.ScriptCompilationException) {
                 brokenBuilds.putAll(failedIncludedBuildsRegistry.getBrokenBuilds());
                 brokenSettings.putAll(failedIncludedBuildsRegistry.getBrokenSettings());
-                return e.getCause();
+                return;
             }
             throw e;
         }
