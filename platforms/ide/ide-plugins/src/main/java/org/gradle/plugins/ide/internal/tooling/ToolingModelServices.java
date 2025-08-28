@@ -29,7 +29,6 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.plugins.ide.internal.configurer.DefaultUniqueProjectNameProvider;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
-import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
@@ -71,7 +70,8 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
                     registry.register(new EclipseModelBuilder(gradleProjectBuilder, projectStateRegistry));
                     registry.register(ideaModelBuilder);
                     registry.register(gradleProjectBuilder);
-                    registry.register(createGradleBuildBuiler(buildModelParameters, buildStateRegistry, failedIncludedBuildsRegistry));
+                    registry.register(new ResilientGradleBuildBuilder(buildStateRegistry, failedIncludedBuildsRegistry));
+                    registry.register(new GradleBuildBuilder(buildStateRegistry));
                     registry.register(new BasicIdeaModelBuilder(ideaModelBuilder));
                     registry.register(new BuildInvocationsBuilder(taskLister));
                     registry.register(new PublicationsBuilder(projectPublicationRegistry));
@@ -90,17 +90,6 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
                     return isolatedProjects ? new IsolatedProjectsSafeGradleProjectBuilder(intermediateToolingModelProvider) : new GradleProjectBuilder();
                 }
             };
-        }
-
-        private static ToolingModelBuilder createGradleBuildBuiler(
-            BuildModelParameters buildModelParameters,
-            BuildStateRegistry buildStateRegistry,
-            BuildIncludeListener failedIncludedBuildsRegistry
-        ) {
-            if (buildModelParameters.isResilientModelBuilding()) {
-                return new ResilientGradleBuildBuilder(buildStateRegistry, failedIncludedBuildsRegistry);
-            }
-            return new GradleBuildBuilder(buildStateRegistry);
         }
     }
 }
