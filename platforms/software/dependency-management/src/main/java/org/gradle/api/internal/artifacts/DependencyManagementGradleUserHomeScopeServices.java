@@ -29,6 +29,7 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.Cache;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategyFactory;
+import org.gradle.cache.FileLockManager;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -96,13 +97,13 @@ public class DependencyManagementGradleUserHomeScopeServices implements ServiceR
         FileAccessTimeJournal fileAccessTimeJournal,
         CacheConfigurationsInternal cacheConfigurations,
         CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
-        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
+        FileLockManager fileLockManager
     ) {
         CacheBuilder cacheBuilder = cacheBuilderFactory
             .createCacheBuilder(CacheLayout.TRANSFORMS.getName())
             .withDisplayName("Artifact transforms cache");
         CrossBuildInMemoryCache<UnitOfWork.Identity, ExecutionEngine.IdentityCacheResult<TransformExecutionResult.TransformWorkspaceResult>> identityCache = crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(result -> result.getResult().isSuccessful());
-        CacheBasedImmutableWorkspaceProvider workspaceProvider = CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(cacheBuilder, fileAccessTimeJournal, cacheConfigurations, cacheCleanupStrategyFactory, unscopedCacheBuilderFactory);
+        CacheBasedImmutableWorkspaceProvider workspaceProvider = CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(cacheBuilder, fileAccessTimeJournal, cacheConfigurations, cacheCleanupStrategyFactory, fileLockManager);
         return new ImmutableTransformWorkspaceServices() {
             @Override
             public ImmutableWorkspaceProvider getWorkspaceProvider() {
