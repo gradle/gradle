@@ -235,10 +235,12 @@ class ToolingApi implements TestRule {
             error = new TeeOutputStream(stderr, System.err)
         }
 
-        Jvm jvm = dist.daemonWorksWith(Jvm.current().javaVersionMajor) ? Jvm.current() :
-            AvailableJavaHomes.getAvailableJdk { dist.daemonWorksWith(it.javaMajorVersion) }
 
-        Assume.assumeThat("JVM compatible with the distribution daemon", jvm, IsNot.not(null));
+        Jvm jvm = null
+        if (!dist.daemonWorksWith(Jvm.current().javaVersionMajor)) {
+            jvm = AvailableJavaHomes.getAvailableJdk { dist.daemonWorksWith(it.javaMajorVersion) }
+            Assume.assumeThat("JVM compatible with the distribution daemon", jvm, IsNot.not(null));
+        }
 
         return new ToolingApiConnector(connector, jvm?.javaHome, output, error)
     }
