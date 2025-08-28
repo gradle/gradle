@@ -21,6 +21,8 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.InternalFlag
+import org.gradle.internal.buildoption.InternalOption
+import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.cc.base.logger
 
 
@@ -46,12 +48,8 @@ object BuildModelParametersProvider {
     val modelProjectDependencies = InternalFlag("org.gradle.internal.model-project-dependencies", true)
 
     private
-    val isolatedProjectsToolingModelsConfigureOnDemand =
-        InternalFlag("org.gradle.internal.isolated-projects.configure-on-demand.tooling", false)
-
-    private
-    val isolatedProjectsTasksConfigureOnDemand =
-        InternalFlag("org.gradle.internal.isolated-projects.configure-on-demand.tasks", false)
+    val isolatedProjectsConfigureOnDemand =
+        InvocationScenarioParameter.Option("org.gradle.internal.isolated-projects.configure-on-demand", InvocationScenarioParameter.NONE)
 
     private
     val resilientModelBuilding =
@@ -74,8 +72,8 @@ object BuildModelParametersProvider {
 
         return if (requirements.isCreatesModel) {
             val configureOnDemand = isolatedProjects &&
-                options.getOption(isolatedProjectsToolingModelsConfigureOnDemand).get() &&
-                (!requiresTasks || options.getOption(isolatedProjectsTasksConfigureOnDemand).get())
+                options[isolatedProjectsConfigureOnDemand].buildingModels &&
+                (!requiresTasks || options[isolatedProjectsConfigureOnDemand].runningTasks)
             DefaultBuildModelParameters(
                 requiresToolingModels = true,
                 parallelProjectExecution = parallelProjectExecution,
@@ -91,7 +89,7 @@ object BuildModelParametersProvider {
         } else {
             val configurationCache = isolatedProjects || startParameter.configurationCache.get()
             val configureOnDemand =
-                if (isolatedProjects) options.getOption(isolatedProjectsTasksConfigureOnDemand).get()
+                if (isolatedProjects) options[isolatedProjectsConfigureOnDemand].runningTasks
                 else startParameter.isConfigureOnDemand
 
             fun disabledConfigurationCacheBuildModelParameters(buildOptionReason: String): BuildModelParameters {
@@ -152,4 +150,6 @@ object BuildModelParametersProvider {
             resilientModelBuilding = false
         )
     }
+
+    private operator fun <T> InternalOptions.get(option: InternalOption<T>): T = getOption(option).get()
 }

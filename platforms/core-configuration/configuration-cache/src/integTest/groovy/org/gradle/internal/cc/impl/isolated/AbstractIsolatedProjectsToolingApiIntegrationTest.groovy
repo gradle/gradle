@@ -23,7 +23,7 @@ import org.gradle.internal.cc.impl.fixtures.ToolingApiSpec
 
 class AbstractIsolatedProjectsToolingApiIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements ToolingApiSpec, ProjectDirectoryCreator {
 
-    static final String CONFIGURE_ON_DEMAND_FOR_TOOLING = "-Dorg.gradle.internal.isolated-projects.configure-on-demand.tooling=true"
+    static final String CONFIGURE_ON_DEMAND_FOR_TOOLING = "-Dorg.gradle.internal.isolated-projects.configure-on-demand=tooling"
 
     @Override
     void withIsolatedProjects(String... moreExecuterArgs) {
