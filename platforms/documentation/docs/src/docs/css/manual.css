@@ -1669,6 +1669,11 @@ body.dark-theme {
     }
 
     body.light-theme {
+        * {
+          scrollbar-width: auto;
+          scrollbar-color: #686868 #e7e7e9;
+        }
+
         .docs-navigation {
             scrollbar-width: auto;
             scrollbar-color: #686868 #e7e7e9;
@@ -1919,7 +1924,6 @@ details p {
 .listingblock pre:not(.highlight),
 .listingblock pre[class="highlight"],
 .listingblock pre[class^="highlight "],
-.listingblock pre.CodeRay,
 .listingblock pre.prettyprint {
 	background: var(--code-color);
 }
@@ -1928,7 +1932,6 @@ details p {
 .sidebarblock .listingblock pre:not(.highlight),
 .sidebarblock .listingblock pre[class="highlight"],
 .sidebarblock .listingblock pre[class^="highlight "],
-.sidebarblock .listingblock pre.CodeRay,
 .sidebarblock .listingblock pre.prettyprint {
 	background: #f2f1f1;
 }
