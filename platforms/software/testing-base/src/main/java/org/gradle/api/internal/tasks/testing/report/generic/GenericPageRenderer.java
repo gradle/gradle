@@ -40,8 +40,8 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
         }
         // We know we're emitting to the file system, so let's just use NIO Path to do the path manipulation.
         // We need the `.` for relative resolution to work properly
-        java.nio.file.Path relativePath = Paths.get("./" + GenericHtmlTestReport.getFilePath(originatingPath)).getParent()
-            .relativize(Paths.get("./" + GenericHtmlTestReport.getFilePath(targetPath)));
+        java.nio.file.Path relativePath = Paths.get("./" + GenericHtmlTestReportGenerator.getFilePath(originatingPath)).getParent()
+            .relativize(Paths.get("./" + GenericHtmlTestReportGenerator.getFilePath(targetPath)));
         // Escape things that aren't `/` for the URL
         StringBuilder url = new StringBuilder();
         for (java.nio.file.Path segment : relativePath) {
