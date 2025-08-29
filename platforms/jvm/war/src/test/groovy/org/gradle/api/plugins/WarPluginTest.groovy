@@ -43,7 +43,6 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         providedCompileConfiguration.extendsFrom  == [] as Set
-        !providedCompileConfiguration.visible
         providedCompileConfiguration.transitive
 
         when:
@@ -51,7 +50,6 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         providedRuntimeConfiguration.extendsFrom == [providedCompileConfiguration] as Set
-        !providedRuntimeConfiguration.visible
         providedRuntimeConfiguration.transitive
 
     }
@@ -74,8 +72,6 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
     }
 
     def "depends on runtime config"() {
-        TestUtil.initDeprecationLogger("because archives configuration is deprecated")
-
         given:
         project.pluginManager.apply(WarPlugin)
 

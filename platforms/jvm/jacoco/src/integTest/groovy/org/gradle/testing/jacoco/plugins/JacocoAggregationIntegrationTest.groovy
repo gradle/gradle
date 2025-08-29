@@ -571,7 +571,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':direct:test'.")
             .assertThatCause(startsWith("There were failing tests"))
-        result.assertTaskNotExecuted(':application:testCodeCoverageReport"')
+        result.assertTasksNotScheduled(':application:testCodeCoverageReport"')
 
         file("application/build/reports/jacoco/testCodeCoverageReport/html/index.html").assertDoesNotExist()
         file("application/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml").assertDoesNotExist()
@@ -600,10 +600,10 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         def result = fails(":application:testCodeCoverageReport", "--continue")
 
         then:
-        result.assertTaskExecuted(':direct:test')
-        result.assertTaskExecuted(':transitive:test')
-        result.assertTaskExecuted(':application:test')
-        result.assertTaskExecuted(':application:testCodeCoverageReport')
+        result.assertTaskScheduled(':direct:test')
+        result.assertTaskScheduled(':transitive:test')
+        result.assertTaskScheduled(':application:test')
+        result.assertTaskScheduled(':application:testCodeCoverageReport')
 
         file("direct/build/jacoco/test.exec").assertExists()
         file("transitive/build/jacoco/test.exec").assertExists()
@@ -642,10 +642,10 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         def result = fails(":application:testCodeCoverageReport", "--continue")
 
         then:
-        result.assertTaskExecuted(':direct:test')
-        result.assertTaskExecuted(':transitive:test')
-        result.assertTaskExecuted(':application:test')
-        result.assertTaskNotExecuted(':application:testCodeCoverageReport')
+        result.assertTaskScheduled(':direct:test')
+        result.assertTaskScheduled(':transitive:test')
+        result.assertTaskScheduled(':application:test')
+        result.assertTasksNotScheduled(':application:testCodeCoverageReport')
 
         file("direct/build/jacoco/test.exec").assertExists()
         file("transitive/build/jacoco/test.exec").assertExists()
@@ -682,10 +682,10 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         def result = fails(":application:testCodeCoverageReport", "--continue")
 
         then:
-        result.assertTaskNotExecuted(':direct:test')
-        result.assertTaskNotExecuted(':transitive:test')
-        result.assertTaskNotExecuted(':application:test')
-        result.assertTaskNotExecuted(':application:testCodeCoverageReport')
+        result.assertTasksNotScheduled(':direct:test')
+        result.assertTasksNotScheduled(':transitive:test')
+        result.assertTasksNotScheduled(':application:test')
+        result.assertTasksNotScheduled(':application:testCodeCoverageReport')
 
         file("direct/build/jacoco/test.exec").assertDoesNotExist()
         file("transitive/build/jacoco/test.exec").assertDoesNotExist()

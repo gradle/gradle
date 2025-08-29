@@ -17,9 +17,9 @@ description = "Provides a platform dependency to align all distribution versions
 
 val antVersion = "1.10.15"
 // Don't forget to bump versions in
-// subprojects/base-services/src/main/java/org/gradle/internal/classanalysis/AsmConstants.java
+// platforms/core-runtime/base-asm/src/main/java/org/gradle/model/internal/asm/AsmConstants.java
 // when upgrading ASM.
-val asmVersion = "9.7.1"
+val asmVersion = "9.8"
 val awsS3Version = "1.12.780"
 val bouncycastleVersion = "1.81"
 val hamcrestVersion = "3.0"
@@ -182,7 +182,6 @@ dependencies {
         // TODO upgrade this AGP version to recent version
         api(libs.agp)                   { version { strictly("3.0.0"); because("We use 3.0.0 for internal performance test") }}
         api(libs.xbeanReflect)          { version { strictly("3.18") }}
-        api(libs.xmlApis)               { version { strictly("1.4.01"); because("2.0.x has a POM with relocation Gradle does not handle well") }}
 
         // compile only
         api(libs.maven3Compat)          { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
@@ -223,7 +222,6 @@ dependencies {
         api(libs.mavenResolverSupplier)         { version { strictly(mavenResolverVersion) }}
         api(libs.mavenResolverTransportFile)    { version { strictly(mavenResolverVersion) }}
         api(libs.mavenResolverTransportHttp)    { version { strictly(mavenResolverVersion) }}
-        api(libs.mina)                  { version { strictly("2.0.17") }}
         api(libs.mockitoCore)           { version { strictly("5.17.0") }}
         api(libs.mockitoKotlin)         { version { strictly("4.1.0") }}
         api(libs.mockwebserver)         { version { strictly("4.12.0") }}
@@ -233,7 +231,7 @@ dependencies {
         api(libs.samplesCheck)          { version { strictly("1.0.3") }}
         api(libs.samplesDiscovery)      { version { strictly("1.0.3") }}
         api(libs.snappy)                { version { strictly("0.5") }}
-        api(libs.socksProxy)            { version { strictly("2.0.0") }}
+        api(libs.socksProxy)            { version { strictly("4.1.2") } }
         api(libs.spock)                 { version { strictly(spockVersion) }}
         api(libs.spockJUnit4)           { version { strictly(spockVersion) }}
         api(libs.sshdCore)              { version { strictly(sshdVersion) }}

@@ -90,7 +90,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private final ITaskFactory taskFactory;
     private final NamedEntityInstantiator<Task> taskInstantiator;
     private final BuildOperationRunner buildOperationRunner;
-    private final ProjectRegistry<ProjectInternal> projectRegistry;
+    private final ProjectRegistry projectRegistry;
 
     private final TaskStatistics statistics;
     private final boolean eagerlyCreateLazyTasks;
@@ -106,7 +106,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         BuildOperationRunner buildOperationRunner,
         CrossProjectConfigurator crossProjectConfigurator,
         CollectionCallbackActionDecorator callbackDecorator,
-        ProjectRegistry<ProjectInternal> projectRegistry
+        ProjectRegistry projectRegistry
     ) {
         super(Task.class, instantiator, project, crossProjectConfigurator.getLazyBehaviorGuard(), callbackDecorator);
         this.taskIdentityFactory = taskIdentityFactory;
@@ -240,7 +240,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
                     final Action<? super T> onCreate;
                     if (!taskProvider.getType().isAssignableFrom(task.getClass())) {
-                        throw new IllegalStateException("Replacing an existing task with an incompatible type is not supported.  Use a different name for this task ('" + name + "') or use a compatible type (" + ((TaskInternal) task).getTaskIdentity().type.getName() + ")");
+                        throw new IllegalStateException("Replacing an existing task with an incompatible type is not supported.  Use a different name for this task ('" + name + "') or use a compatible type (" + ((TaskInternal) task).getTaskIdentity().getTaskType().getName() + ")");
                     } else {
                         onCreate = Cast.uncheckedCast(taskProvider.getOnCreateActions().mergeFrom(getEventRegister().getAddActions()));
                     }
@@ -308,13 +308,13 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             public T call(BuildOperationContext context) {
                 try {
                     T task = createTask(identity, constructorArgs);
-                    statistics.eagerTask(identity.type);
+                    statistics.eagerTask(identity.getTaskType());
                     addTask(task, false);
                     configureAction.execute(task);
                     context.setResult(REALIZE_RESULT);
                     return task;
                 } catch (Throwable t) {
-                    throw taskCreationException(identity.name, t);
+                    throw taskCreationException(identity.getName(), t);
                 }
             }
 
@@ -329,7 +329,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (constructorArgs != null) {
             for (int i = 0; i < constructorArgs.length; i++) {
                 if (constructorArgs[i] == null) {
-                    throw new NullPointerException(String.format("Received null for %s constructor argument #%s", identity.type.getName(), i + 1));
+                    throw new NullPointerException(String.format("Received null for %s constructor argument #%s", identity.getTaskType().getName(), i + 1));
                 }
             }
         }
@@ -670,7 +670,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         private Object[] constructorArgs;
 
         public TaskCreatingProvider(TaskIdentity<I> identity, @Nullable Action<? super I> configureAction, Object... constructorArgs) {
-            super(identity.name, identity.type, configureAction);
+            super(identity.getName(), identity.getTaskType(), configureAction);
             this.identity = identity;
             this.constructorArgs = constructorArgs;
             statistics.lazyTask();
@@ -730,12 +730,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     private static BuildOperationDescriptor.Builder realizeDescriptor(TaskIdentity<?> identity, boolean replacement, boolean eager) {
-        return BuildOperationDescriptor.displayName("Realize task " + identity.identityPath)
+        return BuildOperationDescriptor.displayName("Realize task " + identity.getBuildTreePath().getPath())
             .details(new RealizeDetails(identity, replacement, eager));
     }
 
     private static BuildOperationDescriptor.Builder registerDescriptor(TaskIdentity<?> identity) {
-        return BuildOperationDescriptor.displayName("Register task " + identity.identityPath)
+        return BuildOperationDescriptor.displayName("Register task " + identity.getBuildTreePath().getPath())
             .details(new RegisterDetails(identity));
     }
 
@@ -807,17 +807,17 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         @Override
         public String getBuildPath() {
-            return identity.buildPath.toString();
+            return identity.getProjectIdentity().getBuildPath().getPath();
         }
 
         @Override
         public String getTaskPath() {
-            return identity.projectPath.toString();
+            return identity.getPath().getPath();
         }
 
         @Override
         public long getTaskId() {
-            return identity.uniqueId;
+            return identity.getId();
         }
 
         @Override
@@ -842,17 +842,17 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         @Override
         public String getBuildPath() {
-            return identity.buildPath.toString();
+            return identity.getProjectIdentity().getBuildPath().getPath();
         }
 
         @Override
         public String getTaskPath() {
-            return identity.projectPath.toString();
+            return identity.getPath().getPath();
         }
 
         @Override
         public long getTaskId() {
-            return identity.uniqueId;
+            return identity.getId();
         }
 
         @Override

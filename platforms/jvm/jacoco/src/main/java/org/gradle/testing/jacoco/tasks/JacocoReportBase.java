@@ -23,6 +23,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Classpath;
@@ -54,13 +55,6 @@ import java.util.concurrent.Callable;
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class JacocoReportBase extends JacocoBase {
 
-    private final ConfigurableFileCollection executionData = getProject().files();
-    private final ConfigurableFileCollection sourceDirectories = getProject().files();
-    private final ConfigurableFileCollection classDirectories = getProject().files();
-    private final ConfigurableFileCollection additionalClassDirs = getProject().files();
-    private final ConfigurableFileCollection additionalSourceDirs = getProject().files();
-    private final Property<String> sourceEncoding = getProject().getObjects().property(String.class);
-
     public JacocoReportBase() {
         onlyIf("Any of the execution data files exists", new Spec<Task>() {
             @Override
@@ -78,14 +72,15 @@ public abstract class JacocoReportBase extends JacocoBase {
     @Inject
     protected abstract Instantiator getInstantiator();
 
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
     /**
      * Collection of execution data files to analyze.
      */
     @PathSensitive(PathSensitivity.NONE)
     @InputFiles
-    public ConfigurableFileCollection getExecutionData() {
-        return executionData;
-    }
+    public abstract ConfigurableFileCollection getExecutionData();
 
     /**
      * Source sets that coverage should be reported for.
@@ -93,17 +88,13 @@ public abstract class JacocoReportBase extends JacocoBase {
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
-    public ConfigurableFileCollection getSourceDirectories() {
-        return sourceDirectories;
-    }
+    public abstract ConfigurableFileCollection getSourceDirectories();
 
     /**
      * Source sets that coverage should be reported for.
      */
     @Classpath
-    public ConfigurableFileCollection getClassDirectories() {
-        return classDirectories;
-    }
+    public abstract ConfigurableFileCollection getClassDirectories();
 
     /**
      * Additional class dirs that coverage data should be reported for.
@@ -112,9 +103,7 @@ public abstract class JacocoReportBase extends JacocoBase {
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
-    public ConfigurableFileCollection getAdditionalClassDirs() {
-        return additionalClassDirs;
-    }
+    public abstract ConfigurableFileCollection getAdditionalClassDirs();
 
     /**
      * Additional source dirs for the classes coverage data is being reported for.
@@ -123,9 +112,7 @@ public abstract class JacocoReportBase extends JacocoBase {
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
-    public ConfigurableFileCollection getAdditionalSourceDirs() {
-        return additionalSourceDirs;
-    }
+    public abstract ConfigurableFileCollection getAdditionalSourceDirs();
 
     /**
      * The character encoding of the source files.
@@ -135,9 +122,7 @@ public abstract class JacocoReportBase extends JacocoBase {
     @Incubating
     @Optional
     @Input
-    public Property<String> getSourceEncoding() {
-        return sourceEncoding;
-    }
+    public abstract Property<String> getSourceEncoding();
 
     /**
      * Adds execution data files to be used during coverage analysis.
@@ -145,7 +130,7 @@ public abstract class JacocoReportBase extends JacocoBase {
      * @param files one or more files to add
      */
     public void executionData(Object... files) {
-        executionData.from(files);
+        getExecutionData().from(files);
     }
 
     /**
@@ -186,7 +171,7 @@ public abstract class JacocoReportBase extends JacocoBase {
     @Internal
     @NotToBeReplacedByLazyProperty(because = "Not settable FileCollection", willBeDeprecated = true)
     public FileCollection getAllClassDirs() {
-        return classDirectories.plus(getAdditionalClassDirs());
+        return getClassDirectories().plus(getAdditionalClassDirs());
     }
 
     /**
@@ -198,7 +183,7 @@ public abstract class JacocoReportBase extends JacocoBase {
     @Internal
     @NotToBeReplacedByLazyProperty(because = "Not settable FileCollection", willBeDeprecated = true)
     public FileCollection getAllSourceDirs() {
-        return sourceDirectories.plus(getAdditionalSourceDirs());
+        return getSourceDirectories().plus(getAdditionalSourceDirs());
     }
 
     /**
@@ -209,13 +194,13 @@ public abstract class JacocoReportBase extends JacocoBase {
      */
     public void sourceSets(final SourceSet... sourceSets) {
         for (final SourceSet sourceSet : sourceSets) {
-            sourceDirectories.from(new Callable<Set<File>>() {
+            getSourceDirectories().from(new Callable<Set<File>>() {
                 @Override
                 public Set<File> call() throws Exception {
                     return sourceSet.getAllJava().getSrcDirs();
                 }
             });
-            classDirectories.from(sourceSet.getOutput());
+            getClassDirectories().from(sourceSet.getOutput());
         }
     }
 
@@ -225,7 +210,7 @@ public abstract class JacocoReportBase extends JacocoBase {
      * @param dirs one or more directories containing classes to report coverage of
      */
     public void additionalClassDirs(File... dirs) {
-        additionalClassDirs(getProject().files(Arrays.asList(dirs)));
+        additionalClassDirs(getObjectFactory().fileCollection().from(Arrays.asList(dirs)));
     }
 
     /**
@@ -234,7 +219,7 @@ public abstract class JacocoReportBase extends JacocoBase {
      * @param dirs a {@code FileCollection} of directories containing classes to report coverage of
      */
     public void additionalClassDirs(FileCollection dirs) {
-        additionalClassDirs.from(dirs);
+        getAdditionalClassDirs().from(dirs);
     }
 
     /**
@@ -243,7 +228,7 @@ public abstract class JacocoReportBase extends JacocoBase {
      * @param dirs one or more directories containing source files for the classes included in the report
      */
     public void additionalSourceDirs(File... dirs) {
-        additionalSourceDirs(getProject().files(Arrays.asList(dirs)));
+        additionalSourceDirs(getObjectFactory().fileCollection().from(Arrays.asList(dirs)));
     }
 
     /**
@@ -252,6 +237,6 @@ public abstract class JacocoReportBase extends JacocoBase {
      * @param dirs a {@code FileCollection} of directories containing source files for the classes included in the report
      */
     public void additionalSourceDirs(FileCollection dirs) {
-        additionalSourceDirs.from(dirs);
+        getAdditionalSourceDirs().from(dirs);
     }
 }

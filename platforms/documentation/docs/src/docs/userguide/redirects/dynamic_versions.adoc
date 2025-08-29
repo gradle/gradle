@@ -6,7 +6,10 @@ const redirectionRules = {
   "sub:declaring_dependency_with_dynamic_version": "dependency_versions.html#sec:dynamic-versions-and-changing-modules",
   "sub:declaring_dependency_with_changing_version": "dependency_versions.html#sec:declaring-dependency-with-changing-version",
   "sec:controlling_dependency_caching_programmatically": "dependency_caching.html#sec:dependency-cache",
-  "sec:component_selection_rules": "resolution_rules.html#sec:component-selection-rules"
+  "sec:component_selection_rules": "resolution_rules.html#sec:component-selection-rules",
+  "sec:offline-mode": "dependency_caching.html#sec:controlling-dependency-caching-command-line",
+  "sec:controlling_dependency_caching_command_line": "dependency_caching.html#sec:controlling-dependency-caching-command-line",
+  "sec:dynamic_versions_and_changing_modules": "dependency_caching.html#sec:dynamic-versions-and-changing-modules"
 };
 
 const defaultRedirect = "dependency_versions.html#sec:dynamic-versions-and-changing-modules";

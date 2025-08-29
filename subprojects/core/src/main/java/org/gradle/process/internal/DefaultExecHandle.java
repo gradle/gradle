@@ -262,6 +262,13 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
             if (!stateIn(ExecHandleState.INIT)) {
                 throw new IllegalStateException(format("Cannot start process '%s' because it has already been started", displayName));
             }
+            if (!directory.exists()) {
+                throw new IllegalArgumentException(String.format("Working directory '%s' does not exist.", directory));
+            }
+            if (!directory.isDirectory()) {
+                throw new IllegalArgumentException(String.format("Working directory '%s' is not a directory.", directory));
+            }
+
             setState(ExecHandleState.STARTING);
 
             broadcast.getSource().beforeExecutionStarted(this);

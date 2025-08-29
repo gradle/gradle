@@ -17,8 +17,6 @@ package org.gradle.util.internal;
 
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
-import org.gradle.internal.InternalTransformer;
-import org.gradle.internal.InternalTransformers;
 import org.gradle.internal.Pair;
 import org.jspecify.annotations.Nullable;
 
@@ -40,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.function.Function;
 
 import static org.gradle.internal.Cast.cast;
 import static org.gradle.internal.Cast.castNullable;
@@ -157,28 +156,28 @@ public abstract class CollectionUtils {
         return destination;
     }
 
-    public static <R, I> R[] collectArray(I[] list, Class<R> newType, InternalTransformer<? extends R, ? super I> transformer) {
+    public static <R, I> R[] collectArray(I[] list, Class<R> newType, Function<? super I, ? extends R> transformer) {
         @SuppressWarnings("unchecked") R[] destination = (R[]) Array.newInstance(newType, list.length);
         return collectArray(list, destination, transformer);
     }
 
-    public static <R, I> R[] collectArray(I[] list, R[] destination, InternalTransformer<? extends R, ? super I> transformer) {
+    public static <R, I> R[] collectArray(I[] list, R[] destination, Function<? super I, ? extends R> transformer) {
         assert list.length <= destination.length;
         for (int i = 0; i < list.length; ++i) {
-            destination[i] = transformer.transform(list[i]);
+            destination[i] = transformer.apply(list[i]);
         }
         return destination;
     }
 
-    public static <R, I> List<R> collect(I[] list, InternalTransformer<? extends R, ? super I> transformer) {
+    public static <R, I> List<R> collect(I[] list, Function<? super I, ? extends R> transformer) {
         return collect(Arrays.asList(list), transformer);
     }
 
-    public static <R, I> Set<R> collect(Set<? extends I> set, InternalTransformer<? extends R, ? super I> transformer) {
+    public static <R, I> Set<R> collect(Set<? extends I> set, Function<? super I, ? extends R> transformer) {
         return collect(set, new HashSet<R>(set.size()), transformer);
     }
 
-    public static <R, I> List<R> collect(Iterable<? extends I> source, InternalTransformer<? extends R, ? super I> transformer) {
+    public static <R, I> List<R> collect(Iterable<? extends I> source, Function<? super I, ? extends R> transformer) {
         if (source instanceof Collection<?>) {
             Collection<? extends I> collection = uncheckedNonnullCast(source);
             return collect(source, new ArrayList<R>(collection.size()), transformer);
@@ -187,15 +186,15 @@ public abstract class CollectionUtils {
         }
     }
 
-    public static <R, I, C extends Collection<R>> C collect(Iterable<? extends I> source, C destination, InternalTransformer<? extends R, ? super I> transformer) {
+    public static <R, I, C extends Collection<R>> C collect(Iterable<? extends I> source, C destination, Function<? super I, ? extends R> transformer) {
         for (I item : source) {
-            destination.add(transformer.transform(item));
+            destination.add(transformer.apply(item));
         }
         return destination;
     }
 
     public static List<String> toStringList(Iterable<?> iterable) {
-        return collect(iterable, new LinkedList<String>(), InternalTransformers.asString());
+        return stringize(iterable, new LinkedList<>());
     }
 
     /**
@@ -290,7 +289,7 @@ public abstract class CollectionUtils {
         return list;
     }
 
-    private static <T> List<T> toMutableList(Iterable<? extends T> things) {
+    private static <T> List<T> toMutableList(@Nullable Iterable<? extends T> things) {
         if (things == null) {
             return new ArrayList<T>(0);
         }
@@ -344,42 +343,45 @@ public abstract class CollectionUtils {
     }
 
     public static <E> List<E> compact(List<E> list) {
-        boolean foundAtLeastOneNull = false;
         List<E> compacted = null;
         int i = 0;
 
         for (E element : list) {
             if (element == null) {
-                if (!foundAtLeastOneNull) {
+                if (compacted == null) {
+                    // This is the first null element we've found, have to allocate a compacted list.
                     compacted = new ArrayList<E>(list.size());
                     if (i > 0) {
                         compacted.addAll(list.subList(0, i));
                     }
                 }
-                foundAtLeastOneNull = true;
-            } else if (foundAtLeastOneNull) {
+            } else if (compacted != null) {
                 compacted.add(element);
             }
             ++i;
         }
 
-        return foundAtLeastOneNull ? compacted : list;
+        return compacted != null ? compacted : list;
     }
 
+    @SuppressWarnings("NullAway")
+    // TODO(mlopatkin) This is a polynull function in disguise.
+    //  You may end up here when fighting with NullAway because your source can contain nulls.
+    //  Consider adding a null-taking overload then.
     public static <C extends Collection<String>> C stringize(Iterable<?> source, C destination) {
-        return collect(source, destination, InternalTransformers.asString());
+        return collect(source, destination, value -> value == null ? null : value.toString());
     }
 
     public static List<String> stringize(Collection<?> source) {
         return stringize(source, new ArrayList<String>(source.size()));
     }
 
-    public static <E> boolean replace(List<E> list, Spec<? super E> filter, InternalTransformer<? extends E, ? super E> transformer) {
+    public static <E> boolean replace(List<E> list, Spec<? super E> filter, Function<? super E, ? extends E> transformer) {
         boolean replaced = false;
         int i = 0;
         for (E it : list) {
             if (filter.isSatisfiedBy(it)) {
-                list.set(i, transformer.transform(it));
+                list.set(i, transformer.apply(it));
                 replaced = true;
             }
             ++i;
@@ -387,31 +389,31 @@ public abstract class CollectionUtils {
         return replaced;
     }
 
-    public static <K, V> void collectMap(Map<K, V> destination, Iterable<? extends V> items, InternalTransformer<? extends K, ? super V> keyGenerator) {
+    public static <K, V> void collectMap(Map<K, V> destination, Iterable<? extends V> items, Function<? super V, ? extends K> keyGenerator) {
         for (V item : items) {
-            destination.put(keyGenerator.transform(item), item);
+            destination.put(keyGenerator.apply(item), item);
         }
     }
 
     /**
      * Given a set of values, derive a set of keys and return a map
      */
-    public static <K, V> Map<K, V> collectMap(Iterable<? extends V> items, InternalTransformer<? extends K, ? super V> keyGenerator) {
+    public static <K, V> Map<K, V> collectMap(Iterable<? extends V> items, Function<? super V, ? extends K> keyGenerator) {
         Map<K, V> map = new LinkedHashMap<K, V>();
         collectMap(map, items, keyGenerator);
         return map;
     }
 
-    public static <K, V> void collectMapValues(Map<K, V> destination, Iterable<? extends K> keys, InternalTransformer<? extends V, ? super K> keyGenerator) {
+    public static <K, V> void collectMapValues(Map<K, V> destination, Iterable<? extends K> keys, Function<? super K, ? extends V> keyGenerator) {
         for (K item : keys) {
-            destination.put(item, keyGenerator.transform(item));
+            destination.put(item, keyGenerator.apply(item));
         }
     }
 
     /**
      * Given a set of keys, derive a set of values and return a map
      */
-    public static <K, V> Map<K, V> collectMapValues(Iterable<? extends K> keys, InternalTransformer<? extends V, ? super K> keyGenerator) {
+    public static <K, V> Map<K, V> collectMapValues(Iterable<? extends K> keys, Function<? super K, ? extends V> keyGenerator) {
         Map<K, V> map = new LinkedHashMap<K, V>();
         collectMapValues(map, keys, keyGenerator);
         return map;
@@ -461,7 +463,7 @@ public abstract class CollectionUtils {
      * The result of diffing two sets.
      *
      * @param <T> The type of element the sets contain
-     * @see CollectionUtils#diffSetsBy(java.util.Set, java.util.Set, InternalTransformer)
+     * @see CollectionUtils#diffSetsBy(java.util.Set, java.util.Set, Function)
      */
     public static class SetDiff<T> {
         public Set<T> leftOnly = new HashSet<T>();
@@ -482,7 +484,7 @@ public abstract class CollectionUtils {
      * @param <T> The type of the entry objects
      * @return A representation of the difference
      */
-    public static <T> SetDiff<T> diffSetsBy(Set<? extends T> left, Set<? extends T> right, InternalTransformer<?, T> compareBy) {
+    public static <T> SetDiff<T> diffSetsBy(Set<? extends T> left, Set<? extends T> right, Function<T, ?> compareBy) {
         if (left == null) {
             throw new NullPointerException("'left' set is null");
         }
@@ -529,7 +531,7 @@ public abstract class CollectionUtils {
      * @return The joined string
      */
     public static String join(String separator, Object[] objects) {
-        return join(separator, objects == null ? null : Arrays.asList(objects));
+        return join(separator, Arrays.asList(objects));
     }
 
     /**
@@ -537,7 +539,7 @@ public abstract class CollectionUtils {
      *
      * @see #join(String, Object[])
      */
-    public static <R, I> String join(String separator, I[] objects, InternalTransformer<? extends R, ? super I> transformer) {
+    public static <R, I> String join(String separator, I[] objects, Function<? super I, ? extends R> transformer) {
         return join(separator, collect(objects, transformer));
     }
 
@@ -582,7 +584,7 @@ public abstract class CollectionUtils {
      *
      * @see #join(String, Iterable)
      */
-    public static <R, I> String join(String separator, Iterable<? extends I> objects, InternalTransformer<? extends R, ? super I> transformer) {
+    public static <R, I> String join(String separator, Iterable<? extends I> objects, Function<? super I, ? extends R> transformer) {
         //noinspection join_with_collect
         return join(separator, collect(objects, transformer));
     }
@@ -628,6 +630,7 @@ public abstract class CollectionUtils {
                     }
 
                     @Override
+                    @Nullable
                     public T next() {
                         return delegate.next().create();
                     }

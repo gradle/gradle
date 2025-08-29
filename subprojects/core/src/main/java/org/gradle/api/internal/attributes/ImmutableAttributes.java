@@ -16,11 +16,26 @@
 
 package org.gradle.api.internal.attributes;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.attributes.Attribute;
+import org.jspecify.annotations.Nullable;
 
 public interface ImmutableAttributes extends AttributeContainerInternal {
-    ImmutableAttributes EMPTY = new DefaultImmutableAttributesContainer();
+
+    ImmutableAttributes EMPTY = EmptyImmutableAttributes.INSTANCE;
+
+    /**
+     * Get the most recent entry in this container.
+     *
+     * @throws IllegalStateException if this container is empty.
+     */
+    ImmutableAttributesEntry<?> getHead();
+
+    /**
+     * Get all entries in this container.
+     */
+    ImmutableCollection<ImmutableAttributesEntry<?>> getEntries();
 
     /**
      * Locates the entry for the given attribute. Returns a 'missing' value when not present.
@@ -36,18 +51,22 @@ public interface ImmutableAttributes extends AttributeContainerInternal {
      * You should usually prefer searching by name using {@link #findEntry(String)} to avoid these sorts of issues.
      *
      * @param key the attribute to locate in this container (name <strong>and type</strong> much match)
-     * @return the value for the attribute in this container, or {@link AttributeValue#MISSING} if not present
+     *
+     * @return the value for the attribute in this container, or null if not present
      */
-    <T> AttributeValue<T> findEntry(Attribute<T> key);
+    <T> @Nullable ImmutableAttributesEntry<T> findEntry(Attribute<T> key);
 
     /**
      * Locates the entry for the attribute with the given name.
      *
-     * @param name the name of an attribute to locate in this container
-     * @return the value for the attribute in this container, or {@link AttributeValue#MISSING} if not present
+     * @param name the name of an attribute to locate in this container.
+     *
+     * @return the entry in this container corresponding to the attribute with the given name, or null if not present.
      */
-    AttributeValue<?> findEntry(String name);
+    @Nullable
+    ImmutableAttributesEntry<?> findEntry(String name);
 
     @Override
     ImmutableSet<Attribute<?>> keySet();
+
 }

@@ -196,7 +196,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Module 'org:test' has been rejected:
-   Cannot select module with conflict on capability 'org:test:1.0' also provided by [org:test:1.0(api), org:test:1.0(runtime)]""")
+   Cannot select module with conflict on capability 'org:test:1.0' also provided by ['org:test:1.0' (api), 'org:test:1.0' (runtime)]""")
     }
 
     @Unroll("can select distinct variants of the same component by using different attributes with capabilities (conflict=#conflict)")
@@ -257,7 +257,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         then:
         if (conflict) {
             failure.assertHasCause("""Module 'org:test' has been rejected:
-   Cannot select module with conflict on capability 'org.test:cap:1.0' also provided by [org:test:1.0(runtime), org:test:1.0(api)]""")
+   Cannot select module with conflict on capability 'org.test:cap:1.0' also provided by ['org:test:1.0' (runtime), 'org:test:1.0' (api)]""")
         } else {
             resolve.expectGraph {
                 root(":", ":test:") {
@@ -514,7 +514,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Module 'org:foo' has been rejected:
-   Cannot select module with conflict on capability 'org:foo:1.1' also provided by [org:foo:1.1(runtime), org:foo:1.1(api)]""")
+   Cannot select module with conflict on capability 'org:foo:1.1' also provided by ['org:foo:1.1' (runtime), 'org:foo:1.1' (api)]""")
 
     }
 
@@ -679,9 +679,9 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Module 'org:foo' has been rejected:
-   Cannot select module with conflict on capability 'org:foo:1.0' also provided by [org:bar:1.0(runtime)]""")
+   Cannot select module with conflict on capability 'org:foo:1.0' also provided by ['org:bar:1.0' (runtime)]""")
         failure.assertHasCause("""Module 'org:bar' has been rejected:
-   Cannot select module with conflict on capability 'org:foo:1.0' also provided by [org:foo:1.0(runtime)]""")
+   Cannot select module with conflict on capability 'org:foo:1.0' also provided by ['org:foo:1.0' (runtime)]""")
     }
 
     def "detects conflicts between 2 variants of 2 different components with the same capability"() {
@@ -728,9 +728,9 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Module 'org:foo' has been rejected:
-   Cannot select module with conflict on capability 'org:blah:1.0' also provided by [org:bar:1.0(runtime)]""")
+   Cannot select module with conflict on capability 'org:blah:1.0' also provided by ['org:bar:1.0' (runtime)]""")
         failure.assertHasCause("""Module 'org:bar' has been rejected:
-   Cannot select module with conflict on capability 'org:blah:1.0' also provided by [org:foo:1.0(runtime)]""")
+   Cannot select module with conflict on capability 'org:blah:1.0' also provided by ['org:foo:1.0' (runtime)]""")
     }
 
     @ToBeImplemented("https://github.com/gradle/gradle/issues/8386")
@@ -842,8 +842,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                 }
             }
 
-            def factory = project.services.get(SoftwareComponentFactory)
-            def comp = factory.adhoc("comp")
+            def comp = publishing.softwareComponentFactory.adhoc("comp")
             comp.addVariantsFromConfiguration(configurations.first) {}
             comp.addVariantsFromConfiguration(configurations.second) {}
 

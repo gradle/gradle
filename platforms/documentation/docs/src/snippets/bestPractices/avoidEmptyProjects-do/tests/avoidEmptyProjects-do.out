@@ -7,9 +7,18 @@ Projects:
 Root project 'avoidEmptyProjects-do'
 ------------------------------------------------------------
 
+Location: /home/user/gradle/samples
+
+Project hierarchy:
+
 Root project 'avoidEmptyProjects-do'
 +--- Project ':app'
 \--- Project ':my-web-module'
+
+Project locations:
+
+project ':app' - /app
+project ':my-web-module' - /subs/web/my-web-module
 
 To see a list of the tasks of a project, run gradle <project-path>:tasks
 For example, try running gradle :app:tasks

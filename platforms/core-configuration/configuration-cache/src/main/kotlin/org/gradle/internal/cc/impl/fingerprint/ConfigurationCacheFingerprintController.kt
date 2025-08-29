@@ -21,14 +21,14 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.project.ProjectIdentity
-import org.gradle.api.internal.properties.GradleProperties
+import org.gradle.api.internal.properties.GradlePropertiesController
+import org.gradle.api.internal.properties.GradlePropertyScope
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.initialization.buildsrc.BuildSrcDetector
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildModelParameters
-import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.cc.impl.ConfigurationCacheStateFile
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore.StateFile
 import org.gradle.internal.cc.impl.InputTrackingState
@@ -51,7 +51,6 @@ import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.impl.DefaultFileNormalizationSpec
 import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.extensions.core.directoryChildrenNamesHash
-import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.hash.HashCode
@@ -90,7 +89,6 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val report: CommonReport,
     private val problemFactory: ProblemFactory,
     private val workExecutionTracker: WorkExecutionTracker,
-    private val environmentChangeTracker: ConfigurationCacheEnvironmentChangeTracker,
     private val inputTrackingState: InputTrackingState,
     private val scriptFileResolverListeners: ScriptFileResolverListeners,
     private val remoteScriptUpToDateChecker: RemoteScriptUpToDateChecker,
@@ -99,11 +97,11 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val encryptionService: EncryptionService,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val buildStateRegistry: BuildStateRegistry,
+    private val propertiesController: GradlePropertiesController,
 ) : Stoppable, ProjectScopedScriptResolution {
 
     interface Host {
         val valueSourceProviderFactory: ValueSourceProviderFactory
-        val gradleProperties: GradleProperties
     }
 
     private
@@ -137,7 +135,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         open fun <T> resolveScriptsForProject(project: ProjectIdentity, action: () -> T): T =
             illegalStateFor("resolveScriptsForProject")
 
-        open fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, action: () -> T): T =
+        open fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, keepAlive: Boolean, action: () -> T): T =
             illegalStateFor("collectFingerprintForProject")
 
         open fun projectObserved(consumingProjectPath: Path?, targetProjectPath: Path): Unit =
@@ -164,7 +162,6 @@ class ConfigurationCacheFingerprintController internal constructor(
                 fileCollectionFactory,
                 directoryFileTreeFactory,
                 workExecutionTracker,
-                environmentChangeTracker,
                 inputTrackingState,
                 buildStateRegistry
             )
@@ -197,11 +194,11 @@ class ConfigurationCacheFingerprintController internal constructor(
         }
 
         override fun <T> resolveScriptsForProject(project: ProjectIdentity, action: () -> T): T {
-            return fingerprintWriter.runCollectingFingerprintForProject(project, action)
+            return fingerprintWriter.runCollectingFingerprintForProject(project, keepAlive = true, action)
         }
 
-        override fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, action: () -> T): T {
-            return fingerprintWriter.runCollectingFingerprintForProject(project, action)
+        override fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, keepAlive: Boolean, action: () -> T): T {
+            return fingerprintWriter.runCollectingFingerprintForProject(project, keepAlive, action)
         }
 
         override fun pause(): WritingState {
@@ -321,11 +318,18 @@ class ConfigurationCacheFingerprintController internal constructor(
     }
 
     /**
-     * Runs the given action that is specific to the given project, and associates any build inputs read by the current thread
+     * Runs the given action that is specific to the given project and associates any build inputs read by the current thread
      * with the project.
+     *
+     * @param keepAlive whether the information associated with the project must be kept alive for future requests (for input deduplication, for example)
      */
-    fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, action: () -> T): T {
-        return writingState.runCollectingFingerprintForProject(project, action)
+    fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, keepAlive: Boolean, action: () -> T): T {
+        return writingState.runCollectingFingerprintForProject(
+            project,
+            // always keep project context alive when building models since model requests can come at any point
+            keepAlive || modelParameters.isRequiresToolingModels,
+            action
+        )
     }
 
     override fun stop() {
@@ -374,17 +378,8 @@ class ConfigurationCacheFingerprintController internal constructor(
     inner class CacheFingerprintWriterHost :
         ConfigurationCacheFingerprintWriter.Host {
 
-        override val isEncrypted: Boolean
-            get() = encryptionService.isEncrypting
-
-        override val encryptionKeyHashCode: HashCode
-            get() = encryptionService.encryptionKeyHashCode
-
         override val gradleUserHomeDir: File
             get() = startParameter.gradleUserHomeDir
-
-        override val startParameterProperties: Map<String, Any?>
-            get() = startParameter.gradleProperties
 
         override val allInitScripts: List<File>
             get() = startParameter.allInitScripts
@@ -447,9 +442,6 @@ class ConfigurationCacheFingerprintController internal constructor(
     ) : ConfigurationCacheFingerprintChecker.Host,
         ConfigurationCacheInputFileChecker.Host by inputFileCheckerHost {
 
-        private
-        val gradleProperties by lazy(host::gradleProperties)
-
         override val isEncrypted: Boolean
             get() = encryptionService.isEncrypting
 
@@ -461,9 +453,6 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override val allInitScripts: List<File>
             get() = startParameter.allInitScripts
-
-        override val startParameterProperties: Map<String, Any?>
-            get() = startParameter.gradleProperties
 
         override val buildStartTime: Long
             get() = buildCommencedTimeProvider.currentTime
@@ -479,9 +468,6 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override val ignoredFileSystemCheckInputs: String?
             get() = startParameter.ignoredFileSystemCheckInputs
-
-        override fun gradleProperty(propertyName: String): String? =
-            gradleProperties.find(propertyName)?.uncheckedCast()
 
         override fun hashCodeOfDirectoryContent(file: File): HashCode =
             directoryChildrenNamesHash(file)
@@ -504,6 +490,41 @@ class ConfigurationCacheFingerprintController internal constructor(
         override fun hasValidBuildSrc(candidateBuildSrc: File): Boolean {
             return BuildSrcDetector.isValidBuildSrcBuild(candidateBuildSrc)
         }
+
+        override fun loadProperties(propertyScope: GradlePropertyScope, propertiesDir: File) {
+            when (propertyScope) {
+                is GradlePropertyScope.Build -> {
+                    propertiesController.loadGradleProperties(
+                        propertyScope.buildIdentifier,
+                        propertiesDir,
+                        true
+                    )
+                }
+
+                is GradlePropertyScope.Project -> {
+                    propertiesController.loadGradleProperties(
+                        propertyScope.projectIdentity,
+                        propertiesDir,
+                    )
+                }
+
+                else -> error("Unsupported propertyScope $propertyScope")
+            }
+        }
+
+        override fun gradleProperty(
+            propertyScope: GradlePropertyScope,
+            propertyName: String
+        ): Any? = propertiesController
+            .getGradleProperties(propertyScope)
+            .findUnsafe(propertyName)
+
+        override fun gradlePropertiesPrefixedBy(
+            propertyScope: GradlePropertyScope,
+            prefix: String
+        ): Map<String, String> = propertiesController
+            .getGradleProperties(propertyScope)
+            .getPropertiesWithPrefix(prefix)
     }
 
     private

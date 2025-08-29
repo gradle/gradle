@@ -296,9 +296,16 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     File getBuildFile();
 
     /**
-     * <p>Returns the parent project of this project, if any.</p>
+     * Returns the parent project of this project, if any.
+     * <p>
+     * There are two cases where a project will not have a parent:
+     * <ul>
+     *     <li>The project is the root project of the build.</li>
+     *     <li>The project is located in a nested directory (not the root of the build), {@link #getProjectDir()} has been used after
+     *     including the project in order to locate it, and no project has been included that is located in this project's parent directory.</li>
+     * </ul>
      *
-     * @return The parent project, or null if this is the root project.
+     * @return The parent project, or {@code null} if this is the root project or a nested project without a parent.
      */
     @Nullable
     Project getParent();
@@ -564,7 +571,8 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     Task task(String name, Action<? super Task> configureAction);
 
     /**
-     * <p>Returns the path of this project.  The path is the fully qualified name of the project.</p>
+     * <p>Returns the path of this project, starting with ':'. See {@link org.gradle.api.initialization.Settings#include(String...)}
+     * for more information about project paths.</p>
      *
      * @return The path. Never returns null.
      */
@@ -1000,6 +1008,21 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * Creates a {@link Provider} implementation based on the provided value.
      *
      * <p>The provider is live and will call the {@link Callable} each time its value is queried. The {@link Callable} may return {@code null}, in which case the provider is considered to have no value.
+     *
+     * <h4>Configuration Cache</h4>
+     * <p>This provider is always <a href="provider/Provider.html#configuration-cache">computed and its value is cached</a> by the Configuration Cache.
+     * If this provider is created at configuration time, the {@link Callable} may call configuration-time only APIs and capture objects of arbitrary types.
+     * <p>This can be useful when you need to lazily compute some value to use at execution time based on configuration-time only data. For example, you can compute an archive name based on the name
+     * and the version of the project:
+     * <pre class='autoTested'>
+     *   tasks.register("createArchive") {
+     *       def archiveNameProvider = project.provider { project.name + "-" + project.version + ".jar" }
+     *       doLast {
+     *           def archiveName = new File(archiveNameProvider.get())
+     *           // ... create the archive and put in its contents.
+     *       }
+     *   }
+     * </pre>
      *
      * @param value The {@link Callable} use to calculate the value.
      * @return The provider. Never returns null.

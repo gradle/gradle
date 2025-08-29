@@ -126,8 +126,9 @@ dependencies {
     api(libs.nativePlatform)
 
     implementation(projects.buildOperationsTrace)
-    implementation(projects.io)
+    implementation(projects.groovyLoader)
     implementation(projects.inputTracking)
+    implementation(projects.io)
     implementation(projects.modelGroovy)
     implementation(projects.problemsRendering)
     implementation(projects.serviceRegistryBuilder)
@@ -146,7 +147,6 @@ dependencies {
         // Used for its nullability annotations, not needed at runtime
         exclude("org.checkerframework", "checker-qual")
     }
-    implementation(libs.xmlApis)
 
     compileOnly(libs.kotlinStdlib) {
         because("it needs to forward calls from instrumented code to the Kotlin standard library")

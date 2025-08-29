@@ -18,6 +18,7 @@ package org.gradle.groovy.scripts.internal;
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.CacheCleanupStrategyFactory;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.CacheBasedImmutableWorkspaceProvider;
@@ -37,7 +38,8 @@ public class GroovyDslWorkspaceProvider implements Closeable {
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         CacheConfigurationsInternal cacheConfigurations,
-        CacheCleanupStrategyFactory cacheCleanupStrategyFactory
+        CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
+        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
     ) {
         this.groovyDslWorkspace = CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(
             cacheBuilderFactory
@@ -45,7 +47,8 @@ public class GroovyDslWorkspaceProvider implements Closeable {
                 .withDisplayName("groovy-dsl"),
             fileAccessTimeJournal,
             cacheConfigurations,
-            cacheCleanupStrategyFactory
+            cacheCleanupStrategyFactory,
+            unscopedCacheBuilderFactory
         );
     }
 

@@ -31,6 +31,7 @@ import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.Elements;
+import java.util.Objects;
 import java.util.Set;
 
 import static com.sun.source.tree.Tree.Kind.METHOD_INVOCATION;
@@ -102,7 +103,7 @@ public class ConstantsTreeVisitor extends TreePathScanner<ConstantsVisitorContex
     public ConstantsVisitorContext visitMemberSelect(MemberSelectTree node, ConstantsVisitorContext context) {
         Element element = trees.getElement(getCurrentPath());
         if (isPrimitiveConstantVariable(element)) {
-            context.addConstantOrigin(getBinaryClassName((TypeElement) element.getEnclosingElement()));
+            context.addConstantOrigin(getBinaryClassName(Objects.requireNonNull((TypeElement) element.getEnclosingElement())));
         }
         return super.visitMemberSelect(node, context);
     }
@@ -112,7 +113,7 @@ public class ConstantsTreeVisitor extends TreePathScanner<ConstantsVisitorContex
         Element element = trees.getElement(getCurrentPath());
 
         if (isPrimitiveConstantVariable(element)) {
-            context.addConstantOrigin(getBinaryClassName((TypeElement) element.getEnclosingElement()));
+            context.addConstantOrigin(getBinaryClassName(Objects.requireNonNull((TypeElement) element.getEnclosingElement())));
         }
         return super.visitIdentifier(node, context);
     }

@@ -71,7 +71,7 @@ abstract class AbstractUnexportMainSymbolIntegrationTest extends AbstractInstall
         when:
         succeeds("unexport")
         then:
-        result.assertTasksNotSkipped(developmentBinaryCompileTask, ":unexport")
+        result.assertTasksExecuted(developmentBinaryCompileTask, ":unexport")
 
         when:
         succeeds("unexport")
@@ -82,7 +82,7 @@ abstract class AbstractUnexportMainSymbolIntegrationTest extends AbstractInstall
         componentUnderTest.applyChangesToProject(testDirectory)
         succeeds("unexport")
         then:
-        result.assertTasksNotSkipped(developmentBinaryCompileTask, ":unexport")
+        result.assertTasksExecuted(developmentBinaryCompileTask, ":unexport")
     }
 
     def "relocate _main symbol with main.<ext>"() {

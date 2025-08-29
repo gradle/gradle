@@ -19,6 +19,7 @@ import org.gradle.api.Action
 import org.gradle.api.artifacts.DependencyResolutionListener
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.ConfigurationServicesBundle
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
@@ -64,24 +65,28 @@ class DefaultConfigurationContainerSpec extends Specification {
     }
     def attributesFactory = AttributeTestUtil.attributesFactory()
 
-    private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
+
+    ConfigurationServicesBundle configurationServices = new DefaultConfigurationServicesBundle(
+        buildOperationRunner,
+        projectStateRegistry,
+        calculatedValueContainerFactory,
         objectFactory,
+        fileCollectionFactory,
+        TestFiles.taskDependencyFactory(),
+        attributesFactory,
+        TestUtil.domainObjectCollectionFactory(),
+        CollectionCallbackActionDecorator.NOOP,
+        TestUtil.problemsService(),
+        new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
+        new ResolveExceptionMapper(domainObjectContext, new DocumentationRegistry())
+    )
+
+    private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
+        configurationServices,
         listenerManager,
         domainObjectContext,
-        fileCollectionFactory,
-        buildOperationRunner,
         Stub(PublishArtifactNotationParserFactory),
-        attributesFactory,
-        Stub(ResolveExceptionMapper),
-        new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
-        userCodeApplicationContext,
-        CollectionCallbackActionDecorator.NOOP,
-        projectStateRegistry,
-        TestUtil.domainObjectCollectionFactory(),
-        calculatedValueContainerFactory,
-        TestFiles.taskDependencyFactory(),
-        TestUtil.problemsService(),
-        new DocumentationRegistry()
+        userCodeApplicationContext
     )
 
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(

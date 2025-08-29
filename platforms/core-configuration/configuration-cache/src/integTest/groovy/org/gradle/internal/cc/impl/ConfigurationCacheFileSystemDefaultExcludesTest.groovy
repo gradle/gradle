@@ -86,7 +86,7 @@ class ConfigurationCacheFileSystemDefaultExcludesTest extends AbstractConfigurat
 
         then:
         configurationCache.assertStateLoaded()
-        result.assertTasksExecuted(":$spec.copyTask")
+        result.assertTasksScheduled(":$spec.copyTask")
         excludedByBuildScriptFileCopy.exists()
 
         where:

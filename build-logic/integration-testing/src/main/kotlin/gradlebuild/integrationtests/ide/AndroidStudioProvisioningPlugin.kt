@@ -28,10 +28,10 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.process.CommandLineArgumentProvider
 
 
-// Android Studio Narwhal | 2025.1.1.11
+// Android Studio Narwhal | 2025.1.2.11
 // Find all references here https://developer.android.com/studio/archive
 // Update verification-metadata.xml
-const val DEFAULT_ANDROID_STUDIO_VERSION = "2025.1.1.11"
+const val DEFAULT_ANDROID_STUDIO_VERSION = "2025.1.2.11"
 const val UNPACK_ANDROID_STUDIO_TASK_NAME = "unpackAndroidStudio"
 const val ANDROID_STUDIO_INSTALL_PATH = "android-studio"
 
@@ -61,7 +61,7 @@ class AndroidStudioProvisioningPlugin : Plugin<Project> {
             repositories {
                 ivy {
                     // Url of Android Studio archive
-                    url = uri("https://redirector.gvt1.com/edgedl/android/studio/${if (androidStudioFileName.endsWith("dmg")) "install" else "ide-zips"}")
+                    url = uri("https://repo.grdev.net/artifactory/android-studio/${if (androidStudioFileName.endsWith("dmg")) "install" else "ide-zips"}")
                     patternLayout {
                         artifact("[revision]/[artifact]-[revision]-[ext]")
                     }

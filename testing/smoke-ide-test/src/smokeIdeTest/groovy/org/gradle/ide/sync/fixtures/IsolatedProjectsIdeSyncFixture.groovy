@@ -59,7 +59,9 @@ class IsolatedProjectsIdeSyncFixture {
             Pair.of(location, message)
         }.unique()
 
-        assert jsModel.totalProblemCount == spec.totalProblemsCount
+        if (!spec.ignoreTotalProblemsCount) {
+            assert jsModel.totalProblemCount == spec.totalProblemsCount
+        }
         assert actualLocationsWithProblems.size() == spec.locationsWithProblems.size()
         assert actualLocationsWithProblems.every { actualLocation ->
             spec.locationsWithProblems.any { expectedLocation ->

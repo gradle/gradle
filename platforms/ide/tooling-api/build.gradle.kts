@@ -1,3 +1,5 @@
+import gradlebuild.shade.tasks.ShadedJar
+
 plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.publish-public-libraries")
@@ -37,6 +39,13 @@ shadedJar {
     ignoredPackages = setOf("org.gradle.tooling.provider.model")
 }
 
+configurations.consumable("shadedTapi") {
+    outgoing.artifact(tasks.named<ShadedJar>("toolingApiShadedJar"))
+    attributes {
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("Shaded"))
+    }
+}
+
 errorprone {
     disabledChecks.addAll(
         "EqualsUnsafeCast", // 1 occurrences
@@ -74,15 +83,16 @@ dependencies {
 
     testImplementation(projects.internalIntegTesting)
 
-    testFixturesImplementation(projects.coreApi)
-    testFixturesImplementation(projects.core)
-    testFixturesImplementation(projects.logging)
-    testFixturesImplementation(projects.modelCore)
     testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.baseServicesGroovy)
-    testFixturesImplementation(projects.internalTesting)
+    testFixturesImplementation(projects.core)
+    testFixturesImplementation(projects.coreApi)
     testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.internalTesting)
+    testFixturesImplementation(projects.logging)
+    testFixturesImplementation(projects.modelCore)
     testFixturesImplementation(testFixtures(projects.buildProcessServices))
+    testFixturesImplementation(testFixtures(projects.enterpriseLogging))
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.slf4jApi)
 
@@ -92,7 +102,7 @@ dependencies {
     integTestImplementation(testFixtures(projects.buildProcessServices))
 
     crossVersionTestImplementation(projects.jvmServices)
-    crossVersionTestImplementation(projects.problems)
+    crossVersionTestImplementation(projects.internalTesting)
     crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
     crossVersionTestImplementation(testFixtures(projects.problemsApi))
     crossVersionTestImplementation(libs.jettyWebApp)
@@ -132,15 +142,6 @@ strictCompile {
 
 packageCycles {
     excludePatterns.add("org/gradle/tooling/**")
-}
-
-tasks.named("toolingApiShadedJar") {
-    // TODO: Remove this workaround once issue is fixed for configuration cache
-    // We don't add tasks that complete at configuration time
-    // to the resulting work graph, and then prune projects that have no tasks in the graph.
-    // This happens to java-api-extractor, since it's built with rest of build-logic.
-    // Could be related to https://github.com/gradle/gradle/issues/24273
-    dependsOn(gradle.includedBuild("build-logic").task(":java-api-extractor:assemble"))
 }
 
 testFilesCleanup.reportOnly = true

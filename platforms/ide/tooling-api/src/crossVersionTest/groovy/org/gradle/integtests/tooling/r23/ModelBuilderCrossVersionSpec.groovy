@@ -37,6 +37,6 @@ class ModelBuilderCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         model != null
-        result.assertTasksExecutedInOrder()
+        result.assertTasksScheduledInOrder()
     }
 }

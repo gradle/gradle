@@ -21,6 +21,7 @@ import org.gradle.api.Action
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
+import org.gradle.internal.component.model.VariantIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
@@ -51,10 +52,11 @@ class CalculateArtifactsCodec(
 ) : Codec<AbstractTransformedArtifactSet.CalculateArtifacts> {
     override suspend fun WriteContext.encode(value: AbstractTransformedArtifactSet.CalculateArtifacts) {
         write(value.ownerId)
+        write(value.sourceVariantId)
         write(value.targetVariantAttributes)
         writeCollection(value.capabilities.asSet())
         val files = mutableListOf<Artifact>()
-        value.delegate.visitExternalArtifacts { files.add(Artifact(file, artifactName.classifier)) }
+        value.delegate.visitExternalArtifacts { files.add(Artifact(file, artifactName.classifier)) } // TODO: Serialize the whole ResolvableArtifact, not just the files.
         write(files)
         val steps = unpackTransformSteps(value.steps)
         writeCollection(steps)
@@ -62,13 +64,15 @@ class CalculateArtifactsCodec(
 
     override suspend fun ReadContext.decode(): AbstractTransformedArtifactSet.CalculateArtifacts {
         val ownerId = readNonNull<ComponentIdentifier>()
+        val sourceVariantId = readNonNull<VariantIdentifier>()
         val targetAttributes = readNonNull<ImmutableAttributes>()
         val capabilities: List<Capability> = readList().uncheckedCast()
         val files = readNonNull<List<Artifact>>()
         val steps: List<TransformStepSpec> = readList().uncheckedCast()
         return AbstractTransformedArtifactSet.CalculateArtifacts(
             ownerId,
-            FixedFilesArtifactSet(ownerId, files, calculatedValueContainerFactory),
+            sourceVariantId,
+            FixedFilesArtifactSet(ownerId, sourceVariantId, files, calculatedValueContainerFactory),
             targetAttributes,
             ImmutableCapabilities.of(capabilities),
             ImmutableList.copyOf(steps.map { BoundTransformStep(it.transformStep, it.recreateDependencies()) })
@@ -81,6 +85,7 @@ class CalculateArtifactsCodec(
     private
     class FixedFilesArtifactSet(
         private val ownerId: ComponentIdentifier,
+        private val sourceVariantId: VariantIdentifier,
         private val files: List<Artifact>,
         private val calculatedValueContainerFactory: CalculatedValueContainerFactory
     ) : ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
@@ -95,9 +100,9 @@ class CalculateArtifactsCodec(
         override fun startFinalization(actions: BuildOperationQueue<RunnableBuildOperation>, requireFiles: Boolean) = Unit
 
         override fun visit(visitor: ArtifactVisitor) {
-            val displayName = Describables.of(ownerId)
+            val artifactSetName = Describables.of(ownerId)
             for (artifact in artifacts) {
-                visitor.visitArtifact(displayName, ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, artifact)
+                visitor.visitArtifact(artifactSetName, sourceVariantId, ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, artifact)
             }
         }
 

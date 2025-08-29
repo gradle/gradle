@@ -31,6 +31,9 @@ public class GradleDocsAsciidoctorExtensionRegistry implements ExtensionRegistry
         registry.includeProcessor(GuidesContributeIncludeProcessor.class);
         registry.includeProcessor(SampleIncludeProcessor.class);
 
+        registry.inlineMacro(SinceGradleLabelProcessor.class);
+        registry.inlineMacro(IncubatingLabelProcessor.class);
+
         registry.treeprocessor(ExampleSelfLinkProcessor.class);
 
         registry.postprocessor(ClipboardPostprocessor.class);

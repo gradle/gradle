@@ -1,5 +1,8 @@
+import gradlebuild.basics.BuildEnvironment
+import gradlebuild.basics.buildCommitId
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.tasks.SmokeIdeTest
+import gradlebuild.performance.generator.tasks.RemoteProject
 
 plugins {
     id("gradlebuild.internal.java")
@@ -27,13 +30,7 @@ addDependenciesAndConfigurations("smokeIde")
 val smokeIdeTestImplementation: Configuration by configurations
 val smokeIdeTestDistributionRuntimeOnly: Configuration by configurations
 val ideStarter by configurations.creating {
-    isVisible = false
     isCanBeConsumed = false
-}
-
-val unzipIdeStarter by tasks.registering(ProcessResources::class) {
-    from(zipTree(ideStarter.elements.map { it.single() }))
-    into(layout.buildDirectory.dir("ideStarter"))
 }
 
 plugins.withType<IdeaPlugin> {
@@ -45,13 +42,47 @@ plugins.withType<IdeaPlugin> {
     }
 }
 
-tasks.register<SmokeIdeTest>("smokeIdeTest") {
-    group = "Verification"
-    maxParallelForks = 1
-    systemProperties["org.gradle.integtest.executer"] = "forking"
-    testClassesDirs = smokeIdeTestSourceSet.output.classesDirs
-    classpath = smokeIdeTestSourceSet.runtimeClasspath
-    dependsOn(unzipIdeStarter)
+tasks {
+    val unzipIdeStarter by registering(Sync::class) {
+        from(zipTree(ideStarter.elements.map { it.single() }))
+        into(layout.buildDirectory.dir("ideStarter"))
+    }
+
+    val fetchGradle by registering(RemoteProject::class) {
+        remoteUri = rootDir.absolutePath
+        ref = buildCommitId
+    }
+
+    val shrinkGradle by registering(Sync::class) {
+        from(fetchGradle.map { it.outputDirectory }) {
+            exclude("subprojects/*/*/src/**")
+            filesMatching("platforms/*/*/src/**") {
+                // /platforms/documentation/docs/samples must be included
+                if (!sourcePath.contains("documentation/docs/samples/templates")) {
+                    exclude()
+                }
+            }
+            exclude(".idea/**")
+            exclude(".github/**")
+            exclude(".teamcity/**")
+        }
+        into(layout.buildDirectory.dir("gradleSources"))
+    }
+
+    if (BuildEnvironment.isCiServer) {
+        fetchGradle {
+            doNotTrackState("Do a full checkout on CI")
+        }
+    }
+
+    register<SmokeIdeTest>("smokeIdeTest") {
+        dependsOn(unzipIdeStarter, shrinkGradle)
+        group = "Verification"
+        maxParallelForks = 1
+        systemProperties["org.gradle.integtest.executer"] = "forking"
+        testClassesDirs = smokeIdeTestSourceSet.output.classesDirs
+        classpath = smokeIdeTestSourceSet.runtimeClasspath
+    }
 }
 
 dependencies {
@@ -59,4 +90,11 @@ dependencies {
     smokeIdeTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("Tests starts an IDE with using current Gradle distribution")
     }
+    smokeIdeTestImplementation(testFixtures(projects.core))
+}
+
+integTest.testJvmXmx = "1g"
+
+errorprone {
+    nullawayEnabled = true
 }

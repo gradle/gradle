@@ -75,7 +75,7 @@ class GroovyJavaJointCompileSourceOrderIntegrationTest extends AbstractIntegrati
         succeeds 'compileJava'
 
         then:
-        result.assertTasksExecutedInOrder(':compileGroovy', ':compileJava')
+        result.assertTasksScheduledInOrder(':compileGroovy', ':compileJava')
 
         where:
         configurationStyle | setup
@@ -110,7 +110,7 @@ class GroovyJavaJointCompileSourceOrderIntegrationTest extends AbstractIntegrati
         succeeds 'compileMySourcesJava'
 
         then:
-        result.assertTasksExecutedInOrder(':compileMySourcesGroovy', ':compileMySourcesJava')
+        result.assertTasksScheduledInOrder(':compileMySourcesGroovy', ':compileMySourcesJava')
     }
 
     private static String buildFileWithSources(String... sourceFiles) {

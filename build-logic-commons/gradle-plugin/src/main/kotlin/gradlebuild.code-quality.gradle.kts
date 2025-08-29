@@ -1,6 +1,11 @@
+import gradlebuild.nullaway.NullawayAttributes
+import gradlebuild.nullaway.NullawayCompatibilityRule
+import gradlebuild.nullaway.NullawayState
+import gradlebuild.nullaway.NullawayStatusTask
 import groovy.lang.GroovySystem
 import net.ltgt.gradle.errorprone.CheckSeverity
 import net.ltgt.gradle.errorprone.errorprone
+import net.ltgt.gradle.nullaway.nullaway
 import org.gradle.util.internal.VersionNumber
 
 /*
@@ -24,52 +29,114 @@ plugins {
     id("checkstyle")
     id("codenarc")
     id("net.ltgt.errorprone")
+    id("net.ltgt.nullaway")
 }
 
 open class ErrorProneProjectExtension(
-    val disabledChecks: ListProperty<String>
+    val disabledChecks: ListProperty<String>,
+    val nullawayEnabled: Property<Boolean>
 )
 
 open class ErrorProneSourceSetExtension(
     val enabled: Property<Boolean>
 )
 
-val errorproneExtension = project.extensions.create<ErrorProneProjectExtension>("errorprone", project.objects.listProperty<String>())
-errorproneExtension.disabledChecks.addAll(
-    // DISCUSS
-    "EnumOrdinal", // This violation is ubiquitous, though most are benign.
-    "EqualsGetClass", // Let's agree if we want to adopt Error Prone's idea of valid equals()
-    "JdkObsolete", // Most of the checks are good, but we do not want to replace all LinkedLists without a good reason
+val errorproneExtension = project.extensions.create<ErrorProneProjectExtension>(
+    "errorprone",
+    objects.listProperty<String>(),
+    objects.property<Boolean>()
+).apply {
+    disabledChecks.addAll(
+        // DISCUSS
+        "EnumOrdinal", // This violation is ubiquitous, though most are benign.
+        "EqualsGetClass", // Let's agree if we want to adopt Error Prone's idea of valid equals()
+        "JdkObsolete", // Most of the checks are good, but we do not want to replace all LinkedLists without a good reason
 
-    // NEVER
-    "MissingSummary", // We have another mechanism to check Javadocs on public API
-    "InjectOnConstructorOfAbstractClass", // We use abstract injection as a pattern
-    "JavaxInjectOnAbstractMethod", // We use abstract injection as a pattern
-    "JavaUtilDate", // We are fine with using Date
-    "StringSplitter", // We are fine with using String.split() as is
-    "InlineMeSuggester", // Only suppression seems to actually "fix" this, so make it global
-)
+        // NEVER
+        "MissingSummary", // We have another mechanism to check Javadocs on public API
+        "InjectOnConstructorOfAbstractClass", // We use abstract injection as a pattern
+        "JavaxInjectOnAbstractMethod", // We use abstract injection as a pattern
+        "JavaUtilDate", // We are fine with using Date
+        "StringSplitter", // We are fine with using String.split() as is
+        "InlineMeSuggester", // Only suppression seems to actually "fix" this, so make it global
+    )
+
+    nullawayEnabled.convention(false)
+}
+
+nullaway {
+    // NullAway can use NullMarked instead, but for the adoption process it is more effective to assume that all gradle code is already annotated.
+    // This way we can catch discrepancies in modules easier. We should make all packages NullMarked eventually too, but this is a separate task.
+    annotatedPackages.add("org.gradle")
+}
+
+dependencies {
+    attributesSchema {
+        attribute(NullawayAttributes.nullawayAttribute) {
+            compatibilityRules.add(NullawayCompatibilityRule::class.java)
+        }
+    }
+}
 
 project.plugins.withType<JavaBasePlugin> {
     project.extensions.getByName<SourceSetContainer>("sourceSets").configureEach {
-        val extension = this.extensions.create<ErrorProneSourceSetExtension>("errorprone", project.objects.property<Boolean>())
-        // Enable it only for the main source set by default, as incremental Groovy
-        // joint-compilation doesn't work with the Error Prone annotation processor
-        extension.enabled.convention(this.name == "main")
+        val isMainSourceSet = (name == "main")
 
-        project.dependencies.addProvider(
-            annotationProcessorConfigurationName,
-            // don't forget to update the version in distributions-dependencies/build.gradle.kts
-            // 2.31.0 is the latest version that works with JDK 11
-            extension.enabled.filter { it }.map { "com.google.errorprone:error_prone_core:2.31.0" }
-        )
+        val extension = this.extensions.create<ErrorProneSourceSetExtension>(
+            "errorprone",
+            project.objects.property<Boolean>()
+        ).apply {
+            // Enable it only for the main source set by default, as incremental Groovy
+            // joint-compilation doesn't work with the Error Prone annotation processor
+            enabled.convention(isMainSourceSet)
+        }
+
+        if (isMainSourceSet) {
+            val nullawayAttributeValue = errorproneExtension.nullawayEnabled.map { if (it) NullawayState.ENABLED else NullawayState.DISABLED }
+
+            // We don't care about nullaway in test fixtures or tests, they're written in Groovy anyway.
+            NullawayAttributes.addToConfiguration(configurations.named(compileClasspathConfigurationName), nullawayAttributeValue)
+
+            project.plugins.withType<JavaLibraryPlugin> {
+                // Kotlin-only projects do not hit this, so they don't have nullaway attributes on the outgoing variants.
+                // Java project can in turn depend on Kotlin projects even if they have nullaway enabled.
+                NullawayAttributes.addToConfiguration(configurations.named(apiElementsConfigurationName), nullawayAttributeValue)
+                NullawayAttributes.addToConfiguration(configurations.named(runtimeElementsConfigurationName), nullawayAttributeValue)
+
+                tasks.register<NullawayStatusTask>("nullawayStatus") {
+                    nullawayEnabled = errorproneExtension.nullawayEnabled
+                    nullawayAwareDeps = configurations.named(compileClasspathConfigurationName).map {
+                        it.incoming.artifacts
+                    }
+                }
+            }
+        }
+
+        @Suppress("UnstableApiUsage")
+        fun addErrorProneDependency(dep: String) {
+            project.dependencies.addProvider(
+                annotationProcessorConfigurationName,
+                extension.enabled.filter { it }.map { dep }
+            )
+        }
+
+        // don't forget to update the version in distributions-dependencies/build.gradle.kts
+        // 2.31.0 is the latest version that works with JDK 11
+        addErrorProneDependency("com.google.errorprone:error_prone_core:2.31.0")
+        addErrorProneDependency("com.uber.nullaway:nullaway:0.12.7")
 
         project.tasks.named<JavaCompile>(this.compileJavaTaskName) {
             options.errorprone {
                 isEnabled = extension.enabled
-                checks.set(errorproneExtension.disabledChecks.map {
+                checks = errorproneExtension.disabledChecks.map {
                     it.associateWith { CheckSeverity.OFF }
-                })
+                }
+
+                nullaway {
+                    checkContracts = true
+                    isJSpecifyMode = true
+                    severity = errorproneExtension.nullawayEnabled.map { if (it) CheckSeverity.ERROR else CheckSeverity.OFF }
+                }
             }
         }
     }
@@ -96,7 +163,6 @@ tasks.check {
 }
 
 val rules by configurations.creating {
-    isVisible = false
     isCanBeConsumed = false
 
     attributes {

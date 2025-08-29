@@ -77,13 +77,14 @@ USAGE: gradle [option...] [task...]
 --rerun-tasks                      Ignore previously cached task results.
 -S, --full-stacktrace              Print out the full (very verbose) stacktrace for all exceptions.
 -s, --stacktrace                   Print out the stacktrace for all exceptions.
---scan                             Generate a Build Scan (Powered by Develocity).
+--scan                             Generate a Build Scan (powered by Develocity).
                                    Build Scan and Develocity are registered trademarks of Gradle, Inc.
                                    For more information, please visit https://gradle.com/develocity/product/build-scan/.
 --no-scan                          Disables the creation of a Build Scan.
 --status                           Shows status of running and recently stopped Gradle daemon(s).
 --stop                             Stops the Gradle daemon if it is running.
 -t, --continuous                   Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.
+--task-graph                       (Experimental) Print task graph instead of executing tasks.
 -U, --refresh-dependencies         Refresh the state of dependencies.
 --update-locks                     Perform a partial update of the dependency lock, letting passed in module notations change version. [incubating]
 -V, --show-version                 Print version info and continue.

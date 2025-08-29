@@ -24,12 +24,18 @@ import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.BinaryStore;
 import org.gradle.cache.internal.Store;
+import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.time.Time;
@@ -44,7 +50,7 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 /**
  * Serializes the transient parts of the resolved configuration results.
  */
-public class TransientConfigurationResultsBuilder {
+public class TransientConfigurationResultsBuilder implements DependencyArtifactsVisitor {
 
     private final static Logger LOG = Logging.getLogger(TransientConfigurationResultsBuilder.class);
 
@@ -77,21 +83,28 @@ public class TransientConfigurationResultsBuilder {
         this.resolutionHost = resolutionHost;
     }
 
-    public void resolvedDependency(final Long id, ModuleVersionIdentifier moduleVersionId, String variantName) {
+    @Override
+    public void visitNode(DependencyGraphNode node) {
         binaryStore.write(encoder -> {
             encoder.writeByte(NODE);
-            encoder.writeSmallLong(id);
-            moduleVersionIdSerializer.write(encoder, moduleVersionId);
-            encoder.writeString(variantName);
+            encoder.writeSmallLong(node.getNodeId());
+            moduleVersionIdSerializer.write(encoder, node.getComponent().getId());
+            encoder.writeString(node.getMetadata().getName());
         });
+
+        for (DependencyGraphEdge dependency : node.getIncomingEdges()) {
+            if (dependency.getFrom().isRoot()) {
+                firstLevelDependency(node.getNodeId());
+            }
+        }
     }
 
-    public void done(final Long id) {
+    @Override
+    public void finishArtifacts(RootGraphNode root) {
         binaryStore.write(encoder -> {
             encoder.writeByte(ROOT);
-            encoder.writeSmallLong(id);
+            encoder.writeSmallLong(root.getNodeId());
         });
-        LOG.debug("Flushing resolved configuration data in {}. Wrote root {}.", binaryStore, id);
         binaryData = binaryStore.done();
     }
 
@@ -102,20 +115,22 @@ public class TransientConfigurationResultsBuilder {
         });
     }
 
-    public void parentChildMapping(final Long parent, final Long child, final int artifactId) {
+    @Override
+    public void visitArtifacts(DependencyGraphNode from, DependencyGraphNode to, int artifactSetId, ArtifactSet artifacts) {
         binaryStore.write(encoder -> {
             encoder.writeByte(EDGE);
-            encoder.writeSmallLong(parent);
-            encoder.writeSmallLong(child);
-            encoder.writeSmallInt(artifactId);
+            encoder.writeSmallLong(from.getNodeId());
+            encoder.writeSmallLong(to.getNodeId());
+            encoder.writeSmallInt(artifactSetId);
         });
     }
 
-    public void nodeArtifacts(final Long node, final int artifactId) {
+    @Override
+    public void visitArtifacts(DependencyGraphNode from, LocalFileDependencyMetadata fileDependency, int artifactSetId, ArtifactSet artifactSet) {
         binaryStore.write(encoder -> {
             encoder.writeByte(NODE_ARTIFACTS);
-            encoder.writeSmallLong(node);
-            encoder.writeSmallInt(artifactId);
+            encoder.writeSmallLong(from.getNodeId());
+            encoder.writeSmallInt(artifactSetId);
         });
     }
 

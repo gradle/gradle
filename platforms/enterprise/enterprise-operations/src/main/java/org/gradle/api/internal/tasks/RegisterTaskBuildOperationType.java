@@ -26,8 +26,15 @@ import org.gradle.internal.operations.BuildOperationType;
 public final class RegisterTaskBuildOperationType implements BuildOperationType<RegisterTaskBuildOperationType.Details, RegisterTaskBuildOperationType.Result> {
 
     public interface Details {
+
+        /**
+         * The path of the build this task belongs to.
+         */
         String getBuildPath();
 
+        /**
+         * Get the path of this task within the build.
+         */
         String getTaskPath();
 
         /**
@@ -36,6 +43,7 @@ public final class RegisterTaskBuildOperationType implements BuildOperationType<
         long getTaskId();
 
         boolean isReplacement();
+
     }
 
     public interface Result {

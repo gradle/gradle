@@ -16,8 +16,6 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.api.internal.project.ProjectRegistry;
 
 import java.io.File;
 import java.util.List;
@@ -32,8 +30,8 @@ public class CurrentDirectoryProjectSpec extends AbstractProjectSpec {
     }
 
     @Override
-    protected <T extends ProjectIdentifier> void select(ProjectRegistry<? extends T> candidates, List<? super T> matches) {
-        for (T candidate : candidates.getAllProjects()) {
+    protected void select(ProjectDescriptorRegistry candidates, List<ProjectDescriptorInternal> matches) {
+        for (ProjectDescriptorInternal candidate : candidates.getAllProjects()) {
             if (candidate.getProjectDir().equals(currentDir)) {
                 matches.add(candidate);
             }
@@ -49,7 +47,7 @@ public class CurrentDirectoryProjectSpec extends AbstractProjectSpec {
     }
 
     @Override
-    protected String formatMultipleMatchesMessage(Iterable<? extends ProjectIdentifier> matches) {
+    protected String formatMultipleMatchesMessage(Iterable<ProjectDescriptorInternal> matches) {
         return String.format("Multiple projects in this build have project directory '%s': %s", currentDir, matches);
     }
 }

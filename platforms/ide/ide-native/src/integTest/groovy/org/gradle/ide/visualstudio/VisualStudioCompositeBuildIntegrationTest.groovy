@@ -65,7 +65,7 @@ class VisualStudioCompositeBuildIntegrationTest extends AbstractVisualStudioInte
         run ":visualStudio"
 
         then:
-        result.assertTasksExecuted(":appVisualStudioSolution",
+        result.assertTasksScheduled(":appVisualStudioSolution",
             ":one:oneVisualStudioFilters", ":one:oneVisualStudioProject",
             ":two:twoDllVisualStudioFilters", ":two:twoDllVisualStudioProject",
             ":util:utilDllVisualStudioFilters", ":util:utilDllVisualStudioProject",

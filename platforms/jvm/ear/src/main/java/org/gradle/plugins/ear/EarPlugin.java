@@ -185,7 +185,8 @@ public abstract class EarPlugin implements Plugin<Project> {
             jvmPluginServices.configureAsRuntimeClasspath(conf);
         });
 
-        configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
-            .extendsFrom(deployConfiguration, earlibConfiguration);
+        configurations.named(Dependency.DEFAULT_CONFIGURATION).configure(conf -> {
+            conf.extendsFrom(deployConfiguration, earlibConfiguration);
+        });
     }
 }

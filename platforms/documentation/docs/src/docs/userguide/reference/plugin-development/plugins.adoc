@@ -1,0 +1,90 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+= Understanding Gradle Plugins
+
+This guide explores the different types of plugins in Gradle and shows how to simplify and standardize build configuration using convention plugins. It is based on a walkthrough video from the "Understanding Gradle" series.
+
+== Types of Plugins in Gradle
+
+Gradle's core functionality is extensible through plugins. Plugins can be categorized into three types:
+. Core Plugins: Bundled with Gradle and applied using a simple ID. + Example: [source,groovy]
+plugins { id 'java-library' }
+. Community Plugins: Published in the Gradle Plugin Portal. Require a qualified plugin ID and version. + Example: [source,groovy]
+plugins { id 'org.jetbrains.kotlin.jvm' version '1.8.20' }
+. Convention Plugins: Custom plugins you write and maintain locally to share and enforce common build logic.
+== Why Use Convention Plugins?
+As projects grow, build files can become large and repetitive. Applying and configuring multiple plugins across subprojects can lead to duplication. Convention plugins solve this by:
+* Encapsulating shared plugin application and configuration
+* Centralizing build logic in one place
+* Simplifying individual build scripts
+
+== Example Project Setup
+
+Suppose we have a multi-project build with subprojects:
+* data-model
+* business-logic
+* app
+Each of these subprojects needs to:
+* Use the java-library plugin
+* Apply the Kotlin plugin
+* Target the same Java version
+Rather than repeating this in every build.gradle.kts, we can extract it into a convention plugin.
+
+== Creating a Convention Plugin
+
+=== 1. Create a Separate Build for Plugins
+
+Create a new directory: [source,shell]
+mkdir my-build-logic
+Inside settings.gradle.kts of the main build, include it: [source,kotlin]
+pluginManagement { includeBuild("my-build-logic") }
+=== 2. Set Up the Plugin Build
+In my-build-logic, create:
+* settings.gradle.kts
+*
+[source,kotlin]
+dependencyResolutionManagement { repositories { gradlePluginPortal() } }
+* One subproject for the plugins, e.g. my-plugins with its own build.gradle.kts
+
+=== 3. Use the Kotlin DSL Plugin
+
+Apply the kotlin-dsl plugin: [source,kotlin]
+plugins { kotlin-dsl }
+
+=== 4. Add Plugin Dependencies
+
+To apply community plugins in your convention plugin, declare them as dependencies. You can find the coordinates in the Gradle Plugin Portal.
+Example: [source,kotlin]
+dependencies { implementation("org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin:1.8.20") }
+=== 5. Write the Convention Plugin
+Create src/main/kotlin/my-java-library.gradle.kts: [source,kotlin]
+plugins { id("java-library") id("org.jetbrains.kotlin.jvm") }
+java { toolchain.languageVersion.set(JavaLanguageVersion.of(17)) }
+This file defines the plugin logic. The file name (my-java-library) becomes the plugin ID.
+== Applying the Convention Plugin
+In any subproject, replace multiple plugin declarations with: [source,kotlin]
+plugins { id("my-java-library") }
+Now all shared configuration is inherited, and subprojects stay lean and consistent.
+
+== Benefits
+
+* Single source of truth for shared build logic
+* Fully supports Kotlin DSL and static typing
+* Encourages modular and maintainable build setups
+
+== Summary
+
+Gradle plugins are powerful tools for extending and structuring your build. Convention plugins allow you to reduce duplication and keep build files clean by centralizing logic in reusable modules. This approach is ideal for multi-project builds where consistency and maintainability are key.
+In future tutorials, we’ll explore more ways to customize and scale Gradle builds using your own plugins.

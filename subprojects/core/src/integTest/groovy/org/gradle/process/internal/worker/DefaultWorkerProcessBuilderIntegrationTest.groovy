@@ -16,58 +16,92 @@
 
 package org.gradle.process.internal.worker
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
+import org.gradle.util.internal.TextUtil
 
 class DefaultWorkerProcessBuilderIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "test classpath does not contain nonexistent entries"() {
         given:
-        file("src/test/java/ClasspathTest.java") << '''
-        import org.junit.Test;
+        def existingDir = createDir("existing")
 
-        import static org.junit.Assert.assertTrue;
+        def pathToExistingDir = TextUtil.escapeString(existingDir.absolutePath)
+        def pathToNonExistingDir = TextUtil.escapeString(new File(testDirectory, "Non exist path").absolutePath)
 
-        public class ClasspathTest {
-            @Test
-            public void test() {
-                String runtimeClasspath = System.getProperty("java.class.path");
-                System.out.println(runtimeClasspath);
-                assertTrue(runtimeClasspath.contains(System.getProperty("user.home")));
-                assertTrue(!runtimeClasspath.contains("Non exist path"));
+        javaFile("src/test/java/ClasspathTest.java", """
+            import org.junit.Test;
+            import java.io.*;
+            import java.util.*;
+            import java.util.stream.*;
+            import java.util.regex.Pattern;
+
+            import static org.junit.Assert.*;
+
+            public class ClasspathTest {
+                private static final File EXISTING_DIR = new File("$pathToExistingDir");
+                private static final File NON_EXISTING_DIR = new File("$pathToNonExistingDir");
+
+                @Test
+                public void test() {
+                    List<File> runtimeClasspath = Arrays.stream(
+                            System.getProperty("java.class.path").split(Pattern.quote(File.pathSeparator))
+                        ).map(File::new)
+                        .collect(Collectors.toList());
+
+                    System.out.println("CLASSPATH = ");
+                    runtimeClasspath.forEach(System.out::println);  // Helps debugging
+
+                    assertTrue("Must contain existing dir: " + EXISTING_DIR, runtimeClasspath.contains(EXISTING_DIR));
+                    assertTrue("Must contain existing dir with star: " + EXISTING_DIR, runtimeClasspath.contains(new File(EXISTING_DIR, "*")));
+
+                    assertFalse("Must not contain non-existent path: " + NON_EXISTING_DIR, runtimeClasspath.contains(NON_EXISTING_DIR));
+                    assertFalse("Must not contain non-existent path with star: " + NON_EXISTING_DIR, runtimeClasspath.contains(new File(NON_EXISTING_DIR, "*")));
+                }
             }
-        }
+        """)
 
-        '''
-        buildFile << """
-        plugins {
-            id "java-library"
-        }
-
-        repositories {
-            mavenCentral()
-        }
-
-        dependencies {
-            testImplementation 'junit:junit:4.13'
-        }
-
-        tasks.test {
-            doFirst {
-                classpath += files(System.getProperty("user.home"),
-                        System.getProperty("user.home") + File.separator + "*",
-                        System.getProperty("user.home") + File.separator + "Non exist path",
-                        System.getProperty("user.home") + File.separator + "Non exist path" + File.separator + "*")
+        buildFile """
+            plugins {
+                id "java-library"
             }
-        }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            dependencies {
+                testImplementation 'junit:junit:4.13'
+            }
+
+            tasks.test {
+                doNotTrackState("Non-existent inputs, skip fingerprint to avoid failure")
+
+                testLogging {
+                    showStandardStreams = true
+                    exceptionFormat = "full"
+                }
+
+                def existingDir = new File("$pathToExistingDir")
+                def nonExistingDir = new File("$pathToNonExistingDir")
+
+                def extraClasspath = files(
+                    existingDir,
+                    new File(existingDir, "*"),
+                    nonExistingDir,
+                    new File(nonExistingDir, "*")
+                )
+
+                classpath += extraClasspath
+            }
         """
 
-        expect:
+        when:
         succeeds("test")
+
+        then:
+        // Verify that the test has run
+        outputContains("CLASSPATH = ")
+        outputContains(existingDir.absolutePath)
     }
 
 }

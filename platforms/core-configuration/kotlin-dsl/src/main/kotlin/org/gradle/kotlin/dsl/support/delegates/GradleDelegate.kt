@@ -55,6 +55,9 @@ abstract class GradleDelegate : Gradle {
     internal
     abstract val delegate: Gradle
 
+    override fun getBuildPath(): String =
+        delegate.buildPath
+
     override fun getGradleVersion(): String =
         delegate.gradleVersion
 

@@ -30,7 +30,7 @@ import javax.inject.Inject
 class DefaultIgnoredConfigurationInputs(
     ignoredPathsString: String?,
     isCaseSensitive: Boolean,
-    private val rootDirectory: File
+    private val buildTreeRootDirectory: File
 ) : IgnoredConfigurationInputs {
 
     @Inject
@@ -41,7 +41,7 @@ class DefaultIgnoredConfigurationInputs(
     ) : this(
         ignoredPathsString = configurationCacheStartParameter.ignoredFileSystemCheckInputs,
         isCaseSensitive = fileSystem.isCaseSensitive,
-        rootDirectory = configurationCacheStartParameter.rootDirectory
+        buildTreeRootDirectory = configurationCacheStartParameter.buildTreeRootDirectory
     )
 
     private
@@ -75,7 +75,7 @@ class DefaultIgnoredConfigurationInputs(
 
     private
     fun maybeRelativize(file: File): File =
-        if (!file.isAbsolute) file else File(GFileUtils.relativePathOf(file, rootDirectory))
+        if (!file.isAbsolute) file else File(GFileUtils.relativePathOf(file, buildTreeRootDirectory))
 
     private
     fun wildcardsToRegexPatternString(pathWithWildcards: String): String {

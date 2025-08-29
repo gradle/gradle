@@ -82,7 +82,7 @@ configurations {
 }
 
 dependencies {
-    lockedConf name: 'my-dep-1.0'
+    lockedConf(":my-dep-1.0")
 }
 """
         when:

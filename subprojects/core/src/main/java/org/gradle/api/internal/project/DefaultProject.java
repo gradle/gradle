@@ -141,6 +141,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.singletonMap;
@@ -175,7 +177,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private final String name;
 
-    private Object group;
+    private @Nullable Object group;
 
     private Object version;
 
@@ -474,13 +476,28 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public Object getGroup() {
         onMutableStateAccess();
-        if (group != null) {
-            return group;
-        } else if (this == rootProject) {
+        if (group == null) {
+            group = getDefaultGroup();
+        }
+        return group;
+    }
+
+    /**
+     * Constructs a default group for this project based on its hierarchy.
+     *
+     * For example, a project ":a:b:c" in a build with a root project named "root"
+     * will have a default group "root.a.b".
+     */
+    private String getDefaultGroup() {
+        ProjectInternal parent = getParent();
+        if (parent == null) {
             return "";
         }
-        group = rootProject.getName() + (getParent() == rootProject ? "" : "." + getParent().getPath().substring(1).replace(':', '.'));
-        return group;
+
+        return Stream.concat(
+            Stream.of(rootProject.getName()),
+            parent.getProjectIdentity().getProjectPath().segments().stream()
+        ).collect(Collectors.joining("."));
     }
 
     @Override
@@ -628,6 +645,20 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public int compareTo(Project otherProject) {
         return ProjectOrderingUtil.compare(this, otherProject);
+    }
+
+    @Override
+    public final boolean equals(Object obj) {
+        if (!(obj instanceof ProjectInternal)) {
+            return false;
+        }
+        ProjectInternal otherProject = (ProjectInternal) obj;
+        return getProjectIdentity().equals(otherProject.getProjectIdentity());
+    }
+
+    @Override
+    public final int hashCode() {
+        return getProjectIdentity().hashCode();
     }
 
     @Override

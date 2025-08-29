@@ -1,0 +1,5203 @@
+[
+  {
+    "filename": "migrating_from_ant.adoc",
+    "anchors": [
+      "migrating_from_ant"
+,
+      "migant:general_guidelines"
+,
+      "migant:imported_builds"
+,
+      "migant:managing_dependencies"
+,
+      "migant:filesystem_deps"
+,
+      "migant:ivy_deps"
+,
+      "migant:ivy_publishing"
+,
+      "migant:custom_tasks"
+,
+      "migant:working_with_files"
+,
+      "migant:properties"
+,
+      "migant:multi_project_builds"
+
+    ]
+  }
+,
+  {
+    "filename": "migrating_from_maven.adoc",
+    "anchors": [
+      "migrating_from_maven"
+,
+      "migmvn:making_a_case"
+,
+      "migmvn:general_guidelines"
+,
+      "migmvn:build_lifecycle"
+,
+      "migmvn:automatic_conversion"
+,
+      "migmvn:migrating_deps"
+,
+      "migmvn:declaring_deps"
+,
+      "migmvn:declaring_repos"
+,
+      "migmvn:controlling_dep_versions"
+,
+      "migmvn:excluding_deps"
+,
+      "migmvn:optional_deps"
+,
+      "migmvn:using_boms"
+,
+      "migmvn:multimodule_builds"
+,
+      "migmvn:sub:sharing-versions"
+,
+      "migmvn:profiles_and_properties"
+,
+      "migmvn:filtering_resources"
+,
+      "migmvn:integration_tests"
+,
+      "migmvn:common_plugins"
+,
+      "migmvn:unnecessary_plugins"
+,
+      "migmvn:custom_plugins"
+
+    ]
+  }
+,
+  {
+    "filename": "migrating_from_groovy_to_kotlin_dsl.adoc",
+    "anchors": [
+      "migrating_groovy_kotlin"
+,
+      "configuring-plugins"
+,
+      "configuration-avoidance"
+,
+      "configuring-tasks"
+,
+      "configurations-and-dependencies"
+,
+      "interop"
+
+    ]
+  }
+,
+  {
+    "filename": "installation.adoc",
+    "anchors": [
+      "installation"
+,
+      "gs:installation"
+,
+      "sec:prerequisites"
+,
+      "sec:linux_macos_users_2"
+,
+      "sec:running_and_testing_your_installation"
+
+    ]
+  }
+,
+  {
+    "filename": "troubleshooting.adoc",
+    "anchors": [
+      "troubleshooting"
+,
+      "sec:troubleshooting_installation"
+,
+      "sec:troubleshooting_dependency_resolution"
+,
+      "sec:troubleshooting_performance"
+,
+      "sec:troubleshooting_build_logic"
+,
+      "sec:troubleshooting_ide_integration"
+,
+      "network_connection"
+
+    ]
+  }
+,
+  {
+    "filename": "compatibility.adoc",
+    "anchors": [
+      "compatibility"
+,
+      "kotlin"
+
+    ]
+  }
+,
+  {
+    "filename": "feature_lifecycle.adoc",
+    "anchors": [
+      "feature_lifecycle"
+,
+      "sec:states"
+,
+      "sec:internal"
+,
+      "sec:incubating_state"
+,
+      "feature_preview"
+,
+      "sec:public"
+,
+      "sec:deprecated"
+,
+      "backwards_compatibility"
+,
+      "eol_support"
+
+    ]
+  }
+,
+  {
+    "filename": "swift_application_plugin.adoc",
+    "anchors": [
+      "swift_application_plugin"
+,
+      "sec:swift_application_usage"
+,
+      "sec:swift_application_build_variants"
+,
+      "sec:swift_application_tasks"
+,
+      "sec:swift_application_task_variants"
+,
+      "sec:swift_application_lifecycle_tasks"
+,
+      "sec:swift_application_dependency_management"
+,
+      "sec:swift_application_conventions"
+,
+      "sec:swift_application_layout"
+,
+      "sec:swift_application_compile_task"
+,
+      "sec:swift_application_link_task"
+,
+      "sec:swift_application_install_task"
+
+    ]
+  }
+,
+  {
+    "filename": "cpp_library_plugin.adoc",
+    "anchors": [
+      "cpp_library_plugin"
+,
+      "sec:cpp_library_usage"
+,
+      "sec:cpp_library_build_variants"
+,
+      "sec:cpp_library_tasks"
+,
+      "sec:cpp_library_task_variants"
+,
+      "sec:cpp_library_lifecycle_tasks"
+,
+      "sec:cpp_library_dependency_management"
+,
+      "sec:cpp_library_api_vs_implementation"
+,
+      "sec:cpp_library_conventions"
+,
+      "sec:cpp_library_layout"
+,
+      "sec:cpp_library_compile_task"
+,
+      "sec:cpp_library_link_task"
+,
+      "sec:cpp_library_create_task"
+
+    ]
+  }
+,
+  {
+    "filename": "xcode_plugin.adoc",
+    "anchors": [
+      "xcode_plugin"
+,
+      "sec:xcode_usage"
+,
+      "sec:xcode_tasks"
+,
+      "sec:xcode_lifecycle_tasks"
+,
+      "sec:xcode_workspace_tasks"
+,
+      "sec:xcode_project_tasks"
+,
+      "sec:xcode_configuration"
+
+    ]
+  }
+,
+  {
+    "filename": "building_swift_projects.adoc",
+    "anchors": [
+      "building_swift_projects"
+,
+      "sec:swift_introduction"
+,
+      "sec:introducing_build_variants-swift"
+,
+      "sec:swift_source_sets"
+,
+      "sec:swift_dependency_management_overview"
+,
+      "sec:swift_compile_link"
+,
+      "sec:swift_supported_tool_chain"
+,
+      "sec:custom_swift_source_set_paths"
+,
+      "sec:custom_swift_compile_link"
+,
+      "sec:select_swift_target_machines"
+,
+      "sec:swift_packaging"
+,
+      "sec:cleaning_swift_build"
+,
+      "sec:building_swift_libraries"
+,
+      "sec:building_swift_applications"
+
+    ]
+  }
+,
+  {
+    "filename": "cpp_testing.adoc",
+    "anchors": [
+      "cpp_testing"
+,
+      "sec:cpp_testing_basics"
+,
+      "sec:cpp_test_execution"
+
+    ]
+  }
+,
+  {
+    "filename": "building_cpp_projects.adoc",
+    "anchors": [
+      "building_cpp_projects"
+,
+      "sec:cpp_introduction"
+,
+      "sec:introducing_build_variants-cpp"
+,
+      "sec:cpp_source_sets"
+,
+      "sec:cpp_dependency_management_overview"
+,
+      "sec:cpp_compile_link"
+,
+      "sec:cpp_supported_tool_chain"
+,
+      "sec:custom_cpp_source_set_paths"
+,
+      "sec:custom_cpp_compile_link"
+,
+      "sec:select_cpp_target_machines"
+,
+      "sec:cpp_packaging"
+,
+      "sec:cleaning_cpp_build"
+,
+      "sec:building_cpp_libraries"
+,
+      "sec:building_cpp_applications"
+
+    ]
+  }
+,
+  {
+    "filename": "swift_testing.adoc",
+    "anchors": [
+      "swift_testing"
+,
+      "sec:swift_testing_basics"
+,
+      "sec:swift_test_filtering"
+,
+      "sec:swift_test_filtering_simple_name_pattern"
+,
+      "sec:swift_test_reporting"
+
+    ]
+  }
+,
+  {
+    "filename": "cpp_application_plugin.adoc",
+    "anchors": [
+      "cpp_application_plugin"
+,
+      "sec:cpp_application_usage"
+,
+      "sec:cpp_application_build_variants"
+,
+      "sec:cpp_application_tasks"
+,
+      "sec:cpp_application_task_variants"
+,
+      "sec:cpp_application_lifecycle_tasks"
+,
+      "sec:cpp_application_dependency_management"
+,
+      "sec:cpp_application_conventions"
+,
+      "sec:cpp_application_layout"
+,
+      "sec:cpp_application_compile_task"
+,
+      "sec:cpp_application_link_task"
+,
+      "sec:cpp_application_install_task"
+
+    ]
+  }
+,
+  {
+    "filename": "swift_library_plugin.adoc",
+    "anchors": [
+      "swift_library_plugin"
+,
+      "sec:swift_library_usage"
+,
+      "sec:swift_library_build_variants"
+,
+      "sec:swift_library_tasks"
+,
+      "sec:swift_library_task_variants"
+,
+      "sec:swift_library_lifecycle_tasks"
+,
+      "sec:swift_library_dependency_management"
+,
+      "sec:swift_library_api_vs_implementation"
+,
+      "sec:swift_library_conventions"
+,
+      "sec:swift_library_layout"
+,
+      "sec:swift_library_compile_task"
+,
+      "sec:swift_library_link_task"
+,
+      "sec:swift_library_create_task"
+
+    ]
+  }
+,
+  {
+    "filename": "native_software.adoc",
+    "anchors": [
+      "native_software"
+,
+      "sec:native_features"
+,
+      "sec:supported_languages"
+,
+      "native-binaries:tool-chain-support"
+,
+      "sec:tool_chain_installation"
+,
+      "sec:windows"
+,
+      "sec:macOS"
+,
+      "sec:linux"
+,
+      "sec:native_software_model"
+,
+      "sec:parallel_compilation"
+,
+      "sec:building_a_library"
+,
+      "sec:building_an_executable"
+,
+      "sec:dependents"
+,
+      "sec:dependents_report"
+,
+      "sec:assemble_dependents"
+,
+      "sec:build_dependents"
+,
+      "sec:native_tasks"
+,
+      "sec:check_tasks"
+,
+      "sec:working_with_shared_libraries"
+,
+      "sec:finding_out_more_about_your_project"
+,
+      "native_binaries:languages"
+,
+      "sec:cpp_sources"
+,
+      "sec:c_sources"
+,
+      "sec:assembler_sources"
+,
+      "sec:objectivec_sources"
+,
+      "sec:objectivecpp_sources"
+,
+      "sec:configuring_the_compiler_assembler_and_linker"
+,
+      "native_binaries:windows-resources"
+,
+      "sec:library_dependencies"
+,
+      "sec:dependencies_within_the_same_project"
+,
+      "sec:project_dependencies"
+,
+      "native_binaries:preCompiledHeaders"
+,
+      "native_binaries:variants"
+,
+      "native_binaries:build_type"
+,
+      "native_binaries:platform"
+,
+      "native_binaries:flavor"
+,
+      "sec:selecting_the_build_types_platforms_and_flavors_for_a_component"
+,
+      "sec:building_all_possible_variants"
+,
+      "native_binaries:tool_chain"
+,
+      "sec:defining_tool_chains"
+,
+      "sec:using_tool_chains"
+,
+      "sec:crosscompiling_with_gcc"
+,
+      "native_binaries:visual_studio"
+,
+      "native_binaries:cunit"
+,
+      "sec:cunit_sources"
+,
+      "sec:building_cunit_executables"
+,
+      "sec:running_cunit_tests"
+,
+      "native_binaries:google_test"
+,
+      "sec:googletest_sources"
+,
+      "sec:building_googletest_executables"
+,
+      "sec:running_googletest_tests"
+
+    ]
+  }
+,
+  {
+    "filename": "cpp_unit_test_plugin.adoc",
+    "anchors": [
+      "cpp_unit_test_plugin"
+,
+      "sec:cpp_unit_test_usage"
+,
+      "sec:cpp_unit_test_build_varants"
+,
+      "sec:cpp_unit_test_tasks"
+,
+      "sec:cpp_unit_test_task_variants"
+,
+      "sec:cpp_unit_test_lifecycle_tasks"
+,
+      "sec:cpp_unit_test_dependency_management"
+,
+      "sec:cpp_unit_test_conventions"
+,
+      "sec:cpp_unit_test_layout"
+,
+      "sec:cpp_unit_test_compile_task"
+,
+      "sec:cpp_unit_test_link_task"
+,
+      "sec:cpp_unit_test_install_task"
+,
+      "sec:cpp_unit_test_run_task"
+
+    ]
+  }
+,
+  {
+    "filename": "xctest_plugin.adoc",
+    "anchors": [
+      "xctest_plugin"
+,
+      "sec:xctest_usage"
+,
+      "sec:xctest_build_varants"
+,
+      "sec:xctest_tasks"
+,
+      "sec:xctest_task_variants"
+,
+      "sec:xctest_lifecycle_tasks"
+,
+      "sec:xctest_dependency_management"
+,
+      "sec:xctest_conventions"
+,
+      "sec:xctest_layout"
+,
+      "sec:xctest_compile_task"
+,
+      "sec:xctest_link_task"
+,
+      "sec:xctest_install_task"
+,
+      "sec:xctest_run_task"
+
+    ]
+  }
+,
+  {
+    "filename": "building_java_projects.adoc",
+    "anchors": [
+      "building_java_projects"
+,
+      "sec:java_source_sets"
+,
+      "sec:implicit_sourceset_configurations"
+,
+      "sec:java_dependency_management_overview"
+,
+      "sec:compile"
+,
+      "sec:custom_java_source_set_paths"
+,
+      "sec:java_cross_compilation"
+,
+      "sec:compiling_with_toolchain"
+,
+      "sec:compiling_with_release"
+,
+      "sec:custom_java_source_sets"
+,
+      "sec:java_compiling_errors"
+,
+      "sec:java_resources"
+,
+      "sec:properties_files"
+,
+      "sec:running_java_tests"
+,
+      "sec:java_packaging"
+,
+      "sec:jar_manifest"
+,
+      "sec:generating_javadocs"
+,
+      "sec:cleaning_java_build"
+,
+      "sec:building_jvm_components"
+,
+      "sec:building_java_libraries"
+,
+      "sec:building_java_applications"
+,
+      "sec:building_java_webapps"
+,
+      "sec:building_java_enterprise_apps"
+,
+      "sec:building_java_platform"
+,
+      "sec:feature_preview"
+,
+      "sec:building_jvm_lang"
+,
+      "sub:compile_deps_jvm_lang"
+
+    ]
+  }
+,
+  {
+    "filename": "application_plugin.adoc",
+    "anchors": [
+      "application_plugin"
+,
+      "sec:application_usage"
+,
+      "sec:application_modular"
+,
+      "sec:the_distribution"
+,
+      "sec:customizing_start_script_generation"
+,
+      "sec:application_tasks"
+,
+      "sec:application_extension"
+,
+      "sec:application_licensing"
+,
+      "sec:application_convention_properties"
+
+    ]
+  }
+,
+  {
+    "filename": "java_plugin.adoc",
+    "anchors": [
+      "java_plugin"
+,
+      "sec:java_usage"
+,
+      "sec:java_tasks"
+,
+      "java_source_set_tasks"
+,
+      "sec:java_project_layout"
+,
+      "javalayout"
+,
+      "sec:changing_java_project_layout"
+,
+      "source_sets"
+,
+      "sec:source_set_properties"
+,
+      "sec:defining_new_source_sets"
+,
+      "sec:some_source_set_examples"
+,
+      "sec:java_plugin_and_dependency_management"
+,
+      "tab:configurations"
+,
+      "java_source_set_configurations"
+,
+      "sec:java-extension"
+,
+      "sec:java_convention_properties"
+,
+      "sec:java_test"
+,
+      "sec:java_plugin_publishing"
+,
+      "sec:incremental_compile"
+,
+      "sec:incremental_compilation_known_issues"
+,
+      "sec:incremental_annotation_processing"
+,
+      "sec:java_compile_avoidance"
+
+    ]
+  }
+,
+  {
+    "filename": "dependency_management_for_java_projects.adoc",
+    "anchors": [
+      "dependency_management_for_java_projects"
+,
+      "sec:setting_up_a_standard_build_script_java_tutorial"
+,
+      "sec:module_dependencies_java_tutorial"
+,
+      "sec:configurations_java_tutorial"
+,
+      "sec:repositories_java_tutorial"
+,
+      "sec:publishing_artifacts_java_tutorial"
+
+    ]
+  }
+,
+  {
+    "filename": "java_library_plugin.adoc",
+    "anchors": [
+      "java_library_plugin"
+,
+      "sec:java_library_usage"
+,
+      "sec:java_library_separation"
+,
+      "sec:java_library_recognizing_dependencies"
+,
+      "sec:java_library_configurations_graph"
+,
+      "sec:java_library_modular"
+,
+      "sec:java_library_modular_auto"
+,
+      "sec:java_library_classes_usage"
+,
+      "sub:java_library_known_issues_memory"
+,
+      "sub:java_library_known_issues_windows_performance"
+,
+      "sec:library_distribution"
+
+    ]
+  }
+,
+  {
+    "filename": "jacoco_report_aggregation_plugin.adoc",
+    "anchors": [
+      "jacoco_report_aggregation_plugin"
+,
+      "sec:jacoco_report_aggregation_usage"
+,
+      "sec:jacoco_report_aggregation_tasks"
+,
+      "sec:dependency_management"
+
+    ]
+  }
+,
+  {
+    "filename": "javaProjectTestLayout.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "java_platform_plugin.adoc",
+    "anchors": [
+      "java_platform_plugin"
+,
+      "sec:java_platform_usage"
+,
+      "sec:java_platform_separation"
+,
+      "sec:java_platform_project_constraints"
+,
+      "sec:java_platform_bom_import"
+,
+      "sec:java_platform_publishing"
+,
+      "sec:java_platform_consumption"
+
+    ]
+  }
+,
+  {
+    "filename": "groovy_plugin.adoc",
+    "anchors": [
+      "groovy_plugin"
+,
+      "sec:groovy_usage"
+,
+      "sec:groovy_tasks"
+,
+      "sec:groovy_project_layout"
+,
+      "groovylayout"
+,
+      "sec:changing_groovy_project_layout"
+,
+      "sec:groovy_dependency_management"
+,
+      "sec:automatic_configuration_of_groovyclasspath"
+,
+      "sec:groovy_convention_properties"
+,
+      "sec:groovy_source_set_properties"
+,
+      "sec:groovyCompile"
+,
+      "sec:groovy_compilation_avoidance"
+,
+      "sec:incremental_groovy_compilation"
+,
+      "sec:incremental_groovy_compilation_known_issues"
+,
+      "sec:groovy_cross_compilation"
+
+    ]
+  }
+,
+  {
+    "filename": "test_report_aggregation_plugin.adoc",
+    "anchors": [
+      "test_report_aggregation_plugin"
+,
+      "sec:test_report_aggregation_usage"
+,
+      "sec:test_report_aggregation_tasks"
+,
+      "sec:dependency_management"
+
+    ]
+  }
+,
+  {
+    "filename": "jvm_test_suite_plugin.adoc",
+    "anchors": [
+      "jvm_test_suite_plugin"
+,
+      "sec:jvm_test_suite_usage"
+,
+      "sec:jvm_test_suite_tasks"
+,
+      "sec:jvm_test_suite_configuration"
+,
+      "sec:jvm_test_suite_terminology"
+,
+      "sec:jvm_test_suite_examples"
+,
+      "sec:declare_an_additional_test_suite"
+,
+      "sec:configuring_the_built_in_test_suite"
+,
+      "sec:differences_with_top_level_dependencies"
+,
+      "sec:outgoing_variants"
+
+    ]
+  }
+,
+  {
+    "filename": "toolchains.adoc",
+    "anchors": [
+      "toolchains"
+,
+      "sec:consuming"
+,
+      "sec:java-toolchains"
+,
+      "sec:release-flag-toolchain"
+,
+      "sec:source-target-toolchain"
+,
+      "sec:java-home-toolchain"
+,
+      "sec:ide-settings-toolchain"
+,
+      "sec:using-java-toolchains"
+,
+      "sec:vendors"
+,
+      "sec:native_graalvm_image"
+,
+      "sec:configuring_toolchain_specifications"
+,
+      "sec:auto_detection"
+,
+      "sub:disable_auto_detect"
+,
+      "sec:provisioning"
+,
+      "sub:download_repositories"
+,
+      "sub:viewing_toolchains"
+,
+      "sub:disable_auto_provision"
+,
+      "sub:removing_auto_provisioned_toolchain"
+,
+      "sec:custom_loc"
+,
+      "sec:precedence"
+,
+      "sec:plugins_toolchains"
+,
+      "sec:limitations"
+
+    ]
+  }
+,
+  {
+    "filename": "javaProjectGenericLayout.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "javaProjectMainLayout.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "toolchain_plugins.adoc",
+    "anchors": [
+      "toolchain_plugins"
+
+    ]
+  }
+,
+  {
+    "filename": "scala_plugin.adoc",
+    "anchors": [
+      "scala_plugin"
+,
+      "sec:scala_usage"
+,
+      "sec:scala_tasks"
+,
+      "sec:scala_project_layout"
+,
+      "scalalayout"
+,
+      "sec:changing_scala_project_layout"
+,
+      "sec:scala_version"
+,
+      "sec:configure_scala_classpath"
+,
+      "sec:configure_zinc_compiler"
+,
+      "sec:scala_compiler_plugins"
+,
+      "sec:scala_convention_properties"
+,
+      "sec:scala_source_set_properties"
+,
+      "sec:scala_target"
+,
+      "sec:scala_compiling_in_external_process"
+,
+      "sec:scala_incremental_compilation"
+,
+      "sec:eclipse_integration"
+,
+      "sec:intellij_idea_integration"
+
+    ]
+  }
+,
+  {
+    "filename": "java_testing.adoc",
+    "anchors": [
+      "java_testing"
+,
+      "sec:java_testing_basics"
+,
+      "sec:test_execution"
+,
+      "test_filtering"
+,
+      "simple_name_pattern"
+,
+      "full_qualified_name_pattern"
+,
+      "test_reporting"
+,
+      "communicating_test_results_to_CI_servers_and_other_tools_via_xml_files"
+,
+      "junit_xml_configuration"
+,
+      "junit_xml_configuration_output_filtering"
+,
+      "sec:test_detection"
+,
+      "sec:test_logging"
+,
+      "test_grouping"
+,
+      "using_junit5"
+,
+      "compiling_and_executing_junit_jupiter_tests"
+,
+      "executing_legacy_tests_with_junit_vintage"
+,
+      "filtering_test_engine"
+,
+      "test_execution_order"
+,
+      "testNgParameterizedReporting"
+,
+      "sec:configuring_java_integration_tests"
+,
+      "sec:java_testing_modular"
+,
+      "sec:java_testing_modular_patching"
+,
+      "sec:skipping_java_tests"
+,
+      "sec:forcing_java_tests_to_run"
+,
+      "sec:debugging_java_tests"
+,
+      "sec:java_test_fixtures"
+
+    ]
+  }
+,
+  {
+    "filename": "java_library_distribution_plugin.adoc",
+    "anchors": [
+      "java_library_distribution_plugin"
+,
+      "sec:java_library_distribution_usage"
+,
+      "sec:java_library_distribution_tasks"
+,
+      "java_library_distribution_resources"
+
+    ]
+  }
+,
+  {
+    "filename": "third_party_integration.adoc",
+    "anchors": [
+      "third_party_integration"
+,
+      "ides"
+
+    ]
+  }
+,
+  {
+    "filename": "test_reporting_api.adoc",
+    "anchors": [
+      "test_reporting_api"
+
+    ]
+  }
+,
+  {
+    "filename": "tooling_api.adoc",
+    "anchors": [
+      "tooling_api"
+,
+      "embedding"
+,
+      "sec:embedding_introduction"
+,
+      "sec:embedding_features"
+,
+      "sec:embedding_daemon"
+,
+      "sec:embedding_quickstart"
+,
+      "sec:embedding_compatibility"
+
+    ]
+  }
+,
+  {
+    "filename": "config_gradle.adoc",
+    "anchors": [
+      "config_gradle"
+,
+      "sec:configuring_jvm_memory"
+,
+      "sec:configuring_task_using_project_properties"
+
+    ]
+  }
+,
+  {
+    "filename": "gradle_ides.adoc",
+    "anchors": [
+      "gradle_ides"
+
+    ]
+  }
+,
+  {
+    "filename": "performance.adoc",
+    "anchors": [
+      "performance_gradle"
+,
+      "sec:update-versions"
+,
+      "update_gradle"
+,
+      "sec:enable_parallel_execution"
+,
+      "enable_daemon"
+,
+      "enable_build_cache"
+,
+      "enable_configuration_cache"
+,
+      "enable_inc_builds_custom_tasks"
+,
+      "enable_specific_dev_workflows"
+,
+      "increase_heap_size"
+,
+      "optimize_configuration"
+,
+      "optimize_dependency_resolution"
+,
+      "optimize_java_projects"
+,
+      "optimize_android_projects"
+,
+      "improve_older_projects"
+
+    ]
+  }
+,
+  {
+    "filename": "caching_android_projects.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "caching_java_projects.adoc",
+    "anchors": [
+      "java_compilation"
+,
+      "annotation_processors"
+
+    ]
+  }
+,
+  {
+    "filename": "build_cache_use_cases.adoc",
+    "anchors": [
+      "use_cases_cache"
+,
+      "share_results_between_ci_builds"
+
+    ]
+  }
+,
+  {
+    "filename": "build_cache_concepts.adoc",
+    "anchors": [
+      "concepts_repeatable_task_outputs"
+,
+      "stable_task_inputs"
+,
+      "normalization"
+,
+      "relocatability"
+,
+      "compile_avoidance"
+,
+      "runtime_classpath"
+,
+      "filter_runtime_classpath"
+,
+      "concepts_overlapping_outputs"
+,
+      "non_cacheable_tasks"
+
+    ]
+  }
+,
+  {
+    "filename": "build_cache_performance.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "build_cache_debugging.adoc",
+    "anchors": [
+      "finding_problems"
+,
+      "in-place_caching_test"
+,
+      "caching_relocation_test"
+,
+      "diagnosing_cache_miss"
+
+    ]
+  }
+,
+  {
+    "filename": "build_cache.adoc",
+    "anchors": [
+      "build_cache"
+,
+      "sec:build_cache_intro"
+,
+      "sec:build_cache_enable"
+,
+      "sec:task_output_caching"
+,
+      "sec:task_output_caching_example"
+,
+      "sec:task_output_caching_details"
+,
+      "sec:task_output_caching_cacheable_tasks"
+,
+      "sec:task_output_caching_cacheable_3rd_party"
+,
+      "sec:task_output_caching_inputs"
+,
+      "sec:task_output_caching_disabled_by_default"
+,
+      "sec:build_cache_configure"
+,
+      "sec:build_cache_configure_local"
+,
+      "sec:build_cache_configure_remote"
+,
+      "sec:build_cache_redirects"
+,
+      "sec:build_cache_error_handling"
+,
+      "sec:build_cache_expect_continue"
+,
+      "sec:build_cache_configure_use_cases"
+,
+      "sec:build_cache_composite"
+,
+      "sec:build_cache_setup_http_backend"
+,
+      "sec:build_cache_implement"
+
+    ]
+  }
+,
+  {
+    "filename": "common_caching_problems.adoc",
+    "anchors": [
+      "common-problems"
+,
+      "system_file_encoding"
+,
+      "java_version_tracking"
+,
+      "custom_actions"
+,
+      "logic_based_on_task_outcome"
+,
+      "volatile_inputs"
+,
+      "volatile_outputs"
+
+    ]
+  }
+,
+  {
+    "filename": "configuration_cache.adoc",
+    "anchors": [
+      "config_cache"
+,
+      "config_cache:intro"
+,
+      "config_cache:intro:how_does_it_work"
+,
+      "config_cache:intro:performance_improvements"
+,
+      "config_cache:in_action"
+,
+      "config_cache:usage"
+,
+      "config_cache:usage:enable"
+,
+      "config_cache:usage:ignore_problems"
+,
+      "config_cache:usage:max_problems"
+,
+      "config_cache:usage:parallel"
+,
+      "config_cache:usage:invalidate"
+,
+      "config_cache:stable"
+,
+      "config_cache:ide"
+,
+      "config_cache:ide:intellij"
+,
+      "config_cache:ide:eclipse"
+,
+      "config_cache:plugins"
+,
+      "config_cache:plugins:core"
+,
+      "config_cache:plugins:community"
+,
+      "config_cache:troubleshooting"
+,
+      "config_cache:task_opt_out"
+,
+      "config_cache:integrity_check"
+,
+      "config_cache:adoption"
+,
+      "config_cache:adoption:reacting"
+,
+      "config_cache:adoption:changes_in_behavior"
+,
+      "config_cache:testing"
+,
+      "config_cache:requirements"
+,
+      "config_cache:requirements:disallowed_types"
+,
+      "config_cache:requirements:use_project_during_execution"
+,
+      "config_cache:requirements:task_access"
+,
+      "config_cache:requirements:shared_objects"
+,
+      "config_cache:requirements:task_extensions"
+,
+      "config_cache:requirements:build_listeners"
+,
+      "config_cache:requirements:external_processes"
+,
+      "config_cache:requirements:reading_sys_props_and_env_vars"
+,
+      "config_cache:requirements:undeclared_file_read"
+,
+      "config_cache:requirements:bytecode_modifications_and_isolation"
+,
+      "config_cache:secrets"
+,
+      "config_cache:secrets:configuring_encryption_key"
+,
+      "config_cache:secrets:generating_encryption_key"
+,
+      "config_cache:not_yet_implemented"
+,
+      "config_cache:not_yet_implemented:sharing"
+,
+      "config_cache:not_yet_implemented:source_dependencies"
+,
+      "config_cache:not_yet_implemented:testkit_build_with_java_agent"
+,
+      "config_cache:not_yet_implemented:fine_grained_tracking_of_gradle_properties"
+,
+      "config_cache:not_yet_implemented:java_serialization"
+,
+      "config_cache:not_yet_implemented:accessing_top_level_at_execution"
+,
+      "config_cache:not_yet_implemented:build_services_in_fingerprint"
+
+    ]
+  }
+,
+  {
+    "filename": "networking.adoc",
+    "anchors": [
+      "networking_gradle"
+,
+      "sec:accessing_the_web_via_a_proxy"
+
+    ]
+  }
+,
+  {
+    "filename": "incremental_build.adoc",
+    "anchors": [
+      "incremental_build"
+,
+      "sec:task_inputs_outputs"
+,
+      "sec:task_input_output_annotations"
+,
+      "table:incremental_build_annotations"
+,
+      "sec:task_input_using_classpath_annotations"
+,
+      "sec:task_input_nested_inputs"
+,
+      "sec:task_input_validation"
+,
+      "sec:task_input_output_runtime_api"
+,
+      "sec:runtime_api_for_adhoc"
+,
+      "sec:runtime_api_configuration"
+,
+      "sec:runtime_api_for_custom_tasks"
+,
+      "sec:task_input_output_side_effects"
+,
+      "sec:inferred_task_dependencies"
+,
+      "sec:task_input_output_validation"
+,
+      "sec:task_input_output_continuous_build"
+,
+      "sec:task_input_output_parallelism"
+,
+      "sec:how_does_it_work"
+,
+      "sec:advanced_inc_build"
+,
+      "sec:add_cached_input_output_methods"
+,
+      "sec:link_output_dir_to_input_files"
+,
+      "sec:disable-state-tracking"
+,
+      "sec:untracked_external_tool"
+,
+      "sec:configure_input_normalization"
+,
+      "sec:property_file_normalization"
+,
+      "sec:meta_inf_normalization"
+,
+      "sec:custom_up_to_date_logic"
+,
+      "sec:stale_task_outputs"
+
+    ]
+  }
+,
+  {
+    "filename": "part6_gradle_caching.adoc",
+    "anchors": [
+      "part6_gradle_caching"
+,
+      "part6_begin"
+
+    ]
+  }
+,
+  {
+    "filename": "part4_gradle_plugins.adoc",
+    "anchors": [
+      "part4_gradle_plugins"
+,
+      "part4_begin"
+
+    ]
+  }
+,
+  {
+    "filename": "part5_gradle_inc_builds.adoc",
+    "anchors": [
+      "part5_gradle_inc_builds"
+,
+      "part5_begin"
+
+    ]
+  }
+,
+  {
+    "filename": "part3_gradle_dep_man.adoc",
+    "anchors": [
+      "part3_gradle_dep_man"
+,
+      "part3_begin"
+
+    ]
+  }
+,
+  {
+    "filename": "part2_gradle_tasks.adoc",
+    "anchors": [
+      "part2_gradle_tasks"
+,
+      "part2_begin"
+
+    ]
+  }
+,
+  {
+    "filename": "part1_gradle_init.adoc",
+    "anchors": [
+      "part1_gradle_init"
+,
+      "part1_begin"
+
+    ]
+  }
+,
+  {
+    "filename": "part7_gradle_refs.adoc",
+    "anchors": [
+      "part7_gradle_refs"
+,
+      "part7_begin"
+
+    ]
+  }
+,
+  {
+    "filename": "gradle_wrapper_basics.adoc",
+    "anchors": [
+      "gradle_wrapper_basics"
+,
+      "sec:using_the_wrapper"
+,
+      "sec:view_the_wrapper"
+
+    ]
+  }
+,
+  {
+    "filename": "settings_file_basics.adoc",
+    "anchors": [
+      "settings_file_basics"
+,
+      "sec:settings_file_script"
+
+    ]
+  }
+,
+  {
+    "filename": "gradle_optimizations.adoc",
+    "anchors": [
+      "gradle_optimizations"
+
+    ]
+  }
+,
+  {
+    "filename": "gradle_basics.adoc",
+    "anchors": [
+      "gradle"
+
+    ]
+  }
+,
+  {
+    "filename": "build_file_basics.adoc",
+    "anchors": [
+      "build_file_basics"
+,
+      "sec:build_script"
+
+    ]
+  }
+,
+  {
+    "filename": "dependency_management_basics.adoc",
+    "anchors": [
+      "dependency_management_basics"
+
+    ]
+  }
+,
+  {
+    "filename": "build_scans.adoc",
+    "anchors": [
+      "build_scans"
+,
+      "sec:captured-information"
+
+    ]
+  }
+,
+  {
+    "filename": "plugin_basics.adoc",
+    "anchors": [
+      "plugin_basics"
+,
+      "applying_plugins"
+
+    ]
+  }
+,
+  {
+    "filename": "task_basics.adoc",
+    "anchors": [
+      "task_basics"
+
+    ]
+  }
+,
+  {
+    "filename": "command_line_interface_basics.adoc",
+    "anchors": [
+      "command_line_interface_basics"
+,
+      "command_line_executing_tasks"
+,
+      "disambiguate_task_options_from_built_in_options"
+
+    ]
+  }
+,
+  {
+    "filename": "logging.adoc",
+    "anchors": [
+      "logging"
+,
+      "logLevels"
+,
+      "sec:choosing_a_log_level"
+,
+      "logLevelCommandLineOptions"
+,
+      "stacktraces"
+,
+      "sec:debug_security"
+,
+      "sec:sending_your_own_log_messages"
+,
+      "sec:external_tools"
+,
+      "sec:changing_what_gradle_logs"
+
+    ]
+  }
+,
+  {
+    "filename": "gradle_daemon.adoc",
+    "anchors": [
+      "gradle_daemon"
+,
+      "understanding_daemon"
+,
+      "sec:status"
+,
+      "find_all_daemons"
+,
+      "enable_deamon"
+,
+      "sec:disabling_the_daemon"
+,
+      "sec:stopping_an_existing_daemon"
+,
+      "sec:daemon_jvm_criteria"
+,
+      "sec:specifying_a_jvm_vendor"
+,
+      "sec:native_image"
+,
+      "sec:detect_provision"
+,
+      "sec:configure_provision"
+,
+      "sec:tools_and_ides"
+,
+      "deamon_compatibility"
+,
+      "sec:why_the_daemon"
+
+    ]
+  }
+,
+  {
+    "filename": "file_system_watching.adoc",
+    "anchors": [
+      "sec:daemon_watch_fs"
+,
+      "sec:daemon_watch_fs_troubleshooting"
+,
+      "sec:inotify_watches_limit"
+,
+      "sec:inotify_instances_limit"
+
+    ]
+  }
+,
+  {
+    "filename": "gradle_wrapper.adoc",
+    "anchors": [
+      "gradle_wrapper_reference"
+,
+      "sec:adding_wrapper"
+,
+      "sec:using_wrapper"
+,
+      "sec:upgrading_wrapper"
+,
+      "customizing_wrapper"
+,
+      "sec:authenticated_download"
+,
+      "sec:verification"
+,
+      "wrapper_checksum_verification"
+
+    ]
+  }
+,
+  {
+    "filename": "command_line_interface.adoc",
+    "anchors": [
+      "command_line_interface_reference"
+,
+      "sec:command_line_executing_tasks"
+,
+      "sec:disambiguate_task_options_from_built_in_options"
+,
+      "executing_tasks_in_multi_project_builds"
+,
+      "sec:excluding_tasks_from_the_command_line"
+,
+      "sec:rerun_tasks"
+,
+      "sec:continue_build_on_failure"
+,
+      "sec:name_abbreviation"
+,
+      "sec:command_line_project_reporting"
+,
+      "sec:listing_tasks"
+,
+      "sec:show_task_details"
+,
+      "sec:listing_project_dependencies"
+,
+      "sec:listing_properties"
+,
+      "sec:command_line_completion"
+,
+      "sec:command_line_debugging"
+,
+      "sec:command_line_performance"
+,
+      "sec:command_line_logging"
+,
+      "sec:command_line_customizing_log_format"
+,
+      "sec:command_line_problems"
+,
+      "sec:command_line_warnings"
+,
+      "sec:rich_console"
+,
+      "sec:command_line_execution_options"
+,
+      "sec:dependency_verification_options"
+,
+      "sec:environment_options"
+,
+      "sec:task_options"
+,
+      "sec:builtin_task_options"
+,
+      "sec:command_line_bootstrapping_projects"
+,
+      "sec:continuous_build"
+
+    ]
+  }
+,
+  {
+    "filename": "inspect.adoc",
+    "anchors": [
+      "inspecting_build_scans"
+,
+      "build-scan-performance"
+
+    ]
+  }
+,
+  {
+    "filename": "continuous_builds.adoc",
+    "anchors": [
+      "continuous_builds"
+,
+      "continuous_build_limitations"
+,
+      "sec:continuous_build_missing_files"
+,
+      "sec:continuous_build_untracked"
+,
+      "sec:continuous_build_project_dir"
+,
+      "sec:build_cycles"
+,
+      "sec:changes_to_symbolic_links"
+,
+      "sec:changes_to_build_logic_are_not_considered"
+,
+      "continuous_build_in_ides"
+
+    ]
+  }
+,
+  {
+    "filename": "getting_started_eng.adoc",
+    "anchors": [
+      "introduction"
+,
+      "gradle_intro"
+,
+      "getting_started"
+
+    ]
+  }
+,
+  {
+    "filename": "directory_layout.adoc",
+    "anchors": [
+      "directory_layout"
+,
+      "dir:gradle_user_home"
+,
+      "dir:gradle_user_home:cache_cleanup"
+,
+      "dir:gradle_user_home:configure_cache_cleanup"
+,
+      "dir:gradle_user_home:multi_version_cache_cleanup"
+,
+      "dir:gradle_user_home:cache_marking"
+,
+      "dir:gradle_user_home:configure_cache_marking"
+,
+      "dir:project_root"
+,
+      "dir:project_root:cache_cleanup"
+
+    ]
+  }
+,
+  {
+    "filename": "build_environment.adoc",
+    "anchors": [
+      "build_environment"
+,
+      "sec:project_properties"
+,
+      "sec:gradle_command_line_flags"
+,
+      "sec:gradle_system_properties"
+,
+      "sec:gradle_configuration_properties"
+,
+      "sec:gradle_environment_variables"
+
+    ]
+  }
+,
+  {
+    "filename": "library_vs_application.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "dependency_resolution_adv.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "travis-ci.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "continuous_build.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "maven_plugin.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "artifact_management.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "introduction.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "dependency_resolution_model.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "bp_dependencies.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "partr1_gradle_init.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "custom_gradle_types.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "software_model_concepts.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "dependency_resolution_basics.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "feature_variants.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "dependency_version_alignment.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "embedding.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "partr5_build_scripts.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "authoring_maintainable_build_scripts.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "potential_traps.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "console.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "dependency_management.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "bp_general.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "dependency_capability_conflict.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "partr7_writing_plugins.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "partr3_multi_project_builds.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "declaring_dependencies_adv.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "dependency_management_terminology.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "software_model.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "core_dependency_management.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "rich_versions.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "variant_model.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "software_model_extend.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "programmatic_dependency_resolution.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "gradle_command_line.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "github-actions.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "cross_project_publications.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "teamcity.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "java_software.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "dependency_graph_resolution.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "designing_gradle_plugins.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "single_versions.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "cpp_plugins.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "structuring_software_products_details.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "artifact_dependencies_tutorial.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "declaring_repositories_adv.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "about_manual.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "javaGradle_plugin.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "partr2_build_lifecycle.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "standard_plugins.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "project_properties.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "version_catalog_problems.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "partr6_writing_tasks.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "bp_tasks.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "partr4_settings_file.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "jenkins.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "tutorial_java_projects.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "dependency_downgrade_and_exclude.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "organizing_build_logic.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "wrapper_plugin.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "declaring_dependencies_between_subprojects.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "dynamic_versions.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "resolution_strategy_tuning.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "structuring_software_products.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "tutorial_gradle_command_line.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "fine_tuning_project_layout.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "licenses.adoc",
+    "anchors": [
+      "license"
+,
+      "sec:gradle_documentation"
+,
+      "licenses:build_scan_plugin"
+
+    ]
+  }
+,
+  {
+    "filename": "collections.adoc",
+    "anchors": [
+      "collection_types"
+,
+      "available_collections"
+,
+      "domainobjectset"
+,
+      "nameddomainobjectset"
+,
+      "nameddomainobjectlist"
+,
+      "nameddomainobjectcontainer"
+,
+      "extensiblepolymorphicdomainobjectcontainer"
+
+    ]
+  }
+,
+  {
+    "filename": "service_injection.adoc",
+    "anchors": [
+      "service_injection"
+,
+      "services_for_injection"
+,
+      "objectfactory"
+,
+      "sec:projectlayout"
+,
+      "buildlayout"
+,
+      "providerfactory"
+,
+      "workerexecutor"
+,
+      "filesystemoperations"
+,
+      "archiveoperations"
+,
+      "execoperations"
+,
+      "toolingmodelbuilderregistry"
+,
+      "testeventreporterfactory"
+,
+      "property_injection"
+
+    ]
+  }
+,
+  {
+    "filename": "working_with_files.adoc",
+    "anchors": [
+      "working_with_files"
+,
+      "sec:hard_coded_file_paths"
+,
+      "sec:locating_files"
+,
+      "sec:single_file_paths"
+,
+      "sec:file_collections"
+,
+      "sec:specifying_multiple_files"
+,
+      "sec:file_trees"
+,
+      "sec:change_default_excludes"
+,
+      "sec:using_the_copyspec_class"
+,
+      "sub:sharing_copy_specs"
+,
+      "sub:using_child_copy_specifications"
+,
+      "sec:sync_task"
+,
+      "sec:copying_single_file_example"
+,
+      "sec:copying_multiple_files_example"
+,
+      "sec:copying_directories_example"
+,
+      "sec:copying_files"
+,
+      "sec:project_copy_method"
+,
+      "sec:renaming_files_example"
+,
+      "sec:renaming_files"
+,
+      "filtering_files"
+,
+      "sec:filtering_files"
+,
+      "sec:setting_file_permissions"
+,
+      "sec:moving_files_example"
+,
+      "sec:deleting_files_example"
+,
+      "sec:creating_archives_example"
+,
+      "sec:archives"
+,
+      "sec:archive_naming"
+,
+      "sec:sharing_content_between_multiple_archives"
+,
+      "sec:archive_contents"
+,
+      "sec:reproducible_archives"
+,
+      "sec:unpacking_archives_example"
+,
+      "sec:creating_uber_jar_example"
+,
+      "sec:creating_directories_example"
+,
+      "sec:install_executable"
+,
+      "sec:copy_deploy"
+
+    ]
+  }
+,
+  {
+    "filename": "properties_providers.adoc",
+    "anchors": [
+      "properties_and_providers"
+,
+      "understanding_properties"
+,
+      "understanding_providers"
+,
+      "managed_properties"
+,
+      "read_only_managed_properties"
+,
+      "read_only_managed_nested_properties"
+,
+      "read_only_managed_name_property"
+,
+      "managed_types"
+
+    ]
+  }
+,
+  {
+    "filename": "writing_plugins.adoc",
+    "anchors": [
+      "writing_plugins"
+
+    ]
+  }
+,
+  {
+    "filename": "intro_multi_project_builds.adoc",
+    "anchors": [
+      "intro_multi_project_builds"
+,
+      "sec:project_structure"
+,
+      "sec:project_standard"
+,
+      "sec:project_path"
+,
+      "sec:identifying_project_structure"
+,
+      "sec:executing_tasks_by_name"
+,
+      "sec:executing_tasks_by_fully_qualified_name"
+,
+      "sec:multiproject_build_and_test"
+
+    ]
+  }
+,
+  {
+    "filename": "writing_build_scripts.adoc",
+    "anchors": [
+      "writing_build_scripts"
+,
+      "sec:standard_project_properties"
+,
+      "sec:dynamic_tasks"
+,
+      "sec:gradle_types"
+,
+      "sec:declaring_variables"
+,
+      "sec:local_variables"
+,
+      "sec:extra_properties"
+,
+      "sec:configuring_arbitrary_objects"
+,
+      "sec:closure_delegate"
+,
+      "script-default-imports"
+,
+      "sec:build_script_external_dependencies"
+,
+      "sec:configuring_arbitrary_objects_using_an_external_script"
+,
+      "sec:closures_as_the_last_parameter_in_a_method"
+
+    ]
+  }
+,
+  {
+    "filename": "writing_tasks.adoc",
+    "anchors": [
+      "writing_tasks"
+,
+      "sec:sample_task"
+,
+      "task_group_and_description"
+,
+      "task_inputs_and_outputs"
+
+    ]
+  }
+,
+  {
+    "filename": "gradle_directories.adoc",
+    "anchors": [
+      "gradle_directories"
+,
+      "gradle_user_home"
+,
+      "project_root"
+
+    ]
+  }
+,
+  {
+    "filename": "tutorial_using_tasks.adoc",
+    "anchors": [
+      "tutorial_using_tasks"
+,
+      "sec:task_registration"
+,
+      "sec:task_dependencies"
+,
+      "sec:manipulating_existing_tasks"
+,
+      "sec:hello_world"
+,
+      "sec:build_scripts_are_code"
+,
+      "sec:using_ant_tasks_tutorial"
+,
+      "sec:using_methods"
+,
+      "sec:default_tasks"
+,
+      "sec:build_script_external_dependencies"
+
+    ]
+  }
+,
+  {
+    "filename": "build_lifecycle.adoc",
+    "anchors": [
+      "build_lifecycle"
+,
+      "build_lifecycle_events"
+,
+      "sec:build_phases"
+,
+      "sec:initialization"
+,
+      "sec:configuration"
+,
+      "sec:project_evaluation"
+,
+      "sec:execution"
+,
+      "sec:task_execution"
+
+    ]
+  }
+,
+  {
+    "filename": "plugins.adoc",
+    "anchors": [
+      "using_plugins"
+,
+      "sec:what_plugins_do"
+,
+      "sec:types_of_plugins"
+,
+      "sec:using_plugins"
+,
+      "sec:binary_plugin_locations"
+,
+      "sec:plugins_block"
+,
+      "sec:binary_plugins"
+,
+      "plugins_dsl_limitations"
+,
+      "sec:build_scripts_only"
+,
+      "sec:constrained_syntax"
+,
+      "sec:subprojects_plugins_dsl"
+,
+      "sec:root_plugins_dsl"
+,
+      "sec:buildsrc_plugins_dsl"
+,
+      "sec:applying_plugins_buildscript"
+,
+      "sec:script_plugins"
+,
+      "sec:binary_plugin_example"
+,
+      "sec:plugin_management"
+,
+      "sec:custom_plugin_repositories"
+,
+      "sec:plugin_version_management"
+,
+      "sec:plugin_resolution_rules"
+,
+      "sec:plugin_markers"
+,
+      "sec:old_plugin_application"
+,
+      "sec:applying_binary_plugins"
+,
+      "sec:finding_community_plugins"
+,
+      "sec:version_catalog_plugin_application"
+
+    ]
+  }
+,
+  {
+    "filename": "writing_settings_files.adoc",
+    "anchors": [
+      "writing_settings_files"
+,
+      "sec:settings_script"
+,
+      "sec:standard_settings_properties"
+
+    ]
+  }
+,
+  {
+    "filename": "organizing_tasks.adoc",
+    "anchors": [
+      "organizing_tasks"
+,
+      "sec:lifecycle_tasks"
+,
+      "sec:global_lifecycle_tasks"
+
+    ]
+  }
+,
+  {
+    "filename": "more_about_tasks.adoc",
+    "anchors": [
+      "more_about_tasks"
+,
+      "sec:more_listing_tasks"
+,
+      "sec:task_outcomes"
+,
+      "sec:task_groups"
+,
+      "sec:hidden_tasks"
+,
+      "sec:grouping_tasks"
+,
+      "sec:task_categories"
+,
+      "sec:incremental_tasks"
+,
+      "sec:caching_tasks"
+,
+      "sec:developing_tasks"
+,
+      "sec:defining_tasks"
+,
+      "sec:configuring_tasks"
+,
+      "sec:implementing_tasks"
+
+    ]
+  }
+,
+  {
+    "filename": "custom_tasks.adoc",
+    "anchors": [
+      "custom_tasks"
+,
+      "incremental_tasks"
+,
+      "sec:implementing_an_incremental_task"
+,
+      "taskDefinition"
+,
+      "sec:which_inputs_are_considered_out_of_date"
+,
+      "sec:an_incremental_task_in_action"
+,
+      "ex:incremental_task_definition"
+,
+      "sec:declaring_and_using_command_line_options"
+,
+      "sec:declaring_task_option"
+,
+      "sec:using_task_option_command_line"
+,
+      "sec:supported_task_option_data_types"
+,
+      "sec:documenting_available_task_option_values"
+,
+      "sec:listing_task_options"
+
+    ]
+  }
+,
+  {
+    "filename": "implementing_custom_tasks.adoc",
+    "anchors": [
+      "implementing_custom_tasks"
+,
+      "sec:task_in_out"
+
+    ]
+  }
+,
+  {
+    "filename": "controlling_task_execution.adoc",
+    "anchors": [
+      "controlling_task_execution"
+,
+      "sec:more_task_dependencies"
+,
+      "sec:adding_dependencies_to_tasks"
+,
+      "sec:ordering_tasks"
+,
+      "sec:finalizer_tasks"
+,
+      "sec:skipping_tasks"
+,
+      "sec:using_a_predicate"
+,
+      "sec:using_stopexecutionexception"
+,
+      "sec:enabling_and_disabling_tasks"
+,
+      "sec:task_timeouts"
+,
+      "sec:task_rules"
+,
+      "sec:exclude_task"
+
+    ]
+  }
+,
+  {
+    "filename": "task_configuration_avoidance.adoc",
+    "anchors": [
+      "task_configuration_avoidance"
+,
+      "sec:how_does_it_work_config_api"
+,
+      "sec:task_configuration_avoidance_guidelines"
+,
+      "sec:how_do_i_defer_creation"
+,
+      "sec:how_do_i_defer_configuration"
+,
+      "sec:how_do_i_reference_a_task"
+,
+      "sec:how_do_i_get_a_task"
+,
+      "sec:how_do_i_order_tasks"
+,
+      "sec:task_configuration_avoidance_migration_guidelines"
+,
+      "sec:task_configuration_avoidance_general"
+,
+      "sec:task_configuration_avoidance_migration_steps"
+,
+      "sec:task_configuration_avoidance_troubleshooting"
+,
+      "sec:task_configuration_avoidance_pitfalls"
+,
+      "task_configuration_avoidance_pitfall_build_scan_plugin"
+,
+      "sec:task_configuration_avoidance_backward_compatibility_migration"
+,
+      "sec:old_vs_new_configuration_api_overview"
+
+    ]
+  }
+,
+  {
+    "filename": "lazy_configuration.adoc",
+    "anchors": [
+      "lazy_configuration"
+,
+      "lazy_properties"
+,
+      "creating_property_provider"
+,
+      "connecting_properties_together"
+,
+      "working_with_files_in_lazy_properties"
+,
+      "working_with_task_dependencies_in_lazy_properties"
+,
+      "working_with_collections"
+,
+      "working_with_maps"
+,
+      "applying_conventions"
+,
+      "unmodifiable_property"
+,
+      "lazy_configuration_faqs"
+,
+      "lazy_configuration_reference"
+
+    ]
+  }
+,
+  {
+    "filename": "worker_api.adoc",
+    "anchors": [
+      "tasks_parallel_worker"
+,
+      "worker_api"
+,
+      "converting_to_worker_api"
+,
+      "isolation-modes"
+,
+      "worker-daemons"
+
+    ]
+  }
+,
+  {
+    "filename": "build_services.adoc",
+    "anchors": [
+      "build_services"
+,
+      "using_a_build_service_from_a_task"
+,
+      "sec:service_references"
+,
+      "operation_listener"
+
+    ]
+  }
+,
+  {
+    "filename": "part5_build_scripts.adoc",
+    "anchors": [
+      "part5_build_scripts"
+,
+      "part5_begin"
+
+    ]
+  }
+,
+  {
+    "filename": "part2_build_lifecycle.adoc",
+    "anchors": [
+      "part2_build_lifecycle"
+,
+      "part2_begin"
+
+    ]
+  }
+,
+  {
+    "filename": "part1_gradle_init_project.adoc",
+    "anchors": [
+      "part1_gradle_init"
+,
+      "part1_begin"
+
+    ]
+  }
+,
+  {
+    "filename": "part7_writing_plugins.adoc",
+    "anchors": [
+      "part7_writing_plugins"
+,
+      "part7_begin"
+
+    ]
+  }
+,
+  {
+    "filename": "part4_settings_file.adoc",
+    "anchors": [
+      "part4_settings_file"
+,
+      "part4_begin"
+
+    ]
+  }
+,
+  {
+    "filename": "part6_writing_tasks.adoc",
+    "anchors": [
+      "part6_writing_tasks"
+,
+      "part6_begin"
+
+    ]
+  }
+,
+  {
+    "filename": "part3_multi_project_builds.adoc",
+    "anchors": [
+      "part3_multi_project_builds"
+,
+      "part3_begin"
+
+    ]
+  }
+,
+  {
+    "filename": "reporting_problems.adoc",
+    "anchors": [
+      "sec:reporting_problems"
+,
+      "sec:generated_html_report"
+
+    ]
+  }
+,
+  {
+    "filename": "implementing_gradle_plugins_binary.adoc",
+    "anchors": [
+      "implemention_binary_plugins"
+,
+      "plugin-development-plugin"
+,
+      "sec:creating_a_plugin_id"
+,
+      "sec:working_with_files_in_custom_tasks_and_plugins"
+,
+      "capturing_user_input_to_configure_plugin_runtime_behavior"
+,
+      "modeling_dsl_like_apis"
+,
+      "sec:mapping_extension_properties_to_task_properties_in_binary_plugins"
+,
+      "sec:plugin_conventions_in_binary_plugins"
+,
+      "capabilities-vs-conventions"
+,
+      "convention-api-usage-example"
+,
+      "custom_dependencies_blocks"
+,
+      "sec:differences_with_top_level_dependencies"
+,
+      "plugin-with-variants"
+
+    ]
+  }
+,
+  {
+    "filename": "publishing_gradle_plugins.adoc",
+    "anchors": [
+      "publishing_portal"
+,
+      "plugin-publishing-plugin"
+,
+      "configure_the_plugin_publishing_plugin"
+,
+      "sec:publishing_your_plugin"
+,
+      "custom-plugin-repositories"
+,
+      "consume"
+
+    ]
+  }
+,
+  {
+    "filename": "testing_gradle_plugins.adoc",
+    "anchors": [
+      "verify-url-cmd-output"
+,
+      "testing-pyramid"
+,
+      "manual-tests"
+,
+      "unit-tests"
+,
+      "sec:writing_tests_for_your_plugin"
+,
+      "integration-tests"
+,
+      "functional-tests"
+
+    ]
+  }
+,
+  {
+    "filename": "implementing_gradle_plugins.adoc",
+    "anchors": [
+      "implemention_plugins"
+
+    ]
+  }
+,
+  {
+    "filename": "custom_plugins.adoc",
+    "anchors": [
+      "custom_plugins"
+,
+      "sec:build_script_plugins"
+,
+      "sec:writing_a_simple_plugin"
+,
+      "sec:precompile_script_plugin"
+,
+      "sec:convention_plugins"
+,
+      "sec:custom_plugins_standalone_project"
+,
+      "project_vs_settings_vs_init_plugins"
+
+    ]
+  }
+,
+  {
+    "filename": "implementing_gradle_plugins_precompiled.adoc",
+    "anchors": [
+      "implemention_precompiled_plugins"
+,
+      "sec:the_plugin_id"
+,
+      "sec:getting_input_from_the_build"
+,
+      "sec:plugin_conventions"
+,
+      "sec:mapping_extension_properties_to_task_properties"
+,
+      "sec:applying_external_plugins"
+
+    ]
+  }
+,
+  {
+    "filename": "validation_problems.adoc",
+    "anchors": [
+      "validation-problem"
+,
+      "invalid_use_of_cacheable_annotation"
+,
+      "missing_normalization_annotation"
+,
+      "value_not_set"
+,
+      "cacheable_transform_cant_use_absolute_sensitivity"
+,
+      "artifact_transform_should_not_declare_output"
+,
+      "ignored_annotations_on_field"
+,
+      "ignored_annotations_on_method"
+,
+      "ignored_annotations_on_property"
+,
+      "mutable_type_with_setter"
+,
+      "redundant_getters"
+,
+      "private_getter_must_not_be_annotated"
+,
+      "private_method_must_not_be_annotated"
+,
+      "ignored_property_must_not_be_annotated"
+,
+      "conflicting_annotations"
+,
+      "annotation_invalid_in_context"
+,
+      "missing_annotation"
+,
+      "incompatible_annotations"
+,
+      "incorrect_use_of_input_annotation"
+,
+      "service_reference_must_be_a_build_service"
+,
+      "implicit_dependency"
+,
+      "input_file_does_not_exist"
+,
+      "unexpected_input_file_type"
+,
+      "cannot_write_output"
+,
+      "cannot_write_to_reserved_location"
+,
+      "unsupported_notation"
+,
+      "cannot_use_optional_on_primitive_types"
+,
+      "implementation_unknown"
+,
+      "disable_caching_by_default"
+,
+      "unsupported_value_type"
+,
+      "unsupported_key_type_of_nested_map"
+,
+      "unsupported_nested_type"
+
+    ]
+  }
+,
+  {
+    "filename": "rule_source.adoc",
+    "anchors": [
+      "rule_source"
+,
+      "sec:applying_additional_rules"
+
+    ]
+  }
+,
+  {
+    "filename": "test_kit.adoc",
+    "anchors": [
+      "test_kit"
+,
+      "sec:testkit_usage"
+,
+      "sec:functional_testing_with_the_gradle_runner"
+,
+      "sub:test-kit-classpath-injection"
+,
+      "sub:test-kit-automatic-classpath-injection"
+,
+      "sec:controlling_the_build_environment"
+,
+      "sub:gradle-runner-gradle-version"
+,
+      "sub:test-kit-compatibility"
+,
+      "sub:test-kit-debug"
+,
+      "sub:test-kit-build-cache"
+
+    ]
+  }
+,
+  {
+    "filename": "dataflow_actions.adoc",
+    "anchors": [
+      "dataflow_action"
+
+    ]
+  }
+,
+  {
+    "filename": "ant.adoc",
+    "anchors": [
+      "ant"
+,
+      "sec:ant_api"
+,
+      "sec:using_ant_tasks"
+,
+      "sec:using_custom_ant_tasks"
+,
+      "sec:import_ant_build"
+,
+      "sec:ant_properties"
+,
+      "sec:ant_logging"
+,
+      "sec:fine_tuning_ant_logging"
+
+    ]
+  }
+,
+  {
+    "filename": "init_scripts.adoc",
+    "anchors": [
+      "init_scripts"
+,
+      "sec:basic_usage"
+,
+      "sec:using_an_init_script"
+,
+      "sec:writing_an_init_script"
+,
+      "sec:configuring_projects_from_an_init_script"
+,
+      "sec:custom_classpath"
+,
+      "sec:init_script_plugins"
+
+    ]
+  }
+,
+  {
+    "filename": "how_to_convert_single_build_to_multi_build.adoc",
+    "anchors": [
+      "convert_single_to_multi_project"
+,
+      "why_multi_project"
+,
+      "summary"
+
+    ]
+  }
+,
+  {
+    "filename": "multi_project_configuration_and_execution.adoc",
+    "anchors": [
+      "configuration_and_execution"
+,
+      "sec:configuration_on_demand"
+,
+      "sec:decoupled_projects"
+,
+      "sec:parallel_execution"
+
+    ]
+  }
+,
+  {
+    "filename": "multi_project_builds.adoc",
+    "anchors": [
+      "multi_project_builds"
+,
+      "sub:modifying_element_of_the_project_tree"
+,
+      "sec:naming_recommendations"
+,
+      "declaring_dependencies_between_subprojects"
+,
+      "sec:project_jar_dependencies"
+,
+      "javadependencies_2"
+,
+      "sec:depending_on_output_of_another_project"
+
+    ]
+  }
+,
+  {
+    "filename": "composite_builds.adoc",
+    "anchors": [
+      "composite_builds"
+,
+      "composite_build_intro"
+,
+      "defining_composite_builds"
+,
+      "command_line_composite"
+,
+      "settings_defined_composite"
+,
+      "separate_composite"
+,
+      "included_plugin_builds"
+,
+      "included_builds"
+,
+      "interacting_with_composite_builds"
+,
+      "composite_build_executing_tasks"
+,
+      "composite_build_ide_integration"
+,
+      "included_build_declaring_substitutions"
+,
+      "deactivate_included_build_substitutions"
+,
+      "included_build_substitution_requirements"
+,
+      "included_build_substitution_limitations"
+,
+      "included_build_task_dependencies"
+,
+      "current_limitations_and_future_work"
+
+    ]
+  }
+,
+  {
+    "filename": "sharing_build_logic_between_subprojects.adoc",
+    "anchors": [
+      "sharing_build_logic_between_subprojects"
+,
+      "sec:sharing_logic_via_convention_plugins"
+,
+      "sec:using_buildsrc"
+,
+      "sec:convention_plugins_vs_cross_configuration"
+
+    ]
+  }
+,
+  {
+    "filename": "organizing_gradle_projects.adoc",
+    "anchors": [
+      "organizing_gradle_projects"
+,
+      "sub:project_locations"
+,
+      "sec:creating_single_project_builds"
+,
+      "sec:creating_multi_project_builds"
+,
+      "sec:build_sources"
+,
+      "sec:composite_builds"
+,
+      "sec:structuring_recommendations"
+,
+      "sec:separate_language_source_files"
+,
+      "sec:separate_test_type_source_files"
+,
+      "sec:use_standard_conventions"
+,
+      "sec:settings_file"
+
+    ]
+  }
+,
+  {
+    "filename": "getting_started_dev.adoc",
+    "anchors": [
+      "dev_introduction"
+,
+      "gradle_author_intro"
+,
+      "author_tutorial"
+
+    ]
+  }
+,
+  {
+    "filename": "getting_started_dep_man.adoc",
+    "anchors": [
+      "dependency-management-in-gradle"
+
+    ]
+  }
+,
+  {
+    "filename": "publishing_ivy.adoc",
+    "anchors": [
+      "publishing_ivy"
+,
+      "publishing_ivy:usage"
+,
+      "publishing_ivy:tasks"
+,
+      "publishing_ivy:descriptor"
+,
+      "publishing_ivy:publications"
+,
+      "sec:identity_values_for_the_published_project"
+,
+      "sec:modifying_the_generated_module_descriptor"
+,
+      "publishing_ivy:resolved_dependencies"
+,
+      "publishing_ivy:repositories"
+,
+      "publishing_ivy:example"
+
+    ]
+  }
+,
+  {
+    "filename": "publishing_maven.adoc",
+    "anchors": [
+      "publishing_maven"
+,
+      "publishing_maven:usage"
+,
+      "publishing_maven:tasks"
+,
+      "publishing_maven:generate-pom"
+,
+      "publishing_maven:publications"
+,
+      "sec:identity_values_in_the_generated_pom"
+,
+      "sec:modifying_the_generated_pom"
+,
+      "publishing_maven:resolved_dependencies"
+,
+      "publishing_maven:repositories"
+,
+      "supported_maven_repositories"
+,
+      "maven_central"
+,
+      "publishing_maven:snapshot_and_release_repositories"
+,
+      "publishing_maven:install"
+,
+      "publishing_maven:relocation"
+,
+      "publishing_maven:retroactive_relocation"
+,
+      "publishing_maven:relocation_duplicate_dependencies"
+,
+      "publishing_maven:relocation_dry_run"
+,
+      "publishing_maven:complete_example"
+,
+      "publishing_maven:deferred_configuration"
+
+    ]
+  }
+,
+  {
+    "filename": "publishing_setup.adoc",
+    "anchors": [
+      "publishing_components"
+,
+      "publishing_overview"
+,
+      "publishing_overview:what"
+,
+      "publishing_overview:where"
+,
+      "publishing_overview:how"
+,
+      "sec:basic_publishing"
+,
+      "sec:suppressing_validation_errors"
+
+    ]
+  }
+,
+  {
+    "filename": "publishing_gradle_module_metadata.adoc",
+    "anchors": [
+      "sec:understanding-gradle-module-md"
+,
+      "sub:mapping-with-other-formats"
+,
+      "sub:interactions-other-build-tools"
+,
+      "sub:gmm-validation"
+,
+      "sub:gmm-reproducible"
+,
+      "sub:disabling-gmm-publication"
+
+    ]
+  }
+,
+  {
+    "filename": "signing_plugin.adoc",
+    "anchors": [
+      "signing_plugin"
+,
+      "sec:signing_usage"
+,
+      "sec:signatory_credentials"
+,
+      "sec:in-memory-keys"
+,
+      "sec:subkeys"
+,
+      "sec:using_gpg_agent"
+,
+      "sec:sec:gnupg_signatory_configuration"
+,
+      "sec:specifying_what_to_sign"
+,
+      "sec:signing_publications"
+,
+      "sec:signing_configurations"
+,
+      "sec:signing_tasks"
+,
+      "sec:conditional_signing"
+,
+      "sec:publishing_the_signatures"
+
+    ]
+  }
+,
+  {
+    "filename": "publishing_signing.adoc",
+    "anchors": [
+      "publishing_maven:signing"
+
+    ]
+  }
+,
+  {
+    "filename": "publishing_customization.adoc",
+    "anchors": [
+      "sec:adding-variants-to-existing-components"
+,
+      "sec:publishing-custom-components"
+,
+      "sec:publishing_custom_artifacts_to_maven"
+,
+      "sec:publishing_maven:conditional_publishing"
+,
+      "sec:configuring_publishing_tasks"
+
+    ]
+  }
+,
+  {
+    "filename": "dependency_configurations.adoc",
+    "anchors": [
+      "two-dependency-configurations"
+,
+      "sub:what-are-dependency-configurations"
+,
+      "sub:dependency-declaration-configurations"
+,
+      "sub:other-configurations"
+,
+      "sub:view-configurations"
+
+    ]
+  }
+,
+  {
+    "filename": "declaring_repositories.adoc",
+    "anchors": [
+      "three-declaring-repositories"
+,
+      "sub:declaring-public-repository-basics"
+,
+      "sub:declaring-custom-repository-basics"
+,
+      "sub:declaring-local-repository"
+,
+      "sub:understanding-repository-types"
+
+    ]
+  }
+,
+  {
+    "filename": "declaring_dependencies.adoc",
+    "anchors": [
+      "one-declaring-dependencies"
+,
+      "sub:producers-vs-consumers-basics"
+,
+      "sub:add-a-dependency"
+,
+      "sub:dependency-types"
+,
+      "sub:listing-project-dependencies"
+
+    ]
+  }
+,
+  {
+    "filename": "dependency_constraints_conflicts.adoc",
+    "anchors": [
+      "five-dependency-constraints-conflicts"
+,
+      "sub:conflict-types"
+,
+      "sub:resolving-version-conflicts"
+,
+      "sub:resolving-capability-conflicts"
+,
+      "sub:understanding-dependency-constraints"
+
+    ]
+  }
+,
+  {
+    "filename": "centralizing_dependencies.adoc",
+    "anchors": [
+      "four-centralizing-dependencies"
+,
+      "sub:using-platforms"
+,
+      "sub:using-catalogs"
+
+    ]
+  }
+,
+  {
+    "filename": "artifact_resolution.adoc",
+    "anchors": [
+      "artifact-resolution"
+,
+      "sec:artifact-selection"
+,
+      "sec:implicit-artifact-selection"
+,
+      "sec:customizing-artifact-selection"
+
+    ]
+  }
+,
+  {
+    "filename": "dependency_resolution.adoc",
+    "anchors": [
+      "dependency-resolution-basics"
+,
+      "sec:graph-resolution"
+,
+      "sec:artifact-resolution"
+
+    ]
+  }
+,
+  {
+    "filename": "graph_resolution.adoc",
+    "anchors": [
+      "dependency-graph-resolution"
+,
+      "sec:components"
+,
+      "note"
+,
+      "sec:conflict-resolution"
+,
+      "sec:version-conflict"
+,
+      "sec:resolution-strategy"
+,
+      "sec:base-version-comparison"
+,
+      "sec:implementation-conflict"
+,
+      "sec:how-gradle-downloads-deps"
+,
+      "sec:repository-disabling"
+,
+      "sub:http-retries"
+,
+      "sec:variant-selection"
+,
+      "sec:resolved-dep-graph"
+
+    ]
+  }
+,
+  {
+    "filename": "variant_aware_resolution.adoc",
+    "anchors": [
+      "sec:understanding-variant-selection"
+,
+      "sec:abm-configuration-attributes"
+,
+      "sec:variant-aware-matching"
+,
+      "sec:abm-algorithm"
+,
+      "sec:variant-visual"
+,
+      "outgoing_variants_report"
+
+    ]
+  }
+,
+  {
+    "filename": "centralizing_catalog_platform.adoc",
+    "anchors": [
+      "platforms-vs-catalog"
+,
+      "sec:version-catalogs"
+,
+      "sec:platforms"
+,
+      "sec:catalog-platform"
+
+    ]
+  }
+,
+  {
+    "filename": "version_catalogs.adoc",
+    "anchors": [
+      "version-catalog"
+,
+      "sec:accessing-catalog"
+,
+      "sec:type-unsafe-access-to-catalog"
+,
+      "sec:mapping-aliases-to-accessors"
+,
+      "sec:version-catalog-declaration"
+,
+      "sub:conventional-dependencies-toml"
+,
+      "sec::toml-dependencies-format"
+,
+      "sec:common-version-numbers"
+,
+      "sec:dependency-bundles"
+,
+      "sec:plugins-ver"
+,
+      "sec:version-catalog-plugin"
+,
+      "sec:importing-published-catalog"
+,
+      "sec:importing-catalog-from-file"
+,
+      "sec:sharing-catalogs"
+,
+      "sec:multiple-catalogs"
+,
+      "sec:changing-catalog-name"
+,
+      "sec:overwriting-catalog-versions"
+,
+      "sec:programmatic-catalog-versions"
+,
+      "sec:buildsrc-version-catalog"
+
+    ]
+  }
+,
+  {
+    "filename": "platforms.adoc",
+    "anchors": [
+      "platforms"
+,
+      "sec:sharing-dep-versions-between-projects"
+,
+      "sec:using-platform-to-control-transitive-deps"
+,
+      "sec:bom-import"
+,
+      "sec:regular-platform"
+,
+      "sec:enforced-platform"
+
+    ]
+  }
+,
+  {
+    "filename": "gradle_dependencies.adoc",
+    "anchors": [
+      "sub:gradle_distribution_dependencies"
+,
+      "sub:api_dependencies"
+,
+      "sub:testkit_dependencies"
+,
+      "sub:groovy_dependencies"
+
+    ]
+  }
+,
+  {
+    "filename": "dependency_versions.adoc",
+    "anchors": [
+      "declaring-versions-ranges"
+,
+      "sec:single-version-declarations"
+,
+      "sec:maven-style-range"
+,
+      "sec:version-ordering"
+,
+      "sec:rich-version-constraints"
+,
+      "sec:strict-version"
+,
+      "sec:required-version"
+,
+      "sec:preferred-version"
+,
+      "sec:rejected-version"
+,
+      "sec:endorsing-strict-versions"
+,
+      "sec:enforcing-dependency-version"
+,
+      "sec:strict-version-consequences"
+,
+      "sec:declaring-without-version"
+,
+      "sec:dynamic-versions-and-changing-modules"
+,
+      "sec:declaring-dependency-with-dynamic-version"
+,
+      "sec:declaring-dependency-with-changing-version"
+,
+      "sec:versioning_file_dependencies"
+
+    ]
+  }
+,
+  {
+    "filename": "declaring_dependencies_basics.adoc",
+    "anchors": [
+      "declaring-dependencies-basics"
+,
+      "sec:dependency-types"
+,
+      "sec:module-dependencies"
+,
+      "sec:project-dependencies"
+,
+      "sec:type-safe-project-accessors"
+,
+      "sec:file-dependencies"
+,
+      "sec:gradle-distribution-dependencies"
+,
+      "sec:api-dependencies"
+,
+      "sec:testkit-dependencies"
+,
+      "sec:groovy-dependencies"
+,
+      "sec:documenting-dependencies"
+
+    ]
+  }
+,
+  {
+    "filename": "viewing_debugging_dependencies.adoc",
+    "anchors": [
+      "viewing-debugging-dependencies"
+,
+      "sec:debugging-build-scans"
+,
+      "sec:listing-dependencies"
+,
+      "sec:identifying-reason-dependency-selection"
+,
+      "sec:dependencies-build-scans"
+,
+      "sub:resolving-unsafe-configuration-resolution-errors"
+
+    ]
+  }
+,
+  {
+    "filename": "dependency_verification.adoc",
+    "anchors": [
+      "verifying-dependencies"
+,
+      "sub:enabling-verification"
+,
+      "sub:verification-metadata"
+,
+      "sec:verification-scope"
+,
+      "sec:verification-console-output"
+,
+      "sec:bootstrapping-verification"
+,
+      "sec:verification-update"
+,
+      "sec:verification-dry-mode"
+,
+      "sec:disabling-metadata-verification"
+,
+      "sec:checksum-verification"
+,
+      "sec:signature-verification"
+,
+      "sec:understanding-signature-verification"
+,
+      "sec:trusting-keys-globally"
+,
+      "sec:ignoring-keys"
+,
+      "sec:local-keyring"
+,
+      "sec:bootstrapping-signature-verification"
+,
+      "sec:local-keyring-only"
+,
+      "sec:disabling-verification"
+,
+      "sub:disabling-specific-verification"
+,
+      "sec:trusting-artifacts"
+,
+      "sec:trusting-several-checksums"
+,
+      "sec:skipping-javadocs"
+,
+      "sec:add-manual-keyring"
+,
+      "sec:add-ascii-keyring"
+,
+      "sec:add-binary-keyring"
+,
+      "sec:troubleshooting-verification"
+,
+      "sec:manual-checking-dependency"
+,
+      "sec:verification-metadata-hygiene"
+,
+      "sec:refreshing-missing-keys"
+
+    ]
+  }
+,
+  {
+    "filename": "declaring_configurations.adoc",
+    "anchors": [
+      "declaring-dependency-configurations"
+,
+      "sec:what-are-dependency-configurations"
+,
+      "sec:resolvable-consumable-configs"
+,
+      "sec:configuration-flags-roles"
+,
+      "sec:deprecated-configurations"
+,
+      "sec:defining-custom-configurations"
+,
+      "sec:config-inheritance-composition"
+,
+      "sec:dependency-resolution"
+,
+      "sub:unsafe-configuration-resolution-errors"
+
+    ]
+  }
+,
+  {
+    "filename": "dependency_constraints.adoc",
+    "anchors": [
+      "dependency-constraints"
+,
+      "sec:declaring-constraints-dependencies"
+,
+      "sec:adding-constraints-transitive-deps"
+
+    ]
+  }
+,
+  {
+    "filename": "supported_repository_types.adoc",
+    "anchors": [
+      "repository-types"
+,
+      "sec:maven-repo"
+,
+      "sec:custom-maven-repo"
+,
+      "strict_limitation_to_declared_repositories"
+,
+      "sec:accessing_secured_maven_repositories"
+,
+      "sec:maven-local"
+,
+      "sec:case-for-maven-local"
+,
+      "sec:ivy-repositories"
+,
+      "sec:defining-an-ivy-repository-with-a-standard-layout"
+,
+      "sec:defining-a-named-layout-for-an-ivy-repository"
+,
+      "sec:defining-custom-pattern-layout-for-an-ivy-repository"
+,
+      "sec:accessing-secured-ivy-repositories"
+,
+      "sec:ivy-local"
+,
+      "sec:flat-dir-resolver"
+
+    ]
+  }
+,
+  {
+    "filename": "centralizing_repositories.adoc",
+    "anchors": [
+      "centralized-repository-declaration"
+,
+      "sec:repositories-mode"
+,
+      "sec:available-modes"
+,
+      "sec:fail-build-on-project-repositories"
+
+    ]
+  }
+,
+  {
+    "filename": "declaring_repositories_basics.adoc",
+    "anchors": [
+      "declaring-repositories-basics"
+,
+      "sec:declaring-public-repository"
+,
+      "sec:maven-central"
+,
+      "sec:maven-google"
+,
+      "sec:declaring-custom-repository"
+,
+      "sec:declaring-local-repositories"
+,
+      "sec:declaring-multiple-repositories"
+,
+      "sec:plugin-repos"
+,
+      "sec:plugin-vs-build-repos"
+
+    ]
+  }
+,
+  {
+    "filename": "supported_metadata_formats.adoc",
+    "anchors": [
+      "metadata-formats"
+,
+      "sec:supported-metadata-formats"
+,
+      "sec:supported-md-gradle"
+,
+      "sec:supported-md-pom"
+,
+      "sec:supported-md-ivy"
+,
+      "sec:supported-metadata-sources"
+
+    ]
+  }
+,
+  {
+    "filename": "filtering_repository_content.adoc",
+    "anchors": [
+      "repository-content-filtering"
+,
+      "sec:declaring-repository-filter"
+,
+      "sec:declaring-content-repositories"
+,
+      "sec:ivy_dynamic_resolve_mode"
+
+    ]
+  }
+,
+  {
+    "filename": "supported_repository_protocols.adoc",
+    "anchors": [
+      "supported-transport-protocols"
+,
+      "sec:supported-protocols"
+,
+      "sec:configure-auth-schemes"
+,
+      "sec:authentication-schemes"
+,
+      "sec:preemptive-authentication"
+,
+      "sec:http-header-auth"
+,
+      "sec:s3-repositories"
+,
+      "sec:s3-configuration-properties"
+,
+      "sec:s3-url-formats"
+,
+      "sec:s3-proxy-settings"
+,
+      "sec:s3-v4-signatures"
+,
+      "sec:s3-cross-account"
+,
+      "sec:gcs-repositories"
+,
+      "sec:gcs-configuration-properties"
+,
+      "sec:gcs-url-formats"
+,
+      "sec:handling-credentials"
+,
+      "credentials_lookup_properties"
+
+    ]
+  }
+,
+  {
+    "filename": "how_to_resolve_specific_artifacts.adoc",
+    "anchors": [
+      "how_to_resolve_specific_artifacts"
+
+    ]
+  }
+,
+  {
+    "filename": "how_to_share_outputs_between_projects.adoc",
+    "anchors": [
+      "variant-aware-sharing"
+,
+      "sec:why-variant-aware-sharing"
+,
+      "sec:setup-producer"
+,
+      "sec:setup-consumer"
+,
+      "sec:troubleshooting"
+,
+      "sec:conclusion"
+
+    ]
+  }
+,
+  {
+    "filename": "how_to_create_feature_variants_of_a_library.adoc",
+    "anchors": [
+      "feature_variants"
+,
+      "sec::feature_variant_selection"
+,
+      "sec::declare_feature_variants"
+,
+      "sec::publishing_feature_variants"
+,
+      "sub:javadoc_sources_features_variants"
+,
+      "sec::consuming_feature_variants"
+,
+      "sec::incompatible_variants"
+
+    ]
+  }
+,
+  {
+    "filename": "how_to_downgrade_transitive_dependencies.adoc",
+    "anchors": [
+      "how_to_downgrade_dependencies"
+
+    ]
+  }
+,
+  {
+    "filename": "how_to_prevent_accidental_dependency_upgrades.adoc",
+    "anchors": [
+      "how_to_prevent_accidental_dependency_upgrades"
+
+    ]
+  }
+,
+  {
+    "filename": "how_to_use_local_forks.adoc",
+    "anchors": [
+      "how_to_use_local_forks"
+
+    ]
+  }
+,
+  {
+    "filename": "how_to_align_dependency_versions.adoc",
+    "anchors": [
+      "version_alignment"
+,
+      "sec:align_bom_platform"
+,
+      "sec:align-versions-unpublished"
+,
+      "sec:virtual_platform"
+,
+      "sec:native_alignment"
+
+    ]
+  }
+,
+  {
+    "filename": "how_to_upgrade_transitive_dependencies.adoc",
+    "anchors": [
+      "how_to_upgrade_transitive_dependencies"
+
+    ]
+  }
+,
+  {
+    "filename": "how_to_fix_version_catalog_problems.adoc",
+    "anchors": [
+      "version-catalog-problems"
+
+    ]
+  }
+,
+  {
+    "filename": "how_to_exclude_transitive_dependencies.adoc",
+    "anchors": [
+      "how_to_exclude_transitive_dependencies"
+
+    ]
+  }
+,
+  {
+    "filename": "dependency_locking.adoc",
+    "anchors": [
+      "locking-versions"
+,
+      "sec:dependency-locking"
+,
+      "sec:activate-locking-for-all"
+,
+      "sec:disable-locking"
+,
+      "sec:activate-locking-build-script"
+,
+      "sec:generate-locks"
+,
+      "sec:lock-all-configurations-in-one-build-execution"
+,
+      "sec:lock-state"
+,
+      "sec:migrate-single-lockfile"
+,
+      "sec:configuring-the-per-project-lock-file-name-and-location"
+,
+      "sec:run-build-lock-state"
+,
+      "sec:fine-tuning-dependency-locking-behaviour-with-lock-mode"
+,
+      "sec:selectively-updating-lock-state-entries"
+,
+      "sec:disabling-locking"
+,
+      "sec:ignoring-specific-dependencies-lock-state"
+,
+      "sec:locking-limitations"
+
+    ]
+  }
+,
+  {
+    "filename": "component_metadata_rules.adoc",
+    "anchors": [
+      "component-metadata-rules"
+,
+      "sec:writing-metadata-rule"
+,
+      "sec:rules-in-settings"
+,
+      "sec:component-metadata-rules-details"
+,
+      "sec:fixing-dependency-details"
+,
+      "sec:publish-variants-explicit-jars"
+,
+      "sec:encoded-variants-explicit"
+,
+      "sec:adding-variants-jars"
+,
+      "sec:making-library-flavors"
+,
+      "sec:adding-missing-capabilities"
+,
+      "sec:making-ivy-modules-variant-aware"
+,
+      "sec:filter-maven-metadata"
+,
+      "sec:modifying-metadata"
+,
+      "sec:custom-status-scheme"
+
+    ]
+  }
+,
+  {
+    "filename": "resolution_rules.adoc",
+    "anchors": [
+      "using-resolution-rules"
+,
+      "sec:forcing-dep-versions"
+,
+      "sec:module-replacement"
+,
+      "sec:dependency-substitution-rules"
+,
+      "sec:module-to-project-substitution"
+,
+      "sec:project-to-module-substitution"
+,
+      "sec:conditional-dependency-substitution"
+,
+      "sec:variant-aware-substitutions"
+,
+      "sec:substitution-with-attributes"
+,
+      "sec:substitution-with-capabilities"
+,
+      "sec:substitution-with-classifier"
+,
+      "sec:component-selection-rules"
+,
+      "sec:configuration-defaults"
+,
+      "sec:exclude-trans-deps"
+,
+      "sec:conflict-resolution-strategy"
+,
+      "sec:disabling-resolution-transitive-dependencies"
+,
+      "sec:dependency-resolve-rules"
+,
+      "sec:custom-versioning-scheme"
+,
+      "sec:denying-version"
+
+    ]
+  }
+,
+  {
+    "filename": "dependency_caching.adoc",
+    "anchors": [
+      "dependency-caching"
+,
+      "sec:dependency-cache"
+,
+      "sec:cache-metadata"
+,
+      "sec:cache-repository-independence"
+,
+      "sec:cache-artifact-reuse"
+,
+      "sec:cache-checksum-storage"
+,
+      "sec:cache-locking"
+,
+      "sec:cache-cleanup"
+,
+      "sec:changing-dependencies"
+,
+      "sec:controlling-dynamic-version-caching"
+,
+      "sec:controlling-dependency-caching-command-line"
+,
+      "sec:refreshing-dependencies"
+,
+      "sec:ephemeral-ci-cache"
+,
+      "sec:cache-copy"
+,
+      "sec:shared-readonly-cache"
+
+    ]
+  }
+,
+  {
+    "filename": "artifact_views.adoc",
+    "anchors": [
+      "artifact-views"
+
+    ]
+  }
+,
+  {
+    "filename": "variant_attributes.adoc",
+    "anchors": [
+      "variant-attributes"
+,
+      "sec:standard-attributes"
+,
+      "sec:verification-category"
+,
+      "sec:jvm-default-attributes"
+,
+      "sec:gradle-plugins-default-attributes"
+,
+      "sec:using-standard-attribute"
+,
+      "sec:view-debug-attributes"
+,
+      "sec:declaring-attributes"
+,
+      "sec:creating-attributes"
+,
+      "sec:attribute-matching"
+,
+      "sec:abm-compatibility-rules"
+,
+      "sec:abm-disambiguation-rules"
+,
+      "sec:mapping-maven-ivy-to-variants"
+,
+      "sec:maven-mapping-to-variants"
+,
+      "sec:ivy-mapping-to-variants"
+
+    ]
+  }
+,
+  {
+    "filename": "component_capabilities.adoc",
+    "anchors": [
+      "capabilities"
+,
+      "sec:handling-mutually-exclusive-deps"
+,
+      "sec:capabilities"
+,
+      "sec:declaring-capabilities-coordinates"
+,
+      "sec:declaring-component-capabilities"
+,
+      "sec:declaring-capabilities-external-modules"
+,
+      "sec:declaring-additional-capabilities-for-a-local-component"
+,
+      "sec:selecting-between-candidates"
+,
+      "sec:selecting-preferred-capability-provider"
+
+    ]
+  }
+,
+  {
+    "filename": "dependency_resolution_consistency.adoc",
+    "anchors": [
+      "resolution_consistency"
+,
+      "sec:java_consistency"
+
+    ]
+  }
+,
+  {
+    "filename": "artifact_transforms.adoc",
+    "anchors": [
+      "artifact-transforms"
+,
+      "sec:artifact-transforms-overview"
+,
+      "sec:abm-artifact-transforms"
+,
+      "sec:artifact-transform-chains"
+,
+      "sec:implementing-artifact-transforms"
+,
+      "sec:caching-transforms"
+,
+      "sec:registering-artifact-transforms"
+,
+      "sec:executing-artifact-transforms"
+
+    ]
+  }
+,
+  {
+    "filename": "userguide.adoc",
+    "anchors": [
+      "what_is_gradle"
+,
+      "gradle_overview"
+,
+      "reference"
+
+    ]
+  }
+,
+  {
+    "filename": "kotlin_dsl.adoc",
+    "anchors": [
+      "kotdsl:kotlin_dsl"
+,
+      "kotdsl:prerequisites"
+,
+      "sec:ide_support"
+,
+      "sec:scripts"
+,
+      "sec:implicit_imports"
+,
+      "sec:compilation_warnings"
+,
+      "sec:configuring_plugins"
+,
+      "type-safe-accessors"
+,
+      "kotdsl:accessor_applicability"
+,
+      "sec:kotlin_using_standard_api"
+,
+      "sec:kotlin_dsl_about_conventions"
+,
+      "kotdsl:containers"
+,
+      "kotdsl:properties"
+,
+      "kotdsl:types"
+,
+      "kotdsl:assignment"
+,
+      "sec:kotlin-dsl_plugin"
+,
+      "sec:kotlin"
+,
+      "sec:kotlin_compiler_arguments"
+,
+      "sec:interoperability"
+,
+      "using_a_groovy_script"
+,
+      "sec:troubleshooting"
+,
+      "kotdsl:limitations"
+,
+      "kotdsl:multi_project_builds"
+,
+      "sec:multi_project_builds"
+,
+      "sec:multi_project_builds_applying_plugins"
+,
+      "ex:multi_project_ratpack"
+,
+      "sec:kotlin_cross_project_configuration"
+,
+      "sec:plugins_resolution_strategy"
+
+    ]
+  }
+,
+  {
+    "filename": "groovy_build_script_primer.adoc",
+    "anchors": [
+      "groovy_build_script_primer"
+,
+      "groovy:project_object"
+,
+      "groovy:properties"
+,
+      "groovy:methods"
+,
+      "groovy:blocks"
+,
+      "groovy:local_variables"
+
+    ]
+  }
+,
+  {
+    "filename": "checkstyle_plugin.adoc",
+    "anchors": [
+      "checkstyle_plugin"
+,
+      "sec:checkstyle_usage"
+,
+      "sec:checkstyle_tasks"
+,
+      "sec:checkstyle_project_layout"
+,
+      "sec:checkstyle_dependency_management"
+,
+      "sec:checkstyle_configuration"
+,
+      "sec:checkstyle_built_in_variables"
+,
+      "sec:checkstyle_customize_xsl"
+,
+      "sec:enable_checkstyle_sarif"
+,
+      "sec:checkstyle_customize_memory"
+
+    ]
+  }
+,
+  {
+    "filename": "project_report_plugin.adoc",
+    "anchors": [
+      "project_report_plugin"
+,
+      "sec:project_reports_usage"
+,
+      "sec:project_reports_tasks"
+,
+      "sec:project_reports_project_layout"
+,
+      "sec:project_reports_dependency_management"
+,
+      "sec:project_reports_convention_properties"
+
+    ]
+  }
+,
+  {
+    "filename": "plugin_reference.adoc",
+    "anchors": [
+      "plugin_reference"
+,
+      "native_languages"
+
+    ]
+  }
+,
+  {
+    "filename": "eclipse_plugin.adoc",
+    "anchors": [
+      "eclipse_plugin"
+,
+      "sec:eclipse_usage"
+,
+      "sec:eclipse_tasks"
+,
+      "eclipsetasks"
+,
+      "eclipsewtptasks"
+,
+      "sec:eclipse_configuration"
+,
+      "eclipse-configuration"
+,
+      "sec:eclipse_customizing_the_generated_files"
+,
+      "sec:merging_with_eclipse_files"
+,
+      "sec:complete_rewrite_of_eclipse_files"
+,
+      "sec:hooking_into_the_eclipse_generation_lifecycle"
+,
+      "eclipse-plugin-hooks"
+,
+      "sec:partial-overwrite"
+,
+      "sec:eclipse_modify_domain_objects"
+,
+      "sec:eclipse_modify_xml"
+,
+      "sec:test-sources"
+
+    ]
+  }
+,
+  {
+    "filename": "jacoco_plugin.adoc",
+    "anchors": [
+      "jacoco_plugin"
+,
+      "sec:jacoco_getting_started"
+,
+      "sec:configuring_the_jacoco_plugin"
+,
+      "sec:jacoco_report_configuration"
+,
+      "sec:jacoco_report_violation_rules"
+,
+      "sec:jacoco_specific_task_configuration"
+,
+      "sec:jacoco_tasks"
+,
+      "sec:jacoco_dependency_management"
+,
+      "sec:outgoing_variants"
+
+    ]
+  }
+,
+  {
+    "filename": "java_gradle_plugin.adoc",
+    "anchors": [
+      "java_gradle_plugin"
+,
+      "sec:gradle_plugin_dev_usage"
+,
+      "sec:gradle_plugin_dev_interactions"
+
+    ]
+  }
+,
+  {
+    "filename": "visual_studio_plugin.adoc",
+    "anchors": [
+      "visual_studio_plugin"
+,
+      "sec:visual_studio_usage"
+,
+      "sec:visual_studio_tasks"
+,
+      "sec:visual_studio_lifecycle_tasks"
+,
+      "sec:visual_studio_workspace_tasks"
+,
+      "sec:visual_studio_project_tasks"
+,
+      "sec:visual_studio_cpp_application_tasks"
+,
+      "sec:visual_studio_cpp_library_tasks"
+,
+      "sec:visual_studio_configuration"
+,
+      "sec:visual_studio_configure_workspace_location"
+,
+      "sec:visual_studio_configure_project_location"
+
+    ]
+  }
+,
+  {
+    "filename": "base_plugin.adoc",
+    "anchors": [
+      "base_plugin"
+,
+      "sec:base_plugin_usage"
+,
+      "sec:base_tasks"
+,
+      "sec:base_plugin_configurations"
+,
+      "sec:base_plugin_extension"
+,
+      "sec:base_plugin_conventions"
+
+    ]
+  }
+,
+  {
+    "filename": "build_dashboard_plugin.adoc",
+    "anchors": [
+      "build_dashboard_plugin"
+,
+      "sec:build_dashboard_usage"
+,
+      "sec:build_dashboard_tasks"
+,
+      "sec:build_dashboard_project_layout"
+,
+      "sec:build_dashboard_dependency_management"
+,
+      "sec:build_dashboard_configuration"
+
+    ]
+  }
+,
+  {
+    "filename": "war_plugin.adoc",
+    "anchors": [
+      "war_plugin"
+,
+      "sec:war_usage"
+,
+      "sec:war_project_layout"
+,
+      "sec:war_tasks"
+,
+      "sec:war_dependency_management"
+,
+      "sec:war_plugin_publishing"
+,
+      "sec:war_convention_properties"
+,
+      "sec:war_default_settings"
+,
+      "sec:war_customizing"
+
+    ]
+  }
+,
+  {
+    "filename": "build_init_plugin.adoc",
+    "anchors": [
+      "build_init_plugin"
+,
+      "sec:sample_usage"
+,
+      "sec:build_init_tasks"
+,
+      "sec:what_to_set_up"
+,
+      "sec:build_init_types"
+,
+      "sec:pom_maven_conversion"
+,
+      "sec:allow_insecure"
+,
+      "sec:compile_dependencies"
+,
+      "sec:java_application"
+,
+      "sec:java_version_option"
+,
+      "sec:java_library"
+,
+      "sec:java_gradle_plugin"
+,
+      "sec:kotlin_application"
+,
+      "sec:kotlin_library"
+,
+      "sec:kotlin_gradle_plugin"
+,
+      "sec:scala_application"
+,
+      "sec:scala_library"
+,
+      "sec:groovy_library"
+,
+      "sec:groovy_application"
+,
+      "sec:groovy_gradle_plugin"
+,
+      "sec:cpp_application"
+,
+      "sec:cpp_library"
+,
+      "sec:basic"
+
+    ]
+  }
+,
+  {
+    "filename": "antlr_plugin.adoc",
+    "anchors": [
+      "antlr_plugin"
+,
+      "sec:antlr_usage"
+,
+      "sec:antlr_tasks"
+,
+      "sec:antlr_project_layout"
+,
+      "sec:antlr_dependency_management"
+,
+      "sec:antlr_extensions"
+,
+      "sec:antlr_convention_properties"
+,
+      "sec:antlr_source_set_properties"
+,
+      "sec:controlling_the_antlr_generator_process"
+
+    ]
+  }
+,
+  {
+    "filename": "ear_plugin.adoc",
+    "anchors": [
+      "ear_plugin"
+,
+      "sec:ear_usage"
+,
+      "sec:ear_tasks"
+,
+      "sec:ear_project_layout"
+,
+      "sec:ear_dependency_management"
+,
+      "sec:ear_convention_properties"
+,
+      "sec:ear_default_settings"
+,
+      "sec:ear_customizing"
+,
+      "sec:using_custom_app_xml"
+
+    ]
+  }
+,
+  {
+    "filename": "distribution_plugin.adoc",
+    "anchors": [
+      "distribution_plugin"
+,
+      "sec:distribution_base"
+,
+      "sec:distribution_usage"
+,
+      "sec:distribution_tasks"
+,
+      "sec:distribution_contents"
+,
+      "sec:publishing_distributions"
+,
+      "sec:publishing_distributions_publish_plugins"
+
+    ]
+  }
+,
+  {
+    "filename": "idea_plugin.adoc",
+    "anchors": [
+      "idea_plugin"
+,
+      "sec:idea_usage"
+,
+      "sec:idea_tasks"
+,
+      "ideatasks"
+,
+      "sec:idea_configuration"
+,
+      "idea-configuration"
+,
+      "sec:idea_customizing_the_generated_files"
+,
+      "sec:merging_with_idea_files"
+,
+      "sec:complete_overwrite_of_idea_files"
+,
+      "sec:hooking_into_the_idea_generation_lifecycle"
+,
+      "idea-hooks"
+,
+      "sec:partial-rewrite"
+,
+      "sec:idea_modify_domain_objects"
+,
+      "sec:idea_modify_xml"
+,
+      "sec:idea_identify_additional_source_sets"
+,
+      "sec:further_things_to_consider"
+
+    ]
+  }
+,
+  {
+    "filename": "codenarc_plugin.adoc",
+    "anchors": [
+      "codenarc_plugin"
+,
+      "sec:codenarc_usage"
+,
+      "sec:codenarc_tasks"
+,
+      "sec:codenarc_project_layout"
+,
+      "sec:codenarc_dependency_management"
+,
+      "sec:codenarc_configuration"
+
+    ]
+  }
+,
+  {
+    "filename": "play_plugin.adoc",
+    "anchors": [
+      "play_plugin"
+
+    ]
+  }
+,
+  {
+    "filename": "pmd_plugin.adoc",
+    "anchors": [
+      "pmd_plugin"
+,
+      "sec:pmd_usage"
+,
+      "sec:pmd_tasks"
+,
+      "sec:pmd_dependency_management"
+,
+      "sec:pmd_configuration"
+,
+      "sec:pmd_conf_threads"
+
+    ]
+  }
+,
+  {
+    "filename": "glossary.adoc",
+    "anchors": [
+      "dependency_management_terminology"
+,
+      "sub:terminology_artifact"
+,
+      "sub:terminology_build"
+,
+      "sub:terminology_build_scan"
+,
+      "sub:terminology_build_script"
+,
+      "sub:terminology_capability"
+,
+      "sub:terminology_component"
+,
+      "sub:terminology_configuration"
+,
+      "sub:terminology_configuration_phase"
+,
+      "sub:terminology_convention_plugin"
+,
+      "sub:terminology_cross_configuration"
+,
+      "sub:terminology_cross_project_configuration"
+,
+      "sub:terminology_dependency"
+,
+      "sub:terminology_dependency_constraint"
+,
+      "sub:terminology_eager"
+,
+      "sub:terminology_ecosystem_plugin"
+,
+      "sub:terminology_execution_phase"
+,
+      "sub:terminology_feature_variant"
+,
+      "sub:terminology_gradle_build"
+,
+      "sub:terminology_incremental_builds"
+,
+      "sub:terminology_init_script"
+,
+      "sub:terminology_lazy"
+,
+      "sub:terminology_maven_central"
+,
+      "sub:terminology_module"
+,
+      "sub:terminology_module_metadata"
+,
+      "sub:terminology_module_version"
+,
+      "sub:terminology_platform"
+,
+      "sub:terminology_plugin"
+,
+      "sub:terminology_precompiled_script_plugin"
+,
+      "sub:terminology_project"
+,
+      "sub:terminology_publication"
+,
+      "sub:terminology_repository"
+,
+      "sub:terminology_resolution_rule"
+,
+      "sub:terminology_script_plugin"
+,
+      "sub:terminology_settings_script"
+,
+      "sub:terminology_task"
+,
+      "sub:terminology_transitive_dependency"
+,
+      "sub:terminology_variant"
+,
+      "sub:terminology_attribute"
+
+    ]
+  }
+,
+  {
+    "filename": "isolated_projects.adoc",
+    "anchors": [
+
+    ]
+  }
+,
+  {
+    "filename": "best_practices_tasks.adoc",
+    "anchors": [
+      "best_practices_for_tasks"
+,
+      "avoid_depends_on"
+,
+      "use_cacheability_annotations"
+,
+      "group_describe_tasks"
+
+    ]
+  }
+,
+  {
+    "filename": "best_practices_dependencies.adoc",
+    "anchors": [
+      "best_practices_for_dependencies"
+,
+      "use_version_catalogs"
+,
+      "name_version_catalog_entries"
+,
+      "set_up_repositories_in_settings"
+,
+      "dont_depend_on_kotlin_stdlib"
+,
+      "avoid_duplicate_dependencies"
+,
+      "single-gav-string"
+
+    ]
+  }
+,
+  {
+    "filename": "best_practices_general.adoc",
+    "anchors": [
+      "best_practices_general"
+,
+      "use_kotlin_dsl"
+,
+      "use_latest_minor_versions"
+,
+      "use_the_plugins_block"
+,
+      "do_not_use_internal_apis"
+
+    ]
+  }
+,
+  {
+    "filename": "best_practices_performance.adoc",
+    "anchors": [
+      "best_practices_for_performance"
+,
+      "use_utf8_encoding"
+
+    ]
+  }
+,
+  {
+    "filename": "tags_reference.adoc",
+    "anchors": [
+      "tags_reference"
+,
+      "tag:caching"
+,
+      "tag:dependencies"
+,
+      "tag:inputs-and-outputs"
+,
+      "tag:plugins"
+,
+      "tag:tasks"
+,
+      "tag:structuring-builds"
+,
+      "tag:kotlin-dsl"
+,
+      "tag:up-to-date-checking"
+,
+      "tag:upgrades"
+,
+      "tag:version-catalog"
+,
+      "tag:properties"
+
+    ]
+  }
+,
+  {
+    "filename": "best_practices.adoc",
+    "anchors": [
+      "best_practices"
+
+    ]
+  }
+
+]

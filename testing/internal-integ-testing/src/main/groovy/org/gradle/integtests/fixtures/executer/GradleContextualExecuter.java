@@ -59,16 +59,12 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         return Executer.valueOf(System.getProperty(EXECUTER_SYS_PROP, Executer.forking.toString()));
     }
 
-    public static boolean isEmbedded() {
-        return !getSystemPropertyExecuter().forks;
-    }
-
     public static boolean isNoDaemon() {
         return getSystemPropertyExecuter() == Executer.noDaemon;
     }
 
     public static boolean isDaemon() {
-        return !(isNoDaemon() || isEmbedded());
+        return !(isNoDaemon() || IntegrationTestBuildContext.isEmbedded());
     }
 
     public static boolean isLongLivingProcess() {

@@ -84,16 +84,16 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksScheduled(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
 
         when:
         file("greeter/src/main/swift/greeter.swift").replace("Hello,", "Goodbye,")
         then:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksScheduled(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
         result.assertTaskSkipped(":app:compileDebugSwift")
-        result.assertTasksNotSkipped(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:linkDebug", ":app:installDebug", ":app:assemble")
         installation("app/build/install/main/debug").exec().out == app.expectedOutput.replace("Hello", "Goodbye")
     }
 
@@ -119,7 +119,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksScheduled(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
 
         when:
@@ -132,8 +132,8 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         file("app/src/main/swift/main.swift").replace("sayHello", "sayAloha")
         then:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
-        result.assertTasksNotSkipped(":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksScheduled(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksExecuted(":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
     }
 
@@ -155,7 +155,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         expect:
         succeeds "assembleRelease"
-        result.assertTasksExecuted(":compileReleaseSwift", ":linkRelease", ":extractSymbolsRelease", ":stripSymbolsRelease", ":installRelease", ":assembleRelease")
+        result.assertTasksScheduled(":compileReleaseSwift", ":linkRelease", ":extractSymbolsRelease", ":stripSymbolsRelease", ":installRelease", ":assembleRelease")
 
         releaseBinary.assertExists()
         releaseBinary.exec().out == app.withFeatureEnabled().expectedOutput
@@ -163,7 +163,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         releaseBinary.assertHasStrippedDebugSymbolsFor(app.sourceFileNames)
 
         succeeds "assembleDebug"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assembleDebug")
+        result.assertTasksScheduled(":compileDebugSwift", ":linkDebug", ":installDebug", ":assembleDebug")
 
         file("build/modules/main/release/App.swiftmodule").assertIsFile()
         debugBinary.assertExists()
@@ -189,7 +189,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         expect:
         succeeds "buildDebug"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ':buildDebug')
+        result.assertTasksScheduled(":compileDebugSwift", ":linkDebug", ':buildDebug')
         executable("build/exe/main/debug/App").assertExists()
     }
 
@@ -210,7 +210,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         expect:
         succeeds "compileDebug"
-        result.assertTasksExecuted(":compileDebugSwift", ':compileDebug')
+        result.assertTasksScheduled(":compileDebugSwift", ':compileDebug')
         executable("build/exe/main/debug/App").assertDoesNotExist()
         objectFiles(app.main)*.assertExists()
     }
@@ -232,7 +232,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         expect:
         succeeds "install"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ':installDebug', ':install')
+        result.assertTasksScheduled(":compileDebugSwift", ":linkDebug", ':installDebug', ':install')
         installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 
@@ -255,7 +255,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksScheduled(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
 
         executable("build/exe/main/debug/App").assertExists()
         installation("build/install/main/debug").exec().out == app.expectedOutput
@@ -279,7 +279,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksScheduled(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
 
         file("build/obj/main/debug").assertIsDir()
         executable("build/exe/main/debug/${app.moduleName}").assertExists()
@@ -311,7 +311,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksScheduled(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
 
         file("build/obj/main/debug").assertIsDir()
         executable("build/exe/main/debug/App").assertExists()
@@ -332,7 +332,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksScheduled(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
 
         !file("build").exists()
         file("output/obj/main/debug").assertIsDir()
@@ -355,7 +355,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksScheduled(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
 
         file("build/obj/main/debug").assertIsDir()
         executable("build/exe/main/debug/TestApp").assertExists()
@@ -382,7 +382,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksScheduled(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
 
         file("build/object-files").assertIsDir()
         file("build/exe/some-app.exe").assertIsFile()
@@ -412,7 +412,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksScheduled(":greeter:compileDebugSwift", ":greeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
         executable("app/build/exe/main/debug/App").assertExists()
         sharedLibrary("greeter/build/lib/main/debug/Greeter").assertExists()
@@ -449,7 +449,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(tasks(':greeter').withOperatingSystemFamily(currentOsFamilyName).debug.allToLink, tasks(':app').withOperatingSystemFamily(currentOsFamilyName).debug.allToInstall, ":app:assemble")
+        result.assertTasksScheduled(tasks(':greeter').withOperatingSystemFamily(currentOsFamilyName).debug.allToLink, tasks(':app').withOperatingSystemFamily(currentOsFamilyName).debug.allToInstall, ":app:assemble")
 
         executable("app/build/exe/main/debug/${currentOsFamilyName}/App").assertExists()
         sharedLibrary("greeter/build/lib/main/debug/${currentOsFamilyName}/Greeter").assertExists()
@@ -517,7 +517,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":greeter:compileDebugSwift", ":greeter:createDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksScheduled(":greeter:compileDebugSwift", ":greeter:createDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
         executable("app/build/exe/main/debug/App").assertExists()
         staticLibrary("greeter/build/lib/main/debug/Greeter").assertExists()
@@ -550,7 +550,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":greeter:compileDebugSharedSwift", ":greeter:linkDebugShared", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksScheduled(":greeter:compileDebugSharedSwift", ":greeter:linkDebugShared", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
         executable("app/build/exe/main/debug/App").assertExists()
         sharedLibrary("greeter/build/lib/main/debug/shared/Greeter").assertExists()
@@ -589,7 +589,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         expect:
         succeeds ":app:assemble"
 
-        result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:linkDebug", ":log:compileDebugSwift", ":log:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksScheduled(":hello:compileDebugSwift", ":hello:linkDebug", ":log:compileDebugSwift", ":log:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
         sharedLibrary("hello/build/lib/main/debug/Hello").assertExists()
         sharedLibrary("log/build/lib/main/debug/Log").assertExists()
@@ -601,7 +601,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         succeeds ":app:assembleRelease"
 
-        result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:linkRelease", ":hello:stripSymbolsRelease",
+        result.assertTasksScheduled(":hello:compileReleaseSwift", ":hello:linkRelease", ":hello:stripSymbolsRelease",
             ":log:compileReleaseSwift", ":log:linkRelease", ":log:stripSymbolsRelease",
             ":app:compileReleaseSwift", ":app:linkRelease", ":app:extractSymbolsRelease", ":app:stripSymbolsRelease", ":app:installRelease", ":app:assembleRelease")
 
@@ -643,7 +643,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         expect:
         succeeds ":app:assemble"
 
-        result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:createDebug",
+        result.assertTasksScheduled(":hello:compileDebugSwift", ":hello:createDebug",
             ":log:compileDebugSwift", ":log:createDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
@@ -656,7 +656,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         succeeds ":app:assembleRelease"
 
-        result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:createRelease",
+        result.assertTasksScheduled(":hello:compileReleaseSwift", ":hello:createRelease",
             ":log:compileReleaseSwift", ":log:createRelease",
             ":app:compileReleaseSwift", ":app:linkRelease", ":app:extractSymbolsRelease", ":app:stripSymbolsRelease", ":app:installRelease", ":app:assembleRelease")
 
@@ -698,7 +698,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         expect:
         succeeds ":app:assemble"
 
-        result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:createDebug",
+        result.assertTasksScheduled(":hello:compileDebugSwift", ":hello:createDebug",
             ":log:compileDebugSwift", ":log:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
@@ -711,7 +711,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         succeeds ":app:assembleRelease"
 
-        result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:createRelease",
+        result.assertTasksScheduled(":hello:compileReleaseSwift", ":hello:createRelease",
             ":log:compileReleaseSwift", ":log:linkRelease", ":log:stripSymbolsRelease",
             ":app:compileReleaseSwift", ":app:linkRelease", ":app:extractSymbolsRelease", ":app:stripSymbolsRelease", ":app:installRelease", ":app:assembleRelease")
 
@@ -753,7 +753,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         expect:
         succeeds ":app:assemble"
 
-        result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:linkDebug",
+        result.assertTasksScheduled(":hello:compileDebugSwift", ":hello:linkDebug",
             ":log:compileDebugSwift", ":log:createDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
@@ -766,7 +766,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         succeeds ":app:assembleRelease"
 
-        result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:linkRelease", ":hello:stripSymbolsRelease",
+        result.assertTasksScheduled(":hello:compileReleaseSwift", ":hello:linkRelease", ":hello:stripSymbolsRelease",
             ":log:compileReleaseSwift", ":log:createRelease",
             ":app:compileReleaseSwift", ":app:linkRelease", ":app:extractSymbolsRelease", ":app:stripSymbolsRelease", ":app:installRelease", ":app:assembleRelease")
 
@@ -806,7 +806,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         expect:
         succeeds ":app:linkRelease"
 
-        result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:linkRelease", ":hello:stripSymbolsRelease", ":app:compileReleaseSwift", ":app:linkRelease")
+        result.assertTasksScheduled(":hello:compileReleaseSwift", ":hello:linkRelease", ":hello:stripSymbolsRelease", ":app:compileReleaseSwift", ":app:linkRelease")
 
         sharedLibrary("hello/build/lib/main/release/Greeter").assertExists()
         sharedLibrary("hello/build/lib/main/release/Greeter").assertHasDebugSymbolsFor(app.library.sourceFileNames)
@@ -815,7 +815,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         succeeds ":app:linkDebug"
 
-        result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:linkDebug", ":app:compileDebugSwift", ":app:linkDebug")
+        result.assertTasksScheduled(":hello:compileDebugSwift", ":hello:linkDebug", ":app:compileDebugSwift", ":app:linkDebug")
 
         sharedLibrary("hello/build/lib/main/debug/Greeter").assertExists()
         sharedLibrary("hello/build/lib/main/debug/Greeter").assertHasDebugSymbolsFor(app.library.sourceFileNames)
@@ -854,7 +854,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         expect:
         succeeds ":app:linkRelease"
 
-        result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:createRelease", ":app:compileReleaseSwift", ":app:linkRelease")
+        result.assertTasksScheduled(":hello:compileReleaseSwift", ":hello:createRelease", ":app:compileReleaseSwift", ":app:linkRelease")
 
         staticLibrary("hello/build/lib/main/release/Greeter").assertExists()
         executable("app/build/exe/main/release/App").assertHasDebugSymbolsFor(app.application.sourceFileNames + app.library.sourceFileNames)
@@ -862,7 +862,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         succeeds ":app:linkDebug"
 
-        result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:createDebug", ":app:compileDebugSwift", ":app:linkDebug")
+        result.assertTasksScheduled(":hello:compileDebugSwift", ":hello:createDebug", ":app:compileDebugSwift", ":app:linkDebug")
 
         staticLibrary("hello/build/lib/main/debug/Greeter").assertExists()
         executable("app/build/exe/main/debug/App").assertHasDebugSymbolsFor(app.application.sourceFileNames + app.library.sourceFileNames)
@@ -899,7 +899,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:linkDebug", ":log:compileDebugSwift", ":log:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksScheduled(":hello:compileDebugSwift", ":hello:linkDebug", ":log:compileDebugSwift", ":log:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
         !file("log/build").exists()
         sharedLibrary("hello/build/lib/main/debug/Hello").assertExists()
@@ -948,7 +948,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         expect:
         succeeds ":app:assemble"
-        result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:linkDebug", ":log:compileDebugSwift", ":log:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
+        result.assertTasksScheduled(":hello:compileDebugSwift", ":hello:linkDebug", ":log:compileDebugSwift", ":log:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
 
         sharedLibrary("hello/build/lib/main/debug/Hello").assertExists()
         sharedLibrary("log/build/lib/main/debug/Log").assertExists()
@@ -994,7 +994,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         expect:
         succeeds ":assemble"
-        result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:linkDebug", ":log:compileDebugSwift", ":log:linkDebug", ":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksScheduled(":hello:compileDebugSwift", ":hello:linkDebug", ":log:compileDebugSwift", ":log:linkDebug", ":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
 
         sharedLibrary("hello/build/lib/main/debug/Hello").assertExists()
         sharedLibrary("log/build/lib/main/debug/Log").assertExists()
@@ -1018,7 +1018,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         expect:
         succeeds ":assemble"
-        result.assertTasksExecuted(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
+        result.assertTasksScheduled(":compileDebugSwift", ":linkDebug", ":installDebug", ":assemble")
         installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 }

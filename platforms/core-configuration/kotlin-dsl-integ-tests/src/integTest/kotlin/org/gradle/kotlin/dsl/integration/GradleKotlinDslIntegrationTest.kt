@@ -1244,11 +1244,11 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
         val taskName = ":writeInputToFile"
 
-        build(taskName, "-PinputString=string1").assertTasksExecutedAndNotSkipped(taskName)
+        build(taskName, "-PinputString=string1").assertTasksExecuted(taskName)
 
         build(taskName, "-PinputString=string1").assertTasksSkipped(taskName)
 
-        build(taskName, "-PinputString=string2").assertTasksExecutedAndNotSkipped(taskName)
+        build(taskName, "-PinputString=string2").assertTasksExecuted(taskName)
     }
 
     @Test

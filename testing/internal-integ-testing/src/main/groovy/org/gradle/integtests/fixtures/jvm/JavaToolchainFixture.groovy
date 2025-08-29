@@ -58,7 +58,7 @@ trait JavaToolchainFixture {
     }
 
     AbstractIntegrationSpec withAutoDetection() {
-        executer.withArgument("-Porg.gradle.java.installations.auto-detect=true")
+        executer.withArgument("-Dorg.gradle.java.installations.auto-detect=true")
         return this as AbstractIntegrationSpec
     }
 
@@ -79,7 +79,7 @@ trait JavaToolchainFixture {
     AbstractIntegrationSpec withInstallations(List<Jvm> jvms) {
         def installationPaths = jvms.collect { it.javaHome.absolutePath }.join(",")
         executer
-            .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
+            .withArgument("-Dorg.gradle.java.installations.paths=" + installationPaths)
         this as AbstractIntegrationSpec
     }
 
@@ -96,7 +96,7 @@ trait JavaToolchainFixture {
     AbstractIntegrationSpec withInstallations(JvmInstallationMetadata installationMetadata, JvmInstallationMetadata... rest) {
         def installationPaths = ([installationMetadata] + rest.toList()).collect { it.javaHome.toAbsolutePath().toString() }.join(",")
         executer
-            .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
+            .withArgument("-Dorg.gradle.java.installations.paths=" + installationPaths)
         this as AbstractIntegrationSpec
     }
 

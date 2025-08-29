@@ -17,6 +17,7 @@
 package gradlebuild.docs;
 
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
 
@@ -32,9 +33,20 @@ public abstract class Javadocs {
     public abstract Property<URI> getJavaApi();
 
     /**
+     * Package list of the Java API used to generate Javadoc offline
+     */
+    public abstract DirectoryProperty getJavaPackageListLoc();
+
+    /**
      * Link to Groovy API to use when generating Javadoc
      */
     public abstract Property<URI> getGroovyApi();
+
+    /**
+     * Coordinates of the Groovydoc (Javadoc) artifact used to extract the package list for generating Javadoc offline
+     * Example: "org.apache.groovy:groovy-all:4.0.28:groovydoc"
+     */
+    public abstract Property<String> getGroovyPackageListSrc();
 
     /**
      * The CSS file to style Javadocs with

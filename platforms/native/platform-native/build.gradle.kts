@@ -65,11 +65,12 @@ dependencies {
     testFixturesImplementation(libs.commonsLang)
     testFixturesImplementation(libs.commonsIo)
 
-    testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.messaging))
-    testImplementation(testFixtures(projects.platformBase))
-    testImplementation(testFixtures(projects.modelCore))
     testImplementation(testFixtures(projects.baseServices))
+    testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.enterpriseLogging))
+    testImplementation(testFixtures(projects.messaging))
+    testImplementation(testFixtures(projects.modelCore))
+    testImplementation(testFixtures(projects.platformBase))
     testImplementation(testFixtures(projects.snapshots))
     testImplementation(testFixtures(projects.time))
 

@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponent
 import org.gradle.api.internal.configuration.DefaultBuildFeatures
 import org.gradle.api.logging.LogLevel
 import org.gradle.execution.selection.BuildTaskSelector
-import org.gradle.initialization.EnvironmentChangeTracker
+import org.gradle.initialization.Environment
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildoption.DefaultInternalOptions
@@ -40,7 +40,6 @@ import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.problems.IgnoringProblemsListener
-import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
 import org.gradle.internal.cc.impl.barrier.BarrierAwareBuildTreeLifecycleControllerFactory
 import org.gradle.internal.cc.impl.barrier.VintageConfigurationTimeActionRunner
 import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
@@ -60,9 +59,10 @@ import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.promo.ConfigurationCachePromoHandler
 import org.gradle.internal.cc.impl.promo.PromoInputsListener
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
+import org.gradle.internal.cc.impl.services.ConfigurationCacheEnvironment
 import org.gradle.internal.cc.impl.services.DefaultBuildModelParameters
 import org.gradle.internal.cc.impl.services.DefaultDeferredRootBuildGradle
-import org.gradle.internal.cc.impl.services.VintageEnvironmentChangeTracker
+import org.gradle.internal.cc.impl.services.DefaultEnvironment
 import org.gradle.internal.configuration.problems.DefaultProblemFactory
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
@@ -98,6 +98,11 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         private
         val isolatedProjectsTasksConfigureOnDemand =
             InternalFlag("org.gradle.internal.isolated-projects.configure-on-demand.tasks", false)
+
+        // Experimental flag to enable resilient model building.
+        private
+        val resilientModelBuilding =
+            InternalFlag("org.gradle.internal.resilient-model-building", false)
     }
 
     override fun servicesForBuildTree(requirements: BuildActionModelRequirements): BuildTreeModelControllerServices.Supplier {
@@ -150,6 +155,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val parallelToolingActions = parallelProjectExecution && options.getOption(parallelBuilding).get()
         val invalidateCoupledProjects = isolatedProjects && options.getOption(invalidateCoupledProjects).get()
         val modelAsProjectDependency = isolatedProjects && options.getOption(modelProjectDependencies).get()
+        val resilientModelBuilding = options.getOption(resilientModelBuilding).get()
 
         return if (requirements.isCreatesModel) {
             val configureOnDemand = isolatedProjects &&
@@ -164,7 +170,8 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                 intermediateModelCache = isolatedProjects,
                 parallelToolingApiActions = parallelToolingActions,
                 invalidateCoupledProjects = invalidateCoupledProjects,
-                modelAsProjectDependency = modelAsProjectDependency
+                modelAsProjectDependency = modelAsProjectDependency,
+                resilientModelBuilding = resilientModelBuilding
             )
         } else {
             val configurationCache = isolatedProjects || startParameter.configurationCache.get()
@@ -183,7 +190,8 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                     intermediateModelCache = false,
                     parallelToolingApiActions = parallelToolingActions,
                     invalidateCoupledProjects = invalidateCoupledProjects,
-                    modelAsProjectDependency = modelAsProjectDependency
+                    modelAsProjectDependency = modelAsProjectDependency,
+                    resilientModelBuilding = resilientModelBuilding
                 )
             }
 
@@ -201,7 +209,8 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                     intermediateModelCache = false,
                     parallelToolingApiActions = parallelToolingActions,
                     invalidateCoupledProjects = invalidateCoupledProjects,
-                    modelAsProjectDependency = modelAsProjectDependency
+                    modelAsProjectDependency = modelAsProjectDependency,
+                    resilientModelBuilding = resilientModelBuilding
                 )
             }
         }
@@ -222,7 +231,8 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                     intermediateModelCache = false,
                     parallelToolingApiActions = false,
                     invalidateCoupledProjects = false,
-                    modelAsProjectDependency = false
+                    modelAsProjectDependency = false,
+                    resilientModelBuilding = false
                 )
             val buildFeatures = DefaultBuildFeatures(startParameter, buildModelParameters)
             val requirements = RunTasksRequirements(startParameter)
@@ -261,11 +271,11 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         }
 
         if (modelParameters.isConfigurationCache) {
+            registration.add(Environment::class.java, ConfigurationCacheEnvironment::class.java)
             registration.add(BuildTreeLifecycleControllerFactory::class.java, ConfigurationCacheBuildTreeLifecycleControllerFactory::class.java)
             registration.add(ConfigurationCacheStartParameter::class.java)
             registration.add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
             registration.add(InjectedClasspathInstrumentationStrategy::class.java, ConfigurationCacheInjectedClasspathInstrumentationStrategy::class.java)
-            registration.add(ConfigurationCacheEnvironmentChangeTracker::class.java)
             registration.add(BuildTreeConfigurationCache::class.java, DefaultConfigurationCache::class.java)
             registration.add(InstrumentedExecutionAccessListenerRegistry::class.java)
             registration.add(ConfigurationCacheFingerprintController::class.java)
@@ -289,10 +299,10 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(DefaultDeferredRootBuildGradle::class.java)
             registration.add(ConfigurationCacheInputsListener::class.java, InstrumentedInputAccessListener::class.java)
         } else {
+            registration.add(Environment::class.java, DefaultEnvironment::class.java)
             registration.add(InjectedClasspathInstrumentationStrategy::class.java, VintageInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(BuildTreeLifecycleControllerFactory::class.java, BarrierAwareBuildTreeLifecycleControllerFactory::class.java)
             registration.add(VintageConfigurationTimeActionRunner::class.java)
-            registration.add(EnvironmentChangeTracker::class.java, VintageEnvironmentChangeTracker::class.java)
             registration.add(ProjectScopedScriptResolution::class.java, ProjectScopedScriptResolution.NO_OP)
             registration.addProvider(VintageBuildTreeProvider())
             registration.add(BuildTreeModelSideEffectExecutor::class.java, DefaultBuildTreeModelSideEffectExecutor::class.java)

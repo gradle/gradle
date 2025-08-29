@@ -67,7 +67,7 @@ public abstract class GenerateScaladoc implements WorkAction<ScaladocParameters>
         args.addAll(sourceFiles);
 
         if (optionsFile != null) {
-            ArgWriter.argsFileGenerator(optionsFile.toFile(), ArgWriter.javaStyleFactory()).transform(args);
+            return ArgWriter.argsFileGenerator(optionsFile.toFile(), ArgWriter.javaStyleFactory()).apply(args);
         }
 
         return args;

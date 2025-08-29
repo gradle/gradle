@@ -29,6 +29,7 @@ import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
+import org.gradle.initialization.ProjectDescriptorInternal
 import org.gradle.initialization.SettingsState
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.build.BuildState
@@ -124,7 +125,7 @@ class DefaultConfigurationCacheHost internal constructor(
         fun rootProjectDescriptor() = projectDescriptorRegistry.rootProject!!
 
         private
-        fun createProject(descriptor: DefaultProjectDescriptor): ProjectInternal {
+        fun createProject(descriptor: ProjectDescriptorInternal): ProjectInternal {
             val projectState = state.projects.getProject(descriptor.path())
             projectState.createMutableModel(coreAndPluginsScope, coreAndPluginsScope)
             val project = projectState.mutableModel
@@ -177,7 +178,7 @@ class DefaultConfigurationCacheHost internal constructor(
             service<BuildLayout>().settingsDir
 
         private
-        fun getProjectDescriptor(parentPath: Path?): DefaultProjectDescriptor? =
+        fun getProjectDescriptor(parentPath: Path?): ProjectDescriptorInternal? =
             parentPath?.let { projectDescriptorRegistry.getProject(it.path) }
 
         private

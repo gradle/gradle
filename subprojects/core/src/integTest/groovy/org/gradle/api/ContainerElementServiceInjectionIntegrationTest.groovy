@@ -25,6 +25,27 @@ import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.process.ExecOperations
 
 class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
+    def "instantiated Named does not interfere with instantiating other objects"() {
+        when:
+        buildFile """
+            def c = project.container(Named)
+            c.create("foo")
+        """
+        then:
+        succeeds()
+        when:
+        buildFile """
+            abstract class Element implements Named {
+                @Inject
+                Element() { }
+            }
+            def cc = project.objects.domainObjectContainer(Element)
+            cc.create("foo")
+        """
+        then:
+        succeeds()
+    }
+
     // Document current behaviour
     def "container element can receive services through constructor and is not annotated with @Inject"() {
         buildFile  """

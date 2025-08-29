@@ -178,7 +178,6 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
 
             configurations {
                 foo {
-                    visible = true
                     outgoing.artifact(tasks.jar1)
                 }
                 bar {
@@ -194,4 +193,20 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         and:
         notExecuted(":jar1", ":jar2")
     }
+
+    def "default configuration is not eagerly realized during configuration-time"() {
+        buildFile("""
+            plugins {
+                id("base")
+            }
+
+            configurations.named("default").configure {
+                throw new RuntimeException("Should not be called!")
+            }
+        """)
+
+        expect:
+        succeeds("help")
+    }
+
 }

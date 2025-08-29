@@ -17,9 +17,9 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.integtests.tooling.fixture.SomeToolingModelBuildAction
-import org.gradle.integtests.tooling.fixture.ToolingApiBackedGradleExecuter
-import org.gradle.integtests.tooling.fixture.ToolingApiSpec
+import org.gradle.internal.cc.impl.fixtures.SomeToolingModelBuildAction
+import org.gradle.internal.cc.impl.fixtures.ToolingApiBackedGradleExecuter
+import org.gradle.internal.cc.impl.fixtures.ToolingApiSpec
 
 class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements ToolingApiSpec {
     @Override

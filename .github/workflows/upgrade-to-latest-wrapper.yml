@@ -12,15 +12,17 @@ jobs:
   upgrade-latest-wrapper:
     runs-on: ubuntu-latest
 
+    if: github.repository == 'gradle/gradle'
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: devprod/upgrade-to-latest-wrapper
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
       - name: Setup java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17

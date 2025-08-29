@@ -331,6 +331,21 @@ public interface Script {
     /**
      * Creates a {@code Provider} implementation based on the provided value.
      *
+     * <h4>Configuration Cache</h4>
+     * <p>This provider is always <a href="provider/Provider.html#configuration-cache">computed and its value is cached</a> by the Configuration Cache.
+     * If this provider is created at configuration time, the {@link Callable} may call configuration-time only APIs and capture objects of arbitrary types.
+     * <p>This can be useful when you need to lazily compute some value to use at execution time based on configuration-time only data. For example, you can compute an archive name based on the name
+     * and the version of the project:
+     * <pre class='autoTested'>
+     *   tasks.register("createArchive") {
+     *       def archiveNameProvider = { project.name + "-" + project.version + ".jar" }
+     *       doLast {
+     *           def archiveName = new File(archiveNameProvider.get())
+     *           // ... create the archive and put in its contents.
+     *       }
+     *   }
+     * </pre>
+     *
      * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
      * @return The provider. Never returns null.
      * @throws org.gradle.api.InvalidUserDataException If the provided value is null.

@@ -72,7 +72,7 @@ class ConfigurationCacheIncludedBuildLogicIntegrationTest extends AbstractConfig
         configurationCacheRun("assemble")
 
         then:
-        result.assertTasksExecuted(
+        result.assertTasksScheduled(
             ":build-logic:compileJava",
             ":build-logic:pluginDescriptors",
             ":build-logic:processResources",
@@ -85,7 +85,7 @@ class ConfigurationCacheIncludedBuildLogicIntegrationTest extends AbstractConfig
         configurationCacheRun("assemble")
 
         then:
-        result.assertTasksExecuted(":assemble")
+        result.assertTasksScheduled(":assemble")
         fixture.assertStateLoaded()
 
         when:
@@ -95,7 +95,7 @@ class ConfigurationCacheIncludedBuildLogicIntegrationTest extends AbstractConfig
         configurationCacheRun("assemble")
 
         then:
-        result.assertTasksExecuted(
+        result.assertTasksScheduled(
             ":build-logic:compileJava",
             ":build-logic:pluginDescriptors",
             ":build-logic:processResources",
@@ -112,7 +112,7 @@ class ConfigurationCacheIncludedBuildLogicIntegrationTest extends AbstractConfig
         configurationCacheRun(":build-logic:classes")
 
         then:
-        result.assertTasksExecuted(
+        result.assertTasksScheduled(
             ":build-logic:compileJava",
             ":build-logic:pluginDescriptors",
             ":build-logic:processResources",
@@ -124,7 +124,7 @@ class ConfigurationCacheIncludedBuildLogicIntegrationTest extends AbstractConfig
         configurationCacheRun(":build-logic:classes")
 
         then:
-        result.assertTasksExecuted()
+        result.assertNoTasksScheduled()
         fixture.assertStateLoaded()
 
         when:
@@ -134,7 +134,7 @@ class ConfigurationCacheIncludedBuildLogicIntegrationTest extends AbstractConfig
         configurationCacheRun(":build-logic:classes")
 
         then:
-        result.assertTasksExecuted(
+        result.assertTasksScheduled(
             ":build-logic:compileJava",
             ":build-logic:pluginDescriptors",
             ":build-logic:processResources",
@@ -158,7 +158,7 @@ class ConfigurationCacheIncludedBuildLogicIntegrationTest extends AbstractConfig
         configurationCacheRun("assemble")
 
         then:
-        result.assertTasksExecuted(
+        result.assertTasksScheduled(
             ":build-logic:compileJava",
             ":build-logic:pluginDescriptors",
             ":build-logic:processResources",
@@ -176,7 +176,7 @@ class ConfigurationCacheIncludedBuildLogicIntegrationTest extends AbstractConfig
         configurationCacheRun("assemble")
 
         then:
-        result.assertTasksExecuted(
+        result.assertTasksScheduled(
             ":processResources",
             ":compileJava",
             ":classes",
@@ -192,7 +192,7 @@ class ConfigurationCacheIncludedBuildLogicIntegrationTest extends AbstractConfig
         configurationCacheRun("assemble")
 
         then:
-        result.assertTasksExecuted(
+        result.assertTasksScheduled(
             ":build-logic:compileJava",
             ":build-logic:pluginDescriptors",
             ":build-logic:processResources",

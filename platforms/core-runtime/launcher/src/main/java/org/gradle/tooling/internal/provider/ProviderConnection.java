@@ -401,11 +401,14 @@ public class ProviderConnection {
             effectiveSystemProperties.putAll(daemonParams.getMutableAndImmutableSystemProperties());
         }
         StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(operationParameters, buildLayoutResult, properties);
+        if (requestContext.getJvmCriteria() instanceof DaemonJvmCriteria.Spec) {
+            startParameter.setDaemonJvmCriteriaConfigured(true);
+        }
 
         Map<String, String> gradlePropertiesAsSeenByToolchains = new HashMap<>();
         gradlePropertiesAsSeenByToolchains.putAll(properties.getProperties());
         gradlePropertiesAsSeenByToolchains.putAll(startParameter.getProjectProperties());
-        new BuildOptionBackedConverter<>(new ToolchainBuildOptions()).convert(parsedCommandLine, gradlePropertiesAsSeenByToolchains, daemonParams.getToolchainConfiguration());
+        new BuildOptionBackedConverter<>(ToolchainBuildOptions.forToolChainConfiguration()).convert(parsedCommandLine, gradlePropertiesAsSeenByToolchains, daemonParams.getToolchainConfiguration());
 
         return new Parameters(daemonParams, buildLayoutResult, properties, effectiveSystemProperties, startParameter, requestContext);
     }

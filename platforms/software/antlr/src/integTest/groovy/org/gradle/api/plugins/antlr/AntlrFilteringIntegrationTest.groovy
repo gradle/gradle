@@ -70,7 +70,7 @@ class AntlrFilteringIntegrationTest extends AbstractIntegrationSpec implements A
 
         then:
         file("build/generated-src/antlr/main/com/company/HelloParser.java").exists()
-        result.assertTaskExecuted(':generateGrammarSource')
+        result.assertTaskScheduled(':generateGrammarSource')
         result.assertTaskSkipped(':filteredTask')
 
         where:

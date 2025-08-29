@@ -28,7 +28,38 @@ Gradle uses two main features to reduce build time: *incremental builds* and *bu
 
 image::gradle-basic-8.png[]
 
-== Incremental builds
+== Task Outcome Labels
+
+When you run a Gradle build with verbose mode turned on, each task prints a short outcome label that describes what happened during execution.
+These labels help you understand Gradle’s behavior and performance optimizations like incremental build and build caching:
+
+[source,text]
+----
+> Task :compileJava UP-TO-DATE
+> Task :processResources NO-SOURCE
+> Task :jar FROM-CACHE
+> Task :test SKIPPED
+> Task :publish
+----
+
+[cols="1,3", options="header"]
+|===
+| Task Label                | Meaning
+
+| `UP-TO-DATE`         | The task's inputs and outputs haven’t changed since the last run, so it was skipped.
+
+| `FROM-CACHE`         | The task was skipped and its outputs were restored from the local or remote build cache.
+
+| `NO-SOURCE`          | The task had no source files to process (e.g., no Java files to compile), so it was skipped.
+
+| `SKIPPED`            | The task was not executed due to a condition (e.g., only-if rule or command-line flags).
+
+|                      | The task ran normally and produced outputs.
+
+| `FAILED`             | The task ran but encountered an error.
+|===
+
+== Incremental Builds
 
 An *incremental build* is a build that avoids running tasks whose inputs have not changed since the previous build.
 Re-executing such tasks is unnecessary if they would only re-produce the same output.
@@ -69,7 +100,7 @@ When you run a task that has been previously executed and hasn't changed, then `
 
 TIP: To permanently enable verbose mode, add `org.gradle.console=verbose` to your `gradle.properties` file.
 
-== Build caching
+== Build Caching
 
 Incremental Builds are a great optimization that helps avoid work already done.
 If a developer continuously changes a single file, there is likely no need to rebuild all the other files in the project.
@@ -113,7 +144,5 @@ Once the local directory has been repopulated, the next execution will mark task
 The build cache allows you to share and reuse unchanged build and test outputs across teams.
 This speeds up local and CI builds since cycles are not wasted re-building binaries unaffected by new code changes.
 
-You can consult the <<build_cache#build_cache,Build cache chapter>> to learn more.
-
 [.text-right]
-**Next Step:** <<build_scans.adoc#build_scans,Learn about Build Scan>> >>
+**Next Step:** <<plugin_basics.adoc#plugin_basics,Learn about Plugins>> >>

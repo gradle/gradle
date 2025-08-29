@@ -44,8 +44,8 @@ class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
         feature.sourceSet == ext.sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME)
         feature.runtimeClasspathConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_CLASSPATH_CONFIGURATION_NAME)
         feature.compileClasspathConfiguration == project.configurations.getByName(JvmConstants.COMPILE_CLASSPATH_CONFIGURATION_NAME)
-        feature.runtimeElementsConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
-        feature.apiElementsConfiguration == project.configurations.getByName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME)
+        feature.runtimeElementsConfiguration.get() == project.configurations.getByName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME)
+        feature.apiElementsConfiguration.get() == project.configurations.getByName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME)
         feature.implementationConfiguration == project.configurations.getByName(JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME)
         feature.runtimeOnlyConfiguration == project.configurations.getByName(JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME)
         feature.compileOnlyConfiguration == project.configurations.getByName(JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME)
@@ -69,8 +69,8 @@ class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
         feature.sourceSet == ext.sourceSets.getByName('feature')
         feature.runtimeClasspathConfiguration == project.configurations.getByName('featureRuntimeClasspath')
         feature.compileClasspathConfiguration == project.configurations.getByName('featureCompileClasspath')
-        feature.runtimeElementsConfiguration == project.configurations.getByName('featureRuntimeElements')
-        feature.apiElementsConfiguration == project.configurations.getByName('featureApiElements')
+        feature.runtimeElementsConfiguration.get() == project.configurations.getByName('featureRuntimeElements')
+        feature.apiElementsConfiguration.get() == project.configurations.getByName('featureApiElements')
         feature.implementationConfiguration == project.configurations.getByName('featureImplementation')
         feature.runtimeOnlyConfiguration == project.configurations.getByName('featureRuntimeOnly')
         feature.compileOnlyConfiguration == project.configurations.getByName('featureCompileOnly')
@@ -87,11 +87,10 @@ class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
 
         when:
         def feature = createFeature("main")
-        feature.withJavadocJar()
 
         then:
-        def configuration = project.configurations.getByName(JvmConstants.JAVADOC_ELEMENTS_CONFIGURATION_NAME)
-        !configuration.visible
+        def configuration = feature.maybeRegisterJavadocElements().get()
+        configuration == project.configurations.getByName(JvmConstants.JAVADOC_ELEMENTS_CONFIGURATION_NAME)
         !configuration.canBeResolved
         configuration.canBeConsumed
         (configuration.attributes.getAttribute(Usage.USAGE_ATTRIBUTE) as Usage).name == Usage.JAVA_RUNTIME
@@ -107,11 +106,10 @@ class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
 
         when:
         def feature = createFeature("main")
-        feature.withSourcesJar()
 
         then:
-        def configuration = project.configurations.getByName(JvmConstants.SOURCES_ELEMENTS_CONFIGURATION_NAME)
-        !configuration.visible
+        def configuration = feature.maybeRegisterSourcesElements().get()
+        configuration == project.configurations.getByName(JvmConstants.SOURCES_ELEMENTS_CONFIGURATION_NAME)
         !configuration.canBeResolved
         configuration.canBeConsumed
         (configuration.attributes.getAttribute(Usage.USAGE_ATTRIBUTE) as Usage).name == Usage.JAVA_RUNTIME
@@ -134,13 +132,13 @@ class DefaultJvmFeatureTest extends AbstractProjectBuilderSpec {
         def f1 = new DefaultJvmFeature("feature1", one, Collections.emptySet(), project, false)
         def f2 = new DefaultJvmFeature("feature2", two, Collections.emptySet(), project, false)
 
-        f1.withJavadocJar()
-        f1.withSourcesJar()
+        f1.maybeRegisterJavadocElements()
+        f1.maybeRegisterSourcesElements()
         f1.withApi()
         f1.withSourceElements()
 
-        f2.withJavadocJar()
-        f2.withSourcesJar()
+        f2.maybeRegisterJavadocElements()
+        f2.maybeRegisterSourcesElements()
         f2.withApi()
         f2.withSourceElements()
 

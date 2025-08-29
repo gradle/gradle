@@ -16,14 +16,14 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.internal.classloading.GroovySystemLoader;
-import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.MixInLegacyTypesClassLoader;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.groovyloader.GroovySystemLoader;
+import org.gradle.internal.groovyloader.GroovySystemLoaderFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.service.ServiceRegistry;
 

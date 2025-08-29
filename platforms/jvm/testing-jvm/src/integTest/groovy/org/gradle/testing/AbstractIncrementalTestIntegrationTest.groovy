@@ -83,8 +83,8 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
         """.stripIndent()
 
         then:
-        succeeds('test').assertTasksNotSkipped(':compileJava', ':classes', ':test')
-        succeeds('test').assertTasksNotSkipped()
+        succeeds('test').assertTasksExecuted(':compileJava', ':classes', ':test')
+        succeeds('test').assertAllTasksSkipped()
 
         when:
         // Change a test class
@@ -98,8 +98,8 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
         """.stripIndent()
 
         then:
-        succeeds('test').assertTasksNotSkipped(':compileTestJava', ':testClasses', ':test')
-        succeeds('test').assertTasksNotSkipped()
+        succeeds('test').assertTasksExecuted(':compileTestJava', ':testClasses', ':test')
+        succeeds('test').assertAllTasksSkipped()
     }
 
     def executesTestsWhenTestFrameworkChanges() {
@@ -153,11 +153,11 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
         file('build.gradle').append 'test.useTestNG()\n'
 
         then:
-        succeeds('test').assertTasksNotSkipped(':test')
+        succeeds('test').assertTasksExecuted(':test')
 
         result.assertTestClassesExecuted('TestNGTest') //previous result still present in the dir
 
-        succeeds('test').assertTasksNotSkipped()
+        succeeds('test').assertAllTasksSkipped()
     }
 
     def "test up-to-date status respects test name patterns"() {

@@ -601,8 +601,8 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         fails ':help'
 
         then:
-        result.assertTaskExecuted(':buildSrc:jar')
-        result.assertTaskNotExecuted(':help')
+        result.assertTaskScheduled(':buildSrc:jar')
+        result.assertTasksNotScheduled(':help')
         failure.assertHasCause('Cannot resolve external dependency org:module:1.0 because no repositories are defined.')
     }
 

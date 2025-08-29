@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyFactor
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory
@@ -62,8 +63,10 @@ class NameValidatorTest extends Specification {
     def "tasks are not allowed to be named '#name'"() {
         when:
         def project = Mock(ProjectInternal) {
-            projectPath(_) >> Path.path(":foo:bar")
-            identityPath(_) >> Path.path("build:foo:bar")
+            getProjectIdentity() >> ProjectIdentity.forSubproject(
+                Path.path(":build"),
+                Path.path(":foo:bar")
+            )
             getGradle() >> Mock(GradleInternal) {
                 getIdentityPath() >> Path.path(":build:foo:bar")
             }
