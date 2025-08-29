@@ -63,6 +63,12 @@ public abstract class FindBadMultiLangSnippets extends DefaultTask {
         }
     }
 
+    private static final java.util.regex.Pattern SOURCE_LANG_PATTERN =
+        java.util.regex.Pattern.compile(
+            "^\\[\\s*source(?:%[\\w-]+)*\\s*,\\s*([\\w.+-]+)\\s*(?:,.*)?\\]$",
+            java.util.regex.Pattern.CASE_INSENSITIVE
+        );
+
     private void gatherBadSnippetsInFile(File file, Map<File, List<Error>> errors) {
         List<String> lines = new ArrayList<>();
         try (java.util.stream.Stream<String> stream = Files.lines(file.toPath())) {
@@ -148,16 +154,9 @@ public abstract class FindBadMultiLangSnippets extends DefaultTask {
     }
 
     private static String parseSourceLang(String lineTrimmed) {
-        if (!lineTrimmed.startsWith("[source")) {
-            return null;
-        }
-        int comma = lineTrimmed.indexOf(',');
-        int close = lineTrimmed.indexOf(']');
-        if (comma >= 0 && close > comma) {
-            String lang = lineTrimmed.substring(comma + 1, close).trim().toLowerCase(Locale.ROOT);
-            if (!lang.isEmpty()) {
-                return lang;
-            }
+        var m = SOURCE_LANG_PATTERN.matcher(lineTrimmed);
+        if (m.matches()) {
+            return m.group(1).toLowerCase(Locale.ROOT);
         }
         return null;
     }
