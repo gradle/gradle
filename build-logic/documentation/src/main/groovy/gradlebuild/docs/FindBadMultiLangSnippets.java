@@ -25,10 +25,9 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 
 /**
@@ -66,13 +65,10 @@ public abstract class FindBadMultiLangSnippets extends DefaultTask {
 
     private void gatherBadSnippetsInFile(File file, Map<File, List<Error>> errors) {
         List<String> lines = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String l;
-            while ((l = br.readLine()) != null) {
-                lines.add(l);
-            }
+        try (java.util.stream.Stream<String> stream = Files.lines(file.toPath())) {
+            stream.forEach(lines::add);
         } catch (IOException ex) {
-            // If a file can't be read
+            // If a file can't be read, add an error
             addError(errors, file, new Error(1, "Failed to read file: " + ex.getMessage()));
             return;
         }
@@ -84,7 +80,7 @@ public abstract class FindBadMultiLangSnippets extends DefaultTask {
             String raw = lines.get(i);
             String line = raw.trim();
 
-            if (line.equals("====")) {
+            if (line.equals("====")) {  // first ====
                 // Toggle example block
                 if (!inExample) {
                     inExample = true;
@@ -102,25 +98,23 @@ public abstract class FindBadMultiLangSnippets extends DefaultTask {
                 continue;
             }
 
-            if (line.equals("[.multi-language-sample]")) {
+            if (line.equals("[.multi-language-sample]")) { // first [.multi-language-sample]
                 int headerLine = i + 1; // 1-based
-                // Look ahead a bit to find [source, ...]
+                // Look ahead to find [source, ...] until next sample or end of example block
                 String sourceLang = null;
-                for (int j = i + 1; j < Math.min(i + 15, lines.size()); j++) {
+                for (int j = i + 1; j < lines.size(); j++) {
                     String look = lines.get(j).trim();
+
+                    if (look.equals("[.multi-language-sample]") || look.equals("====")) {
+                        break; // stop at next sample or end of example block
+                    }
 
                     if (sourceLang == null) {
                         String parsed = parseSourceLang(look);
                         if (parsed != null) {
                             sourceLang = parsed;
+                            break; // found the language for this sample
                         }
-                    }
-
-                    if (sourceLang != null) {
-                        break;
-                    }
-                    if (look.equals("[.multi-language-sample]") || look.equals("====")) {
-                        break;
                     }
                 }
 
@@ -140,21 +134,14 @@ public abstract class FindBadMultiLangSnippets extends DefaultTask {
      * Ignores blocks with fewer than two detectable snippets.
      */
     private void flagIfReversed(File file, Map<File, List<Error>> errors, List<Snippet> snippets) {
-        // Get the first two with a known language
-        List<Snippet> pair = new ArrayList<>(2);
-        for (Snippet s : snippets) {
-            if (s.lang != Language.UNKNOWN) {
-                pair.add(s);
-                if (pair.size() == 2) {
-                    break;
-                }
-            }
-        }
-        if (pair.size() < 2) {
-            return;
-        }
+        List<Snippet> pair = snippets.stream()
+            .filter(s -> s.lang != Language.UNKNOWN)
+            .limit(2)
+            .toList();
 
-        if (pair.get(0).lang == Language.GROOVY && pair.get(1).lang == Language.KOTLIN) {
+        if (pair.size() == 2 &&
+            pair.get(0).lang == Language.GROOVY &&
+            pair.get(1).lang == Language.KOTLIN) {
             addError(errors, file, new Error(pair.get(0).line,
                 "Reversed order: found Groovy first then Kotlin. Expected Kotlin first then Groovy."));
         }
