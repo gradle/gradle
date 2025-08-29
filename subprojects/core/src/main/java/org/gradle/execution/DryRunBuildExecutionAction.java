@@ -18,6 +18,7 @@ package org.gradle.execution;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -27,28 +28,33 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
  * A {@link BuildWorkExecutor} that disables all selected tasks before they are executed.
  */
 public class DryRunBuildExecutionAction implements BuildWorkExecutor {
-    private final StyledTextOutputFactory textOutputFactory;
     private final BuildWorkExecutor delegate;
+    private final StyledTextOutputFactory textOutputFactory;
+    private final ConfigurationTimeBarrier configurationTimeBarrier;
 
-    public DryRunBuildExecutionAction(StyledTextOutputFactory textOutputFactory, BuildWorkExecutor delegate) {
-        this.textOutputFactory = textOutputFactory;
+    public DryRunBuildExecutionAction(
+        BuildWorkExecutor delegate,
+        StyledTextOutputFactory textOutputFactory,
+        ConfigurationTimeBarrier configurationTimeBarrier
+    ) {
         this.delegate = delegate;
+        this.textOutputFactory = textOutputFactory;
+        this.configurationTimeBarrier = configurationTimeBarrier;
     }
 
     @Override
     public ExecutionResult<Void> execute(GradleInternal gradle, FinalizedExecutionPlan plan) {
-        if (gradle.getStartParameter().isDryRun()) {
-            for (Task task : plan.getContents().getTasks()) {
-                textOutputFactory.create(DryRunBuildExecutionAction.class)
-                    .append(((TaskInternal) task).getIdentityPath().getPath())
-                    .append(" ")
-                    .style(StyledTextOutput.Style.ProgressStatus)
-                    .append("SKIPPED")
-                    .println();
-            }
-            return ExecutionResult.succeeded();
-        } else {
+        if (configurationTimeBarrier.isAtConfigurationTime()) {
             return delegate.execute(gradle, plan);
         }
+        for (Task task : plan.getContents().getTasks()) {
+            textOutputFactory.create(DryRunBuildExecutionAction.class)
+                .append(((TaskInternal) task).getIdentityPath().getPath())
+                .append(" ")
+                .style(StyledTextOutput.Style.ProgressStatus)
+                .append("SKIPPED")
+                .println();
+        }
+        return ExecutionResult.succeeded();
     }
 }

@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -43,9 +44,11 @@ class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationSpec {
         TestFile projectDir = sample.dir.file('groovy')
 
         // Build and test projects
+        when:
         executer.inDirectory(projectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
+        then:
         def result = new DefaultTestExecutionResult(projectDir)
         result.assertTestClassesExecuted('org.gradle.sample.PersonSpec')
 
@@ -66,13 +69,16 @@ class SamplesMixedJavaAndScalaIntegrationTest extends AbstractIntegrationSpec {
         if (GradleContextualExecuter.isDaemon()) {
             // don't load scala into the daemon as it exhausts permgen
             return
-        } else if (!GradleContextualExecuter.isEmbedded() && !GradleContextualExecuter.isParallel() && !JavaVersion.current().isJava8Compatible()) {
+        } else if (!IntegrationTestBuildContext.isEmbedded() && !GradleContextualExecuter.isParallel() && !JavaVersion.current().isJava8Compatible()) {
             executer.withBuildJvmOpts('-XX:MaxPermSize=128m')
         }
 
         TestFile projectDir = sample.dir.file('groovy')
+
+        when:
         executer.inDirectory(projectDir).withTasks('clean', 'javadoc', 'scaladoc').run()
 
+        then:
         TestFile javadocsDir = projectDir.file("build/docs/javadoc")
         javadocsDir.file("index.html").assertIsFile()
         javadocsDir.file("index.html").assertContents(containsString('mixed-java-and-scala 1.0 API'))

@@ -135,14 +135,17 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    @SuppressWarnings({"EqualsDoesntCheckParameterClass", "EqualsWhichDoesntCheckParameterClass"})
     public final boolean equals(Object other) {
-        return delegate.equals(other);
+        if (!(other instanceof ProjectInternal)) {
+            return false;
+        }
+        ProjectInternal otherProject = (ProjectInternal) other;
+        return getProjectIdentity().equals(otherProject.getProjectIdentity());
     }
 
     @Override
     public final int hashCode() {
-        return delegate.hashCode();
+        return getProjectIdentity().hashCode();
     }
 
     @Nullable
@@ -1084,17 +1087,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     public void artifacts(Action<? super ArtifactHandler> configureAction) {
         onMutableStateAccess("artifacts");
         delegate.artifacts(configureAction);
-    }
-
-    /**
-     * @deprecated the concept of conventions is deprecated. Use extensions instead
-     */
-    @Override
-    @Deprecated
-    @SuppressWarnings("deprecation")
-    public org.gradle.api.plugins.Convention getConvention() {
-        onMutableStateAccess("convention");
-        return delegate.getConvention();
     }
 
     @Override

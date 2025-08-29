@@ -40,7 +40,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation group: 'org.scala-lang', name: 'scala-library', version: '${ScalaCoverage.latestSupportedScala2Version}'
+                implementation("org.scala-lang:scala-library:${ScalaCoverage.latestSupportedScala2Version}")
             }
         """.stripIndent()
 
@@ -65,7 +65,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation group: 'org.scala-lang', name: 'scala-library', version: '${ScalaCoverage.latestSupportedScala2Version}'
+                implementation("org.scala-lang:scala-library:${ScalaCoverage.latestSupportedScala2Version}")
             }
         """
         file('src/main/java/RequiredByScala.java') << """

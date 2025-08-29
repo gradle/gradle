@@ -22,11 +22,13 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.NamedVariantIdentifier;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.gradle.internal.component.model.VariantIdentifier;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -137,7 +139,8 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
                 }
             }
             if (baseName == null || base instanceof ModuleConfigurationMetadata) {
-                ModuleConfigurationMetadata configurationMetadata = new LazyRuleAwareWithBaseConfigurationMetadata(additionalVariant.getName(), (ModuleConfigurationMetadata) base, getId(), getAttributesFactory(), getAttributes(), variantMetadataRules, constructVariantExcludes(base), false);
+                VariantIdentifier id = new NamedVariantIdentifier(getId(), additionalVariant.getName());
+                ModuleConfigurationMetadata configurationMetadata = new LazyRuleAwareWithBaseConfigurationMetadata(additionalVariant.getName(), id, getId(), (ModuleConfigurationMetadata) base, getAttributesFactory(), getAttributes(), variantMetadataRules, constructVariantExcludes(base), false);
                 builder.add(configurationMetadata);
             }
         }

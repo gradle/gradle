@@ -80,7 +80,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.expectDocumentedDeprecationWarning("Configuring a Java executable via a relative path. " +
-            "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
+            "This behavior has been deprecated. This will fail with an error in Gradle 10. " +
             "Resolving relative file paths might yield unexpected results, there is no single clear location it would make sense to resolve against. " +
             "Configure an absolute path to a Java executable instead. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#no_relative_paths_for_java_executables")
@@ -324,11 +324,61 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The DefaultJavaForkOptions.setAllJvmArgs method has been deprecated. This is scheduled to be removed in Gradle 10. Use `jvmArgs()`, `setJvmArgs()`, or `getJvmArgumentProviders()` instead to set JVM arguments. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#set-all-jvm-args")
         run "run", "-PallJvmArgsFile=$allJvmArgsFile.absolutePath"
 
         then:
         allJvmArgsFile.text.contains("-Dfoo=42")
         !allJvmArgsFile.text.contains("-Dfoo=bar")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/6072")
+    def "can handle arguments with quotes and spaces"() {
+        buildFile """
+            apply plugin: 'java'
+
+            task demo(type: JavaExec) {
+                classpath = sourceSets.main.runtimeClasspath
+                mainClass = 'com.example.demo.DemoApplication'
+                jvmArgumentProviders.add(objects.newInstance(MyApplicationJvmArguments))
+                argumentProviders.add(objects.newInstance(MyOtherApplicationArguments))
+                systemProperties = [foo: '"1 2"']
+            }
+
+            abstract class MyApplicationJvmArguments implements CommandLineArgumentProvider {
+
+                @Override
+                Iterable<String> asArguments() {
+                    return ['-Dbar="3 4"']
+                }
+            }
+
+            abstract class MyOtherApplicationArguments implements CommandLineArgumentProvider {
+
+                @Override
+                Iterable<String> asArguments() {
+                    return ['baz="5 6"']
+                }
+            }
+        """
+        file("src/main/java/com/example/demo/DemoApplication.java") << """
+            package com.example.demo;
+
+            public class DemoApplication {
+
+                public static void main(String[] args) {
+                    System.getProperties().entrySet().forEach(System.out::println);
+                    System.out.println("Arguments: " + String.join(" ", args));
+                }
+            }
+        """
+
+        expect:
+        succeeds("demo")
+
+        outputContains('foo="1 2"')
+        outputContains('bar="3 4"')
+        outputContains('Arguments: baz="5 6"')
     }
 
     private void assertOutputFileIs(String text) {

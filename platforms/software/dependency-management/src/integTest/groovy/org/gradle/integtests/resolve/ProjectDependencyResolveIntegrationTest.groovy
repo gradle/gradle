@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -28,7 +27,6 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
     private ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compile")
 
     def setup() {
-        resolve.addDefaultVariantDerivationStrategy()
         settingsFile << """
             rootProject.name = 'test'
         """
@@ -123,6 +121,9 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         """
 
         file("b/build.gradle") << """
+            plugins {
+                id("jvm-ecosystem")
+            }
             configurations {
                 compile
             }
@@ -522,10 +523,8 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         }
     }
 
-    // TODO #9591: This does not reflect desired behavior. The recursive copy is a detached configuration, which
-    // effectively replaces the root component, preventing the consumable configuration from being selected.
     @Issue('GRADLE-3280')
-    def "cannot resolve recursive copy of configuration with cyclic project dependencies"() {
+    def "can resolve recursive copy of configuration with cyclic project dependencies"() {
         given:
         settingsFile << "include 'a', 'b', 'c'"
         def common = """
@@ -587,12 +586,8 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         expect:
         succeeds(":a:assertCanResolve")
 
-        when:
-        executer.expectDocumentedDeprecationWarning("The resCopy configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
-        fails(":a:assertCanResolveRecursiveCopy")
-
-        then:
-        failure.assertHasCause("Cannot select root node 'resCopy' as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them.")
+        and:
+        succeeds(":a:assertCanResolveRecursiveCopy")
     }
 
     // this test is largely covered by other tests, but does ensure that there is nothing special about
@@ -636,7 +631,6 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         file("b/build/copied/a-1.0.zip").exists()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "resolving configuration with project dependency marks dependency's configuration as observed"() {
         settingsFile << """
             include 'api'
@@ -660,29 +654,23 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
                 conf project(":api")
             }
 
-            task check {
-                doLast {
-                    assert configurations.conf.state == Configuration.State.UNRESOLVED
-                    assert project(":api").configurations.conf.state == Configuration.State.UNRESOLVED
+            assert configurations.conf.state == Configuration.State.UNRESOLVED
+            assert project(":api").configurations.conf.state == Configuration.State.UNRESOLVED
 
-                    configurations.conf.resolve()
+            configurations.conf.resolve()
 
-                    assert configurations.conf.state == Configuration.State.RESOLVED
-                    assert project(":api").configurations.conf.state == Configuration.State.UNRESOLVED
+            assert configurations.conf.state == Configuration.State.RESOLVED
+            assert project(":api").configurations.conf.state == Configuration.State.UNRESOLVED
 
-                    // Attempt to change the configuration, to demonstrate that is has been observed
-                    project(":api").configurations.conf.dependencies.add(null)
-                }
-            }
-
+            // Attempt to change the configuration, to demonstrate that is has been observed
+            project(":api").configurations.conf.dependencies.add(null)
         """
 
         when:
-        expectTaskGetProjectDeprecations(3)
-        fails("impl:check")
+        fails("help")
 
         then:
-        failure.assertHasCause "Cannot change dependencies of dependency configuration ':api:conf' after it has been included in dependency resolution"
+        failure.assertHasCause("Cannot mutate the dependencies of configuration ':api:conf' after the configuration was consumed as a variant. After a configuration has been observed, it should not be modified.")
     }
 
     @Issue(["GRADLE-3330", "GRADLE-3362"])
@@ -863,5 +851,45 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         declaredDependency   | projectDescription  | expectedCommand
         "project(':')"       | "root project :"         | ":outgoingVariants"
         "'org:included:1.0'" | "project :included" | ":included:outgoingVariants"
+    }
+
+    def "can resolve a variant of a child project during configuration from a parent project when the child project resolves a configuration during configuration time"() {
+        mavenRepo.module("org", "foo").publish()
+
+        settingsFile << """
+            include 'a'
+        """
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation(project(':a'))
+            }
+
+            // Execute resolution at configuration time, causing
+            // project :a to be resolved on-demand at configuration time.
+            assert configurations.compileClasspath.incoming.files*.name == ["main"]
+        """
+
+        file("a/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("org:foo:1.0")
+            }
+
+            // Execute resolution at configuration time
+            assert configurations.compileClasspath.incoming.files*.name == ["foo-1.0.jar"]
+        """
+
+        expect:
+        succeeds("help")
     }
 }

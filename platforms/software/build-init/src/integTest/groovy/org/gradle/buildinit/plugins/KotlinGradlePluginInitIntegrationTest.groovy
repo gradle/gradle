@@ -25,6 +25,8 @@ import spock.lang.Issue
 
 import static org.gradle.buildinit.plugins.GroovyGradlePluginInitIntegrationTest.NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
+import static org.hamcrest.CoreMatchers.allOf
+import static org.hamcrest.CoreMatchers.not
 
 @LeaksFileHandles
 @Requires(value = UnitTestPreconditions.KotlinSupportedJdk)
@@ -141,5 +143,31 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17137")
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
+    def "does not contain junit specific kotlin test dependencies"() {
+        when:
+        run ('init', '--type', 'kotlin-gradle-plugin')
+
+        then:
+        def dslFixture = dslFixtureFor(KOTLIN)
+        dslFixture.assertGradleFilesGenerated()
+        dslFixture.buildFile.assertContents(
+            allOf(
+                not(dslFixture.containsConfigurationDependencyNotation('testImplementation', '"org.jetbrains.kotlin:kotlin-test-junit5"')),
+                not(dslFixture.containsConfigurationDependencyNotation('testImplementation', '"org.jetbrains.kotlin:kotlin-test-junit"')),
+                dslFixture.containsConfigurationDependencyNotation('testImplementation', '"org.jetbrains.kotlin:kotlin-test"')
+            )
+        )
+
+        when:
+        run('check', '--rerun-tasks')
+
+        then:
+        assertTestPassed("org.example.SomeThingPluginTest", "plugin registers task")
+        assertFunctionalTestPassed("org.example.SomeThingPluginFunctionalTest", "can run task")
+
     }
 }

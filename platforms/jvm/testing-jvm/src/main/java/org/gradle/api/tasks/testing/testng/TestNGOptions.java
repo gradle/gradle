@@ -324,7 +324,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
         return parallel;
     }
 
-    public void setParallel(String parallel) {
+    public void setParallel(@Nullable String parallel) {
         this.parallel = parallel;
     }
 

@@ -20,25 +20,12 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
-import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
-import org.gradle.api.internal.attributes.AttributesFactory;
-import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
-import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
-import org.gradle.internal.model.CalculatedValueContainerFactory;
-import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.inject.Inject;
@@ -47,63 +34,35 @@ import javax.inject.Inject;
  * A concrete consumable {@link DefaultConfiguration} that cannot change roles.
  */
 public class DefaultConsumableConfiguration extends DefaultConfiguration implements ConsumableConfiguration {
+
     @Inject
     public DefaultConsumableConfiguration(
+        ConfigurationServicesBundle configurationServices,
         DomainObjectContext domainObjectContext,
         String name,
-        ConfigurationsProvider configurationsProvider,
         ConfigurationResolver resolver,
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        FileCollectionFactory fileCollectionFactory,
-        BuildOperationRunner buildOperationRunner,
-        ObjectFactory objectFactory,
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
-        AttributesFactory attributesFactory,
-        RootComponentMetadataBuilder rootComponentMetadataBuilder,
-        ResolveExceptionMapper exceptionMapper,
-        AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
-        ProjectStateRegistry projectStateRegistry,
-        DomainObjectCollectionFactory domainObjectCollectionFactory,
-        CalculatedValueContainerFactory calculatedValueContainerFactory,
-        DefaultConfigurationFactory defaultConfigurationFactory,
-        TaskDependencyFactory taskDependencyFactory,
-        InternalProblems problemsService,
-        DocumentationRegistry documentationRegistry
+        DefaultConfigurationFactory defaultConfigurationFactory
     ) {
         super(
+            configurationServices,
             domainObjectContext,
             name,
-            configurationsProvider,
+            false,
             resolver,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
-            fileCollectionFactory,
-            buildOperationRunner,
-            objectFactory,
             artifactNotationParser,
             capabilityNotationParser,
-            attributesFactory,
-            rootComponentMetadataBuilder,
-            exceptionMapper,
-            attributeDesugaring,
             userCodeApplicationContext,
-            collectionCallbackActionDecorator,
-            projectStateRegistry,
-            domainObjectCollectionFactory,
-            calculatedValueContainerFactory,
             defaultConfigurationFactory,
-            taskDependencyFactory,
             ConfigurationRoles.CONSUMABLE,
-            problemsService,
-            documentationRegistry,
             true
         );
-
-        setVisible(false);
     }
 
 }

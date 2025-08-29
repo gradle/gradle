@@ -389,7 +389,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         assertHasBuildSuccessfulLogging()
-        result.assertTasksExecuted(":help")
+        result.assertTasksScheduled(":help")
 
         where:
         description                 | taskSelector
@@ -415,7 +415,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         assertHasBuildSuccessfulLogging()
-        result.assertTasksExecuted(":thing")
+        result.assertTasksScheduled(":thing")
 
         where:
         description                 | taskSelector
@@ -442,7 +442,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         then:
         noExceptionThrown()
         assertHasBuildSuccessfulLogging()
-        result.assertTasksExecuted(":thing")
+        result.assertTasksScheduled(":thing")
 
         where:
         description                 | taskSelector

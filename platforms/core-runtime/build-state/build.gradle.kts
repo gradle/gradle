@@ -22,6 +22,7 @@ description = "Types for build process and session state management"
 
 dependencies {
     api(projects.baseServices)
+    api(projects.buildProcessServices)
     api(projects.classloaders)
     api(projects.core)
     api(projects.daemonProtocol)
@@ -33,8 +34,6 @@ dependencies {
     api(projects.stdlibJavaExtensions)
 
     implementation(projects.buildOperationsTrace)
-    implementation(projects.buildProcessServices)
-    implementation(projects.buildProcessStartup)
     implementation(projects.concurrent)
     implementation(projects.coreApi)
     implementation(projects.loggingApi)

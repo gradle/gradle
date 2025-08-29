@@ -22,7 +22,6 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskCollection
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -41,7 +40,6 @@ import java.util.jar.JarFile
 class GradleApiExtensionsIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "test captures script reference")
     fun `Kotlin chooses withType extension specialized to container type`() {
 
         withBuildScript(
@@ -53,23 +51,27 @@ class GradleApiExtensionsIntegrationTest : AbstractKotlinIntegrationTest() {
             inline fun <reified T> inferredTypeOf(value: T) = typeOf<T>().toString()
 
             task("test") {
-
-                doLast {
-
+                val types = buildList {
                     val ca = container(A::class)
                     val cb = ca.withType<B>()
-                    println(inferredTypeOf(ca))
-                    println(inferredTypeOf(cb))
+                    add(inferredTypeOf(ca))
+                    add(inferredTypeOf(cb))
 
                     val oca: DomainObjectCollection<A> = ca
                     val ocb = oca.withType<B>()
-                    println(inferredTypeOf(oca))
-                    println(inferredTypeOf(ocb))
+                    add(inferredTypeOf(oca))
+                    add(inferredTypeOf(ocb))
 
                     val tt = tasks.withType<Task>()
                     val td = tt.withType<Delete>()
-                    println(inferredTypeOf(tt))
-                    println(inferredTypeOf(td))
+                    add(inferredTypeOf(tt))
+                    add(inferredTypeOf(td))
+                }
+
+                doLast {
+                    types.forEach {
+                        println(it)
+                    }
                 }
             }
             """
@@ -91,7 +93,6 @@ class GradleApiExtensionsIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "source dependency VCS mappings are defined")
     fun `can use Gradle API generated extensions in scripts`() {
 
         withFile(

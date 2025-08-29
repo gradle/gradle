@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins.antlr;
 
-import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileType;
@@ -27,18 +27,21 @@ import org.gradle.api.plugins.antlr.internal.AntlrResult;
 import org.gradle.api.plugins.antlr.internal.AntlrSourceGenerationException;
 import org.gradle.api.plugins.antlr.internal.AntlrSpec;
 import org.gradle.api.plugins.antlr.internal.AntlrSpecFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.process.internal.JavaExecHandleBuilder;
@@ -53,7 +56,6 @@ import org.jspecify.annotations.NullMarked;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -66,20 +68,18 @@ import java.util.concurrent.Callable;
 @NullMarked
 @CacheableTask
 public abstract class AntlrTask extends SourceTask {
-
     private boolean trace;
     private boolean traceLexer;
     private boolean traceParser;
     private boolean traceTreeWalker;
     private List<String> arguments = new ArrayList<>();
 
-    ConfigurableFileCollection antlrClasspath = getProject().getObjects().fileCollection();
+    private FileCollection antlrClasspath;
 
     private File outputDirectory;
     private String maxHeapSize;
     private FileCollection sourceSetDirectories;
     private final FileCollection stableSources = getProject().files((Callable<Object>) this::getSource);
-
 
     /**
      * Specifies that all rules call {@code traceIn}/{@code traceOut}.
@@ -201,18 +201,14 @@ public abstract class AntlrTask extends SourceTask {
      * @param antlrClasspath The Ant task implementation classpath. Must not be null.
      */
     protected void setAntlrClasspath(FileCollection antlrClasspath) {
-        this.antlrClasspath.setFrom(antlrClasspath);
+        this.antlrClasspath = antlrClasspath;
     }
 
     @Inject
-    protected WorkerProcessFactory getWorkerProcessBuilderFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract WorkerProcessFactory getWorkerProcessBuilderFactory();
 
     @Inject
-    protected ProjectLayout getProjectLayout() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProjectLayout getProjectLayout();
 
     /**
      * Generate the parsers.
@@ -238,7 +234,7 @@ public abstract class AntlrTask extends SourceTask {
                 try {
                     getDeleter().ensureEmptyDirectory(outputDirectory);
                 } catch (IOException ex) {
-                    throw new UncheckedIOException(ex);
+                    throw UncheckedException.throwAsUncheckedException(ex);
                 }
                 grammarFiles.addAll(stableSources.getFiles());
             }
@@ -352,7 +348,19 @@ public abstract class AntlrTask extends SourceTask {
     }
 
     @Inject
-    protected Deleter getDeleter() {
-        throw new UnsupportedOperationException("Decorator takes care of injection");
-    }
+    protected abstract Deleter getDeleter();
+
+    /**
+     * Sets the package to be used when generating the parser source files.  Supported only when using Antlr 4.
+     *
+     * This will add a "-package" argument to the ANTLR command line as well as adjust the target directory to generate sources into a package-specific subdirectory of {@link #getOutputDirectory()}.
+     *
+     * For example, if the package name is set to "com.foo.bar" and the output directory is set to "path/to/output", the sources will be generated into "path/to/output/com/foo/bar".
+     *
+     * @since 9.1.0
+     */
+    @Input
+    @Optional
+    @Incubating
+    abstract public Property<String> getPackageName();
 }

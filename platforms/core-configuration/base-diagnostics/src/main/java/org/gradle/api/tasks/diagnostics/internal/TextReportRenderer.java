@@ -15,15 +15,14 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.diagnostics.internal.text.DefaultTextReportBuilder;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
-import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,19 +33,13 @@ import java.nio.file.Files;
  * <p>A basic {@link ReportRenderer} which writes out a text report.
  */
 public class TextReportRenderer implements ReportRenderer {
-    private BuildClientMetaData clientMetaData;
-    private FileResolver fileResolver;
-    private StyledTextOutput textOutput;
-    private TextReportBuilder builder;
+    private @Nullable FileResolver fileResolver;
+    private @Nullable StyledTextOutput textOutput;
+    private @Nullable TextReportBuilder builder;
     private boolean close;
 
     public void setFileResolver(FileResolver fileResolver) {
         this.fileResolver = fileResolver;
-    }
-
-    @Override
-    public void setClientMetaData(BuildClientMetaData clientMetaData) {
-        this.clientMetaData = clientMetaData;
     }
 
     @Override
@@ -60,6 +53,7 @@ public class TextReportRenderer implements ReportRenderer {
         setWriter(new StreamingStyledTextOutput(Files.newBufferedWriter(file.toPath(), Charset.defaultCharset())), true);
     }
 
+    @SuppressWarnings("DataFlowIssue")
     @Override
     public void startProject(ProjectDetails project) {
         String header = createHeader(project);
@@ -67,13 +61,7 @@ public class TextReportRenderer implements ReportRenderer {
     }
 
     protected String createHeader(ProjectDetails project) {
-        String header = StringUtils.capitalize(project.getDisplayName());
-
-        String description = project.getDescription();
-        if (GUtil.isTrue(description)) {
-            header = header + " - " + description;
-        }
-        return header;
+        return StringUtils.capitalize(project.getDisplayName());
     }
 
     @Override
@@ -94,6 +82,7 @@ public class TextReportRenderer implements ReportRenderer {
     private void cleanupWriter() {
         try {
             if (close) {
+                //noinspection DataFlowIssue
                 CompositeStoppable.stoppable(textOutput).stop();
             }
         } finally {
@@ -101,16 +90,13 @@ public class TextReportRenderer implements ReportRenderer {
         }
     }
 
-    public BuildClientMetaData getClientMetaData() {
-        return clientMetaData;
-    }
-
+    @Nullable
     public StyledTextOutput getTextOutput() {
         return textOutput;
     }
 
+    @Nullable
     public TextReportBuilder getBuilder() {
         return builder;
     }
-
 }

@@ -90,8 +90,8 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
             public void run(BuildOperationContext context) {
                 try {
                     MutationInfo mutations = resolveAndValidateMutations();
-                    accessHierarchies.getOutputHierarchy().recordNodeAccessingLocations(node, mutations.getOutputPaths());
-                    accessHierarchies.getDestroyableHierarchy().recordNodeAccessingLocations(node, mutations.getDestroyablePaths());
+                    mutations.getOutputPaths().forEach(outputPath -> accessHierarchies.getOutputHierarchy().recordNodeAccessingLocation(node, outputPath));
+                    mutations.getDestroyablePaths().forEach(destroyablePath -> accessHierarchies.getDestroyableHierarchy().recordNodeAccessingLocation(node, destroyablePath));
                     node.mutationsResolved(mutations);
                     context.setResult(RESOLVE_TASK_MUTATIONS_RESULT);
                 } catch (Exception e) {
@@ -103,7 +103,7 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 TaskIdentity<?> taskIdentity = node.getTask().getTaskIdentity();
-                return BuildOperationDescriptor.displayName("Resolve mutations for task " + taskIdentity.getIdentityPath())
+                return BuildOperationDescriptor.displayName("Resolve mutations for task " + taskIdentity.getBuildTreePath().getPath())
                     .details(new ResolveTaskMutationsDetails(taskIdentity));
             }
         });
@@ -118,12 +118,12 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
 
         @Override
         public String getBuildPath() {
-            return taskIdentity.getBuildPath();
+            return taskIdentity.getProjectIdentity().getBuildPath().getPath();
         }
 
         @Override
         public String getTaskPath() {
-            return taskIdentity.getTaskPath();
+            return taskIdentity.getPath().getPath();
         }
 
         @Override

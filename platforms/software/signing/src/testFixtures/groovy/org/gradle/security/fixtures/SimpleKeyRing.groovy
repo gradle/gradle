@@ -86,7 +86,7 @@ class SimpleKeyRing {
     }
 
     private static PGPSignatureGenerator createGenerator(PGPSecretKey secretKey, String password) {
-        PGPSignatureGenerator generator = new PGPSignatureGenerator(new BcPGPContentSignerBuilder(secretKey.getPublicKey().getAlgorithm(), PGPUtil.SHA512))
+        PGPSignatureGenerator generator = new PGPSignatureGenerator(new BcPGPContentSignerBuilder(secretKey.getPublicKey().getAlgorithm(), PGPUtil.SHA512), secretKey.getPublicKey())
         generator.init(PGPSignature.BINARY_DOCUMENT, getPrivateKey(secretKey, password))
         generator
     }

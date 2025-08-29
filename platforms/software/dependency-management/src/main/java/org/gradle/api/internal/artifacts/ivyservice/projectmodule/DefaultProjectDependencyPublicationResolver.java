@@ -145,7 +145,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
 //                "Publishing a component that depends on another project without publications";
 //            DeprecationLogger.deprecate(message)
 //                .withAdvice("Ensure " + project.getDisplayName() + " declares at least one publication.")
-//                .willBecomeAnErrorInGradle9()
+//                .willBecomeAnErrorInGradle10()
 //                .withUpgradeGuideSection(8, "publishing_dependency_on_unpublished_project")
 //                .nagUser();
 

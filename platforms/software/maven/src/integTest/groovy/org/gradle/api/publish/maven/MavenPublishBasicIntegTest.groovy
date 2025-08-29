@@ -413,8 +413,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         """
 
         expect:
-        executer.withStackTraceChecksDisabled()
-        executer.expectDeprecationWarning("Publication ignores 'transitive = false' at configuration level. This behavior is deprecated. Consider using 'transitive = false' at the dependency level if you need this to be published.")
+        executer.expectDocumentedDeprecationWarning("Publishing non-transitive configuration 'apiElements'. This behavior has been deprecated. This will fail with an error in Gradle 10. Setting 'transitive = false' at the configuration level is ignored by publishing. Consider using 'transitive = false' on each dependency if this needs to be published.")
         succeeds 'publish'
     }
 
@@ -504,5 +503,39 @@ In general publishing dependencies to enforced platforms is a mistake: enforced 
 
         then:
         executedAndNotSkipped ':generateMetadataFileForMavenPublication', ':publishMavenPublicationToMavenRepository'
+    }
+
+    def "can publish a custom component"() {
+        buildKotlinFile << """
+            plugins {
+                id("maven-publish")
+            }
+
+            group = "foo"
+            version = "bar"
+
+            val consumableConfiguration = configurations.create("foo") {
+                attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("foo"))
+            }
+
+            publishing {
+                val myCustomComponent = softwareComponentFactory.adhoc("myCustomComponent")
+                myCustomComponent.addVariantsFromConfiguration(consumableConfiguration) {}
+
+                repositories {
+                    maven {
+                        url = uri("${mavenRepo.uri}")
+                    }
+                }
+                publications {
+                    create<MavenPublication>("maven") {
+                        from(myCustomComponent)
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds("publish")
     }
 }

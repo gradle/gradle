@@ -14,6 +14,7 @@
 
 [[toolchains]]
 = Toolchains for JVM projects
+:keywords: jdk, toolchain
 
 Working on multiple projects can require interacting with multiple versions of the Java language.
 Even within a single project different parts of the codebase may be fixed to a particular language level due to backward compatibility requirements.
@@ -421,6 +422,7 @@ The following is a list of common package managers, tools, and locations that ar
 JVM auto-detection knows how to work with:
 
 * Operation-system specific locations: Linux, macOS, Windows
+* Conventional Environment Variable: `JAVA_HOME`
 * Package Managers: https://asdf-vm.com/#/[Asdf-vm], https://github.com/shyiko/jabba[Jabba], https://sdkman.io/[SDKMAN!]
 * https://maven.apache.org/guides/mini/guide-using-toolchains.html[Maven Toolchain] specifications
 * https://www.jetbrains.com/help/idea/sdk.html#jdk-from-ide[IntelliJ IDEA] installations
@@ -434,7 +436,7 @@ NOTE: Whether you are using toolchain auto-detection or you are configuring <<se
 
 In order to disable auto-detection, you can use the `org.gradle.java.installations.auto-detect` Gradle property:
 
-* Either start gradle using `-Porg.gradle.java.installations.auto-detect=false`
+* Either start Gradle using `-Dorg.gradle.java.installations.auto-detect=false`
 * Or put `org.gradle.java.installations.auto-detect=false` into your `gradle.properties` file.
 
 [[sec:provisioning]]
@@ -548,7 +550,7 @@ This can help to debug which toolchains are available to the build, how they are
 
 In order to disable auto-provisioning, you can use the `org.gradle.java.installations.auto-download` Gradle property:
 
-* Either start gradle using `-Porg.gradle.java.installations.auto-download=false`
+* Either start Gradle using `-Dorg.gradle.java.installations.auto-download=false`
 * Or put `org.gradle.java.installations.auto-download=false` into a `gradle.properties` file.
 
 [NOTE]

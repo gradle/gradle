@@ -16,7 +16,7 @@
 
 package org.gradle.process.internal
 
-import org.apache.commons.lang.RandomStringUtils
+import org.apache.commons.lang3.RandomStringUtils
 import org.gradle.api.Action
 import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.jvm.Jvm

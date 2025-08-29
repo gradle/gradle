@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.internal.artifacts.component.ComponentSelectorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
@@ -54,38 +55,28 @@ class EdgeState implements DependencyGraphEdge {
     private final List<NodeState> targetNodes = new LinkedList<>();
     private final boolean isTransitive;
     private final boolean isConstraint;
-    private final int hashCode;
 
     private SelectorState selector;
     private ModuleVersionResolveException targetNodeSelectionFailure;
-    private ImmutableAttributes cachedAttributes;
-    private ExcludeSpec transitiveExclusions;
+
+    /**
+     * The accumulated exclusions that apply to this edge based on the paths from the root
+     */
+    private @Nullable ExcludeSpec transitiveExclusions;
     private ExcludeSpec cachedEdgeExclusions;
     private ExcludeSpec cachedExclusions;
 
-    private NodeState resolvedVariant;
+    private @Nullable NodeState resolvedVariant;
     private boolean unattached;
     private boolean used;
 
-    EdgeState(NodeState from, DependencyState dependencyState, ExcludeSpec transitiveExclusions, ResolveState resolveState) {
+    EdgeState(NodeState from, DependencyState dependencyState, ResolveState resolveState) {
         this.from = from;
         this.dependencyState = dependencyState;
         this.dependencyMetadata = dependencyState.getDependency();
-        // The accumulated exclusions that apply to this edge based on the path from the root
-        this.transitiveExclusions = transitiveExclusions;
         this.resolveState = resolveState;
         this.isTransitive = from.isTransitive() && dependencyMetadata.isTransitive();
         this.isConstraint = dependencyMetadata.isConstraint();
-        this.hashCode = computeHashCode();
-    }
-
-    private int computeHashCode() {
-        int hashCode = from.hashCode();
-        hashCode = 31 * hashCode + dependencyState.hashCode();
-        if (transitiveExclusions != null) {
-            hashCode = 31 * hashCode + transitiveExclusions.hashCode();
-        }
-        return hashCode;
     }
 
     void computeSelector() {
@@ -201,14 +192,9 @@ class EdgeState implements DependencyGraphEdge {
 
     @Override
     public ImmutableAttributes getAttributes() {
-        assert cachedAttributes != null;
-        return cachedAttributes;
-    }
-
-    private ImmutableAttributes safeGetAttributes() throws AttributeMergingException {
         ModuleResolveState module = selector.getTargetModule();
-        cachedAttributes = module.mergedConstraintsAttributes(dependencyState.getDependency().getSelector().getAttributes());
-        return cachedAttributes;
+        ComponentSelectorInternal componentSelector = (ComponentSelectorInternal) dependencyState.getDependency().getSelector();
+        return resolveState.getAttributesFactory().safeConcat(module.getMergedConstraintAttributes(), componentSelector.getAttributes());
     }
 
     private void calculateTargetNodes(ComponentState targetComponent) {
@@ -279,10 +265,8 @@ class EdgeState implements DependencyGraphEdge {
      * Determine which variants of a given target component that this edge should point to.
      */
     private GraphVariantSelectionResult selectTargetVariants(ComponentGraphResolveState targetComponentState) {
-        ImmutableAttributes requestAttributes = resolveState.getRoot().getMetadata().getAttributes();
-        ImmutableAttributes attributes = resolveState.getAttributesFactory().concat(requestAttributes, safeGetAttributes());
-
         GraphVariantSelector variantSelector = resolveState.getVariantSelector();
+        ImmutableAttributes attributes = resolveState.getAttributesFactory().concat(resolveState.getConsumerAttributes(), getAttributes());
         ImmutableAttributesSchema consumerSchema = resolveState.getConsumerSchema();
 
         // First allow the dependency to override variant selection, if it has a special
@@ -426,10 +410,6 @@ class EdgeState implements DependencyGraphEdge {
         return selectedComponent != null && selectedComponent.getModule().isVirtualPlatform();
     }
 
-    boolean hasSelectedVariant() {
-        return resolvedVariant != null || !findTargetNodes().isEmpty();
-    }
-
     @Nullable
     @Override
     public Long getSelectedVariant() {
@@ -447,18 +427,7 @@ class EdgeState implements DependencyGraphEdge {
         if (resolvedVariant != null) {
             return resolvedVariant;
         }
-        List<NodeState> targetNodes = findTargetNodes();
-        assert !targetNodes.isEmpty();
-        for (NodeState targetNode : targetNodes) {
-            if (targetNode.isSelected()) {
-                resolvedVariant = targetNode;
-                return resolvedVariant;
-            }
-        }
-        return null;
-    }
 
-    private List<NodeState> findTargetNodes() {
         List<NodeState> targetNodes = this.targetNodes;
         if (targetNodes.isEmpty()) {
             // TODO: This code is not correct. At the end of graph traversal,
@@ -470,7 +439,18 @@ class EdgeState implements DependencyGraphEdge {
                 targetNodes = targetComponent.getNodes();
             }
         }
-        return targetNodes;
+
+        assert !targetNodes.isEmpty();
+
+        for (NodeState targetNode : targetNodes) {
+            // TODO: The target node should _always_ be selected. By definition, since we are an edge
+            // and the node is our target, the node is selected.
+            if (targetNode.isSelected()) {
+                resolvedVariant = targetNode;
+                return resolvedVariant;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -493,17 +473,6 @@ class EdgeState implements DependencyGraphEdge {
         return selector.getTargetModule().getSelected();
     }
 
-    @Override
-    public boolean equals(Object o) {
-        return this == o;
-        // Edge states are deduplicated, this is a performance optimization
-    }
-
-    @Override
-    public int hashCode() {
-        return hashCode;
-    }
-
     DependencyState getDependencyState() {
         return dependencyState;
     }
@@ -515,8 +484,12 @@ class EdgeState implements DependencyGraphEdge {
         }
         transitiveExclusions = newResolutionFilter;
         cachedExclusions = null;
+    }
+
+    public void updateTransitiveExcludesAndRequeueTargetNodes(ExcludeSpec newResolutionFilter) {
+        updateTransitiveExcludes(newResolutionFilter);
         for (NodeState targetNode : targetNodes) {
-            targetNode.updateTransitiveExcludes();
+            targetNode.clearTransitiveExclusionsAndEnqueue();
         }
     }
 

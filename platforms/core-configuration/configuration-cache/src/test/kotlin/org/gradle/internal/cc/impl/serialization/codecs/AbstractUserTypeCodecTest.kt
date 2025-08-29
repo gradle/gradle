@@ -16,14 +16,19 @@
 
 package org.gradle.internal.cc.impl.serialization.codecs
 
-import com.nhaarman.mockitokotlin2.mock
+import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.cc.base.problems.AbstractProblemsListener
 import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.cc.impl.serialize.Codecs
+import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
 import org.gradle.internal.cc.impl.serialize.DefaultClassDecoder
 import org.gradle.internal.cc.impl.serialize.DefaultClassEncoder
+import org.gradle.internal.cc.impl.serialize.DefaultConfigurationCacheCodecs
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.io.NullOutputStream
@@ -42,6 +47,8 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
@@ -59,6 +66,14 @@ abstract class AbstractUserTypeCodecTest {
                 object : AbstractProblemsListener() {
                     override fun onProblem(problem: PropertyProblem) {
                         problems += problem
+                    }
+
+                    override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+                        onProblem(PropertyProblem(trace, StructuredMessage.build(message), error))
+                    }
+
+                    override fun onExecutionTimeProblem(problem: PropertyProblem) {
+                        onProblem(problem)
                     }
                 }
             )
@@ -151,13 +166,22 @@ abstract class AbstractUserTypeCodecTest {
         override fun onProblem(problem: PropertyProblem) {
             println(problem)
         }
+
+        override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+            throw ConfigurationCacheError(StructuredMessage.build(message).render(), error)
+        }
+
+        override fun onExecutionTimeProblem(problem: PropertyProblem) {
+            onProblem(problem)
+        }
     }
 
     private
     fun userTypesCodec() = codecs().userTypesCodec()
 
     internal
-    fun codecs() = Codecs(
+    fun codecs(): ConfigurationCacheCodecs = DefaultConfigurationCacheCodecs(
+        startParameter(),
         directoryFileTreeFactory = mock(),
         fileCollectionFactory = mock(),
         artifactSetConverter = mock(),
@@ -166,9 +190,8 @@ abstract class AbstractUserTypeCodecTest {
         filePropertyFactory = mock(),
         fileResolver = mock(),
         instantiator = mock(),
+        instantiatorFactory = mock(),
         fileSystemOperations = mock(),
-        taskNodeFactory = mock(),
-        ordinalGroupFactory = mock(),
         inputFingerprinter = mock(),
         buildOperationRunner = mock(),
         classLoaderHierarchyHasher = mock(),
@@ -177,7 +200,8 @@ abstract class AbstractUserTypeCodecTest {
         parameterScheme = mock(),
         actionScheme = mock(),
         attributesFactory = mock(),
-        valueSourceProviderFactory = mock(),
+        attributeDesugaring = mock(),
+        attributeSchemaFactory = mock(),
         calculatedValueContainerFactory = mock(),
         patternSetFactory = mock(),
         fileOperations = mock(),
@@ -186,9 +210,14 @@ abstract class AbstractUserTypeCodecTest {
         buildStateRegistry = mock(),
         documentationRegistry = mock(),
         javaSerializationEncodingLookup = JavaSerializationEncodingLookup(),
-        flowProviders = mock(),
         transformStepNodeFactory = mock(),
         problems = mock(),
-        attributeDesugaring = mock(),
+        taskDependencyFactory = mock()
     )
+
+    private
+    fun startParameter(): ConfigurationCacheStartParameter = mock {
+        on { isParallelStore } doReturn false
+        on { isParallelLoad } doReturn false
+    }
 }

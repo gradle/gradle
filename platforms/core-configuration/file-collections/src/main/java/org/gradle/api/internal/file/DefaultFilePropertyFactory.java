@@ -64,6 +64,16 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
     }
 
     @Override
+    public FilePropertyFactory withResolvers(FileResolver fileResolver, PathToFileResolver fileCollectionResolver) {
+        return new DefaultFilePropertyFactory(host, fileResolver, fileCollectionFactory.withResolver(fileCollectionResolver));
+    }
+
+    @Override
+    public FilePropertyFactory withResolver(FileResolver fileResolver) {
+        return new DefaultFilePropertyFactory(host, fileResolver, fileCollectionFactory);
+    }
+
+    @Override
     public Directory dir(File dir) {
         dir = fileResolver.resolve(dir);
         return new FixedDirectory(dir, fileResolver.newResolver(dir), fileCollectionFactory);
@@ -177,7 +187,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
     }
 
-    static abstract class AbstractFileVar<T extends FileSystemLocation, THIS extends FileSystemLocationProperty<T>> extends DefaultProperty<T> implements FileSystemLocationPropertyInternal<T> {
+    public static abstract class AbstractFileVar<T extends FileSystemLocation, THIS extends FileSystemLocationProperty<T>> extends DefaultProperty<T> implements FileSystemLocationPropertyInternal<T> {
 
         public AbstractFileVar(PropertyHost host, Class<T> type) {
             super(host, type);
@@ -277,14 +287,21 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
                 }
             };
         }
+
+        public abstract FileResolver getFileResolver();
     }
 
     public static class DefaultRegularFileVar extends AbstractFileVar<RegularFile, RegularFileProperty> implements RegularFileProperty, Managed {
-        private final PathToFileResolver fileResolver;
+        private final FileResolver fileResolver;
 
-        DefaultRegularFileVar(PropertyHost host, PathToFileResolver fileResolver) {
+        DefaultRegularFileVar(PropertyHost host, FileResolver fileResolver) {
             super(host, RegularFile.class);
             this.fileResolver = fileResolver;
+        }
+
+        @Override
+        public FileResolver getFileResolver() {
+            return fileResolver;
         }
 
         @Override
@@ -343,6 +360,15 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         @Override
         public FileTree getAsFileTree() {
             return fileCollectionFactory.resolving(this).getAsFileTree();
+        }
+
+        @Override
+        public FileResolver getFileResolver() {
+            return resolver;
+        }
+
+        public PathToFileResolver getFileCollectionResolver() {
+            return fileCollectionFactory.getResolver();
         }
 
         @Override

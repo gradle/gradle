@@ -20,7 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Transformer;
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
 import org.gradle.util.internal.CollectionUtils;
@@ -114,9 +114,6 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
     }
 
     private String createJoinedPath(Iterable<String> path) {
-        if (!windows && !path.iterator().hasNext()) {
-            return "\"\\\\\\\"\\\\\\\"\""; // empty path argument for shell script
-        }
         return Streams.stream(path).map(this::encodePath).collect(Collectors.joining(getMultiPathSeparator()));
     }
 

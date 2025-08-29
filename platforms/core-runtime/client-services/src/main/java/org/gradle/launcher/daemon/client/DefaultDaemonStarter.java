@@ -16,13 +16,13 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -62,7 +62,6 @@ import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GFileUtils;
-import org.gradle.util.internal.IncubationLogger;
 import org.jspecify.annotations.NonNull;
 
 import java.io.File;
@@ -107,7 +106,6 @@ public class DefaultDaemonStarter implements DaemonStarter {
         if (criteria instanceof DaemonJvmCriteria.Spec) {
             // Gradle daemon properties have been defined
             DaemonJvmCriteria.Spec daemonJvmCriteria = (DaemonJvmCriteria.Spec) criteria;
-            IncubationLogger.incubatingFeatureUsed("Daemon JVM discovery");
             JavaToolchainSpec daemonJvmToolchainSpec = getDaemonJvmToolchainSpec(daemonJvmCriteria);
             ProviderInternal<JavaToolchain> jvmInstallationMetadata = javaToolchainQueryService.apply(service -> service.findMatchingToolchain(daemonJvmToolchainSpec, JavaInstallationCapability.JDK_CAPABILITIES));
             JavaInfo resolvedJvm = Jvm.forHome(jvmInstallationMetadata.get().getInstallationPath().getAsFile());
@@ -155,7 +153,16 @@ public class DefaultDaemonStarter implements DaemonStarter {
         daemonArgs.add("-cp");
         daemonArgs.add(CollectionUtils.join(File.pathSeparator, classpath.getAsFiles()));
 
+        // TODO: remove in Gradle 10
         if (Boolean.getBoolean("org.gradle.daemon.debug")) {
+            // NOTE: DeprecationLogger is not initialized yet, so we cannot use it here.
+            LOGGER.warn(
+                "The org.gradle.daemon.debug launcher system property has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 10. " +
+                    "Please use the org.gradle.debug daemon system property instead. " +
+                    "For more information, please refer to https://docs.gradle.org/{}/userguide/command_line_interface.html#sec:command_line_debugging in the Gradle documentation.",
+                GradleVersion.current().getVersion()
+            );
             daemonArgs.add(JvmOptions.getDebugArgument(true, true, "5005"));
         }
 
@@ -197,7 +204,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
             }
             encoder.flush();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         InputStream stdInput = buffer.getInputStream();
 

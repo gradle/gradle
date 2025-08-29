@@ -204,7 +204,7 @@
                     <div class="site-footer__link-group">
                         <header><strong>Products</strong></header>
                         <ul class="site-footer__links-list">
-                            <li itemprop="name"><a href="https://gradle.com/build-scans" itemprop="url">Build Scan™</a></li>
+                            <li itemprop="name"><a href="https://gradle.com/develocity/product/build-scan" itemprop="url">Build Scan®</a></li>
                             <li itemprop="name"><a href="https://gradle.com/build-cache" itemprop="url">Build Cache</a></li>
                             <li itemprop="name"><a href="https://gradle.com/enterprise/resources" itemprop="url">Develocity Docs</a></li>
                         </ul>
@@ -220,8 +220,8 @@
                     </div>
                 </section>
                 <section class="site-footer__subscribe-newsletter" id="newsletter-form-container">
-                    <header class="newsletter-form__header"><h5>Stay <code>UP-TO-DATE</code> on new features and news</h5></header>
-                    <p class="disclaimer">By entering your email, you agree to our <a href="https://gradle.org/terms/">Terms</a> and <a href="https://gradle.org/privacy/">Privacy Policy</a>, including receipt of emails. You can unsubscribe at any time.</p>
+                    <header class="newsletter-form__header"><h5>Stay <code>UP-TO-DATE</code> on new features and news:</h5></header>
+                    <p class="disclaimer">By entering your email, you agree to our <a href="https://gradle.org/terms/">Terms</a> and <a href="https://gradle.org/privacy/">Privacy Policy</a>.</p>
                     <div class="newsletter-form__container">
                         <form id="newsletter-form" class="newsletter-form" action="https://go.gradle.com/l/68052/2018-09-07/bk6wml" method="post">
                             <input id="email" class="email" name="email" type="email" placeholder="name@email.com" pattern="[^@\s]+@[^@\s]+\.[^@\s]+" maxlength="255" required=""/>

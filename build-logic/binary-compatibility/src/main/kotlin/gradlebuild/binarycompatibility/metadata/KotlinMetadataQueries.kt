@@ -28,12 +28,12 @@ import javassist.CtMethod
 import javassist.Modifier
 import javassist.bytecode.annotation.Annotation
 import javassist.bytecode.annotation.AnnotationImpl
-import kotlinx.metadata.KmFunction
-import kotlinx.metadata.Visibility
-import kotlinx.metadata.isInfix
-import kotlinx.metadata.isOperator
-import kotlinx.metadata.jvm.KotlinClassMetadata
 import java.lang.reflect.Proxy
+import kotlin.metadata.KmFunction
+import kotlin.metadata.Visibility
+import kotlin.metadata.isInfix
+import kotlin.metadata.isOperator
+import kotlin.metadata.jvm.KotlinClassMetadata
 
 
 object KotlinMetadataQueries {

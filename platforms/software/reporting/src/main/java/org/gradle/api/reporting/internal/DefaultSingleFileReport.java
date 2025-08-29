@@ -18,21 +18,27 @@ package org.gradle.api.reporting.internal;
 
 import org.gradle.api.Describable;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.internal.Describables;
 
 import javax.inject.Inject;
+import java.io.File;
 
 public abstract class DefaultSingleFileReport extends SimpleReport implements SingleFileReport {
 
     @Inject
     public DefaultSingleFileReport(String name, Describable owner) {
         super(name, Describables.of(name, "report for", owner), OutputType.FILE);
+        // This is for backwards compatibility for plugins that attach a convention mapping to the replaced property
+        // TODO - this wiring should happen automatically (and be deprecated too)
+        getOutputLocation().convention(getProjectLayout().file(new DefaultProvider<>(() -> {
+            return (File) ((IConventionAware) DefaultSingleFileReport.this).getConventionMapping().getConventionValue(null, "destination", false);
+        })));
         getRequired().convention(false);
     }
 
     @Inject
-    protected ProjectLayout getProjectLayout() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProjectLayout getProjectLayout();
 }

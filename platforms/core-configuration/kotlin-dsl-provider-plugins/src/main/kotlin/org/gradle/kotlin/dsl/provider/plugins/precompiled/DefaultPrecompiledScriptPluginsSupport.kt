@@ -25,9 +25,11 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.plugins.DefaultPluginManager
+import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.plugins.jvm.internal.JvmPluginServices
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.ClasspathNormalizer
@@ -37,7 +39,6 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.deprecation.Documentation
-import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
@@ -217,6 +218,16 @@ fun Project.enableScriptCompilationOf(
             outputDir = compiledPluginsBlocks
         )
 
+        val accessorsGenerationClasspath = configurations.resolvable("precompiledScriptPluginAccessorsGenerationClasspath") {
+            // We combine compile and runtime classpath to allow for compileOnly dependencies to be used for code generation
+            it.extendsFrom(
+                configurations[JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME],
+                configurations[JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME],
+                configurations[JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME],
+            )
+            serviceOf<JvmPluginServices>().configureAsRuntimeClasspath(it)
+        }
+
         val (generatePrecompiledScriptPluginAccessors, _) =
             codeGenerationTask<GeneratePrecompiledScriptPluginAccessors>(
                 "accessors",
@@ -225,7 +236,7 @@ fun Project.enableScriptCompilationOf(
             ) {
                 dependsOn(compilePluginsBlocks)
                 classPathFiles.from(compileClasspath)
-                runtimeClassPathArtifactCollection.set(configurations["runtimeClasspath"].incoming.artifacts)
+                accessorsGenerationClassPathArtifactCollection.set(accessorsGenerationClasspath.get().incoming.artifacts)
                 sourceCodeOutputDir.set(it)
                 metadataOutputDir.set(accessorsMetadata)
                 compiledPluginsBlocksDir.set(compiledPluginsBlocks)
@@ -248,7 +259,6 @@ fun Project.enableScriptCompilationOf(
 
         configureKotlinCompilerArguments(
             objects,
-            serviceOf(),
             serviceOf(),
             compileClasspath,
             generatePrecompiledScriptPluginAccessors.flatMap { it.metadataOutputDir }
@@ -296,7 +306,6 @@ private fun Project.registerCompilePluginsBlocksTask(
             task.configureKotlinCompilerArgumentsLazily(
                 resolverEnvironmentStringFor(
                     project.serviceOf(),
-                    project.serviceOf(),
                     compileClasspath,
                     externalPluginSpecBuildersTask.flatMap { it.metadataOutputDir },
                 )
@@ -326,7 +335,6 @@ private
 fun configureKotlinCompilerArguments(
     objects: ObjectFactory,
     implicitImports: ImplicitImports,
-    classpathFingerprinter: ClasspathFingerprinter,
     compileClasspath: FileCollection,
     accessorsMetadata: Provider<Directory>
 ) {
@@ -334,7 +342,6 @@ fun configureKotlinCompilerArguments(
         objects,
         resolverEnvironmentStringFor(
             implicitImports,
-            classpathFingerprinter,
             compileClasspath,
             accessorsMetadata
         )
@@ -402,10 +409,11 @@ fun Task.validateKotlinCompilerArguments() {
 
 private
 fun configureKotlinCompilerArgumentsEagerly() {
-    throw PrecompiledScriptException("Using the `kotlin-dsl` plugin together with Kotlin Gradle Plugin < 1.8.0. " +
-        "Please let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic. " +
-        "Or use version $expectedKotlinDslPluginsVersion which is the expected version for this Gradle release. " +
-        "If you explicitly declare which version of the Kotlin Gradle Plugin to use for your build logic, update it to >= 1.8.0."
+    throw PrecompiledScriptException(
+        "Using the `kotlin-dsl` plugin together with Kotlin Gradle Plugin < 1.8.0. " +
+            "Please let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic. " +
+            "Or use version $expectedKotlinDslPluginsVersion which is the expected version for this Gradle release. " +
+            "If you explicitly declare which version of the Kotlin Gradle Plugin to use for your build logic, update it to >= 1.8.0."
     )
 }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -124,7 +125,7 @@ public class RemovePreviousOutputsStep<C extends ChangingOutputsContext, R exten
                                 throw new AssertionError();
                         }
                     } catch (IOException ex) {
-                        throw new UncheckedIOException(ex);
+                        throw UncheckedException.throwAsUncheckedException(ex);
                     }
                 }
             }

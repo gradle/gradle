@@ -1,4 +1,5 @@
 import com.google.gson.Gson
+import gradlebuild.basics.ArchitectureDataType
 import org.gradle.api.internal.FeaturePreviews
 import java.io.PrintWriter
 import java.io.Serializable
@@ -15,13 +16,6 @@ pluginManagement {
                 includeVersionByRegex("com.gradle", "develocity-gradle-plugin", rcAndMilestonesPattern)
             }
         }
-        maven {
-            name = "Gradle public repository"
-            url = uri("https://repo.gradle.org/gradle/public")
-            content {
-                includeModule("org.openmbee.junit", "junit-xml-parser")
-            }
-        }
         gradlePluginPortal()
     }
     includeBuild("build-logic-settings")
@@ -29,8 +23,6 @@ pluginManagement {
 
 buildscript {
     dependencies {
-        // update Gson to the desired version, needed here as org.gradle.toolchains.foojay-resolver-convention brings in an older version below
-        // https://github.com/gradle/foojay-toolchains/issues/99
         classpath("com.google.code.gson:gson:2.13.1") // keep in sync with build-logic-commons/build-platform/build.gradle.kts
     }
 }
@@ -38,9 +30,9 @@ buildscript {
 plugins {
     id("gradlebuild.build-environment")
     id("gradlebuild.configuration-cache-compatibility")
-    id("com.gradle.develocity").version("4.0.1") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
-    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.2")
-    id("org.gradle.toolchains.foojay-resolver-convention").version("0.10.0")
+    id("com.gradle.develocity").version("4.1") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
+    id("io.github.gradle.develocity-conventions-plugin").version("0.12.1")
+    id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
 }
 
 includeBuild("build-logic-commons")
@@ -49,6 +41,7 @@ includeBuild("build-logic")
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 val architectureElements = mutableListOf<ArchitectureElementBuilder>()
+val projectBaseDirs = mutableListOf<File>()
 
 // If you include a new subproject here, consult internal documentation "Adding a new Build Tool subproject" page
 
@@ -72,7 +65,6 @@ val core = platform("core") {
         subproject("build-operations-trace")
         subproject("build-option")
         subproject("build-process-services")
-        subproject("build-process-startup")
         subproject("build-profile")
         subproject("build-state")
         subproject("classloaders")
@@ -83,13 +75,12 @@ val core = platform("core") {
         subproject("daemon-protocol")
         subproject("daemon-services")
         subproject("daemon-server")
-        subproject("distributions-basics")
-        subproject("distributions-core")
         subproject("file-temp")
         subproject("files")
         subproject("functional")
         subproject("gradle-cli-main")
         subproject("gradle-cli")
+        subproject("groovy-loader")
         subproject("installation-beacon")
         subproject("instrumentation-agent")
         subproject("instrumentation-agent-services")
@@ -147,6 +138,7 @@ val core = platform("core") {
         subproject("guava-serialization-codecs")
         subproject("input-tracking")
         subproject("isolated-action-services")
+        subproject("java-api-extractor")
         subproject("kotlin-dsl")
         subproject("kotlin-dsl-provider-plugins")
         subproject("kotlin-dsl-tooling-builders")
@@ -242,6 +234,7 @@ val jvm = platform("jvm") {
     subproject("distributions-jvm")
     subproject("ear")
     subproject("jacoco")
+    subproject("javadoc")
     subproject("jvm-services")
     subproject("language-groovy")
     subproject("language-java")
@@ -308,6 +301,8 @@ packaging {
 
 testing {
     subproject("architecture-test")
+    subproject("distributions-basics")
+    subproject("distributions-core")
     subproject("distributions-integ-tests")
     subproject("integ-test")
     subproject("internal-architecture-testing")
@@ -324,7 +319,7 @@ testing {
 
 rootProject.name = "gradle"
 
-FeaturePreviews.Feature.values().forEach { feature ->
+FeaturePreviews.Feature.entries.forEach { feature ->
     if (feature.isActive) {
         enableFeaturePreview(feature.name)
     }
@@ -352,11 +347,73 @@ gradle.rootProject {
         outputFile = layout.projectDirectory.file("architecture/platforms.md")
         elements = provider { architectureElements.map { it.build() } }
     }
-    tasks.register("platformsData", GeneratePlatformsDataTask::class) {
+    val platformsData = tasks.register("platformsData", GeneratePlatformsDataTask::class) {
         description = "Generates the platforms data"
-        outputFile = layout.projectDirectory.file("build/architecture/platforms.json")
+        outputFile = layout.buildDirectory.file("architecture/platforms.json")
         platforms = provider { architectureElements.filterIsInstance<PlatformBuilder>().map { it.build() } }
     }
+    val packageInfoData = tasks.register("packageInfoData", GeneratePackageInfoDataTask::class) {
+        description = "Map packages to the list of package-info.java files that apply to them"
+        outputFile = layout.buildDirectory.file("architecture/package-info.json")
+        packageInfoFiles.from(GeneratePackageInfoDataTask.findPackageInfoFiles(objects, provider { projectBaseDirs }))
+    }
+
+    configurations.consumable("platformsData") {
+        outgoing.artifact(platformsData)
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(ArchitectureDataType.PLATFORMS))
+        }
+    }
+
+    configurations.consumable("packageInfoData") {
+        outgoing.artifact(packageInfoData)
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(ArchitectureDataType.PACKAGE_INFO))
+        }
+    }
+}
+
+
+@CacheableTask
+abstract class GeneratePackageInfoDataTask : DefaultTask() {
+
+    companion object {
+        val packageLineRegex = Regex("""package\s*([^;\s]+)\s*;""")
+
+        fun findPackageInfoFiles(objects: ObjectFactory, projectBaseDirs: Provider<List<File>>): FileCollection {
+            return objects.fileCollection().from(projectBaseDirs.map {
+                it.flatMap { projectDir -> listOf(File(projectDir, "src/main/java"), File(projectDir, "src/main/groovy")) }
+            }).asFileTree.matching {
+                include("**/package-info.java")
+            }.filter {
+                it.isFile
+            }
+        }
+    }
+
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val packageInfoFiles: ConfigurableFileCollection
+
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
+
+    private val baseDir = project.layout.settingsDirectory.asFile
+
+    @TaskAction
+    fun action() {
+        val results = mutableListOf<Pair<String, String>>()
+
+        for (packageInfoFile in packageInfoFiles.files) {
+            val packageLine = packageInfoFile.useLines { lines -> lines.first { it.startsWith("package") } }
+            val packageName = packageLineRegex.find(packageLine)!!.groupValues[1]
+            results.add(packageName to packageInfoFile.relativeTo(baseDir).path)
+        }
+
+        val outputData = results.groupBy(keySelector = { it.first }, valueTransform = { it.second })
+        outputFile.get().asFile.writeText(Gson().toJson(outputData))
+    }
+
 }
 
 abstract class GeneratePlatformsDataTask : DefaultTask() {
@@ -400,13 +457,9 @@ abstract class GeneratorTask : DefaultTask() {
         val head = if (markdownFile.exists()) {
             val content = markdownFile.readText().lines()
             val markerPos = content.indexOfFirst { it.contains(markerComment) }
-            if (markerPos < 0) {
-                throw IllegalArgumentException("Could not locate the generated diagram in $markdownFile")
-            }
+            require(markerPos >= 0) { "Could not locate the generated diagram in $markdownFile" }
             val endPos = content.subList(markerPos, content.size).indexOfFirst { it.contains(endDiagram) && !it.contains(startDiagram) }
-            if (endPos < 0) {
-                throw IllegalArgumentException("Could not locate the end of the generated diagram in $markdownFile")
-            }
+            require(endPos >= 0) { "Could not locate the end of the generated diagram in $markdownFile" }
             content.subList(0, markerPos)
         } else {
             emptyList()
@@ -521,7 +574,9 @@ class ProjectScope(
 ) {
     fun subproject(projectName: String) {
         include(projectName)
-        project(":$projectName").projectDir = file("$basePath/$projectName")
+        val projectDir = file("$basePath/$projectName")
+        projectBaseDirs.add(projectDir)
+        project(":$projectName").projectDir = projectDir
     }
 }
 

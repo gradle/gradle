@@ -37,13 +37,12 @@ class AndroidGradlePluginVersions {
     // https://cs.android.com/android-studio/platform/tools/base/+/mirror-goog-studio-main:build-system/gradle-core/src/main/java/com/android/build/gradle/options/ReplacedOption.kt;l=54-59
     public static final String OVERRIDE_VERSION_CHECK = '-Dcom.android.build.gradle.overrideVersionCheck=true'
 
-    private static final VersionNumber AGP_8_0 = VersionNumber.parse('8.0.0')
-    private static final VersionNumber AGP_7_0 = VersionNumber.parse('7.0.0')
     private static final VersionNumber AGP_7_3 = VersionNumber.parse('7.3.0')
     private static final VersionNumber KOTLIN_1_6_20 = VersionNumber.parse('1.6.20')
 
-    private final Factory<Properties> propertiesFactory
-    private Properties properties
+    private static Factory<Properties> propertiesFactory
+    private static Properties properties
+    private static Map<String, String> aapt2Versions = null
 
     AndroidGradlePluginVersions() {
         this(new ClasspathVersionSource("agp-versions.properties", AndroidGradlePluginVersions.classLoader))
@@ -53,11 +52,11 @@ class AndroidGradlePluginVersions {
         this.propertiesFactory = propertiesFactory
     }
 
-    List<String> getLatests() {
+    static List<String> getLatests() {
         return getVersionList("latests")
     }
 
-    String getLatest() {
+    static String getLatest() {
         return latests.last()
     }
 
@@ -109,6 +108,24 @@ class AndroidGradlePluginVersions {
         return mirrors
     }
 
+    @Nullable
+    static String aapt2Version(String agpVersion) {
+        if (aapt2Versions == null) {
+            aapt2Versions = getVersionList("aapt2Versions")
+                .collectEntries { String version ->
+                    int index = version.lastIndexOf('-')
+                    def agpVer = version.substring(0, index)
+                    [(agpVer): version]
+                }
+        }
+        String version = aapt2Versions.get(agpVersion)
+        // latest dev has the same build number as the latest alpha
+        if (version == null && agpVersion.contains("-dev")) {
+            version = aapt2Versions.get(getLatest()).replaceAll(/-alpha\d+/, "-dev")
+        }
+        return version
+    }
+
     private String getAgpNightlyRepositoryInitScript() {
         return """
             beforeSettings { settings ->
@@ -140,12 +157,12 @@ class AndroidGradlePluginVersions {
         """
     }
 
-    private List<String> getVersionList(String name) {
+    private static List<String> getVersionList(String name) {
         def versionList = loadedProperties().getProperty(name)
         return (versionList == null || versionList.empty) ? [] : versionList.split(",")
     }
 
-    private Properties loadedProperties() {
+    private static Properties loadedProperties() {
         if (properties == null) {
             properties = propertiesFactory.create()
         }

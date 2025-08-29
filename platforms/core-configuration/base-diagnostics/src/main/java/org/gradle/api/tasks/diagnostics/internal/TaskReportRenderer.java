@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.util.internal.CollectionUtils;
@@ -35,6 +35,11 @@ public class TaskReportRenderer extends TextReportRenderer {
     private boolean hasContent;
     private boolean detail;
     private boolean showTypes;
+    private final BuildClientMetaData buildClientMetaData;
+
+    public TaskReportRenderer(BuildClientMetaData buildClientMetaData) {
+        this.buildClientMetaData = buildClientMetaData;
+    }
 
     @Override
     public void startProject(ProjectDetails project) {
@@ -145,15 +150,14 @@ public class TaskReportRenderer extends TextReportRenderer {
     public void complete() {
         if (!detail) {
             StyledTextOutput output = getTextOutput();
-            BuildClientMetaData clientMetaData = getClientMetaData();
 
             output.println();
             output.text("To see all tasks and more detail, run ");
-            clientMetaData.describeCommand(output.withStyle(UserInput), "tasks --all");
+            buildClientMetaData.describeCommand(output.withStyle(UserInput), "tasks --all");
             output.println();
             output.println();
             output.text("To see more detail about a task, run ");
-            clientMetaData.describeCommand(output.withStyle(UserInput), "help --task <task>");
+            buildClientMetaData.describeCommand(output.withStyle(UserInput), "help --task <task>");
             output.println();
         }
         super.complete();

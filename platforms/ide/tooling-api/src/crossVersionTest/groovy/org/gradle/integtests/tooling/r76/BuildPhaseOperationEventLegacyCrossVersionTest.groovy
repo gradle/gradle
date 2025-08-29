@@ -42,8 +42,8 @@ class BuildPhaseOperationEventLegacyCrossVersionTest extends ToolingApiSpecifica
     def setupProject() {
         settingsFile << """
             rootProject.name = 'root'
-            include 'a'
         """
+        includeProjects("a")
         file("a/build.gradle") << """
             task taskA {}
             task taskB {

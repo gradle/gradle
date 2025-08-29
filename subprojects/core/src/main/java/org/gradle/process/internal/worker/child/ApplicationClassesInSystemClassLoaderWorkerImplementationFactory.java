@@ -17,10 +17,10 @@
 package org.gradle.process.internal.worker.child;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.process.ArgWriter;
 import org.gradle.internal.remote.Address;
@@ -119,8 +119,9 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
             execSpec.jvmArgs(jvmArgs);
         } else {
             // Use a dummy security manager, which hacks the application classpath into the system ClassLoader
+            // This branch is only taken on Java 8, so the removal of the SecurityManager in the future is not an issue.
             execSpec.classpath(workerMainClassPath);
-            execSpec.systemProperty("java.security.manager", WORKER_GRADLE_REMAPPING_PREFIX + "." + BootstrapSecurityManager.class.getName());
+            execSpec.systemProperty("java.security.manager", WORKER_GRADLE_REMAPPING_PREFIX + "." + "org.gradle.process.internal.worker.child.BootstrapSecurityManager");
         }
 
         // Serialize configuration for the worker process to it stdin
@@ -181,7 +182,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
                 encoder.flush();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         execSpec.setStandardInput(buffer.getInputStream());
     }
@@ -216,6 +217,6 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
         if (!classpath.isEmpty()) {
             argumentList.addAll(Arrays.asList("-cp", Joiner.on(File.pathSeparator).join(classpath)));
         }
-        return ArgWriter.argsFileGenerator(optionsFile, ArgWriter.javaStyleFactory()).transform(argumentList);
+        return ArgWriter.argsFileGenerator(optionsFile, ArgWriter.javaStyleFactory()).apply(argumentList);
     }
 }

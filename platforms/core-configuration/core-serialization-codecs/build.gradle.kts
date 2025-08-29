@@ -20,13 +20,16 @@ plugins {
 
 description = "Configuration Cache serialization codecs for :core (and family) types"
 
-gradleModule {
-    usesFutureStdlib = true
+jvmCompile {
+    compilations {
+        named("main") {
+            usesFutureStdlib = true
+        }
+    }
 }
 
 dependencies {
     api(projects.baseServices)
-    api(projects.configurationCacheBase)
     api(projects.core)
     api(projects.coreApi)
     api(projects.dependencyManagement)
@@ -45,6 +48,7 @@ dependencies {
     implementation(projects.baseServicesGroovy)
     implementation(projects.beanSerializationServices)
     implementation(projects.buildOperations)
+    implementation(projects.configurationCacheBase)
     implementation(projects.configurationProblemsBase)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.execution)
@@ -62,7 +66,7 @@ dependencies {
     implementation(projects.stdlibKotlinExtensions)
 
     implementation(libs.asm)
-    implementation(libs.commonsLang3)
+    implementation(libs.commonsLang)
     implementation(libs.fastutil)
     implementation(libs.groovy)
     implementation(libs.guava)

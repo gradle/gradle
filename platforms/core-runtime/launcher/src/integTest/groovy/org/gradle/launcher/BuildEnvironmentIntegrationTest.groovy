@@ -110,6 +110,30 @@ task check {
         succeeds 'check'
     }
 
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    def "default keystore type can be set via custom security properties to #keystoreType"() {
+        def customPropertiesFile = file("custom-security.properties") << """
+        keystore.type=${keystoreType}
+        """
+
+        buildFile """
+        assert \$/${customPropertiesFile.absolutePath}/\$ == System.getProperty("java.security.properties")
+        // The "keystore.type" security property defines the base value for this
+        println "default keystore type = " + java.security.KeyStore.getDefaultType()
+        """
+
+        when:
+        executer.withArguments("-Djava.security.properties=${customPropertiesFile}")
+        succeeds("help")
+
+        then:
+        outputContains("default keystore type = ${keystoreType}")
+
+        where:
+        // we need two at least to prove we can change it away from the default
+        keystoreType << ["jks", "pkcs12"]
+    }
+
     @Issue("https://issues.gradle.org/browse/GRADLE-3145")
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     def "default file encoding set on command line is respected"() {

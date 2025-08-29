@@ -39,7 +39,7 @@ class UnexpectedDuplicateBlock(val identifier: TopLevelBlockId, override val loc
 
 internal
 class UnexpectedBlockOrder(val identifier: TopLevelBlockId, override val location: IntRange, expectedFirstIdentifier: TopLevelBlockId) :
-    UnexpectedBlock("Unexpected `$identifier` block found. `$identifier` can not appear before `$expectedFirstIdentifier`.")
+    UnexpectedBlock("Unexpected `$identifier` block found. `$identifier` cannot appear before `$expectedFirstIdentifier`.")
 
 
 data class Packaged<T>(

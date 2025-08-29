@@ -16,16 +16,19 @@
 
 package org.gradle.internal.cc.impl.fingerprint
 
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.gradle.api.Describable
 import org.gradle.api.internal.GeneratedSubclasses.unpackType
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
+import org.gradle.api.internal.properties.GradlePropertyScope
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.RenderingUtils.oxfordListOf
 import org.gradle.internal.RenderingUtils.quotedOxfordListOf
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.impl.CheckedFingerprint
+import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheInputFileChecker.FileUpToDateStatus
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.extensions.core.fileSystemEntryType
@@ -48,27 +51,28 @@ typealias InvalidationReason = StructuredMessage
 internal
 class ConfigurationCacheFingerprintChecker(private val host: Host) {
 
-    interface Host {
+    interface Host : ConfigurationCacheInputFileChecker.Host {
         val isEncrypted: Boolean
         val encryptionKeyHashCode: HashCode
         val gradleUserHomeDir: File
         val allInitScripts: List<File>
-        val startParameterProperties: Map<String, Any?>
         val buildStartTime: Long
         val invalidateCoupledProjects: Boolean
         val ignoreInputsDuringConfigurationCacheStore: Boolean
         val instrumentationAgentUsed: Boolean
         val ignoredFileSystemCheckInputs: String?
-        fun gradleProperty(propertyName: String): String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
-        fun hashCodeAndTypeOf(file: File): Pair<HashCode, FileType>
-        fun hashCodeOf(file: File): HashCode?
         fun hashCodeOfDirectoryContent(file: File): HashCode?
-        fun displayNameOf(fileOrDirectory: File): String
         fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>
         fun isRemoteScriptUpToDate(uri: URI): Boolean
         fun hasValidBuildSrc(candidateBuildSrc: File): Boolean
+        fun loadProperties(propertyScope: GradlePropertyScope, propertiesDir: File)
+        fun gradleProperty(propertyScope: GradlePropertyScope, propertyName: String): Any?
+        fun gradlePropertiesPrefixedBy(propertyScope: GradlePropertyScope, prefix: String): Map<String, String>
     }
+
+    private
+    val inputFileChecker = ConfigurationCacheInputFileChecker(host)
 
     suspend fun ReadContext.checkBuildScopedFingerprint(): InvalidationReason? {
         // TODO: log some debug info
@@ -191,11 +195,8 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             }
 
             is ConfigurationCacheFingerprint.InputFile -> input.run {
-                when (checkFileUpToDateStatus(file, hash)) {
-                    FileUpToDateStatus.ContentsChanged -> text("file ").reference(displayNameOf(file)).text(" has changed")
-                    FileUpToDateStatus.Removed -> text("file ").reference(displayNameOf(file)).text(" has been removed")
-                    FileUpToDateStatus.TypeChanged -> text("file ").reference(displayNameOf(file)).text(" has been replaced by a directory")
-                    FileUpToDateStatus.Unchanged -> null
+                inputFileChecker.run {
+                    check(file, hash)
                 }
             }
 
@@ -228,6 +229,21 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 reason?.let { message(it) }
             }
 
+            is ConfigurationCacheFingerprint.SystemPropertyChanged -> input.run {
+                System.getProperties()[key] = value
+                null
+            }
+
+            is ConfigurationCacheFingerprint.SystemPropertyRemoved -> input.run {
+                System.getProperties().remove(key)
+                null
+            }
+
+            is ConfigurationCacheFingerprint.SystemPropertiesCleared -> input.run {
+                System.getProperties().clear()
+                null
+            }
+
             is ConfigurationCacheFingerprint.UndeclaredSystemProperty -> input.run {
                 ifOrNull(System.getProperty(key) != value) {
                     text("system property ").reference(key).text(" has changed")
@@ -256,8 +272,6 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 when {
                     host.gradleUserHomeDir != gradleUserHomeDir -> text("Gradle user home directory has changed")
                     jvmFingerprint() != jvm -> text("JVM has changed")
-                    host.startParameterProperties != startParameterProperties ->
-                        text("the set of Gradle properties has changed: ").text(detailedMessageForChanges(startParameterProperties, host.startParameterProperties))
 
                     host.ignoreInputsDuringConfigurationCacheStore != ignoreInputsDuringConfigurationCacheStore ->
                         text("the value of ignored configuration inputs flag (${StartParameterBuildOptions.ConfigurationCacheIgnoreInputsDuringStore.PROPERTY_NAME}) has changed")
@@ -290,7 +304,10 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     it != ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy.IGNORED
                 }
                 ifOrNull(currentWithoutIgnored != snapshotWithoutIgnored) {
-                    text("the set of system properties prefixed by ").reference(prefix).text(" has changed: ").text(detailedMessageForChanges(snapshotWithoutIgnored, currentWithoutIgnored))
+                    text("the set of system properties prefixed by ")
+                        .reference(prefix)
+                        .text(" has changed: ")
+                        .text(detailedMessageForChanges(snapshotWithoutIgnored, currentWithoutIgnored))
                 }
             }
 
@@ -299,6 +316,27 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 ifOrNull(hasBuildSrc) {
                     text("a buildSrc build at ").reference(displayNameOf(buildSrcDir))
                         .text(" has been added")
+                }
+            }
+
+            is ConfigurationCacheFingerprint.GradlePropertiesLoaded -> input.run {
+                host.loadProperties(propertyScope, propertiesDir)
+                null
+            }
+
+            is ConfigurationCacheFingerprint.GradleProperty -> input.run {
+                ifOrNull(propertyValue != host.gradleProperty(propertyScope, propertyName)) {
+                    text("Gradle property ").reference(propertyName).text(" has changed")
+                }
+            }
+
+            is ConfigurationCacheFingerprint.GradlePropertiesPrefixedBy -> input.run {
+                val current = host.gradlePropertiesPrefixedBy(propertyScope, prefix)
+                ifOrNull(snapshot != current) {
+                    text("the set of Gradle properties prefixed by ")
+                        .reference(prefix)
+                        .text(" has changed: ")
+                        .text(detailedMessageForChanges(snapshot, current))
                 }
             }
         }
@@ -369,28 +407,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
 
     private
     fun isFileUpToDate(file: File, originalHash: HashCode) =
-        checkFileUpToDateStatus(file, originalHash) == FileUpToDateStatus.Unchanged
-
-    private
-    enum class FileUpToDateStatus {
-        Unchanged,
-        ContentsChanged,
-        TypeChanged,
-        Removed
-    }
-
-    private
-    fun checkFileUpToDateStatus(file: File, originalHash: HashCode): FileUpToDateStatus {
-        val (snapshotHash, snapshotType) = host.hashCodeAndTypeOf(file)
-        if (snapshotHash == originalHash) {
-            return FileUpToDateStatus.Unchanged
-        }
-        return when (snapshotType) {
-            FileType.RegularFile -> FileUpToDateStatus.ContentsChanged
-            FileType.Directory -> FileUpToDateStatus.TypeChanged
-            FileType.Missing -> FileUpToDateStatus.Removed
-        }
-    }
+        inputFileChecker.checkFileUpToDateStatus(file, originalHash) == FileUpToDateStatus.Unchanged
 
     private
     fun displayNameOf(file: File) =
@@ -407,14 +424,6 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     fun buildLogicInputFailed(obtainedValue: ObtainedValue, failure: Throwable): InvalidationReason = StructuredMessage.forText(
         "a build logic input of type '${obtainedValue.valueSourceType.simpleName}' failed when storing the entry with $failure"
     )
-
-    /**
-     * Builds a structured message with a given [block], but if null is returned from the block, discards the message.
-     * @return built message or null if [block] returns null
-     */
-    private
-    inline fun structuredMessageOrNull(block: StructuredMessage.Builder.() -> StructuredMessage.Builder?): StructuredMessage? =
-        StructuredMessage.Builder().run { block() }?.build()
 
     private
     inline fun <T> ifOrNull(condition: Boolean, block: () -> T): T? {
@@ -455,7 +464,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         var _invalidationReason: InvalidationReason? = null
 
         private
-        val consumedBy = mutableSetOf<ProjectInvalidationState>()
+        val consumedBy = ObjectOpenHashSet<ProjectInvalidationState>()
 
         val isInvalid: Boolean
             get() = _invalidationReason != null

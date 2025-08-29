@@ -21,10 +21,16 @@ plugins {
 description = "Base asm classes and utilities for Gradle's internal use"
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInWorkers = true
+    }
 }
 
 dependencies {
     api(libs.asm)
     api(libs.jspecify)
+}
+
+errorprone {
+    nullawayEnabled = true
 }

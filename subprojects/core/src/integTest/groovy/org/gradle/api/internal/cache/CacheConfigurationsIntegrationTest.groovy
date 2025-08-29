@@ -124,7 +124,7 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
                     snapshotWrappers.removeUnusedEntriesOlderThan = ${snapshotDistTimestamp}
                     downloadedResources.removeUnusedEntriesOlderThan = ${downloadedResourcesTimestamp}
                     createdResources.removeUnusedEntriesOlderThan = ${createdResourcesTimestamp}
-                    buildCache.removeUnusedEntriesOlderThan = ${createdResourcesTimestamp}
+                    buildCache.removeUnusedEntriesOlderThan = ${buildCacheResourcesTimestamp}
                 }
             }
         """

@@ -1,4 +1,3 @@
-import gradlebuild.basics.bundleGroovyMajor
 import gradlebuild.basics.tasks.PackageListGenerator
 
 plugins {
@@ -46,7 +45,7 @@ dependencies {
     integTestImplementation(projects.buildOption)
     integTestImplementation(projects.jvmServices)
     integTestImplementation(testFixtures(projects.buildConfiguration))
-    integTestImplementation(testFixtures(projects.buildProcessStartup))
+    integTestImplementation(testFixtures(projects.buildProcessServices))
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.jetbrainsAnnotations)
 
@@ -78,13 +77,6 @@ tasks.integMultiVersionTest {
     systemProperty("org.gradle.integtest.testkit.compatibility", "all")
 }
 
-tasks {
-    withType<Test>().configureEach {
-        if (project.bundleGroovyMajor == 4) {
-            exclude("org/gradle/testkit/runner/enduser/GradleRunnerSamplesEndUserIntegrationTest*") // cannot be parameterized for both Groovy 3 and 4
-        }
-    }
-}
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

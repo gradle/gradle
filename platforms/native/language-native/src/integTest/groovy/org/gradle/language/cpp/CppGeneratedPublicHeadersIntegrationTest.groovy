@@ -55,7 +55,7 @@ class CppGeneratedPublicHeadersIntegrationTest extends AbstractInstalledToolChai
         when:
         succeeds ":app:compileDebugCpp"
         then:
-        result.assertTasksExecuted(":hello:generatePublicHeaders", ":app:compileDebugCpp")
+        result.assertTasksScheduled(":hello:generatePublicHeaders", ":app:compileDebugCpp")
     }
 
     @Issue("https://github.com/gradle/gradle-native/issues/994")
@@ -81,12 +81,12 @@ class CppGeneratedPublicHeadersIntegrationTest extends AbstractInstalledToolChai
         when:
         succeeds ":hello:compileDebugCpp"
         then:
-        result.assertTasksExecuted(":log:generatePublicHeaders", ":hello:compileDebugCpp")
+        result.assertTasksScheduled(":log:generatePublicHeaders", ":hello:compileDebugCpp")
 
         when:
         succeeds ":app:compileDebugCpp"
         then:
-        result.assertTasksExecuted(":log:generatePublicHeaders", ":app:compileDebugCpp")
+        result.assertTasksScheduled(":log:generatePublicHeaders", ":app:compileDebugCpp")
     }
 
     private writeApp() {

@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
@@ -75,7 +76,7 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
     private SignatureType signatureType;
     private Signatory signatory;
     private boolean required = true;
-    private final Transient<DomainObjectSet<Signature>> signatures = Transient.of(getProject().getObjects().domainObjectSet(Signature.class));
+    private final Transient<DomainObjectSet<Signature>> signatures = Transient.of(getObjectFactory().domainObjectSet(Signature.class));
 
     private final Cached<Collection<Signature.Generator>> generators = Cached.of(this::computeCachedSignatures);
 
@@ -317,10 +318,7 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
     }
 
     @Inject
-    protected FileCollectionFactory getFileCollectionFactory() {
-        // Implementation provided by decoration
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileCollectionFactory getFileCollectionFactory();
 
     /**
      * All of the files that will be signed by this task.
@@ -394,7 +392,9 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
      * @since 5.1
      */
     @Inject
-    protected CollectionCallbackActionDecorator getCallbackActionDecorator() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract CollectionCallbackActionDecorator getCallbackActionDecorator();
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
 }

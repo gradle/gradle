@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
@@ -61,6 +62,15 @@ import java.util.Map;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
+/**
+ * Default implementation of a {@link JvmTestSuite}.
+ * <p>
+ * This class provides the basic functionality for creating and managing a JVM test suite, including
+ * configuring the source set, wiring dependencies, and creating test targets.
+ * <p>
+ * The default test suite (named {@link JvmTestSuitePlugin#DEFAULT_TEST_SUITE_NAME}) will default to using the
+ * JUnit 4 test framework for backwards compatibility.  Any other test suite will default to using the JUnit Jupiter test framework.
+ */
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> targets;
     private final SourceSet sourceSet;
@@ -328,7 +338,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             IsolationScheme<JvmTestToolchain<?>, JvmTestToolchainParameters> isolationScheme = new IsolationScheme<>(uncheckedCast(JvmTestToolchain.class), JvmTestToolchainParameters.class, JvmTestToolchainParameters.None.class);
             Class<T> parametersType = isolationScheme.parameterTypeFor(type);
             T parameters = parametersType == null ? null : objectFactory.newInstance(parametersType);
-            ServiceLookup lookup = isolationScheme.servicesForImplementation(parameters, parentServices, Collections.emptyList(), p -> true);
+            ServiceLookup lookup = isolationScheme.servicesForImplementation(parameters, parentServices, Collections.singleton(DependencyFactory.class));
             return new FrameworkCachingJvmTestToolchain<>(instantiatorFactory.decorate(lookup).newInstance(type));
         }
     }

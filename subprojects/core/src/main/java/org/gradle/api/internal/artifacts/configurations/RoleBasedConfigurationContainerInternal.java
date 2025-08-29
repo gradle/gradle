@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.DependencyScopeConfiguration;
+import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.internal.DomainObjectCollectionInternal;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -31,7 +33,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * are <strong>not</strong> allowed to change roles. All Gradle-created configurations will be locked.
  * <p>
  * The methods on this interface are meant to be transitional, and as such all usages of this interface
- * should be migrated to the public API starting in Gradle 9.0.
+ * should eventually be migrated to the public API.
  * <p>
  * <strong>New configurations should leverage the role-based factory methods on {@link ConfigurationContainer}.</strong>
  */
@@ -39,26 +41,11 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface RoleBasedConfigurationContainerInternal extends ConfigurationContainer, DomainObjectCollectionInternal<Configuration> {
 
     /**
-     * Creates a consumable configuration which can <strong>NOT</strong> change roles.
-     *
-     * @throws GradleException If the name is already in use or reserved for Gradle.
-     */
-    Configuration consumableLocked(String name);
-
-    /**
-     * Creates a consumable configuration which can <strong>NOT</strong> change roles and executes the provided
-     * {@code action} against the configuration.
-     *
-     * @throws GradleException If the name is already in use or reserved for Gradle.
-     */
-    Configuration consumableLocked(String name, Action<? super Configuration> action);
-
-    /**
      * Creates a resolvable configuration which can <strong>NOT</strong> change roles.
      *
      * @throws GradleException If the name is already in use or reserved for Gradle.
      */
-    Configuration resolvableLocked(String name);
+    ResolvableConfiguration resolvableLocked(String name);
 
     /**
      * Creates a resolvable configuration which can <strong>NOT</strong> change roles and executes the provided
@@ -66,14 +53,14 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      *
      * @throws GradleException If the name is already in use or reserved for Gradle.
      */
-    Configuration resolvableLocked(String name, Action<? super Configuration> action);
+    ResolvableConfiguration resolvableLocked(String name, Action<? super Configuration> action);
 
     /**
      * Creates a dependency scope configuration which can <strong>NOT</strong> change roles.
      *
      * @throws GradleException If the name is already in use or reserved for Gradle.
      */
-    Configuration dependencyScopeLocked(String name);
+    DependencyScopeConfiguration dependencyScopeLocked(String name);
 
     /**
      * Creates a dependency scope configuration which can <strong>NOT</strong> change roles and executes the provided
@@ -81,7 +68,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      *
      * @throws GradleException If the name is already in use or reserved for Gradle.
      */
-    Configuration dependencyScopeLocked(String name, Action<? super Configuration> action);
+    DependencyScopeConfiguration dependencyScopeLocked(String name, Action<? super Configuration> action);
 
     /**
      * Creates a new configuration, which can <strong>NOT</strong> change roles, with initial role {@code role}.
@@ -125,7 +112,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
     @Deprecated
     Configuration resolvableDependencyScopeLocked(String name, Action<? super Configuration> action);
 
-    // TODO: In Gradle 9.1, this method should be deprecated.  It is only used as a workaround for Kotlin in DefaultJvmFeature.
+    // TODO: This is only used as a workaround for Kotlin in DefaultJvmFeature -- we should inline and remove this method.
     /**
      * If a configuration with the given name already exists,return it.
      * Otherwise, creates a new dependency scope configuration with the given name.

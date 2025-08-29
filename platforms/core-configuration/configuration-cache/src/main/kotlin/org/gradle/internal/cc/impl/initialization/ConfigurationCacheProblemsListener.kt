@@ -66,7 +66,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
             .exception("Accessing non-serializable type '$injectedServiceType' during execution time is unsupported.")
             .documentationSection(DocumentationSection.RequirementsDisallowedTypes)
             .build()
-        problems.onProblem(problem)
+        problems.onExecutionTimeProblem(problem)
     }
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
@@ -107,25 +107,25 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         // the build to fail when it really shouldn't.
         val contextTask = runningTask ?: task
         val isExecutingOtherTask = contextTask != task
-        problemsListenerFor(contextTask).onProblem(
+        problemsListenerFor(contextTask).onExecutionTimeProblem(
             problemFactory.problem {
                 if (isExecutingOtherTask) {
                     text("execution of task ")
                     reference(contextTask.path)
                     text(" caused invocation of ")
                     reference(invocationDescription)
-                    text(" in other task at execution time which is unsupported.")
+                    text(" in other task at execution time which is unsupported with the configuration cache.")
                 } else {
                     text("invocation of ")
                     reference(invocationDescription)
-                    text(" at execution time is unsupported.")
+                    text(" at execution time is unsupported with the configuration cache.")
                 }
             }
                 .exception(
                     if (isExecutingOtherTask) {
-                        "Execution of $runningTask caused invocation of '$invocationDescription' by $task at execution time which is unsupported."
+                        "Execution of $runningTask caused invocation of '$invocationDescription' by $task at execution time which is unsupported with the configuration cache."
                     } else {
-                        "Invocation of '$invocationDescription' by $task at execution time is unsupported."
+                        "Invocation of '$invocationDescription' by $task at execution time is unsupported with the configuration cache."
                     }
                 )
                 .documentationSection(RequirementsUseProjectDuringExecution)
@@ -146,9 +146,12 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     fun locationForTask(task: TaskInternal) = PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path)
 
     private
-    fun problemsListenerFor(task: TaskInternal): ProblemsListener = when {
-        task.isCompatibleWithConfigurationCache -> problems
-        else -> problems.forIncompatibleTask(locationForTask(task), task.reasonTaskIsIncompatibleWithConfigurationCache.get())
+    fun problemsListenerFor(task: TaskInternal): ProblemsListener {
+        val trace = locationForTask(task)
+        return when {
+            !task.isCompatibleWithConfigurationCache -> problems.forIncompatibleTask(trace, task.reasonTaskIsIncompatibleWithConfigurationCache.get())
+            else -> problems.forTask(task)
+        }
     }
 
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
@@ -192,5 +195,5 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     fun isInputTrackingDisabled() = !inputTrackingState.isEnabledForCurrentThread()
 
     private
-    fun isExecutingWork() = workExecutionTracker.currentTask.isPresent || workExecutionTracker.isExecutingTransformAction
+    fun isExecutingWork() = workExecutionTracker.isExecutingTaskOrTransformAction
 }

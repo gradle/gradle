@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.gradle.docs.samples;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.exemplar.executor.CommandExecutor;
 import org.gradle.integtests.fixtures.AvailableJavaHomes;
@@ -27,6 +26,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.GradleExecuter;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 
@@ -75,7 +75,7 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
             }
             return expectFailure ? 1 : 0;
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -95,6 +95,18 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
             .withArguments(filteredFlags)
             .withArgument("--no-problems-report")
             .withTasks(args);
+
+        if (flags.contains("--build-cache")) {
+            // > Failed to load cache entry b982a8cf9ce337cea7c2eacd8bb478fb for task ':bundle': Could not load from local cache:
+            //   Timeout waiting to lock Build cache (/mnt/tcagent1/work/b6cfc23ab10332e6/intTestHomeDir/distributions-full/caches/build-cache-1).
+            //   It is currently in use by another process.
+            //    Owner PID: 5250
+            //    Our PID: 4769
+            //    Owner Operation:
+            //    Our operation:
+            //    Lock file: /mnt/tcagent1/work/b6cfc23ab10332e6/intTestHomeDir/distributions-full/caches/build-cache-1/build-cache-1.lock
+            executer.withGradleUserHomeDir(new File(workingDir, "user-home"));
+        }
 
         if (flags.stream().anyMatch(NO_STACKTRACE_CHECK::equals)) {
             executer.withStackTraceChecksDisabled();
@@ -116,7 +128,7 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
             .map(Jvm::getJavaHome)
             .map(File::getAbsolutePath)
             .collect(Collectors.joining(","));
-        return "-Porg.gradle.java.installations.paths=" + allJdkPaths;
+        return "-Dorg.gradle.java.installations.paths=" + allJdkPaths;
     }
 
     private static String capitalize(String s) {

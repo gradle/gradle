@@ -35,7 +35,7 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelTypes;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.NativeDependentBinariesResolutionStrategy;
-import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
+import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.internal.DefaultNativeTestSuiteBinarySpec;
@@ -64,7 +64,7 @@ public abstract class NativeBinariesTestPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
-        project.getPluginManager().apply(NativeComponentPlugin.class);
+        project.getPluginManager().apply(NativeComponentModelPlugin.class);
         project.getPluginManager().apply(TestingModelBasePlugin.class);
     }
 

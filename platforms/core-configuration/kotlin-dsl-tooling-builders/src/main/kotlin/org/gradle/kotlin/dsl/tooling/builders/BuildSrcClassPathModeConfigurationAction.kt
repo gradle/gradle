@@ -19,8 +19,10 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.result.ResolvedComponentResult
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
@@ -91,10 +93,10 @@ class BuildSrcClassPathModeConfigurationAction : BuildSrcProjectConfigurationAct
 abstract class GenerateSourceRootsFile : DefaultTask() {
 
     @get:Input
-    val sourceRoots = project.objects.listProperty<String>()
+    abstract val sourceRoots: ListProperty<String>
 
     @get:OutputFile
-    val destinationFile = project.objects.fileProperty()
+    abstract val destinationFile: RegularFileProperty
 
     @TaskAction
     @Suppress("unused")

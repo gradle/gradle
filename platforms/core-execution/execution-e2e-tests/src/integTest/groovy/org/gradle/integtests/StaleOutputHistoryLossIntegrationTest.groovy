@@ -18,38 +18,30 @@ package org.gradle.integtests
 
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.OtherGradleVersionFixture
 import org.gradle.integtests.fixtures.StaleOutputJavaProject
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
-import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.internal.jvm.Jvm
-import org.gradle.util.GradleVersion
-import org.junit.Assume
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.StaleOutputJavaProject.JAR_TASK_NAME
 import static org.gradle.util.internal.GFileUtils.forceDelete
 
 @IntegrationTestTimeout(240)
-class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
+class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec implements OtherGradleVersionFixture {
 
-    private final ReleasedVersionDistributions releasedVersionDistributions = new ReleasedVersionDistributions()
-    private final GradleExecuter mostRecentReleaseExecuter = releasedVersionDistributions.mostRecentRelease.executer(temporaryFolder, buildContext)
+    private GradleExecuter mostRecentReleaseExecuter
 
     def cleanup() {
-        mostRecentReleaseExecuter.cleanup()
+        mostRecentReleaseExecuter?.cleanup()
     }
 
     def setup() {
+        mostRecentReleaseExecuter = new NoDaemonGradleExecuter(otherVersion, temporaryFolder, buildContext)
         buildFile << "apply plugin: 'base'\n"
-        // When adding support for a new JDK version, the previous release might not work with it yet.
-        Assume.assumeTrue(releasedVersionDistributions.mostRecentRelease.worksWith(Jvm.current()))
-    }
-
-    GradleVersion getMostRecentReleaseVersion() {
-        releasedVersionDistributions.mostRecentRelease.version
     }
 
     @Issue("https://github.com/gradle/gradle/issues/821")
@@ -336,7 +328,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.assertTaskExecuted(taskPath)
+        result.assertTaskScheduled(taskPath)
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
 
@@ -389,7 +381,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.assertTaskExecuted(taskPath)
+        result.assertTaskScheduled(taskPath)
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
 
@@ -440,7 +432,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.assertTasksExecuted(taskPath, ':copy1', ':copy2')
+        result.assertTasksScheduled(taskPath, ':copy1', ':copy2')
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
 
@@ -504,7 +496,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.assertTaskExecuted(taskPath)
+        result.assertTaskScheduled(taskPath)
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
 
@@ -540,7 +532,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         result = runWithMostRecentFinalRelease(taskPath)
 
         then:
-        result.assertTaskExecuted(taskPath)
+        result.assertTaskScheduled(taskPath)
         targetFile1.assertIsFile()
         targetFile2.assertIsFile()
 

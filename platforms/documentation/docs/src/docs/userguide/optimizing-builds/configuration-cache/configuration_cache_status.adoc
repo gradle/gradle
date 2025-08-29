@@ -1,0 +1,253 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+:gradle-issues: https://github.com/gradle/gradle/issues/
+
+[[config_cache_status]]
+= Configuration Cache Status
+
+[WARNING]
+====
+This feature is _not enabled by default_.
+====
+
+[[config_cache:plugins]]
+== Supported Plugins
+
+The Configuration Cache introduces new requirements for plugin implementations.
+As a result, both Core Gradle plugins and Community Plugins need to be adjusted to ensure compatibility.
+
+This section provides details on the current support in:
+
+- <<#config_cache:plugins:core, Core Gradle Plugins>>
+- <<#config_cache:plugins:community, Community Plugins>>
+
+[[config_cache:plugins:core]]
+=== Core Gradle Plugins
+
+Most <<plugin_reference#plugin_reference, Core Gradle Plugins>> support configuration caching at this time:
+
+[cols=3*]
+|===
+h| JVM languages and frameworks
+h| Native languages
+h| Packaging and distribution
+
+a|
+[horizontal]
+link:{gradle-issues}13457[[.green]#✓#]:: <<java_plugin.adoc#java_plugin,Java>>
+link:{gradle-issues}13458[[.green]#✓#]:: <<java_library_plugin.adoc#java_library_plugin,Java Library>>
+link:{gradle-issues}13459[[.green]#✓#]:: <<java_platform_plugin.adoc#java_platform_plugin,Java Platform>>
+link:{gradle-issues}13460[[.green]#✓#]:: <<groovy_plugin.adoc#groovy_plugin,Groovy>>
+link:{gradle-issues}13461[[.green]#✓#]:: <<scala_plugin.adoc#scala_plugin,Scala>>
+link:{gradle-issues}13462[[.green]#✓#]:: <<antlr_plugin.adoc#antlr_plugin,ANTLR>>
+
+a|
+[horizontal]
+link:{gradle-issues}30806[[.green]#✓#]:: <<cpp_application_plugin.adoc#cpp_application_plugin,C++ Application>>
+link:{gradle-issues}30806[[.green]#✓#]:: <<cpp_library_plugin.adoc#cpp_library_plugin,C++ Library>>
+link:{gradle-issues}13514[[.green]#✓#]:: <<cpp_unit_test_plugin.adoc#cpp_unit_test_plugin,C++ Unit Test>>
+link:{gradle-issues}13515[[.green]#✓#]:: <<swift_application_plugin.adoc#swift_application_plugin,Swift Application>>
+link:{gradle-issues}13487[[.green]#✓#]:: <<swift_library_plugin.adoc#swift_library_plugin,Swift Library>>
+link:{gradle-issues}13488[[.green]#✓#]:: <<xctest_plugin.adoc#xctest_plugin,XCTest>>
+
+a|
+[horizontal]
+link:{gradle-issues}13463[[.green]#✓#]:: <<application_plugin.adoc#application_plugin,Application>>
+link:{gradle-issues}13466[[.green]#✓#]:: <<war_plugin.adoc#war_plugin,WAR>>
+link:{gradle-issues}13467[[.green]#✓#]:: <<ear_plugin.adoc#ear_plugin,EAR>>
+link:{gradle-issues}24329[[.yellow]#⚠*#]:: <<publishing_maven.adoc#publishing_maven,Maven Publish>>
+link:{gradle-issues}24328[[.yellow]#⚠*#]:: <<publishing_ivy.adoc#publishing_ivy,Ivy Publish>>
+link:{gradle-issues}13464[[.green]#✓#]:: <<distribution_plugin.adoc#distribution_plugin,Distribution>>
+link:{gradle-issues}13465[[.green]#✓#]:: <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>
+
+h| Code analysis
+h| IDE project files generation
+h| Utility
+
+a|
+[horizontal]
+link:{gradle-issues}13475[[.green]#✓#]:: <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle>>
+link:{gradle-issues}13478[[.green]#✓#]:: <<codenarc_plugin.adoc#codenarc_plugin,CodeNarc>>
+link:{gradle-issues}13477[[.green]#✓#]:: <<jacoco_plugin.adoc#jacoco_plugin,JaCoCo>>
+[.green]#✓#:: <<jacoco_report_aggregation_plugin#jacoco_report_aggregation_plugin,JaCoCo Report Aggregation>>
+link:{gradle-issues}13476[[.green]#✓#]:: <<pmd_plugin.adoc#pmd_plugin,PMD>>
+[.green]#✓#:: <<test_report_aggregation_plugin#test_report_aggregation_plugin,Test Report Aggregation>>
+
+a|
+[horizontal]
+link:{gradle-issues}13479[[.yellow]#⚠#]:: <<eclipse_plugin.adoc#eclipse_plugin,Eclipse>>
+link:{gradle-issues}13480[[.yellow]#⚠#]:: <<idea_plugin.adoc#idea_plugin,IntelliJ IDEA>>
+link:{gradle-issues}13482[[.green]#✓#]:: <<visual_studio_plugin.adoc#visual_studio_plugin,Visual Studio>>
+link:{gradle-issues}13483[[.green]#✓#]:: <<xcode_plugin.adoc#xcode_plugin,Xcode>>
+
+a|
+[horizontal]
+link:{gradle-issues}13455[[.green]#✓#]:: <<base_plugin.adoc#base_plugin,Base>>
+link:{gradle-issues}13456[[.green]#✓#]:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
+link:{gradle-issues}13470[[.green]#✓#]:: <<signing_plugin.adoc#signing_plugin,Signing>>
+link:{gradle-issues}24537[[.green]#✓#]:: <<java_gradle_plugin.adoc#java_gradle_plugin,Java Plugin Development>>
+link:{gradle-issues}23029[[.green]#✓#]:: <<implementing_gradle_plugins_precompiled.adoc#implemention_precompiled_plugins,Groovy DSL Plugin Development>>
+link:{gradle-issues}13472[[.green]#✓#]:: <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin,Kotlin DSL Plugin Development>>
+link:{gradle-issues}13473[[.green]#✓#]:: <<project_report_plugin.adoc#project_report_plugin,Project Report Plugin>>
+
+|===
+
+[horizontal]
+[.green]#✓#:: Supported plugin
+[.yellow]#⚠#:: Partially supported plugin (tasks always disable configuration caching)
+[.yellow]#⚠*#:: Partially supported plugin (some features may disable configuration caching)
+////
+// no unsupported plug-ins atm
+[.red]#✖#:: Unsupported plugin
+////
+[[config_cache:plugins:community]]
+=== Community Plugins
+
+Please refer to issue link:{gradle-issues}13490[gradle/gradle#13490] to learn about the status of Community Plugins.
+
+The two most popular ecosystem plugins are supported:
+
+- [.green]#✓# Android Gradle Plugin
+- [.green]#✓# Kotlin Gradle Plugin
+
+[[config_cache:not_yet_implemented]]
+== Not Yet Implemented
+
+Support for configuration caching with certain Gradle features is not yet available. These features will be supported in future Gradle releases.
+
+[[config_cache:not_yet_implemented:sharing]]
+=== Sharing the Configuration Cache
+
+The Configuration Cache is currently stored locally only.
+It can be reused by both hot and cold local Gradle daemons, but it cannot be shared between developers or CI machines.
+
+See link:{gradle-issues}13510[gradle/gradle#13510].
+
+[[config_cache:not_yet_implemented:source_dependencies]]
+=== Source Dependencies
+
+Support for link:https://blog.gradle.org/introducing-source-dependencies[source dependencies] is not yet implemented.
+When using this feature, the build will not fail, and no problems will be reported, but the Configuration Cache will be automatically disabled.
+
+See link:{gradle-issues}13506[gradle/gradle#13506].
+
+[[config_cache:not_yet_implemented:testkit_build_with_java_agent]]
+=== Using a Java Agent with Builds run using TestKit
+
+When running builds using <<test_kit#test_kit, TestKit>>, the Configuration Cache can interfere with Java agents, such as the Jacoco agent, that are applied to these builds.
+
+See link:{gradle-issues}25979[gradle/gradle#25979].
+
+[[config_cache:not_yet_implemented:fine_grained_tracking_of_gradle_properties]]
+=== Fine-grained Tracking of Gradle Properties as Build Configuration Inputs
+
+Currently, all external sources of Gradle properties—such as `gradle.properties` files (both in project directories and in the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`), environment variables, system properties that set properties, and properties specified via command-line flags—are considered build configuration inputs, regardless of whether they are actually used during configuration.
+
+However, these sources are not included in the Configuration Cache report.
+
+See link:{gradle-issues}20969[gradle/gradle#20969].
+
+[[config_cache:not_yet_implemented:java_serialization]]
+=== Java Object Serialization
+
+Gradle allows objects that support the link:https://docs.oracle.com/javase/8/docs/platform/serialization/spec/serialTOC.html[Java Object Serialization] protocol to be stored in the Configuration Cache.
+
+The implementation is currently limited to serializable classes that
+either implement the `java.io.Externalizable` interface, or implement the `java.io.Serializable` interface and define one of the following combination of methods:
+
+- a `writeObject` method combined with a `readObject` method to control exactly which information to store;
+- a `writeObject` method with no corresponding `readObject`; `writeObject` must eventually call `ObjectOutputStream.defaultWriteObject`;
+- a `readObject` method with no corresponding `writeObject`; `readObject` must eventually call `ObjectInputStream.defaultReadObject`;
+- a `writeReplace` method to allow the class to nominate a replacement to be written;
+- a `readResolve` method to allow the class to nominate a replacement for the object just read;
+
+The following _Java Object Serialization_ features are **not** supported:
+
+- the `serialPersistentFields` member to explicitly declare which fields are serializable; the member, if present, is ignored; the Configuration Cache considers all but `transient` fields serializable;
+- the following methods of `ObjectOutputStream` are not supported and will throw `UnsupportedOperationException`:
+** `reset()`, `writeFields()`, `putFields()`, `writeChars(String)`, `writeBytes(String)` and `writeUnshared(Any?)`.
+
+- the following methods of `ObjectInputStream` are not supported and will throw `UnsupportedOperationException`:
+** `readLine()`, `readFully(ByteArray)`, `readFully(ByteArray, Int, Int)`, `readUnshared()`, `readFields()`, `transferTo(OutputStream)` and `readAllBytes()`.
+- validations registered via `ObjectInputStream.registerValidation` are simply ignored;
+- the `readObjectNoData` method, if present, is never invoked;
+
+See link:{gradle-issues}13588[gradle/gradle#13588].
+
+[[config_cache:not_yet_implemented:accessing_top_level_at_execution]]
+=== Accessing top-level Methods and Variables of a Build Script at Execution Time
+
+A common approach to reuse logic and data in a build script is to extract repeating bits into top-level methods and variables.
+However, calling such methods at execution time is not currently supported if the Configuration Cache is enabled.
+
+For builds scripts written in Groovy, the task fails because the method cannot be found.
+The following snippet uses a top-level method in the `listFiles` task:
+
+====
+include::sample[dir="snippets/configurationCache/topLevel/groovy",files="build.gradle[tags=not-supported]"]
+====
+
+Running the task with the Configuration Cache enabled produces the following error:
+----
+include::{snippetsPath}/configurationCache/topLevel/tests-groovy/notSupported.out[]
+----
+
+To prevent the task from failing, convert the referenced top-level method to a static method within a class:
+====
+include::sample[dir="snippets/configurationCache/topLevel/groovy",files="build.gradle[tags=workaround]"]
+====
+
+Build scripts written in Kotlin cannot store tasks that reference top-level methods or variables at execution time in the Configuration Cache at all.
+This limitation exists because the captured script object references cannot be serialized.
+The first run of the Kotlin version of the `listFiles` task fails with the Configuration Cache problem.
+
+====
+include::sample[dir="snippets/configurationCache/topLevel/kotlin",files="build.gradle.kts[tags=not-supported]"]
+====
+
+To make the Kotlin version of this task compatible with the Configuration Cache, make the following changes:
+====
+include::sample[dir="snippets/configurationCache/topLevel/kotlin",files="build.gradle.kts[tags=workaround]"]
+====
+<1> Define the method inside an object.
+<2> Define the variable in a smaller scope.
+
+See link:{gradle-issues}22879[gradle/gradle#22879].
+
+[[config_cache:not_yet_implemented:build_services_in_fingerprint]]
+=== Using Build Services to Invalidate the Configuration Cache
+
+Currently, it is impossible to use a provider of `BuildService` or provider derived from it with `map` or `flatMap` as a parameter for the `ValueSource`, if the value of the `ValueSource` is accessed at configuration time.
+The same applies when such a `ValueSource` is obtained in a task that executes as part of the configuration phase, for example tasks of the `buildSrc` build or included builds contributing plugins.
+
+Note that using a `@ServiceReference` or storing `BuildService` in an `@Internal`-annotated property of a task is safe.
+
+Generally speaking, this limitation makes it impossible to use a `BuildService` to invalidate the Configuration Cache.
+
+See link:{gradle-issues}24085[gradle/gradle#24085].
+
+[[config_cache:not_yet_implemented:more_build_event_listeners]]
+=== Using Arbitrary Providers as Build Events Listeners
+
+The build event listener registration method link:{javadocPath}/org/gradle/build/event/BuildEventsListenerRegistry.html#onTaskCompletion(org.gradle.api.provider.Provider)[`BuildEventsListenerRegistry.onTaskCompletion`]
+accepts arbitrary providers of any link:{javadocPath}/org/gradle/tooling/events/OperationCompletionListener.html[`OperationCompletionListener`] implementations.
+However, only providers returned from link:{javadocPath}/org/gradle/api/services/BuildServiceRegistry.html#registerIfAbsent(java.lang.String,java.lang.Class,org.gradle.api.Action)[`BuildServiceRegistry.registerIfAbsent`] or link:{javadocPath}/org/gradle/api/services/BuildServiceRegistration.html#getService()[`BuildServiceRegistration.getService`] are currently supported when the Configuration Cache is used.
+Starting with Gradle 9, using other kinds of providers (including even `registerIfAbsent(...).map { it }`) results in a Configuration Cache problem being emitted.
+Prior to that, such providers were silently ignored.
+
+Check the <<configuration_cache_enabling#config_cache:adoption:changes_in_behavior,adoption guide>> to learn how to _temporarily_ suppress these problems if discarded listeners do not affect your
+build.
+
+See link:{gradle-issues}33772[gradle/gradle#33772].

@@ -991,7 +991,6 @@ h3.releaseinfo {
 .site-footer__copy,
 .site-footer__secondary-links {
     flex-grow: 0;
-    flex-basis: 280px;
     /* 1. */
 }
 

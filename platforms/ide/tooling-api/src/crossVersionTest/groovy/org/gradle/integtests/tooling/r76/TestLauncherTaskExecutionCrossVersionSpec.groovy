@@ -105,14 +105,13 @@ class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification 
         setup:
         settingsFile << '''
             rootProject.name = 'root'
-            include 'a'
         '''
+        includeProjects("a")
         buildFile << '''
             allprojects {
                 tasks.register('foo')
             }
         '''
-        file('a').mkdirs()
 
         when:
         launchTestWithTestFilter { tl ->
@@ -157,15 +156,14 @@ class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification 
         setup:
         settingsFile << '''
             rootProject.name = 'root'
-            include 'sub1'
-            include 'sub1:sub2'
         '''
+
+        includeProjects("sub1", "sub1:sub2")
         buildFile << '''
             allprojects {
                 tasks.register('foo')
             }
         '''
-        file('sub1/sub2').mkdirs()
 
         when:
         launchTestWithTestFilter(toolingApi.connector().forProjectDirectory(projectDir.file('sub1'))) {
@@ -182,8 +180,8 @@ class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification 
         setup:
         settingsFile << '''
             rootProject.name = 'root'
-            includeBuild 'included'
         '''
+        includeProjects("included")
         file('included/settings.gradle') << '''
             rootProject.name = 'included'
         '''

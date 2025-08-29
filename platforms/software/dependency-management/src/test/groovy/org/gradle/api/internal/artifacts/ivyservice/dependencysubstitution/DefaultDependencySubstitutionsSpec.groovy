@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
 
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
@@ -49,8 +48,9 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         getProjects() >> Mock(BuildProjectRegistry) {
             getProject(_ as Path) >> { args ->
                 Path path = args[0]
+                ProjectIdentity id = path.name != null ? ProjectIdentity.forSubproject(Path.ROOT, path) : ProjectIdentity.forRootProject(Path.ROOT, "root")
                 return Mock(ProjectState) {
-                    getIdentity() >> new ProjectIdentity(Mock(BuildIdentifier), path, path, path.getName())
+                    getIdentity() >> id
                 }
             }
         }
@@ -180,7 +180,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
     def "cannot substitute with unversioned module selector"() {
         when:
         substitutions.with {
-            substitute project("foo") using module('group:name')
+            substitute project(":foo") using module('group:name')
         }
 
         then:

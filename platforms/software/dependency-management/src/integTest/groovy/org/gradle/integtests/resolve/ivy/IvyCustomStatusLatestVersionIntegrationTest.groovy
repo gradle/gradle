@@ -222,7 +222,9 @@ repositories {
 }
 configurations { compile }
 dependencies {
-    compile group: "org.test", name: "projectA", version: "latest.release", changing: true
+    compile("org.test:projectA:latest.release") {
+        changing = true
+    }
 }
 
 configurations.all {

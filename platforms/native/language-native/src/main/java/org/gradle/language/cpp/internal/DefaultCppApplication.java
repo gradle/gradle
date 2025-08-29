@@ -18,7 +18,6 @@ package org.gradle.language.cpp.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -33,23 +32,19 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 
-public class DefaultCppApplication extends DefaultCppComponent implements CppApplication, PublicationAwareComponent {
-    private final ObjectFactory objectFactory;
-    private final Property<CppExecutable> developmentBinary;
+public abstract class DefaultCppApplication extends DefaultCppComponent implements CppApplication, PublicationAwareComponent {
     private final MainExecutableVariant mainVariant;
     private final DefaultComponentDependencies dependencies;
 
     @Inject
-    public DefaultCppApplication(String name, ObjectFactory objectFactory) {
-        super(name, objectFactory);
-        this.objectFactory = objectFactory;
-        this.developmentBinary = objectFactory.property(CppExecutable.class);
-        this.dependencies = objectFactory.newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
-        this.mainVariant = new MainExecutableVariant(objectFactory);
+    public DefaultCppApplication(String name) {
+        super(name);
+        this.dependencies = getObjectFactory().newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
+        this.mainVariant = new MainExecutableVariant(getObjectFactory());
     }
 
     public DefaultCppExecutable addExecutable(NativeVariantIdentity identity, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {
-        DefaultCppExecutable result = objectFactory.newInstance(DefaultCppExecutable.class, getNames().append(identity.getName()), getBaseName(), getCppSource(), getPrivateHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
+        DefaultCppExecutable result = getObjectFactory().newInstance(DefaultCppExecutable.class, getNames().append(identity.getName()), getBaseName(), getCppSource(), getPrivateHeaderDirs(), getImplementationDependencies(), targetPlatform, toolChain, platformToolProvider, identity);
         getBinaries().add(result);
         return result;
     }
@@ -79,7 +74,5 @@ public class DefaultCppApplication extends DefaultCppComponent implements CppApp
     }
 
     @Override
-    public Property<CppExecutable> getDevelopmentBinary() {
-        return developmentBinary;
-    }
+    public abstract Property<CppExecutable> getDevelopmentBinary();
 }

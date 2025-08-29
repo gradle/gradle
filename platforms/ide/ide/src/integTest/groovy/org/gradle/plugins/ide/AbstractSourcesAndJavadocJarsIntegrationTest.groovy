@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.ide
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
@@ -57,7 +56,6 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         succeeds "resolve"
     }
 
-    @ToBeFixedForConfigurationCache
     def "sources and javadoc jars from maven repositories are resolved, attached and cached"() {
         def repo = mavenHttpRepo
         def module = repo.module("some", "module", "1.0")
@@ -90,7 +88,6 @@ dependencies {
         ideFileContainsEntry("module-1.0-api.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
     }
 
-    @ToBeFixedForConfigurationCache
     def "ignores missing sources and javadoc jars in maven repositories"() {
         def repo = mavenHttpRepo
         repo.module("some", "module", "1.0").publish().allowAll()
@@ -103,7 +100,6 @@ dependencies {
         ideFileContainsNoSourcesAndJavadocEntry()
     }
 
-    @ToBeFixedForConfigurationCache
     def "ignores broken source or javadoc artifacts in maven repository"() {
         def repo = mavenHttpRepo
         def module = repo.module("some", "module", "1.0")
@@ -147,7 +143,6 @@ dependencies {
         succeeds "resolve"
     }
 
-    @ToBeFixedForConfigurationCache
     def "sources and javadoc jars from ivy repositories are resolved, attached and cached"() {
         def repo = ivyHttpRepo
         def module = repo.module("some", "module", "1.0")
@@ -170,7 +165,6 @@ dependencies {
         ideFileContainsEntry("module-1.0.jar", "module-1.0-my-sources.jar", "module-1.0-my-javadoc.jar")
     }
 
-    @ToBeFixedForConfigurationCache
     def "all sources and javadoc jars resolved from ivy repo are attached to all artifacts for module"() {
         def repo = ivyHttpRepo
         def module = repo.module("some", "module", "1.0")
@@ -204,7 +198,6 @@ dependencies {
         ideFileContainsEntry("module-1.0-tests.jar", sources, javadoc)
     }
 
-    @ToBeFixedForConfigurationCache
     def "all sources jars from ivy repositories are attached when there are multiple unclassified artifacts"() {
         def repo = ivyHttpRepo
 
@@ -232,7 +225,6 @@ dependencies {
         ideFileContainsEntry("foo-api-1.0.jar", ["foo-sources-1.0.jar", "foo-api-sources-1.0.jar"], ["foo-javadoc-1.0.jar", "foo-api-javadoc-1.0.jar"])
     }
 
-    @ToBeFixedForConfigurationCache
     def "ignores missing sources and javadoc jars in ivy repositories"() {
         def repo = ivyHttpRepo
         final module = repo.module("some", "module", "1.0")
@@ -250,7 +242,6 @@ dependencies {
         ideFileContainsNoSourcesAndJavadocEntry()
     }
 
-    @ToBeFixedForConfigurationCache
     def "ignores broken source or javadoc artifacts in ivy repository"() {
         def repo = ivyHttpRepo
         def module = repo.module("some", "module", "1.0")
@@ -273,7 +264,6 @@ dependencies {
         ideFileContainsNoSourcesAndJavadocEntry()
     }
 
-    @ToBeFixedForConfigurationCache
     def "sources and javadoc jars stored with maven scheme in ivy repositories are resolved and attached"() {
         def repo = ivyHttpRepo
         def module = repo.module("some", "module", "1.0")
@@ -292,7 +282,6 @@ dependencies {
         ideFileContainsEntry("module-1.0.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
     }
 
-    @ToBeFixedForConfigurationCache
     def "sources and javadoc jars from flatdir repositories are resolved and attached"() {
         file("repo/module-1.0.jar").createFile()
         file("repo/module-1.0-sources.jar").createFile()
@@ -306,7 +295,6 @@ dependencies {
         ideFileContainsEntry("module-1.0.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
     }
 
-    @ToBeFixedForConfigurationCache
     @Requires(IntegTestPreconditions.IsDaemonExecutor)
     def "does not download gradleApi() sources when sources download is disabled"() {
         given:
@@ -332,7 +320,6 @@ dependencies {
         ideFileContainsGradleApi("gradle-api")
     }
 
-    @ToBeFixedForConfigurationCache
     @Requires(IntegTestPreconditions.IsDaemonExecutor)
     def "does not download gradleApi() sources when offline"() {
         given:
@@ -356,7 +343,6 @@ dependencies {
         ideFileContainsGradleApi("gradle-api")
     }
 
-    @ToBeFixedForConfigurationCache
     @Requires(UnitTestPreconditions.StableGroovy) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
     def "sources for localGroovy() are downloaded and attached"() {
         given:
@@ -389,7 +375,6 @@ dependencies {
         ideFileContainsEntry("groovy-xml-${groovyVersion}.jar", ["groovy-xml-${groovyVersion}-sources.jar"], [])
     }
 
-    @ToBeFixedForConfigurationCache
     @Requires(UnitTestPreconditions.StableGroovy) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
     def "sources for localGroovy() are downloaded and attached when using gradleApi()"() {
         given:
@@ -413,7 +398,6 @@ dependencies {
         ideFileContainsEntry("groovy-${groovyVersion}.jar", ["groovy-${groovyVersion}-sources.jar"], [])
     }
 
-    @ToBeFixedForConfigurationCache
     @Requires(
         value = [UnitTestPreconditions.StableGroovy, IntegTestPreconditions.NotEmbeddedExecutor],
         reason = "localGroovy() version cannot be swapped-out when a snapshot Groovy build is used"
@@ -440,7 +424,6 @@ dependencies {
         ideFileContainsEntry("groovy-${groovyVersion}.jar", ["groovy-${groovyVersion}-sources.jar"], [])
     }
 
-    @ToBeFixedForConfigurationCache
     def "does not download localGroovy() sources when sources download is disabled"() {
         given:
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$server.uri/")
@@ -465,7 +448,6 @@ dependencies {
         ideFileContainsNoSourcesAndJavadocEntry()
     }
 
-    @ToBeFixedForConfigurationCache
     def "does not download localGroovy() sources when offline"() {
         given:
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$server.uri/")
@@ -488,7 +470,6 @@ dependencies {
         ideFileContainsNoSourcesAndJavadocEntry()
     }
 
-    @ToBeFixedForConfigurationCache
     @Requires(UnitTestPreconditions.StableGroovy) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
     def "does not add project repository to download localGroovy() sources"() {
         given:

@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.Cast;
@@ -76,7 +77,7 @@ public class DefaultProjectPublicationRegistry implements ProjectPublicationRegi
         }
         synchronized (publicationsByBuildId) {
             DefaultPublicationForProject publicationReference = new DefaultPublicationForProject(publication, projectIdentity);
-            publicationsByBuildId.put(projectIdentity.getBuildIdentifier(), publicationReference);
+            publicationsByBuildId.put(new DefaultBuildIdentifier(projectIdentity.getBuildPath()), publicationReference);
         }
     }
 

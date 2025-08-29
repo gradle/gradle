@@ -24,7 +24,6 @@ dependencies {
     api(projects.files)
     api(projects.fileCollections)
     api(projects.fileOperations)
-    api(projects.fileTemp)
     api(projects.hashing)
     api(projects.stdlibJavaExtensions)
     api(projects.modelCore)
@@ -89,7 +88,6 @@ packageCycles {
     excludePatterns.add("org/gradle/language/nativeplatform/internal/**")
 }
 
-integTest.usesJavadocCodeSnippets = true
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

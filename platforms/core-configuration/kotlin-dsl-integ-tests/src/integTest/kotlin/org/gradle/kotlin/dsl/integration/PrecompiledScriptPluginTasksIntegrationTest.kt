@@ -23,7 +23,6 @@ import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -36,14 +35,17 @@ import org.junit.Test
 class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
-    @Requires(UnitTestPreconditions.Jdk21OrEarlier::class)
+    @Requires(
+        value = [UnitTestPreconditions.Jdk21OrEarlier::class],
+        reason = "detekt does not support 22+. See https://github.com/detekt/detekt?tab=readme-ov-file#requirements"
+    )
+    // TODO: Convert this into a smoke test
     fun `generated code follows kotlin-dsl coding conventions`() {
-
         withBuildScript(
             """
             plugins {
                 `kotlin-dsl`
-                id("io.gitlab.arturbosch.detekt") version "1.23.6"
+                id("io.gitlab.arturbosch.detekt") version "1.23.8"
             }
 
             $repositoriesBlock
@@ -76,9 +78,8 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
             """.trimIndent()
         )
 
-        build("generateScriptPluginAdapters")
-
-        build("detekt")
+        executer.expectDocumentedDeprecationWarning("The ReportingExtension.file(String) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the getBaseDirectory().file(String) or getBaseDirectory().dir(String) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#reporting_extension_file")
+        build("generateScriptPluginAdapters", "detekt")
     }
 
     @Test
@@ -133,8 +134,8 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
         }
 
         build(firstDir, "classes", "--build-cache").apply {
-            cachedTasks.forEach { assertTaskExecuted(it) }
-            assertTaskExecuted(downstreamKotlinCompileTask)
+            cachedTasks.forEach { assertTaskScheduled(it) }
+            assertTaskScheduled(downstreamKotlinCompileTask)
         }
 
         build(firstDir, "classes", "--build-cache").apply {
@@ -260,7 +261,7 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
         withKotlinDslPluginIn("consumer").appendText("""dependencies { implementation(project(":producer")) }""")
         withFile("consumer/src/main/kotlin/some.gradle.kts", "")
         build(":consumer:classes").apply {
-            assertTaskExecuted(":consumer:compilePluginsBlocks")
+            assertTaskScheduled(":consumer:compilePluginsBlocks")
             assertNotOutput("w: Classpath entry points to a non-existent location")
         }
         assertFalse(file("producer/build/classes/java/main").exists())

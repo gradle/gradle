@@ -22,7 +22,9 @@ plugins {
 description = "Tools to work with managed executors"
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInWorkers = true
+    }
 }
 
 dependencies {
@@ -31,4 +33,8 @@ dependencies {
     api(libs.jspecify)
 
     implementation(libs.slf4jApi)
+}
+
+errorprone {
+    nullawayEnabled = true
 }

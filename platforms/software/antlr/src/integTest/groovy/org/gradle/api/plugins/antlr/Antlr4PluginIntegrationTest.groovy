@@ -15,6 +15,8 @@
  */
 package org.gradle.api.plugins.antlr
 
+import org.gradle.test.fixtures.file.TestFile
+
 class Antlr4PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
     String antlrDependency = "org.antlr:antlr4:4.3"
@@ -69,6 +71,72 @@ class Antlr4PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         assertAntlrVersion(4)
     }
 
+    def "can generate grammar source with package using #description and correctly wire source set"() {
+        goodGrammarWithoutPackage()
+
+        when:
+        buildFile "grammar-builder/build.gradle", """
+            generateGrammarSource {
+                outputDirectory = file("build/sources/antlr/main${packageDir}")
+                ${expression}
+            }
+        """
+        if (expectDeprecationWarning) {
+            expectPackageArgumentDeprecationWarning(executer)
+        }
+
+        then:
+        succeeds("generateGrammarSource")
+
+        and:
+        assertGrammarSourceGenerated(file("grammar-builder/build/sources/antlr/main"), "org/acme/Test")
+        assertGrammarSourceGenerated(file("grammar-builder/build/sources/antlr/main"), "org/acme/Another")
+        assertAntlrVersion(4)
+
+        and:
+        succeeds("build")
+
+        where:
+        description                     | expression                               | packageDir  | expectDeprecationWarning
+        "arguments"                     | "arguments += ['-package', 'org.acme']"  | "/org/acme" | true
+        "packageName property"          | "packageName = 'org.acme'"               | ""          | false
+    }
+
+    def "exception when both packageName and arguments are set"() {
+        goodGrammarWithoutPackage()
+
+        when:
+        buildFile "grammar-builder/build.gradle", """
+            generateGrammarSource {
+                packageName = 'org.acme'
+                arguments += ['-package', 'org.acme']
+            }
+        """
+        expectPackageArgumentDeprecationWarning(executer)
+
+        then:
+        fails("generateGrammarSource")
+        failure.assertHasCause("The package has been set both in the arguments (i.e. '-package') and via the 'packageName' property.  Please set the package only using the 'packageName' property.")
+    }
+
+    def "can change output directory and source set reflects change"() {
+        goodGrammar()
+        goodProgram()
+        buildFile "grammar-builder/build.gradle", """
+            generateGrammarSource {
+                outputDirectory = file("build/generated/antlr/main")
+            }
+        """
+
+        when:
+        expect:
+        succeeds("generateGrammarSource")
+        assertGrammarSourceGenerated(file("grammar-builder/build/generated/antlr/main"),"org/acme/Test")
+        assertGrammarSourceGenerated(file("grammar-builder/build/generated/antlr/main"), "Another")
+        assertAntlrVersion(4)
+        succeeds("build")
+    }
+
     void goodProgram() {
         file("grammar-user/src/main/java/Main.java") << """
 
@@ -90,12 +158,16 @@ class Antlr4PluginIntegrationTest extends AbstractAntlrIntegrationTest {
     }
 
     private void assertGrammarSourceGenerated(String grammarName) {
-        assert file("grammar-builder/build/generated-src/antlr/main/${grammarName}.tokens").exists()
-        assert file("grammar-builder/build/generated-src/antlr/main/${grammarName}BaseListener.java").exists()
-        assert file("grammar-builder/build/generated-src/antlr/main/${grammarName}Lexer.java").exists()
-        assert file("grammar-builder/build/generated-src/antlr/main/${grammarName}Lexer.tokens").exists()
-        assert file("grammar-builder/build/generated-src/antlr/main/${grammarName}Listener.java").exists()
-        assert file("grammar-builder/build/generated-src/antlr/main/${grammarName}Parser.java").exists()
+        assertGrammarSourceGenerated(file('grammar-builder/build/generated-src/antlr/main'), grammarName)
+    }
+
+    private static void assertGrammarSourceGenerated(TestFile root, String grammarName) {
+        assert root.file("${grammarName}.tokens").exists()
+        assert root.file("${grammarName}BaseListener.java").exists()
+        assert root.file("${grammarName}Lexer.java").exists()
+        assert root.file("${grammarName}Lexer.tokens").exists()
+        assert root.file("${grammarName}Listener.java").exists()
+        assert root.file("${grammarName}Parser.java").exists()
     }
 
     def "analyze bad grammar"() {
@@ -127,6 +199,19 @@ class Antlr4PluginIntegrationTest extends AbstractAntlrIntegrationTest {
     private badGrammar() {
         file("grammar-builder/src/main/antlr/Test.g4") << """grammar Test;
             r  : 'hello' ID ;    extrastuff
+            ID : [a-z]+ ;
+            WS : [ \\t\\r\\n]+ -> skip ;
+        """
+    }
+
+    private goodGrammarWithoutPackage() {
+        file("grammar-builder/src/main/antlr/Test.g4") << """grammar Test;
+            r  : 'hello' ID ;
+            ID : [a-z]+ ;
+            WS : [ \\t\\r\\n]+ -> skip ;
+        """
+        file("grammar-builder/src/main/antlr/Another.g4") << """grammar Another;
+            r  : 'hello' ID ;
             ID : [a-z]+ ;
             WS : [ \\t\\r\\n]+ -> skip ;
         """

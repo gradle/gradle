@@ -20,8 +20,9 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.LineProcessor;
 import com.google.common.io.Resources;
-import org.apache.commons.lang.StringUtils;
-import org.gradle.api.UncheckedIOException;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.internal.classpath.RuntimeApiInfo;
+import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
 import java.net.URL;
@@ -32,21 +33,15 @@ import java.util.Map;
 
 public class DefaultImportsReader implements ImportsReader {
 
-    public static final String RESOURCE = "/default-imports.txt";
-    private static final String MAPPING_RESOURCE = "/api-mapping.txt";
     private final String[] importPackages;
     private final Map<String, List<String>> simpleNameToFQCN;
 
-    public DefaultImportsReader() {
-        this(DefaultImportsReader.class.getResource(RESOURCE));
-    }
-
-    public DefaultImportsReader(URL url) {
+    public DefaultImportsReader(RuntimeApiInfo runtimeApiInfo) {
         try {
-            this.importPackages = generateImportPackages(url);
-            this.simpleNameToFQCN = generateSimpleNameToFQCN();
+            this.importPackages = generateImportPackages(runtimeApiInfo.getDefaultImportsResource());
+            this.simpleNameToFQCN = generateSimpleNameToFQCN(runtimeApiInfo.getApiMappingResource());
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -65,9 +60,6 @@ public class DefaultImportsReader implements ImportsReader {
      * Please keep this code in sync.
      */
     private static String[] generateImportPackages(URL url) throws IOException {
-        if (url == null) {
-            throw new IllegalStateException("Could not load default imports resource: " + RESOURCE);
-        }
         return Resources.asCharSource(url, StandardCharsets.UTF_8).readLines(new LineProcessor<String[]>() {
             private final List<String> packages = new LinkedList<>();
 
@@ -84,11 +76,7 @@ public class DefaultImportsReader implements ImportsReader {
         });
     }
 
-    private static Map<String, List<String>> generateSimpleNameToFQCN() throws IOException {
-        URL url = DefaultImportsReader.class.getResource(MAPPING_RESOURCE);
-        if (url == null) {
-            throw new IllegalStateException("Could not load default imports resource: " + MAPPING_RESOURCE);
-        }
+    private static Map<String, List<String>> generateSimpleNameToFQCN(URL url) throws IOException {
         return Resources.asCharSource(url, StandardCharsets.UTF_8).readLines(new LineProcessor<Map<String, List<String>>>() {
             private final ImmutableMap.Builder<String, List<String>> builder = ImmutableMap.builder();
 

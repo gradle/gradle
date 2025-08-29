@@ -20,9 +20,11 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.internal.PluginUnderTestMetadataReading
+import org.junit.Assume
 
 class PluginUnderTest {
 
@@ -84,7 +86,13 @@ class PluginUnderTest {
     PluginUnderTest build() {
         writeSourceFiles()
         writeBuildScript()
-        def executer = new GradleContextualExecuter(new UnderDevelopmentGradleDistribution(), testDirectoryProvider, IntegrationTestBuildContext.INSTANCE)
+
+        // TODO: Can we make this run with the target distribution?
+        // That way we can run tests that use PluginUnderTest in more scenarios
+        def distribution = new UnderDevelopmentGradleDistribution()
+        Assume.assumeTrue("PluginUnderTest is compatible with the current JVM", distribution.daemonWorksWith(Jvm.current().javaVersionMajor))
+        def executer = new GradleContextualExecuter(distribution, testDirectoryProvider, IntegrationTestBuildContext.INSTANCE)
+
         try {
             executer
                 .usingProjectDirectory(projectDir)

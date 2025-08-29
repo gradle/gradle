@@ -59,6 +59,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         generateUserManual(project, tasks, layout, extension);
 
         checkXrefLinksInUserManualAreValid(layout, tasks, extension);
+        checkLinksInUserManualAreNotMissing(layout, tasks, extension);
     }
 
     public static List<String> getDefaultExcludedPackages() {
@@ -165,13 +166,15 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             // TODO: This is coupled to extension.getJavadocs().getJavaApi()
             attributes.put("javadocReferenceUrl", "https://docs.oracle.com/javase/8/docs/technotes/tools/windows/javadoc.html");
             // TODO: This is coupled to extension.getJavadocs().getJavaApi()
-            attributes.put("minJdkVersion", "8");
+            attributes.put("minJdkVersion", "17");
 
             attributes.put("antManual", "https://ant.apache.org/manual");
             attributes.put("docsUrl", "https://docs.gradle.org");
 
             // TODO: This breaks if the version is changed later.
             attributes.put("gradleVersion", project.getVersion().toString());
+            attributes.put("gradleVersion90", "9.0.0");
+            attributes.put("gradleVersion8", "8.14.3");
             attributes.put("snippetsPath", "snippets");
             // Make sure the 'raw' location of the samples is available in all AsciidoctorTasks to access files with expected outputs in the 'tests' folder for inclusion in READMEs
             attributes.put("samplesPath", extension.getUserManual().getStagingRoot().dir("raw/samples").get().getAsFile());
@@ -330,5 +333,14 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         });
 
         tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(checkDeadInternalLinks));
+    }
+
+    private void checkLinksInUserManualAreNotMissing(ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {
+        TaskProvider<FindMissingDocumentationFiles> checkMissingInternalLinks = tasks.register("checkMissingInternalLinks", FindMissingDocumentationFiles.class, task -> {
+            task.getDocumentationRoot().convention(extension.getUserManual().getRoot());
+            task.getJsonFilesDirectory().convention(layout.getProjectDirectory().dir("src/main/resources"));
+        });
+
+        tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(checkMissingInternalLinks));
     }
 }

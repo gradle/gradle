@@ -16,7 +16,7 @@
 
 package gradlebuild.testcleanup
 
-import org.gradle.internal.impldep.org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -66,9 +66,11 @@ class TestFilesCleanupServiceTest {
         }
 
         projectDir.resolve("failed-test-with-leftover/src/test/java/FlakyTest.java").writeFlakyTest(true)
+        projectDir.resolve("successful-test-with-leftover/src/test/java/FlakyTest.java").writeFlakyTest(false)
+        projectDir.resolve("failed-report-with-leftover").mkdirs()
         projectDir.resolve("flaky-test-with-leftover/src/test/java/FlakyTest.java").writeFlakyTest(true)
         projectDir.resolve("flaky-test-without-leftover/src/test/java/FlakyTest.java").writeFlakyTest(true)
-        projectDir.resolve("successful-test-with-leftover/src/test/java/FlakyTest.java").writeFlakyTest(false)
+        projectDir.resolve("successful-report").mkdirs()
 
         projectDir.resolve("build.gradle.kts").writeText(
             """
@@ -123,7 +125,7 @@ class TestFilesCleanupServiceTest {
                 registerTestWithLeftover()
             }
 
-            open class TestWithLeftover: AbstractTestTask() {
+            abstract class TestWithLeftover: AbstractTestTask() {
                 fun Project.touchInBuildDir(path:String) {
                     layout.buildDirectory.file(path).get().asFile.apply {
                         parentFile.mkdirs()

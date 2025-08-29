@@ -35,6 +35,7 @@ import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -84,23 +85,29 @@ public abstract class WarPlugin implements Plugin<Project> {
         });
 
         PublishArtifact warArtifact = new LazyPublishArtifact(war, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory());
-        project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts().add(warArtifact);
+        DeprecationLogger.whileDisabled(() -> {
+            project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts().add(warArtifact);
+        });
         configureConfigurations(((ProjectInternal) project).getConfigurations(), mainFeature);
         configureComponent(project, warArtifact);
     }
 
     @SuppressWarnings("deprecation")
     private void configureConfigurations(RoleBasedConfigurationContainerInternal configurationContainer, JvmFeatureInternal mainFeature) {
-        Configuration providedCompileConfiguration = configurationContainer.resolvableDependencyScopeLocked(PROVIDED_COMPILE_CONFIGURATION_NAME).setVisible(false).
-            setDescription("Additional compile classpath for libraries that should not be part of the WAR archive.");
+        Configuration providedCompileConfiguration = configurationContainer.resolvableDependencyScopeLocked(PROVIDED_COMPILE_CONFIGURATION_NAME, conf -> {
+            conf.setDescription("Additional compile classpath for libraries that should not be part of the WAR archive.");
+        });
 
-        Configuration providedRuntimeConfiguration = configurationContainer.resolvableDependencyScopeLocked(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
-            extendsFrom(providedCompileConfiguration).
-            setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
+        Configuration providedRuntimeConfiguration = configurationContainer.resolvableDependencyScopeLocked(PROVIDED_RUNTIME_CONFIGURATION_NAME, conf -> {
+            conf.extendsFrom(providedCompileConfiguration);
+            conf.setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
+        });
 
         mainFeature.getImplementationConfiguration().extendsFrom(providedCompileConfiguration);
         mainFeature.getRuntimeClasspathConfiguration().extendsFrom(providedRuntimeConfiguration);
-        mainFeature.getRuntimeElementsConfiguration().extendsFrom(providedRuntimeConfiguration);
+        mainFeature.getRuntimeElementsConfiguration().configure(conf ->
+            conf.extendsFrom(providedRuntimeConfiguration)
+        );
 
         JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
         configurationContainer.getByName(defaultTestSuite.getSources().getRuntimeClasspathConfigurationName()).extendsFrom(providedRuntimeConfiguration);

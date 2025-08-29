@@ -91,8 +91,6 @@ class SmokeTestGradleRunner extends GradleRunner {
     }
 
     private void doEnableBuildOperationTracing(String buildOperationTracePath) {
-        // TODO: Should we filter using the stable/public build operation class names?
-        // This means we need to load classes and do an instanceof when we filter
         String buildOperationFilter = [
             "org.gradle.configurationcache.WorkGraphStoreDetails",
             "org.gradle.configurationcache.WorkGraphLoadDetails",
@@ -261,7 +259,6 @@ class SmokeTestGradleRunner extends GradleRunner {
         }
 
         new ResultAssertion(
-            0,
             deprecationWarningsToCheck.collect { ExpectedDeprecationWarning.withMessage(it) },
             maybeExpectedDeprecationWarnings.collect { ExpectedDeprecationWarning.withMessage(it) },
             expectStackTraces,

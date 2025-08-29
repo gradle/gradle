@@ -32,14 +32,14 @@ class ConfigurationCacheJavaToolchainsIntegrationTest extends AbstractConfigurat
 
         then:
         assertStateStored()
-        result.assertTasksExecuted(":javaToolchains")
+        result.assertTasksScheduled(":javaToolchains")
 
         when:
         configurationCacheRun "javaToolchains"
 
         then:
         assertStateLoaded()
-        result.assertTasksExecuted(":javaToolchains")
+        result.assertTasksScheduled(":javaToolchains")
     }
 
     private void assertStateStored() {

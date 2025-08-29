@@ -37,8 +37,12 @@ public abstract class Documentation implements InternalDocLink {
         return new UserGuide(id, null);
     }
 
-    public static Documentation upgradeGuide(int majorVersion, String upgradeGuideSection) {
-        return new UpgradeGuide(majorVersion, upgradeGuideSection);
+    public static Documentation upgradeMinorGuide(int majorVersion, String upgradeGuideSection) {
+        return UpgradeGuide.forMinorVersion(majorVersion, upgradeGuideSection);
+    }
+
+    public static Documentation upgradeMajorGuide(int majorVersion, String upgradeGuideSection) {
+        return UpgradeGuide.forMajorVersion(majorVersion, upgradeGuideSection);
     }
 
     public static Documentation dslReference(Class<?> targetClass, String property) {
@@ -73,14 +77,6 @@ public abstract class Documentation implements InternalDocLink {
          * Output: See USER_MANUAL_URL for more details.
          */
         @CheckReturnValue
-        public T withUserManual(String documentationId) {
-            return withDocumentation(Documentation.userManual(documentationId));
-        }
-
-        /**
-         * Output: See USER_MANUAL_URL for more details.
-         */
-        @CheckReturnValue
         public T withUserManual(String documentationId, String section) {
             return withDocumentation(Documentation.userManual(documentationId, section));
         }
@@ -98,7 +94,7 @@ public abstract class Documentation implements InternalDocLink {
          */
         @CheckReturnValue
         public T withUpgradeGuideSection(int majorVersion, String upgradeGuideSection) {
-            return withDocumentation(Documentation.upgradeGuide(majorVersion, upgradeGuideSection));
+            return withDocumentation(Documentation.upgradeMinorGuide(majorVersion, upgradeGuideSection));
         }
     }
 
@@ -142,8 +138,16 @@ public abstract class Documentation implements InternalDocLink {
 
     private static class UpgradeGuide extends UserGuide {
 
-        private UpgradeGuide(int majorVersion, String section) {
-            super("upgrading_version_" + majorVersion, section);
+        private UpgradeGuide(String basePath, String section) {
+            super(basePath, section);
+        }
+
+        public static UpgradeGuide forMinorVersion(int majorVersion, String section) {
+            return new UpgradeGuide("upgrading_version_" + majorVersion, section);
+        }
+
+        public static UpgradeGuide forMajorVersion(int majorVersion, String section) {
+            return new UpgradeGuide("upgrading_major_version_" + majorVersion, section);
         }
 
         @Override

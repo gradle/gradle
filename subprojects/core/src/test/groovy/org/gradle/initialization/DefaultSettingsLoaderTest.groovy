@@ -19,7 +19,6 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.plugins.internal.HelpBuiltInCommand
 import org.gradle.buildinit.plugins.internal.action.InitBuiltInCommand
 import org.gradle.groovy.scripts.ScriptSource
@@ -30,21 +29,30 @@ import org.gradle.internal.logging.ToStringLogger
 import org.gradle.internal.scripts.ScriptFileResolver
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.Path
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import java.nio.file.Files
+
 class DefaultSettingsLoaderTest extends Specification {
-    private projectRootDir = FileUtils.canonicalize(new File("someDir"))
-    private mockBuildLayout = new BuildLayout(null, projectRootDir, null, Stub(ScriptFileResolver))
+    private projectRootDir = createTempProjectDir()
+
+    File createTempProjectDir() {
+        def file = Files.createTempDirectory("DefaultSettingsLoaderTestTempProjectDir_").toFile()
+        file.deleteOnExit()
+        FileUtils.canonicalize(file)
+    }
+    private mockBuildLayout = new BuildLayout(projectRootDir, null, Stub(ScriptFileResolver))
     @SuppressWarnings('GroovyAssignabilityCheck')
     private mockBuildLayoutFactory = Mock(BuildLayoutFactory) {
         getLayoutFor(_) >> mockBuildLayout
     }
-    private mockProjectDescriptor = Mock(DefaultProjectDescriptor) {
+    private mockProjectDescriptor = Mock(ProjectDescriptorInternal) {
         getPath() >> ":"
         getProjectDir() >> mockBuildLayout.settingsDir
         getBuildFile() >> new File(mockBuildLayout.settingsDir, "build.gradle")
     }
-    private mockProjectRegistry = Mock(ProjectRegistry) {
+    private mockProjectRegistry = Mock(ProjectDescriptorRegistry) {
         getAllProjects() >> Collections.singleton(mockProjectDescriptor)
     }
     private startParameterInternal = new StartParameterInternal()
@@ -84,7 +92,7 @@ class DefaultSettingsLoaderTest extends Specification {
 
     private logger = new ToStringLogger()
     private builtInCommands = [new InitBuiltInCommand(), new HelpBuiltInCommand()]
-    private DefaultSettingsLoader settingsLoader = new DefaultSettingsLoader(mockSettingsProcessor, mockBuildLayoutFactory, builtInCommands, logger)
+    private DefaultSettingsLoader settingsLoader = new DefaultSettingsLoader(mockSettingsProcessor, mockBuildLayoutFactory, builtInCommands, logger, TestUtil.problemsService())
 
     def "running default task loads settings"() {
         when:

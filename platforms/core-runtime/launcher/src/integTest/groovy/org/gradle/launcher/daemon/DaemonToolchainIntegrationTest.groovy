@@ -42,7 +42,6 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
         expect:
         succeeds("help")
         assertDaemonUsedJvm(Jvm.current())
-        outputContains("Daemon JVM discovery is an incubating feature.")
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
@@ -68,6 +67,22 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
 
         expect:
         withInstallations(otherJvm).succeeds("help")
+        assertDaemonUsedJvm(otherJvm)
+    }
+
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    def "Given criteria matching JAVA_HOME environment variable and disabled auto-detection When executing any task Then daemon jvm was set up with expected configuration"() {
+        given:
+        def otherJvm = AvailableJavaHomes.differentVersion
+        def otherMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
+        writeJvmCriteria(otherJvm.javaVersion, otherMetadata.vendor.knownVendor.name())
+        captureJavaHome()
+
+        executer.withJavaHome(Jvm.current().javaHome.absolutePath)
+            .withEnvironmentVarsIncludingJavaHome([JAVA_HOME: otherJvm.javaHome.absolutePath])
+
+        expect:
+        succeeds("help")
         assertDaemonUsedJvm(otherJvm)
     }
 

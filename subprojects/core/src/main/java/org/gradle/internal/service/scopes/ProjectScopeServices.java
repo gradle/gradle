@@ -279,7 +279,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         BuildOperationRunner buildOperationRunner,
         CrossProjectConfigurator crossProjectConfigurator,
         CollectionCallbackActionDecorator decorator,
-        ProjectRegistry<ProjectInternal> projectRegistry
+        ProjectRegistry projectRegistry
     ) {
         return new DefaultTaskContainerFactory(
             instantiator,
@@ -302,7 +302,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected ProjectFinder createProjectFinder() {
-        return new DefaultProjectFinder(() -> project);
+        return new DefaultProjectFinder(project.getOwner().getIdentity());
     }
 
     @Provides

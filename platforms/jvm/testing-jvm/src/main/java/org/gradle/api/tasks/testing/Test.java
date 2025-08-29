@@ -27,7 +27,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
@@ -172,10 +171,10 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     private final ModularitySpec modularity;
     private final Property<JavaLauncher> javaLauncher;
 
-    private final ConfigurableFileCollection testClassesDirs = getObjectFactory().fileCollection();
+    private FileCollection testClassesDirs;
     private final PatternFilterable patternSet;
-    private final ConfigurableFileCollection classpath = getObjectFactory().fileCollection();
-    private final ConfigurableFileCollection stableClasspath = getObjectFactory().fileCollection();
+    private FileCollection classpath;
+    private final ConfigurableFileCollection stableClasspath;
     private final Property<TestFramework> testFramework;
     private boolean scanForTestClasses = true;
     private long forkEvery;
@@ -185,8 +184,16 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public Test() {
         ObjectFactory objectFactory = getObjectFactory();
         patternSet = getPatternSetFactory().createPatternSet();
+        testClassesDirs = objectFactory.fileCollection();
+        classpath = objectFactory.fileCollection();
         // Create a stable instance to represent the classpath, that takes care of conventions and mutations applied to the property
-        stableClasspath.from((Callable<Object>) this::getClasspath);
+        stableClasspath = objectFactory.fileCollection();
+        stableClasspath.from(new Callable<Object>() {
+            @Override
+            public Object call() {
+                return getClasspath();
+            }
+        });
         forkOptions = getForkOptionsFactory().newDecoratedJavaForkOptions();
         forkOptions.setEnableAssertions(true);
         forkOptions.setExecutable(null);
@@ -345,7 +352,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public Test bootstrapClasspath(Object... classpath) {
+    public Test bootstrapClasspath(@Nullable Object... classpath) {
         forkOptions.bootstrapClasspath(classpath);
         return this;
     }
@@ -355,6 +362,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @Nullable
     public String getMinHeapSize() {
         return forkOptions.getMinHeapSize();
     }
@@ -364,6 +372,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @Nullable
     public String getDefaultCharacterEncoding() {
         return forkOptions.getDefaultCharacterEncoding();
     }
@@ -372,7 +381,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
+    public void setDefaultCharacterEncoding(@Nullable String defaultCharacterEncoding) {
         forkOptions.setDefaultCharacterEncoding(defaultCharacterEncoding);
     }
 
@@ -380,7 +389,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public void setMinHeapSize(String heapSize) {
+    public void setMinHeapSize(@Nullable String heapSize) {
         forkOptions.setMinHeapSize(heapSize);
     }
 
@@ -389,6 +398,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @Nullable
     public String getMaxHeapSize() {
         return forkOptions.getMaxHeapSize();
     }
@@ -397,7 +407,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
-    public void setMaxHeapSize(String heapSize) {
+    public void setMaxHeapSize(@Nullable String heapSize) {
         forkOptions.setMaxHeapSize(heapSize);
     }
 
@@ -714,7 +724,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
                 getServices().get(WorkerLeaseService.class),
                 getServices().get(StartParameter.class).getMaxWorkerCount(),
                 getServices().get(Clock.class),
-                getServices().get(DocumentationRegistry.class),
                 (DefaultTestFilter) getFilter());
         } else {
             return testExecuter;
@@ -862,7 +871,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 4.0
      */
     public void setTestClassesDirs(FileCollection testClassesDirs) {
-        this.testClassesDirs.setFrom(testClassesDirs);
+        this.testClassesDirs = testClassesDirs;
     }
 
     /**
@@ -1112,7 +1121,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     public void setClasspath(FileCollection classpath) {
-        this.classpath.setFrom(classpath);
+        this.classpath = classpath;
     }
 
     /**
@@ -1274,52 +1283,29 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract PropertyFactory getPropertyFactory();
 
     @Inject
-    protected PropertyFactory getPropertyFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaToolchainService getJavaToolchainService();
 
     @Inject
-    protected JavaToolchainService getJavaToolchainService() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProviderFactory getProviderFactory();
 
     @Inject
-    protected ProviderFactory getProviderFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ActorFactory getActorFactory();
 
     @Inject
-    protected ActorFactory getActorFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract WorkerProcessFactory getProcessBuilderFactory();
 
     @Inject
-    protected WorkerProcessFactory getProcessBuilderFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract PatternSetFactory getPatternSetFactory();
 
     @Inject
-    protected PatternSetFactory getPatternSetFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaForkOptionsFactory getForkOptionsFactory();
 
     @Inject
-    protected JavaForkOptionsFactory getForkOptionsFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ModuleRegistry getModuleRegistry();
 
     @Inject
-    protected ModuleRegistry getModuleRegistry() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected JavaModuleDetector getJavaModuleDetector() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaModuleDetector getJavaModuleDetector();
 }

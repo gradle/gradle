@@ -91,10 +91,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
 
     def "Multi-project build can define different target bytecode level for subprojects"() {
         given:
-        createDirs("subproject-a", "subproject-b", "subproject-c")
-        settingsFile << """
-            include 'subproject-a', 'subproject-b', 'subproject-c'
-        """
+        includeProjects("subproject-a", "subproject-b", "subproject-c")
 
         buildFile << """
             project(':subproject-a') {

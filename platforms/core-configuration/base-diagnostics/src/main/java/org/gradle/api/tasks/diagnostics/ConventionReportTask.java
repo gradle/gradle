@@ -124,7 +124,6 @@ public abstract class ConventionReportTask extends ConventionTask {
     ReportGenerator reportGenerator() {
         return new ReportGenerator(
             getRenderer(),
-            getClientMetaData(),
             getOutputFile(),
             getTextOutputFactory()
         );
@@ -145,12 +144,8 @@ public abstract class ConventionReportTask extends ConventionTask {
     }
 
     @Inject
-    protected BuildClientMetaData getClientMetaData() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract BuildClientMetaData getClientMetaData();
 
     @Inject
-    protected StyledTextOutputFactory getTextOutputFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract StyledTextOutputFactory getTextOutputFactory();
 }

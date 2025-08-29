@@ -17,8 +17,10 @@
 package org.gradle.plugin.devel.variants
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.plugins.UnknownPluginException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -28,7 +30,7 @@ import spock.lang.Issue
 class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegrationSpec {
     def currentGradle = GradleVersion.current().version
 
-    @Requires(UnitTestPreconditions.Jdk15OrEarlier) // older Gradle version 6.7.1 is used in test
+    @Requires(value = UnitTestPreconditions.Jdk15OrEarlier, reason = "older Gradle version 6.7.1 is used in test")
     def "can publish and use Gradle plugin with multiple variants"() {
         given:
         def producer = file('producer')
@@ -130,7 +132,8 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
         outputContains("Hello from Gradle 7.0+")
 
         and:
-        def gradle6Executer = buildContext.distribution("6.7.1").executer(temporaryFolder, buildContext)
+        def distribution = buildContext.distribution("6.7.1")
+        def gradle6Executer = new NoDaemonGradleExecuter(distribution, temporaryFolder, buildContext)
         def gradle6Result = gradle6Executer.usingProjectDirectory(consumer).withTasks('greet').run()
 
         then:
@@ -156,7 +159,7 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
             version = "1.0"
 
             configurations.configureEach {
-                if (canBeConsumed)  {
+                if (canBeConsumed && name != '${Dependency.ARCHIVES_CONFIGURATION}')  {
                     attributes {
                         attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, objects.named(GradlePluginApiVersion, '1000.0'))
                     }
@@ -333,13 +336,15 @@ class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegra
 
             def color = Attribute.of("color", String)
             configurations.configureEach {
-                if (canBeConsumed && name.startsWith(alternate.name))  {
-                    attributes {
-                        attribute(color, 'green')
-                    }
-                } else if (canBeConsumed && !name.startsWith(alternate.name))  {
-                    attributes {
-                        attribute(color, 'blue')
+                if (name != '${Dependency.ARCHIVES_CONFIGURATION}') {
+                    if (canBeConsumed && name.startsWith(alternate.name))  {
+                        attributes {
+                            attribute(color, 'green')
+                        }
+                    } else if (canBeConsumed && !name.startsWith(alternate.name))  {
+                        attributes {
+                            attribute(color, 'blue')
+                        }
                     }
                 }
             }

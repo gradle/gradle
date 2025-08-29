@@ -15,11 +15,10 @@
  */
 package org.gradle.integtests.fixtures
 
-import org.apache.commons.lang.StringEscapeUtils
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.lib.Config
+import org.apache.commons.lang3.StringEscapeUtils
 import org.gradle.api.Action
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails
 import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails
 import org.gradle.api.problems.internal.ProblemSummaryData
@@ -180,23 +179,6 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
 
     GradleExecuter createExecuter() {
         new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
-    }
-
-    /**
-     * Some integration tests need to run git commands in test directory,
-     * but distributed-test-remote-executor has no .git directory so we init a "dummy .git dir".
-     */
-    void initGitDir() {
-        Git.init().setDirectory(testDirectory).call().withCloseable { Git git ->
-            // Clear config hierarchy to avoid global configuration loaded from user home
-            for (Config config = git.repository.config; config != null; config = config.getBaseConfig()) {
-                //noinspection GroovyAccessibility
-                config.clear()
-            }
-            testDirectory.file('initial-commit').createNewFile()
-            git.add().addFilepattern("initial-commit").call()
-            git.commit().setMessage("Initial commit").call()
-        }
     }
 
     /**
@@ -511,7 +493,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     protected void executedAndNotSkipped(String... tasks) {
         assertHasResult()
         tasks.each {
-            result.assertTaskNotSkipped(it)
+            result.assertTaskExecuted(it)
         }
     }
 
@@ -522,7 +504,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
 
     protected void allSkipped() {
         assertHasResult()
-        result.assertTasksNotSkipped()
+        result.assertAllTasksSkipped()
     }
 
     protected void skipped(String... tasks) {
@@ -535,14 +517,14 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     protected void notExecuted(String... tasks) {
         assertHasResult()
         tasks.each {
-            result.assertTaskNotExecuted(it)
+            result.assertTasksNotScheduled(it)
         }
     }
 
     protected void executed(String... tasks) {
         assertHasResult()
         tasks.each {
-            result.assertTaskExecuted(it)
+            result.assertTaskScheduled(it)
         }
     }
 
@@ -789,15 +771,26 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
             operation.progress(DefaultProblemProgressDetails.class).collect {
                 def problemDetails = it.details.get("problem") as Map<String, Object>
                 return new ReceivedProblem(operation.id, problemDetails)
-            }.findAll {
-                // Filter out all java version deprecation problems
-                // TODO: The problems API infrastructure should be built-into the executor.
-                // However, since it isn't we do not know if the test has disabled the filtering of
-                // these deprecation logs from the normal deprecation checks.
-                // So, just ignore them all the time, even if the test has requested to not ignore these warnings.
-                it.fqid != 'deprecation:executing-gradle-on-jvm-versions-and-lower'
-            }
+            }.findAll { isRealProblem(it) }
         }
+    }
+
+    static boolean isRealProblem(ReceivedProblem problem) {
+        // Filter out all java version deprecation problems
+        // TODO: The problems API infrastructure should be built-into the executor.
+        // However, since it isn't we do not know if the test has disabled the filtering of
+        // these deprecation logs from the normal deprecation checks.
+        // So, just ignore them all the time, even if the test has requested to not ignore these warnings.
+        if (problem.fqid == 'deprecation:executing-gradle-on-jvm-versions-and-lower') {
+            return false
+        }
+        // Filter out Kotlin DSL JDK incompatibility warnings that don't matter in practice
+        // These occur when we try to run Gradle on newer JDKs when KGP hasn't updated their target compatibility.
+        if (problem.fqid == 'KOTLIN:KGP:MISCONFIGURATION:InconsistentTargetCompatibilityForKotlinAndJavaTasks'
+            && problem.severity == Severity.WARNING) {
+            return false
+        }
+        return true
     }
 
     List<List<ProblemSummaryData>> getProblemSummaries() {

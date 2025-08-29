@@ -30,6 +30,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultJavaFeatureSpec implements FeatureSpec {
+
     private final String name;
     private final Set<Capability> capabilities = new LinkedHashSet<>(1);
     private final ProjectInternal project;
@@ -85,23 +86,28 @@ public class DefaultJavaFeatureSpec implements FeatureSpec {
         if (SourceSet.isMain(sourceSet)) {
             DeprecationLogger.deprecateBehaviour(String.format("The '%s' feature was created using the main source set.", name))
                 .withAdvice("The main source set is reserved for production code and should not be used for features. Use another source set instead.")
-                .willBecomeAnErrorInGradle9()
+                .willBecomeAnErrorInGradle10()
                 .withUpgradeGuideSection(8, "deprecate_register_feature_main_source_set")
                 .nagUser();
         }
 
         JvmFeatureInternal feature = new DefaultJvmFeature(name, sourceSet, capabilities, project, SourceSet.isMain(sourceSet));
         feature.withApi();
-
-        if (withJavadocJar) {
-            feature.withJavadocJar();
-        }
-
-        if (withSourcesJar) {
-            feature.withSourcesJar();
-        }
-
         return feature;
+    }
+
+    /**
+     * Return true if {@link #withJavadocJar} was called.
+     */
+    public boolean hasJavadocJar() {
+        return withJavadocJar;
+    }
+
+    /**
+     * Return true if {@link #withSourcesJar} was called.
+     */
+    public boolean hasSourcesJar() {
+        return withSourcesJar;
     }
 
 }

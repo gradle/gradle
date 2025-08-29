@@ -75,7 +75,7 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         """
 
         when:
-        executer.expectDeprecationWarning('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.')
+        executer.expectExternalDeprecatedMessage('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.')
         run ':outgoingVariants', '--all'
 
         then:
@@ -1207,7 +1207,6 @@ Secondary Variants (*)
             version = '1.0'
 
             def sample = configurations.create("sample") {
-                visible = true
                 canBeResolved = false
                 assert canBeConsumed
 

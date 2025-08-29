@@ -317,6 +317,63 @@ Versions rejected by attribute matching:
       - Attribute 'shape' didn't match. Requested 'circle', was: 'square'""")
     }
 
+    def "attributes on constraints are used to select the version"() {
+        given:
+        repository {
+            'org:test:1.0' {
+                attribute('quality', 'qa')
+            }
+            'org:test:1.1' {
+                attribute('quality', 'rc')
+            }
+        }
+        buildFile << """
+            def quality = Attribute.of("quality", String)
+
+            dependencies {
+                attributesSchema {
+                    attribute(quality)
+                }
+
+                conf('org:test:[1.0,)')
+
+                constraints {
+                    conf('org:test') {
+                        attributes {
+                            attribute(quality, 'qa')
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:test' {
+                expectVersionListing()
+                '1.0' {
+                    expectResolve()
+                }
+                '1.1' {
+                    expectGetMetadata()
+                }
+            }
+        }
+
+        then:
+        run ':checkDeps'
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge('org:test:[1.0,)', 'org:test:1.0') {
+                    byReason("rejection: version 1.1:   - Attribute 'quality' didn't match. Requested 'qa', was: 'rc'")
+                }
+                constraint("org:test", "org:test:1.0") {
+                    byConstraint()
+                }
+            }
+        }
+    }
+
     static Closure<String> latestNotation() {
         { -> GradleMetadataResolveRunner.useIvy() ? "latest.integration" : "latest.release" }
     }

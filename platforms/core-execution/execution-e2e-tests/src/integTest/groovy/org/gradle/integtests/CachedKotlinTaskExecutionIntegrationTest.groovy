@@ -59,7 +59,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         when:
         withBuildCache().run "customTask"
         then:
-        result.assertTaskNotSkipped(":customTask")
+        result.assertTaskExecuted(":customTask")
 
         when:
         file("buildSrc/build").deleteDir()
@@ -87,7 +87,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         when:
         withBuildCache().run "customTask"
         then:
-        result.assertTaskNotSkipped(":customTask")
+        result.assertTaskExecuted(":customTask")
         file("build/output.txt").text == "input"
 
         when:
@@ -96,7 +96,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         cleanBuildDir()
         withBuildCache().run "customTask"
         then:
-        result.assertTaskNotSkipped(":customTask")
+        result.assertTaskExecuted(":customTask")
         file("build/output.txt").text == "input modified"
     }
 

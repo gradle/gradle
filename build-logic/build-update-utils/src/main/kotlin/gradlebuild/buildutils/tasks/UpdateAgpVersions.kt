@@ -24,6 +24,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.UntrackedTask
 import org.gradle.internal.util.PropertiesUtils
 import org.gradle.util.internal.VersionNumber
+import org.jetbrains.annotations.VisibleForTesting
 import org.jsoup.Jsoup
 import org.w3c.dom.Element
 import java.util.Properties
@@ -57,7 +58,12 @@ abstract class UpdateAgpVersions : DefaultTask() {
         }
 
     private
-    data class FetchedVersions(val latests: List<String>, val nightlyBuildId: String, val nightlyVersion: String)
+    data class FetchedVersions(
+        val latests: List<String>,
+        val nightlyBuildId: String,
+        val nightlyVersion: String,
+        val aapt2Versions: List<String>
+    )
 
     private
     fun fetchLatestAgpVersions(): FetchedVersions {
@@ -72,7 +78,11 @@ abstract class UpdateAgpVersions : DefaultTask() {
         val nightlyVersion = dbf.fetchNightlyVersion(
             "https://androidx.dev/studio/builds/$nightlyBuildId/artifacts/artifacts/repository/com/android/application/com.android.application.gradle.plugin/maven-metadata.xml"
         )
-        return FetchedVersions(latests, nightlyBuildId, nightlyVersion)
+        val aapt2Versions = dbf.fetchAapt2Versions(
+            latests.toSet().plus(nightlyVersion),
+            "https://dl.google.com/dl/android/maven2/com/android/tools/build/aapt2/maven-metadata.xml"
+        )
+        return FetchedVersions(latests, nightlyBuildId, nightlyVersion, aapt2Versions)
     }
 
     private
@@ -81,6 +91,7 @@ abstract class UpdateAgpVersions : DefaultTask() {
             setProperty("latests", fetchedVersions.latests.joinToString(","))
             setProperty("nightlyBuildId", fetchedVersions.nightlyBuildId)
             setProperty("nightlyVersion", fetchedVersions.nightlyVersion)
+            setProperty("aapt2Versions", fetchedVersions.aapt2Versions.joinToString(","))
             store(
                 propertiesFile.get().asFile,
                 comment.get()
@@ -123,17 +134,14 @@ abstract class UpdateAgpVersions : DefaultTask() {
 
     private
     fun DocumentBuilderFactory.fetchLatests(minimumSupported: String, mavenMetadataUrl: String): List<String> {
-        var latests = fetchVersionsFromMavenMetadata(mavenMetadataUrl)
-            .groupBy { it.take(3) }
-            .map { (_, versions) -> versions.first() }
-        latests = (latests + minimumSupported).sortedVersionNumbers()
-        latests = latests.subList(latests.indexOf(minimumSupported) + 1, latests.size)
-        return latests
+        return selectVersionsFrom(minimumSupported, fetchVersionsFromMavenMetadata(mavenMetadataUrl))
     }
 
-    private
-    fun List<String>.sortedVersionNumbers(): List<String> =
-        map { VersionNumber.parse(it) }.sorted().map { it.toString() }
+    fun DocumentBuilderFactory.fetchAapt2Versions(agpVersions: Set<String>, mavenMetadataUrl: String): List<String> {
+        return fetchVersionsFromMavenMetadata(mavenMetadataUrl)
+            .filter { version -> version.substringBeforeLast("-") in agpVersions }
+            .sortedBy { VersionNumber.parse(it) }
+    }
 
     private
     fun fetchNightlyBuildId(buildListUrl: String): String =
@@ -147,6 +155,24 @@ abstract class UpdateAgpVersions : DefaultTask() {
     fun DocumentBuilderFactory.fetchNightlyVersion(mavenMetadataUrl: String): String =
         fetchVersionsFromMavenMetadata(mavenMetadataUrl)
             .single()
+
+    companion object {
+
+        @VisibleForTesting
+        @JvmStatic
+        fun selectVersionsFrom(minimumSupported: String, allVersions: List<String>): List<String> {
+            val allMinorLatests = allVersions.map { version ->
+                VersionNumber.parse(version)
+            }.sorted().groupBy { version ->
+                VersionNumber.version(version.major, version.minor)
+            }.map { (_, versions) ->
+                versions.last()
+            }
+            val minimumSupportedNumber = VersionNumber.parse(minimumSupported)
+            val selected = (allMinorLatests + minimumSupportedNumber).filter { it.baseVersion > minimumSupportedNumber.baseVersion }.sorted()
+            return selected.map { it.toString() }
+        }
+    }
 }
 
 

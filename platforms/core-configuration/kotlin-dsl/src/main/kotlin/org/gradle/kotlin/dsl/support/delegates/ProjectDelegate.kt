@@ -65,17 +65,15 @@ import java.util.concurrent.Callable
 /**
  * Facilitates the implementation of the [Project] interface by delegation via subclassing.
  */
-@Deprecated("Will be removed in Gradle 9.0")
+@Deprecated("Will be removed in Gradle 10")
 abstract class ProjectDelegate : Project {
 
     init {
         @Suppress("DEPRECATION")
-        if (!org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript::class.java.isAssignableFrom(this::class.java)) {
-            DeprecationLogger.deprecateType(ProjectDelegate::class.java)
-                .willBeRemovedInGradle9()
-                .undocumented()
-                .nagUser()
-        }
+        DeprecationLogger.deprecateType(ProjectDelegate::class.java)
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(8, "kotlin_dsl_precompiled_gradle_lt_6")
+            .nagUser()
     }
 
     internal
@@ -92,11 +90,6 @@ abstract class ProjectDelegate : Project {
 
     override fun getDefaultTasks(): MutableList<String> =
         delegate.defaultTasks
-
-    @Deprecated("The concept of conventions is deprecated. Use extensions instead.")
-    override fun getConvention(): @Suppress("deprecation") org.gradle.api.plugins.Convention =
-        @Suppress("deprecation")
-        delegate.convention
 
     override fun getLogger(): Logger =
         delegate.logger
@@ -220,7 +213,7 @@ abstract class ProjectDelegate : Project {
     override fun getProjectDir(): File =
         delegate.projectDir
 
-    override fun files(vararg paths: Any): ConfigurableFileCollection =
+    override fun files(vararg paths: Any?): ConfigurableFileCollection =
         delegate.files(*paths)
 
     override fun files(paths: Any, configureClosure: Closure<*>): ConfigurableFileCollection =
@@ -425,7 +418,7 @@ abstract class ProjectDelegate : Project {
     override fun tarTree(tarPath: Any): FileTree =
         delegate.tarTree(tarPath)
 
-    override fun delete(vararg paths: Any): Boolean =
+    override fun delete(vararg paths: Any?): Boolean =
         delegate.delete(*paths)
 
     override fun delete(action: Action<in DeleteSpec>): WorkResult =

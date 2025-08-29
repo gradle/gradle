@@ -91,7 +91,7 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
     def "can override archiveBaseName in custom Jar task"() {
         buildFile """
             apply plugin: 'base'
-            class MyJar extends Jar {
+            abstract class MyJar extends Jar {
                 MyJar() {
                     super()
                     archiveBaseName.set("myjar")
@@ -127,6 +127,12 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning(
+            "The archives configuration has been deprecated for artifact declaration. " +
+                "This will fail with an error in Gradle 10. " +
+                "Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#sec:archives-configuration"
+        )
         succeeds("assemble")
 
         executedAndNotSkipped(":jar2")
@@ -172,7 +178,6 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
 
             configurations {
                 foo {
-                    visible = true
                     outgoing.artifact(tasks.jar1)
                 }
                 bar {
@@ -188,4 +193,20 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         and:
         notExecuted(":jar1", ":jar2")
     }
+
+    def "default configuration is not eagerly realized during configuration-time"() {
+        buildFile("""
+            plugins {
+                id("base")
+            }
+
+            configurations.named("default").configure {
+                throw new RuntimeException("Should not be called!")
+            }
+        """)
+
+        expect:
+        succeeds("help")
+    }
+
 }

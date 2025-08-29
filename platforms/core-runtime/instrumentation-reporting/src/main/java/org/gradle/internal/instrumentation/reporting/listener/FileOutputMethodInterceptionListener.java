@@ -16,13 +16,13 @@
 
 package org.gradle.internal.instrumentation.reporting.listener;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -31,14 +31,14 @@ class FileOutputMethodInterceptionListener implements MethodInterceptionListener
 
     private final OnInterceptedMethodInsFormatter formatter;
     private final Writer writer;
-    private final File source;
+    private final @Nullable File source;
 
     public FileOutputMethodInterceptionListener(@Nullable File source, File output) {
         this.source = source;
         try {
             this.writer = new OutputStreamWriter(Files.newOutputStream(output.toPath()), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         this.formatter = new OnInterceptedMethodInsFormatter();
     }
@@ -48,7 +48,7 @@ class FileOutputMethodInterceptionListener implements MethodInterceptionListener
         try {
             writer.write(formatter.format(this.source, sourceFileName, relativePath, owner, name, descriptor, lineNumber) + "\n");
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

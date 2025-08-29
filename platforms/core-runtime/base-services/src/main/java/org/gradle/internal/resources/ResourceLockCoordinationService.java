@@ -18,16 +18,17 @@ package org.gradle.internal.resources;
 
 import com.google.common.base.Supplier;
 import org.gradle.api.Action;
-import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
+
+import java.util.function.Function;
 
 @ServiceScope(Scope.CrossBuildSession.class)
 public interface ResourceLockCoordinationService {
     /**
      * Gets the current {@link ResourceLockState} active in this thread.  This must be called in the context
-     * of a {@link #withStateLock(InternalTransformer)} transform.
+     * of a {@link #withStateLock(Function)} transform.
      *
      * @return the current {@link ResourceLockState} or null if not in a transform.
      */
@@ -37,7 +38,7 @@ public interface ResourceLockCoordinationService {
     /**
      * Attempts to atomically change the state of resource locks.  Only one thread can alter the resource lock
      * states at one time.  Other threads will block until the resource lock state is free.  The provided
-     * {@link InternalTransformer} should return a {@link org.gradle.internal.resources.ResourceLockState.Disposition}
+     * {@link Function} should return a {@link org.gradle.internal.resources.ResourceLockState.Disposition}
      * that tells the resource coordinator how to proceed:
      *
      * FINISHED - All locks were acquired, release the state lock
@@ -47,15 +48,15 @@ public interface ResourceLockCoordinationService {
      *
      * @return true if the lock state changes finished successfully, otherwise false.
      */
-    boolean withStateLock(InternalTransformer<ResourceLockState.Disposition, ResourceLockState> stateLockAction);
+    boolean withStateLock(Function<ResourceLockState, ResourceLockState.Disposition> stateLockAction);
 
     /**
-     * A convenience for using {@link #withStateLock(InternalTransformer)}.
+     * A convenience for using {@link #withStateLock(Function)}.
      */
     void withStateLock(Runnable action);
 
     /**
-     * A convenience for using {@link #withStateLock(InternalTransformer)}.
+     * A convenience for using {@link #withStateLock(Function)}.
      */
     <T> T withStateLock(Supplier<T> action);
 

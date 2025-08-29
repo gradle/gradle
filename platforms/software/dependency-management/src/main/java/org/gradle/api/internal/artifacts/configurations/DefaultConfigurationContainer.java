@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.GradleException;
@@ -34,8 +33,7 @@ import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
+import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
@@ -45,12 +43,10 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.scopes.DetachedDependencyMetadataProvider;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.util.Collection;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -58,42 +54,38 @@ import java.util.regex.Pattern;
 
 // TODO: We should eventually consider making the DefaultConfigurationContainer extend DefaultPolymorphicDomainObjectContainer
 public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration> implements ConfigurationContainerInternal {
+
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
     private static final Pattern RESERVED_NAMES_FOR_DETACHED_CONFS = Pattern.compile(DETACHED_CONFIGURATION_DEFAULT_NAME + "\\d*");
 
-    private final DependencyMetaDataProvider rootComponentIdentity;
     private final DomainObjectContext owner;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
     private final ResolutionStrategyFactory resolutionStrategyFactory;
+    private final InternalProblems problemsService;
+
+    private final ConfigurationResolver resolver;
 
     private final AtomicInteger detachedConfigurationDefaultNameCounter = new AtomicInteger(1);
-    private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
-    private final InternalProblems problemsService;
 
     @Inject
     public DefaultConfigurationContainer(
         Instantiator instantiator,
         CollectionCallbackActionDecorator callbackDecorator,
-        DependencyMetaDataProvider rootComponentIdentity,
         DomainObjectContext owner,
-        AttributesSchemaInternal schema,
-        DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
         ResolutionStrategyFactory resolutionStrategyFactory,
-        InternalProblems problemsService
+        InternalProblems problemsService,
+        ConfigurationResolver.Factory resolverFactory,
+        AttributesSchemaInternal schema
     ) {
         super(Configuration.class, instantiator, Named.Namer.INSTANCE, callbackDecorator);
 
-        this.rootComponentIdentity = rootComponentIdentity;
         this.owner = owner;
         this.defaultConfigurationFactory = defaultConfigurationFactory;
         this.resolutionStrategyFactory = resolutionStrategyFactory;
-
-        this.rootComponentMetadataBuilder = rootComponentMetadataBuilderFactory.create(owner, this, rootComponentIdentity, schema);
         this.problemsService = problemsService;
 
-        this.getEventRegister().registerLazyAddAction(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
-        this.whenObjectRemoved(x -> rootComponentMetadataBuilder.getValidator().validateMutation(MutationValidator.MutationType.HIERARCHY));
+        this.resolver = resolverFactory.create(this, owner, schema);
     }
 
     @Override
@@ -101,7 +93,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     protected Configuration doCreate(String name) {
         // TODO: Deprecate legacy configurations for consumption
         validateNameIsAllowed(name);
-        return defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, ConfigurationRoles.ALL);
+        return defaultConfigurationFactory.create(name, false, resolver, resolutionStrategyFactory, ConfigurationRoles.ALL);
     }
 
     @Override
@@ -120,19 +112,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
-    public boolean isFixedSize() {
-        return false;
-    }
-
-    @Override
-    public Set<? extends ConfigurationInternal> getAll() {
-        Set<? extends ConfigurationInternal> set = Cast.uncheckedCast(this);
-        return ImmutableSet.copyOf(set);
-    }
-
-    @Override
     public void visitConsumable(Consumer<ConfigurationInternal> visitor) {
-
         // Visit all configurations which are known to be consumable
         withType(ConsumableConfiguration.class).forEach(configuration ->
             visitor.accept((ConfigurationInternal) configuration)
@@ -144,7 +124,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                 visitor.accept((ConfigurationInternal) configuration);
             }
         });
-
     }
 
     @Override
@@ -200,22 +179,17 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     public ConfigurationInternal detachedConfiguration(Dependency... dependencies) {
         String name = nextDetachedConfigurationName();
-        DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
-
-        DependencyMetaDataProvider componentIdentity = new DetachedDependencyMetadataProvider(rootComponentIdentity);
-        RootComponentMetadataBuilder componentMetadataBuilder = rootComponentMetadataBuilder.newBuilder(componentIdentity, detachedConfigurationsProvider);
 
         @SuppressWarnings("deprecation")
+        ConfigurationRole role = ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE;
         DefaultLegacyConfiguration detachedConfiguration = defaultConfigurationFactory.create(
             name,
-            detachedConfigurationsProvider,
+            true,
+            resolver,
             resolutionStrategyFactory,
-            componentMetadataBuilder,
-            ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE
+            role
         );
-
         copyAllTo(detachedConfiguration, dependencies);
-        detachedConfigurationsProvider.setTheOnlyConfiguration(detachedConfiguration);
         return detachedConfiguration;
     }
 
@@ -233,73 +207,61 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     public NamedDomainObjectProvider<ResolvableConfiguration> resolvable(String name) {
         assertCanMutate("resolvable(String)");
-        return registerResolvableConfiguration(name, Actions.doNothing());
+        return registerConfiguration(name, ResolvableConfiguration.class, this::doCreateResolvable, Actions.doNothing());
     }
 
     @Override
     public NamedDomainObjectProvider<ResolvableConfiguration> resolvable(String name, Action<? super ResolvableConfiguration> action) {
         assertCanMutate("resolvable(String, Action)");
-        return registerResolvableConfiguration(name, action);
+        return registerConfiguration(name, ResolvableConfiguration.class, this::doCreateResolvable, action);
     }
 
     @Override
-    public Configuration resolvableLocked(String name) {
+    public ResolvableConfiguration resolvableLocked(String name) {
         assertCanMutate("resolvableLocked(String)");
-        return createLockedLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE, Actions.doNothing());
+        return createLockedConfiguration(name, this::doCreateResolvable, Actions.doNothing());
     }
 
     @Override
-    public Configuration resolvableLocked(String name, Action<? super Configuration> action) {
+    public ResolvableConfiguration resolvableLocked(String name, Action<? super Configuration> action) {
         assertCanMutate("resolvableLocked(String, Action)");
-        return createLockedLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE, action);
+        return createLockedConfiguration(name, this::doCreateResolvable, action);
     }
 
     @Override
     public NamedDomainObjectProvider<ConsumableConfiguration> consumable(String name) {
         assertCanMutate("consumable(String)");
-        return registerConsumableConfiguration(name, Actions.doNothing());
+        return registerConfiguration(name, ConsumableConfiguration.class, this::doCreateConsumable, Actions.doNothing());
     }
 
     @Override
     public NamedDomainObjectProvider<ConsumableConfiguration> consumable(String name, Action<? super ConsumableConfiguration> action) {
         assertCanMutate("consumable(String, Action)");
-        return registerConsumableConfiguration(name, action);
-    }
-
-    @Override
-    public Configuration consumableLocked(String name) {
-        assertCanMutate("consumableLocked(String)");
-        return createLockedLegacyConfiguration(name, ConfigurationRoles.CONSUMABLE, Actions.doNothing());
-    }
-
-    @Override
-    public Configuration consumableLocked(String name, Action<? super Configuration> action) {
-        assertCanMutate("consumableLocked(String, Action)");
-        return createLockedLegacyConfiguration(name, ConfigurationRoles.CONSUMABLE, action);
+        return registerConfiguration(name, ConsumableConfiguration.class, this::doCreateConsumable, action);
     }
 
     @Override
     public NamedDomainObjectProvider<DependencyScopeConfiguration> dependencyScope(String name) {
         assertCanMutate("dependencyScope(String)");
-        return registerDependencyScopeConfiguration(name, Actions.doNothing());
+        return registerConfiguration(name, DependencyScopeConfiguration.class, this::doCreateDependencyScope, Actions.doNothing());
     }
 
     @Override
     public NamedDomainObjectProvider<DependencyScopeConfiguration> dependencyScope(String name, Action<? super DependencyScopeConfiguration> action) {
         assertCanMutate("dependencyScope(String, Action)");
-        return registerDependencyScopeConfiguration(name, action);
+        return registerConfiguration(name, DependencyScopeConfiguration.class, this::doCreateDependencyScope, action);
     }
 
     @Override
-    public Configuration dependencyScopeLocked(String name) {
+    public DefaultDependencyScopeConfiguration dependencyScopeLocked(String name) {
         assertCanMutate("dependencyScopeLocked(String)");
-        return createLockedLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, Actions.doNothing());
+        return createLockedConfiguration(name, this::doCreateDependencyScope, Actions.doNothing());
     }
 
     @Override
-    public Configuration dependencyScopeLocked(String name, Action<? super Configuration> action) {
+    public DefaultDependencyScopeConfiguration dependencyScopeLocked(String name, Action<? super Configuration> action) {
         assertCanMutate("dependencyScopeLocked(String, Action)");
-        return createLockedLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, action);
+        return createLockedConfiguration(name, this::doCreateDependencyScope, action);
     }
 
     @Override
@@ -346,7 +308,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
                 return getByName(name);
             }
         } else {
-            return createLockedLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, Actions.doNothing());
+            return dependencyScopeLocked(name);
         }
     }
 
@@ -359,35 +321,37 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         });
     }
 
-    private NamedDomainObjectProvider<ConsumableConfiguration> registerConsumableConfiguration(String name, Action<? super ConsumableConfiguration> configureAction) {
-        return registerConfiguration(name, configureAction, ConsumableConfiguration.class, n ->
-            defaultConfigurationFactory.createConsumable(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder)
-        );
+    private DefaultConsumableConfiguration doCreateConsumable(String name) {
+        return defaultConfigurationFactory.createConsumable(name, resolver, resolutionStrategyFactory);
     }
 
-    private NamedDomainObjectProvider<ResolvableConfiguration> registerResolvableConfiguration(String name, Action<? super ResolvableConfiguration> configureAction) {
-        return registerConfiguration(name, configureAction, ResolvableConfiguration.class, n ->
-            defaultConfigurationFactory.createResolvable(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder)
-        );
+    private DefaultResolvableConfiguration doCreateResolvable(String name) {
+        return defaultConfigurationFactory.createResolvable(name, resolver, resolutionStrategyFactory);
     }
 
-    private NamedDomainObjectProvider<DependencyScopeConfiguration> registerDependencyScopeConfiguration(String name, Action<? super DependencyScopeConfiguration> configureAction) {
-        return registerConfiguration(name, configureAction, DependencyScopeConfiguration.class, n ->
-            defaultConfigurationFactory.createDependencyScope(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder)
-        );
+    private DefaultDependencyScopeConfiguration doCreateDependencyScope(String name) {
+        return defaultConfigurationFactory.createDependencyScope(name, resolver, resolutionStrategyFactory);
     }
 
     private ConfigurationInternal createLockedLegacyConfiguration(String name, ConfigurationRole role, Action<? super Configuration> configureAction) {
+        return createLockedConfiguration(
+            name,
+            n -> defaultConfigurationFactory.create(n, false, resolver, resolutionStrategyFactory, role),
+            configureAction
+        );
+    }
+
+    private <T extends ConfigurationInternal> T createLockedConfiguration(String name, Function<String, T> factory, Action<? super Configuration> configureAction) {
         assertElementNotPresent(name);
         validateNameIsAllowed(name);
-        ConfigurationInternal configuration = defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, role);
+        T configuration = factory.apply(name);
         super.add(configuration);
         configureAction.execute(configuration);
         configuration.preventUsageMutation();
         return configuration;
     }
 
-    private <T extends Configuration> NamedDomainObjectProvider<T> registerConfiguration(String name, Action<? super T> configureAction, Class<T> publicType, Function<String, T> factory) {
+    private <T extends Configuration> NamedDomainObjectProvider<T> registerConfiguration(String name, Class<T> publicType, Function<String, T> factory, Action<? super T> configureAction) {
         assertElementNotPresent(name);
         validateNameIsAllowed(name);
 

@@ -22,8 +22,17 @@ plugins {
 description = "Tools to serialize data"
 
 gradleModule {
-    usedInWorkers = true
-    usesFutureStdlib = true
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
+
+jvmCompile {
+    compilations {
+        named("main") {
+            usesFutureStdlib = true
+        }
+    }
 }
 
 dependencies {

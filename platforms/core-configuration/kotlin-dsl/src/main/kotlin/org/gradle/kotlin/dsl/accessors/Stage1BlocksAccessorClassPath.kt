@@ -16,12 +16,12 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import kotlinx.metadata.KmType
 import org.gradle.api.Project
 import org.gradle.api.internal.catalog.ExternalModuleDependencyFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.ImmutableUnitOfWork
@@ -44,6 +44,7 @@ import org.gradle.kotlin.dsl.support.bytecode.InternalName
 import org.gradle.kotlin.dsl.support.bytecode.newClassTypeOf
 import java.io.File
 import javax.inject.Inject
+import kotlin.metadata.KmType
 
 
 /**
@@ -60,18 +61,26 @@ class Stage1BlocksAccessorClassPathGenerator @Inject internal constructor(
     private val fileCollectionFactory: FileCollectionFactory,
     private val executionEngine: ExecutionEngine,
     private val inputFingerprinter: InputFingerprinter,
-    private val workspaceProvider: KotlinDslWorkspaceProvider
+    private val workspaceProvider: KotlinDslWorkspaceProvider,
+    private val buildState: BuildState,
 ) {
-    fun stage1BlocksAccessorClassPath(project: ProjectInternal): AccessorsClassPath =
-        project.owner.owner.projects.rootProject.mutableModel.let { rootProject ->
-            rootProject.getOrCreateProperty("gradleKotlinDsl.stage1AccessorsClassPath") {
-                val buildSrcClassLoaderScope = baseClassLoaderScopeOf(rootProject)
-                val classLoaderHash = requireNotNull(classLoaderHierarchyHasher.getClassLoaderHash(buildSrcClassLoaderScope.exportClassLoader))
-                val versionCatalogAccessors = generateVersionCatalogAccessors(rootProject, buildSrcClassLoaderScope, classLoaderHash)
-                val pluginSpecBuildersAccessors = generatePluginSpecBuildersAccessors(rootProject, buildSrcClassLoaderScope, classLoaderHash)
-                versionCatalogAccessors + pluginSpecBuildersAccessors
-            }
+
+    private
+    val stage1BlocksAccessorClassPath by lazy {
+        val rootProject = buildState.projects.rootProject.mutableModel
+        val buildSrcClassLoaderScope = baseClassLoaderScopeOf(rootProject)
+        val classLoaderHash = requireNotNull(classLoaderHierarchyHasher.getClassLoaderHash(buildSrcClassLoaderScope.exportClassLoader))
+        val versionCatalogAccessors = generateVersionCatalogAccessors(rootProject, buildSrcClassLoaderScope, classLoaderHash)
+        val pluginSpecBuildersAccessors = generatePluginSpecBuildersAccessors(rootProject, buildSrcClassLoaderScope, classLoaderHash)
+        versionCatalogAccessors + pluginSpecBuildersAccessors
+    }
+
+    fun stage1BlocksAccessorClassPath(project: ProjectInternal): AccessorsClassPath {
+        require(project.owner.owner === buildState) {
+            "$project belongs to a different build."
         }
+        return stage1BlocksAccessorClassPath
+    }
 
     private
     fun baseClassLoaderScopeOf(rootProject: Project) =

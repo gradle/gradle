@@ -17,7 +17,7 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ManagedType;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -34,8 +34,7 @@ import org.jspecify.annotations.Nullable;
  * </p>
  *
  * <p>
- * You can create a {@link Property} instance using {@link ObjectFactory#property(Class)}. There are
- * also several specialized subtypes of this interface that can be created using various other factory methods.
+ * There are also several specialized subtypes of this interface that can be created using various other factory methods.
  * </p>
  *
  * <p>
@@ -48,7 +47,11 @@ import org.jspecify.annotations.Nullable;
  *
  * @param <T> Type of value represented by the property
  * @since 4.3
+ *
+ * @see ManagedType Create an instance of this as a managed property (preferred).
+ * @see org.gradle.api.model.ObjectFactory#property(Class) Create an instance of this manually.
  */
+@ManagedType
 @SupportsKotlinAssignmentOverloading
 public interface Property<T> extends Provider<T>, HasConfigurableValue, SupportsConvention {
     /**

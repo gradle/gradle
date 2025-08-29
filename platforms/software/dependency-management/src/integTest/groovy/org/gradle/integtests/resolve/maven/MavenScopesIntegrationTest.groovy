@@ -100,7 +100,9 @@ class MavenScopesIntegrationTest extends AbstractDependencyResolutionTest {
 
         buildFile << """
             dependencies {
-                conf group: 'test', name: 'target', version: '1.0', configuration: 'compile'
+                conf("test:target:1.0") {
+                    targetConfiguration = "compile"
+                }
             }
         """
 
@@ -120,7 +122,9 @@ class MavenScopesIntegrationTest extends AbstractDependencyResolutionTest {
 
         buildFile << """
             dependencies {
-                conf group: 'test', name: 'target', version: '1.0', configuration: 'x86_windows'
+                conf("test:target:1.0") {
+                    targetConfiguration = "x86_windows"
+                }
             }
         """
 

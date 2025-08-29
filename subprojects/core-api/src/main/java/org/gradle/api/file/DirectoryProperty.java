@@ -16,7 +16,7 @@
 
 package org.gradle.api.file;
 
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ManagedType;
 import org.gradle.api.provider.Provider;
 import org.jspecify.annotations.Nullable;
 
@@ -25,14 +25,14 @@ import java.io.File;
 /**
  * Represents some configurable directory location, whose value is mutable.
  *
- * <p>
- * You can create a {@link DirectoryProperty} using {@link ObjectFactory#directoryProperty()}.
- * </p>
- *
  * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.</p>
  *
  * @since 4.3
+ *
+ * @see ManagedType Create an instance of this as a managed property (preferred).
+ * @see org.gradle.api.model.ObjectFactory#directoryProperty() Create an instance of this manually.
  */
+@ManagedType
 public interface DirectoryProperty extends FileSystemLocationProperty<Directory> {
     /**
      * Returns a {@link FileTree} that allows the files and directories contained in this directory to be queried.
@@ -118,5 +118,5 @@ public interface DirectoryProperty extends FileSystemLocationProperty<Directory>
      * @return The file collection.
      * @since 6.0
      */
-    FileCollection files(Object... paths);
+    FileCollection files(@Nullable Object... paths);
 }

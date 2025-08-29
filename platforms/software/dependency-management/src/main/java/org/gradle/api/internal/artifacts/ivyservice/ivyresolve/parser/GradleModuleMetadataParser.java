@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -34,10 +34,10 @@ import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySel
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
-import org.gradle.api.internal.artifacts.repositories.metadata.MavenAttributesFactory;
-import org.gradle.api.internal.attributes.AttributeValue;
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenVariantAttributesFactory;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.logging.Logger;
@@ -67,7 +67,7 @@ import static com.google.gson.stream.JsonToken.END_OBJECT;
 import static com.google.gson.stream.JsonToken.NULL;
 import static com.google.gson.stream.JsonToken.NUMBER;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.commons.lang.StringUtils.capitalize;
+import static org.apache.commons.lang3.StringUtils.capitalize;
 
 public class GradleModuleMetadataParser {
     private final static Logger LOGGER = Logging.getLogger(GradleModuleMetadataParser.class);
@@ -130,10 +130,10 @@ public class GradleModuleMetadataParser {
             return;
         }
         for (MutableComponentVariant variant : ImmutableList.copyOf(variants)) {
-            AttributeValue<String> entry = variant.getAttributes().findEntry(MavenAttributesFactory.CATEGORY_ATTRIBUTE);
-            if (entry.isPresent() && Category.REGULAR_PLATFORM.equals(entry.get()) && variant.getCapabilities().isEmpty()) {
+            ImmutableAttributesEntry<String> entry = variant.getAttributes().findEntry(MavenVariantAttributesFactory.CATEGORY_ATTRIBUTE);
+            if (entry != null && Category.REGULAR_PLATFORM.equals(entry.getIsolatedValue()) && variant.getCapabilities().isEmpty()) {
                 // This generates a synthetic enforced platform variant with the same dependencies, similar to what the Maven variant derivation strategy does
-                ImmutableAttributes enforcedAttributes = attributesFactory.concat(variant.getAttributes(), MavenAttributesFactory.CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.ENFORCED_PLATFORM, instantiator));
+                ImmutableAttributes enforcedAttributes = attributesFactory.concat(variant.getAttributes(), MavenVariantAttributesFactory.CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.ENFORCED_PLATFORM, instantiator));
                 Capability enforcedCapability = buildShadowPlatformCapability(metadata.getId());
                 metadata.addVariant(variant.copy("enforced" + capitalize(variant.getName()), enforcedAttributes, enforcedCapability));
             }

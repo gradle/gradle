@@ -13,9 +13,12 @@ permissions:
 jobs:
   update-perf-test-buckets:
     runs-on: ubuntu-latest
+
+    if: github.repository == 'gradle/gradle'
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -29,7 +32,7 @@ jobs:
             PERFORMANCE_DB_USERNAME, gha/gradle/_all/PERFORMANCE_DB_USERNAME
             PERFORMANCE_DB_PASSWORD_TCAGENT, gha/gradle/_all/PERFORMANCE_DB_PASSWORD
       - name: Setup java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17

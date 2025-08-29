@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
@@ -26,14 +27,21 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Ignore
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJvmInstallationMetadata
-import static org.gradle.jvm.toolchain.JavaToolchainDownloadSoakTest.JAVA_VERSION
-import static org.gradle.jvm.toolchain.JavaToolchainDownloadSoakTest.TOOLCHAIN_WITH_VERSION
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.applyToolchainResolverPlugin
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.multiUrlResolverCode
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.singleUrlResolverCode
 
 @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
 class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpec {
+    static final JavaVersion JAVA_VERSION = AvailableJavaHomes.differentVersion.javaVersion
+
+    static final String TOOLCHAIN_WITH_VERSION = """
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${JAVA_VERSION.majorVersion})
+                }
+            }
+        """
 
     static JdkRepository jdkRepository
 
@@ -181,26 +189,7 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
     }
 
     private void setupIncludedBuild() {
-        /*file("plugin1/settings.gradle") << """
-            ${applyToolchainResolverPlugin(
-                "CustormToolchainResolver",
-                singleUrlResolverCode("https://good_for_nothing.com/"),
-                JavaToolchainDownloadUtil.DEFAULT_PLUGIN,
-                """
-                    toolchainManagement {
-                        jvm {
-                            javaRepositories {
-                                repository('custom') {
-                                    resolverClass = CustomToolchainResolver
-                                }
-                            }
-                        }
-                    }
-                """
-            )}
-
-            rootProject.name = 'plugin1'
-        """*/ //TODO: atm the included build will use the definition from its own settings file, so if this is the settings we use it won't be able to download toolchains; need to clarify if this ok in the long term
+        //TODO: atm the included build will use the definition from its own settings file, so if this is the settings we use it won't be able to download toolchains; need to clarify if this ok in the long term
         file("plugin1/settings.gradle") << """
             ${applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(uri))}
 

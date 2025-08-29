@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.model.ManagedType;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 
@@ -48,7 +49,10 @@ import java.util.Set;
  * {@link org.gradle.kotlin.dsl.DependenciesExtensions extension functions for Kotlin DSL}.
  *
  * @since 8.6
+ *
+ * @see ManagedType Create an instance of this as a managed property (preferred).
  */
+@ManagedType
 @NonExtensible
 @SuppressWarnings("JavadocReference")
 public interface DependencyCollector {

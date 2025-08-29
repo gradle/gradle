@@ -18,7 +18,6 @@ import configurations.CompileAll
 import configurations.DocsTestType
 import configurations.DocsTestType.CONFIG_CACHE_DISABLED
 import configurations.DocsTestType.CONFIG_CACHE_ENABLED
-import configurations.FlakyTestQuarantine
 import configurations.FunctionalTest
 import configurations.Gradleception
 import configurations.OsAwareBaseGradleBuildType
@@ -57,11 +56,6 @@ enum class StageName(
         "Historical Performance",
         "Once a week: Run performance tests for multiple Gradle versions",
         "HistoricalPerformance",
-    ),
-    EXPERIMENTAL_PERFORMANCE(
-        "Experimental Performance",
-        "Try out new performance test running",
-        "ExperimentalPerformance",
     ),
     ;
 
@@ -222,10 +216,6 @@ data class CIBuildModel(
                 specificBuilds =
                     listOf(
                         SpecificBuild.TestPerformanceTest,
-                        SpecificBuild.FlakyTestQuarantineLinux,
-                        SpecificBuild.FlakyTestQuarantineMacOs,
-                        SpecificBuild.FlakyTestQuarantineMacOsAppleSilicon,
-                        SpecificBuild.FlakyTestQuarantineWindows,
                     ),
                 functionalTests =
                     listOf(
@@ -375,17 +365,10 @@ data class CIBuildModel(
             ),
             Stage(
                 StageName.HISTORICAL_PERFORMANCE,
-                trigger = Trigger.WEEKLY,
+                trigger = if (branch.isLegacyRelease) Trigger.NEVER else Trigger.WEEKLY,
                 runsIndependent = true,
                 performanceTests =
                     listOf(
-                        PerformanceTestCoverage(
-                            3,
-                            PerformanceTestType.HISTORICAL,
-                            Os.LINUX,
-                            numberOfBuckets = 60,
-                            oldUuid = "PerformanceTestHistoricalLinux",
-                        ),
                         PerformanceTestCoverage(
                             4,
                             PerformanceTestType.FLAKINESS_DETECTION,
@@ -405,27 +388,6 @@ data class CIBuildModel(
                             Os.MACOS,
                             numberOfBuckets = 10,
                         ),
-                        PerformanceTestCoverage(
-                            5,
-                            PerformanceTestType.PER_WEEK,
-                            Os.LINUX,
-                            numberOfBuckets = 20,
-                            oldUuid = "PerformanceTestExperimentLinux",
-                        ),
-                        PerformanceTestCoverage(8, PerformanceTestType.PER_WEEK, Os.WINDOWS, numberOfBuckets = 5),
-                        PerformanceTestCoverage(9, PerformanceTestType.PER_WEEK, Os.MACOS, numberOfBuckets = 5),
-                    ),
-            ),
-            Stage(
-                StageName.EXPERIMENTAL_PERFORMANCE,
-                trigger = Trigger.NEVER,
-                runsIndependent = true,
-                performanceTests =
-                    listOf(
-                        PerformanceTestCoverage(10, PerformanceTestType.PER_COMMIT, Os.LINUX, numberOfBuckets = 40),
-                        PerformanceTestCoverage(11, PerformanceTestType.PER_COMMIT, Os.WINDOWS, numberOfBuckets = 5),
-                        PerformanceTestCoverage(12, PerformanceTestType.PER_COMMIT, Os.MACOS, numberOfBuckets = 5),
-                        PerformanceTestCoverage(13, PerformanceTestType.PER_DAY, Os.LINUX, numberOfBuckets = 30),
                     ),
             ),
         ),
@@ -578,7 +540,7 @@ enum class TestType(
     ALL_VERSIONS_INTEG_MULTI_VERSION(false, true, false),
     PARALLEL(false, true, false),
 
-    NO_DAEMON(false, true, false, 300),
+    NO_DAEMON(false, true, false, 360),
     CONFIG_CACHE(false, true, false),
     ISOLATED_PROJECTS(false, true, false),
     SOAK(false, false, false),
@@ -616,13 +578,6 @@ enum class PerformanceTestType(
         defaultBaselines = "flakiness-detection-commit",
         channel = "flakiness-detection",
         extraParameters = "--checks none --rerun --cross-version-only",
-    ),
-    HISTORICAL(
-        displayName = "Historical Performance Test",
-        timeout = 600,
-        defaultBaselines = "last",
-        channel = "historical",
-        extraParameters = "--checks none --cross-version-only",
     ),
     AD_HOC(
         displayName = "AdHoc Performance Test",
@@ -747,30 +702,6 @@ enum class SpecificBuild {
             model: CIBuildModel,
             stage: Stage,
         ): OsAwareBaseGradleBuildType = SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, name, "configCacheSmokeTest", splitNumber = 4)
-    },
-    FlakyTestQuarantineLinux {
-        override fun create(
-            model: CIBuildModel,
-            stage: Stage,
-        ): OsAwareBaseGradleBuildType = FlakyTestQuarantine(model, stage, Os.LINUX)
-    },
-    FlakyTestQuarantineMacOs {
-        override fun create(
-            model: CIBuildModel,
-            stage: Stage,
-        ): OsAwareBaseGradleBuildType = FlakyTestQuarantine(model, stage, Os.MACOS)
-    },
-    FlakyTestQuarantineMacOsAppleSilicon {
-        override fun create(
-            model: CIBuildModel,
-            stage: Stage,
-        ): OsAwareBaseGradleBuildType = FlakyTestQuarantine(model, stage, Os.MACOS, Arch.AARCH64)
-    },
-    FlakyTestQuarantineWindows {
-        override fun create(
-            model: CIBuildModel,
-            stage: Stage,
-        ): OsAwareBaseGradleBuildType = FlakyTestQuarantine(model, stage, Os.WINDOWS)
     },
     SmokeIdeTests {
         override fun create(

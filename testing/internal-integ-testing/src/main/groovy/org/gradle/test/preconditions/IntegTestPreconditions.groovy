@@ -17,16 +17,11 @@
 package org.gradle.test.preconditions
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.FeaturePreviewsActivationFixture
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.KillProcessAvailability
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.precondition.TestPrecondition
-
-// These imports are required, IntelliJ incorrectly thinks that they are not used because old versions of Groovy
-// permitted subtypes to use the parent type's methods without importing them
-import static org.gradle.test.precondition.TestPrecondition.satisfied;
-import static org.gradle.test.precondition.TestPrecondition.notSatisfied;
 
 class IntegTestPreconditions {
 
@@ -40,21 +35,21 @@ class IntegTestPreconditions {
     static final class IsEmbeddedExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return GradleContextualExecuter.isEmbedded()
+            return IntegrationTestBuildContext.isEmbedded()
         }
     }
 
     static final class NotEmbeddedExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return notSatisfied(IsEmbeddedExecutor)
+            return TestPrecondition.notSatisfied(IsEmbeddedExecutor)
         }
     }
 
     static final class NotEmbeddedExecutorOrNotWindows implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return notSatisfied(IsEmbeddedExecutor) || notSatisfied(UnitTestPreconditions.Windows)
+            return TestPrecondition.notSatisfied(IsEmbeddedExecutor) || TestPrecondition.notSatisfied(UnitTestPreconditions.Windows)
         }
     }
 
@@ -89,7 +84,7 @@ class IntegTestPreconditions {
     static final class NotNoDaemonExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return notSatisfied(IsNoDaemonExecutor)
+            return TestPrecondition.notSatisfied(IsNoDaemonExecutor)
         }
     }
 
@@ -110,7 +105,7 @@ class IntegTestPreconditions {
     static final class NotParallelOrConfigCacheExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return notSatisfied(IsParallelExecutor) && notSatisfied(IsConfigCached)
+            return TestPrecondition.notSatisfied(IsParallelExecutor) && TestPrecondition.notSatisfied(IsConfigCached)
         }
     }
 
@@ -132,26 +127,6 @@ class IntegTestPreconditions {
         @Override
         boolean isSatisfied() throws Exception {
             return GradleContextualExecuter.isNotIsolatedProjects()
-        }
-    }
-
-    /**
-     * A JVM that is not able to run the Gradle wrapper is available.
-     */
-    static class UnsupportedWrapperJavaHomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return !AvailableJavaHomes.unsupportedWrapperJdks.isEmpty()
-        }
-    }
-
-    /**
-     * A JVM that is not able to run a Gradle client is available.
-     */
-    static class UnsupportedClientJavaHomeAvailable implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return !AvailableJavaHomes.unsupportedClientJdks.isEmpty()
         }
     }
 
@@ -324,6 +299,14 @@ class IntegTestPreconditions {
         }
     }
 
+    static class JavaHomeWithTwoDifferentVersionsAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            def firstDifferent = AvailableJavaHomes.differentVersion
+            return firstDifferent != null && AvailableJavaHomes.getDifferentVersion(firstDifferent.javaVersion) != null
+        }
+    }
+
     static class DifferentJdksFromMultipleVendors implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
@@ -346,7 +329,7 @@ class IntegTestPreconditions {
         @Override
         boolean isSatisfied() {
             // Simplistic approach at detecting MSBuild by assuming Windows imply MSBuild is present
-            return satisfied(UnitTestPreconditions.Windows) && notSatisfied(IsEmbeddedExecutor)
+            return TestPrecondition.satisfied(UnitTestPreconditions.Windows) && TestPrecondition.notSatisfied(IsEmbeddedExecutor)
         }
     }
 
@@ -354,14 +337,7 @@ class IntegTestPreconditions {
         @Override
         boolean isSatisfied() {
             // The S3 publish tests require the following
-            return satisfied(UnitTestPreconditions.Jdk9OrLater) || notSatisfied(IsEmbeddedExecutor)
-        }
-    }
-
-    static final class AnyActiveFeature implements TestPrecondition {
-        @Override
-        boolean isSatisfied() throws Exception {
-            return !FeaturePreviewsActivationFixture.inactiveFeatures().isEmpty()
+            return TestPrecondition.satisfied(UnitTestPreconditions.Jdk9OrLater) || TestPrecondition.notSatisfied(IsEmbeddedExecutor)
         }
     }
 

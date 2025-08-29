@@ -15,7 +15,7 @@
  */
 package org.gradle.testing.jacoco.plugins;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -90,7 +90,7 @@ public abstract class JacocoPlugin implements Plugin<Project> {
         JacocoPluginExtension extension = project.getExtensions().create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension.class, project, agent);
         extension.setToolVersion(DEFAULT_JACOCO_VERSION);
         final ReportingExtension reportingExtension = (ReportingExtension) project.getExtensions().getByName(ReportingExtension.NAME);
-        extension.getReportsDirectory().convention(project.getLayout().dir(project.provider(() -> reportingExtension.file("jacoco"))));
+        extension.getReportsDirectory().convention(reportingExtension.getBaseDirectory().dir("jacoco"));
 
         configureAgentDependencies(agent, extension);
         configureTaskClasspathDefaults(extension);
@@ -154,14 +154,12 @@ public abstract class JacocoPlugin implements Plugin<Project> {
     @SuppressWarnings("deprecation")
     private void addJacocoConfigurations() {
         RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
-        Configuration agentConf = configurations.resolvableDependencyScopeLocked(AGENT_CONFIGURATION_NAME);
-        agentConf.setVisible(false);
-        agentConf.setTransitive(true);
-        agentConf.setDescription("The Jacoco agent to use to get coverage data.");
-        Configuration antConf = configurations.resolvableDependencyScopeLocked(ANT_CONFIGURATION_NAME);
-        antConf.setVisible(false);
-        antConf.setTransitive(true);
-        antConf.setDescription("The Jacoco ant tasks to use to get execute Gradle tasks.");
+        configurations.resolvableDependencyScopeLocked(AGENT_CONFIGURATION_NAME, agentConf -> {
+            agentConf.setDescription("The Jacoco agent to use to get coverage data.");
+        });
+        configurations.resolvableDependencyScopeLocked(ANT_CONFIGURATION_NAME, antConf -> {
+            antConf.setDescription("The Jacoco ant tasks to use to get execute Gradle tasks.");
+        });
     }
 
     /**

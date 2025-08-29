@@ -18,7 +18,7 @@ package org.gradle.util;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.AbstractIterator;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.util.internal.GUtil;
@@ -30,7 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.join;
+import static org.apache.commons.lang3.StringUtils.join;
 
 /**
  * Represents a path in Gradle.
@@ -74,6 +74,8 @@ public class Path implements Comparable<Path> {
     private volatile String fullPath;
 
     private Path(String[] segments, boolean absolute) {
+        assert !(segments.length == 0 && !absolute) : "Empty relative paths are forbidden";
+
         this.segments = segments;
         this.absolute = absolute;
 
@@ -98,9 +100,18 @@ public class Path implements Comparable<Path> {
      * </pre>
      */
     public Path append(Path path) {
+        if (segments.length == 0) {
+            if (absolute == path.absolute) {
+                return path;
+            } else {
+                return new Path(path.segments, absolute);
+            }
+        }
+
         if (path.segments.length == 0) {
             return this;
         }
+
         String[] concat = new String[segments.length + path.segments.length];
         System.arraycopy(segments, 0, concat, 0, segments.length);
         System.arraycopy(path.segments, 0, concat, segments.length, path.segments.length);
@@ -350,5 +361,34 @@ public class Path implements Comparable<Path> {
                 };
             }
         };
+    }
+
+    /**
+     * Determines if this path starts with the given path.
+     *
+     * @param other The path to check if this path starts with.
+     *
+     * @return True if this path starts with the given path, false otherwise. Returns
+     *         false if one path is absolute and the other is not.
+     *
+     * @since 9.1.0
+     */
+    @Incubating
+    public boolean startsWith(Path other) {
+        if (other.absolute != absolute) {
+            return false;
+        }
+
+        if (other.segments.length > segments.length) {
+            return false;
+        }
+
+        for (int i = 0; i < other.segments.length; i++) {
+            if (!other.segments[i].equals(segments[i])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

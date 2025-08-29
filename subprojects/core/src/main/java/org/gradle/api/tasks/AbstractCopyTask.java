@@ -62,6 +62,7 @@ import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
 /**
  * {@code AbstractCopyTask} is the base class for all copy tasks.
@@ -95,9 +96,9 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             getInputs().property(specPropertyName + ".caseSensitive", (Callable<Boolean>) spec::isCaseSensitive);
             getInputs().property(specPropertyName + ".includeEmptyDirs", (Callable<Boolean>) spec::getIncludeEmptyDirs);
             getInputs().property(specPropertyName + ".duplicatesStrategy", (Callable<DuplicatesStrategy>) spec::getDuplicatesStrategy);
-            getInputs().property(specPropertyName + ".dirPermissions", spec.getDirPermissions().map(FilePermissions::toUnixNumeric))
+            getInputs().property(specPropertyName + ".dirPermissions", spec.getDirPermissions().map(transformer(FilePermissions::toUnixNumeric)))
                 .optional(true);
-            getInputs().property(specPropertyName + ".filePermissions", spec.getFilePermissions().map(FilePermissions::toUnixNumeric))
+            getInputs().property(specPropertyName + ".filePermissions", spec.getFilePermissions().map(transformer(FilePermissions::toUnixNumeric)))
                 .optional(true);
             getInputs().property(specPropertyName + ".filteringCharset", (Callable<String>) spec::getFilteringCharset);
         });
@@ -115,44 +116,28 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     protected abstract CopyAction createCopyAction();
 
     @Inject
-    protected Instantiator getInstantiator() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract Instantiator getInstantiator();
 
     @Inject
-    protected FileSystem getFileSystem() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileSystem getFileSystem();
 
     @Inject
-    protected FileResolver getFileResolver() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileResolver getFileResolver();
 
     @Inject
-    protected FileLookup getFileLookup() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileLookup getFileLookup();
 
     @Inject
-    protected DirectoryFileTreeFactory getDirectoryFileTreeFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract DirectoryFileTreeFactory getDirectoryFileTreeFactory();
 
     @Inject
-    protected DocumentationRegistry getDocumentationRegistry() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract DocumentationRegistry getDocumentationRegistry();
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     @Inject
-    protected PropertyFactory getPropertyFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract PropertyFactory getPropertyFactory();
 
     @TaskAction
     protected void copy() {
@@ -254,7 +239,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    public AbstractCopyTask from(Object... sourcePaths) {
+    public AbstractCopyTask from(@Nullable Object... sourcePaths) {
         getMainSpec().from(sourcePaths);
         return this;
     }

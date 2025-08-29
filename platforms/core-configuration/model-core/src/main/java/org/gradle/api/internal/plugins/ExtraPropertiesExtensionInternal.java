@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.plugins;
 
+import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
-
-import java.util.Map;
 
 /**
  * Internal protocol for the initialization of extra properties.
  */
 public interface ExtraPropertiesExtensionInternal extends ExtraPropertiesExtension {
-    void setGradleProperties(Map<String, Object> properties);
+    void setGradleProperties(GradleProperties gradleProperties);
 }

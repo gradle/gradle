@@ -22,6 +22,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.configurationCacheBase)
     api(projects.configurationProblemsBase)
+    api(projects.coreSerializationCodecs)
     api(projects.core)
     api(projects.coreApi)
     api(projects.dependencyManagement)
@@ -47,7 +48,6 @@ dependencies {
     implementation(projects.buildProcessServices)
     implementation(projects.classloaders)
     implementation(projects.coreKotlinExtensions)
-    implementation(projects.coreSerializationCodecs)
     implementation(projects.dependencyManagementSerializationCodecs)
     implementation(projects.encryptionServices)
     implementation(projects.enterpriseOperations)
@@ -71,9 +71,9 @@ dependencies {
     implementation(projects.stdlibSerializationCodecs)
     implementation(projects.toolingApi)
 
-    implementation(libs.fastutil)
     implementation(libs.guava)
     implementation(libs.jspecify)
+    implementation(libs.fastutil)
     implementation(libs.kryo)
     implementation(libs.slf4jApi)
 
@@ -89,7 +89,7 @@ dependencies {
     testImplementation(testFixtures(projects.beanSerializationServices))
     testImplementation(projects.io)
     testImplementation(testFixtures(projects.core))
-    testImplementation(libs.mockitoKotlin2)
+    testImplementation(libs.mockitoKotlin)
     testImplementation(libs.kotlinCoroutinesDebug)
 
     integTestImplementation(projects.cli)
@@ -120,6 +120,14 @@ dependencies {
         because("Includes tests for builds with the enterprise plugin and TestKit involved; ConfigurationCacheJacocoIntegrationTest requires JVM distribution")
     }
     crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
+}
+
+jvmCompile {
+    compilations {
+        named("main") {
+            targetJvmVersion = 17
+        }
+    }
 }
 
 packageCycles {

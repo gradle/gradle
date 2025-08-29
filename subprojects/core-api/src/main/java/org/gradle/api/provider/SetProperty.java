@@ -16,16 +16,13 @@
 
 package org.gradle.api.provider;
 
+import org.gradle.api.model.ManagedType;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
 /**
  * Represents a property whose type is a {@link Set} of elements of type {@link T}. Retains iteration order.
- *
- * <p>
- * You can create a {@link SetProperty} instance using factory method {@link org.gradle.api.model.ObjectFactory#setProperty(Class)}.
- * </p>
  *
  * <p>
  * Instances of this interface are not thread-safe for reading and writing.
@@ -36,7 +33,11 @@ import java.util.Set;
  *
  * @param <T> the type of elements.
  * @since 4.5
+ *
+ * @see ManagedType Create an instance of this as a managed property (preferred).
+ * @see org.gradle.api.model.ObjectFactory#setProperty(Class) Create an instance of this manually.
  */
+@ManagedType
 public interface SetProperty<T> extends Provider<Set<T>>, HasMultipleValues<T> {
     /**
      * {@inheritDoc}

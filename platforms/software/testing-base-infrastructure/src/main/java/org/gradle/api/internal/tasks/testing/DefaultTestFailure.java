@@ -19,8 +19,8 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.internal.serialize.PlaceholderExceptionSupport;
-
 import org.jspecify.annotations.Nullable;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collections;
@@ -65,7 +65,7 @@ public class DefaultTestFailure extends TestFailure {
 
     public static TestFailure fromTestAssumptionFailure(Throwable failure) {
         TestFailureDetails details = new AssumptionFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure));
-        return new DefaultTestFailure(failure, details, Collections.<TestFailure>emptyList());
+        return new DefaultTestFailure(failure, details, Collections.emptyList());
     }
 
     public static TestFailure fromTestAssertionFailure(Throwable failure, String expected, String actual, @Nullable List<TestFailure> causes) {
@@ -81,6 +81,11 @@ public class DefaultTestFailure extends TestFailure {
     public static TestFailure fromTestFrameworkFailure(Throwable failure, @Nullable List<TestFailure> causes) {
         TestFailureDetails details = new DefaultTestFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure));
         return new DefaultTestFailure(failure, details, emptyIfNull(causes));
+    }
+
+    public static TestFailure fromTestFrameworkStartupFailure(Throwable failure) {
+        TestFailureDetails details = new DefaultTestFailureDetails(messageOf(failure), classNameOf(failure), stacktraceOf(failure));
+        return new DefaultTestFailure(failure, details, Collections.emptyList());
     }
 
     private static List<TestFailure> emptyIfNull(@Nullable List<TestFailure> causes) {

@@ -30,6 +30,8 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.instantiation.managed.ManagedObjectCreator;
+import org.gradle.internal.instantiation.managed.ManagedObjectProvider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -39,12 +41,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
+@ManagedObjectProvider
 @ServiceScope({Scope.Global.class, Scope.BuildTree.class, Scope.Build.class, Scope.Project.class})
 public interface FileCollectionFactory {
     /**
      * Creates a copy of this factory that uses the given resolver to convert various types to File instances.
      */
     FileCollectionFactory withResolver(PathToFileResolver fileResolver);
+
+    PathToFileResolver getResolver();
 
     FileCollectionFactory forChildScope(FileCollectionObservationListener listener);
 
@@ -165,11 +170,13 @@ public interface FileCollectionFactory {
     /**
      * Creates an empty {@link ConfigurableFileCollection} instance.
      */
+    @ManagedObjectCreator
     ConfigurableFileCollection configurableFiles();
 
     /**
      * Creates a {@link ConfigurableFileTree} instance with no base dir specified.
      */
+    @ManagedObjectCreator
     ConfigurableFileTree fileTree();
 
     /**

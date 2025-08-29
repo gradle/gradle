@@ -20,17 +20,16 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Project;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
@@ -69,6 +68,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -79,7 +79,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 /**
- * Generates a Gradle metadata file to represent a published {@link org.gradle.api.component.SoftwareComponent} instance.
+ * Generates a Gradle metadata file to represent a published {@link SoftwareComponent} instance.
  *
  * @since 4.3
  */
@@ -87,26 +87,17 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 public abstract class GenerateModuleMetadata extends DefaultTask {
     private final Transient<Property<Publication>> publication;
     private final Transient<ListProperty<Publication>> publications;
-    private final RegularFileProperty outputFile;
     private final FileCollection variantFiles;
     private final Cached<InputState> inputState = Cached.of(this::computeInputState);
-    private final SetProperty<String> suppressedValidationErrors;
-
-    private final DependencyCoordinateResolverFactory dependencyCoordinateResolverFactory;
 
     public GenerateModuleMetadata() {
-        Project project = getProject();
-        ObjectFactory objectFactory = project.getObjects();
-        this.dependencyCoordinateResolverFactory = ((ProjectInternal) project).getServices().get(DependencyCoordinateResolverFactory.class);
+        ObjectFactory objectFactory = getObjectFactory();
+        this.publication = Transient.of(objectFactory.property(Publication.class));
+        this.publications = Transient.of(objectFactory.listProperty(Publication.class));
 
-        publication = Transient.of(objectFactory.property(Publication.class));
-        publications = Transient.of(objectFactory.listProperty(Publication.class));
+        this.variantFiles = getFileCollectionFactory().create(new VariantFiles(getTaskDependencyFactory()));
 
-        outputFile = objectFactory.fileProperty();
-
-        variantFiles = getFileCollectionFactory().create(new VariantFiles(((ProjectInternal) getProject()).getTaskDependencyFactory()));
-
-        suppressedValidationErrors = objectFactory.setProperty(String.class).convention(Collections.emptySet());
+        getSuppressedValidationErrors().convention(Collections.emptySet());
 
         // TODO - should be incremental
         getOutputs().upToDateWhen(Specs.satisfyNone());
@@ -147,9 +138,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
      * @since 4.4
      */
     @Inject
-    protected FileCollectionFactory getFileCollectionFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileCollectionFactory getFileCollectionFactory();
 
     /**
      * Returns the {@link BuildInvocationScopeId} to use for generation.
@@ -157,9 +146,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
      * @since 4.4
      */
     @Inject
-    protected BuildInvocationScopeId getBuildInvocationScopeId() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract BuildInvocationScopeId getBuildInvocationScopeId();
 
     /**
      * Returns the {@link ProjectDependencyPublicationResolver} to use for generation.
@@ -167,9 +154,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
      * @since 4.4
      */
     @Inject
-    protected ProjectDependencyPublicationResolver getProjectDependencyPublicationResolver() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProjectDependencyPublicationResolver getProjectDependencyPublicationResolver();
 
     /**
      * Returns the {@link ChecksumService} to use.
@@ -177,17 +162,13 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
      * @since 6.6
      */
     @Inject
-    protected ChecksumService getChecksumService() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ChecksumService getChecksumService();
 
     /**
      * Returns the output file location.
      */
     @OutputFile
-    public RegularFileProperty getOutputFile() {
-        return outputFile;
-    }
+    public abstract RegularFileProperty getOutputFile();
 
     /**
      * Returns the set of suppressed validation errors
@@ -195,9 +176,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
      * @since 7.0
      */
     @Input
-    public SetProperty<String> getSuppressedValidationErrors() {
-        return suppressedValidationErrors;
-    }
+    public abstract SetProperty<String> getSuppressedValidationErrors();
 
     @TaskAction
     void run() {
@@ -211,10 +190,11 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
     }
 
     private void writeModuleMetadata(ModuleMetadataSpec moduleMetadataSpec) {
-        try (Writer writer = bufferedWriterFor(outputFile.get().getAsFile())) {
+        RegularFile outputFile = getOutputFile().get();
+        try (Writer writer = bufferedWriterFor(outputFile.getAsFile())) {
             moduleMetadataWriter().writeTo(writer, moduleMetadataSpec);
         } catch (IOException e) {
-            throw new UncheckedIOException("Could not generate metadata file " + outputFile.get(), e);
+            throw new UncheckedIOException("Could not generate metadata file " + outputFile, e);
         }
     }
 
@@ -250,12 +230,12 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
 
     private ModuleMetadataSpec computeModuleMetadataSpec() {
         PublicationInternal<?> publication = publication();
-        InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName(), getPath(), suppressedValidationErrors.get());
+        InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName(), getPath(), getSuppressedValidationErrors().get());
         ModuleMetadataSpec spec = new ModuleMetadataSpecBuilder(
             publication,
             publications(),
             checker,
-            dependencyCoordinateResolverFactory
+            getDependencyCoordinateResolverFactory()
         ).build().get();
         checker.validate();
         return spec;
@@ -346,4 +326,14 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
     private List<PublicationInternal<?>> publications() {
         return Cast.uncheckedCast(publications.get().get());
     }
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
+    @Inject
+    protected abstract DependencyCoordinateResolverFactory getDependencyCoordinateResolverFactory();
+
+    @Inject
+    protected abstract TaskDependencyFactory getTaskDependencyFactory();
+
 }

@@ -17,7 +17,6 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
@@ -54,19 +53,17 @@ import java.util.Set;
 import java.util.function.Function;
 
 public class RootOfNestedBuildTree extends AbstractBuildState implements NestedRootBuild {
-    private final BuildIdentifier buildIdentifier;
+
     private final Path identityPath;
     private final BuildTreeLifecycleController buildTreeLifecycleController;
 
     public RootOfNestedBuildTree(
         BuildDefinition buildDefinition,
-        BuildIdentifier buildIdentifier,
         Path identityPath,
         BuildState owner,
         BuildTreeState buildTree
     ) {
         super(buildTree, buildDefinition, owner);
-        this.buildIdentifier = buildIdentifier;
         this.identityPath = identityPath;
 
         CloseableServiceRegistry buildServices = getBuildServices();
@@ -94,11 +91,6 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     }
 
     @Override
-    public BuildIdentifier getBuildIdentifier() {
-        return buildIdentifier;
-    }
-
-    @Override
     public Path getIdentityPath() {
         return identityPath;
     }
@@ -106,11 +98,6 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     @Override
     public boolean isImplicitBuild() {
         return false;
-    }
-
-    @Override
-    public Path calculateIdentityPathForProject(Path projectPath) {
-        return getBuildController().getGradle().getIdentityPath().append(projectPath);
     }
 
     @Override
@@ -125,11 +112,6 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
 
     @Override
     public Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier) {
         throw new UnsupportedOperationException();
     }
 

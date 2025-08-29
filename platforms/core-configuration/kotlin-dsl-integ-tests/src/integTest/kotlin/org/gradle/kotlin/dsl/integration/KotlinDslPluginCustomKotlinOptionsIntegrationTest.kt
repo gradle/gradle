@@ -30,6 +30,14 @@ class KotlinDslPluginCustomKotlinOptionsIntegrationTest : AbstractKotlinIntegrat
 
         withDefaultSettingsIn("buildSrc")
         val buildSrcBuildScript = withKotlinDslPluginIn("buildSrc")
+        buildSrcBuildScript.appendText("""
+            tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+                compilerOptions {
+                    apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_1)
+                    languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_1)
+                }
+            }
+        """)
         withFile(
             "buildSrc/src/main/kotlin/MyDataObject.kt",
             """
@@ -41,15 +49,14 @@ class KotlinDslPluginCustomKotlinOptionsIntegrationTest : AbstractKotlinIntegrat
         )
         withBuildScript("println(MyDataObject.other)")
         buildAndFail("help").apply {
-            assertHasErrorOutput("""The feature "multi dollar interpolation" is experimental and should be enabled explicitly""")
+            assertHasErrorOutput("""The feature "multi dollar interpolation" is only available since language version 2.2""")
         }
 
         buildSrcBuildScript.appendText("""
             tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
                 compilerOptions {
-                    apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_1)
-                    languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_1)
-                    freeCompilerArgs.add("-Xmulti-dollar-interpolation")
+                    apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
+                    languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
                 }
             }
         """)

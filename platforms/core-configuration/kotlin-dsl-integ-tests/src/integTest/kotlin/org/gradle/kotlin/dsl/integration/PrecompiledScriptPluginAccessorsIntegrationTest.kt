@@ -181,7 +181,7 @@ class PrecompiledScriptPluginAccessorsIntegrationTest : AbstractKotlinIntegratio
 
         buildAndFail("assemble").run {
             // Accessor is not available on the first run as the plugin hasn't been registered.
-            assertTaskExecuted(
+            assertTaskScheduled(
                 ":consumer:generateExternalPluginSpecBuilders"
             )
         }
@@ -203,7 +203,7 @@ class PrecompiledScriptPluginAccessorsIntegrationTest : AbstractKotlinIntegratio
 
         // Accessor becomes available after registering the plugin.
         build("assemble").run {
-            assertTaskExecuted(
+            assertTaskScheduled(
                 ":consumer:generateExternalPluginSpecBuilders"
             )
         }
@@ -288,7 +288,7 @@ class PrecompiledScriptPluginAccessorsIntegrationTest : AbstractKotlinIntegratio
         }
 
         build("assemble").run {
-            assertTaskExecuted(
+            assertTaskScheduled(
                 ":consumer:generateExternalPluginSpecBuilders"
             )
         }
@@ -298,10 +298,62 @@ class PrecompiledScriptPluginAccessorsIntegrationTest : AbstractKotlinIntegratio
         }
 
         build("assemble").run {
-            assertTaskExecuted(
+            assertTaskScheduled(
                 ":consumer:generateExternalPluginSpecBuilders"
             )
         }
+    }
+
+    @Test
+    fun `can use accessors for plugin declared as compileOnly dependency`() {
+
+        withSettings(
+            """
+            $defaultSettingsScript
+
+            include("producer")
+            include("consumer")
+
+            dependencyResolutionManagement {
+                $repositoriesBlock
+            }
+            """
+        )
+        withBuildScript("""plugins { `kotlin-dsl` apply false }""")
+        withFolders {
+            "producer" {
+                withFile(
+                    "build.gradle.kts",
+                    """plugins { id("org.gradle.kotlin.kotlin-dsl") }"""
+                )
+                withFile(
+                    "src/main/kotlin/producer-plugin.gradle.kts",
+                    """tasks.register("producerPluginTask")"""
+                )
+            }
+            "consumer" {
+                withFile(
+                    "build.gradle.kts",
+                    """
+                    plugins { id("org.gradle.kotlin.kotlin-dsl") }
+                    dependencies {
+                        compileOnly(project(":producer"))
+                    }
+                    """
+                )
+                withFile(
+                    "src/main/kotlin/consumer-plugin.gradle.kts",
+                    """
+                    plugins {
+                        id("producer-plugin")
+                    }
+                    tasks.producerPluginTask {}
+                    """
+                )
+            }
+        }
+
+        build("assemble")
     }
 
     private

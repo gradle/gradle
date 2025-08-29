@@ -24,7 +24,11 @@ public abstract class SystemPropertiesPrefixedByValueSource extends MapWithPrefi
     }
 
     @Override
-    protected Stream<Map.Entry<String, String>> itemsToFilter() {
+    protected Map<String, String> collectItems(String prefix) {
+        return collectWithKeyPrefix(prefix, itemsToFilter());
+    }
+
+    private static Stream<Map.Entry<String, String>> itemsToFilter() {
         return System.getProperties().entrySet().stream()
             .filter(e -> e.getKey() instanceof String && e.getValue() instanceof String)
             .map(e -> {

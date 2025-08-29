@@ -67,7 +67,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         succeeds 'help'
 
         where:
-        configuration << ["legacy", "consumable", "resolvable", "consumableLocked", "resolvableLocked", "dependencyScopeUnlocked"]
+        configuration << ["legacy", "consumable", "resolvable", "resolvableLocked", "dependencyScopeUnlocked"]
     }
 
     def "can prevent usage mutation of roleless configurations"() {
@@ -134,8 +134,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("The testConf configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve the anotherConf configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
-        executer.expectDocumentedDeprecationWarning("Calling toRootComponent() on configuration ':testConf' has been deprecated. This will fail with an error in Gradle 10.0. This configuration does not allow this method to be called. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+        executer.expectDocumentedDeprecationWarning("The testConf configuration has been deprecated for resolution. This will fail with an error in Gradle 10. Please resolve the anotherConf configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         succeeds 'resolve'
     }
 
@@ -421,7 +420,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
             }
         """                                                                             | ConfigurationRoles.ALL        | "legacy configuration with explicit set consumed = true"
         "configurations.consumable('additionalRuntimeClasspath')"                       | ConfigurationRoles.CONSUMABLE | "role-based configuration"
-        "configurations.consumableLocked('additionalRuntimeClasspath')"                 | ConfigurationRoles.CONSUMABLE | "internal locked role-based configuration"
     }
 
     def "redundantly changing usage on a legacy configuration does not warn even if flag is set"() {
@@ -457,6 +455,9 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         when: "the build fails"
+        // archives is now deprecated for all usages, so the error contains the word "deprecated", so we disable deprecation checks to avoid
+        // a post-execution error that a deprecation warning may appear in the output
+        executer.noDeprecationChecks()
         fails 'help'
 
         then:
@@ -488,6 +489,9 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         when: "the build fails because the configuration is not allowed to change"
+        // archives is now deprecated for all usages, so the error contains the word "deprecated", so we disable deprecation checks to avoid
+        // a post-execution error that a deprecation warning may appear in the output
+        executer.noDeprecationChecks()
         fails 'help'
 
         then:
@@ -707,49 +711,95 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
             }
         """
         expect:
-        executer.expectDocumentedDeprecationWarning("The testConf configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use the anotherConf configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
+        executer.expectDocumentedDeprecationWarning("The testConf configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 10. Please use the anotherConf configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
         succeeds 'help'
     }
     // endregion Migrating configurations
 
     // region Detached configurations
-    def "changing usage on detached configurations does not warn"() {
+
+    // Note that this is not desired behavior and ideally any change to a detached configuration's
+    // usage should fail, however we have to allow changes to false for now as KGP does this.
+    def "changing usage #property = #change (change property to false) on detached configurations is permitted"() {
         given:
         buildFile << """
             def detached = project.configurations.detachedConfiguration()
 
-            assert detached.canBeConsumed
             assert detached.canBeResolved
             assert detached.canBeDeclared
 
-            detached.canBeResolved = false
-            detached.canBeConsumed = false
-            detached.canBeDeclared = false
+            detached.$property($change)
         """
 
         expect:
         run "help"
+
+        where:
+        property | change
+        "setCanBeResolved" | false
+        "setCanBeDeclared" | false
     }
 
-    def "changing usage on detached configurations warns when flag is set"() {
+    def "changing usage #property = #change (change property to true) on detached configurations fails"() {
         given:
         buildFile << """
             def detached = project.configurations.detachedConfiguration()
 
-            assert detached.canBeConsumed
+            assert !detached.canBeConsumed
+
+            detached.$property($change)
+        """
+
+        when:
+        fails "help"
+
+        then:
+        failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
+        failure.assertHasCause("""Method call not allowed
+  Calling $property($change) on configuration ':detachedConfiguration1' is not allowed.  This configuration's role was set upon creation and its usage should not be changed.""")
+
+        where:
+        property | change
+        "setCanBeConsumed" | true
+    }
+
+    def "changing usage redundantly on detached configurations warns when flag is set"() {
+        given:
+        buildFile << """
+            def detached = project.configurations.detachedConfiguration()
+
             assert detached.canBeResolved
+            assert !detached.canBeConsumed
             assert detached.canBeDeclared
 
-            detached.canBeResolved = false
+            detached.canBeResolved = true
             detached.canBeConsumed = false
-            detached.canBeDeclared = false
+            detached.canBeDeclared = true
         """
 
         expect:
         expectConsumableChanging(":detachedConfiguration1", false)
-        expectResolvableChanging(":detachedConfiguration1", false)
-        expectDeclarableChanging(":detachedConfiguration1", false)
+        expectResolvableChanging(":detachedConfiguration1", true)
+        expectDeclarableChanging(":detachedConfiguration1", true)
         succeeds('help', "-Dorg.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled=true")
+    }
+
+    def "changing usage redundantly on detached configurations does NOT warn when flag is NOT set"() {
+        given:
+        buildFile << """
+            def detached = project.configurations.detachedConfiguration()
+
+            assert detached.canBeResolved
+            assert !detached.canBeConsumed
+            assert detached.canBeDeclared
+
+            detached.canBeResolved = true
+            detached.canBeConsumed = false
+            detached.canBeDeclared = true
+        """
+
+        expect:
+        succeeds('help')
     }
     // endregion Detached configurations
 }

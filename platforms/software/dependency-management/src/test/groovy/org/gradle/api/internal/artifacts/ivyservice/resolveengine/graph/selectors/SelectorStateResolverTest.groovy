@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.AttributeContainer
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
@@ -205,7 +204,7 @@ class SelectorStateResolverTest extends Specification {
     }
 
     def 'short circuits for matching project selectors'() {
-        ProjectIdentity id = new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "projectA")
+        ProjectIdentity id = ProjectIdentity.forRootProject(Path.ROOT, "projectA")
         def projectId = new DefaultProjectComponentIdentifier(id)
         def nine = new TestProjectSelectorState(id)
         def otherNine = new TestProjectSelectorState(id)
@@ -317,7 +316,7 @@ class SelectorStateResolverTest extends Specification {
      */
     class TestDependencyToComponentIdResolver implements DependencyToComponentIdResolver {
         @Override
-        void resolve(ComponentSelector selector, ComponentOverrideMetadata overrideMetadata, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result) {
+        void resolve(ComponentSelector selector, ComponentOverrideMetadata overrideMetadata, VersionSelector acceptor, VersionSelector rejector, BuildableComponentIdResolveResult result, ImmutableAttributes consumerAttributes) {
             if (!acceptor.isDynamic()) {
                 def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(moduleId.group, moduleId.name), acceptor.selector)
                 resolvedOrRejected(id, rejector, result)

@@ -16,8 +16,7 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.matching.AttributeMatchingCandidate;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 
 import java.util.List;
@@ -28,7 +27,7 @@ import java.util.List;
  * This state type manages expensive operations required to resolve a variant. These include
  * managing dependencies and artifacts, which may not be easily available from the metadata.
  */
-public interface VariantGraphResolveState extends HasAttributes {
+public interface VariantGraphResolveState extends AttributeMatchingCandidate {
 
     /**
      * A unique id for this variant within the current build tree. Note that this id is not stable across Gradle invocations.
@@ -36,9 +35,6 @@ public interface VariantGraphResolveState extends HasAttributes {
     long getInstanceId();
 
     String getName();
-
-    @Override
-    ImmutableAttributes getAttributes();
 
     ImmutableCapabilities getCapabilities();
 
@@ -63,4 +59,5 @@ public interface VariantGraphResolveState extends HasAttributes {
      * when required.
      */
     VariantArtifactResolveState prepareForArtifactResolution();
+
 }

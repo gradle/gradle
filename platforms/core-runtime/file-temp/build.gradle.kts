@@ -21,7 +21,9 @@ plugins {
 description = "Utilities for working with temporary files & directories"
 
 gradleModule {
-    usedInWorkers = true
+    targetRuntimes {
+        usedInWorkers = true
+    }
 }
 
 dependencies {
@@ -30,4 +32,8 @@ dependencies {
     api(libs.jspecify)
 
     implementation(libs.jsr305)
+}
+
+errorprone {
+    nullawayEnabled = true
 }

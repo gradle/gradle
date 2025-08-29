@@ -47,12 +47,11 @@ class BuildTypeTest {
     fun `CompileAll parameters are correct`() {
         val linuxPaths =
             listOf(
-                "%linux.java7.oracle.64bit%",
                 "%linux.java8.oracle.64bit%",
                 "%linux.java11.openjdk.64bit%",
                 "%linux.java17.openjdk.64bit%",
                 "%linux.java21.openjdk.64bit%",
-                "%linux.java24.openjdk.64bit%",
+                "%linux.java25.openjdk.64bit%",
             )
         val expectedInstallationPaths = linuxPaths.joinToString(",")
         val gradleStep = CompileAll(buildModel, buildModel.stages[0]).steps.getGradleStep(GRADLE_RUNNER_STEP_NAME)
@@ -61,17 +60,22 @@ class BuildTypeTest {
                 "-Dorg.gradle.workers.max=%maxParallelForks%",
                 "-PmaxParallelForks=%maxParallelForks%",
                 "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
+                "-Dscan.value.tcPipeline=master",
                 "-s",
                 "%additional.gradle.parameters%",
                 "--continue",
                 "-DbuildScan.PartOf=QuickFeedbackLinuxOnly,QuickFeedback,PullRequestFeedback,ReadyforNightly,ReadyforRelease",
                 "-Dscan.tag.CompileAll",
+                "-Dorg.gradle.java.installations.auto-download=false",
                 "-Porg.gradle.java.installations.auto-download=false",
                 "-Dscan.tag.Check",
                 "-PteamCityBuildId=%teamcity.build.id%",
-                "\"-Porg.gradle.java.installations.paths=$expectedInstallationPaths\"",
+                "-Dorg.gradle.java.installations.auto-download=false",
                 "-Porg.gradle.java.installations.auto-download=false",
+                "-Dorg.gradle.java.installations.auto-detect=false",
                 "-Porg.gradle.java.installations.auto-detect=false",
+                "\"-Dorg.gradle.java.installations.paths=$expectedInstallationPaths\"",
+                "\"-Porg.gradle.java.installations.paths=$expectedInstallationPaths\"",
             ).joinToString(" "),
             gradleStep.gradleParams,
         )
@@ -85,7 +89,7 @@ class BuildTypeTest {
                 "TestFunctionalTest",
                 "Test Functional Test",
                 "Test Functional Test",
-                TestCoverage(4, TestType.PLATFORM, Os.WINDOWS, JvmVersion.JAVA_24, JvmVendor.OPENJDK),
+                TestCoverage(4, TestType.PLATFORM, Os.WINDOWS, JvmVersion.JAVA_25, JvmVendor.OPENJDK),
                 buildModel.stages[2],
             )
 
@@ -95,7 +99,7 @@ class BuildTypeTest {
                 "%windows.java11.openjdk.64bit%",
                 "%windows.java17.openjdk.64bit%",
                 "%windows.java21.openjdk.64bit%",
-                "%windows.java24.openjdk.64bit%",
+                "%windows.java25.openjdk.64bit%",
             )
         val expectedInstallationPaths = windowsPaths.joinToString(",")
         val gradleStep = functionalTest.steps.getGradleStep(GRADLE_RUNNER_STEP_NAME)
@@ -104,23 +108,27 @@ class BuildTypeTest {
                 "-Dorg.gradle.workers.max=4",
                 "-PmaxParallelForks=4",
                 "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
+                "-Dscan.value.tcPipeline=master",
                 "-s",
                 "%additional.gradle.parameters%",
                 "--continue",
-                "-DbuildScan.PartOf=PlatformJava24AdoptiumWindowsAmd64,PullRequestFeedback,ReadyforNightly,ReadyforRelease",
-                "-PtestJavaVersion=24",
+                "-DbuildScan.PartOf=PlatformJava25AdoptiumWindowsAmd64,PullRequestFeedback,ReadyforNightly,ReadyforRelease",
+                "-PtestJavaVersion=25",
                 "-PtestJavaVendor=openjdk",
                 "-Dscan.tag.FunctionalTest",
                 "-Dscan.value.coverageOs=windows",
                 "-Dscan.value.coverageArch=amd64",
                 "-Dscan.value.coverageJvmVendor=openjdk",
-                "-Dscan.value.coverageJvmVersion=java24",
+                "-Dscan.value.coverageJvmVersion=java25",
                 "-PflakyTests=exclude",
                 "-Dscan.tag.Check",
                 "-PteamCityBuildId=%teamcity.build.id%",
-                "\"-Porg.gradle.java.installations.paths=$expectedInstallationPaths\"",
+                "-Dorg.gradle.java.installations.auto-download=false",
                 "-Porg.gradle.java.installations.auto-download=false",
+                "-Dorg.gradle.java.installations.auto-detect=false",
                 "-Porg.gradle.java.installations.auto-detect=false",
+                "\"-Dorg.gradle.java.installations.paths=$expectedInstallationPaths\"",
+                "\"-Porg.gradle.java.installations.paths=$expectedInstallationPaths\"",
             ).joinToString(" "),
             gradleStep.gradleParams,
         )

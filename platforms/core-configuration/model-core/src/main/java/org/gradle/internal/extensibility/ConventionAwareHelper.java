@@ -45,7 +45,7 @@ import java.util.concurrent.Callable;
 
 import static org.gradle.internal.UncheckedException.uncheckedCall;
 
-@SuppressWarnings({"deprecation", "FieldNamingConvention"})
+@SuppressWarnings("FieldNamingConvention")
 public class ConventionAwareHelper implements ConventionMapping {
     //prefix internal fields with _ so that they don't get into the way of propertyMissing()
     private final IConventionAware _source;
@@ -55,11 +55,6 @@ public class ConventionAwareHelper implements ConventionMapping {
     private final Set<String> _ineligiblePropertyNames;
 
     private final Map<String, MappedPropertyImpl> _mappings = new HashMap<>();
-
-    @SuppressWarnings("unused") // TODO (donat) Removing this method breaks the Gradleception CI build. We can remove it after changes are merged to the `master` branch.
-    public ConventionAwareHelper(IConventionAware source, org.gradle.api.plugins.Convention convention) {
-        this(source);
-    }
 
     public ConventionAwareHelper(IConventionAware source) {
         this._source = source;

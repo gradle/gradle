@@ -29,6 +29,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.ProjectState
@@ -73,6 +74,10 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         getServices() >> serviceRegistry
         getTaskDependencyFactory() >> TestFiles.taskDependencyFactory()
         getObjects() >> Stub(ObjectFactory)
+        getProjectIdentity() >> ProjectIdentity.forRootProject(
+            Path.ROOT,
+            "project"
+        )
     } as ProjectInternal
     private final projectRegistry = Mock(ProjectRegistry)
     private container = new DefaultTaskContainerFactory(

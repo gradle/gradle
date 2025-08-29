@@ -7,6 +7,7 @@ description = "Kotlin DSL Tooling Builders for IDEs"
 dependencies {
     api(projects.coreApi)
     api(projects.core)
+    api(projects.serviceProvider)
     api(libs.kotlinStdlib)
 
     implementation(projects.classloaders)
@@ -15,12 +16,12 @@ dependencies {
     implementation(projects.time)
     implementation(projects.kotlinDsl)
     implementation(projects.baseServices)
+    implementation(projects.logging)
     implementation(projects.resources)
     implementation(projects.platformBase)
     implementation(projects.platformJvm)
     implementation(projects.pluginsJavaBase)
     implementation(projects.toolingApi)
-    implementation(projects.logging)
     implementation(projects.kotlinDslToolingModels)
     implementation(projects.buildProcessServices)
 

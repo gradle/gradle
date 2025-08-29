@@ -64,6 +64,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaCompiler;
 import org.gradle.jvm.toolchain.internal.JavaExecutableUtils;
 import org.gradle.language.base.internal.compile.CompileSpec;
@@ -93,25 +94,27 @@ import java.util.concurrent.Callable;
  */
 @CacheableTask
 public abstract class JavaCompile extends AbstractCompile implements HasCompileOptions {
-    private final CompileOptions compileOptions;
-    private final FileCollection stableSources = getProject().files((Callable<FileTree>) this::getSource);
+
+    private final FileCollection stableSources;
     private final ModularitySpec modularity;
     private File previousCompilationDataFile;
-    private final Property<JavaCompiler> javaCompiler;
 
     public JavaCompile() {
         ObjectFactory objectFactory = getObjectFactory();
-        compileOptions = objectFactory.newInstance(CompileOptions.class);
-        modularity = objectFactory.newInstance(DefaultModularitySpec.class);
+        this.stableSources = objectFactory.fileCollection().from((Callable<FileTree>) this::getSource);
+        this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
+
         JavaToolchainService javaToolchainService = getJavaToolchainService();
         Provider<JavaCompiler> javaCompilerConvention = getProviderFactory()
             .provider(() -> JavaCompileExecutableUtils.getExecutableOverrideToolchainSpec(this, getPropertyFactory()))
             .flatMap(javaToolchainService::compilerFor)
             .orElse(javaToolchainService.compilerFor(it -> {}));
-        javaCompiler = objectFactory.property(JavaCompiler.class).convention(javaCompilerConvention);
-        javaCompiler.finalizeValueOnRead();
-        compileOptions.getIncrementalAfterFailure().convention(true);
-        CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
+
+        getJavaCompiler().convention(javaCompilerConvention);
+        getJavaCompiler().finalizeValueOnRead();
+
+        getOptions().getIncrementalAfterFailure().convention(true);
+        CompilerForkUtils.doNotCacheIfForkingViaExecutable(getOptions(), getOutputs());
     }
 
     /**
@@ -127,13 +130,11 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     /**
      * Configures the java compiler to be used to compile the Java source.
      *
-     * @see org.gradle.jvm.toolchain.JavaToolchainSpec
+     * @see JavaToolchainSpec
      * @since 6.7
      */
     @Nested
-    public Property<JavaCompiler> getJavaCompiler() {
-        return javaCompiler;
-    }
+    public abstract Property<JavaCompiler> getJavaCompiler();
 
     /**
      * Compile the sources, taking into account the changes reported by inputs.
@@ -143,7 +144,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     @TaskAction
     protected void compile(InputChanges inputs) {
         DefaultJavaCompileSpec spec = createSpec();
-        if (!compileOptions.isIncremental()) {
+        if (!getOptions().isIncremental()) {
             performFullCompilation(spec);
         } else {
             performIncrementalCompilation(inputs, spec);
@@ -229,10 +230,10 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         validateForkOptionsMatchToolchain();
         List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getStableSources().getAsFileTree());
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
-        boolean isModule = JavaModuleDetector.isModuleSource(modularity.getInferModulePath().get(), sourcesRoots);
-        boolean isSourcepathUserDefined = compileOptions.getSourcepath() != null && !compileOptions.getSourcepath().isEmpty();
+        boolean isModule = JavaModuleDetector.isModuleSource(getModularity().getInferModulePath().get(), sourcesRoots);
+        boolean isSourcepathUserDefined = getOptions().getSourcepath() != null && !getOptions().getSourcepath().isEmpty();
 
-        DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions, getToolchain()).create();
+        DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(getOptions(), getToolchain()).create();
 
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
@@ -241,9 +242,9 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         spec.setModulePath(ImmutableList.copyOf(javaModuleDetector.inferModulePath(isModule, getClasspath())));
 
         if (isModule && !isSourcepathUserDefined) {
-            compileOptions.setSourcepath(getProjectLayout().files(sourcesRoots));
+            getOptions().setSourcepath(getProjectLayout().files(sourcesRoots));
         }
-        spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
+        spec.setAnnotationProcessorPath(getOptions().getAnnotationProcessorPath() == null ? ImmutableList.of() : ImmutableList.copyOf(getOptions().getAnnotationProcessorPath()));
         configureCompileOptions(spec);
         spec.setSourcesRoots(sourcesRoots);
 
@@ -293,8 +294,8 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     }
 
     private void configureCompileOptions(DefaultJavaCompileSpec spec) {
-        if (compileOptions.getRelease().isPresent()) {
-            spec.setRelease(compileOptions.getRelease().get());
+        if (getOptions().getRelease().isPresent()) {
+            spec.setRelease(getOptions().getRelease().get());
         } else {
             String toolchainVersion = JavaVersion.toVersion(getToolchain().getLanguageVersion().asInt()).toString();
             String sourceCompatibility = getSourceCompatibility();
@@ -311,7 +312,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
             spec.setSourceCompatibility(sourceCompatibility);
             spec.setTargetCompatibility(targetCompatibility);
         }
-        spec.setCompileOptions(compileOptions);
+        spec.setCompileOptions(getOptions());
     }
 
     private JavaInstallationMetadata getToolchain() {
@@ -340,9 +341,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
      */
     @Nested
     @Override
-    public CompileOptions getOptions() {
-        return compileOptions;
-    }
+    public abstract CompileOptions getOptions();
 
     @Override
     @CompileClasspath
@@ -367,42 +366,26 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     }
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     @Inject
-    protected PropertyFactory getPropertyFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract PropertyFactory getPropertyFactory();
 
     @Inject
-    protected JavaToolchainService getJavaToolchainService() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaToolchainService getJavaToolchainService();
 
     @Inject
-    protected ProviderFactory getProviderFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProviderFactory getProviderFactory();
 
     @Inject
-    protected IncrementalCompilerFactory getIncrementalCompilerFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract IncrementalCompilerFactory getIncrementalCompilerFactory();
 
     @Inject
-    protected JavaModuleDetector getJavaModuleDetector() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaModuleDetector getJavaModuleDetector();
 
     @Inject
-    protected Deleter getDeleter() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract Deleter getDeleter();
 
     @Inject
-    protected ProjectLayout getProjectLayout() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProjectLayout getProjectLayout();
 }

@@ -347,7 +347,7 @@ public class ProviderConnection {
 
         AllProperties properties = new LayoutToPropertiesConverter(buildLayoutFactory).convert(initialProperties, buildLayoutResult);
 
-        DaemonParameters daemonParams = new DaemonParameters(buildLayoutResult.getGradleUserHomeDir(), fileCollectionFactory);
+        DaemonParameters daemonParams = new DaemonParameters(buildLayoutResult.getGradleUserHomeDir(), fileCollectionFactory, Collections.emptyMap(), operationParameters.getEnvironmentVariables(null));
         new DaemonBuildOptions().propertiesConverter().convert(properties.getProperties(), daemonParams);
         if (operationParameters.getDaemonBaseDir() != null) {
             daemonParams.setBaseDir(operationParameters.getDaemonBaseDir());
@@ -379,11 +379,6 @@ public class ProviderConnection {
         // Include the system properties that are defined in the daemon JVM args
         properties = properties.merge(daemonParams.getSystemProperties());
 
-        Map<String, String> envVariables = operationParameters.getEnvironmentVariables(null);
-        if (envVariables != null) {
-            daemonParams.setEnvironmentVariables(envVariables);
-        }
-
         File javaHome = operationParameters.getJavaHome();
         if (javaHome != null) {
             daemonParams.setRequestedJvmCriteria(new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.TOOLING_API_CLIENT, javaHome));
@@ -406,11 +401,14 @@ public class ProviderConnection {
             effectiveSystemProperties.putAll(daemonParams.getMutableAndImmutableSystemProperties());
         }
         StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(operationParameters, buildLayoutResult, properties);
+        if (requestContext.getJvmCriteria() instanceof DaemonJvmCriteria.Spec) {
+            startParameter.setDaemonJvmCriteriaConfigured(true);
+        }
 
         Map<String, String> gradlePropertiesAsSeenByToolchains = new HashMap<>();
         gradlePropertiesAsSeenByToolchains.putAll(properties.getProperties());
         gradlePropertiesAsSeenByToolchains.putAll(startParameter.getProjectProperties());
-        new BuildOptionBackedConverter<>(new ToolchainBuildOptions()).convert(parsedCommandLine, gradlePropertiesAsSeenByToolchains, daemonParams.getToolchainConfiguration());
+        new BuildOptionBackedConverter<>(ToolchainBuildOptions.forToolChainConfiguration()).convert(parsedCommandLine, gradlePropertiesAsSeenByToolchains, daemonParams.getToolchainConfiguration());
 
         return new Parameters(daemonParams, buildLayoutResult, properties, effectiveSystemProperties, startParameter, requestContext);
     }

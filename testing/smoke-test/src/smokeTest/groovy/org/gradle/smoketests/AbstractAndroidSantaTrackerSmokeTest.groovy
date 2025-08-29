@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.scan.config.fixtures.ApplyDevelocityPluginFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -60,11 +61,19 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements 
     }
 
     protected SmokeTestGradleRunner.SmokeTestBuildResult buildLocation(File projectDir, String agpVersion) {
-        return runnerForLocation(projectDir, agpVersion, "assembleDebug").build()
+        return runnerForLocation(projectDir, agpVersion, "assembleDebug")
+            .deprecations(AndroidDeprecations) {
+                expectMultiStringNotationDeprecation(agpVersion)
+            }
+            .build()
     }
 
     protected SmokeTestGradleRunner.SmokeTestBuildResult buildCachedLocation(File projectDir, String agpVersion) {
-        return runnerForLocation(projectDir, agpVersion, "assembleDebug").build()
+        return runnerForLocation(projectDir, agpVersion, "assembleDebug")
+            .deprecations(AndroidDeprecations) {
+                expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
+            }
+            .build()
     }
 
     static class SantaTrackerDeprecations extends BaseDeprecations implements WithAndroidDeprecations {
@@ -105,12 +114,12 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements 
             )
         }
         runner.deprecations(SantaTrackerDeprecations) {
-            maybeExpectIsPropertyDeprecationWarnings()
+            maybeExpectIsPropertyDeprecationWarnings(agpVersion)
         }
         1.times {
             runner.maybeExpectLegacyDeprecationWarning(
                 "Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 10.0. " +
+                    "This is scheduled to be removed in Gradle 10. " +
                     "Use assignment ('url = <value>') instead. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
             )
@@ -118,7 +127,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements 
         15.times {
             runner.maybeExpectLegacyDeprecationWarning(
                 "Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 10.0. " +
+                    "This is scheduled to be removed in Gradle 10. " +
                     "Use assignment ('namespace = <value>') instead. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
             )

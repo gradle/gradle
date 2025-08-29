@@ -17,24 +17,34 @@
 import gradlebuild.basics.testing.TestType
 import gradlebuild.basics.testing.includeSpockAnnotation
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
-import gradlebuild.integrationtests.addSourceSet
 import gradlebuild.integrationtests.configureIde
 import gradlebuild.integrationtests.createTasks
 import gradlebuild.integrationtests.createTestTask
 import gradlebuild.integrationtests.extension.IntegrationTestExtension
+import gradlebuild.integrationtests.setSystemPropertiesOfTestJVM
 
 plugins {
     java
     id("gradlebuild.dependency-modules")
+    id("gradlebuild.jvm-compile")
 }
 
 extensions.create<IntegrationTestExtension>("integTest").apply {
-    usesJavadocCodeSnippets.convention(false)
+    generateDefaultAutoTestedSamplesTest.convention(true)
     testJvmXmx.convention("512m")
 }
 
-val sourceSet = addSourceSet(TestType.INTEGRATION)
+val sourceSet = sourceSets.create("${TestType.INTEGRATION.prefix}Test")
+jvmCompile {
+    addCompilationFrom(sourceSet)
+}
 addDependenciesAndConfigurations(TestType.INTEGRATION.prefix)
+configurations.named("integTestRuntimeClasspath") {
+    // The InProcessGradleExecuter and the BuildOperationsFixture currently expect the
+    // under-development Gradle distribution to be on the runtime classpath. We should
+    // avoid this and instead dynamically load the classpath from `integTest.gradleHomeDir` instead.
+    extendsFrom(configurations.named("integTestDistributionRuntimeOnly").get())
+}
 createTasks(sourceSet, TestType.INTEGRATION)
 configureIde(TestType.INTEGRATION)
 
@@ -43,4 +53,5 @@ createTestTask("integMultiVersionTest", "forking", sourceSet, TestType.INTEGRATI
     includeSpockAnnotation("org.gradle.integtests.fixtures.compatibility.MultiVersionTestCategory")
     (options as JUnitPlatformOptions).includeEngines("spock")
     failOnNoDiscoveredTests.set(false)
+    setSystemPropertiesOfTestJVM("all")
 }

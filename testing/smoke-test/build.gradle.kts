@@ -13,6 +13,10 @@ val smokeTestSourceSet = sourceSets.create("smokeTest") {
     runtimeClasspath += sourceSets.main.get().output
 }
 
+jvmCompile {
+    addCompilationFrom(smokeTestSourceSet)
+}
+
 dependencyAnalysis {
     issues {
         ignoreSourceSet(smokeTestSourceSet.name)
@@ -43,7 +47,7 @@ dependencies {
     smokeTestImplementation(libs.junitPlatform)
     smokeTestImplementation(libs.jacksonDatabind)
 
-    smokeTestImplementation(testFixtures(projects.buildProcessStartup))
+    smokeTestImplementation(testFixtures(projects.buildProcessServices))
     smokeTestImplementation(testFixtures(projects.core))
     smokeTestImplementation(testFixtures(projects.modelReflect))
     smokeTestImplementation(testFixtures(projects.pluginDevelopment))
@@ -187,4 +191,8 @@ plugins.withType<IdeaPlugin>().configureEach {
         scopes["TEST"]!!["plus"]!!.add(smokeTestCompileClasspath)
         scopes["TEST"]!!["plus"]!!.add(smokeTestRuntimeClasspath)
     }
+}
+
+errorprone {
+    nullawayEnabled = true
 }

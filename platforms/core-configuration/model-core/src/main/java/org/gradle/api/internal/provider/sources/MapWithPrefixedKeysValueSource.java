@@ -34,11 +34,14 @@ public abstract class MapWithPrefixedKeysValueSource<P extends MapWithPrefixedKe
     @Override
     public Map<String, String> obtain() {
         String prefix = getParameters().getPrefix().getOrElse("");
+        return collectItems(prefix);
+    }
 
-        return itemsToFilter()
+    protected abstract Map<String, String> collectItems(String prefix);
+
+    protected Map<String, String> collectWithKeyPrefix(String prefix, Stream<Map.Entry<String, String>> items) {
+        return items
             .filter(e -> e.getKey().startsWith(prefix))
             .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
     }
-
-    protected abstract Stream<Map.Entry<String, String>> itemsToFilter();
 }

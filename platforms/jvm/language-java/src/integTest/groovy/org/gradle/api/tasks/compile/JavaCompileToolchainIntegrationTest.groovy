@@ -408,6 +408,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
                 GET_HELP)
     }
 
+    @Requires(IntegTestPreconditions.Java8HomeAvailable)
     def "can use compile daemon with tools jar"() {
         def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8)
         assumeTrue(JavaVersion.current() != JavaVersion.VERSION_1_8)
@@ -465,6 +466,8 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
     def "Java deprecation messages with different JDKs"() {
         def jdk = AvailableJavaHomes.getJdk(javaVersion)
 
+        assumeNotNull(jdk)
+
         buildFile << """
             plugins {
                 id("java")
@@ -496,7 +499,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
             }
         """
 
-        executer.expectDeprecationWarning("$fileWithDeprecation:5: warning: $deprecationMessage")
+        executer.expectExternalDeprecatedMessage("$fileWithDeprecation:5: warning: $deprecationMessage")
 
         when:
         withInstallations(jdk).run(":compileJava", "--info")

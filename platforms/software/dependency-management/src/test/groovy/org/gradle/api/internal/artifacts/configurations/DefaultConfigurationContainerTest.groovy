@@ -25,19 +25,19 @@ import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.ResolvableConfiguration
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.ConfigurationServicesBundle
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.AttributesFactory
-import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
+import org.gradle.api.specs.Spec
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -50,58 +50,60 @@ import spock.lang.Specification
 class DefaultConfigurationContainerTest extends Specification {
 
     private ConfigurationResolver resolver = Mock(ConfigurationResolver)
+    private ConfigurationResolver.Factory resolverFactory = Mock(ConfigurationResolver.Factory) {
+        create(_, _, _) >> resolver
+    }
+
     private ListenerManager listenerManager = Stub(ListenerManager.class)
     private DependencyMetaDataProvider metaDataProvider = Mock(DependencyMetaDataProvider.class)
     private BuildOperationRunner buildOperationRunner = Mock(BuildOperationRunner)
     private ProjectStateRegistry projectStateRegistry = Mock(ProjectStateRegistry)
     private CollectionCallbackActionDecorator callbackActionDecorator = Mock(CollectionCallbackActionDecorator) {
+        decorateSpec(_) >> { Spec spec -> spec }
         decorate(_ as Action) >> { it[0] }
     }
     private UserCodeApplicationContext userCodeApplicationContext = Mock()
     private CalculatedValueContainerFactory calculatedValueContainerFactory = Mock()
     private ObjectFactory objectFactory = TestUtil.objectFactory()
     private AttributesFactory attributesFactory = AttributeTestUtil.attributesFactory()
-    private DefaultRootComponentMetadataBuilder metadataBuilder = Mock(DefaultRootComponentMetadataBuilder) {
-        getValidator() >> Mock(MutationValidator)
-    }
-    private DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
-        create(_, _, _, _) >> metadataBuilder
-    }
-    private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
+
+    ConfigurationServicesBundle configurationServices = new DefaultConfigurationServicesBundle(
+        buildOperationRunner,
+        projectStateRegistry,
+        calculatedValueContainerFactory,
         objectFactory,
-        resolver,
+        TestFiles.fileCollectionFactory(),
+        TestFiles.taskDependencyFactory(),
+        attributesFactory,
+        TestUtil.domainObjectCollectionFactory(),
+        CollectionCallbackActionDecorator.NOOP,
+        TestUtil.problemsService(),
+        new AttributeDesugaring(attributesFactory),
+        new ResolveExceptionMapper(StandaloneDomainObjectContext.ANONYMOUS, new DocumentationRegistry())
+    )
+
+    private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
+        configurationServices,
         listenerManager,
         StandaloneDomainObjectContext.ANONYMOUS,
-        TestFiles.fileCollectionFactory(),
-        buildOperationRunner,
         new PublishArtifactNotationParserFactory(
                 objectFactory,
                 metaDataProvider,
                 TestFiles.resolver(),
                 TestFiles.taskDependencyFactory(),
         ),
-        attributesFactory,
-        Stub(ResolveExceptionMapper),
-        new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
-        userCodeApplicationContext,
-        CollectionCallbackActionDecorator.NOOP,
-        projectStateRegistry,
-        TestUtil.domainObjectCollectionFactory(),
-        calculatedValueContainerFactory,
-        TestFiles.taskDependencyFactory(),
-        TestUtil.problemsService(),
-        new DocumentationRegistry()
+        userCodeApplicationContext
     )
+
     private DefaultConfigurationContainer configurationContainer = objectFactory.newInstance(DefaultConfigurationContainer.class,
         TestUtil.instantiatorFactory().decorateLenient(),
         callbackActionDecorator,
-        metaDataProvider,
         StandaloneDomainObjectContext.ANONYMOUS,
-        Mock(AttributesSchemaInternal),
-        rootComponentMetadataBuilderFactory,
         configurationFactory,
         Mock(ResolutionStrategyFactory),
-        TestUtil.problemsService()
+        TestUtil.problemsService(),
+        resolverFactory,
+        AttributeTestUtil.mutableSchema()
     )
 
     def addsNewConfigurationWhenConfiguringSelf() {
@@ -226,12 +228,6 @@ class DefaultConfigurationContainerTest extends Specification {
         verifyRole(ConfigurationRoles.CONSUMABLE, "b") {
             consumable("b", {})
         }
-        verifyLocked(ConfigurationRoles.CONSUMABLE, "c") {
-            consumableLocked("c")
-        }
-        verifyLocked(ConfigurationRoles.CONSUMABLE, "d") {
-            consumableLocked("d", {})
-        }
     }
 
     def "creates dependency scope configuration"() {
@@ -337,20 +333,9 @@ class DefaultConfigurationContainerTest extends Specification {
 
         where:
         name                                                | action
-        "consumableLocked(String, Action)"                | { consumableLocked("foo", it) }
         "resolvableLocked(String, Action)"                | { resolvableLocked("foo", it) }
         "dependencyScopeLocked(String, Action)"           | { dependencyScopeLocked("foo", it) }
         "resolvableDependencyScopeLocked(String, Action)" | { resolvableDependencyScopeLocked("foo", it) }
-    }
-
-    def "role locked configurations default to non-visible"() {
-        expect:
-        !configurationContainer.consumable("a").get().visible
-        !configurationContainer.consumable("b", {}).get().visible
-        !configurationContainer.resolvable("c").get().visible
-        !configurationContainer.resolvable("d", {}).get().visible
-        !configurationContainer.dependencyScope("e").get().visible
-        !configurationContainer.dependencyScope("f", {}).get().visible
     }
 
     // withType when used with a class that is not a super-class of the container does not work with registered elements
@@ -392,9 +377,15 @@ class DefaultConfigurationContainerTest extends Specification {
 
     def verifyLocked(ConfigurationRole role, String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer) {
         verifyEagerConfiguration(name, producer) {
-            assert !(it instanceof ResolvableConfiguration)
-            assert !(it instanceof DependencyScopeConfiguration)
-            assert !(it instanceof ConsumableConfiguration)
+            if (role == ConfigurationRoles.DEPENDENCY_SCOPE) {
+                assert it instanceof DependencyScopeConfiguration
+            } else if (role == ConfigurationRoles.RESOLVABLE) {
+                assert it instanceof ResolvableConfiguration
+            } else if (role == ConfigurationRoles.CONSUMABLE) {
+                assert it instanceof ConsumableConfiguration
+            } else {
+                assert it instanceof DefaultConfiguration
+            }
             assert role.resolvable == it.isCanBeResolved()
             assert role.declarable == it.isCanBeDeclared()
             assert role.consumable == it.isCanBeConsumed()
@@ -406,15 +397,13 @@ class DefaultConfigurationContainerTest extends Specification {
         }
     }
 
-    private verifyUsageChangeFailsProperly(Closure step) {
-        boolean thrown = false
+    private static verifyUsageChangeFailsProperly(Closure step) {
         try {
             step.call()
+            assert false : "Expected exception to be thrown"
         } catch (GradleException e) {
             assert e.message.startsWith("Cannot change the allowed usage of configuration")
-            thrown = true
         }
-        assert thrown
     }
 
     def verifyEagerConfiguration(String name, @DelegatesTo(ConfigurationContainerInternal) Closure producer, Closure action) {

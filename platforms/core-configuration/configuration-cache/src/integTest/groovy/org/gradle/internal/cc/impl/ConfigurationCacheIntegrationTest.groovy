@@ -248,7 +248,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         outputContains("running build script")
         outputContains("create task")
         outputContains("configure task")
-        result.assertTasksExecuted(":a")
+        result.assertTasksScheduled(":a")
 
         when:
         configurationCacheRun "a"
@@ -259,7 +259,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         outputDoesNotContain("running build script")
         outputDoesNotContain("create task")
         outputDoesNotContain("configure task")
-        result.assertTasksExecuted(":a")
+        result.assertTasksScheduled(":a")
 
         when:
         configurationCacheRun "b"
@@ -270,7 +270,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         outputContains("running build script")
         outputContains("create task")
         outputContains("configure task")
-        result.assertTasksExecuted(":a", ":b")
+        result.assertTasksScheduled(":a", ":b")
 
         when:
         configurationCacheRun "a"
@@ -281,7 +281,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         outputDoesNotContain("running build script")
         outputDoesNotContain("create task")
         outputDoesNotContain("configure task")
-        result.assertTasksExecuted(":a")
+        result.assertTasksScheduled(":a")
     }
 
     def "configuration cache for multi-level projects"() {
@@ -335,7 +335,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCacheRun "init", "--dsl", "groovy", "--type", "basic"
 
         then:
-        result.assertTasksExecutedAndNotSkipped(":init")
+        result.assertTasksExecuted(":init")
         configurationCache.assertStateStored {}
         succeeds 'properties'
         def projectName1 = testDirectory.name
@@ -346,7 +346,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCacheRun "init", "--dsl", "groovy", "--type", "basic"
 
         then:
-        result.assertTasksExecutedAndNotSkipped(":init")
+        result.assertTasksExecuted(":init")
         succeeds 'properties'
         def projectName2 = testDirectory.name
         outputContains("name: ${projectName2}")
@@ -416,7 +416,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
     private def expectStartParameterIsConfigurationCacheRequestedWarning() {
         executer.expectDocumentedDeprecationWarning(
             "The StartParameter.isConfigurationCacheRequested property has been deprecated. " +
-                "This is scheduled to be removed in Gradle 10.0. " +
+                "This is scheduled to be removed in Gradle 10. " +
                 "Please use 'configurationCache.requested' property on 'BuildFeatures' service instead. " +
                 "Consult the upgrading guide for further information: " +
                 "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested",

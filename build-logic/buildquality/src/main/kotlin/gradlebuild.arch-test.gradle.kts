@@ -21,6 +21,7 @@ plugins {
     `jvm-test-suite`
     id("gradlebuild.dependency-modules")
     id("gradlebuild.code-quality")
+    id("gradlebuild.jvm-compile")
 }
 
 val packageCyclesExtension = extensions.create<PackageCyclesExtension>("packageCycles").apply {
@@ -47,6 +48,11 @@ testing {
     suites {
         create("archTest", JvmTestSuite::class) {
             useJUnitJupiter()
+
+            project.jvmCompile {
+                addCompilationFrom(sources)
+            }
+
             dependencies {
                 implementation(project.dependencies.create(project))
                 notForAccessorGeneration {
@@ -54,6 +60,7 @@ testing {
                     implementation(project(":internal-architecture-testing"))
                 }
             }
+
             targets {
                 all {
                     testTask.configure {

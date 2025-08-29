@@ -44,7 +44,7 @@ configurations.all {
 publishing.publications.withType<MavenPublication>().configureEach {
     if (name == "pluginMaven") {
         groupId = project.group.toString()
-        artifactId = moduleIdentity.baseName.get()
+        artifactId = gradleModule.identity.baseName.get()
     }
     pom {
         licenses {
@@ -135,14 +135,12 @@ configurations.create("localLibsRepositoryElements") {
     }
     isCanBeResolved = false
     isCanBeConsumed = true
-    isVisible = false
     outgoing.artifact(localRepository) {
         builtBy(publishPluginsToTestRepository)
     }
 }
 
 configurations.create("futureVersion") {
-    isVisible = false
     isCanBeResolved = false
     isCanBeConsumed = true
     attributes {

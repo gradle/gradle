@@ -18,6 +18,7 @@ package org.gradle.docs.asciidoctor;
 import org.asciidoctor.ast.Document;
 import org.asciidoctor.extension.IncludeProcessor;
 import org.asciidoctor.extension.PreprocessorReader;
+import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -165,7 +166,7 @@ public class SampleIncludeProcessor extends IncludeProcessor {
         return result.toString();
     }
 
-    private static String determineActiveTag(String line, List<String> tags) {
+    private static @Nullable String determineActiveTag(String line, List<String> tags) {
         for (String tag : tags) {
             if (line.contains("tag::" + tag + "[]")) {
                 return tag;

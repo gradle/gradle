@@ -73,7 +73,6 @@ private constructor(
      * @see [DependencyConstraintHandler.add]
      * @since 8.3
      */
-    @Incubating
     operator fun NamedDomainObjectProvider<Configuration>.invoke(dependencyConstraintNotation: Any): DependencyConstraint =
         constraints.add(name, dependencyConstraintNotation)
 
@@ -85,8 +84,8 @@ private constructor(
      * @see [DependencyConstraintHandler.add]
      * @since 8.5
      */
-    @Incubating
     @JvmName("invokeDependencyScope")
+    @Incubating
     operator fun NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependencyConstraintNotation: Any): DependencyConstraint =
         constraints.add(name, dependencyConstraintNotation)
 
@@ -99,7 +98,6 @@ private constructor(
      * @see [DependencyConstraintHandler.add]
      * @since 8.3
      */
-    @Incubating
     operator fun NamedDomainObjectProvider<Configuration>.invoke(dependencyConstraintNotation: String, configuration: DependencyConstraint.() -> Unit): DependencyConstraint =
         constraints.add(name, dependencyConstraintNotation, configuration)
 
@@ -112,8 +110,8 @@ private constructor(
      * @see [DependencyConstraintHandler.add]
      * @since 8.5
      */
-    @Incubating
     @JvmName("invokeDependencyScope")
+    @Incubating
     operator fun NamedDomainObjectProvider<DependencyScopeConfiguration>.invoke(dependencyConstraintNotation: String, configuration: DependencyConstraint.() -> Unit): DependencyConstraint =
         constraints.add(name, dependencyConstraintNotation, configuration)
 

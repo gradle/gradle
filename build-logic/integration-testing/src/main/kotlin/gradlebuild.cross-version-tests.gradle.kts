@@ -17,7 +17,6 @@
 import gradlebuild.basics.capitalize
 import gradlebuild.basics.testing.TestType
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
-import gradlebuild.integrationtests.addSourceSet
 import gradlebuild.integrationtests.configureIde
 import gradlebuild.integrationtests.createTestTask
 import gradlebuild.integrationtests.setSystemPropertiesOfTestJVM
@@ -26,24 +25,58 @@ plugins {
     java
     id("gradlebuild.module-identity")
     id("gradlebuild.dependency-modules")
+    id("gradlebuild.jvm-compile")
 }
 
-val sourceSet = addSourceSet(TestType.CROSSVERSION)
+val sourceSet = sourceSets.create("${TestType.CROSSVERSION.prefix}Test")
+jvmCompile {
+    addCompilationFrom(sourceSet)
+}
 addDependenciesAndConfigurations(TestType.CROSSVERSION.prefix)
 createQuickFeedbackTasks()
 createAggregateTasks(sourceSet)
 configureIde(TestType.CROSSVERSION)
-configureTestFixturesForCrossVersionTests()
 
-fun configureTestFixturesForCrossVersionTests() {
+val tapiProjectDependency = configurations.dependencyScope("tapiProjectDependency")
+val tapiShadedResolvable = configurations.resolvable("tapiShadedResolvable") {
+    extendsFrom(tapiProjectDependency.get())
+    attributes {
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("Shaded"))
+    }
+}
+
+configureDependenciesForCrossVersionTests()
+
+fun configureDependenciesForCrossVersionTests() {
     // do not attempt to find projects when the plugin is applied just to generate accessors
     if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "test" /* remove once wrapper is updated */) {
         dependencies {
             "crossVersionTestImplementation"(testFixtures(project(":tooling-api")))
+            add(tapiProjectDependency.name, project(":tooling-api"))
         }
     }
 }
-val releasedVersions = moduleIdentity.releasedVersions.orNull
+
+val releasedVersions = gradleModule.identity.releasedVersions.orNull
+
+class TAPIShadedJarCommandLineArgumentProvider(
+    @InputFiles
+    @PathSensitive(PathSensitivity.NONE)
+    val shadedJar: FileCollection
+) : CommandLineArgumentProvider {
+    override fun asArguments(): Iterable<String?>? {
+        val jar = shadedJar.files.filter { it.name.contains("gradle-tooling-api-shaded") }
+        return if (jar.isNotEmpty()) {
+            listOf("-DtoolingApi.shadedJar=${jar.first().absolutePath}")
+        } else {
+            emptyList()
+        }
+    }
+}
+
+fun Test.addTapiShadedJarDependency() {
+    jvmArgumentProviders.add(TAPIShadedJarCommandLineArgumentProvider(tapiShadedResolvable.get()))
+}
 
 fun createQuickFeedbackTasks() {
     val testType = TestType.CROSSVERSION
@@ -52,6 +85,7 @@ fun createQuickFeedbackTasks() {
     testType.executers.forEach { executer ->
         val taskName = "$executer${prefix.capitalize()}Test"
         val testTask = createTestTask(taskName, executer, sourceSet, testType) {
+            addTapiShadedJarDependency()
             this.setSystemPropertiesOfTestJVM("latest")
             this.systemProperties["org.gradle.integtest.crossVersion"] = "true"
             this.systemProperties["org.gradle.integtest.crossVersion.lowestTestedVersion"] = releasedVersions?.lowestTestedVersion?.version
@@ -78,9 +112,10 @@ fun createAggregateTasks(sourceSet: SourceSet) {
         description = "Runs the cross-version tests against a subset of selected Gradle versions with 'forking' executer for quick feedback"
     }
 
-    val releasedVersions = moduleIdentity.releasedVersions.orNull
+    val releasedVersions = gradleModule.identity.releasedVersions.orNull
     releasedVersions?.allTestedVersions?.forEach { targetVersion ->
         val crossVersionTest = createTestTask("gradle${targetVersion.version}CrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION) {
+            addTapiShadedJarDependency()
             this.description = "Runs the cross-version tests against Gradle ${targetVersion.version}"
             this.systemProperties["org.gradle.integtest.versions"] = targetVersion.version
             this.systemProperties["org.gradle.integtest.crossVersion"] = "true"

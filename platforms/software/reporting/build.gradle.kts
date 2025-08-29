@@ -31,7 +31,7 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
-    implementation(projects.fileCollections)
+    implementation(projects.logging)
 
     implementation(libs.guava)
     implementation(libs.jatl)

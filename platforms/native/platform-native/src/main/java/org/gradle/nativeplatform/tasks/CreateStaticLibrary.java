@@ -16,10 +16,10 @@
 package org.gradle.nativeplatform.tasks;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
@@ -56,18 +56,9 @@ import javax.inject.Inject;
 public abstract class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBinary {
 
     private final ConfigurableFileCollection source;
-    private final RegularFileProperty outputFile;
-    private final ListProperty<String> staticLibArgs;
-    private final Property<NativePlatform> targetPlatform;
-    private final Property<NativeToolChain> toolChain;
 
     public CreateStaticLibrary() {
-        ObjectFactory objectFactory = getProject().getObjects();
         this.source = getProject().files();
-        this.outputFile = objectFactory.fileProperty();
-        this.staticLibArgs = getProject().getObjects().listProperty(String.class);
-        this.targetPlatform = objectFactory.property(NativePlatform.class);
-        this.toolChain = objectFactory.property(NativeToolChain.class);
     }
 
     /**
@@ -82,7 +73,7 @@ public abstract class CreateStaticLibrary extends DefaultTask implements ObjectF
     }
 
     /**
-     * Adds a set of object files to be linked. <p> The provided source object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+     * Adds a set of object files to be linked. <p> The provided source object is evaluated as per {@link Project#files(Object...)}.
      */
     @Override
     public void source(Object source) {
@@ -90,9 +81,7 @@ public abstract class CreateStaticLibrary extends DefaultTask implements ObjectF
     }
 
     @Inject
-    public BuildOperationLoggerFactory getOperationLoggerFactory() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract BuildOperationLoggerFactory getOperationLoggerFactory();
 
     // TODO: Need to track version/implementation of ar tool.
 
@@ -114,7 +103,7 @@ public abstract class CreateStaticLibrary extends DefaultTask implements ObjectF
     }
 
     private Compiler<StaticLibraryArchiverSpec> createCompiler() {
-        NativePlatformInternal targetPlatform = Cast.cast(NativePlatformInternal.class, this.targetPlatform.get());
+        NativePlatformInternal targetPlatform = Cast.cast(NativePlatformInternal.class, this.getTargetPlatform().get());
         NativeToolChainInternal toolChain = Cast.cast(NativeToolChainInternal.class, getToolChain().get());
         PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
         return toolProvider.newCompiler(StaticLibraryArchiverSpec.class);
@@ -126,9 +115,7 @@ public abstract class CreateStaticLibrary extends DefaultTask implements ObjectF
      * @since 4.7
      */
     @Internal
-    public Property<NativeToolChain> getToolChain() {
-        return toolChain;
-    }
+    public abstract Property<NativeToolChain> getToolChain();
 
     /**
      * The platform being linked for.
@@ -136,17 +123,13 @@ public abstract class CreateStaticLibrary extends DefaultTask implements ObjectF
      * @since 4.7
      */
     @Nested
-    public Property<NativePlatform> getTargetPlatform() {
-        return targetPlatform;
-    }
+    public abstract Property<NativePlatform> getTargetPlatform();
 
     /**
      * The file where the output binary will be located.
      */
     @OutputFile
-    public RegularFileProperty getOutputFile() {
-        return outputFile;
-    }
+    public abstract RegularFileProperty getOutputFile();
 
     /**
      * The file where the linked binary will be located.
@@ -155,7 +138,7 @@ public abstract class CreateStaticLibrary extends DefaultTask implements ObjectF
      */
     @Internal
     public RegularFileProperty getBinaryFile() {
-        return this.outputFile;
+        return getOutputFile();
     }
 
     /**
@@ -164,8 +147,6 @@ public abstract class CreateStaticLibrary extends DefaultTask implements ObjectF
      * @since 4.7
      */
     @Input
-    public ListProperty<String> getStaticLibArgs() {
-        return staticLibArgs;
-    }
+    public abstract ListProperty<String> getStaticLibArgs();
 
 }

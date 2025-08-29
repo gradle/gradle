@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileCollection;
@@ -24,6 +25,7 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -83,7 +85,7 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
     /**
      * Sets the files to be deleted by this task.
      *
-     * @param targets A set of any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
+     * @param targets A set of any type of object accepted by {@link Project#files(Object...)}
      * @since 4.0
      */
     public void setDelete(Set<Object> targets) {
@@ -93,7 +95,7 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
     /**
      * Sets the files to be deleted by this task.
      *
-     * @param target Any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
+     * @param target Any type of object accepted by {@link Project#files(Object...)}
      */
     public void setDelete(Object target) {
         this.paths.setFrom(target);
@@ -121,18 +123,16 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
     }
 
     /**
-     * Adds some files to be deleted by this task. The given targets are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+     * Adds some files to be deleted by this task. The given targets are evaluated as per {@link Project#files(Object...)}.
      *
-     * @param targets Any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
+     * @param targets Any type of object accepted by {@link Project#files(Object...)}
      */
     @Override
-    public Delete delete(Object... targets) {
+    public Delete delete(@Nullable Object... targets) {
         paths.from(targets);
         return this;
     }
 
     @Inject
-    protected Deleter getDeleter() {
-        throw new UnsupportedOperationException("Decorator injects implementation");
-    }
+    protected abstract Deleter getDeleter();
 }

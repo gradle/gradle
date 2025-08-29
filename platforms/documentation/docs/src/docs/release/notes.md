@@ -14,8 +14,6 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 
 This release features [1](), [2](), ... [n](), and more.
 
-Gradle 9.0 has many bug fixes and other general improvements. As a major version, this release also has changes to deprecated APIs and behavior. Consult the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html) for guidance on removed APIs and behavior.
-
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
@@ -25,47 +23,146 @@ Include only their name, impactful features should be called out separately belo
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 
-Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
+Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
 ## Upgrade instructions
 
 Switch your build to use Gradle @version@ by updating the [wrapper](userguide/gradle_wrapper.html) in your project:
 
-```
+```text
 ./gradlew wrapper --gradle-version=@version@ && ./gradlew wrapper
 ```
 
-See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
+See the [Gradle 9.x upgrade guide](userguide/upgrading_version_9.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
 For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
 
 ## New features and usability improvements
 
-### Kotlin 2 TO DO
+### Publishing improvements
 
-### Groovy 4 TO DO
+#### New `PublishingExtension.getSoftwareComponentFactory()` method
 
-<a name="config-cache"></a>
-### Configuration Cache improvements
+This release introduces a new method that exposes the [`SoftwareComponentFactory`](javadoc/org/gradle/api/component/SoftwareComponentFactory.html) service via the `publishing` extension, simplifying the creation of publishable components.
+In many cases, a component is already present. 
+For example, the bundled Java plugins already provide the `java` component by default.
+This new method is especially useful for plugin authors who want to create and publish custom components without needing to depend on the Java plugins.
 
-Gradle's [Configuration Cache](userguide/configuration_cache.html) improves build performance by caching the result of the configuration phase.
-Gradle uses the Configuration Cache to reload a saved configuration when nothing that affects the build configuration has changed.
+The following example shows how to use this new method to publish a custom component:
 
-#### CC TO DO
+```kotlin
+plugins {
+    id("maven-publish")
+}
 
-Check out the link:https://blog.gradle.org/road-to-configuration-cache[blog post] to learn more.
+val consumableConfiguration: Configuration = getAConfiguration()
 
-<a name="build-authoring"></a>
-### Build authoring improvements
+publishing {
+    val myCustomComponent = softwareComponentFactory.adhoc("myCustomComponent")
+    myCustomComponent.addVariantsFromConfiguration(consumableConfiguration) {}
+    
+    publications {
+        create<MavenPublication>("maven") {
+            from(myCustomComponent)
+        }
+    }
+}
+```
 
-Gradle provides rich APIs for plugin authors and build engineers to develop custom build logic.
+#### New provider-based methods for publishing configurations
 
-#### Gradle API now uses JSpecify Nullability Annotations
+Two new methods have been added to [`AdhocComponentWithVariants`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html) which accept providers of consumable configurations:
 
-Since Gradle 5.0 we've been using annotations from the dormant and unfinished JSR-305 to make the nullness of type usages explicit for the Gradle API.
-Starting with Gradle 9.0, the Gradle API is annotated using JSpecify instead.
+- [`void addVariantsFromConfiguration(Provider<ConsumableConfiguration>, Action<? super ConfigurationVariantDetails>)`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html#addVariantsFromConfiguration(org.gradle.api.provider.Provider,org.gradle.api.Action))
+- [`void withVariantsFromConfiguration(Provider<ConsumableConfiguration>, Action<? super ConfigurationVariantDetails>)`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html#withVariantsFromConfiguration(org.gradle.api.provider.Provider,org.gradle.api.Action))
 
-For more details and potential breakages, see the dedicated [upgrading guide section](userguide/upgrading_version_8.html).
+These complement the existing methods that accept realized configuration instances.
+
+With this new API, configurations can remain lazy and are only realized when actually needed for publishing.
+Consider the following example:
+
+```kotlin
+plugins {
+    id("base")
+    id("maven-publish")
+}
+
+group = "org.example"
+version = "1.0"
+
+val myTask = tasks.register<Jar>("myTask")
+val variantDependencies = configurations.dependencyScope("variantDependencies")
+val myNewVariant: NamedDomainObjectProvider<ConsumableConfiguration> = configurations.consumable("myNewVariant") {
+    extendsFrom(variantDependencies.get())
+    outgoing {
+        artifact(myTask)
+    }
+    attributes {
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("foo"))
+    }
+}
+
+publishing {
+    val component = softwareComponentFactory.adhoc("component")
+    // This new overload now accepts a lazy provider of consumable configuration
+    component.addVariantsFromConfiguration(myNewVariant) {}
+
+    repositories {
+        maven {
+            url = uri("<your repo url>")
+        }
+    }
+    publications {
+        create<MavenPublication>("myPublication") {
+            from(component)
+        }
+    }
+}
+```
+
+With this approach, the `myNewVariant` configuration will only be realized if the `myPublication` publication is actually published.
+
+<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
+
+<!--
+
+================== TEMPLATE ==============================
+
+<a name="FILL-IN-KEY-AREA"></a>
+### FILL-IN-KEY-AREA improvements
+
+<<<FILL IN CONTEXT FOR KEY AREA>>>
+Example:
+> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
+> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
+> nothing that affects the build configuration has changed.
+
+#### FILL-IN-FEATURE
+> HIGHLIGHT the use case or existing problem the feature solves
+> EXPLAIN how the new release addresses that problem or use case
+> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
+> LINK to the full documentation for more details
+
+To embed videos, use the macros below. 
+You can extract the URL from YouTube by clicking the "Share" button. 
+For Wistia, contact Gradle's Video Team.
+@youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
+@wistia(Summary,a5izazvgit)@
+
+================== END TEMPLATE ==========================
+
+
+==========================================================
+ADD RELEASE FEATURES BELOW
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
+
+
+
+<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ADD RELEASE FEATURES ABOVE
+==========================================================
+
+-->
 
 ## Promoted features
 
@@ -74,11 +171,11 @@ See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecy
 
 The following are the features that have been promoted in this Gradle release.
 
-### Problems API TO DO
+### Daemon toolchain is now stable
 
-<!--
-### Example promoted
--->
+Gradle introduced the [Daemon toolchain](userguide/gradle_daemon.html#sec:daemon_jvm_criteria) in Gradle 8.8 as an incubating feature.
+Since then the feature has been improved and stabilized.
+It is now considered stable and will no longer print an incubation warning when used.
 
 ## Fixed issues
 

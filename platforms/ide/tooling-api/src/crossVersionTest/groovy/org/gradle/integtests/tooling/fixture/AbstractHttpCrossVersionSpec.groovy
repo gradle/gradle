@@ -85,8 +85,8 @@ abstract class AbstractHttpCrossVersionSpec extends ToolingApiSpecification {
     def initSettingsFile() {
         settingsFile << """
             rootProject.name = 'root'
-            include 'a'
         """
+        includeProjects("a")
     }
 
     def repositories(MavenHttpRepository... repositories) {

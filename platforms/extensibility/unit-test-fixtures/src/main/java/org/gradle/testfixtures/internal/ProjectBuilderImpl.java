@@ -19,13 +19,11 @@ package org.gradle.testfixtures.internal;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -41,6 +39,7 @@ import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.NoOpBuildEventConsumer;
+import org.gradle.initialization.ProjectDescriptorInternal;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.Pair;
@@ -80,7 +79,6 @@ import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
-import org.gradle.util.internal.VersionNumber;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -98,11 +96,11 @@ public class ProjectBuilderImpl {
     public Project createChildProject(String name, Project parent, @Nullable File projectDir) {
         ProjectInternal parentProject = (ProjectInternal) parent;
         ProjectDescriptorRegistry descriptorRegistry = parentProject.getServices().get(ProjectDescriptorRegistry.class);
-        DefaultProjectDescriptor parentDescriptor = descriptorRegistry.getProject(parentProject.getPath());
+        ProjectDescriptorInternal parentDescriptor = descriptorRegistry.getProject(parentProject.getPath());
 
         projectDir = (projectDir != null) ? projectDir.getAbsoluteFile() : new File(parentProject.getProjectDir(), name);
         // Descriptor is added to registry as a side effect
-        DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(parentDescriptor, name, projectDir, descriptorRegistry, parentProject.getServices().get(FileResolver.class));
+        ProjectDescriptorInternal projectDescriptor = new DefaultProjectDescriptor(parentDescriptor, name, projectDir, descriptorRegistry, parentProject.getServices().get(FileResolver.class));
 
         ProjectState projectState = parentProject.getServices().get(ProjectStateRegistry.class).registerProject(parentProject.getServices().get(BuildState.class), projectDescriptor);
         projectState.createMutableModel(parentProject.getClassLoaderScope().createChild("project-" + name, null), parentProject.getBaseClassLoaderScope());
@@ -121,11 +119,11 @@ public class ProjectBuilderImpl {
 
         int currentMajor = Integer.parseInt(JavaVersion.current().getMajorVersion());
         if (currentMajor < SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION) {
-            int currentMajorGradleVersion = VersionNumber.parse(GradleVersion.current().getVersion()).getMajor();
+            int currentMajorGradleVersion = GradleVersion.current().getMajorVersion();
 
             // We do not use a DeprecationLogger here since the logger is not initialized when using the ProjectBuilder.
             LOGGER.warn("Executing Gradle on JVM versions {} and lower has been deprecated. " +
-                "This will fail with an error in Gradle {}.0. " +
+                "This will fail with an error in Gradle {}. " +
                 "Use JVM {} or greater to execute Gradle. " +
                 "Projects can continue to use older JVM versions via toolchains. " +
                 "Consult the upgrading guide for further information: {}",
@@ -175,7 +173,7 @@ public class ProjectBuilderImpl {
 
         ProjectDescriptorRegistry projectDescriptorRegistry = buildServices.get(ProjectDescriptorRegistry.class);
         // Registers project as a side effect
-        DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, projectDescriptorRegistry, buildServices.get(FileResolver.class));
+        ProjectDescriptorInternal projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, projectDescriptorRegistry, buildServices.get(FileResolver.class));
 
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
         ClassLoaderScope rootProjectScope = baseScope.createChild("root-project", null);
@@ -271,8 +269,7 @@ public class ProjectBuilderImpl {
 
         @Override
         protected ServiceRegistrationProvider prepareServicesProvider(BuildDefinition buildDefinition, BuildModelControllerServices.Supplier supplier) {
-            File homeDir = new File(buildDefinition.getBuildRootDir(), "gradleHome");
-            return new TestBuildScopeServices(homeDir, supplier);
+            return new TestBuildScopeServices(supplier);
         }
 
         @Override
@@ -289,11 +286,6 @@ public class ProjectBuilderImpl {
         }
 
         @Override
-        public BuildIdentifier getBuildIdentifier() {
-            return DefaultBuildIdentifier.ROOT;
-        }
-
-        @Override
         public Path getIdentityPath() {
             return Path.ROOT;
         }
@@ -301,11 +293,6 @@ public class ProjectBuilderImpl {
         @Override
         public boolean isImplicitBuild() {
             return false;
-        }
-
-        @Override
-        public Path calculateIdentityPathForProject(Path projectPath) {
-            return projectPath;
         }
 
         @Override
@@ -325,11 +312,6 @@ public class ProjectBuilderImpl {
 
         @Override
         public Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier) {
             throw new UnsupportedOperationException();
         }
 

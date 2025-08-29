@@ -43,6 +43,15 @@ class FindBrokenInternalLinksTest extends Specification {
 
         linkErrors = new File(projectDir, "build/reports/dead-internal-links.txt")
 
+        new File(projectDir, "gradle.properties") << """
+            org.jetbrains.dokka.experimental.gradle.pluginMode=V2Enabled
+            org.jetbrains.dokka.experimental.gradle.pluginMode.noWarn=true
+        """.stripIndent()
+
+        new File(projectDir, "src/docs/javaPackageList/8").mkdirs()
+        new File(projectDir, "src/docs/javaPackageList/8/package-list") << """
+        java.lang
+        """.stripIndent()
 
         new File(projectDir, "build.gradle") << """
             plugins {
@@ -51,10 +60,16 @@ class FindBrokenInternalLinksTest extends Specification {
                 id 'gradlebuild.documentation'
             }
 
+            repositories {
+                mavenCentral()
+            }
+
             gradleDocumentation {
                 javadocs {
                     javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
-                    groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-3/html/gapi")
+                    javaPackageListLoc = project.layout.projectDirectory.dir("src/docs/javaPackageList/8/")
+                    groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-4.0.28/html/gapi")
+                    groovyPackageListSrc = "org.apache.groovy:groovy-all:4.0.28:groovydoc"
                 }
             }
 

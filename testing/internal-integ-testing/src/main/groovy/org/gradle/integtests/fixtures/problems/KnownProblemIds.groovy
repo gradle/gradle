@@ -107,8 +107,9 @@ class KnownProblemIds {
         'deprecation:properties-should-be-assigned-using-the-propname-value-syntax-setting-a-property-via-the-gradle-generated-propname-value-or-propname-value-syntax-in-groovy-dsl': ['Properties should be assigned using the \'propName = value\' syntax. Setting a property via the Gradle-generated \'propName value\' or \'propName\\(value\\)\' syntax in Groovy DSL has been deprecated.'],
         'deprecation:repository-jcenter' : ['The RepositoryHandler.jcenter\\(\\) method has been deprecated.'],
         'task-selection:no-matches': ['No matches', 'cannot locate task'],
+        'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection': ['error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''],
         'validation:configuration-cache:registration-of-listener-on-gradle-buildfinished-is-unsupported': ['registration of listener on \'Gradle.buildFinished\' is unsupported'],
-        'validation:configuration-cache:invocation-of-task-project-at-execution-time-is-unsupported': ['invocation of \'Task.project\' at execution time is unsupported.'],
+        'validation:configuration-cache:invocation-of-task-project-at-execution-time-is-unsupported-with-the-configuration-cache': ['invocation of \'Task.project\' at execution time is unsupported with the configuration cache.'],
         'plugin-application:target-type-mismatch': ['Unexpected plugin type'],
         'task-selection:ambiguous-matches': ['Ambiguous matches'],
         'task-selection:selection-failed': ['Selection failed'],
@@ -151,6 +152,7 @@ class KnownProblemIds {
         'dependency-variant-resolution:ambiguous-variants': ['Multiple variants exist that would match the request'],
         'dependency-variant-resolution:no-compatible-variants': ['No variants exist that would match the request'],
         'dependency-variant-resolution:no-variants-with-matching-capabilities': ['No variants exist with capabilities that would match the request'],
+        'dependency-variant-resolution:no-version-satisfies' : ['No version satisfies the constraints'],
 
         'dependency-variant-resolution:ambiguous-artifact-transform': ['Multiple artifacts transforms exist that would satisfy the request'],
         'dependency-variant-resolution:no-compatible-artifact': ['No artifacts exist that would match the request'],

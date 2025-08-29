@@ -17,8 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.Project;
-import org.gradle.api.UncheckedIOException;
-import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.jspecify.annotations.Nullable;
 
@@ -31,18 +30,15 @@ import java.util.function.Function;
 public final class ReportGenerator {
 
     private final ReportRenderer renderer;
-    private final BuildClientMetaData buildClientMetaData;
-    private final File outputFile;
+    private final @Nullable File outputFile;
     private final StyledTextOutputFactory textOutputFactory;
 
     public ReportGenerator(
         ReportRenderer renderer,
-        BuildClientMetaData buildClientMetaData,
         @Nullable File outputFile,
         StyledTextOutputFactory textOutputFactory
     ) {
         this.renderer = renderer;
-        this.buildClientMetaData = buildClientMetaData;
         this.outputFile = outputFile;
         this.textOutputFactory = textOutputFactory;
     }
@@ -85,7 +81,6 @@ public final class ReportGenerator {
     ) {
         try {
             ReportRenderer renderer = getRenderer();
-            renderer.setClientMetaData(getClientMetaData());
             File outputFile = getOutputFile();
             if (outputFile != null) {
                 renderer.setOutputFile(outputFile);
@@ -102,16 +97,12 @@ public final class ReportGenerator {
             projectReportFooterGenerator.execute();
             renderer.complete();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
     private ReportRenderer getRenderer() {
         return renderer;
-    }
-
-    private BuildClientMetaData getClientMetaData() {
-        return buildClientMetaData;
     }
 
     /**

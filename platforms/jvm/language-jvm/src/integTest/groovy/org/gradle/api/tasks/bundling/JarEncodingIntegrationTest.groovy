@@ -17,8 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.integtests.fixtures.archives.TestFileSystemSensitiveArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
@@ -28,7 +27,7 @@ import spock.lang.Issue
 import java.util.jar.JarFile
 import java.util.jar.Manifest
 
-@TestReproducibleArchives
+@TestFileSystemSensitiveArchives
 @DoesNotSupportNonAsciiPaths(reason = "Tests manage their own encoding settings")
 class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
     // Only works on Java 8, see https://bugs.openjdk.java.net/browse/JDK-7050570
@@ -136,8 +135,8 @@ class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
         manifest.contains('moji: bak€')
     }
 
-    @ToBeFixedForConfigurationCache
     @Issue('GRADLE-3374')
+    @Issue("https://github.com/gradle/gradle/issues/31838")
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires daemon with explicit default charset")
     def "write manifests using a user defined character set"() {
         given:
@@ -283,7 +282,7 @@ class JarEncodingIntegrationTest extends AbstractIntegrationSpec {
 
     private static String customJarManifestTask() {
         return '''
-            class CustomJarManifest extends org.gradle.jvm.tasks.Jar {
+            abstract class CustomJarManifest extends org.gradle.jvm.tasks.Jar {
                 CustomJarManifest() {
                     super();
                     setManifest(new CustomManifest(getFileResolver()))

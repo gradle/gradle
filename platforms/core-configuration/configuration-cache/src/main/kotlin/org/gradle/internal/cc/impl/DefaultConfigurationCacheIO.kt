@@ -20,18 +20,19 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.BlockAddressSerializer
 import org.gradle.initialization.ClassLoaderScopeRegistry
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.cc.impl.cacheentry.EntryDetails
 import org.gradle.internal.cc.impl.cacheentry.ModelKey
+import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.io.safeWrap
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
-import org.gradle.internal.cc.impl.serialize.Codecs
+import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
 import org.gradle.internal.cc.impl.serialize.DefaultClassDecoder
 import org.gradle.internal.cc.impl.serialize.DefaultClassEncoder
 import org.gradle.internal.cc.impl.serialize.DefaultSharedObjectDecoder
@@ -49,6 +50,8 @@ import org.gradle.internal.serialize.PositionAwareEncoder
 import org.gradle.internal.serialize.codecs.core.IsolateContextSource
 import org.gradle.internal.serialize.graph.BeanStateReaderLookup
 import org.gradle.internal.serialize.graph.BeanStateWriterLookup
+import org.gradle.internal.serialize.graph.ClassDecoder
+import org.gradle.internal.serialize.graph.ClassEncoder
 import org.gradle.internal.serialize.graph.CloseableReadContext
 import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.DefaultReadContext
@@ -59,6 +62,8 @@ import org.gradle.internal.serialize.graph.InlineStringDecoder
 import org.gradle.internal.serialize.graph.InlineStringEncoder
 import org.gradle.internal.serialize.graph.LoggingTracer
 import org.gradle.internal.serialize.graph.MutableReadContext
+import org.gradle.internal.serialize.graph.NullClassDecoder
+import org.gradle.internal.serialize.graph.NullClassEncoder
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.SharedObjectDecoder
 import org.gradle.internal.serialize.graph.SharedObjectEncoder
@@ -101,17 +106,12 @@ class DefaultConfigurationCacheIO internal constructor(
     private val eventEmitter: BuildOperationProgressEventEmitter,
     private val classLoaderScopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
     private val classLoaderScopeRegistry: ClassLoaderScopeRegistry,
-    private val instantiatorFactory: InstantiatorFactory
+    private val instantiatorFactory: InstantiatorFactory,
+    private val classLoaderScopes: ClassLoaderScopesFingerprintController,
+    private val codecs: ConfigurationCacheCodecs,
+    private val encryptionService: EncryptionService,
+    private val buildInvocationScopeId: BuildInvocationScopeId,
 ) : ConfigurationCacheBuildTreeIO, ConfigurationCacheIncludedBuildIO {
-
-    private
-    val codecs = codecs()
-
-    private
-    val encryptionService by lazy { service<EncryptionService>() }
-
-    private
-    val buildInvocationScopeId by lazy { service<BuildInvocationScopeId>() }
 
     override fun writeCacheEntryDetailsTo(
         buildStateRegistry: BuildStateRegistry,
@@ -121,8 +121,8 @@ class DefaultConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile
     ) {
         val rootDirs = collectRootDirs(buildStateRegistry)
-        withWriteContextFor(stateFile, { "entry details" }) {
-            write(buildInvocationScopeId.id.asString())
+        withWriteContextFor(stateFile, { "entry details" }, customClassEncoder = NullClassEncoder) {
+            writeString(buildInvocationScopeId.id.asString())
             writeCollection(rootDirs) { writeFile(it) }
             val addressSerializer = BlockAddressSerializer()
             writeCollection(intermediateModels.entries) { entry ->
@@ -143,8 +143,8 @@ class DefaultConfigurationCacheIO internal constructor(
         if (!stateFile.exists) {
             return null
         }
-        return withReadContextFor(stateFile) {
-            val buildInvocationScopeId = readNonNull<String>()
+        return withReadContextFor(stateFile, customClassDecoder = NullClassDecoder) {
+            val buildInvocationScopeId = readString()
             val rootDirs = readList { readFile() }
             val addressSerializer = BlockAddressSerializer()
             val intermediateModels = mutableMapOf<ModelKey, BlockAddress>()
@@ -174,7 +174,7 @@ class DefaultConfigurationCacheIO internal constructor(
     }
 
     override fun writeCandidateEntries(stateFile: ConfigurationCacheStateFile, entries: List<CandidateEntry>) {
-        withWriteContextFor(stateFile, { "candidates" }) {
+        withWriteContextFor(stateFile, { "candidates" }, customClassEncoder = NullClassEncoder) {
             writeStrings(entries.map { it.id })
         }
     }
@@ -184,7 +184,7 @@ class DefaultConfigurationCacheIO internal constructor(
             emptyList()
         }
 
-        else -> withReadContextFor(stateFile) {
+        else -> withReadContextFor(stateFile, customClassDecoder = NullClassDecoder) {
             readStrings().map { CandidateEntry(it) }
         }
     }
@@ -209,10 +209,10 @@ class DefaultConfigurationCacheIO internal constructor(
     /**
      * See [ConfigurationCacheState.writeRootBuildState].
      */
-    override fun writeRootBuildStateTo(stateFile: ConfigurationCacheStateFile) =
+    override fun writeRootBuildStateTo(rootBuild: BuildState, stateFile: ConfigurationCacheStateFile) =
         writeConfigurationCacheState(stateFile) { cacheState ->
             cacheState.run {
-                writeRootBuildState(host.currentBuild)
+                writeRootBuildState(rootBuild)
             }
         }
 
@@ -288,7 +288,7 @@ class DefaultConfigurationCacheIO internal constructor(
         isUsingObjectSharingStrategy(baseFile).let { deduplicate ->
             if (deduplicate) {
                 val (globalContext, _) = writeContextFor(globalsFile, SpecialEncoders(stringEncoder)) { "global values" }
-                globalContext.push(IsolateOwners.OwnerGradle(host.currentBuild.gradle))
+                globalContext.push(IsolateOwners.OwnerGradle(host.currentBuild.mutableModel))
                 DefaultSharedObjectEncoder(globalContext)
             } else {
                 InlineSharedObjectEncoder
@@ -302,7 +302,7 @@ class DefaultConfigurationCacheIO internal constructor(
                 // Create a context that honors global value duplication
                 // but uses an inline global value decoder
                 val (globalContext, _) = readContextFor(globalsFile, SpecialDecoders(stringDecoder))
-                globalContext.push(IsolateOwners.OwnerGradle(host.currentBuild.gradle))
+                globalContext.push(IsolateOwners.OwnerGradle(host.currentBuild.mutableModel))
                 DefaultSharedObjectDecoder(globalContext)
             } else {
                 InlineSharedObjectDecoder
@@ -359,7 +359,7 @@ class DefaultConfigurationCacheIO internal constructor(
         action: suspend WriteContext.(ConfigurationCacheState) -> T
     ): T {
         val profile = {
-            host.currentBuild.gradle.owner.displayName.displayName + " state"
+            host.currentBuild.displayName.displayName + " state"
         }
         return withWriteContextFor(stateFile, profile, specialEncoders) { codecs ->
             action(ConfigurationCacheState(codecs, stateFile, ChildContextSource(stateFile), eventEmitter, host))
@@ -368,7 +368,7 @@ class DefaultConfigurationCacheIO internal constructor(
 
     override fun writeModelTo(model: Any, stateFile: ConfigurationCacheStateFile) {
         writeConfigurationCacheState(stateFile) {
-            withGradleIsolate(host.currentBuild.gradle, codecs.userTypesCodec()) {
+            withGradleIsolate(host.currentBuild.mutableModel, codecs.userTypesCodec()) {
                 write(model)
             }
         }
@@ -376,7 +376,7 @@ class DefaultConfigurationCacheIO internal constructor(
 
     override fun readModelFrom(stateFile: ConfigurationCacheStateFile): Any {
         return readConfigurationCacheState(stateFile) {
-            withGradleIsolate(host.currentBuild.gradle, codecs.userTypesCodec()) {
+            withGradleIsolate(host.currentBuild.mutableModel, codecs.userTypesCodec()) {
                 readNonNull()
             }
         }
@@ -398,26 +398,26 @@ class DefaultConfigurationCacheIO internal constructor(
         outputStream: () -> OutputStream,
         profile: () -> String,
         specialEncoders: SpecialEncoders,
-    ): Pair<CloseableWriteContext, Codecs> =
+        customClassEncoder: ClassEncoder?
+    ): Pair<CloseableWriteContext, ConfigurationCacheCodecs> =
         encoderFor(stateType, outputStream).let { encoder ->
             writeContextFor(
                 name,
                 encoder,
                 loggingTracerFor(profile, encoder),
                 codecs,
-                specialEncoders
+                specialEncoders,
+                customClassEncoder
             ) to codecs
         }
 
-    private
-    fun encoderFor(stateType: StateType, outputStream: () -> OutputStream): PositionAwareEncoder =
+    override fun encoderFor(stateType: StateType, outputStream: () -> OutputStream): PositionAwareEncoder =
         outputStreamFor(stateType, outputStream).let { stream ->
             if (isUsingSequentialStringDeduplicationStrategy(stateType)) StringDeduplicatingKryoBackedEncoder(stream)
             else KryoBackedEncoder(stream)
         }
 
-    private
-    fun decoderFor(stateType: StateType, inputStream: () -> InputStream): Decoder =
+    override fun decoderFor(stateType: StateType, inputStream: () -> InputStream): Decoder =
         inputStreamFor(stateType, inputStream).let { stream ->
             if (isUsingSequentialStringDeduplicationStrategy(stateType)) StringDeduplicatingKryoBackedDecoder(stream)
             else KryoBackedDecoder(stream)
@@ -469,13 +469,13 @@ class DefaultConfigurationCacheIO internal constructor(
         else -> null
     }
 
-    override fun <T> runWriteOperation(encoder: Encoder, writeOperation: suspend WriteContext.(codecs: Codecs) -> T): T {
+    override fun <T> runWriteOperation(encoder: Encoder, writeOperation: suspend WriteContext.(codecs: ConfigurationCacheCodecs) -> T): T {
         val (context, codecs) = writeContextFor(encoder)
         return context.runWriteOperation { writeOperation(codecs) }
     }
 
     private
-    fun writeContextFor(encoder: Encoder): Pair<CloseableWriteContext, Codecs> =
+    fun writeContextFor(encoder: Encoder): Pair<CloseableWriteContext, ConfigurationCacheCodecs> =
         writeContextFor(
             "unnamed",
             encoder,
@@ -488,17 +488,18 @@ class DefaultConfigurationCacheIO internal constructor(
         stateType: StateType,
         inputStream: () -> InputStream,
         specialDecoders: SpecialDecoders,
-        readOperation: suspend MutableReadContext.(Codecs) -> R
+        customClassDecoder: ClassDecoder?,
+        readOperation: suspend MutableReadContext.(ConfigurationCacheCodecs) -> R
     ): R =
-        readContextFor(name, stateType, inputStream, specialDecoders)
+        readContextFor(name, stateType, inputStream, specialDecoders, customClassDecoder)
             .let { (context, codecs) ->
                 withReadContextFor(context, codecs, readOperation)
             }
 
     override fun <R> withReadContextFor(
         readContext: CloseableReadContext,
-        codecs: Codecs,
-        readOperation: suspend MutableReadContext.(Codecs) -> R
+        codecs: ConfigurationCacheCodecs,
+        readOperation: suspend MutableReadContext.(ConfigurationCacheCodecs) -> R
     ): R =
         readContext.readWith(codecs, readOperation)
 
@@ -508,26 +509,40 @@ class DefaultConfigurationCacheIO internal constructor(
         outputStream: () -> OutputStream,
         profile: () -> String,
         specialEncoders: SpecialEncoders,
-        writeOperation: suspend WriteContext.(Codecs) -> R
+        customClassEncoder: ClassEncoder?,
+        writeOperation: suspend WriteContext.(ConfigurationCacheCodecs) -> R
     ): R =
-        writeContextFor(name, stateType, outputStream, profile, specialEncoders)
+        writeContextFor(name, stateType, outputStream, profile, specialEncoders, customClassEncoder)
             .let { (context, codecs) ->
                 context.writeWith(codecs, writeOperation)
             }
 
-    private fun readContextFor(
+    private
+    fun readContextFor(
         stateFile: ConfigurationCacheStateFile,
         specialDecoders: SpecialDecoders = SpecialDecoders()
-    ) = readContextFor(stateFile.stateFile.name, stateFile.stateType, stateFile::inputStream, specialDecoders)
+    ) = readContextFor(
+        stateFile.stateFile.name,
+        stateFile.stateType,
+        stateFile::inputStream,
+        specialDecoders
+    )
 
-    private fun readContextFor(
+    private
+    fun readContextFor(
         name: String,
         stateType: StateType,
         inputStream: () -> InputStream,
-        specialDecoders: SpecialDecoders
-    ) = readContextFor(name, decoderFor(stateType, inputStream), specialDecoders)
+        specialDecoders: SpecialDecoders,
+        customClassDecoder: ClassDecoder? = null
+    ) = readContextFor(
+        name,
+        decoderFor(stateType, inputStream),
+        specialDecoders,
+        customClassDecoder
+    )
 
-    override fun <T> runReadOperation(decoder: Decoder, readOperation: suspend ReadContext.(codecs: Codecs) -> T): T {
+    override fun <T> runReadOperation(decoder: Decoder, readOperation: suspend ReadContext.(codecs: ConfigurationCacheCodecs) -> T): T {
         val (context, codecs) = readContextFor("unnamed", decoder, SpecialDecoders())
         return context.runReadOperation { readOperation(codecs) }
     }
@@ -536,16 +551,24 @@ class DefaultConfigurationCacheIO internal constructor(
     fun readContextFor(
         name: String? = null,
         decoder: Decoder,
-        specialDecoders: SpecialDecoders
-    ) = readContextFor(name, decoder, codecs, specialDecoders) to codecs
+        specialDecoders: SpecialDecoders,
+        customClassDecoder: ClassDecoder? = null
+    ) = readContextFor(
+        name,
+        decoder,
+        codecs,
+        specialDecoders,
+        customClassDecoder
+    ) to codecs
 
     private
     fun writeContextFor(
         name: String? = null,
         encoder: Encoder,
         tracer: Tracer?,
-        codecs: Codecs,
-        specialEncoders: SpecialEncoders = SpecialEncoders()
+        codecs: ConfigurationCacheCodecs,
+        specialEncoders: SpecialEncoders = SpecialEncoders(),
+        customClassEncoder: ClassEncoder? = null
     ): CloseableWriteContext = DefaultWriteContext(
         name,
         codecs.userTypesCodec(),
@@ -555,7 +578,7 @@ class DefaultConfigurationCacheIO internal constructor(
         logger,
         tracer,
         problems,
-        classEncoder(),
+        customClassEncoder ?: classEncoder(),
         specialEncoders = specialEncoders
     )
 
@@ -563,8 +586,9 @@ class DefaultConfigurationCacheIO internal constructor(
     fun readContextFor(
         name: String? = null,
         decoder: Decoder,
-        codecs: Codecs,
-        specialDecoders: SpecialDecoders
+        codecs: ConfigurationCacheCodecs,
+        specialDecoders: SpecialDecoders,
+        customClassDecoder: ClassDecoder?
     ): CloseableReadContext = DefaultReadContext(
         name,
         codecs.userTypesCodec(),
@@ -573,19 +597,23 @@ class DefaultConfigurationCacheIO internal constructor(
         startParameter.isIntegrityCheckEnabled,
         logger,
         problems,
-        classDecoder(),
+        customClassDecoder ?: classDecoder(),
         specialDecoders
     )
 
     private
     fun classEncoder() =
-        DefaultClassEncoder(classLoaderScopeRegistryListener)
+        DefaultClassEncoder(
+            classLoaderScopeRegistryListener,
+            classLoaderScopes.encoder()
+        )
 
     private
     fun classDecoder() =
         DefaultClassDecoder(
             classLoaderScopeRegistry.coreAndPluginsScope,
-            instantiatorFactory.decorateScheme().deserializationInstantiator()
+            instantiatorFactory.decorateScheme().deserializationInstantiator(),
+            scopeSpecDecoder = classLoaderScopes.decoder()
         )
 
     /**
@@ -634,47 +662,4 @@ class DefaultConfigurationCacheIO internal constructor(
             require(this is DefaultReadContext)
             return this.sharedObjectDecoder
         }
-
-    private
-    fun codecs(): Codecs =
-        Codecs(
-            directoryFileTreeFactory = service(),
-            fileCollectionFactory = service(),
-            artifactSetConverter = service(),
-            fileLookup = service(),
-            propertyFactory = service(),
-            filePropertyFactory = service(),
-            fileResolver = service(),
-            instantiator = service(),
-            fileSystemOperations = service(),
-            taskNodeFactory = service(),
-            ordinalGroupFactory = service(),
-            inputFingerprinter = service(),
-            buildOperationRunner = service(),
-            classLoaderHierarchyHasher = service(),
-            isolatableFactory = service(),
-            managedFactoryRegistry = service(),
-            parameterScheme = service(),
-            actionScheme = service(),
-            attributesFactory = service(),
-            valueSourceProviderFactory = service(),
-            calculatedValueContainerFactory = service(),
-            patternSetFactory = service(),
-            fileOperations = service(),
-            fileFactory = service(),
-            includedTaskGraph = service(),
-            buildStateRegistry = service(),
-            documentationRegistry = service(),
-            javaSerializationEncodingLookup = service(),
-            flowProviders = service(),
-            transformStepNodeFactory = service(),
-            parallelStore = startParameter.isParallelStore,
-            parallelLoad = startParameter.isParallelLoad,
-            problems = service(),
-            attributeDesugaring = service(),
-        )
-
-    private
-    inline fun <reified T : Any> service() =
-        host.service<T>()
 }

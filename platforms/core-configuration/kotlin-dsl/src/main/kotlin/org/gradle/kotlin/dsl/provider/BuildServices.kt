@@ -18,14 +18,12 @@ package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
-import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher
+import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeRegistry
-import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
@@ -44,6 +42,7 @@ import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.normalization.KotlinCompileClasspathFingerprinter
+import org.gradle.kotlin.dsl.normalization.KotlinDslCompileAvoidanceClasspathHashCache
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.plugin.management.internal.PluginHandler
@@ -108,7 +107,7 @@ object BuildServices : ServiceRegistrationProvider {
         fileCollectionFactory: FileCollectionFactory,
         inputFingerprinter: InputFingerprinter,
         internalOptions: InternalOptions,
-        gradlePropertiesController: GradlePropertiesController,
+        gradleProperties: GradleProperties,
         transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy,
         gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
         propertyUpgradeReportConfig: PropertyUpgradeReportConfig
@@ -134,7 +133,7 @@ object BuildServices : ServiceRegistrationProvider {
             fileCollectionFactory,
             inputFingerprinter,
             internalOptions,
-            gradlePropertiesController,
+            gradleProperties,
             transformFactoryForLegacy,
             gradleCoreTypeRegistry,
             propertyUpgradeReportConfig
@@ -142,19 +141,15 @@ object BuildServices : ServiceRegistrationProvider {
 
     @Provides
     fun createCompileClasspathHasher(
-        cacheService: ResourceSnapshotterCacheService,
+        kotlinDslCompileAvoidanceClasspathHashCache: KotlinDslCompileAvoidanceClasspathHashCache,
         fileCollectionSnapshotter: FileCollectionSnapshotter,
-        stringInterner: StringInterner,
         fileCollectionFactory: FileCollectionFactory,
         classpathFingerprinter: ClasspathFingerprinter
     ): ClasspathHasher =
         DefaultClasspathHasher(
+            fileCollectionSnapshotter,
             if (isKotlinScriptCompilationAvoidanceEnabled) {
-                KotlinCompileClasspathFingerprinter(
-                    cacheService,
-                    fileCollectionSnapshotter,
-                    stringInterner
-                )
+                KotlinCompileClasspathFingerprinter(kotlinDslCompileAvoidanceClasspathHashCache)
             } else {
                 classpathFingerprinter
             },

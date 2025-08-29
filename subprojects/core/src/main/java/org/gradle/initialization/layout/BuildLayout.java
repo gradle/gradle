@@ -25,16 +25,14 @@ import java.io.File;
 
 import static org.gradle.initialization.DefaultProjectDescriptor.BUILD_SCRIPT_BASENAME;
 
-@ServiceScope({Scope.BuildSession.class, Scope.Build.class})
+@ServiceScope(Scope.Build.class)
 public class BuildLayout extends SettingsLocation {
-    private final File rootDirectory;
     private final ScriptFileResolver scriptFileResolver;
 
     // Note: `null` for `settingsFile` means explicitly no settings
     //       A non null value can be a non existent file, which is semantically equivalent to an empty file
-    public BuildLayout(File rootDirectory, File settingsDir, @Nullable File settingsFile, ScriptFileResolver scriptFileResolver) {
-        super(settingsDir, settingsFile);
-        this.rootDirectory = rootDirectory;
+    public BuildLayout(File rootDirectory, @Nullable File settingsFile, ScriptFileResolver scriptFileResolver) {
+        super(rootDirectory, settingsFile);
         this.scriptFileResolver = scriptFileResolver;
     }
 
@@ -49,6 +47,6 @@ public class BuildLayout extends SettingsLocation {
      * Returns the root directory of the build, is never null.
      */
     public File getRootDirectory() {
-        return rootDirectory;
+        return getSettingsDir();
     }
 }

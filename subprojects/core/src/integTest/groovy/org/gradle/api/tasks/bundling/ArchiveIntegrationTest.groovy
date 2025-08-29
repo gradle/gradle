@@ -15,12 +15,12 @@
  */
 package org.gradle.api.tasks.bundling
 
-import org.apache.commons.lang.RandomStringUtils
+import org.apache.commons.lang3.RandomStringUtils
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.tasks.Copy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.integtests.fixtures.archives.TestFileSystemSensitiveArchives
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
@@ -34,7 +34,7 @@ import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.equalTo
 
-@TestReproducibleArchives
+@TestFileSystemSensitiveArchives
 class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final Resources resources = new Resources(temporaryFolder)
@@ -65,7 +65,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'copy'
 
         then:
-        result.assertTaskExecuted(":copy")
+        result.assertTaskScheduled(":copy")
         file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt')
 
         when:
@@ -88,7 +88,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'copy'
 
         then:
-        result.assertTasksExecutedAndNotSkipped(":copy")
+        result.assertTasksExecuted(":copy")
         // Copy (intentionally) leaves stuff behind
         file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt', 'file3.txt')
 
@@ -139,7 +139,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'copy'
 
         then:
-        result.assertTaskExecuted(":copy")
+        result.assertTaskScheduled(":copy")
         file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt')
 
         when:
@@ -162,7 +162,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'copy'
 
         then:
-        result.assertTasksExecutedAndNotSkipped(":copy")
+        result.assertTasksExecuted(":copy")
         // Copy (intentionally) leaves stuff behind
         file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt', 'file3.txt')
 

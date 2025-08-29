@@ -22,6 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
@@ -338,14 +339,11 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
 
     private void addOutgoingConfigurationForLinkUsage(SoftwareComponentContainer components, final RoleBasedConfigurationContainerInternal configurations) {
         components.withType(ConfigurableComponentWithLinkUsage.class, component -> {
-            Names names = component.getNames();
-
-            Configuration linkElements = configurations.consumableLocked(names.withSuffix("linkElements"));
-            linkElements.extendsFrom(component.getImplementationDependencies());
-            AttributeContainer attributes = component.getLinkAttributes();
-            copyAttributesTo(attributes, linkElements);
-
-            linkElements.getOutgoing().artifact(component.getLinkFile());
+            Provider<ConsumableConfiguration> linkElements = configurations.consumable(component.getNames().withSuffix("linkElements"), conf -> {
+                conf.extendsFrom(component.getImplementationDependencies());
+                copyAttributesTo(component.getLinkAttributes(), conf);
+                conf.getOutgoing().artifact(component.getLinkFile());
+            });
 
             component.getLinkElements().set(linkElements);
         });
@@ -353,17 +351,13 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
 
     private void addOutgoingConfigurationForRuntimeUsage(SoftwareComponentContainer components, final RoleBasedConfigurationContainerInternal configurations) {
         components.withType(ConfigurableComponentWithRuntimeUsage.class, component -> {
-            Names names = component.getNames();
-
-            Configuration runtimeElements = configurations.consumableLocked(names.withSuffix("runtimeElements"));
-            runtimeElements.extendsFrom(component.getImplementationDependencies());
-
-            AttributeContainer attributes = component.getRuntimeAttributes();
-            copyAttributesTo(attributes, runtimeElements);
-
-            if (component.hasRuntimeFile()) {
-                runtimeElements.getOutgoing().artifact(component.getRuntimeFile());
-            }
+            Provider<ConsumableConfiguration> runtimeElements = configurations.consumable(component.getNames().withSuffix("runtimeElements"), conf -> {
+                conf.extendsFrom(component.getImplementationDependencies());
+                copyAttributesTo(component.getRuntimeAttributes(), conf);
+                if (component.hasRuntimeFile()) {
+                    conf.getOutgoing().artifact(component.getRuntimeFile());
+                }
+            });
 
             component.getRuntimeElements().set(runtimeElements);
         });

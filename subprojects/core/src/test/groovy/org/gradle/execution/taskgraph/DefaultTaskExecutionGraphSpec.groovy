@@ -66,6 +66,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.DefaultWorkerLimits
+import org.gradle.internal.work.ResourceLockStatistics
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -76,13 +77,14 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     def cancellationToken = Mock(BuildCancellationToken)
     def listenerManager = new DefaultListenerManager(Scope.Build)
     def graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class)
+    def internalGraphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphExecutionListener.class)
     def taskExecutionListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class)
     def listenerRegistrationListener = listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class)
     def nodeExecutor = Mock(NodeExecutor)
     def buildOperationRunner = new TestBuildOperationRunner()
     def listenerBuildOperationDecorator = new TestListenerBuildOperationDecorator()
     def workerLimits = new DefaultWorkerLimits(1)
-    def workerLeases = new DefaultWorkerLeaseService(coordinator, workerLimits)
+    def workerLeases = new DefaultWorkerLeaseService(coordinator, workerLimits, ResourceLockStatistics.NO_OP)
     def executorFactory = Mock(ExecutorFactory)
     def accessHierarchies = new ExecutionNodeAccessHierarchies(CASE_SENSITIVE, Stub(Stat))
     def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationRunner(), accessHierarchies, TestUtil.problemsService())
@@ -96,6 +98,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         listenerBuildOperationDecorator,
         thisBuild,
         graphListeners,
+        internalGraphListeners,
         taskExecutionListeners,
         listenerRegistrationListener,
         Stub(ServiceRegistry) {
@@ -379,6 +382,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
             listenerBuildOperationDecorator,
             thisBuild,
             graphListeners,
+            internalGraphListeners,
             taskExecutionListeners,
             listenerRegistrationListener,
             Stub(ServiceRegistry)
@@ -414,6 +418,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
             listenerBuildOperationDecorator,
             thisBuild,
             graphListeners,
+            internalGraphListeners,
             taskExecutionListeners,
             listenerRegistrationListener,
             Stub(ServiceRegistry)

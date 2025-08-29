@@ -23,8 +23,8 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -73,6 +73,7 @@ import org.jetbrains.org.objectweb.asm.signature.SignatureReader
 import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
 import java.io.Closeable
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 
 
@@ -86,19 +87,28 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
     private val asyncIO: AsyncIOScopeFactory,
 ) {
 
-    fun projectAccessorsClassPath(scriptTarget: ExtensionAware, classPath: ClassPath): AccessorsClassPath =
-        scriptTarget.getOrCreateProperty("gradleKotlinDsl.accessorsClassPath") {
-            buildAccessorsClassPathFor(scriptTarget, classPath)
+    private
+    val classPathCache = ConcurrentHashMap<ClassLoaderScope, AccessorsClassPath>()
+
+    fun projectAccessorsClassPath(scriptTarget: ExtensionAware, classPath: ClassPath): AccessorsClassPath {
+        val classLoaderScope = classLoaderScopeOf(scriptTarget)
+        if (classLoaderScope == null) {
+            return AccessorsClassPath.empty
+        }
+        return classPathCache.computeIfAbsent(classLoaderScope) {
+            buildAccessorsClassPathFor(classLoaderScope, scriptTarget, classPath)
                 ?: AccessorsClassPath.empty
         }
-
+    }
 
     private
-    fun buildAccessorsClassPathFor(scriptTarget: Any, classPath: ClassPath): AccessorsClassPath? =
-        classLoaderScopeOf(scriptTarget)
-            ?.let { classLoaderScope ->
-                configuredProjectSchemaOf(scriptTarget, classLoaderScope)
-            }?.let { scriptTargetSchema ->
+    fun buildAccessorsClassPathFor(
+        classLoaderScope: ClassLoaderScope,
+        scriptTarget: Any,
+        classPath: ClassPath
+    ): AccessorsClassPath? =
+        configuredProjectSchemaOf(scriptTarget, classLoaderScope)
+            ?.let { scriptTargetSchema ->
                 val work = GenerateProjectAccessors(
                     scriptTarget,
                     scriptTargetSchema,
@@ -127,8 +137,8 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
 
 fun isDclEnabledForScriptTarget(target: Any): Boolean {
     val gradleProperties = when (target) {
-        is Project -> target.serviceOf<GradlePropertiesController>()
-        is Settings -> target.serviceOf<GradlePropertiesController>()
+        is Project -> target.serviceOf<GradleProperties>()
+        is Settings -> target.serviceOf<GradleProperties>()
         else -> null
     }
     return gradleProperties?.let { getBooleanKotlinDslOption(it, DCL_ENABLED_PROPERTY_NAME, false) } ?: false
@@ -283,10 +293,47 @@ internal
 fun importsRequiredBy(candidateTypes: List<TypeAccessibility>): List<String> =
     defaultPackageTypesIn(
         candidateTypes
-            .filterIsInstance<TypeAccessibility.Accessible>()
-            .map { it.type.kotlinString }
+            .filterIsInstance<TypeAccessibility.Accessible>().let { accessibleTypes ->
+                val ownImports = accessibleTypes.map { it.type.kotlinString }
+                val importsRequiredByOptInAnnotations = importsRequiredByOptInAnnotations(accessibleTypes)
+                if (importsRequiredByOptInAnnotations != null) importsRequiredByOptInAnnotations.toList() + ownImports else ownImports
+            }
     )
 
+private fun importsRequiredByOptInAnnotations(accessibleTypes: List<TypeAccessibility.Accessible>): MutableSet<String>? {
+    val annotations = object {
+        var typeNames: MutableSet<String>? = null
+
+        fun addTypeName(typeName: String) {
+            if (typeNames == null) {
+                typeNames = mutableSetOf()
+            }
+            typeNames!!.add(typeName)
+        }
+
+        fun visitAnnotationValue(annotationValueRepresentation: AnnotationValueRepresentation) {
+            when (annotationValueRepresentation) {
+                is AnnotationValueRepresentation.PrimitiveValue,
+                is AnnotationValueRepresentation.ValueArray -> Unit
+
+                is AnnotationValueRepresentation.AnnotationValue -> visitAnnotation(annotationValueRepresentation.representation)
+                is AnnotationValueRepresentation.EnumValue -> addTypeName(annotationValueRepresentation.type.kotlinString)
+                is AnnotationValueRepresentation.ClassValue -> addTypeName(annotationValueRepresentation.type.kotlinString)
+            }
+        }
+
+        fun visitAnnotation(annotation: AnnotationRepresentation) {
+            addTypeName(annotation.type.kotlinString)
+            annotation.values.values.forEach { annotationValue -> visitAnnotationValue(annotationValue) }
+        }
+    }
+
+    accessibleTypes.forEach { accessibleType ->
+        accessibleType.optInRequirements.forEach { annotations.visitAnnotation(it) }
+    }
+
+    return annotations.typeNames
+}
 
 internal
 fun defaultPackageTypesIn(typeStrings: List<String>): List<String> =
@@ -306,10 +353,23 @@ fun availableProjectSchemaFor(projectSchema: TypedProjectSchema, classPath: Clas
 sealed class TypeAccessibility {
     abstract val type: SchemaType
 
-    data class Accessible(override val type: SchemaType) : TypeAccessibility()
+    data class Accessible(override val type: SchemaType, val optInRequirements: List<AnnotationRepresentation>) : TypeAccessibility()
     data class Inaccessible(override val type: SchemaType, val reasons: List<InaccessibilityReason>) : TypeAccessibility()
 }
 
+
+data class AnnotationRepresentation(
+    val type: SchemaType,
+    val values: Map<String, AnnotationValueRepresentation>
+)
+
+sealed interface AnnotationValueRepresentation {
+    data class PrimitiveValue(val value: Any?) : AnnotationValueRepresentation
+    data class ClassValue(val type: SchemaType) : AnnotationValueRepresentation
+    data class ValueArray(val elements: List<AnnotationValueRepresentation>) : AnnotationValueRepresentation
+    data class EnumValue(val type: SchemaType, val entryName: String) : AnnotationValueRepresentation
+    data class AnnotationValue(val representation: AnnotationRepresentation) : AnnotationValueRepresentation
+}
 
 sealed class InaccessibilityReason {
 
@@ -317,6 +377,8 @@ sealed class InaccessibilityReason {
     data class NonAvailable(val type: String) : InaccessibilityReason()
     data class Synthetic(val type: String) : InaccessibilityReason()
     data class TypeErasure(val type: String) : InaccessibilityReason()
+    data class DeprecatedAsHidden(val type: String) : InaccessibilityReason()
+    data class RequiresUnsatisfiableOptIns(val type: String) : InaccessibilityReason()
 
     val explanation
         get() = when (this) {
@@ -324,6 +386,8 @@ sealed class InaccessibilityReason {
             is NonAvailable -> "`$type` is not available"
             is Synthetic -> "`$type` is synthetic"
             is TypeErasure -> "`$type` parameter types are missing"
+            is DeprecatedAsHidden -> "`$type` is deprecated as hidden"
+            is RequiresUnsatisfiableOptIns -> "`$type` required for the opt-in is inaccessible"
         }
 }
 
@@ -338,28 +402,40 @@ data class TypeAccessibilityInfo(
 internal
 class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
 
-    private
-    val classBytesRepository = ClassBytesRepository(
+    private val classBytesRepository = ClassBytesRepository(
         ClassLoaderUtils.getPlatformClassLoader(),
         classPath.asFiles
     )
 
-    private
-    val typeAccessibilityInfoPerClass = mutableMapOf<String, TypeAccessibilityInfo>()
+
+    private val typeAccessibilityInfoPerClass = mutableMapOf<String, TypeAccessibilityInfo>()
+
+    private val optInRequirementsPerClass = mutableMapOf<String, OptInRequirements>()
+
+    private val optInCollector = OptInAnnotationsCollector(classBytesRepository, ::inaccessibilityReasonsFor, optInRequirementsPerClass::getOrPut)
 
     fun accessibilityForType(type: SchemaType): TypeAccessibility =
         // TODO:accessors cache per SchemaType
-        inaccessibilityReasonsFor(classNamesFromTypeString(type)).let { inaccessibilityReasons ->
+        inaccessibilityReasonsFor(type).let { inaccessibilityReasons ->
             if (inaccessibilityReasons.isNotEmpty()) inaccessible(type, inaccessibilityReasons)
-            else accessible(type)
+            else {
+                when (val optIns = optInRequirementsPerClass.getOrPut(type.kotlinString) { optInCollector.collectOptInRequirementAnnotationsForType(type) }) {
+                    is OptInRequirements.Annotations -> accessible(type, optIns.annotations)
+                    is OptInRequirements.Unsatisfiable -> inaccessible(type, optIns.becauseOfTypes.map { InaccessibilityReason.RequiresUnsatisfiableOptIns(it) })
+                    OptInRequirements.None -> accessible(type)
+                }
+
+            }
         }
 
-    private
-    fun inaccessibilityReasonsFor(classNames: ClassNamesFromTypeString): List<InaccessibilityReason> =
+    private fun inaccessibilityReasonsFor(type: SchemaType): List<InaccessibilityReason> =
+        inaccessibilityReasonsFor(classNamesFromTypeString(type))
+
+    private fun inaccessibilityReasonsFor(classNames: ClassNamesFromTypeString): List<InaccessibilityReason> =
         classNames.all.flatMap { inaccessibilityReasonsFor(it) }.let { inaccessibilityReasons ->
-            if (inaccessibilityReasons.isNotEmpty()) inaccessibilityReasons
-            else classNames.leaves.filter(::hasTypeParameter).map(::typeErasure)
+            inaccessibilityReasons.ifEmpty { classNames.leaves.filter(::hasTypeParameter).map(::typeErasure) }
         }
+
 
     private
     fun inaccessibilityReasonsFor(className: String): List<InaccessibilityReason> =
@@ -381,12 +457,18 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
             ?: return TypeAccessibilityInfo(listOf(nonAvailable(className)))
         val classReader = ClassReader(classBytes)
         val access = classReader.access
+
+        val visibilityAndDeprecation by lazy(LazyThreadSafetyMode.NONE) {
+            kotlinVisibilityAndDeprecationFor(classReader)
+        }
+
         return TypeAccessibilityInfo(
             listOfNotNull(
                 when {
                     ACC_PUBLIC !in access -> nonPublic(className)
                     ACC_SYNTHETIC in access -> synthetic(className)
-                    isNonPublicKotlinType(classReader) -> nonPublic(className)
+                    visibilityAndDeprecation.isNonPublicType -> nonPublic(className)
+                    visibilityAndDeprecation.isDeprecatedAsHidden -> deprecatedAsHidden(className)
                     else -> null
                 }
             ),
@@ -394,13 +476,19 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
         )
     }
 
-    private
-    fun isNonPublicKotlinType(classReader: ClassReader) =
-        kotlinVisibilityFor(classReader)?.let { it != Visibility.PUBLIC } ?: false
+    private data class VisibilityAndDeprecation(
+        val isNonPublicType: Boolean,
+        val isDeprecatedAsHidden: Boolean
+    )
 
     private
-    fun kotlinVisibilityFor(classReader: ClassReader) =
-        classReader(KotlinVisibilityClassVisitor()).visibility
+    fun kotlinVisibilityAndDeprecationFor(classReader: ClassReader): VisibilityAndDeprecation =
+        classReader(KotlinVisibilityClassVisitor()).run {
+            VisibilityAndDeprecation(
+                isNonPublicType = visibility != null && visibility != Visibility.PUBLIC,
+                isDeprecatedAsHidden = isDeprecatedAsHidden
+            )
+        }
 
     private
     fun hasTypeParameters(classReader: ClassReader): Boolean =
@@ -489,12 +577,22 @@ private
 class KotlinVisibilityClassVisitor : ClassVisitor(ASM_LEVEL) {
 
     var visibility: Visibility? = null
+    var isDeprecatedAsHidden: Boolean = false
 
     override fun visitAnnotation(desc: String?, visible: Boolean): AnnotationVisitor? =
         when (desc) {
             "Lkotlin/Metadata;" -> ClassDataFromKotlinMetadataAnnotationVisitor { classData ->
                 visibility = Flags.VISIBILITY[classData.flags]
             }
+
+            "Lkotlin/Deprecated;" ->
+                object : AnnotationVisitor(ASM_LEVEL) {
+                    override fun visitEnum(name: String, descriptor: String, value: String) {
+                        if (name == "level" && value == "HIDDEN") {
+                            isDeprecatedAsHidden = true
+                        }
+                    }
+                }
 
             else -> null
         }
@@ -561,6 +659,11 @@ fun nonPublic(type: String): InaccessibilityReason =
 
 
 internal
+fun deprecatedAsHidden(type: String): InaccessibilityReason =
+    InaccessibilityReason.DeprecatedAsHidden(type)
+
+
+internal
 fun synthetic(type: String): InaccessibilityReason =
     InaccessibilityReason.Synthetic(type)
 
@@ -571,8 +674,8 @@ fun typeErasure(type: String): InaccessibilityReason =
 
 
 internal
-fun accessible(type: SchemaType): TypeAccessibility =
-    TypeAccessibility.Accessible(type)
+fun accessible(type: SchemaType, optInRequirements: List<AnnotationRepresentation> = emptyList()): TypeAccessibility =
+    TypeAccessibility.Accessible(type, optInRequirements)
 
 
 internal
@@ -596,7 +699,6 @@ fun classLoaderScopeOf(scriptTarget: Any) = when (scriptTarget) {
 
 fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run {
     putAll(schema.extensions)
-    putAll(schema.conventions)
     putAll(schema.tasks)
     putAll(schema.containerElements)
     putContainerElementFactoryEntries(schema.containerElementFactories)
@@ -714,3 +816,4 @@ fun Project.warnAboutDiscontinuedJsonProjectSchema() {
         logger.warn(PROJECT_SCHEMA_RESOURCE_DISCONTINUED_WARNING)
     }
 }
+

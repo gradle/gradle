@@ -43,12 +43,10 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(bottomSpecs = [
-        "BuildDashboardPluginIntegrationTest",
         "ScalaPluginGoodBehaviourTest",
         "AntlrPluginIntegrationTest",
         "PlayApplicationPluginGoodBehaviourIntegrationTest",
-        "PmdPluginIntegrationTest",
-        "IdeaPluginGoodBehaviourTest"
+        "PmdPluginIntegrationTest"
     ])
     void "can apply plugin unqualified"() {
         given:
@@ -72,12 +70,10 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(bottomSpecs = [
-        "BuildDashboardPluginIntegrationTest",
         "ScalaPluginGoodBehaviourTest",
         "AntlrPluginIntegrationTest",
         "PlayApplicationPluginGoodBehaviourIntegrationTest",
         "PmdPluginIntegrationTest",
-        "IdeaPluginGoodBehaviourTest"
     ])
     def "plugin can build with empty project"() {
         given:
@@ -105,8 +101,6 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
             'visual-studio',
             'xcode',
-
-            'play-application',
         ])
 
         applyPlugin()
@@ -184,6 +178,38 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         assert output.count("configuring :") == 0
     }
 
+    def "consumable configurations are not realized during configuration-time"() {
+        Assume.assumeFalse(pluginName in [
+            'signing' // Almost everything in signing is eager. We need to re-write this plugin.
+        ])
+
+        given:
+        applyPlugin()
+        buildFile("""
+            configurations.withType(ConsumableConfiguration).configureEach {
+                throw new RuntimeException("Realized \${name}")
+            }
+            configurations.configureEach {
+                // The archives configuration from the base plugin is always realized eagerly.
+                // We can either fix this or wait for its removal in 10.0.0.
+                if (canBeConsumed && !["archives"].contains(name)) {
+                    throw new RuntimeException("Realized \${name}")
+                }
+            }
+
+            if (configurations.names.contains("archives")) {
+                boolean archivesRealized = false
+                configurations.named("archives").configure {
+                    archivesRealized = true
+                }
+                assert archivesRealized : "If you fixed this, nice! Let's remove the special case above."
+            }
+        """)
+
+        expect:
+        succeeds("help")
+    }
+
     void expectTaskProjectDeprecationIfNeeded() {
         if (expectTaskProjectDeprecation) {
             expectTaskProjectDeprecation()
@@ -192,7 +218,7 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
     void expectTaskProjectDeprecation() {
         executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. "+
-            "This will fail with an error in Gradle 10.0. " +
+            "This will fail with an error in Gradle 10. " +
             "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
     }

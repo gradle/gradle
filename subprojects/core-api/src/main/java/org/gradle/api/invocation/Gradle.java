@@ -33,6 +33,8 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -44,7 +46,16 @@ import java.util.Collection;
  * <p>You can obtain a {@code Gradle} instance by calling {@link Project#getGradle()}.</p>
  */
 @HasInternalProtocol
+@ServiceScope(Scope.Gradle.class)
 public interface Gradle extends PluginAware, ExtensionAware {
+
+    /**
+     * Get the path of this build relative to the root build.
+     *
+     * @since 9.1.0
+     */
+    String getBuildPath();
+
     /**
      * Returns the current Gradle version.
      *
@@ -352,7 +363,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * provides with your own implementation, for certain types of events.
      *
      * @param logger The logger to use.
-     * @deprecated Will be removed in Gradle 9. Logging customization through listeners is no longer supported.
+     * @deprecated Will be removed in Gradle 10. Logging customization through listeners is no longer supported.
      */
     @Deprecated
     void useLogger(Object logger);

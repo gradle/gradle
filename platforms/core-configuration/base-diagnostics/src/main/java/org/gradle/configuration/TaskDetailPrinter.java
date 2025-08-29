@@ -16,11 +16,11 @@
 package org.gradle.configuration;
 
 import com.google.common.collect.Sets;
-import org.apache.commons.lang.StringUtils;
-import org.gradle.internal.InternalTransformer;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
@@ -101,20 +102,20 @@ public class TaskDetailPrinter {
         printTaskAttribute(output, "Group", tasks, TaskDetails::getGroup);
     }
 
-    private void printTaskAttribute(StyledTextOutput output, String attributeHeader, List<TaskDetails> tasks, InternalTransformer<String, TaskDetails> transformer) {
+    private void printTaskAttribute(StyledTextOutput output, String attributeHeader, List<TaskDetails> tasks, Function<TaskDetails, @Nullable String> transformer) {
         int count = collect(tasks, new HashSet<>(), transformer).size();
         final LinePrefixingStyledTextOutput attributeOutput = createIndentedOutput(output, INDENT);
         if (count == 1) {
             // all tasks have the same value
             attributeOutput.println(attributeHeader);
             final TaskDetails task = tasks.iterator().next();
-            String value = transformer.transform(task);
+            String value = transformer.apply(task);
             attributeOutput.println(value == null ? "-" : value);
         } else {
             attributeOutput.println(attributeHeader + "s");
             for (TaskDetails task : tasks) {
                 attributeOutput.withStyle(UserInput).text("(" + task.getPath() + ") ");
-                String value = transformer.transform(task);
+                String value = transformer.apply(task);
                 attributeOutput.println(value == null ? "-" : value);
             }
         }

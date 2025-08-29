@@ -16,6 +16,7 @@
 
 package org.gradle.execution.taskgraph;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
@@ -34,9 +35,11 @@ import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
+import org.gradle.execution.plan.ScheduledWork;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.internal.Cast;
 import org.gradle.internal.InternalListener;
+import org.gradle.internal.MutableReference;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -56,7 +59,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.BiConsumer;
 
 @SuppressWarnings("deprecation")
 @NullMarked
@@ -67,6 +69,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final List<NodeExecutor> nodeExecutors;
     private final GradleInternal gradleInternal;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
+    private final ListenerBroadcast<TaskExecutionGraphExecutionListener> internalGraphListeners;
     private final ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> taskListeners;
     private final BuildScopeListenerRegistrationListener buildScopeListenerRegistrationListener;
     private final ServiceRegistry globalServices;
@@ -83,6 +86,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         ListenerBuildOperationDecorator listenerBuildOperationDecorator,
         GradleInternal gradleInternal,
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
+        ListenerBroadcast<TaskExecutionGraphExecutionListener> internalGraphListeners,
         ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> taskListeners,
         BuildScopeListenerRegistrationListener buildScopeListenerRegistrationListener,
         ServiceRegistry globalServices
@@ -93,6 +97,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         this.listenerBuildOperationDecorator = listenerBuildOperationDecorator;
         this.gradleInternal = gradleInternal;
         this.graphListeners = graphListeners;
+        this.internalGraphListeners = internalGraphListeners;
         this.taskListeners = taskListeners;
         this.buildScopeListenerRegistrationListener = buildScopeListenerRegistrationListener;
         this.globalServices = globalServices;
@@ -119,6 +124,9 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         if (!hasFiredWhenReady) {
             throw new IllegalStateException("Task graph should be populated before execution starts.");
         }
+
+        internalGraphListeners.getSource().beforeGraphExecutionStarts(this);
+
         try (ProjectExecutionServiceRegistry projectExecutionServices = new ProjectExecutionServiceRegistry(globalServices)) {
             return executeWithServices(projectExecutionServices);
         } finally {
@@ -182,6 +190,16 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         graphListeners.add(
             decorateListener("TaskExecutionGraph.whenReady", action::execute)
         );
+    }
+
+    @Override
+    public void addExecutionListener(TaskExecutionGraphExecutionListener listener) {
+        internalGraphListeners.add(listener);
+    }
+
+    @Override
+    public void removeExecutionListener(TaskExecutionGraphExecutionListener listener) {
+        internalGraphListeners.remove(listener);
     }
 
     @Override
@@ -272,8 +290,14 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     @Override
-    public void visitScheduledNodes(BiConsumer<List<Node>, Set<Node>> visitor) {
-        executionPlan.getContents().getScheduledNodes().visitNodes(visitor);
+    public ScheduledWork collectScheduledWork() {
+        MutableReference<ScheduledWork> result = MutableReference.of(null);
+        executionPlan.getContents().getScheduledNodes().visitNodes((nodes, entryNodes) -> {
+            result.set(new ScheduledWork(nodes, entryNodes));
+        });
+        ScheduledWork scheduledWork = result.get();
+        Preconditions.checkState(scheduledWork != null, "No scheduled work found");
+        return scheduledWork;
     }
 
     @Override
@@ -290,6 +314,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public void resetState() {
+        internalGraphListeners.removeAll();
         graphListeners.removeAll();
         taskListeners.removeAll();
         executionPlan.close();

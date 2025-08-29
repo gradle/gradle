@@ -1,9 +1,9 @@
 plugins {
     id("gradlebuild.internal.java")
-    id("gradlebuild.performance-test")
+    id("gradlebuild.performance-testing")
 }
 
-description = """Performance tests for the build scan plugin
+description = """Performance tests for the Develocity plugin
     | Run as part of the GE pipeline.
     | """.trimMargin()
 
@@ -36,7 +36,7 @@ performanceTest.registerTestProject<gradlebuild.performance.generator.tasks.JvmP
     dependencyGraph.run {
         size = 200
         depth = 5
-        useSnapshotVersions = false // snapshots should not have a build scan specific performance impact
+        useSnapshotVersions = false // snapshots should not have a Build Scan specific performance impact
     }
 
     buildSrcTemplate = "buildsrc-plugins"
@@ -88,4 +88,8 @@ tasks.withType<gradlebuild.performance.tasks.PerformanceTest>().configureEach {
 internal
 class DevelocityPluginInfoDirPropertyProvider(@InputFiles @PathSensitive(PathSensitivity.RELATIVE) val pluginInfoDir: Provider<File>) : CommandLineArgumentProvider {
     override fun asArguments() = listOf("-Dorg.gradle.performance.develocity.plugin.infoDir=${pluginInfoDir.get().path}")
+}
+
+errorprone {
+    nullawayEnabled = true
 }

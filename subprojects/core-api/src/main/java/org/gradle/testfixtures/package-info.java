@@ -17,4 +17,7 @@
 /**
  * Classes and interfaces for testing custom task and plugin implementations.
  */
+@NullMarked
 package org.gradle.testfixtures;
+
+import org.jspecify.annotations.NullMarked;

@@ -27,6 +27,7 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
                 apply plugin: 'java'
+                assert gradle.buildPath == ":buildC"
             """
         }
         def buildB = singleProjectBuild("buildB") {
@@ -36,6 +37,7 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
             buildFile << """
                 apply plugin: 'java'
                 dependencies { implementation 'org.test:buildC:1.2' }
+                assert gradle.buildPath == ":buildB"
             """
         }
         includeBuild(buildB)
@@ -44,9 +46,9 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         execute(buildA, "assemble")
 
         then:
-        result.assertTaskExecuted(":buildC:jar")
-        result.assertTaskExecuted(":buildB:jar")
-        result.assertTaskExecuted(":jar")
+        result.assertTaskScheduled(":buildC:jar")
+        result.assertTaskScheduled(":buildB:jar")
+        result.assertTaskScheduled(":jar")
     }
 
     def "a nested included build is substituted into all other builds"() {
@@ -57,6 +59,7 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
                 apply plugin: 'java'
+                assert gradle.buildPath == ":buildC"
             """
         }
 
@@ -68,6 +71,7 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
                 apply plugin: 'java'
                 dependencies { implementation 'org.test:buildD:1.2' }
                 dependencies { implementation 'org.test:buildC:1.2' }
+                assert gradle.buildPath == ":buildB"
             """
         }
         includeBuild(buildB)
@@ -76,6 +80,7 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
             buildFile << """
                 apply plugin: 'java'
                 dependencies { implementation 'org.test:buildC:1.2' }
+                assert gradle.buildPath == ":buildD"
             """
         }
         includeBuild(buildD)
@@ -84,10 +89,10 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         execute(buildA, "assemble")
 
         then:
-        result.assertTaskExecuted(":buildC:jar")
-        result.assertTaskExecuted(":buildD:jar")
-        result.assertTaskExecuted(":buildB:jar")
-        result.assertTaskExecuted(":jar")
+        result.assertTaskScheduled(":buildC:jar")
+        result.assertTaskScheduled(":buildD:jar")
+        result.assertTaskScheduled(":buildB:jar")
+        result.assertTaskScheduled(":jar")
     }
 
     def "a build can be included by multiple other builds"() {
@@ -97,6 +102,7 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
                 apply plugin: 'java'
+                assert gradle.buildPath == ":buildC"
             """
         }
         includeBuild(buildC)
@@ -107,6 +113,7 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
             buildFile << """
                 apply plugin: 'java'
                 dependencies { implementation 'org.test:buildC:1.2' }
+                assert gradle.buildPath == ":buildB"
             """
         }
         includeBuild(buildB)
@@ -115,9 +122,9 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         execute(buildA, "assemble")
 
         then:
-        result.assertTaskExecuted(":buildC:jar")
-        result.assertTaskExecuted(":buildB:jar")
-        result.assertTaskExecuted(":jar")
+        result.assertTaskScheduled(":buildC:jar")
+        result.assertTaskScheduled(":buildB:jar")
+        result.assertTaskScheduled(":jar")
     }
 
     def "nested build can contribute to build script classpath"() {
@@ -127,6 +134,7 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
             """
             buildFile << """
                 apply plugin: 'java'
+                assert gradle.buildPath == ":buildC"
             """
             file("src/main/java/LibC.java") << """
                 public class LibC { }
@@ -145,6 +153,7 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
                         implementationClass = 'PluginB'
                     }
                 }
+                assert gradle.buildPath == ":buildB"
             """
             file("src/main/java/PluginB.java") << """
                 import ${Project.name};
@@ -176,19 +185,26 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         execute(buildA, "go")
 
         then:
-        result.assertTaskExecuted(":buildC:jar")
-        result.assertTaskExecuted(":buildB:jar")
-        result.assertTaskExecuted(":go")
+        result.assertTaskScheduled(":buildC:jar")
+        result.assertTaskScheduled(":buildB:jar")
+        result.assertTaskScheduled(":go")
     }
 
     def "reports failure for duplicate included build name"() {
         given:
-        def buildC = singleProjectBuild("buildC")
+        def buildC = singleProjectBuild("buildC") {
+            buildFile << """
+                assert gradle.buildPath == ":buildC"
+            """
+        }
         def buildB = singleProjectBuild("buildB") {
             settingsFile << """
                 includeBuild('${buildC.toURI()}') {
                     name = 'buildB'
                 }
+            """
+            buildFile << """
+                assert gradle.buildPath == ":buildB"
             """
         }
         includeBuild(buildB)
@@ -206,10 +222,17 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         buildA.settingsFile << """
             include 'buildC'
 """
-        def buildC = singleProjectBuild("buildC")
+        def buildC = singleProjectBuild("buildC") {
+            buildFile << """
+                assert gradle.buildPath == ":buildC"
+            """
+        }
         def buildB = singleProjectBuild("buildB") {
             settingsFile << """
                 includeBuild('${buildC.toURI()}')
+            """
+            buildFile << """
+                assert gradle.buildPath == ":buildB"
             """
         }
         includeBuild(buildB)
@@ -227,10 +250,16 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
             settingsFile << """
                 rootProject.name = 'buildA'
             """
+            buildFile << """
+                assert gradle.buildPath == ":buildC"
+            """
         }
         def buildB = singleProjectBuild("buildB") {
             settingsFile << """
                 includeBuild('${buildC.toURI()}')
+            """
+            buildFile << """
+                assert gradle.buildPath == ":buildB"
             """
         }
 

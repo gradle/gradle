@@ -16,7 +16,7 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.specs.Spec;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
@@ -27,6 +27,7 @@ import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 
 import java.util.Collection;
+import java.util.Set;
 
 public class DefaultWorkerServer implements Worker {
     private final ServiceRegistry internalServices;
@@ -34,7 +35,12 @@ public class DefaultWorkerServer implements Worker {
     private final IsolationScheme<WorkAction<?>, WorkParameters> isolationScheme;
     private final Collection<? extends Class<?>> additionalWhitelistedServices;
 
-    public DefaultWorkerServer(ServiceRegistry internalServices, InstantiatorFactory instantiatorFactory, IsolationScheme<WorkAction<?>, WorkParameters> isolationScheme, Collection<? extends Class<?>> additionalWhitelistedServices) {
+    public DefaultWorkerServer(
+        ServiceRegistry internalServices,
+        InstantiatorFactory instantiatorFactory,
+        IsolationScheme<WorkAction<?>, WorkParameters> isolationScheme,
+        Collection<? extends Class<?>> additionalWhitelistedServices
+    ) {
         this.internalServices = internalServices;
         this.instantiatorFactory = instantiatorFactory;
         this.isolationScheme = isolationScheme;
@@ -45,14 +51,13 @@ public class DefaultWorkerServer implements Worker {
     public DefaultWorkResult execute(SimpleActionExecutionSpec<?> spec) {
         try {
             Class<? extends WorkAction<?>> implementationClass = Cast.uncheckedCast(spec.getImplementationClass());
-            // Exceptions to services available for injection
-            Spec<Class<?>> whiteListPolicy;
-            if (spec.isInternalServicesRequired()) {
-                whiteListPolicy = element -> true;
-            } else {
-                whiteListPolicy = element -> false;
-            }
-            ServiceLookup instantiationServices = isolationScheme.servicesForImplementation(spec.getParameters(), internalServices, additionalWhitelistedServices, whiteListPolicy);
+
+            Set<Class<?>> allAdditionalWhitelistedServices = ImmutableSet.<Class<?>>builder()
+                .addAll(additionalWhitelistedServices)
+                .addAll(spec.getAdditionalWhitelistedServices())
+                .build();
+
+            ServiceLookup instantiationServices = isolationScheme.servicesForImplementation(spec.getParameters(), internalServices, allAdditionalWhitelistedServices);
             Instantiator instantiator = instantiatorFactory.inject(instantiationServices);
             WorkAction<?> execution;
             if (ProvidesWorkResult.class.isAssignableFrom(implementationClass)) {

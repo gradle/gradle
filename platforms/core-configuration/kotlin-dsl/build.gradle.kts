@@ -23,6 +23,7 @@ dependencies {
     api(projects.hashing)
     api(projects.kotlinDslToolingModels)
     api(projects.loggingApi)
+    api(projects.persistentCache)
     api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
 
@@ -51,19 +52,17 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.messaging)
     implementation(projects.modelCore)
-    implementation(projects.normalizationJava)
-    implementation(projects.persistentCache)
     implementation(projects.resources)
     implementation(projects.scopedPersistentCache)
+    implementation(projects.serialization)
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.snapshots)
 
-    implementation("org.gradle:java-api-extractor")
+    implementation(projects.javaApiExtractor)
     implementation("org.gradle:kotlin-dsl-shared-runtime")
 
     implementation(libs.asm)
-    implementation(libs.groovyJson)
     implementation(libs.jspecify)
     implementation(libs.kotlinReflect)
 
@@ -91,7 +90,11 @@ dependencies {
     implementation(libs.futureKotlin("assignment-compiler-plugin-embeddable")) {
         isTransitive = false
     }
-    shadow("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.9.0") {
+    shadow(libs.futureKotlin("metadata-jvm")) {
+        isTransitive = false
+    }
+
+    runtimeOnly(libs.kotlinBuildToolsImpl) {
         isTransitive = false
     }
 
@@ -134,6 +137,8 @@ dependencies {
     testFixturesImplementation(projects.testKit)
     testFixturesImplementation(projects.internalTesting)
     testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.unitTestFixtures)
+    testFixturesImplementation(projects.serviceRegistryImpl)
 
     testFixturesImplementation(testFixtures(projects.hashing))
 
@@ -147,7 +152,7 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 }
 
-// Relocate kotlinx-metadata-jvm
+// Relocate kotlin-metadata-jvm
 configurations.compileOnly {
     extendsFrom(configurations.shadow.get())
 }

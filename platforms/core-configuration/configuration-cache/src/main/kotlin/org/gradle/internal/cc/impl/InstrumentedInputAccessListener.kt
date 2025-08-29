@@ -17,8 +17,6 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheProblemsListener
-import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
-import org.gradle.internal.configuration.inputs.InstrumentedInputsListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
@@ -67,9 +65,8 @@ internal
 class InstrumentedInputAccessListener(
     listenerManager: ListenerManager,
     configurationCacheProblemsListener: ConfigurationCacheProblemsListener,
-    private val environmentChangeTracker: ConfigurationCacheEnvironmentChangeTracker,
     private val ignoredConfigurationInputs: IgnoredConfigurationInputs
-) : InstrumentedInputsListener {
+) : ConfigurationCacheInputsListener {
 
     private
     val undeclaredInputBroadcast = listenerManager.getBroadcaster(UndeclaredBuildInputListener::class.java)
@@ -85,15 +82,15 @@ class InstrumentedInputAccessListener(
     }
 
     override fun systemPropertyChanged(key: Any, value: Any?, consumer: String) {
-        environmentChangeTracker.systemPropertyChanged(key, value, consumer)
+        undeclaredInputBroadcast.systemPropertyChanged(key, value, consumer)
     }
 
     override fun systemPropertyRemoved(key: Any, consumer: String) {
-        environmentChangeTracker.systemPropertyRemoved(key)
+        undeclaredInputBroadcast.systemPropertyRemoved(key, consumer)
     }
 
     override fun systemPropertiesCleared(consumer: String) {
-        environmentChangeTracker.systemPropertiesCleared()
+        undeclaredInputBroadcast.systemPropertiesCleared(consumer)
     }
 
     override fun envVariableQueried(key: String, value: String?, consumer: String) {

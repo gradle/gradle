@@ -3947,7 +3947,6 @@ body.dark-theme {
 .site-footer__copy,
 .site-footer__secondary-links {
 	flex-grow: 0;
-	flex-basis: 280px;
 	/* 1. */
 }
 
@@ -4177,6 +4176,10 @@ body.dark-theme {
 		margin: 0;
 	}
 
+    #header {
+    	padding-right: 260px;
+    }
+
 	/* #toc here must be referenced as #header #toc
             since we don't want to change single page #toc */
 	#header #toc {
@@ -4257,6 +4260,7 @@ body.dark-theme {
 
 	#header {
 		margin: 0 auto;
+		padding-right: 0;
 	}
 
 	#content {
@@ -4600,4 +4604,33 @@ input:checked+.slider:before {
 
 .slider:before {
 	border-radius: 50%;
+}
+
+/* Feature Status Labels */
+
+.incubating-label,
+.since-gradle-label {
+    display: inline-block;
+
+    /* better center vertically on the line */
+    position: relative;
+    top: -1px;
+
+    padding: 0 6px;
+    margin-left: 4px;
+    border-radius: 4px;
+    white-space: nowrap;
+    color: var(--code-text-color);
+    font-weight: normal;
+    font-size: 80%;
+    font-style: italic;
+}
+
+.since-gradle-label {
+    background-color: var(--code-color);
+}
+
+.incubating-label {
+    /* use the warning color with 20% opacity */
+    background-color: rgb(from var(--warning-color) r g b / 0.2);
 }

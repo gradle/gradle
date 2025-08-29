@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.tooling.fixture
 
+import org.gradle.api.internal.jvm.JavaVersionParser
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.GradleVersion
 import org.spockframework.runtime.extension.IMethodInvocation
 
@@ -82,27 +82,28 @@ class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
 
     @Override
     boolean isTestEnabled(AbstractMultiTestInterceptor.TestDetails testDetails) {
-        if (!gradle.daemonIdleTimeoutConfigurable && OperatingSystem.current().isWindows()) {
-            // Older daemon don't have configurable ttl and they hung for 3 hours afterwards.
-            // This is a real problem on windows due to eager file locking and continuous CI failures.
-            // On linux it's a lesser problem - long-lived daemons hung and steal resources but don't lock files.
-            // So, for windows we'll only run tests against target gradle that supports ttl
-            return false
-        }
+        // We cannot use JavaVersionParser.parseCurrentMajorVersion, since that method
+        // is new and the target distribution version of the class sometimes shadows the
+        // version of this class that has the new method.
+        int currentJavaVersion = JavaVersionParser.parseMajorVersion(System.getProperty("java.version"))
+        return toolingApiSupported(testDetails, currentJavaVersion) && daemonSupported(testDetails, currentJavaVersion)
+    }
 
-        ToolingApiVersion toolingVersionAnnotation = testDetails.getAnnotation(ToolingApiVersion)
-        Spec<GradleVersion> toolingVersionSpec = toVersionSpec(toolingVersionAnnotation)
-        if (!toolingVersionSpec.isSatisfiedBy(this.toolingApiVersion)) {
-            return false
-        }
+    private boolean daemonSupported(AbstractMultiTestInterceptor.TestDetails testDetails, int jvmVersion) {
         TargetGradleVersion gradleVersionAnnotation = testDetails.getAnnotation(TargetGradleVersion)
         Spec<GradleVersion> gradleVersionSpec = toVersionSpec(gradleVersionAnnotation)
-        return gradleVersionSpec.isSatisfiedBy(this.gradleVersion)
+        gradleVersionSpec.isSatisfiedBy(this.gradleVersion) && gradle.daemonWorksWith(jvmVersion)
+    }
+
+    private boolean toolingApiSupported(AbstractMultiTestInterceptor.TestDetails testDetails, int jvmVersion) {
+        ToolingApiVersion toolingVersionAnnotation = testDetails.getAnnotation(ToolingApiVersion)
+        Spec<GradleVersion> toolingVersionSpec = toVersionSpec(toolingVersionAnnotation)
+        toolingVersionSpec.isSatisfiedBy(this.toolingApiVersion) && toolingApi.clientWorksWith(jvmVersion)
     }
 
     private static Spec<GradleVersion> toVersionSpec(annotation) {
         if (annotation == null) {
-            return Specs.SATISFIES_ALL
+            return Specs.satisfyAll()
         }
         return GRADLE_VERSION_SPEC.toSpec(constraintFor(annotation))
     }

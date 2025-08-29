@@ -19,6 +19,7 @@ package org.gradle.api.internal;
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
+import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.deprecation.StartParameterDeprecations;
@@ -37,9 +38,11 @@ public class StartParameterInternal extends StartParameter {
     private ConfigurationCacheProblemsOption.Value configurationCacheProblems = ConfigurationCacheProblemsOption.Value.FAIL;
     private boolean configurationCacheDebug;
     private boolean configurationCacheIgnoreInputsDuringStore = false;
+    private boolean configurationCacheIgnoreUnsupportedBuildEventsListeners = false;
     private int configurationCacheMaxProblems = 512;
     private @Nullable String configurationCacheIgnoredFileSystemCheckInputs = null;
     private boolean configurationCacheParallel;
+    private boolean configurationCacheReadOnly;
     private boolean configurationCacheRecreateCache;
     private boolean configurationCacheQuiet;
     private int configurationCacheEntriesPerKey = 1;
@@ -49,6 +52,7 @@ public class StartParameterInternal extends StartParameter {
     private Duration continuousBuildQuietPeriod = Duration.ofMillis(250);
     private boolean propertyUpgradeReportEnabled;
     private boolean enableProblemReportGeneration = true;
+    private boolean daemonJvmCriteriaConfigured = false;
 
     public StartParameterInternal() {
     }
@@ -77,8 +81,10 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheProblems = configurationCacheProblems;
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
         p.configurationCacheIgnoredFileSystemCheckInputs = configurationCacheIgnoredFileSystemCheckInputs;
+        p.configurationCacheIgnoreUnsupportedBuildEventsListeners = configurationCacheIgnoreUnsupportedBuildEventsListeners;
         p.configurationCacheDebug = configurationCacheDebug;
         p.configurationCacheParallel = configurationCacheParallel;
+        p.configurationCacheReadOnly = configurationCacheReadOnly;
         p.configurationCacheRecreateCache = configurationCacheRecreateCache;
         p.configurationCacheQuiet = configurationCacheQuiet;
         p.configurationCacheEntriesPerKey = configurationCacheEntriesPerKey;
@@ -86,6 +92,7 @@ public class StartParameterInternal extends StartParameter {
         p.searchUpwards = searchUpwards;
         p.useEmptySettings = useEmptySettings;
         p.enableProblemReportGeneration = enableProblemReportGeneration;
+        p.daemonJvmCriteriaConfigured = daemonJvmCriteriaConfigured;
         return p;
     }
 
@@ -181,12 +188,28 @@ public class StartParameterInternal extends StartParameter {
         configurationCacheIgnoreInputsDuringStore = ignoreInputsDuringStore;
     }
 
+    public void setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(boolean configurationCacheIgnoreUnsupportedBuildEventsListeners) {
+        this.configurationCacheIgnoreUnsupportedBuildEventsListeners = configurationCacheIgnoreUnsupportedBuildEventsListeners;
+    }
+
+    public boolean isConfigurationCacheIgnoreUnsupportedBuildEventsListeners() {
+        return configurationCacheIgnoreUnsupportedBuildEventsListeners;
+    }
+
     public boolean isConfigurationCacheParallel() {
         return configurationCacheParallel;
     }
 
     public void setConfigurationCacheParallel(boolean parallel) {
         this.configurationCacheParallel = parallel;
+    }
+
+    public boolean isConfigurationCacheReadOnly() {
+        return configurationCacheReadOnly;
+    }
+
+    public void setConfigurationCacheReadOnly(boolean readOnly) {
+        this.configurationCacheReadOnly = readOnly;
     }
 
     public int getConfigurationCacheEntriesPerKey() {
@@ -260,5 +283,17 @@ public class StartParameterInternal extends StartParameter {
 
     public boolean isProblemReportGenerationEnabled() {
         return this.enableProblemReportGeneration;
+    }
+
+    public boolean isDaemonJvmCriteriaConfigured() {
+        return daemonJvmCriteriaConfigured;
+    }
+
+    public void setDaemonJvmCriteriaConfigured(boolean daemonJvmCriteriaConfigured) {
+        this.daemonJvmCriteriaConfigured = daemonJvmCriteriaConfigured;
+    }
+
+    public BuildLayoutConfiguration toBuildLayoutConfiguration() {
+        return new BuildLayoutConfiguration(getCurrentDir(), isSearchUpwards(), isUseEmptySettings());
     }
 }

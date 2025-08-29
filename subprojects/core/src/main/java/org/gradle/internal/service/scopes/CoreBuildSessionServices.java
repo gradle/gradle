@@ -17,6 +17,7 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildSessionScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
@@ -40,8 +41,8 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.initialization.layout.BuildTreeLocations;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildLayoutValidator;
 import org.gradle.internal.buildevents.BuildStartedTime;
@@ -102,24 +103,25 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    BuildLayout createBuildLocations(BuildLayoutFactory buildLayoutFactory, StartParameter startParameter) {
-        return buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
+    BuildTreeLocations createBuildTreeLocations(BuildLayoutFactory buildLayoutFactory, StartParameter startParameter) {
+        BuildLayout rootBuildLayout = buildLayoutFactory.getLayoutFor(((StartParameterInternal) startParameter).toBuildLayoutConfiguration());
+        return new BuildTreeLocations(rootBuildLayout);
     }
 
     @Provides
-    FileResolver createFileResolver(FileLookup fileLookup, BuildLayout buildLayout) {
-        return fileLookup.getFileResolver(buildLayout.getRootDirectory());
+    FileResolver createFileResolver(FileLookup fileLookup, BuildTreeLocations buildTreeLocations) {
+        return fileLookup.getFileResolver(buildTreeLocations.getBuildTreeRootDirectory());
     }
 
     @Provides
     ProjectCacheDir createProjectCacheDir(
         GradleUserHomeDirProvider userHomeDirProvider,
-        BuildLayout buildLayout,
+        BuildTreeLocations buildTreeLocations,
         Deleter deleter,
         BuildOperationRunner buildOperationRunner,
         StartParameter startParameter
     ) {
-        BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildLayout, startParameter);
+        BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildTreeLocations.getRootBuildLayout(), startParameter);
         return new ProjectCacheDir(cacheDir.getDir(), buildOperationRunner, deleter);
     }
 

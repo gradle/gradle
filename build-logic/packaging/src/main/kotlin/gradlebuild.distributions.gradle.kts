@@ -157,11 +157,11 @@ extensions.configure<InstrumentationMetadataExtension>(INSTRUMENTED_METADATA_EXT
 
 // Jar task to package all metadata in 'gradle-runtime-api-info.jar'
 val runtimeApiInfoJar by tasks.registering(Jar::class) {
-    archiveVersion = moduleIdentity.version.map { it.baseVersion.version }
+    archiveVersion = gradleModule.identity.version.map { it.baseVersion.version }
     manifest.attributes(
         mapOf(
             Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
-            Attributes.Name.IMPLEMENTATION_VERSION.toString() to moduleIdentity.version.map { it.baseVersion.version }
+            Attributes.Name.IMPLEMENTATION_VERSION.toString() to gradleModule.identity.version.map { it.baseVersion.version }
         )
     )
     archiveBaseName = runtimeApiJarName
@@ -220,11 +220,11 @@ val gradleApiKotlinExtensionsClasspathManifest by tasks.registering(ClasspathMan
 }
 
 val gradleApiKotlinExtensionsJar by tasks.registering(Jar::class) {
-    archiveVersion = moduleIdentity.version.map { it.baseVersion.version }
+    archiveVersion = gradleModule.identity.version.map { it.baseVersion.version }
     manifest.attributes(
         mapOf(
             Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
-            Attributes.Name.IMPLEMENTATION_VERSION.toString() to moduleIdentity.version.map { it.baseVersion.version }
+            Attributes.Name.IMPLEMENTATION_VERSION.toString() to gradleModule.identity.version.map { it.baseVersion.version }
         )
     )
     archiveBaseName = "gradle-kotlin-dsl-extensions"
@@ -271,9 +271,9 @@ fun pluginsManifestTask(runtimeClasspath: Configuration, coreRuntimeClasspath: C
 fun configureDistribution(name: String, distributionSpec: CopySpec, buildDistLifecycleTask: TaskProvider<Task>, normalized: Boolean = false) {
     val disDir = if (normalized) "normalized-distributions" else "distributions"
     val zipRootFolder = if (normalized) {
-        moduleIdentity.version.map { "gradle-${it.baseVersion.version}" }
+        gradleModule.identity.version.map { "gradle-${it.baseVersion.version}" }
     } else {
-        moduleIdentity.version.map { "gradle-${it.version}" }.map {
+        gradleModule.identity.version.map { "gradle-${it.version}" }.map {
             if (buildVersionQualifier.isPresent) it.replace("-${buildVersionQualifier.get()}", "")
             else it
         }
@@ -288,7 +288,7 @@ fun configureDistribution(name: String, distributionSpec: CopySpec, buildDistLif
     val distributionZip = tasks.register<Zip>("${name}DistributionZip") {
         archiveBaseName = "gradle"
         archiveClassifier = name
-        archiveVersion = moduleIdentity.version.map { it.baseVersion.version }
+        archiveVersion = gradleModule.identity.version.map { it.baseVersion.version }
 
         destinationDirectory = project.layout.buildDirectory.dir(disDir)
 
@@ -337,7 +337,6 @@ fun bucket() =
     configurations.creating {
         isCanBeResolved = false
         isCanBeConsumed = false
-        isVisible = false
     }
 
 fun libraryResolver(extends: List<Configuration>) =
@@ -349,7 +348,6 @@ fun libraryResolver(extends: List<Configuration>) =
         }
         isCanBeResolved = true
         isCanBeConsumed = false
-        isVisible = false
         extends.forEach { extendsFrom(it) }
     }
 
@@ -360,7 +358,6 @@ fun startScriptResolver(defaultDependency: String) =
         }
         isCanBeResolved = true
         isCanBeConsumed = false
-        isVisible = false
         dependencies.addLater(provider {
             project.dependencies.create(project(defaultDependency))
         })
@@ -375,7 +372,6 @@ fun sourcesResolver(extends: List<Configuration>) =
         }
         isCanBeResolved = true
         isCanBeConsumed = false
-        isVisible = false
         extends.forEach { extendsFrom(it) }
     }
 
@@ -388,7 +384,6 @@ fun docsResolver(defaultDependency: String) =
         }
         isCanBeResolved = true
         isCanBeConsumed = false
-        isVisible = false
         dependencies.addLater(provider {
             project.dependencies.create(project(defaultDependency))
         })
@@ -398,7 +393,6 @@ fun consumableVariant(name: String, extends: List<Configuration>, artifacts: Lis
     configurations.create("${name}Elements") {
         isCanBeResolved = false
         isCanBeConsumed = true
-        isVisible = false
         extends.forEach { extendsFrom(it) }
         artifacts.forEach { outgoing.artifact(it) }
         configure(this)
@@ -413,7 +407,6 @@ fun consumableSourcesVariant(name: String, extends: List<Configuration>, vararg 
         }
         isCanBeResolved = false
         isCanBeConsumed = true
-        isVisible = false
         extends.forEach { extendsFrom(it) }
         artifacts.forEach { outgoing.artifact(it) }
     }
@@ -426,6 +419,5 @@ fun consumablePlatformVariant(name: String, extends: List<Configuration>) =
         }
         isCanBeResolved = false
         isCanBeConsumed = true
-        isVisible = false
         extends.forEach { extendsFrom(it) }
     }

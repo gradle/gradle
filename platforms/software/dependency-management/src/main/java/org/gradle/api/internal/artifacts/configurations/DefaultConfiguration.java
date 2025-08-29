@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.configurations;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
-import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
@@ -50,10 +49,9 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
+import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet;
@@ -66,28 +64,20 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ResolutionParameters;
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.resolver.DefaultResolutionOutputs;
 import org.gradle.api.internal.artifacts.resolver.ResolutionAccess;
 import org.gradle.api.internal.artifacts.resolver.ResolutionOutputsInternal;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
-import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.FreezableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.AbstractFileCollection;
-import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.initialization.ResettableConfiguration;
 import org.gradle.api.internal.project.ProjectIdentity;
-import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
@@ -104,17 +94,15 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.CalculatedValue;
-import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.service.scopes.DetachedDependencyMetadataProvider;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.gradle.util.Path;
@@ -143,7 +131,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.GRAPH_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNRESOLVED;
 import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
 import static org.gradle.util.internal.ConfigureUtil.configure;
@@ -158,8 +145,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final DefaultDependencyConstraintSet dependencyConstraints;
     private final DefaultDomainObjectSet<Dependency> ownDependencies;
     private final DefaultDomainObjectSet<DependencyConstraint> ownDependencyConstraints;
-    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
-    private final ProjectStateRegistry projectStateRegistry;
     private @Nullable CompositeDomainObjectSet<Dependency> inheritedDependencies;
     private @Nullable CompositeDomainObjectSet<DependencyConstraint> inheritedDependencyConstraints;
     private @Nullable DefaultDependencySet allDependencies;
@@ -172,24 +157,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private @Nullable DefaultPublishArtifactSet allArtifacts;
     private final ConfigurationResolvableDependencies resolvableDependencies;
     private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
-    private final BuildOperationRunner buildOperationRunner;
-    private final ObjectFactory objectFactory;
-    private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
-    private @Nullable ResolutionStrategyInternal resolutionStrategy;
-    private final FileCollectionFactory fileCollectionFactory;
-    private final ResolveExceptionMapper exceptionMapper;
-    private final AttributeDesugaring attributeDesugaring;
-
-    private final Set<MutationValidator> childMutationValidators = new HashSet<>();
-    private final MutationValidator parentMutationValidator = DefaultConfiguration.this::validateParentMutation;
-    private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
-    private final ConfigurationsProvider configurationsProvider;
 
     private final Path identityPath;
     private final Path projectPath;
 
-    // These fields are not covered by mutation lock
     private final String name;
+    private final boolean isDetached;
     private final DefaultConfigurationPublications outgoing;
 
     private boolean visible = true;
@@ -198,10 +171,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private @Nullable String description;
     private final Set<Object> excludeRules = new LinkedHashSet<>();
     private @Nullable Set<ExcludeRule> parsedExcludeRules;
-
-    private final Object observationLock = new Object();
-    private volatile InternalState observedState = UNRESOLVED;
-    private boolean insideBeforeResolve;
 
     private boolean canBeConsumed;
     private boolean canBeResolved;
@@ -212,17 +181,19 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private boolean usageCanBeMutated = true;
     private final ConfigurationRole roleAtCreation;
 
+    // This field is reflectively accessed by Nebula:
+    // https://github.com/nebula-plugins/gradle-resolution-rules-plugin/blob/db24ee7e0b5c5c6f6327cdfd377e90e505bb1fd2/src/main/kotlin/nebula/plugin/resolutionrules/configurations.kt#L59
+    private InternalState observedState = UNRESOLVED;
     private @Nullable Supplier<String> observationReason = null;
+    boolean dependenciesObserved = false;
+
     private final FreezableAttributeContainer configurationAttributes;
     private final DomainObjectContext domainObjectContext;
-    private final AttributesFactory attributesFactory;
     private final ResolutionAccess resolutionAccess;
     private @Nullable FileCollectionInternal intrinsicFiles;
 
     private final DisplayName displayName;
     private final UserCodeApplicationContext userCodeApplicationContext;
-    private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
-    private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
     private final AtomicInteger copyCount = new AtomicInteger();
 
@@ -233,87 +204,67 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private @Nullable ConfigurationInternal consistentResolutionSource;
     private @Nullable String consistentResolutionReason;
+
+    /** This factory can't be extracted to the services bundle, as it would create a circular dependency between those two types. */
     private final DefaultConfigurationFactory defaultConfigurationFactory;
-    private final InternalProblems problemsService;
-    private final DocumentationRegistry documentationRegistry;
+
+    /** This factory has some unique usages during copy, so it can't be extracted to the services bundle. */
+    private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
+    private @Nullable ResolutionStrategyInternal resolutionStrategy;
+
+    private final ConfigurationServicesBundle configurationServices;
 
     /**
      * To create an instance, use {@link DefaultConfigurationFactory#create}.
      */
     public DefaultConfiguration(
+        ConfigurationServicesBundle configurationServices,
         DomainObjectContext domainObjectContext,
         String name,
-        ConfigurationsProvider configurationsProvider,
+        boolean isDetached,
         ConfigurationResolver resolver,
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        FileCollectionFactory fileCollectionFactory,
-        BuildOperationRunner buildOperationRunner,
-        ObjectFactory objectFactory,
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
-        AttributesFactory attributesFactory,
-        RootComponentMetadataBuilder rootComponentMetadataBuilder,
-        ResolveExceptionMapper exceptionMapper,
-        AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
-        ProjectStateRegistry projectStateRegistry,
-        DomainObjectCollectionFactory domainObjectCollectionFactory,
-        CalculatedValueContainerFactory calculatedValueContainerFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
-        TaskDependencyFactory taskDependencyFactory,
         ConfigurationRole roleAtCreation,
-        InternalProblems problemsService,
-        DocumentationRegistry documentationRegistry,
         boolean lockUsage
     ) {
-        super(taskDependencyFactory);
+        super(configurationServices.getTaskDependencyFactory());
         this.userCodeApplicationContext = userCodeApplicationContext;
-        this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
-        this.projectStateRegistry = projectStateRegistry;
-        this.domainObjectCollectionFactory = domainObjectCollectionFactory;
-        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.identityPath = domainObjectContext.identityPath(name);
         this.projectPath = domainObjectContext.projectPath(name);
         this.name = name;
-        this.configurationsProvider = configurationsProvider;
+        this.isDetached = isDetached;
         this.resolver = resolver;
         this.resolutionStrategyFactory = resolutionStrategyFactory;
-        this.fileCollectionFactory = fileCollectionFactory;
         this.dependencyResolutionListeners = dependencyResolutionListeners;
-        this.buildOperationRunner = buildOperationRunner;
-        this.objectFactory = objectFactory;
-        this.attributesFactory = attributesFactory;
         this.domainObjectContext = domainObjectContext;
-        this.exceptionMapper = exceptionMapper;
-        this.attributeDesugaring = attributeDesugaring;
 
         this.displayName = Describables.memoize(new ConfigurationDescription(identityPath));
-        this.configurationAttributes = new FreezableAttributeContainer(attributesFactory.mutable(), this.displayName);
+        this.configurationAttributes = new FreezableAttributeContainer(configurationServices.getAttributesFactory().mutable(), this.displayName);
 
         this.resolutionAccess = new ConfigurationResolutionAccess();
-        this.resolvableDependencies = objectFactory.newInstance(ConfigurationResolvableDependencies.class, this);
+        this.resolvableDependencies = configurationServices.getObjectFactory().newInstance(ConfigurationResolvableDependencies.class, this);
 
-        this.ownDependencies = (DefaultDomainObjectSet<Dependency>) domainObjectCollectionFactory.newDomainObjectSet(Dependency.class);
+        this.ownDependencies = (DefaultDomainObjectSet<Dependency>) configurationServices.getDomainObjectCollectionFactory().newDomainObjectSet(Dependency.class);
         this.ownDependencies.beforeCollectionChanges(validateMutationType(this, MutationType.DEPENDENCIES));
-        this.ownDependencyConstraints = (DefaultDomainObjectSet<DependencyConstraint>) domainObjectCollectionFactory.newDomainObjectSet(DependencyConstraint.class);
+        this.ownDependencyConstraints = (DefaultDomainObjectSet<DependencyConstraint>) configurationServices.getDomainObjectCollectionFactory().newDomainObjectSet(DependencyConstraint.class);
         this.ownDependencyConstraints.beforeCollectionChanges(validateMutationType(this, MutationType.DEPENDENCIES));
 
         this.dependencies = new DefaultDependencySet(Describables.of(displayName, "dependencies"), this, ownDependencies);
         this.dependencyConstraints = new DefaultDependencyConstraintSet(Describables.of(displayName, "dependency constraints"), this, ownDependencyConstraints);
 
-        this.ownArtifacts = (DefaultDomainObjectSet<PublishArtifact>) domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class);
+        this.ownArtifacts = (DefaultDomainObjectSet<PublishArtifact>) configurationServices.getDomainObjectCollectionFactory().newDomainObjectSet(PublishArtifact.class);
         this.ownArtifacts.beforeCollectionChanges(validateMutationType(this, MutationType.ARTIFACTS));
 
-        this.artifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "artifacts"), ownArtifacts, fileCollectionFactory, taskDependencyFactory);
+        this.artifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "artifacts"), ownArtifacts, configurationServices.getFileCollectionFactory(), taskDependencyFactory);
 
-        this.outgoing = objectFactory.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory);
-        this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
+        this.outgoing = configurationServices.getObjectFactory().newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, artifactNotationParser, capabilityNotationParser, configurationServices.getFileCollectionFactory(), configurationServices.getAttributesFactory(), configurationServices.getDomainObjectCollectionFactory(), taskDependencyFactory);
         this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(Optional.empty());
         this.defaultConfigurationFactory = defaultConfigurationFactory;
-        this.problemsService = problemsService;
-        this.documentationRegistry = documentationRegistry;
 
         this.canBeConsumed = roleAtCreation.isConsumable();
         this.canBeResolved = roleAtCreation.isResolvable();
@@ -323,6 +274,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.declarationDeprecated = roleAtCreation.isDeclarationAgainstDeprecated();
         this.usageCanBeMutated = !lockUsage;
         this.roleAtCreation = roleAtCreation;
+
+        this.configurationServices = configurationServices;
     }
 
     private static Action<String> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
@@ -352,13 +305,20 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
+    @Deprecated
     public boolean isVisible() {
+        DeprecationLogger.deprecateMethod(Configuration.class, "isVisible")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate-visible-property")
+            .nagUser();
         return visible;
     }
 
     @Override
+    @Deprecated
     public Configuration setVisible(boolean visible) {
-        validateMutation(MutationType.DEPENDENCIES);
+        validateMutation(MutationType.BASIC_STATE);
+        // TODO: Create a deprecation warning once https://youtrack.jetbrains.com/issue/KT-78754 is resolved
         this.visible = visible;
         return this;
     }
@@ -382,7 +342,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             if (inheritedDependencyConstraints != null) {
                 inheritedDependencyConstraints.removeCollection(configuration.getAllDependencyConstraints());
             }
-            ((ConfigurationInternal) configuration).removeMutationValidator(parentMutationValidator);
         }
         this.extendsFrom = new LinkedHashSet<>();
         for (Configuration configuration : extendsFrom) {
@@ -421,7 +380,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 if (inheritedDependencyConstraints != null) {
                     inheritedDependencyConstraints.addCollection(other.getAllDependencyConstraints());
                 }
-                other.addMutationValidator(parentMutationValidator);
             }
         }
         return this;
@@ -434,7 +392,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public Configuration setTransitive(boolean transitive) {
-        validateMutation(MutationType.DEPENDENCIES);
+        validateMutation(MutationType.BASIC_STATE);
         this.transitive = transitive;
         return this;
     }
@@ -473,8 +431,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public Configuration defaultDependencies(final Action<? super DependencySet> action) {
         warnOrFailOnInvalidUsage("defaultDependencies(Action)", ProperMethodUsage.DECLARABLE_AGAINST);
-        validateMutation(MutationType.DEPENDENCIES);
-        defaultDependencyActions = defaultDependencyActions.add(collectionCallbackActionDecorator.decorate(dependencies -> {
+
+        // For backwards compatibility, we permit more than just dependencies to be
+        // mutated in this callback, which is why we don't use MutationType.DEPENDENCIES here
+        validateMutation(MutationType.BASIC_STATE);
+
+        defaultDependencyActions = defaultDependencyActions.add(configurationServices.getCollectionCallbackActionDecorator().decorate(dependencies -> {
             if (dependencies.isEmpty()) {
                 action.execute(dependencies);
             }
@@ -484,8 +446,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public Configuration withDependencies(final Action<? super DependencySet> action) {
-        validateMutation(MutationType.DEPENDENCIES);
-        withDependencyActions = withDependencyActions.add(collectionCallbackActionDecorator.decorate(action));
+        // For backwards compatibility, we permit more than just dependencies to be
+        // mutated in this callback, which is why we don't use MutationType.DEPENDENCIES here
+        validateMutation(MutationType.BASIC_STATE);
+
+        withDependencyActions = withDependencyActions.add(configurationServices.getCollectionCallbackActionDecorator().decorate(action));
         return this;
     }
 
@@ -547,32 +512,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return getIntrinsicFiles().isEmpty();
     }
 
-    @Override
-    public void markAsObserved(InternalState requestedState) {
-        synchronized (observationLock) {
-            if (observedState.compareTo(requestedState) < 0) {
-                observedState = requestedState;
-            } else {
-                // If the target state is the same as or greater than the current state,
-                // we and our parents are already at this state or later and we can skip.
-                return;
-            }
-        }
-        markParentsObserved(requestedState);
-    }
-
-    @VisibleForTesting
-    protected InternalState getObservedState() {
-        return observedState;
-    }
-
-    private void markParentsObserved(InternalState requestedState) {
-        for (Configuration configuration : extendsFrom) {
-            ((ConfigurationInternal) configuration).markAsObserved(requestedState);
-        }
-    }
-
-
     /**
      * {@inheritDoc}
      *
@@ -594,7 +533,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public ResolutionHost getHost() {
-            return new DefaultResolutionHost(identityPath, displayName, problemsService, exceptionMapper);
+            return new DefaultResolutionHost(identityPath, displayName, configurationServices.getProblems(), configurationServices.getExceptionMapper());
         }
 
         @Override
@@ -618,10 +557,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return new DefaultResolutionOutputs(
                 this,
                 taskDependencyFactory,
-                calculatedValueContainerFactory,
-                attributesFactory,
-                attributeDesugaring,
-                objectFactory
+                configurationServices.getCalculatedValueContainerFactory(),
+                configurationServices.getAttributesFactory(),
+                configurationServices.getAttributeDesugaring(),
+                configurationServices.getObjectFactory()
             );
         }
     }
@@ -659,7 +598,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         ResolverResults newState;
         if (!domainObjectContext.getModel().hasMutableState()) {
-            throw new IllegalResolutionException("Resolution of the " + displayName.getDisplayName() + " was attempted without an exclusive lock. This is unsafe and not allowed.", documentationRegistry);
+            throw new IllegalResolutionException("Resolution of the " + displayName.getDisplayName() + " was attempted without an exclusive lock. This is unsafe and not allowed.");
         } else {
             newState = resolveExclusivelyIfRequired();
         }
@@ -681,24 +620,21 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      * Must be called from {@link #resolveExclusivelyIfRequired} only.
      */
     private ResolverResults resolveGraphInBuildOperation() {
-        return buildOperationRunner.call(new CallableBuildOperation<ResolverResults>() {
+        return configurationServices.getBuildOperationRunner().call(new CallableBuildOperation<ResolverResults>() {
             @Override
             public ResolverResults call(BuildOperationContext context) {
                 runDependencyActions();
-                runBeforeResolve();
+                dependencyResolutionListeners.getSource().beforeResolve(getIncoming());
 
                 ResolverResults results;
                 try {
                     results = resolver.resolveGraph(DefaultConfiguration.this);
                 } catch (Exception e) {
-                    throw exceptionMapper.mapFailure(e, "dependencies", displayName.getDisplayName());
+                    throw configurationServices.getExceptionMapper().mapFailure(e, "dependencies", displayName.getDisplayName());
                 }
 
                 // Make the new state visible in case a dependency resolution listener queries the result, which requires the new state
                 currentResolveState.set(Optional.of(results));
-
-                // Mark all affected configurations as observed
-                markParentsObserved(GRAPH_RESOLVED);
 
                 dependencyResolutionListeners.getSource().afterResolve(getIncoming());
 
@@ -721,7 +657,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 context.setResult(new ResolveConfigurationResolutionBuildOperationResult(
                     resolutionResult.getRootSource(),
                     resolutionResult.getRequestedAttributes(),
-                    attributesFactory
+                    configurationServices.getAttributesFactory()
                 ));
             }
 
@@ -743,7 +679,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                         getDescription(),
                         domainObjectContext.getBuildPath().getPath(),
                         projectPathString,
-                        isVisible(),
+                        visible,
                         isTransitive(),
                         resolver.getAllRepositories()
                     ));
@@ -806,19 +742,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     /**
-     * Run the {@link ResolvableDependencies#beforeResolve(Action)} hook.
-     */
-    private void runBeforeResolve() {
-        DependencyResolutionListener dependencyResolutionListener = dependencyResolutionListeners.getSource();
-        insideBeforeResolve = true;
-        try {
-            dependencyResolutionListener.beforeResolve(getIncoming());
-        } finally {
-            insideBeforeResolve = false;
-        }
-    }
-
-    /**
      * {@inheritDoc}
      *
      * @implNote Usage: This method can only be called on resolvable configurations and will throw an exception if
@@ -848,7 +771,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return currentResolveState.update(initial -> {
             if (!initial.isPresent()) {
 
-                CalculatedValue<ResolverResults> futureCompleteResults = calculatedValueContainerFactory.create(Describables.of("Full results for", getName()), context -> {
+                CalculatedValue<ResolverResults> futureCompleteResults = configurationServices.getCalculatedValueContainerFactory().create(Describables.of("Full results for", getName()), context -> {
                     Optional<ResolverResults> currentState = currentResolveState.get();
                     if (!isFullyResolved(currentState)) {
                         // Do not validate that the current thread holds the project lock.
@@ -861,7 +784,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 try {
                     return Optional.of(resolver.resolveBuildDependencies(this, futureCompleteResults));
                 } catch (Exception e) {
-                    throw exceptionMapper.mapFailure(e, "dependencies", displayName.getDisplayName());
+                    throw configurationServices.getExceptionMapper().mapFailure(e, "dependencies", displayName.getDisplayName());
                 }
             } // Otherwise, already have a result, so reuse it
             return initial;
@@ -881,7 +804,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         if (useDependedOn) {
             return new TasksFromProjectDependencies(taskName, () -> {
                 return getAllDependencies().withType(ProjectDependency.class);
-            }, taskDependencyFactory, projectStateRegistry);
+            }, taskDependencyFactory, configurationServices.getProjectStateRegistry());
         } else {
             return new TasksFromDependentProjects(taskName, getName(), taskDependencyFactory);
         }
@@ -904,7 +827,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         if (allDependencies != null) {
             return;
         }
-        inheritedDependencies = domainObjectCollectionFactory.newDomainObjectSet(Dependency.class, ownDependencies);
+        inheritedDependencies = configurationServices.getDomainObjectCollectionFactory().newDomainObjectSet(Dependency.class, ownDependencies);
         for (Configuration configuration : this.extendsFrom) {
             inheritedDependencies.addCollection(configuration.getAllDependencies());
         }
@@ -928,7 +851,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         if (allDependencyConstraints != null) {
             return;
         }
-        inheritedDependencyConstraints = domainObjectCollectionFactory.newDomainObjectSet(DependencyConstraint.class, ownDependencyConstraints);
+        inheritedDependencyConstraints = configurationServices.getDomainObjectCollectionFactory().newDomainObjectSet(DependencyConstraint.class, ownDependencyConstraints);
         for (Configuration configuration : this.extendsFrom) {
             inheritedDependencyConstraints.addCollection(configuration.getAllDependencyConstraints());
         }
@@ -954,28 +877,28 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         if (isObserved() && extendsFrom.isEmpty()) {
             // No further mutation is allowed and there's no parent: the artifact set corresponds to this configuration own artifacts
-            this.allArtifacts = new DefaultPublishArtifactSet(displayName, ownArtifacts, fileCollectionFactory, taskDependencyFactory);
+            this.allArtifacts = new DefaultPublishArtifactSet(displayName, ownArtifacts, configurationServices.getFileCollectionFactory(), taskDependencyFactory);
             return;
         }
 
         if (!isObserved()) {
             // If the configuration can still be mutated, we need to create a composite
-            inheritedArtifacts = domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class, ownArtifacts);
+            inheritedArtifacts = configurationServices.getDomainObjectCollectionFactory().newDomainObjectSet(PublishArtifact.class, ownArtifacts);
         }
         for (Configuration configuration : this.extendsFrom) {
             PublishArtifactSet allArtifacts = configuration.getAllArtifacts();
             if (inheritedArtifacts != null || !allArtifacts.isEmpty()) {
                 if (inheritedArtifacts == null) {
                     // This configuration cannot be mutated, but some parent configurations provide artifacts
-                    inheritedArtifacts = domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class, ownArtifacts);
+                    inheritedArtifacts = configurationServices.getDomainObjectCollectionFactory().newDomainObjectSet(PublishArtifact.class, ownArtifacts);
                 }
                 inheritedArtifacts.addCollection(allArtifacts);
             }
         }
         if (inheritedArtifacts != null) {
-            this.allArtifacts = new DefaultPublishArtifactSet(displayName, inheritedArtifacts, fileCollectionFactory, taskDependencyFactory);
+            this.allArtifacts = new DefaultPublishArtifactSet(displayName, inheritedArtifacts, configurationServices.getFileCollectionFactory(), taskDependencyFactory);
         } else {
-            this.allArtifacts = new DefaultPublishArtifactSet(displayName, ownArtifacts, fileCollectionFactory, taskDependencyFactory);
+            this.allArtifacts = new DefaultPublishArtifactSet(displayName, ownArtifacts, configurationServices.getFileCollectionFactory(), taskDependencyFactory);
         }
     }
 
@@ -1060,11 +983,23 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                     return target + " was " + reason;
                 };
 
+                // This field is only set for compatibility with Nebula
+                conf.observedState = InternalState.OBSERVED;
+
                 conf.configurationAttributes.freeze();
                 conf.outgoing.preventFromFurtherMutation(conf.observationReason);
                 conf.preventUsageMutation();
             }
         });
+    }
+
+    @Override
+    public void markDependenciesObserved() {
+        if (!isObserved()) {
+            throw new IllegalStateException("Cannot observe dependencies before markAsObserved(String) has been called.");
+        }
+
+        this.dependenciesObserved = true;
     }
 
     private boolean isObserved() {
@@ -1144,9 +1079,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     /**
      * Instead of copying a configuration's roles outright, we allow copied configurations
      * to assume any role. However, any roles which were previously disabled will become
-     * deprecated in the copied configuration. In 9.0, we will update this to copy
-     * roles and deprecations without modification. Or, better yet, we will remove support
-     * for copying configurations altogether.
+     * deprecated in the copied configuration.
      *
      * This means the copy created is <strong>NOT</strong> a strictly identical copy of the original, as the role
      * will be not only a different instance, but also may return different deprecation values.
@@ -1194,23 +1127,17 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private DefaultConfiguration copyAsDetached() {
         String newName = getNameWithCopySuffix();
-        DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
-
-        DependencyMetaDataProvider componentIdentity = new DetachedDependencyMetadataProvider(rootComponentMetadataBuilder.getComponentIdentity());
-        RootComponentMetadataBuilder rootComponentMetadataBuilder = this.rootComponentMetadataBuilder.newBuilder(componentIdentity, configurationsProvider);
-
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
 
         @SuppressWarnings("deprecation")
-        DefaultConfiguration copiedConfiguration = defaultConfigurationFactory.create(
+        ConfigurationRole role = ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE;
+        return defaultConfigurationFactory.create(
             newName,
-            configurationsProvider,
+            true,
+            resolver,
             childResolutionStrategy,
-            rootComponentMetadataBuilder,
-            ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE
+            role
         );
-        configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
-        return copiedConfiguration;
     }
 
     private String getNameWithCopySuffix() {
@@ -1241,18 +1168,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return resolutionStrategy;
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @implNote Usage: This method can only be called on resolvable configurations and will throw an exception if
-     * called on a configuration that does not permit this usage.
-     */
-    @Override
-    public RootComponentMetadataBuilder.RootComponentState toRootComponent() {
-        warnOrFailOnInvalidInternalAPIUsage("toRootComponent()", ProperMethodUsage.RESOLVABLE);
-        return rootComponentMetadataBuilder.toRootComponent(getName());
-    }
-
     @Override
     public DomainObjectContext getDomainObjectContext() {
         return domainObjectContext;
@@ -1271,104 +1186,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
-    public void addMutationValidator(MutationValidator validator) {
-        childMutationValidators.add(validator);
-    }
-
-    @Override
-    public void removeMutationValidator(MutationValidator validator) {
-        childMutationValidators.remove(validator);
-    }
-
-    /**
-     * Called when a parent configuration is mutated.
-     */
-    private void validateParentMutation(MutationType type) {
-        // Strategy changes in a parent configuration do not affect this configuration, or any of its children, in any way
-        if (type == MutationType.STRATEGY) {
-            return;
-        }
-
-        preventIllegalParentMutation(type);
-        boolean emittedDeprecation = maybePreventMutation(type, type + " of parent");
-
-        // Notify children of this mutation, but don't emit a deprecation if we already emitted one
-        // at this level, otherwise we spam for no reason. We can remove this once the deprecation
-        // turns into an error, since the error will short-circuit the child notifications.
-        if (emittedDeprecation) {
-            DeprecationLogger.whileDisabled(() -> notifyChildren(type));
-        } else {
-            notifyChildren(type);
-        }
-    }
-
-    @Override
     public void validateMutation(MutationType type) {
-        preventIllegalMutation(type);
-        boolean emittedDeprecation = maybePreventMutation(type, type.toString());
-
-        // Notify children of this mutation, but don't emit a deprecation if we already emitted one
-        // at this level, otherwise we spam for no reason. We can remove this once the deprecation
-        // turns into an error, since the error will short-circuit the child notifications.
-        if (emittedDeprecation) {
-            DeprecationLogger.whileDisabled(() -> notifyChildren(type));
-        } else {
-            notifyChildren(type);
-        }
-    }
-
-    /**
-     * Emit a warning (and eventually throw an exception) if a mutation of type {@code type} occurs
-     * during a forbidden state.
-     *
-     * @return true if a deprecation was emitted
-     */
-    private boolean maybePreventMutation(MutationType type, String typeDescription) {
-        // If an external party has seen the public state (variant metadata) of our configuration,
-        // we forbid any mutation that mutates the public state. The resolution strategy does
-        // not mutate the public state of the configuration, so we allow it.
-        if (observationReason != null && type != MutationType.STRATEGY) {
-            String verb = type.isPlural() ? "were" : "was";
-            DeprecationLogger.deprecateBehaviour("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata.")
-                .withContext(String.format("The %s of %s %s mutated after %s.", typeDescription, this.getDisplayName(), verb, observationReason.get()))
-                .withAdvice("After a configuration has been observed, it should not be modified.")
-                .willBecomeAnErrorInGradle9()
-                .withUpgradeGuideSection(8, "mutate_configuration_after_locking")
-                .nagUser();
-            return true;
-        }
-        return false;
-    }
-
-    private void preventIllegalParentMutation(MutationType type) {
-        // TODO: We can remove this check once we turn `maybePreventMutation` into an error
-        if (type == MutationType.DEPENDENCY_ATTRIBUTES || type == MutationType.DEPENDENCY_CONSTRAINT_ATTRIBUTES) {
-            return;
-        }
-
-        if (isFullyResolved(currentResolveState.get())) {
-            throw new InvalidUserDataException(String.format("Cannot change %s of parent of %s after it has been resolved", type, getDisplayName()));
-        }
-    }
-
-    private void preventIllegalMutation(MutationType type) {
-        // TODO: We can remove this check once we turn `maybePreventMutation` into an error
-        if (type == MutationType.DEPENDENCY_ATTRIBUTES || type == MutationType.DEPENDENCY_CONSTRAINT_ATTRIBUTES) {
-            assertIsDeclarable("Changing " + type);
-            return;
-        }
-
-        if (isFullyResolved(currentResolveState.get())) {
-            // The public result for the configuration has been calculated.
-            // It is an error to change anything that would change the dependencies or artifacts
-            throw new InvalidUserDataException(String.format("Cannot change %s of dependency %s after it has been resolved.", type, getDisplayName()));
-        } else if (observedState == GRAPH_RESOLVED) {
-            // The configuration has been used in a resolution, and it is an error for build logic to change any dependencies,
-            // exclude rules or parent configurations (values that will affect the resolved graph).
-            if (type != MutationType.STRATEGY) {
-                String extraMessage = insideBeforeResolve ? " Use 'defaultDependencies' instead of 'beforeResolve' to specify default dependencies for a configuration." : "";
-                throw new InvalidUserDataException(String.format("Cannot change %s of dependency %s after it has been included in dependency resolution.%s", type, getDisplayName(), extraMessage));
-            }
+        if (isMutationForbidden(type)) {
+            throw new InvalidUserCodeException(
+                String.format("Cannot mutate the %s of %s after %s. ", type, this.getDisplayName(), observationReason.get()) +
+                    "After a configuration has been observed, it should not be modified."
+            );
         }
 
         if (type == MutationType.USAGE) {
@@ -1376,11 +1199,34 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
     }
 
-    private void notifyChildren(MutationType type) {
-        // Notify child configurations
-        for (MutationValidator validator : childMutationValidators) {
-            validator.validateMutation(type);
+    /**
+     * Given the type of mutation, determine based on the observation state of this
+     * configuration whether the mutation is forbidden or if it may proceed.
+     */
+    private boolean isMutationForbidden(MutationType type) {
+        if (observationReason == null) {
+            // This configuration has not been observed, and so is still mutable.
+            // No reason to throw an exception.
+            return false;
         }
+
+        if (type == MutationType.STRATEGY && !isFullyResolved(currentResolveState.get())) {
+            // TODO: Eventually this should become an error, but plugins (Android?) are mutating the
+            // resolution strategy in beforeResolve in order to save memory.
+            return false;
+        }
+
+        if (type == MutationType.DEPENDENCIES ||
+            type == MutationType.DEPENDENCY_ATTRIBUTES ||
+            type == MutationType.DEPENDENCY_CONSTRAINT_ATTRIBUTES
+        ) {
+            // When building variant metadata, dependencies are observed lazily after attributes, capabilities, etc.
+            // We allow these to be marked as observed separately from the remainder of its state.
+            return dependenciesObserved;
+        }
+
+        // Otherwise, non-dependency state has been observed and is therefore non-mutable.
+        return true;
     }
 
     @Override
@@ -1410,6 +1256,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             .allMatch(pu -> pu.isDeprecated(conf));
     }
 
+    // TODO: This causes redundant deprecation logs when we call internal methods to support
+    //       features on deprecated configurations. We already emit deprecation warnings
+    //       when using public deprecated methods, we should not emit them again for internal API usage.
     private void warnOrFailOnInvalidInternalAPIUsage(String methodName, ProperMethodUsage... properUsages) {
         warnOrFailOnInvalidUsage(methodName, true, properUsages);
     }
@@ -1428,7 +1277,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
             GradleException ex = new GradleException(String.format(msgTemplate, methodName, getName(), currentUsageDesc, allowDeprecated ? "" : "(non-deprecated) ", properUsageDesc));
             ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", GradleCoreProblemGroup.configurationUsage());
-            throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
+            throw configurationServices.getProblems().getInternalReporter().throwing(ex, id, spec -> {
                 spec.contextualLabel(ex.getMessage());
                 spec.severity(Severity.ERROR);
             });
@@ -1495,12 +1344,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private void assertIsResolvable() {
         if (!canBeResolved) {
             throw new IllegalStateException("Resolving dependency configuration '" + name + "' is not allowed as it is defined as 'canBeResolved=false'.\nInstead, a resolvable ('canBeResolved=true') dependency configuration that extends '" + name + "' should be resolved.");
-        }
-    }
-
-    private void assertIsDeclarable(String action) {
-        if (!canBeDeclaredAgainst) {
-            throw new IllegalStateException(action + " for configuration '" + name + "' is not allowed as it is defined as 'canBeDeclared=false'.");
         }
     }
 
@@ -1583,7 +1426,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         boolean extraWarningsEnabled = Boolean.getBoolean("org.gradle.internal.deprecation.preliminary.Configuration.redundantUsageChangeWarning.enabled");
 
         if (redundantChange) {
-            // Remove this condition in Gradle 9.x and warn on every redundant change, in Gradle 10.0 this should fail.
+            // Remove this condition in Gradle 9.x and warn on every redundant change, in Gradle 10 this should fail.
             if (extraWarningsEnabled) {
                 warnAboutChangingUsage(methodName, newValue);
             }
@@ -1592,7 +1435,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 // This is an actual change, and permitting it is not desired behavior, but we haven't deprecated
                 // changing detached confs usages to false as of 9.0, so we have to permit even these non-redundant changes,
                 // but we can at least warn if the flag is set.
-                // Remove this check and warn on every actual change to a detached conf in Gradle 9.x, in Gradle 10.0 this should fail.
+                // Remove this check and warn on every actual change to a detached conf in Gradle 9.x, in Gradle 10 this should fail.
                 if (extraWarningsEnabled) {
                     warnAboutChangingUsage(methodName, newValue);
                 }
@@ -1613,14 +1456,15 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private void failDueToChangingUsage(String methodName, boolean newValue) {
         GradleException ex = new GradleException(String.format("Calling %s(%b) on %s is not allowed.  This configuration's role was set upon creation and its usage should not be changed.", methodName, newValue, this));
         ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", GradleCoreProblemGroup.configurationUsage());
-        throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
+        throw configurationServices.getProblems().getInternalReporter().throwing(ex, id, spec -> {
             spec.contextualLabel(ex.getMessage());
             spec.severity(Severity.ERROR);
         });
     }
 
-    private boolean isDetachedConfiguration() {
-        return this.configurationsProvider instanceof DetachedConfigurationsProvider;
+    @Override
+    public boolean isDetachedConfiguration() {
+        return isDetached;
     }
 
     @SuppressWarnings("deprecation")
@@ -1651,13 +1495,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public void setCanBeConsumed(boolean allowed) {
         checkChangingUsage("setCanBeConsumed", canBeConsumed, allowed);
-        setCanBeConsumedInternal(allowed);
-    }
-
-    /**
-     * Configures if a configuration can be consumed, without emitting any warnings.
-     */
-    private void setCanBeConsumedInternal(boolean allowed) {
         if (canBeConsumed != allowed) {
             validateMutation(MutationType.USAGE);
             canBeConsumed = allowed;
@@ -1672,13 +1509,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public void setCanBeResolved(boolean allowed) {
         checkChangingUsage("setCanBeResolved", canBeResolved, allowed);
-        setCanBeResolvedInternal(allowed);
-    }
-
-    /**
-     * Configures if a configuration can be resolved, without emitting any warnings.
-     */
-    private void setCanBeResolvedInternal(boolean allowed) {
         if (canBeResolved != allowed) {
             validateMutation(MutationType.USAGE);
             canBeResolved = allowed;
@@ -1693,13 +1523,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public void setCanBeDeclared(boolean allowed) {
         checkChangingUsage("setCanBeDeclared", canBeDeclaredAgainst, allowed);
-        setCanBeDeclaredInternal(allowed);
-    }
-
-    /**
-     * Configures if a configuration can have dependencies declared against it, without emitting any warnings.
-     */
-    private void setCanBeDeclaredInternal(boolean allowed) {
         if (canBeDeclaredAgainst != allowed) {
             validateMutation(MutationType.USAGE);
             canBeDeclaredAgainst = allowed;
@@ -1771,7 +1594,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     public InternalProblems getProblems() {
-        return problemsService;
+        return configurationServices.getProblems();
     }
 
     private void assertNotDetachedExtensionDoingExtending(Iterable<Configuration> extendsFrom) {
@@ -1782,7 +1605,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 .collect(Collectors.joining(", "));
             GradleException ex = new GradleException(getDisplayName() + " cannot extend " + summarizedExtensionTargets);
             ProblemId id = ProblemId.create("extend-detached-not-allowed", "Extending a detachedConfiguration is not allowed", GradleCoreProblemGroup.configurationUsage());
-            throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
+            throw configurationServices.getProblems().getInternalReporter().throwing(ex, id, spec -> {
                 spec.contextualLabel(ex.getMessage());
                 spec.severity(Severity.ERROR);
             });
@@ -1852,7 +1675,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         @Override
         public ResolutionResult getResolutionResult() {
             configuration.assertIsResolvable();
-            return new DefaultResolutionResult(configuration.resolutionAccess, configuration.attributeDesugaring);
+            return new DefaultResolutionResult(configuration.resolutionAccess, configuration.configurationServices.getAttributeDesugaring());
         }
 
         @Override
@@ -1976,7 +1799,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         abstract boolean isDeprecated(ConfigurationInternal configuration);
 
         public static String buildProperName(ProperMethodUsage usage) {
-            return WordUtils.capitalizeFully(usage.name().replace('_', ' '));
+            @SuppressWarnings("deprecation")
+            String capitalizedName = org.apache.commons.lang3.text.WordUtils.capitalizeFully(usage.name().replace('_', ' '));
+            return capitalizedName;
         }
 
         public static String summarizeProperUsage(ProperMethodUsage... properUsages) {
@@ -1989,9 +1814,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private static final class IllegalResolutionException extends GradleException implements ResolutionProvider {
         private final String resolution;
 
-        public IllegalResolutionException(String message, DocumentationRegistry documentationRegistry) {
+        public IllegalResolutionException(String message) {
             super(message);
-            resolution = "For more information, please refer to " + documentationRegistry.getDocumentationFor("viewing_debugging_dependencies.html", "sub:resolving-unsafe-configuration-resolution-errors") + " in the Gradle documentation.";
+            Documentation userGuideLink = Documentation.userManual("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors");
+            resolution = "For more information, please refer to " + userGuideLink.getUrl() + " in the Gradle documentation.";
         }
 
         @Override

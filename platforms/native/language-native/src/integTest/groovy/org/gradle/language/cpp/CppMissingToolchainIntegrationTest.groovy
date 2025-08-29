@@ -30,18 +30,16 @@ class CppMissingToolchainIntegrationTest extends AbstractIntegrationSpec impleme
         given:
         buildFile << """
             apply plugin: 'cpp-application'
-            model {
-                toolChains {
-                    withType(Gcc) {
-                        path(file('gcc-bin'))
-                    }
-                    withType(Clang) {
-                        path(file('clang-bin'))
-                    }
-                    withType(VisualCpp) {
-                        installDir = file('vs-install')
-                        windowsSdkDir = file('sdk-install')
-                    }
+            toolChains {
+                withType(Gcc) {
+                    path(file('gcc-bin'))
+                }
+                withType(Clang) {
+                    path(file('clang-bin'))
+                }
+                withType(VisualCpp) {
+                    installDir = file('vs-install')
+                    windowsSdkDir = file('sdk-install')
                 }
             }
 """
@@ -89,12 +87,10 @@ class CppMissingToolchainIntegrationTest extends AbstractIntegrationSpec impleme
 
         buildFile << """
             apply plugin: 'cpp-application'
-            model {
-                toolChains {
-                    withType(Gcc) {
-                        eachPlatform {
-                            cppCompiler.executable = 'does-not-exist'
-                        }
+            toolChains {
+                withType(Gcc) {
+                    eachPlatform {
+                        cppCompiler.executable = 'does-not-exist'
                     }
                 }
             }

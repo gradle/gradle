@@ -31,7 +31,7 @@ This section explores ways to optimize performance, highlights common pitfalls, 
 |<<sec:update-versions,Update Versions>>
 
 |2
-|<<sec:parallel_execution,Enable Parallel Execution>>
+|<<sec:enable_parallel_execution,Enable Parallel Execution>>
 
 |3
 |<<enable_daemon,Enable the Daemon>>
@@ -91,7 +91,7 @@ It is a Java (JDK 21) `Application and library project` using Kotlin build files
 
 image::performance/performance-1.png[]
 
-It builds in *21 seconds* using Gradle 10.0.
+It builds in *21 seconds* using Gradle 8.10.
 
 [[sec:update-versions]]
 == 1. Update Versions
@@ -104,9 +104,9 @@ Using an outdated version means missing out on these gains.
 Upgrading is low-risk since Gradle maintains backward compatibility between minor versions.
 Staying up to date also makes major version upgrades smoother by providing early deprecation warnings.
 
-You can use the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>> to update the version of Gradle by running `gradle wrapper --gradle-version X.X` where `X.X` is the desired version.
+You can use the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>> to update the version of Gradle by running `gradle wrapper --gradle-version X.X` where `X.X` is the desired version.
 
-When our reference project is updated to use Gradle 13.0, the build (`./gradlew clean build`) takes *8 seconds*:
+When our reference project is updated to use Gradle 8.13, the build (`./gradlew clean build`) takes *8 seconds*:
 
 image::performance/performance-2.png[]
 
@@ -132,7 +132,7 @@ plugins {
 }
 ----
 
-[[sec:parallel_execution]]
+[[sec:enable_parallel_execution]]
 == 2. Enable Parallel Execution
 
 Most projects consist of multiple subprojects, some of which are independent.
@@ -161,9 +161,9 @@ When the parallel flag is used on our reference project, the build (`./gradlew c
 
 image::performance/performance-3.png[]
 
-=== Visualize Parallelism with Build Scans
+=== Visualize Parallelism with Build Scan
 
-Build Scans provide a visual timeline of task execution in the *"Timeline"* tab.
+A Build Scan provides a visual timeline of task execution in the *"Timeline"* tab.
 
 In the example below, the build initially has long-running tasks at the beginning and end, creating a bottleneck:
 
@@ -244,9 +244,9 @@ image::performance/performance-5.png[]
 For more information about the Build Cache, check out the
 <<build_cache_use_cases.adoc#use_cases_cache,Build Cache documentation>>.
 
-=== Visualize the Build Cache with Build Scans
+=== Visualize the Build Cache with Build Scan
 
-Build Scans help you analyze *Build Cache effectiveness* through the *"Build Cache"* tab in the *"Performance"* page.
+A Build Scan helps you analyze *Build Cache effectiveness* through the *"Build Cache"* tab in the *"Performance"* page.
 This tab provides key statistics, including:
 
 - The number of tasks that interacted with a cache
@@ -263,7 +263,7 @@ image::performance/task-execution-cacheable.png[title="A task-oriented view of p
 image::performance/timeline-not-cacheable.png[title="Timeline screen with 'not cacheable' tasks only"]
 
 To identify optimization opportunities, sort tasks by duration in the timeline view.
-The build scan above reveals that `:task1` and `:task3` could be improved and made cacheable, while also explaining why Gradle didn’t cache them.
+The Build Scan above reveals that `:task1` and `:task3` could be improved and made cacheable, while also explaining why Gradle didn’t cache them.
 
 [[enable_configuration_cache]]
 == 5. Enable the Configuration Cache
@@ -272,8 +272,8 @@ The build scan above reveals that `:task1` and `:task3` could be improved and ma
 ====
 This feature has the following limitations:
 
-* Not all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> and <<configuration_cache#config_cache:not_yet_implemented, features>> are supported. Full support is still in progress.
-* Your build and its plugins may need adjustments to meet the <<configuration_cache#config_cache:requirements, requirements>>.
+* Not all <<configuration_cache_status.adoc#config_cache:plugins:core, core Gradle plugins>> and <<configuration_cache_status.adoc#config_cache:not_yet_implemented, features>> are supported. Full support is still in progress.
+* Your build and its plugins may need adjustments to meet the <<configuration_cache_requirements.adoc#config_cache:requirements, requirements>>.
 * IDE imports and syncs do not use the configuration cache.
 ====
 
@@ -332,7 +332,7 @@ include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",fil
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=ad-hoc-task]"]
 ====
 
-For more details, see the <<incremental_build.adoc#incremental_build,incremental build documentation>> and the <<writing_tasks.adoc#task_inputs_and_outputs,writing tasks tutorial>>.
+For more details, see the <<incremental_build.adoc#incremental_build,incremental build documentation>> and the <<writing_tasks_intermediate.adoc#task_inputs_and_outputs,writing tasks tutorial>>.
 
 When leveraging incremental builds on our reference project, the build (`./gradlew clean build build`) time is *5 seconds*:
 
@@ -390,7 +390,7 @@ For more details, see the <<config_gradle.adoc#sec:configuring_jvm_memory,JVM Me
 [[optimize_configuration]]
 == 9. Optimize Configuration
 
-As described in <<build_lifecycle.adoc#build_lifecycle,the build lifecycle chapter>>, a Gradle build goes through three phases: *initialization, configuration, and execution*.
+As described in <<build_lifecycle_intermediate.adoc#build_lifecycle,the build lifecycle chapter>>, a Gradle build goes through three phases: *initialization, configuration, and execution*.
 The *configuration phase* always executes, regardless of which tasks run.
 Any expensive operations during this phase slow down every build, including simple commands like `gradle help` and `gradle tasks`.
 
@@ -586,9 +586,9 @@ If a build file or initialization script lowers these values, Gradle queries rep
 When you don't need the absolute latest release of a dependency every time you build, consider
 removing the custom values for these settings.
 
-==== Find dynamic and changing versions with build scans
+==== Find dynamic and changing versions with Build Scan
 
-To locate dynamic dependencies, use Build Scans:
+To locate dynamic dependencies, use a Build Scan:
 
 image::performance/dependency-dynamic-versions.png[title="Find dependencies with dynamic versions"]
 
@@ -639,14 +639,14 @@ include::sample[dir="snippets/performance/resolveAtBuildTime/groovy",files="buil
 The `from()` method in Gradle’s `Copy` task does *not* trigger immediate <<dependency_configurations.adoc#sub:what-are-dependency-configurations,dependency resolution>> because it references the dependency *configuration*, not the resolved files.
 This ensures that dependencies are resolved only when the `Copy` task executes.
 
-==== Visualize dependency resolution with build scans
+==== Visualize dependency resolution with Build Scan
 
-The "Dependency resolution" tab on the performance page of a build scan shows dependency
+The "Dependency resolution" tab on the performance page of a Build Scan shows dependency
 resolution time during the configuration and execution phases:
 
 image::performance/bad-dependency-resolution.png[title="Dependency resolution at configuration time"]
 
-Build scans provide another means of identifying this issue.
+A Build Scan provides another means of identifying this issue.
 Your build should spend 0 seconds resolving dependencies during _"project configuration"_.
 This example shows the build resolves dependencies too early in the lifecycle.
 You can also find a "Settings and suggestions" tab on the "Performance" page.
@@ -658,7 +658,7 @@ Gradle allows users to model dependency resolution in a flexible way.
 Simple customizations, such as forcing specific versions or substituting dependencies, have minimal impact on resolution times.
 However, *complex custom logic*—such as downloading and parsing POM files manually—can significantly slow down dependency resolution.
 
-Use *build scans* or *profile reports* to ensure custom dependency resolution logic is not causing performance issues.
+Use *Build Scan* or *profile reports* to ensure custom dependency resolution logic is not causing performance issues.
 This logic may exist in your build scripts or as part of a third-party plugin.
 
 This example forces a custom dependency version but also introduces expensive logic that slows down resolution:
@@ -771,7 +771,7 @@ include::sample[dir="snippets/performance/parallelTestExecution/kotlin",files="b
 include::sample[dir="snippets/performance/parallelTestExecution/groovy",files="build.gradle[tags=fork-every]"]
 ====
 
-WARNING: Forking a VVM is an expensive operation. Setting `forkEvery` too low can increase test time due to excessive process startup overhead.
+WARNING: Forking a JVM is an expensive operation. Setting `forkEvery` too low can increase test time due to excessive process startup overhead.
 
 ==== C. Disable test reports
 
@@ -781,7 +781,7 @@ Report generation adds overhead, particularly in large test suites.
 You can disable report generation entirely if:
 
 * You only need to know whether the tests passed.
-* You use Build Scans, which provide richer test insights.
+* You use a Build Scan, which provide richer test insights.
 
 To disable reports, set `reports.html.required` and `reports.junitXml.required` to `false`:
 
@@ -873,7 +873,7 @@ include::sample[dir="snippets/performance/parallelTestExecution/groovy",files="b
 ====
 
 Gradle reuses the forked process for the duration of the build, so the startup cost is low.
-Running compilation in its own JVM helps reduce garbage collection in the main Gradle process, which can speed up the rest of your build — especially when used alongside <<sec:parallel_execution, parallel execution>>.
+Running compilation in its own JVM helps reduce garbage collection in the main Gradle process, which can speed up the rest of your build — especially when used alongside <<sec:enable_parallel_execution, parallel execution>>.
 
 Forking compilation has little effect on small builds but can help significantly when a single task compiles more than a thousand source files.
 

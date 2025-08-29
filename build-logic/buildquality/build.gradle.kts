@@ -10,6 +10,7 @@ dependencies {
     implementation(projects.cleanup)
     implementation(projects.documentation)
     implementation(projects.integrationTesting)
+    implementation(projects.jvm)
     implementation(projects.performanceTesting)
     implementation(projects.profiling)
     implementation(projects.binaryCompatibility)
@@ -31,4 +32,5 @@ dependencies {
     }
 
     testImplementation("org.junit.jupiter:junit-jupiter-engine")
+    testImplementation("org.apache.commons:commons-lang3")
 }

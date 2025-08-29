@@ -18,8 +18,8 @@ package org.gradle;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
@@ -84,6 +84,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private List<File> initScripts = new ArrayList<>();
     private boolean dryRun;
     private boolean rerunTasks;
+    private boolean taskGraph;
     private boolean profile;
     private boolean continueOnFailure;
     private boolean offline;
@@ -230,7 +231,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.systemPropertiesArgs = new HashMap<>(systemPropertiesArgs);
         p.initScripts = new ArrayList<>(initScripts);
         p.includedBuilds = new ArrayList<>(includedBuilds);
-        p.dryRun = dryRun;
         p.projectCacheDir = projectCacheDir;
         return p;
     }
@@ -269,6 +269,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.refreshKeys = refreshKeys;
         p.exportKeys = exportKeys;
         p.welcomeMessageConfiguration = welcomeMessageConfiguration;
+        p.dryRun = dryRun;
+        p.taskGraph = taskGraph;
         return p;
     }
 
@@ -284,6 +286,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     /**
      * Returns the names of the tasks to execute in this build. When empty, the default tasks for the project will be executed. If {@link TaskExecutionRequest}s are set for this build then names from these task parameters are returned.
+     * <p>
+     * <strong>Note that this will also return entries for each task ARGUMENT as well.</strong>>
      *
      * @return the names of the tasks to execute in this build. Never returns null.
      */
@@ -611,6 +615,26 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
+     * Specifies whether the task graph should be printed.
+     *
+     * @since 9.1.0
+     */
+    @Incubating
+    public boolean isTaskGraph() {
+        return taskGraph;
+    }
+
+    /**
+     * Specifies whether the task graph should be printed.
+     *
+     * @since 9.1.0
+     */
+    @Incubating
+    public void setTaskGraph(boolean taskGraph) {
+        this.taskGraph = taskGraph;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -705,6 +729,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + ", initScripts=" + initScripts
             + ", dryRun=" + dryRun
             + ", rerunTasks=" + rerunTasks
+            + ", taskGraph=" + taskGraph
             + ", profile=" + profile
             + ", continueOnFailure=" + continueOnFailure
             + ", offline=" + offline
@@ -762,7 +787,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Returns true if build scan should be created.
+     * Returns true if a Build Scan should be created.
      *
      * @since 3.4
      */
@@ -771,7 +796,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Specifies whether a build scan should be created.
+     * Specifies whether a Build Scan should be created.
      *
      * @since 3.4
      */
@@ -780,7 +805,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Returns true when build scan creation is explicitly disabled.
+     * Returns true when Build Scan creation is explicitly disabled.
      *
      * @since 3.4
      */
@@ -789,7 +814,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
-     * Specifies whether build scan creation is explicitly disabled.
+     * Specifies whether Build Scan creation is explicitly disabled.
      *
      * @since 3.4
      */

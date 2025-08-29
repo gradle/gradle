@@ -74,7 +74,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when:
         def result = runner
             .deprecations(AndroidDeprecations) {
-                expectIsPropertyDeprecationWarnings()
+                expectIsPropertyDeprecationWarnings(agpVersion)
             }
             .build()
 
@@ -107,7 +107,8 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         def result = runner
             .deprecations(AndroidDeprecations) {
-                expectIsPropertyDeprecationWarnings()
+                expectMultiStringNotationDeprecation(agpVersion)
+                expectIsPropertyDeprecationWarnings(agpVersion)
             }
             .build()
 
@@ -128,7 +129,8 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         result = runner
             .deprecations(AndroidDeprecations) {
-                maybeExpectIsPropertyDeprecationWarnings()
+                expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
+                maybeExpectIsPropertyDeprecationWarnings(agpVersion)
             }
             .build()
 
@@ -146,7 +148,11 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when: 'abi change on library'
         abiChange.run()
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
-        result = runner.build()
+        result = runner
+            .deprecations(AndroidDeprecations) {
+                expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
+            }
+            .build()
 
         then: 'dependent sources are recompiled'
         result.task(':library:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
@@ -162,13 +168,15 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when: 'clean re-build'
         agpRunner(agpVersion, 'clean')
             .deprecations(AndroidDeprecations) {
-                maybeExpectIsPropertyDeprecationWarnings()
+                expectMultiStringNotationDeprecation(agpVersion)
+                maybeExpectIsPropertyDeprecationWarnings(agpVersion)
             }
             .build()
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         result = runner
             .deprecations(AndroidDeprecations) {
-                maybeExpectIsPropertyDeprecationWarnings()
+                expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
+                maybeExpectIsPropertyDeprecationWarnings(agpVersion)
             }.build()
 
         then:

@@ -18,14 +18,15 @@ package org.gradle.api.internal.tasks.testing.results;
 
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.internal.InternalTransformer;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.List;
 
 public class DefaultTestResult implements TestResult, Serializable {
     private final List<TestFailure> failures;
+    @Nullable
     private final TestFailure assumptionFailure;
     private final ResultType resultType;
     private final long startTime;
@@ -38,7 +39,7 @@ public class DefaultTestResult implements TestResult, Serializable {
         this(state.resultType, state.getStartTime(), state.getEndTime(), state.testCount, state.successfulCount, state.failedCount, state.failures, state.assumptionFailure);
     }
 
-    public DefaultTestResult(ResultType resultType, long startTime, long endTime, long testCount, long successfulCount, long failedCount, List<TestFailure> failures, TestFailure assumptionFailure) {
+    public DefaultTestResult(ResultType resultType, long startTime, long endTime, long testCount, long successfulCount, long failedCount, List<TestFailure> failures, @Nullable TestFailure assumptionFailure) {
         this.resultType = resultType;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -60,18 +61,14 @@ public class DefaultTestResult implements TestResult, Serializable {
     }
 
     @Override
+    @Nullable
     public TestFailure getAssumptionFailure() {
         return assumptionFailure;
     }
 
     @Override
     public List<Throwable> getExceptions() {
-        return CollectionUtils.collect(failures, new InternalTransformer<Throwable, TestFailure>() {
-            @Override
-            public Throwable transform(TestFailure testFailure) {
-                return testFailure.getRawFailure();
-            }
-        });
+        return CollectionUtils.collect(failures, TestFailure::getRawFailure);
     }
 
     @Override

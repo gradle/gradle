@@ -22,14 +22,10 @@ import org.gradle.integtests.tooling.r16.CustomModel
 
 class ProjectLevelModelCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
-        file('settings.gradle') << '''
-include 'a'
-include 'b'
-include 'b:c'
+        includeProjects("a", "b", "b:c")
+        settingsFile << '''
 rootProject.name = 'test'
 '''
-        file('b').mkdirs()
-
         buildFile << """
 allprojects {
     description = "project \$name"

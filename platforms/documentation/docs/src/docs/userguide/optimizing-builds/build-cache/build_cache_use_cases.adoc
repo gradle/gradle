@@ -40,7 +40,7 @@ This helps to identify any possible issues with the build that may affect cachea
 
 If you are subject to audit requirements regarding the artifacts you ship to your customers you may need to disable the build cache for certain builds.
 Develocity may help you with fulfilling these requirements while still using the build cache for all your builds.
-It allows you to easily find out which build produced an artifact coming from the build cache via build scans.
+It allows you to easily find out which build produced an artifact coming from the build cache via a Build Scan.
 
 [.screenshot]
 image::build-cache/from-cache-origin.png[]

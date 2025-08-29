@@ -13,24 +13,6 @@
 
 
     /**
-     * Retrieves the [customConvention][org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.CustomConvention] convention.
-     *
-     * @deprecated The concept of conventions is deprecated. Use extensions instead.
-     */
-    val org.gradle.api.Project.`customConvention`: org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.CustomConvention get() =
-        ((this as? Project)?.convention ?: (this as org.gradle.api.internal.HasConvention).convention).getPluginByName<org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.CustomConvention>("customConvention")
-
-    /**
-     * Configures the [customConvention][org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.CustomConvention] convention.
-     *
-     * @deprecated The concept of conventions is deprecated. Use extensions instead.
-     */
-    fun org.gradle.api.Project.`customConvention`(configure: Action<org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.CustomConvention>): Unit =
-        configure.execute(`customConvention`)
-
-
-
-    /**
      * Provides the existing [delete][org.gradle.api.tasks.Delete] task.
      */
     val TaskContainer.`delete`: TaskProvider<org.gradle.api.tasks.Delete>
@@ -140,6 +122,7 @@
      * @see [DependencyHandler.create]
      * @see [DependencyHandler.add]
      */
+    @Deprecated("Use single-string notation instead")
     fun DependencyHandler.`api`(
         group: String,
         name: String,
@@ -305,7 +288,7 @@
      * @see [DependencyHandler.create]
      * @see [DependencyHandler.add]
      */
-    @Deprecated(message = "The compile configuration has been deprecated for dependency declaration. Please use the 'api' or 'implementation' configuration instead.")
+    @Deprecated("Use single-string notation instead")
     fun DependencyHandler.`compile`(
         group: String,
         name: String,

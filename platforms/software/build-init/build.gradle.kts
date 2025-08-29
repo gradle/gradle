@@ -46,6 +46,7 @@ dependencies {
     implementation(projects.pluginsJvmTestSuite)
     implementation(projects.serviceLookup)
     implementation(projects.wrapperShared)
+    implementation(projects.resources)
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
@@ -89,8 +90,9 @@ dependencies {
     testFixturesImplementation(projects.pluginsJvmTestSuite)
 
 
-    testImplementation(projects.cli)
     testImplementation(projects.baseServicesGroovy)
+    testImplementation(projects.cli)
+    testImplementation(projects.internalIntegTesting)
     testImplementation(projects.native)
     testImplementation(projects.snapshots)
     testImplementation(projects.processServices)

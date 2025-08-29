@@ -9,7 +9,7 @@ fun DslContext.initForTest() {
     projectId = AbsoluteId("Gradle_Master")
     settingsRootId = AbsoluteId("GradleMaster")
     settingsRoot.name = "GradleMaster"
-    addParameters("Branch" to "master")
+    addParameters("branch" to "master")
 }
 
 fun BuildSteps.getGradleStep(stepName: String) = items.find { it.name == stepName }!! as GradleBuildStep

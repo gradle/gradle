@@ -38,12 +38,12 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         """
         file("sub1/build.gradle") << """
             dependencies {
-                implementation group: 'log4j', name: 'log4j', version: '1.2.14'
+                implementation("log4j:log4j:1.2.14")
             }
         """
         file("sub2/build.gradle") << """
             dependencies {
-                implementation group: 'junit', name: 'junit', version: '4.10'
+                implementation("junit:junit:4.10")
             }
         """
         settingsFile << """
@@ -61,7 +61,7 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         runner.expectDeprecationWarningIf(
             GradleContextualExecuter.isNotConfigCache(),
             "Invocation of Task.project at execution time has been deprecated. " +
-                "This will fail with an error in Gradle 10.0. " +
+                "This will fail with an error in Gradle 10. " +
                 "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#task_project",
             "https://github.com/ben-manes/gradle-versions-plugin/issues/910"

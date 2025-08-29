@@ -216,7 +216,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
                 }
 
                 dependencies {
-                    classpath group: 'com.android.tools', name: 'r8', version: '1.5.70'
+                    classpath("com.android.tools:r8:1.5.70")
                 }
 
             }

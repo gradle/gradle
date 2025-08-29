@@ -57,8 +57,6 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     private List<String> fileExtensions = ImmutableList.of("java", "groovy");
 
-    private GroovyForkOptions forkOptions = getObjectFactory().newInstance(GroovyForkOptions.class);
-
     private Map<String, Boolean> optimizationOptions = new HashMap<>();
 
     private File stubDir;
@@ -69,12 +67,8 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     private boolean parameters;
 
-    private final SetProperty<String> disabledGlobalASTTransformations = getObjectFactory().setProperty(String.class);
-
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     /**
      * Tells whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
@@ -190,6 +184,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * <p>
      * <b>This feature is only available if compiling with Groovy 2.1 or later.</b>
      * </p>
+     *
      * @see <a href="https://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfiguration.html">CompilerConfiguration</a>
      * @see <a href="https://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/customizers/builder/CompilerCustomizationBuilder.html">CompilerCustomizationBuilder</a>
      */
@@ -264,9 +259,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * if {@code fork} is set to {@code true}.
      */
     @Nested
-    public GroovyForkOptions getForkOptions() {
-        return forkOptions;
-    }
+    public abstract GroovyForkOptions getForkOptions();
 
     /**
      * Execute the given action against {@link #getForkOptions()}.
@@ -274,7 +267,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * @since 8.11
      */
     public void forkOptions(Action<? super GroovyForkOptions> action) {
-        action.execute(forkOptions);
+        action.execute(getForkOptions());
     }
 
     /**
@@ -293,7 +286,9 @@ public abstract class GroovyCompileOptions implements Serializable {
      * </dl>
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public Map<String, Boolean> getOptimizationOptions() {
         return optimizationOptions;
     }
@@ -313,9 +308,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * @since 7.4
      */
     @Input
-    public SetProperty<String> getDisabledGlobalASTTransformations() {
-        return disabledGlobalASTTransformations;
-    }
+    public abstract SetProperty<String> getDisabledGlobalASTTransformations();
 
     /**
      * Returns the directory where Java stubs for Groovy classes will be stored during Java/Groovy joint

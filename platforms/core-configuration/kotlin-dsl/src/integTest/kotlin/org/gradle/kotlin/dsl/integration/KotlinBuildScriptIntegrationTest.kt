@@ -1,21 +1,18 @@
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.api.JavaVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.clickableUrlFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
-
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.util.GradleVersion
-
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-
+import org.hamcrest.Matchers.greaterThanOrEqualTo
+import org.junit.Assume.assumeThat
 import org.junit.Test
 import spock.lang.Issue
-
 import java.io.StringWriter
 
 
@@ -24,6 +21,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `can apply plugin using ObjectConfigurationAction syntax`() {
 
+        file("bar").mkdirs()
         withSettings(
             """
             rootProject.name = "foo"
@@ -33,7 +31,6 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
         withBuildScript(
             """
-
             open class ProjectPlugin : Plugin<Project> {
                 override fun apply(target: Project) {
                     target.task("run") {
@@ -181,12 +178,12 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             """
         )
 
-        executer.expectDeprecationWarning(
+        executer.expectExternalDeprecatedMessage(
             "e: ${clickableUrlFor(file("build.gradle.kts"))}:7:17: 'fun Project.plugins(block: PluginDependenciesSpec.() -> Unit): Nothing' is deprecated. " +
                 "The plugins {} block must not be used here. " +
                 "If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = \"id\") instead."
         )
-        executer.expectDeprecationWarning(
+        executer.expectExternalDeprecatedMessage(
             "                          ^ 'fun Project.plugins(block: PluginDependenciesSpec.() -> Unit): Nothing' is deprecated. " +
                 "The plugins {} block must not be used here. " +
                 "If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = \"id\") instead."
@@ -395,52 +392,6 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @UnsupportedWithConfigurationCache(because = "test configuration phase")
-    fun `can access project conventions`() {
-        withKotlinBuildSrc()
-        withFile("buildSrc/src/main/kotlin/MyConvention.kt", """
-            interface MyConvention {
-                fun some(message: String) { println(message) }
-            }
-        """)
-        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
-            convention.plugins["my"] = objects.newInstance<MyConvention>()
-            tasks.register("noop")
-        """)
-        withBuildScript("""
-            plugins { id("my-plugin") }
-
-            convention.getPlugin(MyConvention::class).some("api.get")
-            the<MyConvention>().some("kotlin.reified.get")
-            the(MyConvention::class).some("kotlin.kclass.get")
-            configure<MyConvention> { some("kotlin.configure") }
-        """)
-
-        assertThat(
-            build("noop", "-q").output.trim(),
-            equalTo(
-                """
-                api.get
-                kotlin.reified.get
-                kotlin.kclass.get
-                kotlin.configure
-                """.trimIndent()
-            )
-        )
-
-        // Deprecation warnings assertion
-        repeat(5) {
-            executer.expectDocumentedDeprecationWarning(
-                "The org.gradle.api.plugins.Convention type has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
-            )
-        }
-        build("noop")
-    }
-
-    @Test
     fun `script compilation warnings are output on the console`() {
         val script = withBuildScript("""
             @Deprecated("BECAUSE")
@@ -450,5 +401,32 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
         build("help").apply {
             assertOutputContains("w: ${clickableUrlFor(script)}:4:13: 'fun deprecatedFunction(): Unit' is deprecated. BECAUSE")
         }
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/16147")
+    fun `can use javax xml APIs from the current jre`() {
+        // evaluateExpression() was introduced in JDK 9
+        // the Gradle API JAR contains old versions of javax.xml
+        // this asserts that scripts can use recent javax.xml APIs
+        withBuildScript(
+            """
+            val doc = javax.xml.parsers.DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
+            javax.xml.xpath.XPathFactory.newInstance().newXPath().evaluateExpression("/project/component", doc)
+            """
+        )
+        build("help")
+    }
+
+    @Test
+    fun `can use new jdk api`() {
+        // SequencedCollection was introduced in JDK 21
+        assumeThat(JavaVersion.current(), greaterThanOrEqualTo(JavaVersion.VERSION_21))
+        withBuildScript(
+            """
+            val col = listOf(1, 2, 3) as java.util.SequencedCollection<Int>
+            """
+        )
+        build("help")
     }
 }

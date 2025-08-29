@@ -39,8 +39,8 @@ import kotlin.script.templates.ScriptTemplateDefinition
 )
 @ScriptTemplateAdditionalCompilerArguments(
     [
-        "-language-version", "2.1",
-        "-api-version", "2.1",
+        "-language-version", "2.2",
+        "-api-version", "2.2",
         "-Xjvm-default=all",
         "-Xjsr305=strict",
         "-Xjspecify-annotations=strict",
@@ -50,7 +50,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
     ]
 )
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
-@Deprecated("Will be removed in Gradle 9.0")
+@Deprecated("Will be removed in Gradle 10")
 abstract class KotlinInitScript(
     private val host: KotlinScriptHost<Gradle>
 ) : @Suppress("DEPRECATION") InitScriptApi(host.target) {

@@ -819,14 +819,14 @@ project(':common') {
         run ":app:resolveGreen"
 
         then: // no changes, should be up-to-date
-        result.assertTasksNotSkipped()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
         run ":app:resolveGreen", "-DcommonOutputDir=out"
 
         then: // new path, should re-run
-        result.assertTasksNotSkipped(":common:producer")
+        result.assertTasksExecuted(":common:producer")
         assertTransformationsExecuted(
             singleStep('common.jar'),
             singleStep('lib.jar', 'slf4j-api-1.7.25.jar', 'common.jar'),
@@ -836,14 +836,14 @@ project(':common') {
         run ":app:resolveGreen", "-DcommonOutputDir=out"
 
         then: // no changes, should be up-to-date
-        result.assertTasksNotSkipped()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // new name, should re-run
-        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted(
             singleStep('common-blue.jar'),
             singleStep('lib.jar', 'slf4j-api-1.7.25.jar', 'common-blue.jar'),
@@ -853,14 +853,14 @@ project(':common') {
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // no changes, should be up-to-date
-        result.assertTasksNotSkipped()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar", "-DcommonContent=new"
 
         then: // new content, should re-run
-        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted(
             singleStep('common-blue.jar'),
             singleStep('lib.jar', 'slf4j-api-1.7.25.jar', 'common-blue.jar'),
@@ -870,7 +870,7 @@ project(':common') {
         run ":app:resolveGreen"
 
         then: // have seen these inputs before
-        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted()
     }
 
@@ -922,14 +922,14 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
         run ":app:resolveGreen"
 
         then: // no changes, should be up-to-date
-        result.assertTasksNotSkipped()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
         run ":app:resolveGreen", "-DcommonOutputDir=out"
 
         then: // new path, should skip consumer
-        result.assertTasksNotSkipped(":common:producer")
+        result.assertTasksExecuted(":common:producer")
         assertTransformationsExecuted(
             singleStep('common.jar'),
         )
@@ -938,7 +938,7 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // new name, should skip consumer
-        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted(
             singleStep('common-blue.jar'),
         )
@@ -947,14 +947,14 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // no changes, should be up-to-date
-        result.assertTasksNotSkipped()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar", "-DcommonContent=new"
 
         then: // new content, should re-run
-        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted(
             singleStep('common-blue.jar'),
             singleStep('lib.jar', 'slf4j-api-1.7.25.jar', 'common-blue.jar'),
@@ -964,7 +964,7 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
         run ":app:resolveGreen"
 
         then: // have seen these inputs before
-        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted()
     }
 
@@ -1018,14 +1018,14 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         run ":app:resolveGreen"
 
         then: // no changes, should be up-to-date
-        result.assertTasksNotSkipped()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
         run ":app:resolveGreen", "-DcommonOutputDir=out"
 
         then: // new path, should skip consumer
-        result.assertTasksNotSkipped(":common:producer")
+        result.assertTasksExecuted(":common:producer")
         assertTransformationsExecuted(
             singleStep('common.jar'),
         )
@@ -1034,7 +1034,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // new name, should skip consumer
-        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted(
             singleStep('common-blue.jar'),
         )
@@ -1043,14 +1043,14 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // no changes, should be up-to-date
-        result.assertTasksNotSkipped()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar", "-DcommonContent=new"
 
         then: // new content, should re-run
-        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted(
             singleStep('common-blue.jar'),
             singleStep('lib.jar', 'slf4j-api-1.7.25.jar', 'common-blue.jar')
@@ -1060,7 +1060,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         run ":app:resolveGreen"
 
         then: // have seen these inputs before
-        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted()
 
         where:

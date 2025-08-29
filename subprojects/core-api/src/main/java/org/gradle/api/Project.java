@@ -149,9 +149,6 @@ import java.util.concurrent.Callable;
  *
  * <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a read-only property with the same name as the extension.</li>
  *
- * <li>The <em>convention</em> properties added to the project by the plugins. A plugin can add properties and methods
- * to a project through the project's {@link org.gradle.api.plugins.Convention} object.  The properties of this scope may be readable or writable, depending on the convention objects.</li>
- *
  * <li>The tasks of the project.  A task is accessible by using its name as a property name.  The properties of this
  * scope are read-only. For example, a task called <code>compile</code> is accessible as the <code>compile</code>
  * property.</li>
@@ -202,9 +199,6 @@ import java.util.concurrent.Callable;
  *
  * <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a method which takes
  * a closure or {@link org.gradle.api.Action} as a parameter.</li>
- *
- * <li>The <em>convention</em> methods added to the project by the plugins. A plugin can add properties and method to
- * a project through the project's {@link org.gradle.api.plugins.Convention} object.</li>
  *
  * <li>The tasks of the project. A method is added for each task, using the name of the task as the method name and
  * taking a single closure or {@link org.gradle.api.Action} parameter. The method calls the {@link Task#configure(groovy.lang.Closure)} method for the
@@ -302,9 +296,16 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     File getBuildFile();
 
     /**
-     * <p>Returns the parent project of this project, if any.</p>
+     * Returns the parent project of this project, if any.
+     * <p>
+     * There are two cases where a project will not have a parent:
+     * <ul>
+     *     <li>The project is the root project of the build.</li>
+     *     <li>The project is located in a nested directory (not the root of the build), {@link #getProjectDir()} has been used after
+     *     including the project in order to locate it, and no project has been included that is located in this project's parent directory.</li>
+     * </ul>
      *
-     * @return The parent project, or null if this is the root project.
+     * @return The parent project, or {@code null} if this is the root project or a nested project without a parent.
      */
     @Nullable
     Project getParent();
@@ -404,9 +405,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <ol>
      *
      * <li>The project object itself.  For example, the <code>rootDir</code> project property.</li>
-     *
-     * <li>The project's {@link org.gradle.api.plugins.Convention} object.  For example, the <code>srcRootName</code> java plugin
-     * property.</li>
      *
      * <li>The project's extra properties.</li>
      *
@@ -573,7 +571,8 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     Task task(String name, Action<? super Task> configureAction);
 
     /**
-     * <p>Returns the path of this project.  The path is the fully qualified name of the project.</p>
+     * <p>Returns the path of this project, starting with ':'. See {@link org.gradle.api.initialization.Settings#include(String...)}
+     * for more information about project paths.</p>
      *
      * @return The path. Never returns null.
      */
@@ -807,10 +806,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <p>This method can also be used to create an empty collection, which can later be mutated to add elements.</p>
      *
-     * @param paths The paths to the files. May be empty.
+     * @param paths The paths to the files. May be empty. {@code null} values are ignored.
      * @return The file collection. Never returns null.
      */
-    ConfigurableFileCollection files(Object... paths);
+    ConfigurableFileCollection files(@Nullable Object... paths);
 
     /**
      * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The paths are evaluated as per {@link
@@ -1010,6 +1009,21 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <p>The provider is live and will call the {@link Callable} each time its value is queried. The {@link Callable} may return {@code null}, in which case the provider is considered to have no value.
      *
+     * <h4>Configuration Cache</h4>
+     * <p>This provider is always <a href="provider/Provider.html#configuration-cache">computed and its value is cached</a> by the Configuration Cache.
+     * If this provider is created at configuration time, the {@link Callable} may call configuration-time only APIs and capture objects of arbitrary types.
+     * <p>This can be useful when you need to lazily compute some value to use at execution time based on configuration-time only data. For example, you can compute an archive name based on the name
+     * and the version of the project:
+     * <pre class='autoTested'>
+     *   tasks.register("createArchive") {
+     *       def archiveNameProvider = project.provider { project.name + "-" + project.version + ".jar" }
+     *       doLast {
+     *           def archiveName = new File(archiveNameProvider.get())
+     *           // ... create the archive and put in its contents.
+     *       }
+     *   }
+     * </pre>
+     *
      * @param value The {@link Callable} use to calculate the value.
      * @return The provider. Never returns null.
      * @see org.gradle.api.provider.ProviderFactory#provider(Callable)
@@ -1055,7 +1069,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param paths Any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
      * @return true if anything got deleted, false otherwise
      */
-    boolean delete(Object... paths);
+    boolean delete(@Nullable Object... paths);
 
     /**
      * Deletes the specified files.  The given action is used to configure a {@link DeleteSpec}, which is then used to
@@ -1255,18 +1269,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @since 3.5
      */
     void artifacts(Action<? super ArtifactHandler> configureAction);
-
-    /**
-     * <p>Returns the {@link org.gradle.api.plugins.Convention} for this project.</p> <p>You can access this property in your build file
-     * using <code>convention</code>. You can also access the properties and methods of the convention object
-     * as if they were properties and methods of this project. See <a href="#properties">here</a> for more details</p>
-     *
-     * @return The <code>Convention</code>. Never returns null.
-     * @see ExtensionAware#getExtensions()
-     * @deprecated The concept of conventions is deprecated. Use extensions if possible.
-     */
-    @Deprecated
-    org.gradle.api.plugins.Convention getConvention();
 
     /**
      * <p>Compares the nesting level of this project with another project of the multi-project hierarchy.</p>
@@ -1577,7 +1579,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return the dependency factory. Never returns null.
      * @since 7.6
      */
-    @Incubating
     DependencyFactory getDependencyFactory();
 
     /**

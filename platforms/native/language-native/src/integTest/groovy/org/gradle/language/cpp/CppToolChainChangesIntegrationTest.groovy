@@ -91,13 +91,11 @@ class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
                 apply plugin: ${before.pluginClass}
                 apply plugin: ${after.pluginClass}
 
-                model {
-                    toolChains {
-                        if (findProperty('useAlternativeToolChain')) {
-                            ${after.buildScriptConfig}
-                        } else {
-                            ${before.buildScriptConfig}
-                        }
+                toolChains {
+                    if (findProperty('useAlternativeToolChain')) {
+                        ${after.buildScriptConfig}
+                    } else {
+                        ${before.buildScriptConfig}
                     }
                 }
             }

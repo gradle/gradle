@@ -151,6 +151,18 @@ class PathTest extends Specification {
         path.append(Path.path('relative:subpath')) == Path.path('path:relative:subpath')
     }
 
+    def "appends empty paths"() {
+        def relativeFoo = path("foo")
+        def absoluteFoo = path(':foo')
+
+        expect:
+        ROOT.append(ROOT).is(ROOT)
+        ROOT.append(absoluteFoo).is(absoluteFoo)
+        absoluteFoo.append(ROOT).is(absoluteFoo)
+        relativeFoo.append(ROOT).is(relativeFoo)
+        ROOT.append(relativeFoo) == absoluteFoo
+    }
+
     def "sorts paths depth-first case-insensitive"() {
         expect:
         paths(['a', 'b', 'A', 'abc']).sort() == paths(['A', 'a', 'abc', 'b'])
@@ -320,6 +332,18 @@ class PathTest extends Specification {
         path('a').ancestors().toList() == []
         path('a:b').ancestors().toList() == paths(['a'])
         path('a:b:c').ancestors().toList() == paths(['a', 'a:b'])
+    }
+
+    def "can determine if one path starts with another"() {
+        expect:
+        path(':a:b').startsWith(path(':a'))
+        path(':a:b').startsWith(path(':a:b'))
+        !path(':a:b').startsWith(path(':b'))
+        !path(':a:b').startsWith(path('a'))
+        !path('a:b').startsWith(path(':a'))
+        !path('a:b').startsWith(path('b'))
+        path('a:b:c').startsWith(path('a:b'))
+        path('a:b:c').startsWith(path('a:b:c'))
     }
 
     def paths(List<String> paths) {

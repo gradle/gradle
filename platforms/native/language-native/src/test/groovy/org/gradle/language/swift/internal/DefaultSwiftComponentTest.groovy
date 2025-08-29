@@ -17,7 +17,6 @@
 package org.gradle.language.swift.internal
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.DisplayName
 import org.gradle.language.ComponentDependencies
 import org.gradle.language.swift.SwiftBinary
@@ -106,10 +105,10 @@ class DefaultSwiftComponentTest extends Specification {
         component.sourceCompatibility.getOrNull() == null
     }
 
-    static class TestComponent extends DefaultSwiftComponent<SwiftBinary> {
+    static abstract class TestComponent extends DefaultSwiftComponent<SwiftBinary> {
         @Inject
-        TestComponent(String name, ObjectFactory objectFactory) {
-            super(name, objectFactory)
+        TestComponent(String name) {
+            super(name)
         }
 
         @Override

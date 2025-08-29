@@ -72,7 +72,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     @Input
     @ReplacesEagerProperty(
         replacedAccessors = @ReplacedAccessor(value = AccessorType.SETTER, name = "setMain", fluentSetter = true),
-        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9, withDslReference = true)
+        deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9)
     )
     Property<String> getMainClass();
 
@@ -80,7 +80,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * Returns the arguments passed to the main class to be executed.
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Optional @Input
     List<String> getArgs();
 
     /**
@@ -109,7 +109,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * @return this
      * @since 4.0
      */
-    JavaExecSpec setArgs(@Nullable List<String> args);
+    JavaExecSpec setArgs(List<String> args);
 
     /**
      * Sets the args for the main class to be executed.
@@ -118,7 +118,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      *
      * @return this
      */
-    JavaExecSpec setArgs(@Nullable Iterable<?> args);
+    JavaExecSpec setArgs(Iterable<?> args);
 
     /**
      * Argument providers for the application.
@@ -136,7 +136,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      *
      * @return this
      */
-    JavaExecSpec classpath(Object... paths);
+    JavaExecSpec classpath(@Nullable Object... paths);
 
     /**
      * Returns the classpath for executing the main class.

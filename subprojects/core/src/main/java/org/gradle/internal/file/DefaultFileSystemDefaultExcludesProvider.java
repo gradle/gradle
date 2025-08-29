@@ -44,10 +44,6 @@ public class DefaultFileSystemDefaultExcludesProvider implements FileSystemDefau
                 currentDefaultExcludes = ImmutableList.copyOf(DirectoryScanner.getDefaultExcludes());
                 broadcast.getSource().onDefaultExcludesChanged(currentDefaultExcludes);
             }
-
-            @Override
-            public void beforeComplete() {
-            }
         });
 
         listenerManager.addListener(new BuildAdapter() {

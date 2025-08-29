@@ -107,7 +107,6 @@ class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
 
         given:
         _ * lockManager.lock(file, _, _, _, _) >> lock
-        _ * lockManager.allowContention(lock, _)
 
         cacheAccess.withFileLock(action)
 
