@@ -100,18 +100,12 @@ public class BuildCacheStep<C extends WorkspaceContext & CachingContext> impleme
                 })
                 .orElseGet(() -> executeAndStoreInCache(cacheableWork, cacheKey, context))
             )
-            .getOrMapFailure(loadFailure -> new AfterExecutionResult(
-                Duration.ZERO,
-                Try.failure(new RuntimeException(
-                    String.format("Failed to load cache entry %s for %s: %s",
-                        cacheKey.getHashCode(),
-                        work.getDisplayName(),
-                        loadFailure.getMessage()
-                    ),
-                    loadFailure
-                )),
-                null
-            ));
+            .getOrMapFailure(loadFailure -> {
+                if (LOGGER.isWarnEnabled()) {
+                    LOGGER.warn("Failed to load cache entry for {} with cache key {}. Attempting execution instead..", work.getDisplayName(), cacheKey.getHashCode(), loadFailure);
+                }
+                return executeAndStoreInCache(cacheableWork, cacheKey, context);
+            });
     }
 
     private Optional<BuildCacheLoadResult> tryLoadingFromCache(BuildCacheKey cacheKey, CacheableWork cacheableWork) {
