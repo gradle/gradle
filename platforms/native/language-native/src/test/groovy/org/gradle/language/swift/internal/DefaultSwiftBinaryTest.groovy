@@ -53,7 +53,7 @@ class DefaultSwiftBinaryTest extends Specification {
         _ * configurations.resolvableDependencyScopeLocked("nativeLinkDebug", _) >> link
         _ * configurations.resolvableLocked('nativeRuntimeDebug', _) >> runtime
 
-        binary = new DefaultSwiftBinary(Names.of("mainDebug"), project.objects, Stub(NativeDependencyCache), project.taskDependencyFactory, Stub(Provider), false, Stub(FileCollection), configurations, implementation, Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativeVariantIdentity))
+        binary = TestUtil.objectFactory().newInstance(DefaultSwiftBinary, Names.of("mainDebug"), project.objects, Stub(NativeDependencyCache), project.taskDependencyFactory, Stub(Provider), false, Stub(FileCollection), configurations, implementation, Stub(SwiftPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativeVariantIdentity))
     }
 
     def "compileModules is a transformed view of compile"() {

@@ -1,6 +1,190 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.plugins.quality.Checkstyle",
+            "member": "Method org.gradle.api.plugins.quality.Checkstyle.getConfigDirectory()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.CheckstyleExtension",
+            "member": "Method org.gradle.api.plugins.quality.CheckstyleExtension.getConfigDirectory()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Pmd",
+            "member": "Method org.gradle.api.plugins.quality.Pmd.getIncrementalAnalysis()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Pmd",
+            "member": "Method org.gradle.api.plugins.quality.Pmd.getMaxFailures()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Pmd",
+            "member": "Method org.gradle.api.plugins.quality.Pmd.getRulesMinimumPriority()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Pmd",
+            "member": "Method org.gradle.api.plugins.quality.Pmd.getThreads()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Method org.gradle.api.tasks.JavaExec.getJavaLauncher()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveAppendix()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveBaseName()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveClassifier()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveExtension()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveFileName()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getArchiveVersion()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getDestinationDirectory()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.War",
+            "member": "Method org.gradle.api.tasks.bundling.War.getWebAppDirectory()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.getDestinationDirectory()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getDebugOptions()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getForkOptions()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getGeneratedSourceOutputDirectory()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getHeaderOutputDirectory()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getJavaModuleMainClass()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getJavaModuleVersion()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getRelease()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.compile.GroovyCompile",
             "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getAstTransformationClasspath()",
             "acceptation": "Replaced with abstract getter",
@@ -28,6 +212,22 @@
             "type": "org.gradle.api.tasks.compile.JavaCompile",
             "member": "Method org.gradle.api.tasks.compile.JavaCompile.getJavaCompiler()",
             "acceptation": "Replaced with abstract getter",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ConventionReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ConventionReportTask.getProjectReportDirectory()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.TaskReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.TaskReportTask.getShowTypes()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
             "changes": [
                 "Method is now abstract"
             ]
@@ -65,9 +265,297 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.scala.IncrementalCompileOptions",
+            "member": "Method org.gradle.api.tasks.scala.IncrementalCompileOptions.getAnalysisFile()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.IncrementalCompileOptions",
+            "member": "Method org.gradle.api.tasks.scala.IncrementalCompileOptions.getClassfileBackupDir()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.IncrementalCompileOptions",
+            "member": "Method org.gradle.api.tasks.scala.IncrementalCompileOptions.getPublishedCode()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaDoc",
+            "member": "Method org.gradle.api.tasks.scala.ScalaDoc.getCompilationOutputs()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaDoc",
+            "member": "Method org.gradle.api.tasks.scala.ScalaDoc.getJavaLauncher()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaDoc",
+            "member": "Method org.gradle.api.tasks.scala.ScalaDoc.getMaxMemory()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaDoc",
+            "member": "Method org.gradle.api.tasks.scala.ScalaDoc.getScalaDocOptions()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.testing.AbstractTestTask",
             "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getBinaryResultsDirectory()",
             "acceptation": "Replaced with abstract getter",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.getJavaLauncher()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.buildinit.tasks.InitBuild",
+            "member": "Method org.gradle.buildinit.tasks.InitBuild.getInsecureProtocol()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.buildinit.tasks.InitBuild",
+            "member": "Method org.gradle.buildinit.tasks.InitBuild.getSplitProject()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.buildinit.tasks.InitBuild",
+            "member": "Method org.gradle.buildinit.tasks.InitBuild.getUseIncubating()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getMainClass()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getMainModule()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
+            "member": "Method org.gradle.language.nativeplatform.tasks.UnexportMainSymbol.getObjects()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.nativeplatform.tasks.UnexportMainSymbol",
+            "member": "Method org.gradle.language.nativeplatform.tasks.UnexportMainSymbol.getOutputDirectory()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getAnalysisFiles()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getAnalysisMappingFile()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getJavaLauncher()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.ExtractSymbols",
+            "member": "Method org.gradle.nativeplatform.tasks.ExtractSymbols.getBinaryFile()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.ExtractSymbols",
+            "member": "Method org.gradle.nativeplatform.tasks.ExtractSymbols.getSymbolFile()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.ExtractSymbols",
+            "member": "Method org.gradle.nativeplatform.tasks.ExtractSymbols.getTargetPlatform()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.ExtractSymbols",
+            "member": "Method org.gradle.nativeplatform.tasks.ExtractSymbols.getToolChain()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.InstallExecutable",
+            "member": "Method org.gradle.nativeplatform.tasks.InstallExecutable.getExecutableFile()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.InstallExecutable",
+            "member": "Method org.gradle.nativeplatform.tasks.InstallExecutable.getInstallDirectory()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.InstallExecutable",
+            "member": "Method org.gradle.nativeplatform.tasks.InstallExecutable.getInstalledExecutable()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.InstallExecutable",
+            "member": "Method org.gradle.nativeplatform.tasks.InstallExecutable.getTargetPlatform()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.InstallExecutable",
+            "member": "Method org.gradle.nativeplatform.tasks.InstallExecutable.getToolChain()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.StripSymbols",
+            "member": "Method org.gradle.nativeplatform.tasks.StripSymbols.getBinaryFile()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.StripSymbols",
+            "member": "Method org.gradle.nativeplatform.tasks.StripSymbols.getOutputFile()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.StripSymbols",
+            "member": "Method org.gradle.nativeplatform.tasks.StripSymbols.getTargetPlatform()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.tasks.StripSymbols",
+            "member": "Method org.gradle.nativeplatform.tasks.StripSymbols.getToolChain()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle",
+            "member": "Method org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle.getBundleBinaryFile()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle",
+            "member": "Method org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle.getInstallDirectory()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.XCTest",
+            "member": "Method org.gradle.nativeplatform.test.xctest.tasks.XCTest.getRunScriptFile()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.XCTest",
+            "member": "Method org.gradle.nativeplatform.test.xctest.tasks.XCTest.getTestInstallDirectory()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.XCTest",
+            "member": "Method org.gradle.nativeplatform.test.xctest.tasks.XCTest.getWorkingDirectory()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
             "changes": [
                 "Method is now abstract"
             ]
@@ -84,6 +572,62 @@
             "type": "org.gradle.plugin.devel.tasks.PluginUnderTestMetadata",
             "member": "Method org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.getPluginClasspath()",
             "acceptation": "Replaced with abstract getter",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.Ear",
+            "member": "Method org.gradle.plugins.ear.Ear.getAppDirectory()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ear.Ear",
+            "member": "Method org.gradle.plugins.ear.Ear.getGenerateDeploymentDescriptor()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest",
+            "member": "Method org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest.getManifestFile()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest",
+            "member": "Method org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest.getPackage()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoPluginExtension",
+            "member": "Method org.gradle.testing.jacoco.plugins.JacocoPluginExtension.getReportsDirectory()",
+            "acceptation": "make more properties abstract decorated",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoReport",
+            "member": "Class org.gradle.testing.jacoco.tasks.JacocoReport",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
+            "changes": [
+                "Abstract method has been added to a superclass"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoReport",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoReport.getReportProjectName()",
+            "acceptation": "replacing manual creation of Property with abstract decorator",
             "changes": [
                 "Method is now abstract"
             ]
@@ -107,14 +651,6 @@
         {
             "type": "org.gradle.testing.jacoco.tasks.JacocoReportBase",
             "member": "Method org.gradle.testing.jacoco.tasks.JacocoReportBase.getClassDirectories()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.testing.jacoco.tasks.JacocoReportBase",
-            "member": "Method org.gradle.testing.jacoco.tasks.JacocoReportBase.getExecutionData()",
             "acceptation": "Replaced with abstract getter",
             "changes": [
                 "Method is now abstract"

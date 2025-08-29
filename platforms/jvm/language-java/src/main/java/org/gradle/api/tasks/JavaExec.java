@@ -118,16 +118,11 @@ import static java.util.Collections.emptyList;
 public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
 
     private final DefaultJavaExecSpec javaExecSpec;
-    private final Property<String> mainModule;
-    private final Property<String> mainClass;
     private final ModularitySpec modularity;
     private final Property<ExecResult> execResult;
-    private final Property<JavaLauncher> javaLauncher;
 
     public JavaExec() {
         ObjectFactory objectFactory = getObjectFactory();
-        mainModule = objectFactory.property(String.class);
-        mainClass = objectFactory.property(String.class);
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         execResult = objectFactory.property(ExecResult.class);
         javaExecSpec = objectFactory.newInstance(DefaultJavaExecSpec.class);
@@ -135,8 +130,8 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
         Provider<Iterable<String>> jvmArgumentsConvention = getProviderFactory().provider(this::jvmArgsConventionValue);
         javaExecSpec.getJvmArguments().convention(jvmArgumentsConvention);
 
-        javaExecSpec.getMainClass().convention(mainClass);
-        javaExecSpec.getMainModule().convention(mainModule);
+        javaExecSpec.getMainClass().convention(getMainClass());
+        javaExecSpec.getMainModule().convention(getMainModule());
         javaExecSpec.getModularity().getInferModulePath().convention(modularity.getInferModulePath());
 
         JavaToolchainService javaToolchainService = getJavaToolchainService();
@@ -145,8 +140,8 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
             .provider(() -> JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(this, propertyFactory))
             .flatMap(javaToolchainService::launcherFor)
             .orElse(javaToolchainService.launcherFor(it -> {}));
-        javaLauncher = objectFactory.property(JavaLauncher.class).convention(javaLauncherConvention);
-        javaLauncher.finalizeValueOnRead();
+        getJavaLauncher().convention(javaLauncherConvention);
+        getJavaLauncher().finalizeValueOnRead();
     }
 
     @TaskAction
@@ -415,23 +410,6 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     public void debugOptions(Action<JavaDebugOptions> action) {
         javaExecSpec.debugOptions(action);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Property<String> getMainModule() {
-        return mainModule;
-    }
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Property<String> getMainClass() {
-        return mainClass;
     }
 
     /**
@@ -801,9 +779,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * @since 6.7
      */
     @Nested
-    public Property<JavaLauncher> getJavaLauncher() {
-        return javaLauncher;
-    }
+    public abstract Property<JavaLauncher> getJavaLauncher();
 
     @Inject
     protected abstract ObjectFactory getObjectFactory();

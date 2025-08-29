@@ -18,7 +18,7 @@ package org.gradle.language.nativeplatform.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.nativeplatform.ComponentWithObjectFiles;
@@ -36,10 +36,10 @@ public interface ConfigurableComponentWithSharedLibrary extends ComponentWithSha
     NativePlatform getNativePlatform();
 
     @Override
-    Property<RegularFile> getLinkFile();
+    RegularFileProperty getLinkFile();
 
     @Override
-    Property<RegularFile> getRuntimeFile();
+    RegularFileProperty getRuntimeFile();
 
     @Override
     Property<LinkSharedLibrary> getLinkTask();

@@ -16,14 +16,9 @@
 
 package org.gradle.nativeplatform.test.cpp.internal;
 
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.file.RegularFile;
-import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -35,8 +30,6 @@ import org.gradle.language.cpp.internal.DefaultCppComponent;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
 import org.gradle.language.nativeplatform.internal.Names;
-import org.gradle.nativeplatform.tasks.InstallExecutable;
-import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.test.cpp.CppTestExecutable;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
@@ -45,72 +38,19 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
 
-public class DefaultCppTestExecutable extends DefaultCppBinary implements CppTestExecutable, ConfigurableComponentWithExecutable {
+public abstract class DefaultCppTestExecutable extends DefaultCppBinary implements CppTestExecutable, ConfigurableComponentWithExecutable {
     private final ProjectLayout projectLayout;
     private final Provider<CppComponent> testedComponent;
-    private final RegularFileProperty executableFile;
-    private final Property<Task> executableFileProducer;
-    private final DirectoryProperty installationDirectory;
-    private final Property<InstallExecutable> installTaskProperty;
-    private final Property<LinkExecutable> linkTaskProperty;
-    private final Property<RunTestExecutable> runTask;
-    private final ConfigurableFileCollection outputs;
-    private final RegularFileProperty debuggerExecutableFile;
 
     @Inject
     public DefaultCppTestExecutable(Names names, ProjectLayout projectLayout, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, Configuration implementation, Provider<CppComponent> testedComponent, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity, RoleBasedConfigurationContainerInternal configurations, ObjectFactory objects) {
         super(names, objects, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
         this.projectLayout = projectLayout;
         this.testedComponent = testedComponent;
-        this.executableFile = objects.fileProperty();
-        this.executableFileProducer = objects.property(Task.class);
-        this.debuggerExecutableFile = objects.fileProperty();
-        this.installationDirectory = objects.directoryProperty();
-        this.linkTaskProperty = objects.property(LinkExecutable.class);
-        this.installTaskProperty = objects.property(InstallExecutable.class);
-        this.outputs = objects.fileCollection();
-        this.runTask = objects.property(RunTestExecutable.class);
     }
 
     @Override
-    public ConfigurableFileCollection getOutputs() {
-        return outputs;
-    }
-
-    @Override
-    public RegularFileProperty getExecutableFile() {
-        return executableFile;
-    }
-
-    @Override
-    public Property<Task> getExecutableFileProducer() {
-        return executableFileProducer;
-    }
-
-    @Override
-    public Property<RegularFile> getDebuggerExecutableFile() {
-        return debuggerExecutableFile;
-    }
-
-    @Override
-    public DirectoryProperty getInstallDirectory() {
-        return installationDirectory;
-    }
-
-    @Override
-    public Property<InstallExecutable> getInstallTask() {
-        return installTaskProperty;
-    }
-
-    @Override
-    public Property<LinkExecutable> getLinkTask() {
-        return linkTaskProperty;
-    }
-
-    @Override
-    public Property<RunTestExecutable> getRunTask() {
-        return runTask;
-    }
+    public abstract Property<RunTestExecutable> getRunTask();
 
     @Override
     public FileCollection getCompileIncludePath() {

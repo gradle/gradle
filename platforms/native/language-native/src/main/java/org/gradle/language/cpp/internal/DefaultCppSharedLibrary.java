@@ -17,18 +17,14 @@
 package org.gradle.language.cpp.internal;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.internal.component.ConfigurationSoftwareComponentVariant;
 import org.gradle.language.cpp.CppPlatform;
@@ -38,7 +34,6 @@ import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRunt
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithSharedLibrary;
 import org.gradle.language.nativeplatform.internal.Names;
 import org.gradle.nativeplatform.Linkage;
-import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.jspecify.annotations.Nullable;
@@ -46,60 +41,10 @@ import org.jspecify.annotations.Nullable;
 import javax.inject.Inject;
 import java.util.Set;
 
-public class DefaultCppSharedLibrary extends DefaultCppBinary implements CppSharedLibrary, ConfigurableComponentWithSharedLibrary, ConfigurableComponentWithLinkUsage, ConfigurableComponentWithRuntimeUsage, SoftwareComponentInternal {
-    private final RegularFileProperty linkFile;
-    private final Property<Task> linkFileProducer;
-    private final RegularFileProperty runtimeFile;
-    private final Property<LinkSharedLibrary> linkTaskProperty;
-    private final Property<Configuration> linkElements;
-    private final Property<Configuration> runtimeElements;
-    private final ConfigurableFileCollection outputs;
-
+public abstract class DefaultCppSharedLibrary extends DefaultCppBinary implements CppSharedLibrary, ConfigurableComponentWithSharedLibrary, ConfigurableComponentWithLinkUsage, ConfigurableComponentWithRuntimeUsage, SoftwareComponentInternal {
     @Inject
     public DefaultCppSharedLibrary(Names names, ObjectFactory objectFactory, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, RoleBasedConfigurationContainerInternal configurations, Configuration implementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
         super(names, objectFactory, baseName, sourceFiles, componentHeaderDirs, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
-        this.linkFile = objectFactory.fileProperty();
-        this.linkFileProducer = objectFactory.property(Task.class);
-        this.runtimeFile = objectFactory.fileProperty();
-        this.linkTaskProperty = objectFactory.property(LinkSharedLibrary.class);
-        this.linkElements = objectFactory.property(Configuration.class);
-        this.runtimeElements = objectFactory.property(Configuration.class);
-        this.outputs = objectFactory.fileCollection();
-    }
-
-    @Override
-    public ConfigurableFileCollection getOutputs() {
-        return outputs;
-    }
-
-    @Override
-    public RegularFileProperty getLinkFile() {
-        return linkFile;
-    }
-
-    @Override
-    public Property<Task> getLinkFileProducer() {
-        return linkFileProducer;
-    }
-
-    @Override
-    public RegularFileProperty getRuntimeFile() {
-        return runtimeFile;
-    }
-
-    @Override
-    public Property<LinkSharedLibrary> getLinkTask() {
-        return linkTaskProperty;
-    }
-
-    @Override
-    public Property<Configuration> getLinkElements() {
-        return linkElements;
-    }
-
-    @Override
-    public Property<Configuration> getRuntimeElements() {
-        return runtimeElements;
     }
 
     @Nullable

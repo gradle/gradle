@@ -63,7 +63,6 @@ public abstract class JacocoPluginExtension {
     private final JacocoAgentJar agent;
 
     private String toolVersion;
-    private final DirectoryProperty reportsDirectory;
 
     /**
      * Creates a Jacoco plugin extension.
@@ -78,7 +77,6 @@ public abstract class JacocoPluginExtension {
         this.objects = project.getObjects();
         this.layout = project.getLayout();
         this.fs = ((ProjectInternal) project).getServices().get(FileSystemOperations.class);
-        reportsDirectory = project.getObjects().directoryProperty();
     }
 
     /**
@@ -98,9 +96,7 @@ public abstract class JacocoPluginExtension {
      *
      * @since 6.8
      */
-    public DirectoryProperty getReportsDirectory() {
-        return reportsDirectory;
-    }
+    public abstract DirectoryProperty getReportsDirectory();
 
     /**
      * Applies Jacoco to the given task.

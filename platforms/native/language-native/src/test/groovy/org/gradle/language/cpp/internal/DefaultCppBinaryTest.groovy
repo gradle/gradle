@@ -51,7 +51,7 @@ class DefaultCppBinaryTest extends Specification {
         _ * configurations.create("nativeRuntimeDebug") >> runtime
         _ * componentHeaders.plus(_) >> headerDirs
 
-        binary = new DefaultCppBinary(Names.of("mainDebug"), project.objects, Stub(Provider), Stub(FileCollection), componentHeaders, configurations, implementation, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativeVariantIdentity))
+        binary = TestUtil.objectFactory().newInstance(DefaultCppBinary, Names.of("mainDebug"), project.objects, Stub(Provider), Stub(FileCollection), componentHeaders, configurations, implementation, Stub(CppPlatform), Stub(NativeToolChainInternal), Stub(PlatformToolProvider), Stub(NativeVariantIdentity))
     }
 
     def "creates configurations for the binary"() {

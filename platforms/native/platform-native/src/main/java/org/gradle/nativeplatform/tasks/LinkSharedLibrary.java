@@ -37,11 +37,8 @@ import java.util.concurrent.Callable;
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class LinkSharedLibrary extends AbstractLinkTask {
-    private final Property<String> installName = getProject().getObjects().property(String.class);
-    private final RegularFileProperty importLibrary = getProject().getObjects().fileProperty();
-
     public LinkSharedLibrary() {
-        importLibrary.set(getProject().getLayout().getProjectDirectory().file(getProject().getProviders().provider(new Callable<String>() {
+        getImportLibrary().convention(getProject().getLayout().getProjectDirectory().file(getProject().getProviders().provider(new Callable<String>() {
             @Override
             public String call() throws Exception {
                 RegularFile binaryFile = getLinkedFile().getOrNull();
@@ -67,10 +64,9 @@ public abstract class LinkSharedLibrary extends AbstractLinkTask {
      *
      * @since 4.4
      */
-    @Optional @OutputFile
-    public RegularFileProperty getImportLibrary() {
-        return importLibrary;
-    }
+    @Optional
+    @OutputFile
+    public abstract RegularFileProperty getImportLibrary();
 
     /**
      * Returns the install name to use by this task. Defaults to no install name specified for the binary produced.
@@ -79,15 +75,13 @@ public abstract class LinkSharedLibrary extends AbstractLinkTask {
      */
     @Optional
     @Input
-    public Property<String> getInstallName() {
-        return installName;
-    }
+    public abstract Property<String> getInstallName();
 
     @Override
     protected LinkerSpec createLinkerSpec() {
         Spec spec = new Spec();
         spec.setInstallName(getInstallName().getOrNull());
-        spec.setImportLibrary(importLibrary.getAsFile().getOrNull());
+        spec.setImportLibrary(getImportLibrary().getAsFile().getOrNull());
         return spec;
     }
 

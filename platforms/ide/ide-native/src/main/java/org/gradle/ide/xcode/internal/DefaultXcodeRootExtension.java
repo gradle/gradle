@@ -16,22 +16,18 @@
 
 package org.gradle.ide.xcode.internal;
 
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.tasks.Nested;
 import org.gradle.ide.xcode.XcodeRootExtension;
 
 import javax.inject.Inject;
 
-public class DefaultXcodeRootExtension extends DefaultXcodeExtension implements XcodeRootExtension {
-    private final DefaultXcodeWorkspace workspace;
-
+public abstract class DefaultXcodeRootExtension extends DefaultXcodeExtension implements XcodeRootExtension {
     @Inject
-    public DefaultXcodeRootExtension(ObjectFactory objectFactory) {
-        super(objectFactory);
-        workspace = objectFactory.newInstance(DefaultXcodeWorkspace.class);
+    public DefaultXcodeRootExtension() {
+        super();
     }
 
     @Override
-    public DefaultXcodeWorkspace getWorkspace() {
-        return workspace;
-    }
+    @Nested
+    public abstract DefaultXcodeWorkspace getWorkspace();
 }

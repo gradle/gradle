@@ -105,13 +105,13 @@ public abstract class XcodePlugin extends IdePlugin {
         lifecycleTask.configure(withDescription("Generates XCode project files (pbxproj, xcworkspace, xcscheme)"));
 
         if (isRoot()) {
-            DefaultXcodeRootExtension xcode = (DefaultXcodeRootExtension) project.getExtensions().create(XcodeRootExtension.class, "xcode", DefaultXcodeRootExtension.class, objectFactory);
+            DefaultXcodeRootExtension xcode = (DefaultXcodeRootExtension) project.getExtensions().create(XcodeRootExtension.class, "xcode", DefaultXcodeRootExtension.class);
             xcodeProject = xcode.getProject();
             final GenerateXcodeWorkspaceFileTask workspaceTask = createWorkspaceTask(project, xcode.getWorkspace());
             lifecycleTask.configure(dependsOn(workspaceTask));
             addWorkspace(xcode.getWorkspace());
         } else {
-            DefaultXcodeExtension xcode = (DefaultXcodeExtension) project.getExtensions().create(XcodeExtension.class, "xcode", DefaultXcodeExtension.class, objectFactory);
+            DefaultXcodeExtension xcode = (DefaultXcodeExtension) project.getExtensions().create(XcodeExtension.class, "xcode", DefaultXcodeExtension.class);
             xcodeProject = xcode.getProject();
         }
 

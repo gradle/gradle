@@ -54,42 +54,29 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     // All of these field names are really long to prevent collisions with the groovy setters.
     // Groovy will try to set the private fields if given the opportunity.
     // This makes it much more difficult for this to happen accidentally.
-    private final DirectoryProperty archiveDestinationDirectory;
     private final RegularFileProperty archiveFile;
-    private final Property<String> archiveName;
-    private final Property<String> archiveBaseName;
-    private final Property<String> archiveAppendix;
-    private final Property<String> archiveVersion;
-    private final Property<String> archiveExtension;
-    private final Property<String> archiveClassifier;
     private final Property<Boolean> archivePreserveFileTimestamps;
     private final Property<Boolean> archiveReproducibleFileOrder;
 
     public AbstractArchiveTask() {
         ObjectFactory objectFactory = getProject().getObjects();
 
-        archiveDestinationDirectory = objectFactory.directoryProperty();
-        archiveBaseName = objectFactory.property(String.class);
-        archiveAppendix = objectFactory.property(String.class);
-        archiveVersion = objectFactory.property(String.class);
-        archiveExtension = objectFactory.property(String.class);
-        archiveClassifier = objectFactory.property(String.class).convention("");
+        getArchiveClassifier().convention("");
 
-        archiveName = objectFactory.property(String.class);
-        archiveName.convention(getProject().provider(() -> {
+        getArchiveFileName().convention(getProject().provider(() -> {
             // [baseName]-[appendix]-[version]-[classifier].[extension]
-            String name = GUtil.elvis(archiveBaseName.getOrNull(), "");
-            name += maybe(name, archiveAppendix.getOrNull());
-            name += maybe(name, archiveVersion.getOrNull());
-            name += maybe(name, archiveClassifier.getOrNull());
+            String name = GUtil.elvis(getArchiveBaseName().getOrNull(), "");
+            name += maybe(name, getArchiveAppendix().getOrNull());
+            name += maybe(name, getArchiveVersion().getOrNull());
+            name += maybe(name, getArchiveClassifier().getOrNull());
 
-            String extension = archiveExtension.getOrNull();
+            String extension = getArchiveExtension().getOrNull();
             name += GUtil.isTrue(extension) ? "." + extension : "";
             return name;
         }));
 
         archiveFile = objectFactory.fileProperty();
-        archiveFile.convention(archiveDestinationDirectory.file(archiveName));
+        archiveFile.convention(getDestinationDirectory().file(getArchiveFileName()));
 
         archivePreserveFileTimestamps = objectFactory.property(Boolean.class).convention(false);
         archiveReproducibleFileOrder = objectFactory.property(Boolean.class).convention(true);
@@ -133,9 +120,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @since 5.1
      */
     @Internal("Represented as part of archiveFile")
-    public Property<String> getArchiveFileName() {
-        return archiveName;
-    }
+    public abstract Property<String> getArchiveFileName();
 
     /**
      * The {@link RegularFile} where the archive is constructed.
@@ -164,9 +149,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @since 5.1
      */
     @Internal("Represented by the archiveFile")
-    public DirectoryProperty getDestinationDirectory() {
-        return archiveDestinationDirectory;
-    }
+    public abstract DirectoryProperty getDestinationDirectory();
 
     /**
      * Returns the base name of the archive.
@@ -175,9 +158,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @since 5.1
      */
     @Internal("Represented as part of archiveFile")
-    public Property<String> getArchiveBaseName() {
-        return archiveBaseName;
-    }
+    public abstract Property<String> getArchiveBaseName();
 
     /**
      * Returns the appendix part of the archive name, if any.
@@ -186,9 +167,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @since 5.1
      */
     @Internal("Represented as part of archiveFile")
-    public Property<String> getArchiveAppendix() {
-        return archiveAppendix;
-    }
+    public abstract Property<String> getArchiveAppendix();
 
     /**
      * Returns the version part of the archive name.
@@ -197,9 +176,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @since 5.1
      */
     @Internal("Represented as part of archiveFile")
-    public Property<String> getArchiveVersion() {
-        return archiveVersion;
-    }
+    public abstract Property<String> getArchiveVersion();
 
     /**
      * Returns the extension part of the archive name.
@@ -207,9 +184,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @since 5.1
      */
     @Internal("Represented as part of archiveFile")
-    public Property<String> getArchiveExtension() {
-        return archiveExtension;
-    }
+    public abstract Property<String> getArchiveExtension();
 
     /**
      * Returns the classifier part of the archive name, if any.
@@ -218,9 +193,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @since 5.1
      */
     @Internal("Represented as part of archiveFile")
-    public Property<String> getArchiveClassifier() {
-        return archiveClassifier;
-    }
+    public abstract Property<String> getArchiveClassifier();
 
     /**
      * Specifies the destination directory *inside* the archive for the files.

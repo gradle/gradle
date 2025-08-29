@@ -32,7 +32,7 @@ class DefaultTaskClassInfoStoreTest extends Specification {
     def typeAnnotationMetadata = Mock(TypeAnnotationMetadata)
 
     @CacheableTask
-    private static class MyCacheableTask extends DefaultTask {}
+    private static abstract class MyCacheableTask extends DefaultTask {}
 
     def "cacheable tasks are detected"() {
         given:
@@ -46,7 +46,7 @@ class DefaultTaskClassInfoStoreTest extends Specification {
         taskClassInfoStore.getTaskClassInfo(MyCacheableTask).cacheable
     }
 
-    private static class MyNonCacheableTask extends MyCacheableTask {}
+    private static abstract class MyNonCacheableTask extends MyCacheableTask {}
 
     def "cacheability is not inherited"() {
         given:
@@ -61,7 +61,7 @@ class DefaultTaskClassInfoStoreTest extends Specification {
     }
 
 
-    private static class NonAnnotatedTask extends DefaultTask {
+    private static abstract class NonAnnotatedTask extends DefaultTask {
         File inputFile
 
         @SuppressWarnings("GrMethodMayBeStatic")

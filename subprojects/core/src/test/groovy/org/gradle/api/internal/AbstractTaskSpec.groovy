@@ -26,7 +26,7 @@ import static org.junit.Assert.assertTrue
 class AbstractTaskSpec extends AbstractProjectBuilderSpec {
     def instantiator = TestUtil.instantiatorFactory().decorateLenient()
 
-    static class TestTask extends DefaultTask {
+    static abstract class TestTask extends DefaultTask {
     }
 
     TestTask createTask(String name) {

@@ -19,7 +19,6 @@ package org.gradle.swiftpm.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
@@ -38,7 +37,7 @@ import org.gradle.work.DisableCachingByDefault;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
@@ -51,35 +50,26 @@ import java.util.TreeSet;
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateSwiftPackageManagerManifest extends DefaultTask {
-    private final RegularFileProperty manifestFile;
-    private final Property<Package> packageProperty;
     private final String projectName;
 
     public GenerateSwiftPackageManagerManifest() {
         projectName = getProject().getName();
-        ObjectFactory objectFactory = getProject().getObjects();
-        manifestFile = objectFactory.fileProperty();
-        packageProperty = objectFactory.property(Package.class);
     }
 
     @Input
-    public Property<Package> getPackage() {
-        return packageProperty;
-    }
+    public abstract Property<Package> getPackage();
 
     @OutputFile
-    public RegularFileProperty getManifestFile() {
-        return manifestFile;
-    }
+    public abstract RegularFileProperty getManifestFile();
 
     @TaskAction
     public void generate() {
-        DefaultPackage srcPackage = (DefaultPackage) packageProperty.get();
-        Path manifest = manifestFile.get().getAsFile().toPath();
+        DefaultPackage srcPackage = (DefaultPackage) getPackage().get();
+        Path manifest = getManifestFile().get().getAsFile().toPath();
         try {
             Path baseDir = manifest.getParent();
             Files.createDirectories(baseDir);
-            PrintWriter writer = new PrintWriter(Files.newBufferedWriter(manifest, Charset.forName("utf-8")));
+            PrintWriter writer = new PrintWriter(Files.newBufferedWriter(manifest, StandardCharsets.UTF_8));
             try {
                 writer.println("// swift-tools-version:4.0");
                 writer.println("//");

@@ -36,15 +36,11 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import javax.inject.Inject;
 
 public abstract class DefaultCppTestSuite extends DefaultCppComponent implements CppTestSuite {
-    private final Property<CppComponent> testedComponent;
-    private final Property<CppTestExecutable> testBinary;
     private final DefaultComponentDependencies dependencies;
 
     @Inject
     public DefaultCppTestSuite(String name) {
         super(name);
-        this.testedComponent = getObjectFactory().property(CppComponent.class);
-        this.testBinary = getObjectFactory().property(CppTestExecutable.class);
         this.dependencies = getObjectFactory().newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
     }
 
@@ -74,12 +70,8 @@ public abstract class DefaultCppTestSuite extends DefaultCppComponent implements
         action.execute(dependencies);
     }
 
-    public Property<CppComponent> getTestedComponent() {
-        return testedComponent;
-    }
+    public abstract Property<CppComponent> getTestedComponent();
 
     @Override
-    public Property<CppTestExecutable> getTestBinary() {
-        return testBinary;
-    }
+    public abstract Property<CppTestExecutable> getTestBinary();
 }

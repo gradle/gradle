@@ -19,7 +19,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.TaskAction
 
-class InputFileTask extends DefaultTask {
+abstract class InputFileTask extends DefaultTask {
     @InputFile
     File srcFile
 

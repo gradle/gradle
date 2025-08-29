@@ -37,7 +37,7 @@ import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
-public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
+public abstract class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     private final Provider<String> baseName;
     private final FileCollection sourceFiles;
     private final FileCollection includePath;
@@ -47,7 +47,6 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     private final NativeToolChainInternal toolChain;
     private final PlatformToolProvider platformToolProvider;
     private final Configuration includePathConfiguration;
-    private final Property<CppCompile> compileTaskProperty;
     private final NativeVariantIdentity identity;
 
     public DefaultCppBinary(Names names, ObjectFactory objects, Provider<String> baseName, FileCollection sourceFiles, FileCollection componentHeaderDirs, RoleBasedConfigurationContainerInternal configurations, Configuration componentImplementation, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
@@ -57,7 +56,6 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
         this.targetPlatform = targetPlatform;
         this.toolChain = toolChain;
         this.platformToolProvider = platformToolProvider;
-        this.compileTaskProperty = objects.property(CppCompile.class);
         this.identity = identity;
 
         // TODO - reduce duplication with Swift binary
@@ -166,9 +164,7 @@ public class DefaultCppBinary extends DefaultNativeBinary implements CppBinary {
     }
 
     @Override
-    public Property<CppCompile> getCompileTask() {
-        return compileTaskProperty;
-    }
+    public abstract Property<CppCompile> getCompileTask();
 
     public PlatformToolProvider getPlatformToolProvider() {
         return platformToolProvider;
