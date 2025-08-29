@@ -21,6 +21,6 @@ class CheckLinks(
                 listOf(
                     buildScanTagParam("CheckLinks"),
                     "-Porg.gradle.java.installations.auto-download=false",
-                ).joinToString(""),
+                ).joinToString(" "),
         )
     })
