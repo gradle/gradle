@@ -195,8 +195,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
             if (!useKeyServers && hasMissingKeys) {
                 contents.append("            In this case, you can ask Gradle to export all keys it used for verification of this build to the keyring with the following command-line:</p>")
                         .append("            <pre>./gradlew --write-verification-metadata ").append(verificationOptions()).append(" --export-keys help</pre>");
-            }
-            else {
+            } else {
                 contents.append("            In this case, you can run with the following command-line:</p>")
                         .append("            <pre>./gradlew --write-verification-metadata ").append(verificationOptions()).append(" help</pre>");
             }
