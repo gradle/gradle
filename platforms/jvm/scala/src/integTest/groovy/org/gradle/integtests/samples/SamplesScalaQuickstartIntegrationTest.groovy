@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.ZincScalaCompileFixture
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -60,11 +59,6 @@ class SamplesScalaQuickstartIntegrationTest extends AbstractSampleIntegrationTes
 
     @UsesSample('scala/quickstart')
     def "can build scalaDoc with #dsl dsl"() {
-        if (GradleContextualExecuter.isDaemon()) {
-            // don't load scala into the daemon as it exhausts permgen
-            return
-        }
-
         TestFile projectDir = sample.dir.file(dsl)
         executer.inDirectory(projectDir).withTasks('clean', 'scaladoc').run()
 
