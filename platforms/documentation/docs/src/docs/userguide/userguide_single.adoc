@@ -100,7 +100,7 @@ include::build_services.adoc[leveloffset=+2]
 
 == DEVELOPING PLUGINS
 
-include::custom_plugins.adoc[leveloffset=+2]
+include::plugins.adoc[leveloffset=+2]
 include::implementing_gradle_plugins.adoc[leveloffset=+2]
 include::implementing_gradle_plugins_precompiled.adoc[leveloffset=+2]
 include::implementing_gradle_plugins_binary.adoc[leveloffset=+2]
