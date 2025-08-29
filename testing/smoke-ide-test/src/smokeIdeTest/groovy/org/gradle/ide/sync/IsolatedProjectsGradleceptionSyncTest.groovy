@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
 
-    private TestFile gradleDir = testDirectory.createDir("gradle")
+    private TestFile gradleDir = testDirectory.createDir("gradle-checkout")
     private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(gradleDir)
 
     def "can sync gradle/gradle build without problems"() {
