@@ -104,15 +104,11 @@ public abstract class FindBadMultiLangSnippets extends DefaultTask {
 
             if (line.equals("[.multi-language-sample]")) {
                 int headerLine = i + 1; // 1-based
-                // Look ahead a bit to find either filename or [source, ...]
-                String filename = null;
+                // Look ahead a bit to find [source, ...]
                 String sourceLang = null;
                 for (int j = i + 1; j < Math.min(i + 15, lines.size()); j++) {
                     String look = lines.get(j).trim();
 
-                    if (filename == null && (look.equals(".build.gradle") || look.equals(".build.gradle.kts"))) {
-                        filename = look;
-                    }
                     if (sourceLang == null) {
                         String parsed = parseSourceLang(look);
                         if (parsed != null) {
@@ -120,7 +116,7 @@ public abstract class FindBadMultiLangSnippets extends DefaultTask {
                         }
                     }
 
-                    if (filename != null && sourceLang != null) {
+                    if (sourceLang != null) {
                         break;
                     }
                     if (look.equals("[.multi-language-sample]") || look.equals("====")) {
@@ -128,7 +124,7 @@ public abstract class FindBadMultiLangSnippets extends DefaultTask {
                     }
                 }
 
-                Language detected = deduceLanguage(filename, sourceLang);
+                Language detected = deduceLanguage(sourceLang);
                 currentSnippets.add(new Snippet(headerLine, detected));
             }
         }
@@ -179,16 +175,7 @@ public abstract class FindBadMultiLangSnippets extends DefaultTask {
         return null;
     }
 
-    private static Language deduceLanguage(String filename, String sourceLang) {
-        // Prefer filename if present; otherwise source; no mismatch checking.
-        if (filename != null) {
-            if (filename.endsWith(".kts")) {
-                return Language.KOTLIN;
-            }
-            if (filename.equals(".build.gradle")) {
-                return Language.GROOVY;
-            }
-        }
+    private static Language deduceLanguage(String sourceLang) {
         if (sourceLang != null) {
             if ("kotlin".equalsIgnoreCase(sourceLang)) {
                 return Language.KOTLIN;
