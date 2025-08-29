@@ -495,6 +495,8 @@ task resolve {
         mavenHttpRepo.module('org', 'foo', '1.1').publish()
         mavenHttpRepo.module('org', 'foo', '2.0').publish()
         def bar10 = mavenHttpRepo.module('org', 'bar', '1.0').dependsOn('org', 'foo', '[1.0,2.0)').publish()
+        def bar11 = mavenHttpRepo.module('org', 'bar', '1.1').dependsOn('org', 'foo', '[1.0,2.0)').publish()
+        def bar15 = mavenHttpRepo.module('org', 'bar', '1.5').dependsOn('org', 'foo', '[1.0,2.0)').publish()
         def bar21 = mavenHttpRepo.module('org', 'bar', '2.1').dependsOn('org', 'foo', '[1.0,2.0)').publish()
 
         lockfileFixture.createLockfile('lockedConf', ['org:bar:2.1', 'org:foo:1.0'], false)
@@ -527,7 +529,6 @@ dependencies {
 """
         when:
         foo10.pom.expectGet()
-        bar21.rootMetaData.expectGet()
         bar21.pom.expectGet()
 
         then:
