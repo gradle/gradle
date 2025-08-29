@@ -41,11 +41,11 @@ import org.gradle.problems.buildtree.ProblemStream
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 import spock.lang.Specification
 
-class ValidationProblemSerializationTest extends Specification {
+class VerificationProblemSerializationTest extends Specification {
 
     def problemId = ProblemId.create("id", "label", GradleCoreProblemGroup.validation().type())
 
-    Gson gson = ValidationProblemSerialization.createGsonBuilder().create()
+    Gson gson = VerificationProblemSerialization.createGsonBuilder().create()
     InternalProblemReporter problemReporter = new DefaultProblemReporter(
         Stub(ProblemSummarizer),
         CurrentBuildOperationRef.instance(),
@@ -61,29 +61,29 @@ class ValidationProblemSerializationTest extends Specification {
         )
     )
 
-    def "can serialize and deserialize a validation problem"() {
+    def "can serialize and deserialize a verification problem"() {
         given:
         def problem = problemReporter.create(problemId, {})
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+        def deserialized = VerificationProblemSerialization.parseMessageList(json)
 
         then:
         deserialized.size() == 1
         deserialized[0].definition.id.name == "id"
         deserialized[0].definition.id.displayName == "label"
-        deserialized[0].definition.id.group.name == "type-validation"
-        deserialized[0].definition.id.group.displayName == "Gradle type validation"
-        deserialized[0].definition.id.group.parent.name == "validation"
-        deserialized[0].definition.id.group.parent.displayName == "Validation"
+        deserialized[0].definition.id.group.name == "type-verification"
+        deserialized[0].definition.id.group.displayName == "Gradle type verification"
+        deserialized[0].definition.id.group.parent.name == "verification"
+        deserialized[0].definition.id.group.parent.displayName == "Verification"
         deserialized[0].definition.id.group.parent.parent == null
 
         deserialized[0].originLocations.isEmpty()
         deserialized[0].definition.documentationLink == null
     }
 
-    def "can serialize and deserialize a validation problem with a location"() {
+    def "can serialize and deserialize a verification problem with a location"() {
         given:
         def problem = problemReporter.create(problemId) {
             it.lineInFileLocation("location", 1, 2, 3)
@@ -91,7 +91,7 @@ class ValidationProblemSerializationTest extends Specification {
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+        def deserialized = VerificationProblemSerialization.parseMessageList(json)
 
         then:
         deserialized.size() == 1
@@ -113,7 +113,7 @@ class ValidationProblemSerializationTest extends Specification {
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+        def deserialized = VerificationProblemSerialization.parseMessageList(json)
 
         then:
         deserialized.size() == 1
@@ -143,7 +143,7 @@ class ValidationProblemSerializationTest extends Specification {
         }
     }
 
-    def "can serialize and deserialize a validation problem with a cause"() {
+    def "can serialize and deserialize a verification problem with a cause"() {
         given:
         def problem = problemReporter.create(problemId) {
             it.withException(new RuntimeException("cause"))
@@ -151,7 +151,7 @@ class ValidationProblemSerializationTest extends Specification {
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+        def deserialized = VerificationProblemSerialization.parseMessageList(json)
 
         then:
         deserialized.size() == 1
@@ -162,7 +162,7 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized[0].exception.message == "cause"
     }
 
-    def "can serialize and deserialize a validation problem with a severity"(Severity severity) {
+    def "can serialize and deserialize a verification problem with a severity"(Severity severity) {
         given:
         def problem = problemReporter.create(problemId) {
             it.severity(severity)
@@ -170,7 +170,7 @@ class ValidationProblemSerializationTest extends Specification {
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+        def deserialized = VerificationProblemSerialization.parseMessageList(json)
 
         then:
         deserialized.size() == 1
@@ -184,7 +184,7 @@ class ValidationProblemSerializationTest extends Specification {
         severity << Severity.values()
     }
 
-    def "can serialize and deserialize a validation problem with a solution"() {
+    def "can serialize and deserialize a verification problem with a solution"() {
         given:
         def problem = problemReporter.create(problemId) {
             it.solution("solution 0")
@@ -193,7 +193,7 @@ class ValidationProblemSerializationTest extends Specification {
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+        def deserialized = VerificationProblemSerialization.parseMessageList(json)
 
         then:
         deserialized.size() == 1
@@ -205,7 +205,7 @@ class ValidationProblemSerializationTest extends Specification {
         deserialized[0].solutions[1] == "solution 1"
     }
 
-    def "can serialize and deserialize a validation problem with additional data"() {
+    def "can serialize and deserialize a verification problem with additional data"() {
         given:
         def problem = problemReporter.internalCreate {
             it.id(problemId)
@@ -219,7 +219,7 @@ class ValidationProblemSerializationTest extends Specification {
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+        def deserialized = VerificationProblemSerialization.parseMessageList(json)
 
         then:
         deserialized.size() == 1
@@ -244,7 +244,7 @@ class ValidationProblemSerializationTest extends Specification {
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+        def deserialized = VerificationProblemSerialization.parseMessageList(json)
 
         then:
         deserialized.size() == 1
@@ -265,7 +265,7 @@ class ValidationProblemSerializationTest extends Specification {
 
         when:
         def json = gson.toJson([problem])
-        def deserialized = ValidationProblemSerialization.parseMessageList(json)
+        def deserialized = VerificationProblemSerialization.parseMessageList(json)
 
         then:
         deserialized.size() == 1

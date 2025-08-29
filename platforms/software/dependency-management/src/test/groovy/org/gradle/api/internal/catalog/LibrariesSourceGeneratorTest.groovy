@@ -319,7 +319,7 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
         then:
         InvalidUserDataException ex = thrown()
         verify ex.message, tooManyEntries {
-            entryCount(32000)
+            entryCount(30000)
         }
     }
 
