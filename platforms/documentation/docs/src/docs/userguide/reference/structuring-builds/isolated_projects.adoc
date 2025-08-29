@@ -146,7 +146,7 @@ This will allow Gradle to perform additional performance optimizations and will 
 
 While the existing callbacks continue to work, we encourage everyone to adopt the new API and provide us with early feedback.
 
-The example below shows how this new API could be used in a settings script or <<custom_plugins.adoc#project_vs_settings_vs_init_plugins, settings plugins>> to apply configuration to all projects,
+The example below shows how this new API could be used in a settings script or <<plugins.adoc#project_vs_settings_vs_init_plugins, settings plugins>> to apply configuration to all projects,
 while avoiding <<sharing_build_logic_between_subprojects.adoc#sec:convention_plugins_vs_cross_configuration, cross-project configuration>>:
 
 [source,kotlin]

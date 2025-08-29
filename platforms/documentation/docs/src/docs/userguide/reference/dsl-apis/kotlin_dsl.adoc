@@ -600,7 +600,7 @@ Lazy property assignment is supported from IntelliJ 2022.3 and from Android Stud
 == Kotlin DSL Plugin
 
 The Kotlin DSL Plugin provides a convenient way to develop Kotlin-based projects that contribute build logic.
-This includes <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,buildSrc projects>>, <<composite_builds#composite_builds,included builds>>, and <<custom_plugins#custom_plugins,Gradle plugins>>.
+This includes <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,buildSrc projects>>, <<composite_builds#composite_builds,included builds>>, and <<plugins#custom_plugins,Gradle plugins>>.
 
 The plugin achieves this by doing the following:
 
@@ -609,7 +609,7 @@ The plugin achieves this by doing the following:
 * Configures the Kotlin compiler with the same settings used for Kotlin DSL scripts, ensuring consistency between your build logic and those scripts:
 ** Adds <<kotlin_dsl#sec:kotlin_compiler_arguments, Kotlin compiler arguments>>,
 ** Registers the link:https://kotlinlang.org/docs/sam-with-receiver-plugin.html[SAM-with-receiver Kotlin compiler plugin].
-* Enables support for <<custom_plugins#sec:precompile_script_plugin,precompiled script plugins>>.
+* Enables support for <<plugins#sec:precompile_script_plugin,precompiled script plugins>>.
 
 --
 Each Gradle release is meant to be used with a specific version of the `kotlin-dsl` plugin.
