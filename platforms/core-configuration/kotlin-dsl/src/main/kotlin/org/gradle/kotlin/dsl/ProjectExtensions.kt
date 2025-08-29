@@ -199,6 +199,8 @@ operator fun Project.provideDelegate(any: Any?, property: KProperty<*>): Propert
  *
  * @see [Project.container]
  */
+@Suppress("DEPRECATION")
+@Deprecated("Replaced by ObjectFactory method", replaceWith = ReplaceWith("objects.domainObjectContainer(T::class.java)"))
 inline fun <reified T : Any> Project.container(): NamedDomainObjectContainer<T> =
     container(T::class.java)
 
@@ -217,6 +219,8 @@ inline fun <reified T : Any> Project.container(): NamedDomainObjectContainer<T> 
  *
  * @see [Project.container]
  */
+@Suppress("DEPRECATION")
+@Deprecated("Replaced by ObjectFactory method", replaceWith = ReplaceWith("objects.domainObjectContainer(T::class.java, factory)"))
 inline fun <reified T : Any> Project.container(noinline factory: (String) -> T): NamedDomainObjectContainer<T> =
     container(T::class.java, factory)
 
