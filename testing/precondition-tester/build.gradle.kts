@@ -90,3 +90,7 @@ fun Test.setupPreconditionTesting() {
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }
+
+errorprone {
+    nullawayEnabled = true
+}

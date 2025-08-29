@@ -21,7 +21,8 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.initialization.DefaultProjectDescriptor;
+import org.gradle.initialization.ProjectDescriptorInternal;
+import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factories;
@@ -66,14 +67,14 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
     }
 
     @Override
-    public void registerProjects(BuildState owner, ProjectRegistry<DefaultProjectDescriptor> projectRegistry) {
-        Set<DefaultProjectDescriptor> allProjects = projectRegistry.getAllProjects();
+    public void registerProjects(BuildState owner, ProjectDescriptorRegistry projectRegistry) {
+        Set<ProjectDescriptorInternal> allProjects = projectRegistry.getAllProjects();
         synchronized (lock) {
             DefaultBuildProjectRegistry buildProjectRegistry = getBuildProjectRegistry(owner);
             if (!buildProjectRegistry.projectsByPath.isEmpty()) {
                 throw new IllegalStateException("Projects for " + owner.getDisplayName() + " have already been registered.");
             }
-            for (DefaultProjectDescriptor descriptor : allProjects) {
+            for (ProjectDescriptorInternal descriptor : allProjects) {
                 addProject(owner, buildProjectRegistry, descriptor);
             }
         }
@@ -89,7 +90,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
     }
 
     @Override
-    public ProjectState registerProject(BuildState owner, DefaultProjectDescriptor projectDescriptor) {
+    public ProjectState registerProject(BuildState owner, ProjectDescriptorInternal projectDescriptor) {
         synchronized (lock) {
             DefaultBuildProjectRegistry buildProjectRegistry = getBuildProjectRegistry(owner);
             return addProject(owner, buildProjectRegistry, projectDescriptor);
@@ -109,7 +110,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         }
     }
 
-    private ProjectState addProject(BuildState owner, DefaultBuildProjectRegistry projectRegistry, DefaultProjectDescriptor descriptor) {
+    private ProjectState addProject(BuildState owner, DefaultBuildProjectRegistry projectRegistry, ProjectDescriptorInternal descriptor) {
         Path projectPath = descriptor.path();
 
         ProjectIdentity identity;
@@ -256,7 +257,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
     private class ProjectStateImpl implements ProjectState, Closeable {
 
-        private final DefaultProjectDescriptor descriptor;
+        private final ProjectDescriptorInternal descriptor;
         private final IProjectFactory projectFactory;
         private final BuildState owner;
         private final ProjectIdentity identity;
@@ -270,7 +271,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         ProjectStateImpl(
             BuildState owner,
             ProjectIdentity identity,
-            DefaultProjectDescriptor descriptor,
+            ProjectDescriptorInternal descriptor,
             IProjectFactory projectFactory,
             StateTransitionControllerFactory stateTransitionControllerFactory,
             ServiceRegistry buildServices
@@ -333,7 +334,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         @Override
         public Set<ProjectState> getChildProjects() {
             Set<ProjectState> children = new TreeSet<>(Comparator.comparing(ProjectState::getIdentityPath));
-            for (DefaultProjectDescriptor child : descriptor.children()) {
+            for (ProjectDescriptorInternal child : descriptor.children()) {
                 children.add(getStateForChild(child));
             }
             return children;
@@ -349,7 +350,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
             return !descriptor.children().isEmpty();
         }
 
-        private ProjectStateImpl getStateForChild(DefaultProjectDescriptor child) {
+        private ProjectStateImpl getStateForChild(ProjectDescriptorInternal child) {
             Path childProjectPath = child.path();
             Path childIdentityPath = ProjectIdentity.computeProjectIdentityPath(owner.getIdentityPath(), childProjectPath);
             return projectsByPath.get(childIdentityPath);

@@ -93,7 +93,7 @@
          <trusted-key id="147B691A19097624902F4EA9689CBE64F4BC997F" group="^org[.]mockito($|([.].*))" regex="true"/>
          <trusted-key id="160A7A9CF46221A56B06AD64461A804F2609FD89" group="^com[.]github[.]shyiko($|([.].*))" regex="true"/>
          <trusted-key id="1616273079FE63E31C938F10F0DF21D1D0A3C384" group="com.google.inject" name="guice" version="4.2.3"/>
-         <trusted-key id="19BEAB2D799C020F17C69126B16698A4ADF4D638" group="org.checkerframework" name="checker-qual"/>
+         <trusted-key id="19BEAB2D799C020F17C69126B16698A4ADF4D638" group="org.checkerframework"/>
          <trusted-key id="1A55F091AD28C07F831FA44D7905DE25C78AD456" group="com.google.protobuf"/>
          <trusted-key id="1BD97A6A154E7810EE0BC832E2F38302C8075E3D">
             <trusting group="net.rubygrapefruit"/>
@@ -123,8 +123,8 @@
             <trusting group="org.scala-sbt"/>
          </trusted-key>
          <trusted-key id="2DB4F1EF0FA761ECC4EA935C86FDC7E2A11262CB">
-            <trusting group="commons-codec"/>
             <trusting group="commons-beanutils"/>
+            <trusting group="commons-codec"/>
             <trusting group="commons-io"/>
             <trusting group="org.apache.commons"/>
             <trusting group="xml-apis"/>
@@ -288,6 +288,7 @@
             <trusting group="^com[.]google[.]auto($|([.].*))" regex="true"/>
          </trusted-key>
          <trusted-key id="C9A503282182EC4ECDB914EA102E05D8DA6C286D" group="com.sun.xml.bind"/>
+         <trusted-key id="C9F5BB47FCF51250930BD8E22F73DAE490984549" group="com.uber.nullaway"/>
          <trusted-key id="CACFBD4755A2FC78709BDD92BE096E29EDB8D141" group="net.sf.proguard"/>
          <trusted-key id="CD5464315F0B98C77E6E8ECD9DAADC1C9FCC82D0">
             <trusting group="commons-cli"/>
@@ -836,9 +837,9 @@
             <sha256 value="889e1e07300265211222ad70b0644b9af0954eb2f9eaf06544c0e436967f434f" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="gradle.plugin.org.jetbrains.gradle.plugin.idea-ext" name="gradle-idea-ext" version="1.1.10">
-         <artifact name="gradle-idea-ext-1.1.10.jar">
-            <sha256 value="fea76e0c13f9e96c2516d0176e649be44d979f4ec80319f3c8628a6e7947512d" origin="Verified" reason="Artifact is not signed"/>
+      <component group="gradle.plugin.org.jetbrains.gradle.plugin.idea-ext" name="gradle-idea-ext" version="1.3">
+         <artifact name="gradle-idea-ext-1.3.jar">
+            <sha256 value="a50ba79776c223679c878af380f7b7efac5d8b6e0865c8d3d6207450e0135a30" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="gradle.plugin.org.ysb33r.gradle" name="gradle-cloudci-plugin" version="2.3">
@@ -1021,6 +1022,11 @@
             <sha256 value="f1eab035c996e20b081bf3c18bd0e328bb553d465e4be2354d0af4dde070465d" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
+      <component group="net.ltgt.gradle" name="gradle-nullaway-plugin" version="2.2.0">
+         <artifact name="gradle-nullaway-plugin-2.2.0.jar">
+            <sha256 value="7caa4552e349f29dec42e219d136f7029d57e990460c209c9c6d307983556b4d" origin="Verified" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
       <component group="net.openhft" name="zero-allocation-hashing" version="0.10.1">
          <artifact name="zero-allocation-hashing-0.10.1.jar">
             <pgp value="CB3808E03CD602A6DC5B882552931F4B72B4F54C"/>
@@ -1154,11 +1160,6 @@
       <component group="org.apache.maven.wagon" name="wagon-provider-api" version="3.5.3">
          <artifact name="wagon-provider-api-3.5.3.jar">
             <pgp value="6A814B1F869C2BBEAB7CB7271A2A1C94BDE89688"/>
-         </artifact>
-      </component>
-      <component group="org.apache.mina" name="mina-core" version="2.0.17">
-         <artifact name="mina-core-2.0.17.jar">
-            <pgp value="4D2DB2916149BAA9D0C92F3731474E5E7C6B7034"/>
          </artifact>
       </component>
       <component group="org.apache.velocity" name="velocity" version="1.7">

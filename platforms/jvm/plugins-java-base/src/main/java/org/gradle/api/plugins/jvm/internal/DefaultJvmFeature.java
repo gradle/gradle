@@ -17,9 +17,11 @@ package org.gradle.api.plugins.jvm.internal;
 
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.GradleException;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
+import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.capabilities.Capability;
@@ -38,6 +40,7 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
@@ -102,12 +105,12 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     private final Configuration compileClasspath;
 
     // Outgoing variants
-    private final Configuration apiElements;
-    private final Configuration runtimeElements;
+    private final NamedDomainObjectProvider<ConsumableConfiguration> apiElements;
+    private final NamedDomainObjectProvider<ConsumableConfiguration> runtimeElements;
 
     // Configurable outgoing variants
-    private Configuration javadocElements;
-    private Configuration sourcesElements;
+    private @Nullable NamedDomainObjectProvider<ConsumableConfiguration> javadocElements;
+    private @Nullable NamedDomainObjectProvider<ConsumableConfiguration> sourcesElements;
 
     public DefaultJvmFeature(
         String name,
@@ -213,13 +216,13 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         publications.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JAR_TYPE);
     }
 
-    private Configuration createApiElements(
+    private NamedDomainObjectProvider<ConsumableConfiguration> createApiElements(
         RoleBasedConfigurationContainerInternal configurations,
         PublishArtifact jarArtifact,
         TaskProvider<JavaCompile> compileJava
     ) {
         String configName = getConfigurationName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME);
-        return configurations.consumableLocked(configName, apiElements -> {
+        return configurations.consumable(configName, apiElements -> {
             jvmLanguageUtilities.useDefaultTargetPlatformInference(apiElements, compileJava);
             jvmPluginServices.configureAsApiElements(apiElements);
             capabilities.forEach(apiElements.getOutgoing()::capability);
@@ -230,13 +233,13 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         });
     }
 
-    private Configuration createRuntimeElements(
+    private NamedDomainObjectProvider<ConsumableConfiguration> createRuntimeElements(
         RoleBasedConfigurationContainerInternal configurations,
         PublishArtifact jarArtifact,
         TaskProvider<JavaCompile> compileJava
     ) {
         String configName = getConfigurationName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME);
-        return configurations.consumableLocked(configName, runtimeElements -> {
+        return configurations.consumable(configName, runtimeElements -> {
             jvmLanguageUtilities.useDefaultTargetPlatformInference(runtimeElements, compileJava);
             jvmPluginServices.configureAsRuntimeElements(runtimeElements);
             capabilities.forEach(runtimeElements.getOutgoing()::capability);
@@ -261,48 +264,17 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
         this.api = dependencyScope("API", JvmConstants.API_CONFIGURATION_NAME, true, false);
         this.compileOnlyApi = dependencyScope("Compile-only API", JvmConstants.COMPILE_ONLY_API_CONFIGURATION_NAME, true, true);
 
-        this.apiElements.extendsFrom(api, compileOnlyApi);
+        this.apiElements.configure(conf -> {
+            conf.extendsFrom(api, compileOnlyApi);
+            // TODO: Why do we not always do this? Why only when we have an API?
+            jvmPluginServices.configureClassesDirectoryVariant(conf, sourceSet);
+        });
         this.implementation.extendsFrom(api);
         this.compileOnly.extendsFrom(compileOnlyApi);
-
-        // TODO: Why do we not always do this? Why only when we have an API?
-        jvmPluginServices.configureClassesDirectoryVariant(apiElements, sourceSet);
 
         if (extendProductionCode) {
             project.getConfigurations().getByName(JvmConstants.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(compileOnlyApi);
         }
-    }
-
-    @Override
-    public void withJavadocJar() {
-        if (javadocElements != null) {
-            return;
-        }
-        this.javadocElements = JvmPluginsHelper.createDocumentationVariantWithArtifact(
-            sourceSet.getJavadocElementsConfigurationName(),
-            SourceSet.isMain(sourceSet) ? null : name,
-            JAVADOC,
-            capabilities,
-            sourceSet.getJavadocJarTaskName(),
-            project.getTasks().named(sourceSet.getJavadocTaskName()),
-            project
-        );
-    }
-
-    @Override
-    public void withSourcesJar() {
-        if (sourcesElements != null) {
-            return;
-        }
-        this.sourcesElements = JvmPluginsHelper.createDocumentationVariantWithArtifact(
-            sourceSet.getSourcesElementsConfigurationName(),
-            SourceSet.isMain(sourceSet) ? null : name,
-            SOURCES,
-            capabilities,
-            sourceSet.getSourcesJarTaskName(),
-            sourceSet.getAllSource(),
-            project
-        );
     }
 
     @Override
@@ -411,22 +383,44 @@ public class DefaultJvmFeature implements JvmFeatureInternal {
     }
 
     @Override
-    public Configuration getApiElementsConfiguration() {
+    public NamedDomainObjectProvider<ConsumableConfiguration> getApiElementsConfiguration() {
         return apiElements;
     }
 
     @Override
-    public Configuration getRuntimeElementsConfiguration() {
+    public NamedDomainObjectProvider<ConsumableConfiguration> getRuntimeElementsConfiguration() {
         return runtimeElements;
     }
 
     @Override
-    public Configuration getJavadocElementsConfiguration() {
+    public NamedDomainObjectProvider<ConsumableConfiguration> maybeRegisterJavadocElements() {
+        if (javadocElements == null) {
+            this.javadocElements = JvmPluginsHelper.createDocumentationVariantWithArtifact(
+                sourceSet.getJavadocElementsConfigurationName(),
+                SourceSet.isMain(sourceSet) ? null : name,
+                JAVADOC,
+                capabilities,
+                sourceSet.getJavadocJarTaskName(),
+                project.getTasks().named(sourceSet.getJavadocTaskName()),
+                project
+            );
+        }
         return javadocElements;
     }
 
     @Override
-    public Configuration getSourcesElementsConfiguration() {
+    public NamedDomainObjectProvider<ConsumableConfiguration> maybeRegisterSourcesElements() {
+        if (sourcesElements == null) {
+            this.sourcesElements = JvmPluginsHelper.createDocumentationVariantWithArtifact(
+                sourceSet.getSourcesElementsConfigurationName(),
+                SourceSet.isMain(sourceSet) ? null : name,
+                SOURCES,
+                capabilities,
+                sourceSet.getSourcesJarTaskName(),
+                sourceSet.getAllSource(),
+                project
+            );
+        }
         return sourcesElements;
     }
 

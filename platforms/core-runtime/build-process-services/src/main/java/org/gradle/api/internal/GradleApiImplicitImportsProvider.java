@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resources;
+package org.gradle.api.internal;
 
-public interface ProjectLockStatistics {
-    void measure(Runnable runnable);
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.NullMarked;
 
-    long getTotalWaitTimeMillis();
+import java.util.List;
+
+/**
+ * Provides the lists of imports implicitly added to build script (for the various DSLs).
+ */
+@NullMarked
+@ServiceScope(Scope.Global.class)
+public interface GradleApiImplicitImportsProvider {
+
+    List<String> getGroovyDslImplicitImports();
+
+    List<String> getKotlinDslImplicitImports();
 }

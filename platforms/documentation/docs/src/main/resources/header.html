@@ -42,23 +42,47 @@
                             </svg>
                         </a>
                         <script type="text/javascript">
+                            const lightThemeStyle = document.getElementById("light-theme-style");
+                            const darkThemeStyle = document.getElementById("dark-theme-style");
                             const btn = document.querySelector(".theme-toggle");
                             const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
-                            const currentTheme = localStorage.getItem("theme");
-                            if (currentTheme == "dark") {
-                              document.body.classList.toggle("dark-theme");
-                            } else if (currentTheme == "light") {
-                              document.body.classList.toggle("light-theme");
+
+                            function enableLightTheme() {
+                              lightThemeStyle.disabled = false;
+                              darkThemeStyle.disabled = true;
+                              document.body.classList.remove("dark-theme");
+                              document.body.classList.add("light-theme");
+                              localStorage.setItem("theme", "light");
                             }
-                            btn.addEventListener("click", function () {
-                              if (prefersDarkScheme.matches) {
-                                document.body.classList.toggle("light-theme");
-                                var theme = document.body.classList.contains("light-theme")? "light" : "dark";
+
+                            function enableDarkTheme() {
+                              lightThemeStyle.disabled = true;
+                              darkThemeStyle.disabled = false;
+                              document.body.classList.remove("light-theme");
+                              document.body.classList.add("dark-theme");
+                              localStorage.setItem("theme", "dark");
+                            }
+
+                            // Check for stored theme preference on page load
+                            const currentTheme = localStorage.getItem("theme");
+                            if (currentTheme === "dark") {
+                              enableDarkTheme();
+                            } else if (currentTheme === "light") {
+                              enableLightTheme();
+                            } else if (prefersDarkScheme.matches) {
+                              // If no stored theme, check system preference
+                              enableDarkTheme();
+                            } else {
+                              enableLightTheme();
+                            }
+
+                            // Add click event listener to the toggle button
+                            btn.addEventListener("click", () => {
+                              if (darkThemeStyle.disabled) {
+                                enableDarkTheme();
                               } else {
-                                document.body.classList.toggle("dark-theme");
-                                var theme = document.body.classList.contains("dark-theme")? "dark" : "light";
+                                enableLightTheme();
                               }
-                              localStorage.setItem("theme", theme);
                             });
                         </script>
                     </li>
@@ -222,8 +246,15 @@
                     </ul>
                 </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" aria-expanded="false">Advanced Tutorial</a>
-                    <ul id="authoring-tutorial">
+                    <ul id="developing-tutorial">
                         <li><a href="../userguide/part1_gradle_init_plugin.html">1. Initializing the Project</a></li>
+                        <li><a href="../userguide/part2_add_extension.html">2. Adding an Extension</a></li>
+                        <li><a href="../userguide/part3_create_custom_task.html">3. Creating a Custom Task</a></li>
+                        <li><a href="../userguide/part4_unit_test.html">4. Writing a Unit Test</a></li>
+                        <li><a href="../userguide/part5_add_dataflow_Action.html">5. Adding a DataFlow Action</a></li>
+                        <li><a href="../userguide/part6_functional_test.html">6. Writing a Functional Test</a></li>
+                        <li><a href="../userguide/part7_use_consumer_project.html">7. Using a Consumer Project</a></li>
+                        <li><a href="../userguide/part8_publish_locally.html">8. Publish the Plugin</a></li>
                     </ul>
                 </li>
             </ul>

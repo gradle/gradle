@@ -89,3 +89,7 @@ internal
 class DevelocityPluginInfoDirPropertyProvider(@InputFiles @PathSensitive(PathSensitivity.RELATIVE) val pluginInfoDir: Provider<File>) : CommandLineArgumentProvider {
     override fun asArguments() = listOf("-Dorg.gradle.performance.develocity.plugin.infoDir=${pluginInfoDir.get().path}")
 }
+
+errorprone {
+    nullawayEnabled = true
+}

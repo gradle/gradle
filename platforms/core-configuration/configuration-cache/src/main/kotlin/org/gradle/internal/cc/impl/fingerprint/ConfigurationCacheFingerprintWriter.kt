@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl.fingerprint
 
 import com.google.common.collect.Sets.newConcurrentHashSet
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.gradle.api.Describable
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
@@ -33,6 +34,8 @@ import org.gradle.api.internal.file.collections.FileCollectionObservationListene
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectState
+import org.gradle.api.internal.properties.GradlePropertiesListener
+import org.gradle.api.internal.properties.GradlePropertyScope
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource
 import org.gradle.api.internal.provider.sources.EnvironmentVariablesPrefixedByValueSource
@@ -44,8 +47,6 @@ import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceListener
-import org.gradle.api.internal.properties.GradlePropertiesListener
-import org.gradle.api.internal.properties.GradlePropertyScope
 import org.gradle.initialization.buildsrc.BuildSrcDetector
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildoption.FeatureFlag
@@ -53,6 +54,7 @@ import org.gradle.internal.buildoption.FeatureFlagListener
 import org.gradle.internal.cc.impl.CoupledProjectsListener
 import org.gradle.internal.cc.impl.InputTrackingState
 import org.gradle.internal.cc.impl.UndeclaredBuildInputListener
+import org.gradle.internal.cc.impl.Workarounds
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprint.InputFile
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprint.InputFileSystemEntry
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprint.ValueSource
@@ -115,8 +117,6 @@ class ConfigurationCacheFingerprintWriter(
     ConfigurationCacheEnvironment.Listener {
 
     interface Host {
-        val isEncrypted: Boolean
-        val encryptionKeyHashCode: HashCode
         val gradleUserHomeDir: File
         val allInitScripts: List<File>
         val buildStartTime: Long
@@ -538,7 +538,7 @@ class ConfigurationCacheFingerprintWriter(
         return simplifyingVisitor.simplify()
     }
 
-    fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, action: () -> T): T {
+    fun <T> runCollectingFingerprintForProject(project: ProjectIdentity, keepAlive: Boolean, action: () -> T): T {
         val previous = projectForThread.get()
         val projectSink = sinksForProject.computeIfAbsent(project.buildTreePath) {
             ProjectScopedSink(host, project, projectScopedWriter)
@@ -547,6 +547,9 @@ class ConfigurationCacheFingerprintWriter(
         try {
             return action()
         } finally {
+            if (!keepAlive) {
+                sinksForProject.remove(project.buildTreePath)
+            }
             projectForThread.set(previous)
         }
     }
@@ -961,9 +964,9 @@ class ConfigurationCacheFingerprintWriter(
         propertyName: String,
         propertyValue: Any?
     ) {
-        // TODO: may need to ignore some properties,
-        //  see `org.gradle.internal.cc.impl.Workarounds#isIgnoredStartParameterProperty`
-        if (shouldTrackGradlePropertyInput(gradleProperties, propertyScope, propertyName)) {
+        if (!Workarounds.isIgnoredStartParameterProperty(propertyName)
+            && shouldTrackGradlePropertyInput(gradleProperties, propertyScope, propertyName)
+        ) {
             // TODO:isolated could tracking per project
             buildScopedSink.write(
                 ConfigurationCacheFingerprint.GradleProperty(
@@ -982,8 +985,13 @@ class ConfigurationCacheFingerprintWriter(
         propertyScope: GradlePropertyScope,
         propertyKey: String
     ): Boolean = keysPerScope
-        .computeIfAbsent(propertyScope) { newConcurrentHashSet() }
-        .add(propertyKey)
+        .computeIfAbsent(propertyScope) {
+            ObjectOpenHashSet()
+        }.let { keys ->
+            synchronized(keys) {
+                keys.add(propertyKey)
+            }
+        }
 
     private
     fun reportGradlePropertyInput(

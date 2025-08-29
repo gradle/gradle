@@ -54,6 +54,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.integtests.fixtures.compatibility.AbstractContextualMultiVersionTestInterceptor.VERSIONS_SYSPROP_NAME;
+import static org.gradle.integtests.tooling.fixture.CrossVersionTestEngine.loadAndInitializeClass;
 
 
 public class CrossVersionTestEngine extends HierarchicalTestEngine<SpockExecutionContext> {
@@ -98,6 +99,14 @@ public class CrossVersionTestEngine extends HierarchicalTestEngine<SpockExecutio
             }
         }
         return rootDescriptor;
+    }
+
+    public static Class<?> loadAndInitializeClass(String className, ClassLoader classLoader) {
+        try {
+            return Class.forName(className, true, classLoader);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
 
@@ -144,6 +153,7 @@ class TestVariant {
 class DelegatingDiscoveryRequest implements EngineDiscoveryRequest {
     private final EngineDiscoveryRequest delegate;
     private final List<ClassSelector> selectors = new ArrayList<ClassSelector>();
+    protected ToolingApiDistribution toolingApi;
 
     DelegatingDiscoveryRequest(EngineDiscoveryRequest delegate) {
         this.delegate = delegate;
@@ -151,6 +161,17 @@ class DelegatingDiscoveryRequest implements EngineDiscoveryRequest {
 
     void addSelector(ClassSelector selector) {
         selectors.add(selector);
+    }
+
+    protected ClassLoader toolingApiClassLoaderForTest(Class<?> testClass, String toolingApiVersion) {
+        return ToolingApiClassLoaderProvider.getToolingApiClassLoader(getToolingApi(toolingApiVersion), testClass);
+    }
+
+    protected ToolingApiDistribution getToolingApi(final String version) {
+        if (toolingApi == null) {
+            toolingApi = new ToolingApiDistributionResolver().resolve(version);
+        }
+        return toolingApi;
     }
 
     @Override
@@ -194,7 +215,6 @@ class ToolingApiClassloaderDiscoveryRequest extends DelegatingDiscoveryRequest {
 
     private final String toolingApiVersionToLoad;
     private final String variant;
-    private ToolingApiDistribution toolingApi;
 
     ToolingApiClassloaderDiscoveryRequest(EngineDiscoveryRequest delegate, String variant) {
         super(delegate);
@@ -213,12 +233,8 @@ class ToolingApiClassloaderDiscoveryRequest extends DelegatingDiscoveryRequest {
 
         for (ClassSelector selector : delegate.getSelectorsByType(ClassSelector.class)) {
             if (ToolingApiSpecification.class.isAssignableFrom(selector.getJavaClass())) {
-                ClassLoader classLoader = toolingApiClassLoaderForTest(selector.getJavaClass());
-                try {
-                    addSelector(DiscoverySelectors.selectClass(classLoader.loadClass(selector.getClassName())));
-                } catch (ClassNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
+                ClassLoader classLoader = toolingApiClassLoaderForTest(selector.getJavaClass(), toolingApiVersionToLoad);
+                addSelector(DiscoverySelectors.selectClass(loadAndInitializeClass(selector.getClassName(), classLoader)));
             }
         }
     }
@@ -259,7 +275,7 @@ class ToolingApiClassloaderDiscoveryRequest extends DelegatingDiscoveryRequest {
             try {
                 Class<?> testClass = Class.forName(classToLoad);
                 if (ToolingApiSpecification.class.isAssignableFrom(testClass)) {
-                    return toolingApiClassLoaderForTest(testClass).loadClass(classToLoad);
+                    return loadAndInitializeClass(classToLoad, toolingApiClassLoaderForTest(testClass, toolingApiVersionToLoad));
                 }
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException(e);
@@ -272,17 +288,6 @@ class ToolingApiClassloaderDiscoveryRequest extends DelegatingDiscoveryRequest {
     private boolean isVariantSelected(UniqueId.Segment candidate) {
         return TestVariant.SEGMENT_TYPE.equals(candidate.getType())
             && variant.equals(candidate.getValue());
-    }
-
-    private ClassLoader toolingApiClassLoaderForTest(Class<?> testClass) {
-        return ToolingApiClassLoaderProvider.getToolingApiClassLoader(getToolingApi(toolingApiVersionToLoad), testClass);
-    }
-
-    private ToolingApiDistribution getToolingApi(final String versionToTestAgainst) {
-        if (toolingApi == null) {
-            toolingApi = new ToolingApiDistributionResolver().resolve(versionToTestAgainst);
-        }
-        return toolingApi;
     }
 
     private String getToolingApiVersionToLoad() {
@@ -299,7 +304,6 @@ class ToolingApiClassloaderDiscoveryRequest extends DelegatingDiscoveryRequest {
 }
 
 class ToolingApiCurrentDiscoveryRequest extends DelegatingDiscoveryRequest {
-
     ToolingApiCurrentDiscoveryRequest(EngineDiscoveryRequest delegate) {
         super(delegate);
         String candidateTapiVersion = System.getProperty(VERSIONS_SYSPROP_NAME);
@@ -308,7 +312,8 @@ class ToolingApiCurrentDiscoveryRequest extends DelegatingDiscoveryRequest {
         }
         for (ClassSelector selector : delegate.getSelectorsByType(ClassSelector.class)) {
             if (ToolingApiSpecification.class.isAssignableFrom(selector.getJavaClass())) {
-                addSelector(DiscoverySelectors.selectClass(selector.getJavaClass()));
+                ClassLoader classLoader = toolingApiClassLoaderForTest(selector.getJavaClass(), GradleVersion.current().getBaseVersion().getVersion());
+                addSelector(DiscoverySelectors.selectClass(loadAndInitializeClass(selector.getClassName(), classLoader)));
             }
         }
     }

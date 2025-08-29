@@ -279,7 +279,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         BuildOperationRunner buildOperationRunner,
         CrossProjectConfigurator crossProjectConfigurator,
         CollectionCallbackActionDecorator decorator,
-        ProjectRegistry<ProjectInternal> projectRegistry
+        ProjectRegistry projectRegistry
     ) {
         return new DefaultTaskContainerFactory(
             instantiator,

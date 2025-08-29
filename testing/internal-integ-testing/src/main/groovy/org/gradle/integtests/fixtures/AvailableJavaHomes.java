@@ -80,7 +80,13 @@ import static org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier
  * Allows the tests to get hold of an alternative Java installation when needed.
  */
 public abstract class AvailableJavaHomes {
+    /**
+     * On CI we pass -P{@value org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier#JAVA_INSTALLATIONS_PATHS_PROPERTY}=X,Y,Z to the build,
+     * which sets the installation paths the build itself should use.  We then "forward" it to the integration tests via this system property.
+     * This allows this class to "discover" the same paths as are used in the build, and makes the JDKs available in integrations tests more deterministic.
+     */
     private static final String FORWARDED_JAVA_INSTALLATIONS_PATHS_PROPERTY = JAVA_INSTALLATIONS_PATHS_PROPERTY + ".integTest";
+
     private static final Supplier<List<JvmInstallationMetadata>> INSTALLATIONS = Suppliers.memoize(AvailableJavaHomes::discoverLocalInstallations);
 
     private static final GradleDistribution DISTRIBUTION = new UnderDevelopmentGradleDistribution();
@@ -472,8 +478,8 @@ public abstract class AvailableJavaHomes {
     }
 
     /**
-     * On CI we pass -Porg.gradle.java.installations.paths=X,Y,Z to the build, then "forward" it
-     * as a system property ({@code -Dorg.gradle.java.installations.paths.forwarded}) to get deterministic results.
+     * On CI we pass -P{@value org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier#JAVA_INSTALLATIONS_PATHS_PROPERTY}=X,Y,Z to the build, then "forward" it
+     * as a system property ({@code -D{@value FORWARDED_JAVA_INSTALLATIONS_PATHS_PROPERTY}}) to get deterministic results.
      */
     private static class ToolchainInstallationPathsSystemPropertyJvmLocator implements InstallationSupplier {
 

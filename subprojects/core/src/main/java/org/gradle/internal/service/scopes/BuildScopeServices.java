@@ -58,7 +58,7 @@ import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectFactory;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
@@ -149,7 +149,6 @@ import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.buildsrc.BuildSrcBuildListenerFactory;
 import org.gradle.initialization.buildsrc.BuildSrcProjectConfigurationAction;
 import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.initialization.layout.ResolvedBuildLayout;
 import org.gradle.internal.actor.ActorFactory;
@@ -316,7 +315,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected BuildLayout createBuildLocations(BuildLayoutFactory buildLayoutFactory, BuildDefinition buildDefinition) {
-        return buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(buildDefinition.getStartParameter()));
+        return buildLayoutFactory.getLayoutFor(buildDefinition.getStartParameter().toBuildLayoutConfiguration());
     }
 
     @Provides
@@ -358,8 +357,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected DefaultProjectRegistry<ProjectInternal> createProjectRegistry() {
-        return new DefaultProjectRegistry<>();
+    protected ProjectRegistry createProjectRegistry() {
+        return new DefaultProjectRegistry();
     }
 
     @Provides

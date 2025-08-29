@@ -15,7 +15,9 @@ dependencies {
 
     implementation(projects.basics)
     implementation(projects.moduleIdentity)
+
     implementation("net.ltgt.gradle:gradle-errorprone-plugin:4.1.0")
+    implementation("net.ltgt.gradle:gradle-nullaway-plugin:2.2.0")
 
 
     implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:$expectedKotlinDslPluginsVersion")

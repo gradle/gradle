@@ -23,6 +23,7 @@ import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.util.internal.TextUtil
 
 @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class DaemonToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture, ToolchainPropertiesDeprecationsFixture {
@@ -76,7 +77,7 @@ class DaemonToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec i
         captureJavaHome()
 
         expect:
-        file("gradle.properties") << "org.gradle.java.installations.paths=" + otherJvm.javaHome.absolutePath
+        file("gradle.properties") << "org.gradle.java.installations.paths=" + TextUtil.normaliseFileSeparators(otherJvm.javaHome.absolutePath)
         succeeds("help")
         assertDaemonUsedJvm(otherJvm)
     }
@@ -90,7 +91,7 @@ class DaemonToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec i
 
         expect:
         executer.requireOwnGradleUserHomeDir("so we can set properties in GUH/gradle.properties")
-        file("user-home/gradle.properties") << "org.gradle.java.installations.paths=" + otherJvm.javaHome.absolutePath
+        file("user-home/gradle.properties") << "org.gradle.java.installations.paths=" + TextUtil.normaliseFileSeparators(otherJvm.javaHome.absolutePath)
         succeeds("help")
         assertDaemonUsedJvm(otherJvm)
     }
@@ -117,13 +118,13 @@ class DaemonToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec i
         captureJavaHome()
 
         expect:
-        executer.withArgument("-Dorg.gradle.java.installations.paths=" + otherJvm.javaHome.absolutePath)
-        executer.withArgument("-Porg.gradle.java.installations.paths=" + Jvm.current().javaHome.absolutePath)
+        executer.withArgument("-Dorg.gradle.java.installations.paths=" + Jvm.current().javaHome.absolutePath)
+        executer.withArgument("-Porg.gradle.java.installations.paths=" + otherJvm.javaHome.absolutePath)
         fails("help")
 
         and:
-        failure.assertHasDescription("The Gradle property 'org.gradle.java.installations.paths' (set to '${otherJvm.javaHome.absolutePath}')" +
-                " has a different value than the project property 'org.gradle.java.installations.paths' (set to '${Jvm.current().javaHome.absolutePath}')." +
+        failure.assertHasDescription("The Gradle property 'org.gradle.java.installations.paths' (set to '${Jvm.current().javaHome.absolutePath}')" +
+                " has a different value than the project property 'org.gradle.java.installations.paths' (set to '${otherJvm.javaHome.absolutePath}')." +
                 " Please set them to the same value or only set the Gradle property.")
     }
 }

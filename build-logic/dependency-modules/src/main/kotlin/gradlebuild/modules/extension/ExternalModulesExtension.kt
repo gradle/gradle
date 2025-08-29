@@ -26,7 +26,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
         else -> error("Unsupported Groovy major version: $bundleGroovyMajor")
     }
 
-    val configurationCacheReportVersion = "1.26"
+    val configurationCacheReportVersion = "1.27"
     val gradleIdeStarterVersion = "0.6"
     val kotlinVersion = "2.2.0"
 
@@ -199,7 +199,6 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val kotlinCoroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm"
     val kotlinCoroutinesDebug = "org.jetbrains.kotlinx:kotlinx-coroutines-debug"
     val littleproxy = "xyz.rogfam:littleproxy"
-    val mina = "org.apache.mina:mina-core"
     val mockitoCore = "org.mockito:mockito-core"
     val mockitoKotlin = "org.mockito.kotlin:mockito-kotlin"
     val mockwebserver = "com.squareup.okhttp3:mockwebserver"
