@@ -118,6 +118,13 @@ public class Path implements Comparable<Path> {
         return new Path(concat, absolute);
     }
 
+    /**
+     * @Deprecated
+     * Returns string representation of this path.
+     * @since 9.2.0 use {@link #asString()} instead
+     *
+     * @return string representation of this path
+     */
     @Deprecated
     public String getPath() {
         return asString();
