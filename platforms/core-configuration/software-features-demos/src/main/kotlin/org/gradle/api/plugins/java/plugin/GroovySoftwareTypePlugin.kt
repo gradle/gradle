@@ -42,7 +42,7 @@ class GroovySoftwareTypePlugin : Plugin<Project> {
      */
     class Binding : SoftwareTypeBindingRegistration {
         override fun register(builder: SoftwareTypeBindingBuilder) {
-            builder.bindSoftwareType("groovyLibrary", GroovySoftwareType::class) { definition, model ->
+            builder.bindSoftwareType("groovyLibrary") { definition: GroovySoftwareType, model ->
                 definition.sources.register("main")
                 definition.sources.register("test")
 

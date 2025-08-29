@@ -42,7 +42,7 @@ class JavaSoftwareTypePlugin : Plugin<Project> {
      */
     class Binding : SoftwareTypeBindingRegistration {
         override fun register(builder: SoftwareTypeBindingBuilder) {
-            builder.bindSoftwareType("javaLibrary", JavaSoftwareType::class) { definition, model ->
+            builder.bindSoftwareType("javaLibrary") { definition: JavaSoftwareType, model ->
                 definition.sources.register("main")
                 definition.sources.register("test")
 
