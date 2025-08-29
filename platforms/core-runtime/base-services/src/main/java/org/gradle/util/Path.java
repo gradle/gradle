@@ -119,9 +119,9 @@ public class Path implements Comparable<Path> {
     }
 
     /**
-     * @Deprecated
      * Returns string representation of this path.
-     * @since 9.2.0 use {@link #asString()} instead
+     *
+     * @deprecated since 9.2.0 use {@link #asString()} instead
      *
      * @return string representation of this path
      */
