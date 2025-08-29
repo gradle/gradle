@@ -16,8 +16,6 @@ dependencies {
     api(projects.modelCore)
     api(projects.platformBase)
 
-    api(libs.inject)
-
     implementation(libs.commonsLang)
     implementation(libs.jspecify)
 
