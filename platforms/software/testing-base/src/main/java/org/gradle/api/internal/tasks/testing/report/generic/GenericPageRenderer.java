@@ -86,17 +86,20 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
 
     @Override
     protected String getTitle() {
-        // This should maybe be the display name, but we'd need to handle different display names for the same path.
-        String name = getModel().getPath().getName();
-        if (name == null) {
+        // Show "All Results" in the root, otherwise show nothing, the display name will be provided in each root.
+        if (getModel().getPath().getName() == null) {
             return "All Results";
         }
-        return name;
+        return "";
     }
 
     @Override
     protected String getPageTitle() {
-        return "Test results - " + getTitle();
+        String title = getModel().getPath().getName();
+        if (title == null) {
+            title = "All Results";
+        }
+        return "Test results - " + title;
     }
 
     @Override
@@ -126,7 +129,13 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
                 tabsRenderer.add("metadata", new PerRootTabRenderer.ForMetadata(rootIndex, metadataRendererRegistry));
             }
 
-            rootTabsRenderer.add(rootDisplayNames.get(rootIndex), tabsRenderer);
+            rootTabsRenderer.add(rootDisplayNames.get(rootIndex), new ReportRenderer<TestTreeModel, SimpleHtmlWriter>() {
+                @Override
+                public void render(TestTreeModel model, SimpleHtmlWriter output) throws IOException {
+                    output.startElement("h1").characters(info.getResult().getDisplayName()).endElement();
+                    tabsRenderer.render(model, output);
+                }
+            });
         });
         return rootTabsRenderer;
     }
