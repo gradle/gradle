@@ -36,13 +36,12 @@ import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccess
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractCompile extends SourceTask {
-    private final DirectoryProperty destinationDirectory;
     private FileCollection classpath;
     private String sourceCompatibility;
     private String targetCompatibility;
 
     public AbstractCompile() {
-        this.destinationDirectory = getProject().getObjects().directoryProperty();
+
     }
 
     /**
@@ -79,9 +78,7 @@ public abstract class AbstractCompile extends SourceTask {
         },
         deprecation = @ReplacedDeprecation(removedIn = RemovedIn.GRADLE9, withUpgradeGuideMajorVersion = 7, withUpgradeGuideSection = "compile_task_wiring")
     )
-    public DirectoryProperty getDestinationDirectory() {
-        return destinationDirectory;
-    }
+    public abstract DirectoryProperty getDestinationDirectory();
 
     /**
      * Returns the Java language level to use to compile the source files.
