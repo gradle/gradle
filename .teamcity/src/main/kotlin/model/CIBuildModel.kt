@@ -144,7 +144,6 @@ data class CIBuildModel(
                     listOf(
                         SpecificBuild.BuildDistributions,
                         SpecificBuild.Gradleception,
-                        SpecificBuild.GradleceptionWithGroovy4,
                         SpecificBuild.CheckLinks,
                         SpecificBuild.CheckTeamCityKotlinDSL,
                         SpecificBuild.SmokeTestsMaxJavaVersion,
@@ -311,10 +310,11 @@ data class CIBuildModel(
             ),
             Stage(
                 StageName.WEEKLY_VALIDATION,
-                trigger = Trigger.WEEKLY,
+                trigger = if (branch.isLegacyRelease) Trigger.NEVER else Trigger.WEEKLY,
                 runsIndependent = true,
                 specificBuilds =
                     listOf(
+                        SpecificBuild.GradleceptionWithGroovy4,
                         SpecificBuild.GradleceptionWithMaxLtsJdk,
                     ),
                 functionalTests =
