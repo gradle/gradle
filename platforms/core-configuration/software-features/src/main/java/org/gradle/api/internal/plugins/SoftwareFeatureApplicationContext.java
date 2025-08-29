@@ -26,16 +26,37 @@ import org.gradle.internal.inspection.TypeParameterInspection;
 
 import javax.inject.Inject;
 
+/**
+ * Represents the context in which a software features is applied and the services
+ * available in that context.
+ */
 public interface SoftwareFeatureApplicationContext {
+    /**
+     * The ProjectLayout for the Project the software feature is applied to.
+     */
     @Inject
     ProjectLayout getProjectLayout();
 
-    @Inject
-    Project getProject();
-
+    /**
+     * The ObjectFactory for the Project the software feature is applied to.
+     */
     @Inject
     ObjectFactory getObjectFactory();
 
+    /**
+     * The Project this software feature is applied to.  This should be used as a last
+     * resort when the services necessary are not exposed in other ways in this context.
+     * This method will eventually be removed.
+     */
+    @Inject
+    Project getProject();
+
+    /**
+     * Allows a transform to create or access the build model object of a given
+     * definition object.  This can be used to register build model objects
+     * for nested definition objects and expose them as binding points for other
+     * software features.
+     */
     default <T extends HasBuildModel<? extends V>, V extends BuildModel> V getOrCreateModel(T definition) {
         if (definition instanceof ExtensionAware) {
             Object existingModel = ((ExtensionAware) definition).getExtensions().findByName(SoftwareFeatureBinding.MODEL);
@@ -53,7 +74,13 @@ public interface SoftwareFeatureApplicationContext {
         return getOrCreateModel(definition, modelType);
     }
 
-    default <T extends HasBuildModel<? extends V>, V extends BuildModel> V getOrCreateModel(T definition, Class<? extends V> implementationType) {
+    /**
+     * Allows a transform to create or access the build model object of a given
+     * definition object with a given implementation type.  This can be used to
+     * register build model objects for nested definition objects and expose them
+     * as
+     */
+     default <T extends HasBuildModel<? extends V>, V extends BuildModel> V getOrCreateModel(T definition, Class<? extends V> implementationType) {
         return ((ExtensionAware) definition).getExtensions().create(SoftwareFeatureBinding.MODEL, implementationType);
     }
 }

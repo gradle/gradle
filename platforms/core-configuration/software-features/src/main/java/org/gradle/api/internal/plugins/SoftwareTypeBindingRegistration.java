@@ -16,6 +16,13 @@
 
 package org.gradle.api.internal.plugins;
 
+import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
+
+/**
+ * A registration action for configuring a software type binding.  Instances of this interface should be
+ * registered with the {@link RegistersSoftwareTypes} annotation
+ * on a project plugin.
+ */
 public interface SoftwareTypeBindingRegistration {
     void register(SoftwareTypeBindingBuilder builder);
 }

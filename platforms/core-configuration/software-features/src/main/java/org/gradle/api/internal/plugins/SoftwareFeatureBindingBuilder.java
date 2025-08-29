@@ -19,8 +19,24 @@ package org.gradle.api.internal.plugins;
 import org.gradle.api.internal.plugins.TargetTypeInformation.BuildModelTargetTypeInformation;
 import org.gradle.api.internal.plugins.TargetTypeInformation.DefinitionTargetTypeInformation;
 
-
+/**
+ * A builder for creating bindings between software feature definition objects
+ * and other definition objects in the build as well as declaring build logic
+ * associated with the binding.
+ */
 public interface SoftwareFeatureBindingBuilder {
+    /**
+     * Create a binding between a software feature definition object and a parent definition object.
+     * The supplied transform is used to implement the build logic associated with the binding.
+     *
+     * @param name the name of the binding.  This is how it will be referenced in the DSL.
+     * @param bindingTypeInformation type information about the parent object the feature can be bound to
+     * @param transform the transform that maps the definition to the build model and implements the build logic associated with the feature
+     * @return a {@link DslBindingBuilder} that can be used to further configure the binding
+     * @param <Definition> the type of the software definition object for this feature
+     * @param <OwnBuildModel> the type of the build model object for this feature
+     * @param <TargetDefinition> the type of the parent definition object this feature can be bound to
+     */
     <
         Definition extends HasBuildModel<OwnBuildModel>,
         OwnBuildModel extends BuildModel,
@@ -32,6 +48,19 @@ public interface SoftwareFeatureBindingBuilder {
         SoftwareFeatureTransform<Definition, OwnBuildModel, TargetDefinition> transform
     );
 
+    /**
+     * A convenience method for creating a binding between a software feature definition object
+     * and a parent definition object.
+     *
+     * @param name the name of the binding.  This is how it will be referenced in the DSL.
+     * @param definitionClass the class of the software feature definition object
+     * @param targetDefinitionClass the class of the parent definition object this feature can be bound to
+     * @param transform the transform that maps the definition to the build model and implements the build logic associated with the feature
+     * @return a {@link DslBindingBuilder} that can be used to further configure the binding
+     * @param <Definition> the type of the software definition object for this feature
+     * @param <OwnBuildModel> the type of the build model object for this feature
+     * @param <TargetDefinition> the type of the parent definition object this feature can be bound to
+     */
     default <
         Definition extends HasBuildModel<OwnBuildModel>,
         OwnBuildModel extends BuildModel,
@@ -46,6 +75,19 @@ public interface SoftwareFeatureBindingBuilder {
         return bindSoftwareFeature(name, bindingToTargetDefinition(definitionClass, targetDefinitionClass), transform);
     }
 
+    /**
+     * A convenience method for creating a binding between a software feature definition object
+     * and a parent definition object that has a specific build model type.
+     *
+     * @param name the name of the binding.  This is how it will be referenced in the DSL.
+     * @param definitionClass the class of the software feature definition object
+     * @param targetBuildModelClass the class of the build model type of the parent definition object this feature can be bound to
+     * @param transform the transform that maps the definition to the build model and implements the build logic associated with the feature
+     * @return a {@link DslBindingBuilder} that can be used to further configure the binding
+     * @param <Definition> the type of the software definition object for this feature
+     * @param <OwnBuildModel> the type of the build model object for this feature
+     * @param <TargetBuildModel> the type of the build model type of the parent definition object this feature can be bound to
+     */
     default <
         Definition extends HasBuildModel<OwnBuildModel>,
         OwnBuildModel extends BuildModel,
@@ -60,6 +102,17 @@ public interface SoftwareFeatureBindingBuilder {
         return bindSoftwareFeature(name, bindingToTargetBuildModel(definitionClass, targetBuildModelClass), transform);
     }
 
+    /**
+     * A convenience method for creating type information about a binding between
+     * a software feature definition object and a parent definition object.
+     *
+     * @param definition the class of the software feature definition object
+     * @param targetDefinition the class of the parent definition object this feature can be bound to
+     * @return type information about the binding
+     * @param <Definition> the type of the software definition object for this feature
+     * @param <OwnBuildModel> the type of the build model object for this feature
+     * @param <TargetDefinition> the type of the parent definition object this feature can be bound to
+     */
     static <
         Definition extends HasBuildModel<OwnBuildModel>,
         OwnBuildModel extends BuildModel,
@@ -72,6 +125,18 @@ public interface SoftwareFeatureBindingBuilder {
         return new ModelBindingTypeInformation<>(definition, new DefinitionTargetTypeInformation<>(targetDefinition));
     }
 
+    /**
+     * A convenience method for creating type information about a binding between
+     * a software feature definition object and a parent definition object that has
+     * a specific build model type.
+     *
+     * @param definition the class of the software feature definition object
+     * @param targetBuildModel the class of the build model type of the parent definition object this feature can be bound to
+     * @return type information about the binding
+     * @param <Definition> the type of the software definition object for this feature
+     * @param <OwnBuildModel> the type of the build model object for this feature
+     * @param <TargetBuildModel> the type of the build model type of the parent definition object this feature can be bound to
+     */
     static <
         Definition extends HasBuildModel<OwnBuildModel>,
         OwnBuildModel extends BuildModel,
@@ -84,6 +149,14 @@ public interface SoftwareFeatureBindingBuilder {
         return new ModelBindingTypeInformation<>(definition, new BuildModelTargetTypeInformation<>(targetBuildModel));
     }
 
+    /**
+     * Type information about a binding between a software feature definition object
+     * and a parent definition object in the build.
+     *
+     * @param <Definition> the type of the software definition object for this feature
+     * @param <OwnBuildModel> the type of the build model object for this feature
+     * @param <TargetDefinition> the type of the parent definition object this feature can be bound to
+     */
     class ModelBindingTypeInformation<
         Definition extends HasBuildModel<OwnBuildModel>,
         OwnBuildModel extends BuildModel,

@@ -16,7 +16,23 @@
 
 package org.gradle.api.internal.plugins;
 
+/**
+ * A builder for creating software type bindings as well as declaring build logic
+ * associated with the binding.
+ */
 public interface SoftwareTypeBindingBuilder {
+    /**
+     * Create a binding for a software type definition object in the DSL with the provided name.
+     * The supplied transform is used to implement the build logic associated with the binding.
+     *
+     * @param name the name of the binding.  This is how it will be referenced in the DSL.
+     * @param dslType the class of the software type definition object
+     * @param buildModelType the class of the build model object for this software type
+     * @param transform the transform that maps the definition to the build model and implements the build logic associated with the feature
+     * @return a {@link DslBindingBuilder} that can be used to further configure the binding
+     * @param <T> the type of the software type definition object
+     * @param <V> the type of the build model object for this software type
+     */
     <T extends HasBuildModel<V>, V extends BuildModel> DslBindingBuilder<T, V> bindSoftwareType(
         String name,
         Class<T> dslType,
@@ -24,6 +40,17 @@ public interface SoftwareTypeBindingBuilder {
         SoftwareTypeTransform<T, V> transform
     );
 
+    /**
+     * Create a binding for a software type definition object in the DSL with the provided name.
+     * The supplied transform is used to implement the build logic associated with the binding.
+     *
+     * @param name the name of the binding.  This is how it will be referenced in the DSL.
+     * @param dslType the class of the software type definition object
+     * @param transform the transform that maps the definition to the build model and implements the build logic associated with the feature
+     * @return a {@link DslBindingBuilder} that can be used to further configure the binding
+     * @param <T> the type of the software type definition object
+     * @param <V> the type of the build model object for this software type
+     */
     <T extends HasBuildModel<V>, V extends BuildModel> DslBindingBuilder<T, V> bindSoftwareType(
         String name,
         Class<T> dslType,

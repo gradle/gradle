@@ -16,6 +16,18 @@
 
 package org.gradle.api.internal.plugins;
 
+import org.gradle.api.internal.plugins.software.RegistersSoftwareFeatures;
+
+/**
+ * A registration action for configuring a software feature binding.  Instances of this interface should be
+ * registered with the {@link RegistersSoftwareFeatures} annotation
+ * on a project plugin.
+ */
 public interface SoftwareFeatureBindingRegistration {
+    /**
+     * Configure the software feature binding.
+     *
+     * @param builder the builder to use to configure the binding
+     */
     void register(SoftwareFeatureBindingBuilder builder);
 }

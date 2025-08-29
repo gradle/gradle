@@ -16,6 +16,13 @@
 
 package org.gradle.api.internal.plugins;
 
+/**
+ * A transformation action that applies configuration from a software feature definition to its build model.
+ *
+ * @param <Definition> the type of the software feature definition
+ * @param <OwnBuildModel> the type of the software feature's own build model
+ * @param <ParentDefinition> the type of the parent software feature definition
+ */
 public interface SoftwareFeatureTransform<Definition, OwnBuildModel, ParentDefinition> {
     void transform(SoftwareFeatureApplicationContext context, Definition definition, OwnBuildModel buildModel, ParentDefinition parentDefinition);
 }

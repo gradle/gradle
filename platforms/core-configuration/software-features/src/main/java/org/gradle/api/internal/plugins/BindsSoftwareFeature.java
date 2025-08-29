@@ -23,6 +23,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Annotation that can be applied to implementations of {@link SoftwareFeatureBindingRegistration}
+ * to indicate that the registration should be automatically discovered and applied by Gradle.
+ *
+ * This annotation is used by project plugins that want to contribute software feature bindings.
+ */
 @Incubating
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)

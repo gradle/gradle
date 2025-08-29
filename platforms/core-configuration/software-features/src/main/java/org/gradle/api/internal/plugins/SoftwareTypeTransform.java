@@ -16,6 +16,15 @@
 
 package org.gradle.api.internal.plugins;
 
+import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
+
+/**
+ * A transformation action for configuring a build model from a definition.  Instances of this interface should be
+ * registered with the {@link RegistersSoftwareTypes} annotation on a project plugin.
+ *
+ * @param <T> the type of the definition
+ * @param <U> the type of the build model
+ */
 public interface SoftwareTypeTransform<T, U> {
     void transform(SoftwareFeatureApplicationContext context, T definition, U buildModel);
 }

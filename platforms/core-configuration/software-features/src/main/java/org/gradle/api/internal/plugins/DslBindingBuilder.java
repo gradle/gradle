@@ -16,8 +16,26 @@
 
 package org.gradle.api.internal.plugins;
 
+/**
+ * A builder for configuring a DSL binding for a software type or software feature.
+ *
+ * @param <T> the type of the software type or software feature definition object
+ * @param <V> the type of the build model object for this software type or software feature
+ */
 public interface DslBindingBuilder<T extends HasBuildModel<V>, V extends BuildModel> {
+    /**
+     * Specify the implementation type to use when creating instances of the definition object in the DSL.
+     *
+     * @param implementationType the implementation type to use
+     * @return this builder
+     */
     DslBindingBuilder<T, V> withDefinitionImplementationType(Class<? extends T> implementationType);
 
+    /**
+     * Specify the implementation type to use when creating instances of the build model object.
+     *
+     * @param implementationType the implementation type to use
+     * @return this builder
+     */
     DslBindingBuilder<T, V> withBuildModelImplementationType(Class<? extends V> implementationType);
 }
