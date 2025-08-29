@@ -32,12 +32,11 @@ import static org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject.ge
 class DefaultVisualStudioProjectTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    def component = Mock(NativeComponentSpec)
     def fileResolver = Mock(FileResolver)
     def vsProject = project("projectName")
 
     def project(String vsProjectName, NativeComponentSpec component = component) {
-        new DefaultVisualStudioProject(vsProjectName, component.getName(), fileResolver, TestUtil.objectFactory(), new DefaultProviderFactory())
+        TestUtil.objectFactory().newInstance(DefaultVisualStudioProject, vsProjectName, component.getName(), fileResolver, TestUtil.objectFactory(), new DefaultProviderFactory())
     }
 
     def "names"() {

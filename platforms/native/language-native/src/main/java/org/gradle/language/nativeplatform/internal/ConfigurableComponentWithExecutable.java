@@ -18,8 +18,8 @@ package org.gradle.language.nativeplatform.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.Directory;
-import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.language.ComponentWithOutputs;
 import org.gradle.language.nativeplatform.ComponentWithExecutable;
@@ -45,15 +45,15 @@ public interface ConfigurableComponentWithExecutable extends ComponentWithExecut
     Property<InstallExecutable> getInstallTask();
 
     @Override
-    Property<RegularFile> getExecutableFile();
+    RegularFileProperty getExecutableFile();
 
     @Override
     Property<Task> getExecutableFileProducer();
 
-    Property<RegularFile> getDebuggerExecutableFile();
+    RegularFileProperty getDebuggerExecutableFile();
 
     @Override
-    Property<Directory> getInstallDirectory();
+    DirectoryProperty getInstallDirectory();
 
     @Override
     ConfigurableFileCollection getOutputs();

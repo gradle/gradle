@@ -46,13 +46,11 @@ import java.util.UUID;
 /**
  * A VisualStudio project represents a set of binaries for a component that may vary in build type and target platform.
  */
-public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
+public abstract class DefaultVisualStudioProject implements VisualStudioProjectInternal {
     private final DefaultConfigFile projectFile;
     private final DefaultConfigFile filtersFile;
     private final String name;
     private final String componentName;
-    private final Property<VersionNumber> visualStudioVersion;
-    private final Property<VersionNumber> sdkVersion;
     private final List<File> additionalFiles = new ArrayList<>();
     private final Map<VisualStudioTargetBinary, VisualStudioProjectConfiguration> configurations = new LinkedHashMap<VisualStudioTargetBinary, VisualStudioProjectConfiguration>();
     private final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
@@ -62,8 +60,8 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
     public DefaultVisualStudioProject(String name, String componentName, PathToFileResolver fileResolver, ObjectFactory objectFactory, ProviderFactory providerFactory) {
         this.name = name;
         this.componentName = componentName;
-        this.visualStudioVersion = objectFactory.property(VersionNumber.class).convention(AbstractCppBinaryVisualStudioTargetBinary.DEFAULT_VISUAL_STUDIO_VERSION);
-        this.sdkVersion = objectFactory.property(VersionNumber.class).convention(AbstractCppBinaryVisualStudioTargetBinary.DEFAULT_SDK_VERSION);
+        getVisualStudioVersion().convention(AbstractCppBinaryVisualStudioTargetBinary.DEFAULT_VISUAL_STUDIO_VERSION);
+        getSdkVersion().convention(AbstractCppBinaryVisualStudioTargetBinary.DEFAULT_SDK_VERSION);
         this.projectFile = objectFactory.newInstance(DefaultConfigFile.class, fileResolver, getName() + ".vcxproj");
         this.filtersFile = objectFactory.newInstance(DefaultConfigFile.class, fileResolver, getName() + ".vcxproj.filters");
         this.sourceFiles = objectFactory.fileCollection().from(providerFactory.provider(() -> {
@@ -154,13 +152,9 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
         return name;
     }
 
-    public Property<VersionNumber> getVisualStudioVersion() {
-        return visualStudioVersion;
-    }
+    public abstract Property<VersionNumber> getVisualStudioVersion();
 
-    public Property<VersionNumber> getSdkVersion() {
-        return sdkVersion;
-    }
+    public abstract Property<VersionNumber> getSdkVersion();
 
     @Override
     public IdeProjectMetadata getPublishArtifact() {

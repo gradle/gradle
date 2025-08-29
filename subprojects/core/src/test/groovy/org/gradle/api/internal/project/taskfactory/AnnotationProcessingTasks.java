@@ -47,7 +47,7 @@ import static org.junit.Assert.fail;
  * A set of classes for use in the AnnotationProcessingTaskFactoryTest.
  */
 public class AnnotationProcessingTasks {
-    public static class TestTask extends DefaultTask {
+    public static abstract class TestTask extends DefaultTask {
         final Runnable action;
 
         @Inject
@@ -61,14 +61,14 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithInheritedMethod extends TestTask {
+    public static abstract class TaskWithInheritedMethod extends TestTask {
         @Inject
         public TaskWithInheritedMethod(Runnable action) {
             super(action);
         }
     }
 
-    public static class TaskWithOverriddenMethod extends TestTask {
+    public static abstract class TaskWithOverriddenMethod extends TestTask {
         private final Runnable action;
 
         @Inject
@@ -84,7 +84,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithProtectedMethod extends DefaultTask {
+    public static abstract class TaskWithProtectedMethod extends DefaultTask {
         private final Runnable action;
 
         @Inject
@@ -98,7 +98,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithStaticMethod extends DefaultTask {
+    public static abstract class TaskWithStaticMethod extends DefaultTask {
         @TaskAction
         public static void staticAction() {
         }
@@ -108,7 +108,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithMultipleMethods extends TestTask {
+    public static abstract class TaskWithMultipleMethods extends TestTask {
         @Inject
         public TaskWithMultipleMethods(Runnable action) {
             super(action);
@@ -125,12 +125,12 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithAction extends DefaultTask {
+    public static abstract class TaskWithAction extends DefaultTask {
         @TaskAction
         public void doStuff() {}
     }
 
-    public static class TaskUsingInputChanges extends DefaultTask {
+    public static abstract class TaskUsingInputChanges extends DefaultTask {
         private final Action<InputChanges> action;
 
         @Inject
@@ -151,7 +151,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithOverriddenInputChangesAction extends TaskUsingInputChanges {
+    public static abstract class TaskWithOverriddenInputChangesAction extends TaskUsingInputChanges {
         private final Action<InputChanges> action;
 
         @Inject
@@ -167,7 +167,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithMultipleInputChangesActions extends DefaultTask {
+    public static abstract class TaskWithMultipleInputChangesActions extends DefaultTask {
 
         @TaskAction
         public void doStuff(InputChanges changes) {
@@ -178,7 +178,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithOverloadedInputChangesActions extends DefaultTask {
+    public static abstract class TaskWithOverloadedInputChangesActions extends DefaultTask {
         @TaskAction
         public void doStuff() {}
 
@@ -186,19 +186,19 @@ public class AnnotationProcessingTasks {
         public void doStuff(InputChanges changes) {}
     }
 
-    public static class TaskWithSingleParamAction extends DefaultTask {
+    public static abstract class TaskWithSingleParamAction extends DefaultTask {
         @TaskAction
         public void doStuff(int value1) {
         }
     }
 
-    public static class TaskWithMultiParamAction extends DefaultTask {
+    public static abstract class TaskWithMultiParamAction extends DefaultTask {
         @TaskAction
         public void doStuff(int value1, int value2) {
         }
     }
 
-    public static class TaskWithInputFile extends TaskWithAction {
+    public static abstract class TaskWithInputFile extends TaskWithAction {
         File inputFile;
 
         @Inject
@@ -212,7 +212,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithInputDir extends TaskWithAction {
+    public static abstract class TaskWithInputDir extends TaskWithAction {
         File inputDir;
 
         @Inject
@@ -226,7 +226,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithInput extends TaskWithAction {
+    public static abstract class TaskWithInput extends TaskWithAction {
         String inputValue;
 
         @Inject
@@ -240,7 +240,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithBooleanInput extends TaskWithAction {
+    public static abstract class TaskWithBooleanInput extends TaskWithAction {
         boolean inputValue;
 
         @Inject
@@ -254,7 +254,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class BrokenTaskWithInputDir extends TaskWithInputDir {
+    public static abstract class BrokenTaskWithInputDir extends TaskWithInputDir {
         @Inject
         public BrokenTaskWithInputDir(File inputDir) {
             super(inputDir);
@@ -267,6 +267,7 @@ public class AnnotationProcessingTasks {
             return super.getInputDir();
         }
 
+        @Override
         @TaskAction
         public void doStuff() {
             fail();
@@ -274,7 +275,7 @@ public class AnnotationProcessingTasks {
 
     }
 
-    public static class TaskWithOutputFile extends TaskWithAction {
+    public static abstract class TaskWithOutputFile extends TaskWithAction {
         File outputFile;
 
         @Inject
@@ -288,7 +289,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithOutputFiles extends TaskWithAction {
+    public static abstract class TaskWithOutputFiles extends TaskWithAction {
         List<File> outputFiles;
 
         @Inject
@@ -302,11 +303,12 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithBridgeMethod extends TaskWithAction implements WithProperty<SpecificProperty> {
+    public static abstract class TaskWithBridgeMethod extends TaskWithAction implements WithProperty<SpecificProperty> {
         @Nested
         private SpecificProperty nestedProperty = new SpecificProperty();
         public int traversedOutputsCount;
 
+        @Override
         public SpecificProperty getNestedProperty() {
             traversedOutputsCount++;
             return nestedProperty;
@@ -327,7 +329,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithOptionalOutputFile extends TaskWithAction {
+    public static abstract class TaskWithOptionalOutputFile extends TaskWithAction {
         @OutputFile
         @Optional
         public File getOutputFile() {
@@ -335,7 +337,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithOptionalOutputFiles extends TaskWithAction {
+    public static abstract class TaskWithOptionalOutputFiles extends TaskWithAction {
 
         @OutputFiles
         @Optional
@@ -344,7 +346,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithOutputDir extends TaskWithAction {
+    public static abstract class TaskWithOutputDir extends TaskWithAction {
         File outputDir;
 
         @Inject
@@ -358,7 +360,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithOutputDirs extends TaskWithAction {
+    public static abstract class TaskWithOutputDirs extends TaskWithAction {
         List<File> outputDirs;
 
         @Inject
@@ -372,7 +374,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithOptionalOutputDir extends TaskWithAction {
+    public static abstract class TaskWithOptionalOutputDir extends TaskWithAction {
         @OutputDirectory
         @Optional
         public File getOutputDir() {
@@ -380,7 +382,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithOptionalOutputDirs extends TaskWithAction {
+    public static abstract class TaskWithOptionalOutputDirs extends TaskWithAction {
 
         @OutputDirectories
         @Optional
@@ -389,7 +391,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithInputFiles extends TaskWithAction {
+    public static abstract class TaskWithInputFiles extends TaskWithAction {
         Iterable<? extends File> input;
 
         @Inject
@@ -403,25 +405,27 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class BrokenTaskWithInputFiles extends TaskWithInputFiles {
+    public static abstract class BrokenTaskWithInputFiles extends TaskWithInputFiles {
         @Inject
         public BrokenTaskWithInputFiles(Iterable<? extends File> input) {
             super(input);
         }
 
+        @Override
         @InputFiles
         @SkipWhenEmpty
         public Iterable<? extends File> getInput() {
             return input;
         }
 
+        @Override
         @TaskAction
         public void doStuff() {
             fail();
         }
     }
 
-    public static class TaskWithOptionalInputFile extends TaskWithAction {
+    public static abstract class TaskWithOptionalInputFile extends TaskWithAction {
         @InputFile
         @Optional
         public File getInputFile() {
@@ -429,7 +433,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithLocalState extends TaskWithAction {
+    public static abstract class TaskWithLocalState extends TaskWithAction {
         private File localStateFile;
 
         @Inject
@@ -443,7 +447,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithDestroyable extends TaskWithAction {
+    public static abstract class TaskWithDestroyable extends TaskWithAction {
         File destroyable;
 
         @Inject
@@ -457,7 +461,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithNestedBean extends TaskWithAction {
+    public static abstract class TaskWithNestedBean extends TaskWithAction {
         Bean bean = new Bean();
 
         @Inject
@@ -475,7 +479,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithNestedObject extends TaskWithAction {
+    public static abstract class TaskWithNestedObject extends TaskWithAction {
         Object bean;
 
         @Inject
@@ -489,7 +493,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithNestedIterable extends TaskWithAction {
+    public static abstract class TaskWithNestedIterable extends TaskWithAction {
         Object bean;
 
         @Inject
@@ -503,7 +507,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithNestedBeanWithPrivateClass extends TaskWithAction {
+    public static abstract class TaskWithNestedBeanWithPrivateClass extends TaskWithAction {
         Bean2 bean = new Bean2();
 
         @Inject
@@ -522,7 +526,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithMultipleProperties extends TaskWithNestedBean {
+    public static abstract class TaskWithMultipleProperties extends TaskWithNestedBean {
         @Inject
         public TaskWithMultipleProperties(File inputFile) {
             super(inputFile);
@@ -534,7 +538,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithOptionalNestedBean extends TaskWithAction {
+    public static abstract class TaskWithOptionalNestedBean extends TaskWithAction {
         private final Bean bean;
 
         @Inject
@@ -549,7 +553,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithOptionalNestedBeanWithPrivateType extends TaskWithAction {
+    public static abstract class TaskWithOptionalNestedBeanWithPrivateType extends TaskWithAction {
         Bean2 bean = new Bean2();
 
         @Nested
@@ -606,13 +610,14 @@ public class AnnotationProcessingTasks {
         @InputFile
         File inputFile2;
 
+        @Override
         public File getInputFile() {
             return inputFile2;
         }
     }
 
     //CHECKSTYLE:OFF
-    public static class TaskWithJavaBeanCornerCaseProperties extends TaskWithAction {
+    public static abstract class TaskWithJavaBeanCornerCaseProperties extends TaskWithAction {
         private String cCompiler;
         private String CFlags;
         private String dns;

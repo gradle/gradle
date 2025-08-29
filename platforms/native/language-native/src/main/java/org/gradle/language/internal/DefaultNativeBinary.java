@@ -30,13 +30,11 @@ import org.gradle.language.nativeplatform.internal.Names;
 
 public abstract class DefaultNativeBinary implements ComponentWithNames, ComponentWithObjectFiles, ComponentWithDependencies {
     private final Names names;
-    private final DirectoryProperty objectsDir;
     private final DefaultComponentDependencies dependencies;
 
     public DefaultNativeBinary(Names names, ObjectFactory objectFactory, Configuration componentImplementation) {
         this.names = names;
 
-        this.objectsDir = objectFactory.directoryProperty();
         dependencies = objectFactory.newInstance(DefaultComponentDependencies.class, names.getName() + "Implementation");
         dependencies.getImplementationDependencies().extendsFrom(componentImplementation);
     }
@@ -51,13 +49,11 @@ public abstract class DefaultNativeBinary implements ComponentWithNames, Compone
         return names;
     }
 
-    public DirectoryProperty getObjectsDir() {
-        return objectsDir;
-    }
+    public abstract DirectoryProperty getObjectsDir();
 
     @Override
     public FileCollection getObjects() {
-        return objectsDir.getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o"));
+        return getObjectsDir().getAsFileTree().matching(new PatternSet().include("**/*.obj", "**/*.o"));
     }
 
     @Override

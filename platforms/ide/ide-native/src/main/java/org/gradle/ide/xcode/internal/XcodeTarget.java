@@ -37,7 +37,7 @@ import static org.gradle.ide.xcode.internal.DefaultXcodeProject.BUILD_DEBUG;
 /**
  * @see <a href="https://developer.apple.com/library/content/featuredarticles/XcodeConcepts/Concept-Schemes.html">XCode Scheme Concept</a>
  */
-public class XcodeTarget implements Named {
+public abstract class XcodeTarget implements Named {
     private final String id;
     private final String name;
     private final ConfigurableFileCollection headerSearchPaths;
@@ -51,8 +51,6 @@ public class XcodeTarget implements Named {
     private Provider<? extends FileSystemLocation> debugOutputFile;
     private PBXTarget.ProductType productType;
     private String productName;
-    private Property<SwiftVersion> swiftSourceCompatibility;
-    private Property<String> defaultConfigurationName;
 
     @Inject
     public XcodeTarget(String name, String id, ObjectFactory objectFactory) {
@@ -61,9 +59,7 @@ public class XcodeTarget implements Named {
         this.sources = objectFactory.fileCollection();
         this.headerSearchPaths = objectFactory.fileCollection();
         this.compileModules = objectFactory.fileCollection();
-        this.swiftSourceCompatibility = objectFactory.property(SwiftVersion.class);
-        this.defaultConfigurationName = objectFactory.property(String.class);
-        this.defaultConfigurationName.set(BUILD_DEBUG);
+        this.getDefaultConfigurationName().convention(BUILD_DEBUG);
         this.debugOutputFile = Providers.notDefined();
     }
 
@@ -160,9 +156,7 @@ public class XcodeTarget implements Named {
         }
     }
 
-    public Property<SwiftVersion> getSwiftSourceCompatibility() {
-        return swiftSourceCompatibility;
-    }
+    public abstract Property<SwiftVersion> getSwiftSourceCompatibility();
 
     public void addBinary(String configuration, Provider<? extends FileSystemLocation> outputFile, String architectureName) {
         binaries.add(new XcodeBinary(configuration, outputFile, architectureName));
@@ -171,9 +165,7 @@ public class XcodeTarget implements Named {
         }
     }
 
-    public Property<String> getDefaultConfigurationName() {
-        return defaultConfigurationName;
-    }
+    public abstract Property<String> getDefaultConfigurationName();
 
     public boolean isBuildable() {
          return !binaries.isEmpty();

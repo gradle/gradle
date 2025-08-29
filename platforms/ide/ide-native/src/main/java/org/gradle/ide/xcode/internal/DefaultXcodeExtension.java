@@ -16,21 +16,18 @@
 
 package org.gradle.ide.xcode.internal;
 
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.tasks.Nested;
 import org.gradle.ide.xcode.XcodeExtension;
 
 import javax.inject.Inject;
 
-public class DefaultXcodeExtension implements XcodeExtension {
-    private final DefaultXcodeProject project;
+public abstract class DefaultXcodeExtension implements XcodeExtension {
 
     @Inject
-    public DefaultXcodeExtension(ObjectFactory objectFactory) {
-        project = objectFactory.newInstance(DefaultXcodeProject.class);
+    public DefaultXcodeExtension() {
     }
 
     @Override
-    public DefaultXcodeProject getProject() {
-        return project;
-    }
+    @Nested
+    public abstract DefaultXcodeProject getProject();
 }

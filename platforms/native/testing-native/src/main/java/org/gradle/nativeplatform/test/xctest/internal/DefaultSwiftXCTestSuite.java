@@ -41,15 +41,11 @@ import javax.inject.Inject;
  * Abstract software component representing an XCTest suite.
  */
 public abstract class DefaultSwiftXCTestSuite extends DefaultSwiftComponent<SwiftXCTestBinary> implements SwiftXCTestSuite {
-    private final Property<SwiftXCTestBinary> testBinary;
-    private final Property<SwiftComponent> testedComponent;
     private final DefaultComponentDependencies dependencies;
 
     @Inject
     public DefaultSwiftXCTestSuite(String name) {
         super(name, SwiftXCTestBinary.class);
-        this.testedComponent = getObjectFactory().property(SwiftComponent.class);
-        this.testBinary = getObjectFactory().property(SwiftXCTestBinary.class);
         this.dependencies = getObjectFactory().newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
     }
 
@@ -84,12 +80,8 @@ public abstract class DefaultSwiftXCTestSuite extends DefaultSwiftComponent<Swif
         action.execute(dependencies);
     }
 
-    public Property<SwiftComponent> getTestedComponent() {
-        return testedComponent;
-    }
+    public abstract Property<SwiftComponent> getTestedComponent();
 
     @Override
-    public Property<SwiftXCTestBinary> getTestBinary() {
-        return testBinary;
-    }
+    public abstract Property<SwiftXCTestBinary> getTestBinary();
 }
