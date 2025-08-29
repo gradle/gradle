@@ -255,7 +255,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
             Map<String, Object> attributes = new HashMap<>();
             attributes.put("icons", "font");
-            attributes.put("source-highlighter", "prettify");
+            configureCodeHighlightingAttributes(attributes);
             attributes.put("toc", "auto");
             attributes.put("toclevels", 1);
             attributes.put("toc-title", "Contents");
@@ -294,6 +294,12 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         });
     }
 
+    private static void configureCodeHighlightingAttributes(Map<String, Object> attributes) {
+        attributes.put("source-highlighter", "highlight.js");
+        //attributes.put("highlightjs-theme", "atom-one-dark");
+        attributes.put("highlightjs-languages", "java,groovy,kotlin,toml,gradle,properties,text");
+    }
+
     private void configureForUserGuideSinglePage(AsciidoctorTask task, GradleDocumentationExtension extension, Project project) {
         task.setGroup("documentation");
         task.dependsOn(extension.getUserManual().getStagedDocumentation());
@@ -305,7 +311,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         task.setSourceDir(extension.getUserManual().getStagedDocumentation().get().getAsFile());
 
         Map<String, Object> attributes = new HashMap<>();
-        attributes.put("source-highlighter", "coderay");
+        configureCodeHighlightingAttributes(attributes);
         attributes.put("toc", "macro");
         attributes.put("toclevels", 2);
 
