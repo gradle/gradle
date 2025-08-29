@@ -34,7 +34,6 @@ import org.gradle.process.internal.worker.request.ResponseProtocol;
 import org.gradle.process.internal.worker.request.WorkerAction;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.Set;
 
 class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWorkerProcessBuilder<IN, OUT> {
@@ -134,10 +133,10 @@ class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWo
         workerProcessBuilder.worker(new WorkerAction(this.workerImplementation));
 
         if (useApplicationClassloaderOnly) {
-            workerProcessBuilder.setImplementationClasspath(Collections.emptyList());
+            workerProcessBuilder.setImplementationClasspath(ClassPath.EMPTY);
         } else {
             ClassPath implementationClasspath = ClasspathUtil.getClasspath(this.workerImplementation.getClassLoader());
-            workerProcessBuilder.setImplementationClasspath(implementationClasspath.getAsURLs());
+            workerProcessBuilder.setImplementationClasspath(implementationClasspath);
         }
 
         // Always publish process info for multi-request workers
