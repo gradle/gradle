@@ -56,13 +56,14 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     private final List<String> writeFlags;
     private final File htmlReportOutputDirectory;
     private boolean hasMissingKeys = false;
-    private boolean useKeyServers = false;
+    private boolean useKeyServers;
 
-    HtmlDependencyVerificationReportRenderer(DocumentationRegistry documentationRegistry, File verificationFile, List<String> writeFlags, File htmlReportOutputDirectory) {
+    HtmlDependencyVerificationReportRenderer(DocumentationRegistry documentationRegistry, File verificationFile, List<String> writeFlags, File htmlReportOutputDirectory, boolean useKeyServers) {
         this.documentationRegistry = documentationRegistry;
         this.verificationFile = verificationFile;
         this.writeFlags = writeFlags;
         this.htmlReportOutputDirectory = htmlReportOutputDirectory;
+        this.useKeyServers = useKeyServers;
     }
 
     @Override
@@ -132,8 +133,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
             .append("        </div>\n");
     }
 
-    File writeReport(boolean useKeyServers) {
-        this.useKeyServers = useKeyServers;
+    File writeReport() {
         generateContent();
         ensureReportDirectoryCreated();
         copyReportResources();

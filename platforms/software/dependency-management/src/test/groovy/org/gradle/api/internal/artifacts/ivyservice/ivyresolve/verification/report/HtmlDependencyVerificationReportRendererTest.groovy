@@ -61,18 +61,20 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
     File currentReportDir
     File currentReportFile
     Document report
+    boolean useKeyServers = false
 
     @Subject
     HtmlDependencyVerificationReportRenderer renderer = new HtmlDependencyVerificationReportRenderer(
         Mock(DocumentationRegistry),
         verificationFile,
         ["pgp", "sha512"],
-        reportsDir
+        reportsDir,
+        useKeyServers
     )
 
     def "copies required resources"() {
         when:
-        generateReport(true)
+        generateReport()
 
         then:
         ['css': ['uikit.min.css'],
@@ -90,7 +92,7 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         renderer.startNewSection("First section")
 
         when:
-        generateReport(true)
+        generateReport()
 
         then:
         bodyContains("First section")
@@ -98,7 +100,7 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
 
         when:
         renderer.startNewSection("Second section")
-        generateReport(true)
+        generateReport()
 
         then:
         bodyContains("First section")
@@ -111,29 +113,36 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
     @Unroll("reports sticky tip for (#failure) using a key server")
     def "reports sticky tip for (#failure) using a key server"() {
         given:
-        renderer.startNewSection(":someConfiguration")
-        renderer.startNewArtifact(artifact()) {
-            renderer.reportFailure(failure)
+        HtmlDependencyVerificationReportRenderer keyServerRenderer = new HtmlDependencyVerificationReportRenderer(
+            Mock(DocumentationRegistry),
+            verificationFile,
+            ["pgp", "sha512"],
+            reportsDir,
+            true
+        )
+        keyServerRenderer.startNewSection(":someConfiguration")
+        keyServerRenderer.startNewArtifact(artifact()) {
+            keyServerRenderer.reportFailure(failure)
         }
 
         when:
-        generateReport(useKeyServers)
+        generateReport()
 
         then:
         bodyContains(stickyTipMessage)
 
         where:
-        failure                                                                 | useKeyServers | stickyTipMessage
-        checksumFailure()                                                       | true          | './gradlew --write-verification-metadata pgp,sha512 help'
-        missingChecksums()                                                      | true          | './gradlew --write-verification-metadata pgp,sha512 help'
-        deletedArtifact()                                                       | true          | './gradlew --write-verification-metadata pgp,sha512 help'
-        missingSignature()                                                      | true          | './gradlew --write-verification-metadata pgp,sha512 help'
-        onlyIgnoredKeys()                                                       | true          | './gradlew --write-verification-metadata pgp,sha512 help'
-        signatureFailure()                                                      | true          | './gradlew --write-verification-metadata pgp,sha512 help'
-        signatureFailure("Maven", ['abcd': signatureError(FAILED)])             | true          | './gradlew --write-verification-metadata pgp,sha512 help'
-        signatureFailure("Maven", ['abcd': signatureError(IGNORED_KEY)])        | true          | './gradlew --write-verification-metadata pgp,sha512 help'
-        signatureFailure("Maven", ['abcd': signatureError(PASSED_NOT_TRUSTED)]) | true          | './gradlew --write-verification-metadata pgp,sha512 help'
-        signatureFailure("Maven", ['abcd': signatureError(MISSING_KEY)])        | true          | './gradlew --write-verification-metadata pgp,sha512 help'
+        failure                                                                 | stickyTipMessage
+        checksumFailure()                                                       |'./gradlew --write-verification-metadata pgp,sha512 help'
+        missingChecksums()                                                      |'./gradlew --write-verification-metadata pgp,sha512 help'
+        deletedArtifact()                                                       |'./gradlew --write-verification-metadata pgp,sha512 help'
+        missingSignature()                                                      |'./gradlew --write-verification-metadata pgp,sha512 help'
+        onlyIgnoredKeys()                                                       |'./gradlew --write-verification-metadata pgp,sha512 help'
+        signatureFailure()                                                      |'./gradlew --write-verification-metadata pgp,sha512 help'
+        signatureFailure("Maven", ['abcd': signatureError(FAILED)])             |'./gradlew --write-verification-metadata pgp,sha512 help'
+        signatureFailure("Maven", ['abcd': signatureError(IGNORED_KEY)])        |'./gradlew --write-verification-metadata pgp,sha512 help'
+        signatureFailure("Maven", ['abcd': signatureError(PASSED_NOT_TRUSTED)]) |'./gradlew --write-verification-metadata pgp,sha512 help'
+        signatureFailure("Maven", ['abcd': signatureError(MISSING_KEY)])        |'./gradlew --write-verification-metadata pgp,sha512 help'
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20135")
@@ -146,24 +155,23 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         }
 
         when:
-        report
-        generateReport(useKeyServers)
+        generateReport()
 
         then:
         bodyContains(stickyTipMessage)
 
         where:
-        failure                                                                 | useKeyServers | stickyTipMessage
-        checksumFailure()                                                       | false         | './gradlew --write-verification-metadata pgp,sha512 help'
-        missingChecksums()                                                      | false         | './gradlew --write-verification-metadata pgp,sha512 help'
-        deletedArtifact()                                                       | false         | './gradlew --write-verification-metadata pgp,sha512 help'
-        missingSignature()                                                      | false         | './gradlew --write-verification-metadata pgp,sha512 help'
-        onlyIgnoredKeys()                                                       | false         | './gradlew --write-verification-metadata pgp,sha512 help'
-        signatureFailure()                                                      | false         | './gradlew --write-verification-metadata pgp,sha512 --export-keys help'
-        signatureFailure("Maven", ['abcd': signatureError(FAILED)])             | false         | './gradlew --write-verification-metadata pgp,sha512 help'
-        signatureFailure("Maven", ['abcd': signatureError(IGNORED_KEY)])        | false         | './gradlew --write-verification-metadata pgp,sha512 help'
-        signatureFailure("Maven", ['abcd': signatureError(PASSED_NOT_TRUSTED)]) | false         | './gradlew --write-verification-metadata pgp,sha512 help'
-        signatureFailure("Maven", ['abcd': signatureError(MISSING_KEY)])        | false         | './gradlew --write-verification-metadata pgp,sha512 --export-keys help'
+        failure                                                                 | stickyTipMessage
+        checksumFailure()                                                       | './gradlew --write-verification-metadata pgp,sha512 help'
+        missingChecksums()                                                      | './gradlew --write-verification-metadata pgp,sha512 help'
+        deletedArtifact()                                                       | './gradlew --write-verification-metadata pgp,sha512 help'
+        missingSignature()                                                      | './gradlew --write-verification-metadata pgp,sha512 help'
+        onlyIgnoredKeys()                                                       | './gradlew --write-verification-metadata pgp,sha512 help'
+        signatureFailure()                                                      | './gradlew --write-verification-metadata pgp,sha512 --export-keys help'
+        signatureFailure("Maven", ['abcd': signatureError(FAILED)])             | './gradlew --write-verification-metadata pgp,sha512 help'
+        signatureFailure("Maven", ['abcd': signatureError(IGNORED_KEY)])        | './gradlew --write-verification-metadata pgp,sha512 help'
+        signatureFailure("Maven", ['abcd': signatureError(PASSED_NOT_TRUSTED)]) | './gradlew --write-verification-metadata pgp,sha512 help'
+        signatureFailure("Maven", ['abcd': signatureError(MISSING_KEY)])        | './gradlew --write-verification-metadata pgp,sha512 --export-keys help'
     }
 
     @Unroll("reports verification errors (#failure)")
@@ -175,7 +183,7 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         }
 
         when:
-        generateReport(true)
+        generateReport()
 
         def errors = errorsFor(":someConfiguration")
         then:
@@ -212,7 +220,7 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         }
 
         when:
-        generateReport(true)
+        generateReport()
 
         def errors = errorsFor(":someConfiguration")
 
@@ -244,7 +252,7 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         }
 
         when:
-        generateReport(true)
+        generateReport()
 
         def errors1 = errorsFor(":someConfiguration")
         def errors2 = errorsFor(":other:configuration")
@@ -280,7 +288,7 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         }
 
         when:
-        generateReport(true)
+        generateReport()
 
         def errors1 = errorsFor(":someConfiguration")
         def errors2 = errorsFor(":other:configuration")
@@ -345,8 +353,8 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         )
     }
 
-    private void generateReport(boolean useKeyServer) {
-        currentReportFile = renderer.writeReport(useKeyServer)
+    private void generateReport() {
+        currentReportFile = renderer.writeReport()
         currentReportDir = currentReportFile.parentFile
         Jsoup.parse(currentReportFile, UTF_8.name())
         report = Jsoup.parse(currentReportFile, UTF_8.name())
