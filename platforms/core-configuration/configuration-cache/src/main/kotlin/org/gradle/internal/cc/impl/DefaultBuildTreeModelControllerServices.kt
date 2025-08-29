@@ -89,7 +89,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
         val configurationCacheLogLevel = if (startParameter.isConfigurationCacheQuiet) LogLevel.INFO else LogLevel.LIFECYCLE
         val modelParameters = BuildModelParametersProvider.parameters(requirements, startParameter, configurationCacheLogLevel)
-        logger.debug("Operational build model parameters: {}", modelParameters.toDisplayMap())
+        logger.info("Operational build model parameters: {}", modelParameters.toDisplayMap())
 
         if (modelParameters.isIsolatedProjects) {
             IncubationLogger.incubatingFeatureUsed("Isolated projects")
