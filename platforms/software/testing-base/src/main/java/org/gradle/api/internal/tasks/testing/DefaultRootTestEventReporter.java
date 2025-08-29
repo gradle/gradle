@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.internal.tasks.testing.results.HtmlTestReportGenerator;
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListener;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
@@ -26,31 +26,32 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.Collections;
 
 @NullMarked
 class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
 
-    private final Path testReportDirectory;
     private final Path binaryResultsDir;
     private final SerializableTestResultStore.Writer testResultWriter;
-    private final HtmlTestReportGenerator htmlTestReportGenerator;
+    private final GenericHtmlTestReportGenerator htmlTestReportGenerator;
     private final TestExecutionResultsListener executionResultsListener;
 
     // Mutable state
+    @Nullable
     private String failureMessage;
 
     DefaultRootTestEventReporter(
         String rootName,
         TestListenerInternal listener,
         IdGenerator<?> idGenerator,
-        Path testReportDirectory,
         Path binaryResultsDir,
         SerializableTestResultStore.Writer testResultWriter,
-        HtmlTestReportGenerator htmlTestReportGenerator,
+        GenericHtmlTestReportGenerator htmlTestReportGenerator,
         TestExecutionResultsListener executionResultsListener
     ) {
         super(
@@ -60,7 +61,6 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
             new TestResultState(null)
         );
 
-        this.testReportDirectory = testReportDirectory;
         this.binaryResultsDir = binaryResultsDir;
         this.testResultWriter = testResultWriter;
         this.htmlTestReportGenerator = htmlTestReportGenerator;
@@ -93,7 +93,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         executionResultsListener.executionResultsAvailable(testDescriptor, binaryResultsDir, rootTestFailed);
 
         // Generate HTML report
-        Path reportIndexFile = htmlTestReportGenerator.generateHtmlReport(testReportDirectory, binaryResultsDir);
+        Path reportIndexFile = htmlTestReportGenerator.generate(Collections.singletonList(binaryResultsDir));
 
         // Throw an exception with rendered test results, if necessary
         if (rootTestFailed) {
