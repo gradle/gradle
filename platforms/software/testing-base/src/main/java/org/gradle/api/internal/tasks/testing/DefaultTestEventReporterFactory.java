@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.testing.logging.SimpleTestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestEventProgressListener;
-import org.gradle.api.internal.tasks.testing.results.HtmlTestReportGenerator;
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListener;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
@@ -31,6 +31,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.reflect.Instantiator;
 import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
@@ -43,19 +44,19 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
     private final ListenerManager listenerManager;
     private final StyledTextOutputFactory textOutputFactory;
     private final ProgressLoggerFactory progressLoggerFactory;
-    private final HtmlTestReportGenerator htmlTestReportGenerator;
+    private final Instantiator instantiator;
 
     @Inject
     public DefaultTestEventReporterFactory(
         ListenerManager listenerManager,
         StyledTextOutputFactory textOutputFactory,
         ProgressLoggerFactory progressLoggerFactory,
-        HtmlTestReportGenerator htmlTestReportGenerator
+        Instantiator instantiator
     ) {
         this.listenerManager = listenerManager;
         this.textOutputFactory = textOutputFactory;
         this.progressLoggerFactory = progressLoggerFactory;
-        this.htmlTestReportGenerator = htmlTestReportGenerator;
+        this.instantiator = instantiator;
     }
 
     @Override
@@ -77,14 +78,15 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         SerializableTestResultStore.Writer resultsSerializingListener = newResultsSerializingListener(binaryResultsDir);
         testListenerInternalBroadcaster.add(resultsSerializingListener);
 
+        GenericHtmlTestReportGenerator htmlReportGenerator = instantiator.newInstance(GenericHtmlTestReportGenerator.class, htmlReportDirectory.getAsFile().toPath());
+
         return new LifecycleTrackingGroupTestEventReporter(new DefaultRootTestEventReporter(
             rootName,
             testListenerInternalBroadcaster.getSource(),
             new LongIdGenerator(),
-            htmlReportDirectory.getAsFile().toPath(),
             binaryResultsDir,
             resultsSerializingListener,
-            htmlTestReportGenerator,
+            htmlReportGenerator,
             listenerManager.getBroadcaster(TestExecutionResultsListener.class)
         ));
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks.testing.report.generic;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
+import org.apache.commons.io.file.PathUtils;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.tasks.testing.TestReportGenerator;
 import org.gradle.api.internal.tasks.testing.report.HtmlTestReport;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.FileUtils;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -34,16 +41,20 @@ import org.gradle.internal.time.Timer;
 import org.gradle.reporting.HtmlReportBuilder;
 import org.gradle.reporting.HtmlReportRenderer;
 import org.gradle.reporting.ReportRenderer;
-import org.gradle.util.Path;
-import org.gradle.util.internal.GFileUtils;
+import org.jspecify.annotations.Nullable;
 
+import javax.inject.Inject;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
- * Generates an HTML report based on test results from an {@link TestTreeModel}.
+ * Generates an HTML report based on test results based on binary results from {@link SerializableTestResultStore}.
  *
  * <p>
  * Unlike {@link HtmlTestReport}, this report does not assume that the test results are from JUnit tests. They may even be non-JVM tests.
@@ -52,53 +63,92 @@ import java.util.Set;
  * <p>
  * The root results are recorded into `index.html`, and then each parent tells its children to generate starting at `{childName}/index.html`.
  */
-public class GenericHtmlTestReport {
+public abstract class GenericHtmlTestReportGenerator implements TestReportGenerator {
 
-    private static final Logger LOG = Logging.getLogger(GenericHtmlTestReport.class);
+    private static final Logger LOG = Logging.getLogger(GenericHtmlTestReportGenerator.class);
 
-    public static String getFilePath(Path path) {
+    public static String getFilePath(org.gradle.util.Path path) {
         String filePath;
         if (path.segmentCount() == 0) {
             filePath = "index.html";
         } else {
-            filePath = String.join("/", path.segments()) + "/index.html";
+            filePath = String.join("/", Iterables.transform(path.segments(), FileUtils::toSafeFileName)) + "/index.html";
         }
         return filePath;
     }
-
     private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final List<SerializableTestResultStore.OutputReader> outputReaders;
     private final MetadataRendererRegistry metadataRendererRegistry;
+    private final Path reportsDirectory;
 
-    public GenericHtmlTestReport(
+    @Inject
+    public GenericHtmlTestReportGenerator(
         BuildOperationRunner buildOperationRunner,
         BuildOperationExecutor buildOperationExecutor,
-        List<SerializableTestResultStore.OutputReader> outputReaders,
-        MetadataRendererRegistry metadataRendererRegistry
+        MetadataRendererRegistry metadataRendererRegistry,
+        Path reportsDirectory
     ) {
         this.buildOperationRunner = buildOperationRunner;
         this.buildOperationExecutor = buildOperationExecutor;
-        this.outputReaders = outputReaders;
         this.metadataRendererRegistry = metadataRendererRegistry;
+        this.reportsDirectory = reportsDirectory;
     }
 
-    public void generateReport(TestTreeModel root, java.nio.file.Path reportDir) {
+    @Override
+    @Nullable
+    public Path generate(List<Path> resultsDirectories) {
+        List<SerializableTestResultStore> stores = resultsDirectories.stream()
+            .distinct()
+            .map(SerializableTestResultStore::new)
+            .filter(SerializableTestResultStore::hasResults)
+            .collect(Collectors.toList());
+
+        if (stores.stream().noneMatch(SerializableTestResultStore::hasResults)) {
+            return null;
+        }
+
+        try {
+            Files.createDirectories(reportsDirectory);
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+
+        List<SerializableTestResultStore.OutputReader> outputReaders = new ArrayList<>(stores.size());
+        try {
+            for (SerializableTestResultStore store : stores) {
+                outputReaders.add(store.openOutputReader());
+            }
+
+            TestTreeModel root = TestTreeModel.loadModelFromStores(stores);
+            generateReport(root, outputReaders);
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } finally {
+            CompositeStoppable.stoppable(outputReaders).stop();
+        }
+        return reportsDirectory.resolve("index.html");
+    }
+
+    private void generateReport(TestTreeModel root, List<SerializableTestResultStore.OutputReader> outputReaders) {
         LOG.info("Generating HTML test report...");
 
         Timer clock = Time.startTimer();
-        generateFiles(root, reportDir);
-        LOG.info("Finished generating test html results ({}) into: {}", clock.getElapsed(), reportDir);
+        generateFiles(root, outputReaders);
+        LOG.info("Finished generating test html results ({}) into: {}", clock.getElapsed(), reportsDirectory);
     }
 
-    private void generateFiles(TestTreeModel model, final java.nio.file.Path reportDir) {
+    private void generateFiles(TestTreeModel model, final List<SerializableTestResultStore.OutputReader> outputReaders) {
         try {
             HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
             buildOperationRunner.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
                     // Clean-up old HTML report directories
-                    GFileUtils.deleteQuietly(reportDir.toFile());
+                    try {
+                        PathUtils.deleteDirectory(reportsDirectory);
+                    } catch (IOException e) {
+                        LOG.info("Could not delete HTML test reports directory '{}'.", reportsDirectory, e);
+                    }
                 }
 
                 @Override
@@ -154,9 +204,9 @@ public class GenericHtmlTestReport {
                         queueTree(queue, tree.getChildren().get(child), output);
                     }
                 }
-            }, reportDir.toFile());
+            }, reportsDirectory.toFile());
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not generate test report to '%s'.", reportDir), e);
+            throw new GradleException(String.format("Could not generate test report to '%s'.", reportsDirectory), e);
         }
     }
 
