@@ -29,7 +29,8 @@ data class DefaultBuildModelParameters(
     private val parallelToolingApiActions: Boolean,
     private val invalidateCoupledProjects: Boolean,
     private val modelAsProjectDependency: Boolean,
-    private val resilientModelBuilding: Boolean // Experimental flag to enable resilient model building.
+    private val resilientModelBuilding: Boolean, // Experimental flag to enable resilient model building.
+    private val resilientModels: String // Comma separated list of models that should be built resiliently.
 ) : BuildModelParameters {
 
     override fun isRequiresToolingModels(): Boolean = requiresToolingModels
@@ -51,4 +52,6 @@ data class DefaultBuildModelParameters(
     override fun isModelAsProjectDependency(): Boolean = modelAsProjectDependency
 
     override fun isResilientModelBuilding(): Boolean = resilientModelBuilding
+
+    override fun getResilientModels(): String = resilientModels
 }
