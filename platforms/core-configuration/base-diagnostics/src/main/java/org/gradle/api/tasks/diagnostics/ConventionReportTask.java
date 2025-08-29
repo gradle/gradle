@@ -50,7 +50,6 @@ import static org.gradle.internal.serialization.Transient.varOf;
 public abstract class ConventionReportTask extends ConventionTask {
     // todo annotate as required
     private final Transient.Var<Set<Project>> projects = varOf(new HashSet<>(singleton(getProject())));
-    private final DirectoryProperty reportDir;
     private File outputFile;
 
     /**
@@ -64,12 +63,9 @@ public abstract class ConventionReportTask extends ConventionTask {
      * @since 7.1
      */
     @Internal
-    public DirectoryProperty getProjectReportDirectory() {
-        return reportDir;
-    }
+    public abstract DirectoryProperty getProjectReportDirectory();
 
     protected ConventionReportTask() {
-        reportDir = getProject().getObjects().directoryProperty();
         doNotTrackState("Uses the whole project state as an input");
     }
 

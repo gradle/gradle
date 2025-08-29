@@ -129,8 +129,6 @@ public abstract class CreateStartScripts extends ConventionTask {
 
     private File outputDir;
     private String executableDir = "bin";
-    private final Property<String> mainModule;
-    private final Property<String> mainClass;
     private Iterable<String> defaultJvmOpts = new LinkedList<>();
     private String applicationName;
     private String optsEnvironmentVar;
@@ -141,8 +139,6 @@ public abstract class CreateStartScripts extends ConventionTask {
     private ScriptGenerator windowsStartScriptGenerator = new WindowsStartScriptGenerator();
 
     public CreateStartScripts() {
-        this.mainModule = getObjectFactory().property(String.class);
-        this.mainClass = getObjectFactory().property(String.class);
         getGitRef().convention("HEAD");
         this.modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
     }
@@ -250,9 +246,7 @@ public abstract class CreateStartScripts extends ConventionTask {
      */
     @Optional
     @Input
-    public Property<String> getMainModule() {
-        return mainModule;
-    }
+    public abstract Property<String> getMainModule();
 
     /**
      * The main class name used to start the Java application.
@@ -261,9 +255,7 @@ public abstract class CreateStartScripts extends ConventionTask {
      */
     @Optional
     @Input
-    public Property<String> getMainClass() {
-        return mainClass;
-    }
+    public abstract Property<String> getMainClass();
 
     /**
      * The application's default JVM options. Defaults to an empty list.
@@ -375,8 +367,8 @@ public abstract class CreateStartScripts extends ConventionTask {
         generator.setDefaultJvmOpts(getDefaultJvmOpts());
         generator.setOptsEnvironmentVar(getOptsEnvironmentVar());
         generator.setExitEnvironmentVar(getExitEnvironmentVar());
-        generator.setClasspath(getRelativePath(javaModuleDetector.inferClasspath(mainModule.isPresent(), getClasspath())));
-        generator.setModulePath(getRelativePath(javaModuleDetector.inferModulePath(mainModule.isPresent(), getClasspath())));
+        generator.setClasspath(getRelativePath(javaModuleDetector.inferClasspath(getMainModule().isPresent(), getClasspath())));
+        generator.setModulePath(getRelativePath(javaModuleDetector.inferModulePath(getMainModule().isPresent(), getClasspath())));
         if (StringUtils.isEmpty(getExecutableDir())) {
             generator.setScriptRelPath(getUnixScript().getName());
         } else {
@@ -387,10 +379,10 @@ public abstract class CreateStartScripts extends ConventionTask {
     }
 
     private AppEntryPoint getEntryPoint() {
-        if (mainModule.isPresent()) {
-            return new MainModule(mainModule.get(), mainClass.getOrNull());
+        if (getMainModule().isPresent()) {
+            return new MainModule(getMainModule().get(), getMainClass().getOrNull());
         }
-        return new MainClass(mainClass.getOrElse(""));
+        return new MainClass(getMainClass().getOrElse(""));
     }
 
     @Input
