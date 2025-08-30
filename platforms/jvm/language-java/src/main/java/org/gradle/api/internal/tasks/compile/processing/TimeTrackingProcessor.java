@@ -21,6 +21,7 @@ import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
 import org.gradle.internal.Factory;
+import org.jspecify.annotations.Nullable;
 
 import javax.annotation.processing.Completion;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -82,9 +83,9 @@ public class TimeTrackingProcessor extends DelegatingProcessor {
 
     @Override
     public void init(final ProcessingEnvironment processingEnv) {
-        track(new Factory<Void>() {
+        track(new Factory<@Nullable Void>() {
             @Override
-            public Void create() {
+            public @Nullable Void create() {
                 TimeTrackingProcessor.super.init(processingEnv);
                 return null;
             }
