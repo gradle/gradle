@@ -16,35 +16,61 @@
 
 package org.gradle.ide.sync
 
+import org.gradle.ide.starter.IdeCommand
 import org.gradle.ide.sync.fixtures.IsolatedProjectsIdeSyncFixture
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.fixtures.file.TestFile
 
 class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
 
-    private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(testDirectory)
+    private TestFile gradleDir = testDirectory.createDir("gradle-checkout")
+    private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(gradleDir)
 
     def "can sync gradle/gradle build without problems"() {
         given:
         gradle()
 
+        and:
+        ideXmxMb = 4096
+
         when:
-        ideaSync(IDEA_COMMUNITY_VERSION)
+        ideaSync(IDEA_COMMUNITY_VERSION, gradleDir)
 
         then:
         fixture.assertHtmlReportHasNoProblems()
     }
 
-    private void gradle() {
-        new TestFile("build/gradleSources").copyTo(testDirectory)
+    def "can sync gradle/gradle incrementally without error"() {
+        given:
+        gradle()
 
-        file("gradle.properties") << """
+        and:
+        ideXmxMb = 4096
+
+        expect:
+        ideaSync(
+            IDEA_COMMUNITY_VERSION,
+            gradleDir,
+            [
+                new IdeCommand.AppendTextToFile("subprojects/core-api/build.gradle.kts", "dependencies {}"),
+                IdeCommand.ImportGradleProject.INSTANCE
+            ]
+        )
+    }
+
+    private void gradle() {
+        new TestFile("build/gradleSources").copyTo(gradleDir)
+
+        gradleDir.file("gradle.properties") << """
             org.gradle.unsafe.isolated-projects=true
 
             # gradle/gradle build contains gradle/gradle-daemon-jvm.properties, which requires daemon to be run with Java 17.
             # However, on CI JDK's installed not in the default location, and Gradle can't find appropriate toolchain to run.
             # So we need to specify required JDK explicitly.
             org.gradle.java.installations.paths=$AvailableJavaHomes.jdk17.javaHome.absolutePath
+
+            # we don't want to publish scans
+            systemProp.scan.dump=true
         """
     }
 }
