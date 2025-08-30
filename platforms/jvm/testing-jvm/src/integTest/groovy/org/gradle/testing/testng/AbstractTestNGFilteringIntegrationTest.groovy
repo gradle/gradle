@@ -22,6 +22,15 @@ import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import spock.lang.Issue
 
 abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest implements TestNGMultiVersionTest {
+    @Override
+    String testName(String methodName) {
+        return methodName
+    }
+
+    @Override
+    String getPathToTestPackages() {
+        return ":Gradle suite:Gradle test:"
+    }
 
     void theUsualFiles() {
         buildFile << """
@@ -76,9 +85,9 @@ abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilter
         def result = new DefaultTestExecutionResult(testDirectory)
 
         result.assertTestClassesExecuted('FooTest', 'BarTest')
-        result.testClass('FooTest').assertTestCount(1, 0, 0)
+        result.testClass('FooTest').assertTestCount(1, 0)
         result.testClass('FooTest').assertTestOutcomes(passedTestOutcome, 'pass')
-        result.testClass('BarTest').assertTestCount(1, 0, 0)
+        result.testClass('BarTest').assertTestCount(1, 0)
         result.testClass('BarTest').assertTestOutcomes(passedTestOutcome, 'pass')
     }
 
@@ -102,9 +111,9 @@ abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilter
         def result = new DefaultTestExecutionResult(testDirectory)
 
         result.assertTestClassesExecuted('FooTest', 'BarTest')
-        result.testClass('FooTest').assertTestCount(1, 0, 0)
+        result.testClass('FooTest').assertTestCount(1, 0)
         result.testClass('FooTest').assertTestOutcomes(passedTestOutcome, 'pass')
-        result.testClass('BarTest').assertTestCount(1, 0, 0)
+        result.testClass('BarTest').assertTestCount(1, 0)
         result.testClass('BarTest').assertTestOutcomes(passedTestOutcome, 'pass')
     }
 }

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing.processors;
 
 import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
-import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
@@ -69,17 +68,6 @@ public class TestMainAction implements Runnable {
             resultProcessor.failure(suite.getId(), DefaultTestFailure.fromTestFrameworkStartupFailure(ex));
         } finally {
             resultProcessor.completed(suite.getId(), new TestCompleteEvent(clock.getCurrentTime()));
-        }
-    }
-
-    private static final class RootTestSuiteDescriptor extends DefaultTestSuiteDescriptor {
-        private RootTestSuiteDescriptor(Object id, String name) {
-            super(id, name);
-        }
-
-        @Override
-        public String toString() {
-            return getName();
         }
     }
 }
