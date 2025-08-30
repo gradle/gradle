@@ -39,6 +39,7 @@ public class DaemonRegistryUnavailableExpirationStrategy implements DaemonExpira
     public static final String REGISTRY_BECAME_INACCESSIBLE = "after the daemon registry became inaccessible";
 
     private final Daemon daemon;
+    private long lastModified = -1;
 
     public DaemonRegistryUnavailableExpirationStrategy(Daemon daemon) {
         this.daemon = daemon;
@@ -49,19 +50,25 @@ public class DaemonRegistryUnavailableExpirationStrategy implements DaemonExpira
         try {
             final DaemonContext daemonContext = daemon.getDaemonContext();
             final File daemonRegistryDir = daemonContext.getDaemonRegistryDir();
-            if (!new DaemonDir(daemonRegistryDir).getRegistry().canRead()) {
-                LOG.warn("Daemon registry {} became unreadable. Expiring daemon.", daemonRegistryDir);
-                return new DaemonExpirationResult(GRACEFUL_EXPIRE, REGISTRY_BECAME_UNREADABLE);
-            } else {
-                // Check that given daemon still exists in registry - a daemon registry could be removed and recreated between checks
-                List<Long> allDaemonPids = Lists.transform(daemon.getDaemonRegistry().getAll(), new Function<DaemonInfo, Long>() {
-                    @Override
-                    public Long apply(DaemonInfo info) {
-                        return info.getPid();
+            File registry = new DaemonDir(daemonRegistryDir).getRegistry();
+            long newLastModified = registry.lastModified();
+
+            if (lastModified != newLastModified) {
+                lastModified = newLastModified;
+                if (!registry.canRead()) {
+                    LOG.warn("Daemon registry {} became unreadable. Expiring daemon.", daemonRegistryDir);
+                    return new DaemonExpirationResult(GRACEFUL_EXPIRE, REGISTRY_BECAME_UNREADABLE);
+                } else {
+                    // Check that given daemon still exists in registry - a daemon registry could be removed and recreated between checks
+                    List<Long> allDaemonPids = Lists.transform(daemon.getDaemonRegistry().getAll(), new Function<DaemonInfo, Long>() {
+                        @Override
+                        public Long apply(DaemonInfo info) {
+                            return info.getPid();
+                        }
+                    });
+                    if (!allDaemonPids.contains(daemonContext.getPid())) {
+                        return new DaemonExpirationResult(GRACEFUL_EXPIRE, REGISTRY_ENTRY_UNEXPECTEDLY_LOST);
                     }
-                });
-                if (!allDaemonPids.contains(daemonContext.getPid())) {
-                    return new DaemonExpirationResult(GRACEFUL_EXPIRE, REGISTRY_ENTRY_UNEXPECTEDLY_LOST);
                 }
             }
         } catch (SecurityException se) {
