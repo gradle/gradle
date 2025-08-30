@@ -27,6 +27,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.Objects;
 
 public class DefaultBuildToolingModelController implements BuildToolingModelController {
+
     private final BuildLifecycleController buildController;
     private final BuildState buildState;
     private final ToolingModelBuilderLookup buildScopeLookup;
@@ -65,8 +66,12 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
             throw new IllegalArgumentException("Project has unexpected owner.");
         }
         // Force configuration of the containing build and then locate the builder for target project
-        buildController.configureProjects();
+        configureProjectsForModel(modelName);
         return doLocate(target, modelName, param);
+    }
+
+    protected void configureProjectsForModel(String modelName) {
+        buildController.configureProjects();
     }
 
     private ToolingModelScope doLocate(ProjectState target, String modelName, boolean param) {
