@@ -16,17 +16,43 @@
 
 package org.gradle.internal.declarativedsl.software
 
+import org.gradle.api.GradleException
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.plugin.software.internal.SoftwareTypeImplementation
+import org.gradle.api.plugins.ExtensionAware
+import org.gradle.plugin.software.internal.BoundSoftwareFeatureImplementation
+import org.gradle.plugin.software.internal.SoftwareFeatureImplementation
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 
-fun getSoftwareTypeModelInstance(softwareType: SoftwareTypeImplementation<*>, receiverObject: ProjectInternal): Any {
+fun getSoftwareFeatureModelInstance(softwareType: SoftwareFeatureImplementation<*, *>, receiverObject: ExtensionAware): Any =
+    when (softwareType) {
+        is BoundSoftwareFeatureImplementation<*, *> -> getBoundSoftwareFeatureModelInstance(softwareType, receiverObject)
+        else -> getLegacySoftwareTypeModelInstance(
+            softwareType,
+            receiverObject as? ProjectInternal
+                ?: throw GradleException(
+                    "Expected the target of software type ${softwareType.featureName} to be a Project, " +
+                        "got ${receiverObject::class.qualifiedName}"
+                )
+        )
+    }
+
+
+private fun getBoundSoftwareFeatureModelInstance(softwareFeatureImplementation: BoundSoftwareFeatureImplementation<*, *>, receiverObject: Any): Any =
+    if (receiverObject is ExtensionAware) {
+        receiverObject.extensions.getByName(softwareFeatureImplementation.featureName)
+    } else throw GradleException(
+        "Tried to access the definition object for software feature ${softwareFeatureImplementation.featureName} " +
+            "but the receiver object is not an instance of ExtensionAware: ${receiverObject::class.qualifiedName}"
+    )
+
+
+private fun getLegacySoftwareTypeModelInstance(softwareType: SoftwareFeatureImplementation<*, *>, receiverObject: ProjectInternal): Any {
     fun Iterable<Annotation>.hasSoftwareTypeAnnotation() =
-        any { annotation -> annotation is SoftwareType && annotation.name == softwareType.softwareType }
+        any { annotation -> annotation is SoftwareType && annotation.name == softwareType.featureName }
 
     val pluginInstance = receiverObject.plugins.getPlugin(softwareType.pluginClass)
 
