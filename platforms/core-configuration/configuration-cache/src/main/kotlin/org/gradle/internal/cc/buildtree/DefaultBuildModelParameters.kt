@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.cc.impl.services
+
+package org.gradle.internal.cc.buildtree
 
 import org.gradle.internal.buildtree.BuildModelParameters
-
 
 internal
 data class DefaultBuildModelParameters(
@@ -24,12 +24,15 @@ data class DefaultBuildModelParameters(
     private val parallelProjectExecution: Boolean,
     private val configureOnDemand: Boolean,
     private val configurationCache: Boolean,
+    private val configurationCacheParallelStore: Boolean,
+    private val configurationCacheParallelLoad: Boolean,
     private val isolatedProjects: Boolean,
+    private val parallelProjectConfiguration: Boolean,
     private val intermediateModelCache: Boolean,
     private val parallelToolingApiActions: Boolean,
     private val invalidateCoupledProjects: Boolean,
     private val modelAsProjectDependency: Boolean,
-    private val resilientModelBuilding: Boolean // Experimental flag to enable resilient model building.
+    private val resilientModelBuilding: Boolean
 ) : BuildModelParameters {
 
     override fun isRequiresToolingModels(): Boolean = requiresToolingModels
@@ -40,7 +43,13 @@ data class DefaultBuildModelParameters(
 
     override fun isConfigurationCache(): Boolean = configurationCache
 
+    override fun isConfigurationCacheParallelStore(): Boolean = configurationCacheParallelStore
+
+    override fun isConfigurationCacheParallelLoad(): Boolean = configurationCacheParallelLoad
+
     override fun isIsolatedProjects(): Boolean = isolatedProjects
+
+    override fun isParallelProjectConfiguration(): Boolean = parallelProjectConfiguration
 
     override fun isIntermediateModelCache(): Boolean = intermediateModelCache
 
@@ -51,4 +60,20 @@ data class DefaultBuildModelParameters(
     override fun isModelAsProjectDependency(): Boolean = modelAsProjectDependency
 
     override fun isResilientModelBuilding(): Boolean = resilientModelBuilding
+
+    override fun toDisplayMap(): Map<String, Boolean> = mapOf(
+        "requiresToolingModels" to requiresToolingModels,
+        "parallelProjectExecution" to parallelProjectExecution,
+        "configureOnDemand" to configureOnDemand,
+        "configurationCache" to configurationCache,
+        "configurationCacheParallelStore" to configurationCacheParallelStore,
+        "configurationCacheParallelLoad" to configurationCacheParallelLoad,
+        "isolatedProjects" to isolatedProjects,
+        "parallelProjectConfiguration" to parallelProjectConfiguration,
+        "intermediateModelCache" to intermediateModelCache,
+        "parallelToolingApiActions" to parallelToolingApiActions,
+        "invalidateCoupledProjects" to invalidateCoupledProjects,
+        "modelAsProjectDependency" to modelAsProjectDependency,
+        "resilientModelBuilding" to resilientModelBuilding
+    )
 }

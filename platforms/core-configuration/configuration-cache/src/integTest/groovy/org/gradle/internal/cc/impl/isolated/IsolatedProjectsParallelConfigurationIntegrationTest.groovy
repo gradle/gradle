@@ -86,7 +86,7 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         """)
 
         when:
-        isolatedProjectsRun(":a:build", "-Dorg.gradle.internal.isolated-projects.configure-on-demand.tasks=true")
+        isolatedProjectsRun(":a:build", "-Dorg.gradle.internal.isolated-projects.configure-on-demand=tasks")
 
         then:
         result.assertTaskScheduled(":a:build")
