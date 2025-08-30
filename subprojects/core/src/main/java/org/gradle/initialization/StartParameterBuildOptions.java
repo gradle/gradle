@@ -82,6 +82,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigurationCacheQuietOption(),
         new ConfigurationCacheIntegrityCheckOption(),
         new ConfigurationCacheEntriesPerKeyOption(),
+        new ConfigurationCacheHeapDumpDir(),
         new IsolatedProjectsOption(),
         new ProblemReportGenerationOption(),
         new PropertyUpgradeReportOption(),
@@ -692,6 +693,22 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
+    /**
+     * When set, tells Gradle to emit heap dumps in the given directory after loading the work graph on a Configuration Cache hit,
+     * after storing and loading the work graph on a Configuration Cache miss.
+     */
+    public static class ConfigurationCacheHeapDumpDir extends StringBuildOption<StartParameterInternal> {
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.heap-dump-dir";
+
+        public ConfigurationCacheHeapDumpDir() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(String value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheHeapDumpDir(value);
+        }
+    }
     public static class PropertyUpgradeReportOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
 
         public static final String LONG_OPTION = "property-upgrade-report";

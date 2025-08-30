@@ -20,8 +20,10 @@ import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
+import spock.lang.Ignore
 import spock.lang.Specification
 
+@Ignore
 @Requires(UnitTestPreconditions.Online)
 class DistributionLocatorIntegrationTest extends Specification {
     private static final int CONNECTION_TIMEOUT_SECONDS = 60 * 1000

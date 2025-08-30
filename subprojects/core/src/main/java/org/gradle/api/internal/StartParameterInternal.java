@@ -47,6 +47,7 @@ public class StartParameterInternal extends StartParameter {
     private boolean configurationCacheQuiet;
     private int configurationCacheEntriesPerKey = 1;
     private boolean configurationCacheIntegrityCheckEnabled;
+    private @Nullable String configurationCacheHeapDumpDir;
     private boolean searchUpwards = true;
     private boolean useEmptySettings = false;
     private Duration continuousBuildQuietPeriod = Duration.ofMillis(250);
@@ -89,6 +90,7 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheQuiet = configurationCacheQuiet;
         p.configurationCacheEntriesPerKey = configurationCacheEntriesPerKey;
         p.configurationCacheIntegrityCheckEnabled = configurationCacheIntegrityCheckEnabled;
+        p.configurationCacheHeapDumpDir = configurationCacheHeapDumpDir;
         p.searchUpwards = searchUpwards;
         p.useEmptySettings = useEmptySettings;
         p.enableProblemReportGeneration = enableProblemReportGeneration;
@@ -259,6 +261,14 @@ public class StartParameterInternal extends StartParameter {
 
     public boolean isConfigurationCacheIntegrityCheckEnabled() {
         return configurationCacheIntegrityCheckEnabled;
+    }
+
+    public void setConfigurationCacheHeapDumpDir(@Nullable String configurationCacheHeapDumpDir) {
+        this.configurationCacheHeapDumpDir = configurationCacheHeapDumpDir;
+    }
+
+    public @Nullable String getConfigurationCacheHeapDumpDir() {
+        return configurationCacheHeapDumpDir;
     }
 
     public void setContinuousBuildQuietPeriod(Duration continuousBuildQuietPeriod) {
