@@ -161,12 +161,12 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
         @Override
         public String getProjectPath() {
-            return projectPath.getPath();
+            return projectPath.asString();
         }
 
         @Override
         public String getBuildPath() {
-            return buildPath.getPath();
+            return buildPath.asString();
         }
 
         @Override
@@ -218,12 +218,12 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
         @Override
         public String getProjectPath() {
-            return projectPath.getPath();
+            return projectPath.asString();
         }
 
         @Override
         public String getBuildPath() {
-            return buildPath.getPath();
+            return buildPath.asString();
         }
 
     }
@@ -282,12 +282,12 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
 
         @Override
         public String getProjectPath() {
-            return projectPath.getPath();
+            return projectPath.asString();
         }
 
         @Override
         public String getBuildPath() {
-            return buildPath.getPath();
+            return buildPath.asString();
         }
 
     }

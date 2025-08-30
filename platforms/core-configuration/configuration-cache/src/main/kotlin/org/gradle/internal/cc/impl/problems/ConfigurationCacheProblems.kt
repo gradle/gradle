@@ -502,7 +502,7 @@ class ConfigurationCacheProblems(
     val logger = Logging.getLogger(ConfigurationCacheProblems::class.java)
 
     private
-    fun locationForTask(taskIdentity: TaskIdentity<*>) = PropertyTrace.Task(taskIdentity.taskType, taskIdentity.buildTreePath.path)
+    fun locationForTask(taskIdentity: TaskIdentity<*>) = PropertyTrace.Task(taskIdentity.taskType, taskIdentity.buildTreePath.asString())
 
     private
     fun Int.counter(singular: String, plural: String = "${singular}s"): String {

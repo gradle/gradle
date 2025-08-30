@@ -55,7 +55,7 @@ public class DefaultProjectDescriptorRegistry implements ProjectDescriptorRegist
 
     @Override
     public @Nullable ProjectDescriptorInternal getRootProject() {
-        return getProject(Path.ROOT.getPath());
+        return getProject(Path.ROOT.asString());
     }
 
     @Override

@@ -179,7 +179,7 @@ class DefaultConfigurationCacheHost internal constructor(
 
         private
         fun getProjectDescriptor(parentPath: Path?): ProjectDescriptorInternal? =
-            parentPath?.let { projectDescriptorRegistry.getProject(it.path) }
+            parentPath?.let { projectDescriptorRegistry.getProject(it.asString()) }
 
         private
         val projectDescriptorRegistry

@@ -130,7 +130,7 @@ class DefaultConfigurationCacheIO internal constructor(
                 addressSerializer.write(this, entry.value)
             }
             writeCollection(projectMetadata.entries) { entry ->
-                writeString(entry.key.path)
+                writeString(entry.key.asString())
                 addressSerializer.write(this, entry.value)
             }
             writeCollection(sideEffects) {
@@ -168,7 +168,7 @@ class DefaultConfigurationCacheIO internal constructor(
 
     private
     fun WriteContext.writeModelKey(key: ModelKey) {
-        writeNullableString(key.identityPath?.path)
+        writeNullableString(key.identityPath?.asString())
         writeString(key.modelName)
         writeNullableString(key.parameterHash?.toString())
     }

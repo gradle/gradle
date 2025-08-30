@@ -219,7 +219,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
                 return Collections.emptyList();
             }
 
-            String taskPath = owningProject.getBuildTreePath().append(Path.path("dependencyInsight")).getPath();
+            String taskPath = owningProject.getBuildTreePath().append(Path.path("dependencyInsight")).asString();
 
             ModuleIdentifier moduleId = conflict.getModuleId();
             String dependencyNotation = moduleId.getGroup() + ":" + moduleId.getName();

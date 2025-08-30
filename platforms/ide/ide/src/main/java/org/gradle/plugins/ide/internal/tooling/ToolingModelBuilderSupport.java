@@ -30,7 +30,7 @@ public abstract class ToolingModelBuilderSupport {
                 .setDescription(task.getDescription())
                 .setPublic(PublicTaskSpecification.INSTANCE.isSatisfiedBy(task))
                 .setProjectIdentifier(projectIdentifier)
-                .setBuildTreePath(((TaskInternal) task).getIdentityPath().getPath());
+                .setBuildTreePath(((TaskInternal) task).getIdentityPath().asString());
         return target;
     }
 }
