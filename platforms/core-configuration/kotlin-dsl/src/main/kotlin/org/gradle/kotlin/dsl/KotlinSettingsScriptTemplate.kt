@@ -40,9 +40,10 @@ class KotlinSettingsScriptTemplateCompilationConfiguration : KotlinDslStandalone
 /**
  * Base class for Gradle Kotlin DSL standalone [Settings] scripts IDE support.
  *
+ * This class has the [Incubating]-level compatibility guarantees but is not annotated as such to avoid Unstable API warnings in the IDE on indirect usages (e.g., the [plugins] calls).
+ *
  * @since 8.1
  */
-@Incubating
 @KotlinScript(
     compilationConfiguration = KotlinSettingsScriptTemplateCompilationConfiguration::class
 )
