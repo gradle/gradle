@@ -110,13 +110,13 @@ class MixedLanguageHelloWorldApp extends HelloWorldApp {
         return i386GnuAsmSource
     }
 
-    // HACK: Ensure include root are correctly setup, use `INCLUDE <ks386.inc>`
+    // HACK: Ensure include root are correctly setup, use `INCLUDE <ksamd64.inc>`
     // See: https://github.com/gradle/gradle/issues/3662
     private static String windowsMasmSource = '''
 .386
 .model    flat
 
-INCLUDE <ks386.inc>
+INCLUDE <ksamd64.inc>
 PUBLIC    _sumx
 _TEXT     SEGMENT
 _sumx    PROC
