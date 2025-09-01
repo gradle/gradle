@@ -235,10 +235,14 @@ class ToolingApi implements TestRule {
             error = new TeeOutputStream(stderr, System.err)
         }
 
-
         Jvm jvm = null
         if (!dist.daemonWorksWith(Jvm.current().javaVersionMajor)) {
+            println("Auto detect: " + System.getProperty("org.gradle.java.installations.auto-detect"))
+            println("Auto download: " + System.getProperty("org.gradle.java.installations.auto-download"))
+            println("Installations: " + System.getProperty("org.gradle.java.installations.paths"))
+            println("Searching supported JDK from: ${AvailableJavaHomes.getAvailableJdks { j -> true }}")
             jvm = AvailableJavaHomes.getAvailableJdk { dist.daemonWorksWith(it.javaMajorVersion) }
+            println("Searching supported JDK -> ${jvm}")
             Assume.assumeThat("JVM compatible with the distribution daemon", jvm, IsNot.not(null));
         }
 
