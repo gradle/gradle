@@ -60,7 +60,7 @@ There are two main ways to integrate a tool with Gradle:
  * The Gradle build uses the tool
  * The tool executes the Gradle build
 
-The former case is typically <<custom_plugins.adoc#custom_plugins,implemented as a Gradle plugin>>.
+The former case is typically <<plugins.adoc#custom_plugins,implemented as a Gradle plugin>>.
 The latter can be accomplished by embedding Gradle through the <<tooling_api.adoc#tooling_api,Tooling API>>.
 
 == Test integration
