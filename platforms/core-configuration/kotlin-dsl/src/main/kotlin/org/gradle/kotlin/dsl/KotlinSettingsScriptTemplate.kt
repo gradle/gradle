@@ -40,7 +40,10 @@ class KotlinSettingsScriptTemplateCompilationConfiguration : KotlinDslStandalone
 /**
  * Base class for Gradle Kotlin DSL standalone [Settings] scripts IDE support.
  *
- * This class has the [Incubating]-level compatibility guarantees but is not annotated as such to avoid Unstable API warnings in the IDE on indirect usages (e.g., the [plugins] calls).
+ * This class has the [Incubating]-level compatibility guarantees but is not annotated as such to avoid Unstable API warnings caused by the IDE
+ * using this class as the Kotlin DSL script template. When the IDE chooses to use this script template, there is no direct usage of an incubating
+ * API by the build author, but usages of the members, such as [plugins], are still reported as unstable API usages.
+ * See: [issue 34820](https://github.com/gradle/gradle/issues/34820).
  *
  * @since 8.1
  */
