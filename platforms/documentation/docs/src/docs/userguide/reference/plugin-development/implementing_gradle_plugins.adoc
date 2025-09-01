@@ -41,7 +41,7 @@ Here is a breakdown of all options for implementing Gradle plugins:
 |Kotlin DSL
 |Script plugin
 |in a `.gradle.kts` file as an abstract class that implements the `apply(Project project)` method of the `Plugin<Project>` interface.
-|Nofootnote:1[<<custom_plugins#sec:build_script_plugins,*Script plugins*>> are hard to maintain. Do not use script plugins `apply from:`, they are not recommended.]
+|Nofootnote:1[<<plugins#sec:build_script_plugins,*Script plugins*>> are hard to maintain. Do not use script plugins `apply from:`, they are not recommended.]
 
 |2
 |Groovy DSL

@@ -485,22 +485,6 @@ For example, you could previously use the following syntax and have both outputF
 ====
 [.multi-language-sample]
 =====
-.build.gradle
-[source,groovy]
-----
-class MyTask extends DefaultTask {
-    // note: no annotation here
-    final RegularFileProperty outputFile = newOutputFile()
-}
-
-task myOtherTask {
-    def outputFile = newOutputFile()
-    doLast { ... }
-}
-----
-=====
-[.multi-language-sample]
-=====
 .build.gradle.kts
 [source,kotlin]
 ----
@@ -515,28 +499,27 @@ task("myOtherTask") {
 }
 ----
 =====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+class MyTask extends DefaultTask {
+    // note: no annotation here
+    final RegularFileProperty outputFile = newOutputFile()
+}
+
+task myOtherTask {
+    def outputFile = newOutputFile()
+    doLast { ... }
+}
+----
+=====
 ====
 
 Now you have to explicitly register `outputFile`, like this:
 
 ====
-[.multi-language-sample]
-=====
-.build.gradle
-[source, groovy]
-----
-class MyTask extends DefaultTask {
-    @OutputFile // property needs an annotation
-    final RegularFileProperty outputFile = project.objects.fileProperty()
-}
-
-task myOtherTask {
-    def outputFile = project.objects.fileProperty()
-    outputs.file(outputFile) // or to be registered using the runtime API
-    doLast { ... }
-}
-----
-=====
 [.multi-language-sample]
 =====
 .build.gradle.kts
@@ -549,6 +532,23 @@ open class MyTask : DefaultTask() {
 
 task("myOtherTask") {
     val outputFile = project.objects.fileProperty()
+    outputs.file(outputFile) // or to be registered using the runtime API
+    doLast { ... }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
+----
+class MyTask extends DefaultTask {
+    @OutputFile // property needs an annotation
+    final RegularFileProperty outputFile = project.objects.fileProperty()
+}
+
+task myOtherTask {
+    def outputFile = project.objects.fileProperty()
     outputs.file(outputFile) // or to be registered using the runtime API
     doLast { ... }
 }
@@ -578,13 +578,13 @@ If you are stuck with a bad plugin, you can work around by re-enabling JARs as m
 ====
 [.multi-language-sample]
 =====
-.settings.gradle
-[source,groovy]
+.settings.gradle.kts
+[source,kotlin]
 ----
 pluginManagement {
     repositories {
-        gradlePluginPortal().tap {
-            metadataSources {
+        gradlePluginPortal().apply {
+            (this as MavenArtifactRepository).metadataSources {
                 mavenPom()
                 artifact()
             }
@@ -593,16 +593,15 @@ pluginManagement {
 }
 ----
 =====
-
 [.multi-language-sample]
 =====
-.settings.gradle.kts
-[source,kotlin]
+.settings.gradle
+[source,groovy]
 ----
 pluginManagement {
     repositories {
-        gradlePluginPortal().apply {
-            (this as MavenArtifactRepository).metadataSources {
+        gradlePluginPortal().tap {
+            metadataSources {
                 mavenPom()
                 artifact()
             }
@@ -631,8 +630,8 @@ With the existing API, this example adds two tasks (`foo` and `bar`):
 ====
 [.multi-language-sample]
 =====
-.build.gradle
-[source, groovy]
+.build.gradle.kts
+[source,kotlin]
 ----
 tasks.create("foo") {
     tasks.create("bar")
@@ -641,8 +640,8 @@ tasks.create("foo") {
 =====
 [.multi-language-sample]
 =====
-.build.gradle.kts
-[source,kotlin]
+.build.gradle
+[source, groovy]
 ----
 tasks.create("foo") {
     tasks.create("bar")
@@ -658,8 +657,8 @@ so the `register()` for task `bar` only executes when `foo` is configured.
 ====
 [.multi-language-sample]
 =====
-.build.gradle
-[source, groovy]
+.build.gradle.kts
+[source,kotlin]
 ----
 tasks.register("foo") {
     tasks.register("bar") // WRONG
@@ -668,8 +667,8 @@ tasks.register("foo") {
 =====
 [.multi-language-sample]
 =====
-.build.gradle.kts
-[source,kotlin]
+.build.gradle
+[source, groovy]
 ----
 tasks.register("foo") {
     tasks.register("bar") // WRONG
@@ -745,18 +744,18 @@ The new, stable behavior can be switched on by adding the following to your sett
 ====
 [.multi-language-sample]
 =====
-.settings.gradle
-[source, groovy]
-----
-enableFeaturePreview('STABLE_PUBLISHING')
-----
-=====
-[.multi-language-sample]
-=====
 .settings.gradle.kts
 [source,kotlin]
 ----
 enableFeaturePreview("STABLE_PUBLISHING")
+----
+=====
+[.multi-language-sample]
+=====
+.settings.gradle
+[source, groovy]
+----
+enableFeaturePreview('STABLE_PUBLISHING')
 ----
 =====
 ====
@@ -768,23 +767,6 @@ However, your publishing block may rely on the implicit deferred configuration, 
 For example, under the new behavior, the following logic assumes that `jar.archiveBaseName` doesn't change after `artifactId` is set:
 
 ====
-[.multi-language-sample]
-=====
-.build.gradle
-[source, groovy]
-----
-subprojects {
-    publishing {
-        publications {
-            mavenJava {
-                from components.java
-                artifactId = jar.archiveBaseName
-            }
-        }
-    }
-}
-----
-=====
 [.multi-language-sample]
 =====
 .build.gradle.kts
@@ -802,11 +784,6 @@ subprojects {
 }
 ----
 =====
-====
-
-If that assumption is incorrect or might possibly be incorrect in the future, the `artifactId` must be set within an `afterEvaluate {}` block, like so:
-
-====
 [.multi-language-sample]
 =====
 .build.gradle
@@ -817,15 +794,18 @@ subprojects {
         publications {
             mavenJava {
                 from components.java
-                afterEvaluate {
-                    artifactId = jar.archiveBaseName
-                }
+                artifactId = jar.archiveBaseName
             }
         }
     }
 }
 ----
 =====
+====
+
+If that assumption is incorrect or might possibly be incorrect in the future, the `artifactId` must be set within an `afterEvaluate {}` block, like so:
+
+====
 [.multi-language-sample]
 =====
 .build.gradle.kts
@@ -845,6 +825,25 @@ subprojects {
 }
 ----
 =====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
+----
+subprojects {
+    publishing {
+        publications {
+            mavenJava {
+                from components.java
+                afterEvaluate {
+                    artifactId = jar.archiveBaseName
+                }
+            }
+        }
+    }
+}
+----
+=====
 ====
 
 [[rel4.8:configure_internal_tasks]]
@@ -855,20 +854,20 @@ You should no longer define your own `wrapper` and `init` tasks. Configure the e
 ====
 [.multi-language-sample]
 =====
-.build.gradle
-[source, groovy]
+.build.gradle.kts
+[source,kotlin]
 ----
-task wrapper(type: Wrapper) {
+task<Wrapper>("wrapper") {
     ...
 }
 ----
 =====
 [.multi-language-sample]
 =====
-.build.gradle.kts
-[source,kotlin]
+.build.gradle
+[source, groovy]
 ----
-task<Wrapper>("wrapper") {
+task wrapper(type: Wrapper) {
     ...
 }
 ----
@@ -880,20 +879,20 @@ to this:
 ====
 [.multi-language-sample]
 =====
-.build.gradle
-[source, groovy]
+.build.gradle.kts
+[source,kotlin]
 ----
-wrapper {
+tasks.wrapper {
     ...
 }
 ----
 =====
 [.multi-language-sample]
 =====
-.build.gradle.kts
-[source,kotlin]
+.build.gradle
+[source, groovy]
 ----
-tasks.wrapper {
+wrapper {
     ...
 }
 ----
