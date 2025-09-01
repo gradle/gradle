@@ -134,6 +134,7 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
     }
 
     def setup() {
+        AvailableJavaHomes.getAvailableJdk { it -> true } // Load info into the test worker about available JDKs before it is discarded below
         // These properties are set on CI. Reset them to allow tests to configure toolchains explicitly.
         System.setProperty("org.gradle.java.installations.auto-download", "false")
         System.setProperty("org.gradle.java.installations.auto-detect", "false")
