@@ -153,6 +153,11 @@ class ToolingApiConnection {
         this.withTraits(ProjectConnectionTrait)
     }
 
+    private <T extends ConfigurableLauncher> T configure(T cl) {
+        cl.javaHome = javaHome
+        return cl
+    }
+
     def methodMissing(String name, args) {
         projectConnection."$name"(*args)
     }
@@ -166,27 +171,19 @@ class ToolingApiConnection {
     }
 
     BuildLauncher newBuild() {
-        ToolingApiBuildLauncher launcher = new ToolingApiBuildLauncher(projectConnection.newBuild(), stdout, stderr)
-        launcher.javaHome = javaHome
-        return launcher
+        return configure(new ToolingApiBuildLauncher(projectConnection.newBuild(), stdout, stderr))
     }
 
     TestLauncher newTestLauncher() {
-        ToolingApiTestLauncher launcher = new ToolingApiTestLauncher(projectConnection.newTestLauncher(), stdout, stderr)
-        launcher.javaHome = javaHome
-        return launcher
+        return configure(new ToolingApiTestLauncher(projectConnection.newTestLauncher(), stdout, stderr))
     }
 
     <T> ModelBuilder<T> model(Class<T> modelType) {
-        ToolingApiModelBuilder modelBuilder = new ToolingApiModelBuilder(projectConnection.model(modelType), stdout, stderr)
-        modelBuilder.javaHome = javaHome
-        return modelBuilder
+        return configure(new ToolingApiModelBuilder(projectConnection.model(modelType), stdout, stderr))
     }
 
     <T> BuildActionExecuter<T> action(BuildAction<T> buildAction) {
-        ToolingApiBuildActionExecuter executer = new ToolingApiBuildActionExecuter(projectConnection.action(buildAction), stdout, stderr)
-        executer.javaHome = javaHome
-        return executer
+        return configure(new ToolingApiBuildActionExecuter(projectConnection.action(buildAction), stdout, stderr))
     }
 
     BuildActionExecuter.Builder action() {
