@@ -99,9 +99,19 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
 
     private void initializeWindowsSdks() {
         if (!initialised) {
+            System.out.println("=== LegacyWindowsSdkLocator.initializeWindowsSdks() ===");
+            System.out.println("Operating System: " + os);
+            
             locateSdksInRegistry();
             locateKitsInRegistry();
             locateSdkInPath();
+            
+            System.out.println("Legacy locator found " + foundSdks.size() + " total SDKs:");
+            for (WindowsSdkInstall sdk : foundSdks.values()) {
+                System.out.println("  - " + sdk.getName() + " (" + sdk.getVersion() + ")");
+            }
+            System.out.println("=== End LegacyWindowsSdkLocator.initializeWindowsSdks() ===\n");
+            
             initialised = true;
         }
     }

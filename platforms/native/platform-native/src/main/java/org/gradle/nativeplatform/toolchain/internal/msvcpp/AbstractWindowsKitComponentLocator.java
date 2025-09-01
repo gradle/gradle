@@ -97,7 +97,21 @@ public abstract class AbstractWindowsKitComponentLocator<T extends WindowsKitIns
 
     private void initializeComponents() {
         if (!initialised) {
+            System.out.println("=== AbstractWindowsKitComponentLocator.initializeComponents() ===");
+            System.out.println("Component: " + getDisplayName());
+            
             locateComponentsInRegistry();
+            
+            System.out.println("Windows Kit locator found " + foundComponents.size() + " total components:");
+            for (T component : foundComponents.values()) {
+                System.out.println("  - " + component.getName() + " (" + component.getVersion() + ")");
+            }
+            System.out.println("Broken components: " + brokenComponents.size());
+            for (File broken : brokenComponents) {
+                System.out.println("  - " + broken.getAbsolutePath());
+            }
+            System.out.println("=== End AbstractWindowsKitComponentLocator.initializeComponents() ===\n");
+            
             initialised = true;
         }
     }

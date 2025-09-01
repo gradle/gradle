@@ -158,8 +158,37 @@ model {
     }
 
     static List<WindowsSdkInstall> getNonDefaultSdks() {
+        println "=== Windows SDK Discovery Debug ==="
+        println "Operating System: ${OperatingSystem.current()}"
+        println "Current working directory: ${System.getProperty('user.dir')}"
+        
         WindowsSdkLocator locator = new DefaultWindowsSdkLocator(OperatingSystem.current(), NativeServicesTestFixture.getInstance().get(WindowsRegistry.class), NativeServicesTestFixture.getInstance().get(SystemInfo.class))
+        
+        println "Locating all components..."
+        List<WindowsSdkInstall> allComponents = locator.locateAllComponents()
+        println "All discovered components (${allComponents.size()}):"
+        allComponents.each { sdk ->
+            println "  - ${sdk.name} (${sdk.version}) at ${sdk.baseDir}"
+            println "    Class: ${sdk.class.simpleName}"
+        }
+        
+        println "\nLocating default component..."
         WindowsSdkInstall defaultSdk = locator.locateComponent(null).component
-        return locator.locateAllComponents() - defaultSdk
+        if (defaultSdk) {
+            println "Default SDK: ${defaultSdk.name} (${defaultSdk.version}) at ${defaultSdk.baseDir}"
+            println "Default SDK Class: ${defaultSdk.class.simpleName}"
+        } else {
+            println "No default SDK found!"
+        }
+        
+        List<WindowsSdkInstall> nonDefaultSdks = allComponents - defaultSdk
+        println "\nNon-default SDKs (${nonDefaultSdks.size()}):"
+        nonDefaultSdks.each { sdk ->
+            println "  - ${sdk.name} (${sdk.version}) at ${sdk.baseDir}"
+            println "    Class: ${sdk.class.simpleName}"
+        }
+        
+        println "=== End Debug ===\n"
+        return nonDefaultSdks
     }
 }

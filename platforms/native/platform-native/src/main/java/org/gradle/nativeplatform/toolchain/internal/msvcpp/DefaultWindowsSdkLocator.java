@@ -49,9 +49,30 @@ public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
 
     @Override
     public List<WindowsSdkInstall> locateAllComponents() {
+        System.out.println("=== DefaultWindowsSdkLocator.locateAllComponents() ===");
+        
         List<WindowsSdkInstall> allSdks = new ArrayList<>();
-        allSdks.addAll(legacyWindowsSdkLocator.locateAllComponents());
-        allSdks.addAll(windowsKitWindowsSdkLocator.locateAllComponents());
+        
+        System.out.println("Calling legacyWindowsSdkLocator.locateAllComponents()...");
+        List<? extends WindowsSdkInstall> legacySdks = legacyWindowsSdkLocator.locateAllComponents();
+        System.out.println("Legacy locator found " + legacySdks.size() + " SDKs:");
+        for (WindowsSdkInstall sdk : legacySdks) {
+            System.out.println("  Legacy: " + sdk.getName() + " (" + sdk.getVersion() + ")");
+        }
+        
+        System.out.println("Calling windowsKitWindowsSdkLocator.locateAllComponents()...");
+        List<? extends WindowsKitSdkInstall> kitSdks = windowsKitWindowsSdkLocator.locateAllComponents();
+        System.out.println("Windows Kit locator found " + kitSdks.size() + " SDKs:");
+        for (WindowsKitSdkInstall sdk : kitSdks) {
+            System.out.println("  Kit: " + sdk.getName() + " (" + sdk.getVersion() + ") at " + sdk.getBaseDir());
+        }
+        
+        allSdks.addAll(legacySdks);
+        allSdks.addAll(kitSdks);
+        
+        System.out.println("Total SDKs found: " + allSdks.size());
+        System.out.println("=== End DefaultWindowsSdkLocator.locateAllComponents() ===\n");
+        
         return allSdks;
     }
 
