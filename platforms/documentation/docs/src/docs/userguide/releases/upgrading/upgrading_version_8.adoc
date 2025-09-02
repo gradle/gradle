@@ -3274,6 +3274,16 @@ If the desired configuration is to disable cleanup for older versions of Gradle 
 ====
 [.multi-language-sample]
 =====
+.cache-settings.gradle.kts
+[source,kotlin]
+----
+if (GradleVersion.current() >= GradleVersion.version("8.0")) {
+    apply(from = "gradle8/cache-settings.gradle.kts")
+}
+----
+=====
+[.multi-language-sample]
+=====
 .cache-settings.gradle
 [source,groovy]
 ----
@@ -3282,18 +3292,21 @@ if (GradleVersion.current() >= GradleVersion.version('8.0')) {
 }
 ----
 =====
+====
+
+====
 [.multi-language-sample]
 =====
-.cache-settings.gradle.kts
+.gradle8/cache-settings.gradle.kts
 [source,kotlin]
 ----
-if (GradleVersion.current() >= GradleVersion.version("8.0")) {
-    apply(from = "gradle8/cache-settings.gradle")
+beforeSettings {
+    caches {
+        cleanup.set(Cleanup.DEFAULT)
+    }
 }
 ----
 =====
-====
-====
 [.multi-language-sample]
 =====
 .gradle8/cache-settings.gradle
@@ -3302,17 +3315,6 @@ if (GradleVersion.current() >= GradleVersion.version("8.0")) {
 beforeSettings { settings ->
     settings.caches {
         cleanup = Cleanup.DEFAULT
-    }
-}
-----
-=====
-=====
-.gradle8/cache-settings.gradle.kts
-[source,kotlin]
-----
-beforeSettings {
-    caches {
-        cleanup.set(Cleanup.DEFAULT)
     }
 }
 ----

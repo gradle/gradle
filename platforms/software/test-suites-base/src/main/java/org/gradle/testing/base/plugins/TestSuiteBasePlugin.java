@@ -29,7 +29,6 @@ import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
-import org.gradle.testing.base.internal.DefaultTestingExtension;
 
 /**
  * Base test suite functionality. Makes an extension named "testing" available to the project.
@@ -41,7 +40,7 @@ public abstract class TestSuiteBasePlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        TestingExtension testing = project.getExtensions().create(TestingExtension.class, "testing", DefaultTestingExtension.class);
+        TestingExtension testing = project.getExtensions().create("testing", TestingExtension.class);
 
         testing.getSuites().configureEach(suite -> {
             // TODO: Eventually, we want a test results variant for each target, but cannot do so now because:

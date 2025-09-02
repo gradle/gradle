@@ -16,11 +16,12 @@
 
 package org.gradle.internal.cc.impl.fingerprint
 
+import org.gradle.internal.serialize.graph.codecs.ValueObject
 import org.gradle.util.Path
 
 
 internal
-sealed class ProjectSpecificFingerprint {
+sealed class ProjectSpecificFingerprint : ValueObject {
     data class ProjectIdentity(
         val identityPath: Path,
         val buildPath: Path,
