@@ -17,6 +17,7 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
@@ -33,6 +34,10 @@ class KotlinLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
 
     public static final String SAMPLE_LIBRARY_CLASS = "org/example/Library.kt"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "org/example/LibraryTest.kt"
+
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.KOTLIN_TEST
+    }
 
     def "defaults to kotlin build scripts"() {
         when:

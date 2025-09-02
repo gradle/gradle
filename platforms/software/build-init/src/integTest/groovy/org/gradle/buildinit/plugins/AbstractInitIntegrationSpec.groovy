@@ -16,10 +16,13 @@
 
 package org.gradle.buildinit.plugins
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 
@@ -29,13 +32,18 @@ import static org.gradle.initialization.StartParameterBuildOptions.Configuration
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 
-abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
+abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
     TestFile containerDir
     TestFile targetDir
     TestFile subprojectDir
 
     abstract String subprojectName()
+
+    TestFramework getTestFramework() {
+        return TestFramework.JUNIT_JUPITER // Default framework in init
+    }
 
     def setup() {
         file("settings.gradle") << """
@@ -63,15 +71,48 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     protected void assertTestPassed(String className, String name) {
-        def result = new DefaultTestExecutionResult(subprojectDir)
-        result.assertTestClassesExecuted(className)
-        result.testClass(className).assertTestPassed(name)
+        assertTestPassed(className, name, getTestFramework())
+    }
+
+    protected void assertTestPassed(String className, String name, BuildInitTestFramework initTestFramework) {
+        TestFramework testFramework
+        switch (initTestFramework) {
+            case BuildInitTestFramework.JUNIT:
+                testFramework = TestFramework.JUNIT4
+                break
+            case BuildInitTestFramework.JUNIT_JUPITER:
+                testFramework = TestFramework.JUNIT_JUPITER
+                break
+            case BuildInitTestFramework.TESTNG:
+                testFramework = TestFramework.TEST_NG
+                break
+            case BuildInitTestFramework.SPOCK:
+                testFramework = TestFramework.SPOCK
+                break
+            case BuildInitTestFramework.KOTLINTEST:
+                testFramework = TestFramework.KOTLIN_TEST
+                break
+            case BuildInitTestFramework.SCALATEST:
+                testFramework = TestFramework.SCALA_TEST
+                break
+            default:
+                throw new IllegalArgumentException("Unknown test framework: $initTestFramework")
+        }
+        assertTestPassed(className, name, testFramework)
+    }
+
+    protected void assertTestPassed(String className, String name, TestFramework testFramework) {
+        GenericTestExecutionResult testResults = resultsFor(subprojectDir, "tests/test")
+        testResults.testPath(className, name, testFramework).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     protected void assertFunctionalTestPassed(String className, String name) {
-        def result = new DefaultTestExecutionResult(subprojectDir, 'build', '', '', 'functionalTest')
-        result.assertTestClassesExecuted(className)
-        result.testClass(className).assertTestPassed(name)
+        assertFunctionalTestPassed(className, name, getTestFramework())
+    }
+
+    protected void assertFunctionalTestPassed(String className, String name, TestFramework testFramework) {
+        GenericTestExecutionResult testResults = resultsFor(subprojectDir, "tests/functionalTest")
+        testResults.testPath(className, name, testFramework).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     protected void assertWrapperGenerated() {
