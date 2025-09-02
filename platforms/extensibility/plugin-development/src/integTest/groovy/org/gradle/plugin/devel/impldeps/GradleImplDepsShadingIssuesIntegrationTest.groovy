@@ -42,7 +42,7 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
                     project.dependencies {
                         bug 'junit:junit:4.13'
                     }
-                    conf.resolve()
+                    conf.getFiles()
                 }
             }
         """

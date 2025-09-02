@@ -304,7 +304,7 @@ However, calling some available methods from this interface—such as `.size()`,
 The same is possible using Kotlin stdlib collection extension methods or Groovy GDK collection extensions.
 Converting a `Configuration` to a `Set<File>` also discards any implicit task dependencies it carries.
 
-You should avoid using these methods when configuring your build. 
+You should avoid using these methods when configuring your build.
 Instead, use the methods defined directly on the Gradle interfaces - this is a necessary _first step_ towards preventing eager resolutions.
 Be sure to use <<lazy_configuration.adoc#working_with_files_in_lazy_properties,lazy types and APIs>> that defer resolution to wire task dependencies and inputs correctly.
 Some methods that cause resolution are not obvious.
@@ -357,7 +357,7 @@ Resolving configurations before the task execution phase can lead to incorrect r
 
 === Explanation
 
-Resolving a configuration - either directly via calling its link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#resolve()[`resolve()`] method or indirectly via accessing its set of artifacts - returns a set of files that does not preserve references to the tasks that produced those files.
+Resolving a configuration - either directly via calling its link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#resolve()[`resolve()`] method, its link:{javadocPath}/org/gradle/api/file/FileCollection.html#getFiles()[`getFiles()`] method, or indirectly via accessing its set of artifacts - returns a set of files that does not preserve references to the tasks that produced those files.
 
 Configurations _are_ file collections and can be added to `@InputFiles` properties on other tasks.
 It is important to do this correctly to avoid breaking automatic task dependency wiring between a consumer task and any tasks that are implicitly required to produce the artifacts being consumed.

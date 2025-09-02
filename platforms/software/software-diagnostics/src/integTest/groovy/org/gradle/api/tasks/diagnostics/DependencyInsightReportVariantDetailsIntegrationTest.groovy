@@ -337,7 +337,7 @@ project :$expectedProject
             dependencies {
             }
 
-            configurations.compileClasspath.resolve()
+            configurations.compileClasspath.getFiles()
 
             task insight(type: DependencyInsightReportTask) {
                 showingAllVariants = true

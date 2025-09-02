@@ -28,7 +28,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
     def "does not allow adding dependencies to a configuration that has been resolved"() {
         buildFile << """
             configurations { a }
-            configurations.a.resolve()
+            configurations.a.getFiles()
             dependencies { a files("some.jar") }
         """
 
@@ -42,7 +42,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
     def "does not allow adding artifacts to a configuration that has been resolved"() {
         buildFile << """
             configurations { a }
-            configurations.a.resolve()
+            configurations.a.getFiles()
             artifacts { a file("some.jar") }
         """
 
@@ -56,7 +56,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
     def "does not allow changing excludes on a configuration that has been resolved"() {
         buildFile << """
             configurations { a }
-            configurations.a.resolve()
+            configurations.a.getFiles()
             configurations.a.exclude group: 'someGroup'
         """
 
@@ -70,7 +70,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
     def "does not allow changing conflict resolution on a configuration that has been resolved"() {
         buildFile << """
             configurations { a }
-            configurations.a.resolve()
+            configurations.a.getFiles()
             configurations.a.resolutionStrategy.failOnVersionConflict()
         """
 
@@ -84,7 +84,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
     def "does not allow changing forced versions on a configuration that has been resolved"() {
         buildFile << """
             configurations { a }
-            configurations.a.resolve()
+            configurations.a.getFiles()
             configurations.a.resolutionStrategy.force "org.utils:api:1.3"
         """
 
@@ -98,7 +98,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
     def "does not allow changing cache policy on a configuration that has been resolved"() {
         buildFile << """
             configurations { a }
-            configurations.a.resolve()
+            configurations.a.getFiles()
             configurations.a.resolutionStrategy.cacheChangingModulesFor 0, "seconds"
         """
 
@@ -112,7 +112,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
     def "does not allow changing resolution rules on a configuration that has been resolved"() {
         buildFile << """
             configurations { a }
-            configurations.a.resolve()
+            configurations.a.getFiles()
             configurations.a.resolutionStrategy.eachDependency {}
         """
 
@@ -126,7 +126,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
     def "does not allow changing substitution rules on a configuration that has been resolved"() {
         buildFile << """
             configurations { a }
-            configurations.a.resolve()
+            configurations.a.getFiles()
             configurations.a.resolutionStrategy.dependencySubstitution.all {}
         """
 
@@ -140,7 +140,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
     def "does not allow changing component selection rules on a configuration that has been resolved"() {
         buildFile << """
             configurations { a }
-            configurations.a.resolve()
+            configurations.a.getFiles()
             configurations.a.resolutionStrategy.componentSelection.all {}
         """
 
@@ -319,7 +319,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
                 b.extendsFrom a
                 c.extendsFrom b
             }
-            configurations.c.resolve()
+            configurations.c.getFiles()
             dependencies { a files("some.jar") }
         """
 
@@ -338,7 +338,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
                 b.extendsFrom a
                 c.extendsFrom b
             }
-            configurations.c.resolve()
+            configurations.c.getFiles()
             artifacts { a file("some.jar") }
         """
 
@@ -357,7 +357,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
                 b.extendsFrom a
                 c.extendsFrom b
             }
-            configurations.c.resolve()
+            configurations.c.getFiles()
             configurations.a.exclude group: 'someGroup'
         """
 
@@ -375,7 +375,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
                 b.extendsFrom a
                 c.extendsFrom b
             }
-            configurations.c.resolve()
+            configurations.c.getFiles()
             configurations.a.resolutionStrategy.failOnVersionConflict()
             configurations.a.resolutionStrategy.force "org.utils:api:1.3"
             configurations.a.resolutionStrategy.forcedModules = [ "org.utils:api:1.4" ]
@@ -395,9 +395,9 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
                 a
                 b.extendsFrom a
             }
-            configurations.b.resolve()
+            configurations.b.getFiles()
             configurations.a.exclude group: 'someGroup'
-            configurations.a.resolve()
+            configurations.a.getFiles()
             configurations.a.exclude group: 'otherGroup'
         """
 
@@ -414,7 +414,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             configurations {
                 a
                 b.extendsFrom a
-                b.resolve()
+                b.getFiles()
                 a.description = 'some conf'
             }
         """
@@ -429,7 +429,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             configurations {
                 a
                 b
-                b.resolve()
+                b.getFiles()
             }
             dependencies { a "a:b:c" }
         """
@@ -445,7 +445,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
                 b
             }
             dependencies { b files("some.jar") }
-            configurations.b.resolve()
+            configurations.b.getFiles()
             dependencies { a "a:b:c" }
         """
 
@@ -470,7 +470,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             dependencies {
                 compile project(":api")
             }
-            configurations.compile.resolve()
+            configurations.compile.getFiles()
         """
 
         file("api/build.gradle") << """
@@ -517,8 +517,8 @@ repositories {
 
 task resolveChildFirst {
     doLast {
-        configurations.childConfig.resolve()
-        configurations.parentConfig.resolve()
+        configurations.childConfig.getFiles()
+        configurations.parentConfig.getFiles()
     }
 }
         """
@@ -533,7 +533,7 @@ task resolveChildFirst {
     def "does not allow adding attributes to a configuration that has been resolved"() {
         buildFile << """
             configurations { a }
-            configurations.a.resolve()
+            configurations.a.getFiles()
             configurations.a.attributes { attribute(Attribute.of('foo', String), 'bar') }
         """
 
@@ -547,7 +547,7 @@ task resolveChildFirst {
     def "cannot change the configuration role (#code) after it has been resolved"() {
         buildFile << """
             configurations { a }
-            configurations.a.resolve()
+            configurations.a.getFiles()
             ${code}
         """
 

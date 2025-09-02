@@ -374,7 +374,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
                 mavenCentral()
             }
 
-            configurations.foo.resolve()
+            configurations.foo.getFiles()
 
         """
 

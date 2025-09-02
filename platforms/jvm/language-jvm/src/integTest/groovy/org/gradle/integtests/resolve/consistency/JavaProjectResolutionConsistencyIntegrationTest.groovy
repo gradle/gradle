@@ -247,7 +247,7 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
                 doFirst {
                     // in order to trigger the bug, we need to resolve the configuration
                     // which extends from a resolvable configuration first
-                    configurations.myCompileClasspath.resolve()
+                    configurations.myCompileClasspath.getFiles()
                 }
             }
         """

@@ -119,6 +119,34 @@ The following bundled plugins apply the Java plugin automatically:
 - `scala`
 - `war`
 
+[[deprecated_configuration_resolve]]
+==== Deprecated `Configuration.resolve()`
+
+The link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#resolve()[`Configuration.resolve()`] method has been deprecated and will be removed in Gradle 10.0.0.
+The link:{javadocPath}/org/gradle/api/file/FileCollection.html#getFiles()[`Configuration.getFiles()`] method has identical behavior and is a direct replacement for `resolve()`.
+
+Both the `resolve()` and `getFiles()` methods return a `Set<File>`.
+In general, it is better to use a `FileCollection` instead of a `Set<File>` when consuming the outputs of a resolved configuration, as using a `FileCollection` will <<best_practices_tasks.adoc#dont_resolve_configurations_before_task_execution,preserve the dependencies on tasks that produce resolved artifacts>>.
+
+.build.gradle.kts
+[source,kotlin]
+----
+// Given some task that accepts files as input
+abstract class ResolveFiles : DefaultTask() {
+    @get:InputFiles
+    abstract val files: ConfigurableFileCollection
+}
+
+tasks.register<ResolveFiles>("resolveFiles") {
+    // Instead of wiring resolved files using a `Set<File>`
+    files.from(configurations.runtimeClasspath.map { it.files })
+    files.from(configurations.runtimeClasspath.map { it.resolve() })
+
+    // Wire the resolved files using a `FileCollection` to preserve task dependencies
+    files.from(configurations.runtimeClasspath.map { it.incoming.files })
+}
+----
+
 [[changes_9.1.0]]
 == Upgrading from 9.0.0 and earlier
 

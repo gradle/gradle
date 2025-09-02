@@ -657,7 +657,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
             assert configurations.conf.state == Configuration.State.UNRESOLVED
             assert project(":api").configurations.conf.state == Configuration.State.UNRESOLVED
 
-            configurations.conf.resolve()
+            configurations.conf.getFiles()
 
             assert configurations.conf.state == Configuration.State.RESOLVED
             assert project(":api").configurations.conf.state == Configuration.State.UNRESOLVED

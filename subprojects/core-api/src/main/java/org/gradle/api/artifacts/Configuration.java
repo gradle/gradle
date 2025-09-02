@@ -204,7 +204,10 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * called on a configuration that does not permit this usage, or has allowed this usage but marked it as deprecated.
      *
      * @return The files of this configuration.
+     *
+     * @deprecated This method will be removed in Gradle 10. Use {@link ResolvableDependencies#getFiles()} instead.
      */
+    @Deprecated
     Set<File> resolve();
 
     /**
