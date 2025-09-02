@@ -28,7 +28,7 @@ import org.jetbrains.kotlin.lexer.KtTokens
 internal
 data class AccessorScope(
     private val targetTypesByName: HashMap<AccessorNameSpec, HashSet<TypeAccessibility.Accessible>> = hashMapOf(),
-    private val softwareTypeEntriesByName: HashMap<AccessorNameSpec, HashSet<TypedSoftwareTypeEntry>> = hashMapOf(),
+    private val softwareFeatureEntriesByName: HashMap<AccessorNameSpec, HashSet<TypedSoftwareFeatureEntry>> = hashMapOf(),
     private val containerElementFactoriesByName: HashMap<AccessorNameSpec, HashSet<TypedContainerElementFactoryEntry>> = hashMapOf(),
 ) {
     fun uniqueAccessorsFor(entries: Iterable<ProjectSchemaEntry<TypeAccessibility>>): Sequence<TypedAccessorSpec> =
@@ -37,14 +37,14 @@ data class AccessorScope(
     fun uniqueAccessorsFrom(accessorSpecs: Sequence<TypedAccessorSpec>): Sequence<TypedAccessorSpec> =
         accessorSpecs.filter(::add)
 
-    fun uniqueSoftwareTypeEntries(softwareTypeEntries: Iterable<TypedSoftwareTypeEntry>): Sequence<TypedSoftwareTypeEntry> =
-        softwareTypeEntries.asSequence().filter(::add)
+    fun uniqueSoftwareFeatureEntries(softwareFeatureEntries: Iterable<TypedSoftwareFeatureEntry>): Sequence<TypedSoftwareFeatureEntry> =
+        softwareFeatureEntries.asSequence().filter(::add)
 
     fun uniqueContainerElementFactories(elementFactoryEntries: Iterable<TypedContainerElementFactoryEntry>): Sequence<TypedContainerElementFactoryEntry> =
         elementFactoryEntries.asSequence().filter(::add)
 
-    private fun add(softwareTypeEntry: TypedSoftwareTypeEntry): Boolean =
-        softwareTypeEntriesByName.getOrPut(softwareTypeEntry.softwareTypeName) { hashSetOf() }.add(softwareTypeEntry)
+    private fun add(softwareFeatureEntry: TypedSoftwareFeatureEntry): Boolean =
+        softwareFeatureEntriesByName.getOrPut(softwareFeatureEntry.softwareFeatureName) { hashSetOf() }.add(softwareFeatureEntry)
 
     private fun add(containerElementFactory: TypedContainerElementFactoryEntry): Boolean =
         containerElementFactoriesByName.getOrPut(containerElementFactory.name) { hashSetOf() }.add(containerElementFactory)
@@ -376,9 +376,10 @@ data class TypedAccessorSpec(
 )
 
 internal
-data class TypedSoftwareTypeEntry(
-    val softwareTypeName: AccessorNameSpec,
-    val modelType: TypeAccessibility
+data class TypedSoftwareFeatureEntry(
+    val softwareFeatureName: AccessorNameSpec,
+    val modelType: TypeAccessibility,
+    val targetType: TypeAccessibility
 )
 
 internal

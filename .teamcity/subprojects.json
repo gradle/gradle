@@ -1288,6 +1288,27 @@
     "crossVersionTests": false
   },
   {
+    "name": "software-features",
+    "path": "platforms/core-configuration/software-features",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "software-features-api",
+    "path": "platforms/core-configuration/software-features-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "software-features-demos",
+    "path": "platforms/core-configuration/software-features-demos",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "stdlib-java-extensions",
     "path": "platforms/core-runtime/stdlib-java-extensions",
     "unitTests": true,

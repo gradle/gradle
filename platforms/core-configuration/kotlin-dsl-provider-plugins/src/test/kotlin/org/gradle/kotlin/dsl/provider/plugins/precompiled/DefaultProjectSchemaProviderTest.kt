@@ -25,11 +25,11 @@ import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.internal.extensibility.DefaultExtensionsSchema
 import org.gradle.kotlin.dsl.accessors.ContainerElementFactoryEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
-import org.gradle.kotlin.dsl.accessors.SoftwareTypeEntry
+import org.gradle.kotlin.dsl.accessors.SoftwareFeatureEntry
 import org.gradle.kotlin.dsl.provider.plugins.DefaultProjectSchemaProvider
 import org.gradle.kotlin.dsl.provider.plugins.KotlinDslDclSchemaCollector
 import org.gradle.kotlin.dsl.provider.plugins.typeOf
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry
+import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -63,7 +63,7 @@ class DefaultProjectSchemaProviderTest {
         assertThat(
             DefaultProjectSchemaProvider(object : KotlinDslDclSchemaCollector {
                 override fun collectContainerFactories(interpretationSequence: InterpretationSequence, classLoaderScope: ClassLoaderScope): List<ContainerElementFactoryEntry<TypeOf<*>>> = emptyList()
-                override fun collectSoftwareTypes(softwareTypeRegistry: SoftwareTypeRegistry): List<SoftwareTypeEntry<TypeOf<*>>> = emptyList()
+                override fun collectSoftwareTypes(softwareFeatureRegistry: SoftwareFeatureRegistry): List<SoftwareFeatureEntry<TypeOf<*>>> = emptyList()
             }).targetSchemaFor(
                 androidExtension,
                 typeOf<AndroidExtension>(),

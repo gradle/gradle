@@ -18,11 +18,14 @@ package org.gradle.plugin.software.internal
 
 import org.gradle.api.Plugin
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
+import org.gradle.api.internal.plugins.HasBuildModel
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.properties.InspectionScheme
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.properties.PropertyValue
@@ -39,14 +42,16 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
     def classLoaderScope = Mock(ClassLoaderScope) {
         _ * it.getLocalClassLoader() >> getClass().classLoader
     }
-    def applicator = new DefaultSoftwareFeatureApplicator(modelDefaultsApplicator, inspectionScheme, problems, pluginManager, classLoaderScope)
+    def objectFactory = Mock(ObjectFactory)
+    def softwareFeatureRegistry = Mock(SoftwareFeatureRegistry)
+    def applicator = new DefaultSoftwareFeatureApplicator(softwareFeatureRegistry, modelDefaultsApplicator, inspectionScheme, problems, pluginManager, classLoaderScope, objectFactory)
     def plugin = Mock(Plugin)
     def plugins = Mock(PluginContainer)
     def propertyWalker = Mock(PropertyWalker)
     def propertyValue = Mock(PropertyValue)
     def softwareType = Mock(SoftwareType)
     def extensions = Mock(ExtensionContainerInternal)
-    SoftwareTypeImplementation<Foo> softwareTypeImplementation = Mock(SoftwareTypeImplementation)
+    def softwareTypeImplementation = Mock(LegacySoftwareTypeImplementation)
     def foo = new Foo()
 
     def "adds software types as extensions when software type plugin is applied"() {
@@ -64,8 +69,8 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         1 * softwareType.name() >> "foo"
         1 * propertyValue.call() >> foo
         1 * extensions.add(Foo.class, "foo", foo)
-        1 * modelDefaultsApplicator.applyDefaultsTo(target, classLoaderScope, plugin, softwareTypeImplementation)
-        _ * softwareTypeImplementation.softwareType >> "foo"
+        1 * modelDefaultsApplicator.applyDefaultsTo(target, _, plugin, softwareTypeImplementation)
+        _ * softwareTypeImplementation.featureName >> "foo"
         1 * extensions.getByName("foo") >> foo
 
         and:
@@ -87,8 +92,8 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         1 * softwareType.name() >> "foo"
         1 * propertyValue.call() >> foo
         1 * extensions.add(Foo.class, "foo", foo)
-        1 * modelDefaultsApplicator.applyDefaultsTo(target, classLoaderScope, plugin, softwareTypeImplementation)
-        _ * softwareTypeImplementation.softwareType >> "foo"
+        1 * modelDefaultsApplicator.applyDefaultsTo(target, _, plugin, softwareTypeImplementation)
+        _ * softwareTypeImplementation.featureName >> "foo"
         1 * extensions.getByName("foo") >> foo
 
         and:
@@ -99,7 +104,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
 
         then:
         _ * target.getExtensions() >> extensions
-        _ * softwareTypeImplementation.softwareType >> "foo"
+        _ * softwareTypeImplementation.featureName >> "foo"
         1 * extensions.getByName("foo") >> foo
         0 * _
 
@@ -128,8 +133,8 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         _ * target.getExtensions() >> extensions
         _ * softwareType.name() >> "foo"
         0 * extensions.add(_, _, _)
-        1 * modelDefaultsApplicator.applyDefaultsTo(target, classLoaderScope , plugin, softwareTypeImplementation)
-        _ * softwareTypeImplementation.softwareType >> "foo"
+        1 * modelDefaultsApplicator.applyDefaultsTo(target, _ , plugin, softwareTypeImplementation)
+        _ * softwareTypeImplementation.featureName >> "foo"
         1 * extensions.getByName("foo") >> foo
 
         and:
@@ -190,5 +195,6 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         e.causes.find { it.message.contains("property 'foo' has @SoftwareType annotation with 'disableModelManagement' set to true, but the extension with name 'foo' does not match the value of the property")}
     }
 
-    private static class Foo {}
+    private static class Foo implements HasBuildModel<Bar> {}
+    private static class Bar implements BuildModel {}
 }

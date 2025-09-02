@@ -473,7 +473,6 @@ secondaryAccess { three, true, true}"""
         import org.gradle.api.Plugin;
         import org.gradle.api.initialization.Settings;
         import org.gradle.api.internal.SettingsInternal;
-        import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
         import ${RegistersSoftwareTypes.class.name};
 
         @RegistersSoftwareTypes({ RestrictedPlugin.class })
