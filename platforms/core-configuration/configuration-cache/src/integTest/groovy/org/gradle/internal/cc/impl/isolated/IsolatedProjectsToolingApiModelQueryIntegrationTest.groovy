@@ -152,7 +152,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         """
 
         when: "requesting a model together with running a task"
-        withIsolatedProjects("-Dorg.gradle.internal.isolated-projects.configure-on-demand.tasks=true")
+        withIsolatedProjects("-Dorg.gradle.internal.isolated-projects.configure-on-demand=true")
         fetchModel(SomeToolingModel, ":dummyTask")
 
         then: "only relevant projects are configured, while work graph and the model are stored in cache"
@@ -165,7 +165,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         outputContains("Execution of dummyTask")
 
         when: "repeating the request"
-        withIsolatedProjects("-Dorg.gradle.internal.isolated-projects.configure-on-demand.tasks=true")
+        withIsolatedProjects("-Dorg.gradle.internal.isolated-projects.configure-on-demand=true")
         fetchModel(SomeToolingModel, ":dummyTask")
 
         then: "no projects are configured, work graph and the model are loaded, tasks are executed before the model is returned"

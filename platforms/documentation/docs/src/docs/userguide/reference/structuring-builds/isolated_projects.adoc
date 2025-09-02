@@ -108,8 +108,6 @@ These constraints are not final and can change at any time.
 When building from the command line (i.e. for task execution) with Isolated Projects enabled, projects are now configured in parallel.
 
 Parallel configuration does not yet support Configuration on Demand. All projects will be configured, even those which have no tasks to run.
-If this tradeoff is undesirable and you want projects to configure serially with Configure on Demand, set the
-`org.gradle.internal.isolated-projects.configure-on-demand.tasks` system property to `true`.
 
 === Gradle 8.9
 

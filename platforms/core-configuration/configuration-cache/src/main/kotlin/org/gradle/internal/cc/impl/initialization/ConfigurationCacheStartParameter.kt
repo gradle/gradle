@@ -94,35 +94,6 @@ class ConfigurationCacheStartParameter internal constructor(
     val isFineGrainedPropertyTracking: Boolean
         get() = startParameter.isConfigurationCacheFineGrainedPropertyTracking
 
-    /**
-     * Whether configuration cache storing/loading should be done in parallel.
-     *
-     * Same as [StartParameterInternal.configurationCacheParallel].
-     *
-     * @see StartParameterInternal.configurationCacheParallel
-     */
-    val isParallelCache: Boolean by lazy {
-        isIsolatedProjects || startParameter.isConfigurationCacheParallel.also { enabled ->
-            if (enabled) {
-                IncubationLogger.incubatingFeatureUsed("Parallel Configuration Cache")
-            }
-        }
-    }
-
-    /**
-     * Whether configuration should be stored in parallel.
-     *
-     * The default is the value of [isParallelCache].
-     */
-    val isParallelStore = isParallelCache && options.getInternalFlag("org.gradle.configuration-cache.internal.parallel-store", true)
-
-    /**
-     * Whether configuration should be loaded in parallel.
-     *
-     * The default is `true`.
-     */
-    val isParallelLoad = options.getInternalFlag("org.gradle.configuration-cache.internal.parallel-load", true)
-
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties
             .filterKeys { !Workarounds.isIgnoredStartParameterProperty(it) }
