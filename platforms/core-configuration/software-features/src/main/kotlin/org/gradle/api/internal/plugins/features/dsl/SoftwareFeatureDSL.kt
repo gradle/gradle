@@ -127,13 +127,13 @@ SoftwareFeatureBindingBuilder.bindSoftwareFeatureToBuildModel(
  * @param name The name of the software type.
  * @param block The software type transform that maps the software type definition to the build model and implements the type logic.
  * @return A [DslBindingBuilder] for further configuration if needed.
- * @param T The type of the software type definition.
- * @param V The type of the build model associated with the software type definition.
+ * @param Definition The type of the software type definition.
+ * @param OwnBuildModel The type of the build model associated with the software type definition.
  */
-inline fun <reified T: HasBuildModel<V>, reified V: BuildModel> SoftwareTypeBindingBuilder.bindSoftwareType(
+inline fun <reified Definition: HasBuildModel<OwnBuildModel>, reified OwnBuildModel: BuildModel> SoftwareTypeBindingBuilder.bindSoftwareType(
     name: String,
-    noinline block: SoftwareFeatureApplicationContext.(T, V) -> Unit
-): DslBindingBuilder<T, V> = bindSoftwareType(name, T::class.java, V::class.java, block)
+    noinline block: SoftwareFeatureApplicationContext.(Definition, OwnBuildModel) -> Unit
+): DslBindingBuilder<Definition, OwnBuildModel> = bindSoftwareType(name, Definition::class.java, OwnBuildModel::class.java, block)
 
 @PublishedApi
 internal fun <T : HasBuildModel<out V>, V : BuildModel> KClass<T>.asDefinitionType() = DefinitionType<T, V>(
