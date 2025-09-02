@@ -21,6 +21,7 @@ import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ProcessForkOptions;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -49,6 +50,14 @@ public class DefaultExecAction implements ExecAction {
             execResult.assertNormalExitValue();
         }
         return execResult;
+    }
+
+    @Override
+    @Nonnull
+    public org.gradle.process.ExecHandle executeAsync() {
+        final ExecHandle execHandle = execHandleBuilder.build();
+        execHandle.start();
+        return execHandle;
     }
 
     @Override
