@@ -109,9 +109,48 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         return new HtmlTestPathExecutionResult(diskPathForTestPath(rootTestPath).toFile())
     }
 
+    @SuppressWarnings('GroovyFallthrough')
     @Override
-    TestPathExecutionResult testPath(String rootTestPath, String testMethodName) {
-        return testPath(rootTestPath + ":" + testMethodName)
+    TestPathExecutionResult testPath(String testClassName, String testMethodName, TestFramework testFramework) {
+        String frameworkPathToTest
+        switch (testFramework) {
+            case TestFramework.SPOCK:
+            case TestFramework.JUNIT4:
+            case TestFramework.SCALA_TEST:
+                frameworkPathToTest = testClassName + ":" + testMethodName
+                break
+            case TestFramework.JUNIT_JUPITER:
+            case TestFramework.KOTLIN_TEST:
+                frameworkPathToTest = testClassName + ":" + testMethodName + "()"
+                break
+            case TestFramework.TEST_NG:
+                frameworkPathToTest = ":Gradle-suite:Gradle-test:" + testClassName + ":" + testMethodName
+                break
+            default:
+                throw new IllegalArgumentException("Unknown test framework: " + testFramework)
+        }
+
+        return new HtmlTestPathExecutionResult(diskPathForTestPath(frameworkPathToTest).toFile())
+    }
+
+    @Override
+    TestPathExecutionResult junitJupiterPath(String testClassName, String testMethodName) {
+        return testPath(testClassName, testMethodName, TestFramework.JUNIT_JUPITER)
+    }
+
+    @Override
+    TestPathExecutionResult spockPath(String testClassName, String testMethodName) {
+        return testPath(testClassName, testMethodName, TestFramework.SPOCK)
+    }
+
+    @Override
+    TestPathExecutionResult junit4Path(String testClassName, String testMethodName) {
+        return testPath(testClassName, testMethodName, TestFramework.JUNIT4)
+    }
+
+    @Override
+    TestPathExecutionResult testNGPath(String testClassName, String testMethodName) {
+        return testPath(testClassName, testMethodName, TestFramework.TEST_NG)
     }
 
     @Override
