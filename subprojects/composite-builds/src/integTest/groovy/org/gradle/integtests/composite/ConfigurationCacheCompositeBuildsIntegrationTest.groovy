@@ -14,24 +14,36 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl
+package org.gradle.integtests.composite
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.scan.config.fixtures.ApplyDevelocityPluginFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
-class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+@Requires(value = IntegTestPreconditions.NotConfigCached, reason = "handles CC explicitly")
+class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractIntegrationSpec {
+
+    def configurationCache = new ConfigurationCacheFixture(this)
+
+    @Override
+    void setupExecuter(){
+        super.setupExecuter()
+        executer.withConfigurationCacheEnabled()
+    }
 
     def "can publish Build Scan with composite build"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
         withLibBuild()
         withDevelocityPlugin(withAppBuild())
 
         when:
         inDirectory 'app'
-        configurationCacheRun 'assemble', '--scan', '-Dscan.dump'
+        run 'assemble', '--scan', '-Dscan.dump'
 
         then:
         postBuildOutputContains 'Build scan written to'
@@ -39,7 +51,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
 
         when:
         inDirectory 'app'
-        configurationCacheRun 'assemble', '--scan', '-Dscan.dump'
+        run 'assemble', '--scan', '-Dscan.dump'
 
         then:
         postBuildOutputContains 'Build scan written to'
@@ -48,13 +60,12 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
 
     def "can use lib produced by included build"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
         withLibBuild()
         withAppBuild()
 
         when:
         inDirectory 'app'
-        configurationCacheRun 'run'
+        run 'run'
 
         then:
         outputContains 'Before!'
@@ -80,7 +91,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
 
         and: 'rerunning the build'
         inDirectory 'app'
-        configurationCacheRun 'run'
+        run 'run'
 
         then: 'it should pick up the changes'
         outputContains 'After!'
@@ -89,7 +100,6 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
 
     def "can use lib produced by multi-project included build with custom task"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
         withAppBuild()
         createDir('lib') {
             file('settings.gradle') << """
@@ -123,7 +133,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
 
         when:
         inDirectory 'app'
-        configurationCacheRun 'run'
+        run 'run'
 
         then:
         outputContains 'custom task...'
@@ -139,7 +149,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
 
         and: 'rerunning the build'
         inDirectory 'app'
-        configurationCacheRun 'run'
+        run 'run'
 
         then: 'it should pick up the changes'
         outputContains 'custom task...'
@@ -149,7 +159,6 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
 
     def "gracefully degrades to vintage when source dependencies are present"() {
         given:
-        def configurationCache = newConfigurationCacheFixture()
         settingsFile << """
             sourceControl {
                 vcsMappings {
@@ -163,10 +172,10 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         """
 
         when:
-        configurationCacheRun("help")
+        run("help")
 
         then:
-        configurationCache.assertNoConfigurationCache()
+        configurationCache.configurationCacheBuildOperations.assertNoConfigurationCache()
 
         and:
         postBuildOutputContains("Configuration cache disabled because incompatible feature usage (source dependencies) was found.")
@@ -205,16 +214,14 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
             '''
         }
 
-        def configurationCache = newConfigurationCacheFixture()
-
         when:
-        configurationCacheRun 'clean', 'compileJava'
+        run 'clean', 'compileJava'
 
         then:
         configurationCache.assertStateStored()
 
         when:
-        configurationCacheRun 'clean', 'compileJava'
+        run 'clean', 'compileJava'
 
         then:
         configurationCache.assertStateLoaded()

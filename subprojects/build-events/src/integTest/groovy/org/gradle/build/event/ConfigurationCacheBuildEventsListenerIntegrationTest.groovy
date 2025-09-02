@@ -14,18 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cc.impl
+package org.gradle.build.event
 
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFinishEvent
 
-class ConfigurationCacheBuildEventsListenerIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+@Requires(value = IntegTestPreconditions.NotConfigCached, reason = "handles CC explicitly")
+class ConfigurationCacheBuildEventsListenerIntegrationTest extends AbstractIntegrationSpec {
     def configurationCache = new ConfigurationCacheFixture(this)
+
+    @Override
+    void setupExecuter() {
+        super.setupExecuter()
+        executer.withConfigurationCacheEnabled()
+    }
 
     def "can use build service provider as build events listener"() {
         given:
@@ -43,14 +53,14 @@ class ConfigurationCacheBuildEventsListenerIntegrationTest extends AbstractConfi
         """
 
         when:
-        configurationCacheRun("run")
+        run("run")
 
         then:
         configurationCache.assertStateStored()
         outputContains("Completed: :run")
 
         when:
-        configurationCacheRun("run")
+        run("run")
 
         then:
         configurationCache.assertStateLoaded()
@@ -73,7 +83,7 @@ class ConfigurationCacheBuildEventsListenerIntegrationTest extends AbstractConfi
         """
 
         when:
-        configurationCacheFails("run")
+        fails("run")
 
         then:
         assertUnsupportedListenerReported()
@@ -94,7 +104,7 @@ class ConfigurationCacheBuildEventsListenerIntegrationTest extends AbstractConfi
         """
 
         when:
-        configurationCacheFails("run")
+        fails("run")
 
         then:
         assertUnsupportedListenerReported()
@@ -124,7 +134,7 @@ class ConfigurationCacheBuildEventsListenerIntegrationTest extends AbstractConfi
         buildFile """ tasks.register("run") { doLast {} } """
 
         when:
-        configurationCacheFails("run")
+        fails("run")
 
         then:
         assertUnsupportedListenerReported()
@@ -151,7 +161,7 @@ class ConfigurationCacheBuildEventsListenerIntegrationTest extends AbstractConfi
         """
 
         when:
-        configurationCacheRun("run", "-D${StartParameterBuildOptions.ConfigurationCacheIgnoreUnsupportedBuildEventsListeners.PROPERTY_NAME}=true")
+        run("run", "-D${StartParameterBuildOptions.ConfigurationCacheIgnoreUnsupportedBuildEventsListeners.PROPERTY_NAME}=true")
 
         then:
         configurationCache.assertStateStored()
@@ -159,7 +169,7 @@ class ConfigurationCacheBuildEventsListenerIntegrationTest extends AbstractConfi
         outputContains("Completed: :run")
 
         when:
-        configurationCacheRun("run", "-D${StartParameterBuildOptions.ConfigurationCacheIgnoreUnsupportedBuildEventsListeners.PROPERTY_NAME}=true")
+        run("run", "-D${StartParameterBuildOptions.ConfigurationCacheIgnoreUnsupportedBuildEventsListeners.PROPERTY_NAME}=true")
 
         then:
         configurationCache.assertStateLoaded()
@@ -207,7 +217,7 @@ class ConfigurationCacheBuildEventsListenerIntegrationTest extends AbstractConfi
     }
 
     private void assertUnsupportedListenerReported(String location = "Plugin class 'MyPlugin'") {
-        problems.assertFailureHasProblems(failure) {
+        configurationCache.problems.assertFailureHasProblems(failure) {
             totalProblemsCount = 1
             problemsWithStackTraceCount = 0
             withProblem("$location: Unsupported provider is registered as a task completion listener in 'org.gradle.build.event.BuildEventsListenerRegistry'. " +

@@ -422,4 +422,13 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
                 "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested",
         )
     }
+
+    //TODO: test the expected output directly
+    protected static String removeVfsLogOutput(String normalizedOutput) {
+        normalizedOutput
+            .replaceAll(/Received \d+ file system events .*\n/, '')
+            .replaceAll(/Spent \d+ ms processing file system events since last build\n/, '')
+            .replaceAll(/Spent \d+ ms registering watches for file system events\n/, '')
+            .replaceAll(/Virtual file system .*\n/, '')
+    }
 }
