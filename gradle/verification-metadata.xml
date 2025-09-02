@@ -103,6 +103,7 @@
             <trusting group="^com[.]gradle($|([.].*))" regex="true"/>
             <trusting group="^org[.]gradle($|([.].*))" regex="true"/>
          </trusted-key>
+         <trusted-key id="1D217F8475EEE9F19AB8DD6B793FD5751A0F0780" group="com.squareup.okio"/>
          <trusted-key id="1FA37FBE4453C1073E7EF61D6449005F96BC97A3" group="de.undercouch"/>
          <trusted-key id="1FA868A348719E88B6D0DE24C03EF1D7D692BCFF" group="org.scala-lang"/>
          <trusted-key id="21F0942275EA159A501D375328852008A47BB995" group="^com[.]google($|([.].*))" regex="true"/>

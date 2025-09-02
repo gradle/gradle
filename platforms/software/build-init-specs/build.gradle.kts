@@ -26,7 +26,7 @@ dependencies {
 
     implementation(projects.loggingApi)
 
-    implementation(libs.jspecify)
+    compileOnly(libs.jspecify)
 
     testImplementation(testFixtures(project))
     testImplementation(testFixtures(projects.logging))
