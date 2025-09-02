@@ -58,12 +58,13 @@ public class DependencyVerificationReportWriter {
         File verificationFile,
         List<String> writeFlags,
         File htmlReportOutputDirectory,
-        Factory<GradleProperties> gradlePropertiesProvider
+        Factory<GradleProperties> gradlePropertiesProvider,
+        boolean useKeyServers
     ) {
         this.gradleUserHome = gradleUserHome;
         this.rendererInitializer = () -> {
             this.summaryRenderer = createConsoleRenderer(gradleUserHome, documentationRegistry, gradlePropertiesProvider.create());
-            this.htmlRenderer = new HtmlDependencyVerificationReportRenderer(documentationRegistry, verificationFile, writeFlags, htmlReportOutputDirectory);
+            this.htmlRenderer = new HtmlDependencyVerificationReportRenderer(documentationRegistry, verificationFile, writeFlags, htmlReportOutputDirectory, useKeyServers);
         };
     }
 

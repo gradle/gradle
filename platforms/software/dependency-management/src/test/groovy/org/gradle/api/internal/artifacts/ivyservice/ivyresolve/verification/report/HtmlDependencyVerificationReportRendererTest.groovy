@@ -38,6 +38,7 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -60,13 +61,15 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
     File currentReportDir
     File currentReportFile
     Document report
+    boolean useKeyServers = false
 
     @Subject
     HtmlDependencyVerificationReportRenderer renderer = new HtmlDependencyVerificationReportRenderer(
         Mock(DocumentationRegistry),
         verificationFile,
         ["pgp", "sha512"],
-        reportsDir
+        reportsDir,
+        useKeyServers
     )
 
     def "copies required resources"() {
@@ -106,6 +109,71 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
         bodyContainsExact("Second section 0 error")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20135")
+    @Unroll("reports sticky tip for (#failure) using a key server")
+    def "reports sticky tip for (#failure) using a key server"() {
+        given:
+        HtmlDependencyVerificationReportRenderer keyServerRenderer = new HtmlDependencyVerificationReportRenderer(
+            Mock(DocumentationRegistry),
+            verificationFile,
+            ["pgp", "sha512"],
+            reportsDir,
+            true
+        )
+        keyServerRenderer.startNewSection(":someConfiguration")
+        keyServerRenderer.startNewArtifact(artifact()) {
+            keyServerRenderer.reportFailure(failure)
+        }
+
+        when:
+        generateReport()
+
+        then:
+        bodyContains(stickyTipMessage)
+
+        where:
+        failure                                                                 | stickyTipMessage
+        checksumFailure()                                                       |'./gradlew --write-verification-metadata pgp,sha512 help'
+        missingChecksums()                                                      |'./gradlew --write-verification-metadata pgp,sha512 help'
+        deletedArtifact()                                                       |'./gradlew --write-verification-metadata pgp,sha512 help'
+        missingSignature()                                                      |'./gradlew --write-verification-metadata pgp,sha512 help'
+        onlyIgnoredKeys()                                                       |'./gradlew --write-verification-metadata pgp,sha512 help'
+        signatureFailure()                                                      |'./gradlew --write-verification-metadata pgp,sha512 help'
+        signatureFailure("Maven", ['abcd': signatureError(FAILED)])             |'./gradlew --write-verification-metadata pgp,sha512 help'
+        signatureFailure("Maven", ['abcd': signatureError(IGNORED_KEY)])        |'./gradlew --write-verification-metadata pgp,sha512 help'
+        signatureFailure("Maven", ['abcd': signatureError(PASSED_NOT_TRUSTED)]) |'./gradlew --write-verification-metadata pgp,sha512 help'
+        signatureFailure("Maven", ['abcd': signatureError(MISSING_KEY)])        |'./gradlew --write-verification-metadata pgp,sha512 help'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20135")
+    @Unroll("reports sticky tip for (#failure) without using a key server")
+    def "reports sticky tip for (#failure) without using a key server"() {
+        given:
+        renderer.startNewSection(":someConfiguration")
+        renderer.startNewArtifact(artifact()) {
+            renderer.reportFailure(failure)
+        }
+
+        when:
+        generateReport()
+
+        then:
+        bodyContains(stickyTipMessage)
+
+        where:
+        failure                                                                 | stickyTipMessage
+        checksumFailure()                                                       | './gradlew --write-verification-metadata pgp,sha512 help'
+        missingChecksums()                                                      | './gradlew --write-verification-metadata pgp,sha512 help'
+        deletedArtifact()                                                       | './gradlew --write-verification-metadata pgp,sha512 help'
+        missingSignature()                                                      | './gradlew --write-verification-metadata pgp,sha512 help'
+        onlyIgnoredKeys()                                                       | './gradlew --write-verification-metadata pgp,sha512 help'
+        signatureFailure()                                                      | './gradlew --write-verification-metadata pgp,sha512 --export-keys help'
+        signatureFailure("Maven", ['abcd': signatureError(FAILED)])             | './gradlew --write-verification-metadata pgp,sha512 help'
+        signatureFailure("Maven", ['abcd': signatureError(IGNORED_KEY)])        | './gradlew --write-verification-metadata pgp,sha512 help'
+        signatureFailure("Maven", ['abcd': signatureError(PASSED_NOT_TRUSTED)]) | './gradlew --write-verification-metadata pgp,sha512 help'
+        signatureFailure("Maven", ['abcd': signatureError(MISSING_KEY)])        | './gradlew --write-verification-metadata pgp,sha512 --export-keys help'
+    }
+
     @Unroll("reports verification errors (#failure)")
     def "reports verification errors"() {
         given:
@@ -119,7 +187,7 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
 
         def errors = errorsFor(":someConfiguration")
         then:
-
+        bodyContains("./gradlew --write-verification-metadata")
         verifyAll(errors[0]) {
             module == 'org:foo:1.0'
             artifact == 'foo-1.0.jar'
