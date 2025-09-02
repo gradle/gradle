@@ -119,6 +119,7 @@ val core = platform("core") {
         subproject("configuration-cache")
         subproject("configuration-cache-base")
         subproject("configuration-problems-base")
+        subproject("core-flow-services-api")
         subproject("core-kotlin-extensions")
         subproject("core-serialization-codecs")
         subproject("declarative-dsl-api")

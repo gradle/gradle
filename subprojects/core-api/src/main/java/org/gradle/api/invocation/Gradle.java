@@ -26,7 +26,6 @@ import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.flow.FlowProviders;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.plugins.ExtensionAware;
@@ -292,7 +291,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * A {@link BuildResult} instance is passed to the closure as a parameter.
      *
      * @param closure The closure to execute.
-     * @see FlowProviders#getBuildWorkResult()
+     * @see org.gradle.api.flow.FlowProviders#getBuildWorkResult()
      * @deprecated This method is not supported when configuration caching is enabled.
      */
     @Deprecated
@@ -304,7 +303,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * All selected tasks have been executed.
      *
      * @param action The action to execute.
-     * @see FlowProviders#getBuildWorkResult()
+     * @see org.gradle.api.flow.FlowProviders#getBuildWorkResult()
      * @since 3.4
      * @deprecated This method is not supported when configuration caching is enabled.
      */
