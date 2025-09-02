@@ -402,8 +402,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
                     case MISSING_KEY:
                         if (useKeyServers) {
                             reason = warning("Key " + keyInfo + " couldn't be found in any local or remote key servers so verification couldn't be performed");
-                        }
-                        else {
+                        } else {
                             reason = warning("Key " + keyInfo + " couldn't be found in any local key servers so verification couldn't be performed");
                         }
                         reportItem(reason, "missing-key", "warning");
