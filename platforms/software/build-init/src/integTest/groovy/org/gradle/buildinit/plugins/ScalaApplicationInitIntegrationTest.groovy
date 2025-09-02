@@ -17,6 +17,7 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -29,6 +30,11 @@ class ScalaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrat
 
     @Override
     String subprojectName() { 'app' }
+
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.SCALA_TEST
+    }
 
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
