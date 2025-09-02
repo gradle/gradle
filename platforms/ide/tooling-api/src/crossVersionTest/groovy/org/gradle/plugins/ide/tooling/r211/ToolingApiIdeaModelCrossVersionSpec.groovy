@@ -207,16 +207,4 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
     private IdeaProject loadIdeaProjectModel(Jvm jvm = null) {
         loadToolingModel(IdeaProject, jvm)
     }
-
-    private JavaVersion toJavaVersion(ideaLanguageLevel) {
-        JavaVersion.valueOf(ideaLanguageLevel.level.replaceFirst("JDK", "VERSION"));
-    }
-
-    private JavaVersion getDefaultIdeaPluginLanguageLevelForNonJavaProjects() {
-        JavaVersion.VERSION_1_6 // see IdeaPlugin#configureIdeaProject(Project)
-    }
-
-    private JavaVersion getDefaultIdeaPluginLanguageLevelForJavaProjects() {
-        return JavaVersion.current()
-    }
 }
