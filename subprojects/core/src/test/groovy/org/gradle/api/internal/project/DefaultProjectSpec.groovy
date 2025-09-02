@@ -40,6 +40,9 @@ import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.internal.PatternSets
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator
+import org.gradle.features.internal.binding.ProjectFeatureApplicator
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
+import org.gradle.features.internal.binding.ProjectFeaturesDynamicObject
 import org.gradle.internal.Describables
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.InternalOptions
@@ -56,9 +59,6 @@ import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.invocation.GradleLifecycleActionExecutor
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.features.internal.binding.ProjectFeatureApplicator
-import org.gradle.features.internal.binding.ProjectFeaturesDynamicObject
-import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -332,6 +332,7 @@ class DefaultProjectSpec extends Specification {
             getProjectDir() >> new File("project")
             getBuildFile() >> new File("build file")
         }
+        _ * container.projectDir >> descriptor.projectDir
 
         def scriptResolution = Stub(ProjectScopedScriptResolution) {
             resolveScriptsForProject(_, _) >> { project, action -> action.get() }
@@ -339,7 +340,7 @@ class DefaultProjectSpec extends Specification {
 
         def instantiator = TestUtil.instantiatorFactory().decorateLenient(serviceRegistry)
         def factory = new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(null), scriptResolution)
-        def project = factory.createProject(build, descriptor, container, parent, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope))
+        def project = factory.createProject(build, descriptor, container, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope))
         _ * container.mutableModel >> project
         return project
     }

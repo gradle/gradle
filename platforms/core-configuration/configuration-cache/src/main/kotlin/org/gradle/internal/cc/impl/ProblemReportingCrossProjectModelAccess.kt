@@ -39,7 +39,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
 import org.gradle.api.internal.project.MutableStateAccessAwareProject
-import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectOrderingUtil
@@ -439,10 +438,6 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getConfigurationTargetIdentifier(): ConfigurationTargetIdentifier {
-            shouldNotBeUsed()
-        }
-
-        override fun getParentIdentifier(): ProjectIdentifier {
             shouldNotBeUsed()
         }
 
