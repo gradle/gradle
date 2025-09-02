@@ -43,6 +43,7 @@ import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCo
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory
 import org.gradle.api.internal.file.DefaultProjectLayout
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileFactory
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
@@ -81,6 +82,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.internal.Actions
 import org.gradle.internal.Describables
+import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.instantiation.InstantiatorFactory
@@ -151,7 +153,13 @@ class DefaultProjectTest extends Specification {
     DependencyFactory dependencyFactoryMock = Stub(DependencyFactory)
     ComponentMetadataHandler moduleHandlerMock = Stub(ComponentMetadataHandler)
     ScriptHandlerInternal scriptHandlerMock = Mock(ScriptHandlerInternal)
-    GradleInternal build = Stub(GradleInternal)
+    BuildState build = Mock(BuildState) {
+        getMutableModel() >> Mock(GradleInternal) {
+            getProjectEvaluationBroadcaster() >> Stub(ProjectEvaluationListener)
+        }
+        getProjects() >> Mock(BuildProjectRegistry)
+        getIdentityPath() >> Path.ROOT
+    }
     ConfigurationTargetIdentifier configurationTargetIdentifier = Stub(ConfigurationTargetIdentifier)
     FileOperations fileOperationsMock = Stub(FileOperations)
     ProviderFactory propertyStateFactoryMock = Stub(ProviderFactory)
@@ -248,6 +256,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get(TaskDependencyFactory) >> DefaultTaskDependencyFactory.withNoAssociatedProject()
         serviceRegistryMock.get(ProjectFeatureDeclarations) >> Stub(ProjectFeatureDeclarations)
         serviceRegistryMock.get(ProjectFeatureApplicator) >> Stub(ProjectFeatureApplicator)
+        serviceRegistryMock.get(FileFactory) >> Stub(FileFactory)
         pluginManager.getPluginContainer() >> pluginContainer
 
         serviceRegistryMock.get((Type) DeferredProjectConfiguration) >> Stub(DeferredProjectConfiguration)
@@ -263,14 +272,6 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get(ModelSchemaStore) >> modelSchemaStore
         serviceRegistryMock.get((Type) ProjectLayout) >> new DefaultProjectLayout(rootDir, rootDir, fileResolver, Stub(TaskDependencyFactory), Stub(PatternSetFactory), Stub(PropertyHost), Stub(FileCollectionFactory), TestFiles.filePropertyFactory(), TestFiles.fileFactory())
 
-        build.getProjectEvaluationBroadcaster() >> Stub(ProjectEvaluationListener)
-        build.getParent() >> null
-        build.isRootBuild() >> true
-        build.getIdentityPath() >> Path.ROOT
-
-        buildState = Stub(BuildState)
-        buildState.getIdentityPath() >> Path.ROOT
-
         serviceRegistryMock.get((Type) ObjectFactory) >> Stub(ObjectFactory)
         serviceRegistryMock.get((Type) DependencyLockingHandler) >> Stub(DependencyLockingHandler)
         serviceRegistryMock.get((Type) DynamicCallContextTracker) >> Stub(DynamicCallContextTracker)
@@ -278,26 +279,24 @@ class DefaultProjectTest extends Specification {
         projectState = Mock(ProjectState)
         projectState.name >> 'root'
         projectState.displayName >> Describables.of("displayname")
-        projectState.owner >> buildState
         project = defaultProject('root', projectState, null, rootDir, rootProjectClassLoaderScope)
         def child1ClassLoaderScope = rootProjectClassLoaderScope.createChild("project-child1", null)
         child1State = Mock(ProjectState)
-        child1State.owner >> buildState
         child1 = defaultProject("child1", child1State, project, new File("child1"), child1ClassLoaderScope)
         child1State.mutableModel >> child1
         child1State.name >> "child1"
         chilchildState = Mock(ProjectState)
-        chilchildState.owner >> buildState
         childchild = defaultProject("childchild", chilchildState, child1, new File("childchild"), child1ClassLoaderScope.createChild("project-childchild", null))
         child2State = Mock(ProjectState)
-        child2State.owner >> buildState
         child2 = defaultProject("child2", child2State, project, new File("child2"), rootProjectClassLoaderScope.createChild("project-child2", null))
         child2State.mutableModel >> child2
         child2State.name >> "child2"
         projectState.childProjects >> ([child1State, child2State] as Set)
+
         [project, child1, childchild, child2].each {
             projectRegistry.addProject(it)
         }
+        build.projects.rootProject >> projectState
     }
 
     private DefaultProject defaultProject(
@@ -321,21 +320,22 @@ class DefaultProjectTest extends Specification {
         _ * owner.identityPath >> identity.buildTreePath
         _ * owner.projectPath >> identity.projectPath
         _ * owner.depth >> owner.projectPath.segmentCount()
+        _ * owner.owner >> build
+        _ * owner.parent >> parent?.owner
+        _ * owner.projectDir >> rootDir
+        _ * owner.name >> name
 
         def project = TestUtil.instantiatorFactory().decorateLenient().newInstance(
             DefaultProject,
-            name,
-            parent,
-            rootDir,
             new File(rootDir, 'build.gradle'),
             script,
-            build,
             owner,
             projectServiceRegistryFactoryMock,
             scope,
             baseClassLoaderScope
         )
         _ * owner.applyToMutableState(_) >> { Consumer action -> action.accept(project) }
+        _ * owner.getMutableModel() >> project
         return project
     }
 
@@ -363,13 +363,13 @@ class DefaultProjectTest extends Specification {
         assert project.name == name
         assert project.version == Project.DEFAULT_VERSION
         assert project.status == Project.DEFAULT_STATUS
-        assert project.rootDir.is(rootDir)
+        assert project.rootDir == rootDir
         assert project.projectDir.is(projectDir)
         assert project.rootProject.is(this.project)
         assert project.buildFile == new File(projectDir, TEST_BUILD_FILE_NAME)
         assert project.projectEvaluator.is(projectEvaluator)
         assert project.antBuilderFactory.is(antBuilderFactoryMock)
-        assert project.gradle.is(build)
+        assert project.gradle.is(build.mutableModel)
         assert project.ant != null
         assert project.extensions != null
         assert project.defaultTasks == []
@@ -845,35 +845,37 @@ def scriptMethod(Closure closure) {
     }
 
     def subprojects() {
+        String propValue = 'someValue'
+        project.subprojects{
+            ext.testSubProp = propValue
+        }
+
         expect:
-        checkConfigureProject('subprojects', listWithAllChildProjects)
+        listWithAllChildProjects.each {
+            assert it.testSubProp == propValue
+        }
     }
 
     def allprojects() {
+        String propValue = 'someValue'
+        project.allprojects {
+            ext.testSubProp = propValue
+        }
+
         expect:
-        checkConfigureProject('allprojects', listWithAllProjects)
+        listWithAllProjects.each {
+            assert it.testSubProp == propValue
+        }
     }
 
     def configureProjects() {
-        expect:
-        checkConfigureProject('configure', [project, child1] as Set)
-    }
-
-    private void checkConfigureProject(String configureMethod, Set projectsToCheck) {
         String propValue = 'someValue'
-        if (configureMethod == 'configure') {
-            project."$configureMethod" projectsToCheck as List,
-                {
-                    ext.testSubProp = propValue
-                }
-        } else {
-            project."$configureMethod"(
-                {
-                    ext.testSubProp = propValue
-                })
+        project.configure([project, child1]) {
+            ext.testSubProp = propValue
         }
 
-        projectsToCheck.each {
+        expect:
+        [project, child1].each {
             assert it.testSubProp == propValue
         }
     }
