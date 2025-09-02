@@ -18,9 +18,10 @@ package org.gradle.buildinit.plugins
 
 import groovy.io.FileType
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.Language
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -110,10 +111,9 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
         targetDir.file("utilities").assertHasDescendants(utilFiles)
     }
 
-    void assertTestPassed(String subprojectName, String className, String name) {
-        def result = new DefaultTestExecutionResult(targetDir.file(subprojectName))
-        result.assertTestClassesExecuted(className)
-        result.testClass(className).assertTestPassed(name)
+    protected void assertTestPassed(String projectName, String className, String name) {
+        GenericTestExecutionResult testResults = resultsFor(targetDir.file(projectName), "tests/test")
+        testResults.testPath(className, name, getTestFramework()).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     String packageToDir(String packageName) {
@@ -122,6 +122,7 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
 }
 
 abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest {
+
     def "creates multi-project application sample when incubating flag = #incubating"() {
         given:
         def dsl = buildDsl
