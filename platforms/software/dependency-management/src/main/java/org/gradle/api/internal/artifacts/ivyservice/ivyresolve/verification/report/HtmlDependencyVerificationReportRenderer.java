@@ -55,8 +55,8 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     private final File verificationFile;
     private final List<String> writeFlags;
     private final File htmlReportOutputDirectory;
+    private final boolean useKeyServers;
     private boolean hasMissingKeys = false;
-    private boolean useKeyServers;
 
     HtmlDependencyVerificationReportRenderer(DocumentationRegistry documentationRegistry, File verificationFile, List<String> writeFlags, File htmlReportOutputDirectory, boolean useKeyServers) {
         this.documentationRegistry = documentationRegistry;
@@ -400,7 +400,12 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
                         reportItem(reason, "ignored-key", "info");
                         break;
                     case MISSING_KEY:
-                        reason = warning("Key " + keyInfo + " couldn't be found in any key server so verification couldn't be performed");
+                        if (useKeyServers) {
+                            reason = warning("Key " + keyInfo + " couldn't be found in any local or remote key servers so signature verification couldn't be performed");
+                        }
+                        else {
+                            reason = warning("Key " + keyInfo + " couldn't be found in any local key servers so verification couldn't be performed");
+                        }
                         reportItem(reason, "missing-key", "warning");
                         hasMissingKeys = true;
                         break;
