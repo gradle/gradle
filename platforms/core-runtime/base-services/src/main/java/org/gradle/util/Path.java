@@ -121,7 +121,7 @@ public class Path implements Comparable<Path> {
     /**
      * Returns string representation of this path.
      *
-     * @deprecated since 9.2.0 use {@link #asString()} instead
+     * @deprecated use {@link #asString()} instead
      *
      * @return string representation of this path
      */
@@ -135,7 +135,6 @@ public class Path implements Comparable<Path> {
      *
      * @since 9.2.0
      */
-    @Incubating
     public String asString() {
         if (fullPath == null) {
             fullPath = createFullPath();

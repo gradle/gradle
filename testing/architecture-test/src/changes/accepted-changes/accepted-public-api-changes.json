@@ -135,6 +135,14 @@
             "changes": [
                 "Method is now abstract"
             ]
+        },
+        {
+            "type": "org.gradle.util.Path",
+            "member": "Method org.gradle.util.Path.asString()",
+            "acceptation": "Deprecated Path.getPath() in favor of asString()",
+            "changes": [
+                "Method added to public class"
+            ]
         }
     ]
 }
