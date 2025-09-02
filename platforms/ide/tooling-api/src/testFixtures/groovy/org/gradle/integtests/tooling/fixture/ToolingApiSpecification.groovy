@@ -31,6 +31,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailureWithThrowable
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.ExpectedDeprecationWarning
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
@@ -47,6 +48,8 @@ import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
+import org.hamcrest.core.IsNot
+import org.junit.Assume
 import org.junit.Rule
 import org.junit.rules.RuleChain
 import spock.lang.Retry
@@ -195,6 +198,15 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
 
     void multiProjectBuildInRootFolder(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
         new BuildTestFixture(projectDir).withBuildInRootDir().multiProjectBuild(projectName, subprojects, cl)
+    }
+
+    GradleExecuter withCompatibleJdk(GradleExecuter gradleExecuter) {
+        if (!targetDist.daemonWorksWith(Jvm.current().javaVersionMajor)) {
+            Jvm jvm = AvailableJavaHomes.getAvailableJdk { it -> targetDist.daemonWorksWith(it.javaMajorVersion) }
+            Assume.assumeThat("Java version available that is supported by " + targetVersion, jvm, IsNot.not(null))
+            gradleExecuter.withJvm(jvm)
+        }
+        return gradleExecuter
     }
 
     void withConnector(@DelegatesTo(GradleConnector) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.GradleConnector"]) Closure cl) {
