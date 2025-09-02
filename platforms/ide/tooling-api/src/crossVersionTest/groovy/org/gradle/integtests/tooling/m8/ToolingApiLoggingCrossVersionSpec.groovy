@@ -163,7 +163,7 @@ project.logger.debug("debug logging");
             }
         }
 
-        return executer.run()
+        return withCompatibleJdk(executer).run()
     }
 
     String normaliseOutput(String output) {
