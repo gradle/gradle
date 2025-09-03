@@ -18,6 +18,7 @@
 package org.gradle.testing.junit.junit4
 
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import spock.lang.Issue
 
@@ -170,11 +171,8 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
 
         then:
         GenericTestExecutionResult testResult = resultsFor("tests/test")
-        testResult.testPath("", "", testFramework).onlyRoot().assertChildrenExecuted("AllFooTests")
-        testResult.testPath("", "", testFramework).onlyRoot().assertOnlyChildrenExecuted("FooTest", "FooServerTest")
-        testResult.testPath("FooTest", "", testFramework).onlyRoot().assertChildCount(1, 0)
-        testResult.testPath("FooTest", "testFoo", testFramework).onlyRoot().assertHasResult(passedTestOutcome)
-        testResult.testPath("FooServerTest", "", testFramework).onlyRoot().assertChildCount(1, 0)
-        testResult.testPath("FooServerTest", "testFooServer", testFramework).onlyRoot().assertHasResult(passedTestOutcome)
+        testResult.testPath("AllFooTests", "", testFramework).onlyRoot().assertOnlyChildrenExecuted("testFoo", "testFooServer")
+        testResult.testPath("AllFooTests", "testFoo", testFramework).onlyRoot().assertHasResult(passedTestOutcome)
+        testResult.testPath("AllFooTests", "testFooServer", testFramework).onlyRoot().assertHasResult(passedTestOutcome)
     }
 }
