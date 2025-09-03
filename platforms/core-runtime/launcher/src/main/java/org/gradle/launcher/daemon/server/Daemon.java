@@ -269,10 +269,12 @@ public class Daemon implements Stoppable {
         @Override
         public void run() {
             try {
+                LOGGER.debug("Starting periodic daemon health check.");
                 final DaemonExpirationResult result = expirationStrategy.checkExpiration();
                 if (result.getStatus() != DO_NOT_EXPIRE) {
                     listenerBroadcast.onExpirationEvent(result);
                 }
+                LOGGER.debug("Finished periodic daemon health check.");
             } catch (Throwable t) {
                 // this class is used as task in a scheduled executor service, so it must not throw any throwable,
                 // otherwise the further invocations of this task get automatically and silently cancelled

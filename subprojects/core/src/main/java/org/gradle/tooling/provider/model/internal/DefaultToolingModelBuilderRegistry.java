@@ -347,14 +347,14 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
                         progressDisplayName("Building model '" + modelName + "'").details(new QueryToolingModelBuildOperationType.Details() {
                             @Override
                             public String getBuildPath() {
-                                return targetBuild.getIdentityPath().getPath();
+                                return targetBuild.getIdentityPath().asString();
                             }
 
                             @Nullable
                             @Override
                             public String getProjectPath() {
                                 if (targetProject != null) {
-                                    return targetProject.getProjectPath().getPath();
+                                    return targetProject.getProjectPath().asString();
                                 } else {
                                     return null;
                                 }
