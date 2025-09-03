@@ -17,6 +17,7 @@
 
 package org.gradle.testing.testng
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.AbstractTestFilteringIntegrationTest
@@ -26,13 +27,8 @@ import spock.lang.Issue
 @TargetCoverage({ TestNGCoverage.SUPPORTS_GENERIC_TEST_REPORTING })
 class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest implements TestNGMultiVersionTest {
     @Override
-    String testName(String methodName) {
-        return methodName
-    }
-
-    @Override
-    String getPathToTestPackages() {
-        return ":Gradle suite:Gradle test:"
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.TEST_NG
     }
 
     void theUsualFiles() {
