@@ -114,7 +114,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         @Override
         TestClassExecutionResult assertTestsExecuted(TestCase... testCases) {
             String[] testCasesAsNames = testCases.collect { it.name }.toArray(new String[0])
-            delegate.onlyRoot().assertChildrenExecuted(testCasesAsNames)
+            delegate.onlyRoot().assertOnlyChildrenExecuted(testCasesAsNames)
             return this
         }
 

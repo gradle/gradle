@@ -250,12 +250,12 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
             .testPath("TheSameName suite")
             .root("TheSameName (1)")
             .assertChildCount(1, 0)
-            .assertChildrenExecuted("theSameName1 test")
+            .assertOnlyChildrenExecuted("theSameName1 test")
         results
             .testPath("TheSameName suite")
             .root("TheSameName (2)")
             .assertChildCount(1, 0)
-            .assertChildrenExecuted("theSameName2 test")
+            .assertOnlyChildrenExecuted("theSameName2 test")
     }
 
     def passingTask(String name, boolean print = false) {

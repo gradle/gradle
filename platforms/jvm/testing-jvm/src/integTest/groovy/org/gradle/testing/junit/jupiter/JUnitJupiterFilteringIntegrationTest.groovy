@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.jupiter
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestExecutionResult
@@ -27,13 +28,8 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 @TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest implements JUnitJupiterMultiVersionTest {
     @Override
-    String testName(String methodName) {
-        return methodName + "()"
-    }
-
-    @Override
-    String getPathToTestPackages() {
-        return ":"
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.JUNIT_JUPITER
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19808")
