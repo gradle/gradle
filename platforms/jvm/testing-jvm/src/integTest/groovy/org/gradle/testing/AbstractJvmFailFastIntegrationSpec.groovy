@@ -67,7 +67,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         TestPathExecutionResult gradleTest = testResults.testPath(pathToTestPackages)
         gradleTest.rootNames == ['Gradle Test Run :test']
         gradleTest.onlyRoot().assertChildCount(2, 1)
-        gradleTest.onlyRoot().assertChildrenExecuted("pkg.FailedTest", "pkg.OtherTest")
+        gradleTest.onlyRoot().assertOnlyChildrenExecuted("pkg.FailedTest", "pkg.OtherTest")
 
         TestPathExecutionResult failedTest = testResults.testPath("${pathToTestPackages}pkg.FailedTest")
         failedTest.onlyRoot().assertChildCount(1, 1)

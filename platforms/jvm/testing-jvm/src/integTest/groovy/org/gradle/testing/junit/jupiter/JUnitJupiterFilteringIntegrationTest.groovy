@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.jupiter
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestExecutionResult
@@ -27,13 +28,8 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 @TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest implements JUnitJupiterMultiVersionTest {
     @Override
-    String testName(String methodName) {
-        return methodName + "()"
-    }
-
-    @Override
-    String getPathToTestPackages() {
-        return ":"
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.JUNIT_JUPITER
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19808")
@@ -149,5 +145,58 @@ class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrat
                 excludeTestsMatching "*Something*"
             }
         """ : ""
+    }
+
+    def "can filter tests from build file."() {
+        given:
+        // this addition to the build files ...
+        buildFile << """
+            test {
+              filter {
+                includeTestsMatching "*FooTest"
+              }
+            }
+        """
+        // and ...
+        theSuiteFiles()
+
+        when:
+        succeedsWithTestTaskArguments("test")
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+
+        result.assertTestClassesExecuted("FooTest", "FooServerTest")
+        result.testClass("FooTest").assertTestCount(1, 0);
+        result.testClass("FooTest").assertTestOutcomes(passedTestOutcome, "testFoo")
+    }
+
+    void theSuiteFiles() {
+        file("src/test/java/FooTest.java") << """
+            ${testFrameworkImports}
+            public class FooTest {
+                @Test
+                public void testFoo() {
+throw new RuntimeException("FooTest RAN!");
+                }
+            }
+        """
+        file("src/test/java/FooServerTest.java") << """
+            ${testFrameworkImports}
+            public class FooServerTest {
+                @Test
+                public void testFooServer() {
+throw new RuntimeException("FooServerTest RAN!");
+}
+            }
+        """
+        file("src/test/java/BarTest.java") << """
+            ${testFrameworkImports}
+            public class BarTest {
+                @Test
+                public void testBar() {
+throw new RuntimeException("BarTest RAN!"); }
+            }
+        """
     }
 }
