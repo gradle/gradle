@@ -88,20 +88,23 @@ class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
     }
 
     private boolean daemonSupported(AbstractMultiTestInterceptor.TestDetails testDetails) {
-        TargetGradleVersion gradleVersionAnnotation = testDetails.getAnnotation(TargetGradleVersion)
-        return toVersionPredicate(gradleVersionAnnotation).test(this.gradleVersion)
+        List<TargetGradleVersion> gradleVersionAnnotations = testDetails.getAnnotations(TargetGradleVersion)
+        return toVersionPredicate(gradleVersionAnnotations).test(this.gradleVersion)
     }
 
     private boolean toolingApiSupported(AbstractMultiTestInterceptor.TestDetails testDetails) {
-        ToolingApiVersion toolingVersionAnnotation = testDetails.getAnnotation(ToolingApiVersion)
-        return toVersionPredicate(toolingVersionAnnotation).test(this.toolingApiVersion)
+        List<ToolingApiVersion> toolingVersionAnnotations = testDetails.getAnnotations(ToolingApiVersion)
+        return toVersionPredicate(toolingVersionAnnotations).test(this.toolingApiVersion)
     }
 
-    private static Predicate<GradleVersion> toVersionPredicate(annotation) {
-        if (annotation == null) {
+    private static Predicate<GradleVersion> toVersionPredicate(List<?> annotations) {
+        if (annotations.isEmpty()) {
             return (v) -> true;
         }
-        return GRADLE_VERSION_PREDICATE.toPredicate(constraintFor(annotation))
+        List<Predicate<GradleVersion>> predicates = annotations.stream().map { annotation ->
+            GRADLE_VERSION_PREDICATE.toPredicate(constraintFor(annotation))
+        }.collect(Collectors.toList())
+        return (v) -> predicates.stream().allMatch { it.test(v) }
     }
 
     private static String constraintFor(annotation) {
