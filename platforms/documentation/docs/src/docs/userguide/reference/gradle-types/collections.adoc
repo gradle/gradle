@@ -91,7 +91,6 @@ Gradle uses `NamedDomainObjectContainer` type extensively throughout the API.
 For example, the `project.tasks` object used to manage the tasks of a project is a `NamedDomainObjectContainer<Task>`.
 
 You can create a container instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] service, which provides the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#domainObjectContainer-java.lang.Class-[ObjectFactory.domainObjectContainer()] method.
-This is also available using the link:{javadocPath}/org/gradle/api/Project.html#container-java.lang.Class-[Project.container()] method, however in a custom Gradle type it's generally better to use the injected `ObjectFactory` service instead of passing around a `Project` instance.
 
 You can also create a container instance using a <<properties_providers.adoc#read_only_managed_properties,read-only managed property>>.
 

@@ -275,10 +275,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                     """
                     package my
 
-                    class Nested {
-                        class Extension(private val name: String) : org.gradle.api.Named {
-                            override fun getName() = name
-                        }
+                    interface Nested {
+                        interface Extension : org.gradle.api.Named
                     }
                     """
                 )
@@ -288,8 +286,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                     """
                     package my
 
-                    extensions.add("nested", Nested.Extension("foo"))
-                    extensions.add("beans", container(Nested.Extension::class))
+                    extensions.add("nested", objects.newInstance(Nested.Extension::class, "foo"))
+                    extensions.add("beans", objects.domainObjectContainer(Nested.Extension::class))
                     """
                 )
             }
@@ -565,12 +563,12 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 class DocumentationPlugin : Plugin<Project> {
 
                     override fun apply(project: Project) {
-                        val books = project.container(Book::class, ::Book)
+                        val books = project.objects.domainObjectContainer(Book::class)
                         project.extensions.add("the books", books)
                     }
                 }
 
-                data class Book(val name: String)
+                abstract class Book(val name: String)
 
                 """
             )

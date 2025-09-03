@@ -1,72 +1,123 @@
 // tag::dos[]
 abstract class MyPluginExtensionDomainObjectSet {
     // Define a domain object set to hold strings
-    val myStrings: DomainObjectSet<String> = project.objects.domainObjectSet(String::class)
+    abstract val myStrings: DomainObjectSet<String>
 
-    // Add some strings to the domain object set
-    fun addString(value: String) {
-        myStrings.add(value)
+    fun myStrings(action: Action<in DomainObjectSet<String>>) = action.execute(myStrings)
+}
+
+val dos = extensions.create<MyPluginExtensionDomainObjectSet>("dos")
+
+dos.apply {
+    myStrings {
+        add("hello")
     }
 }
+
 // end::dos[]
+
+require(dos.myStrings.size == 1)
 
 // tag::ndos[]
 // tag::ndol[]
 // tag::ndoc[]
-abstract class Person(val name: String)
+interface Person : Named {
+    
+}
 // end::ndol[]
 // end::ndoc[]
 
 abstract class MyPluginExtensionNamedDomainObjectSet {
     // Define a named domain object set to hold Person objects
-    private val people: NamedDomainObjectSet<Person> = project.objects.namedDomainObjectSet(Person::class)
+    abstract val people: NamedDomainObjectSet<Person> 
 
-    // Add a person to the set
-    fun addPerson(name: String) {
-        people.plus(name)
+    fun people(action: Action<in NamedDomainObjectSet<Person>>) = action.execute(people)
+}
+
+val ndos = extensions.create<MyPluginExtensionNamedDomainObjectSet>("ndos")
+
+ndos.apply {
+    people {
+       add(objects.newInstance<Person>("bobby"))
     }
 }
 // end::ndos[]
 
+require(ndos.people.size == 1)
+
 // tag::ndol[]
 
 abstract class MyPluginExtensionNamedDomainObjectList {
-    // Define a named domain object list to hold Person objects
-    private val people: NamedDomainObjectList<Person> = project.objects.namedDomainObjectList(Person::class)
+    // Define a named domain object container to hold Person objects
+    abstract val people: NamedDomainObjectList<Person> 
 
-    // Add a person to the container
-    fun addPerson(name: String) {
-        people.plus(name)
+    fun people(action: Action<in NamedDomainObjectList<Person>>) = action.execute(people)
+}
+
+val ndol = extensions.create<MyPluginExtensionNamedDomainObjectList>("ndol")
+
+ndol.apply {
+    people {
+        add(objects.newInstance<Person>("bobby"))
+        add(objects.newInstance<Person>("hank"))
     }
 }
+
 // end::ndol[]
+
+require(ndol.people.size == 2)
 
 // tag::ndoc[]
 
 abstract class MyPluginExtensionNamedDomainObjectContainer {
     // Define a named domain object container to hold Person objects
-    private val people: NamedDomainObjectContainer<Person> = project.container(Person::class)
+    abstract val people: NamedDomainObjectContainer<Person> 
 
-    // Add a person to the container
-    fun addPerson(name: String) {
-        people.create(name)
+    fun people(action: Action<in NamedDomainObjectContainer<Person>>) = action.execute(people)
+}
+
+val ndoc = extensions.create<MyPluginExtensionNamedDomainObjectContainer>("ndoc")
+
+ndoc.apply {
+    people {
+        val bobby by registering 
+        val hank by registering 
+        val peggy by registering
     }
 }
 // end::ndoc[]
 
+require(ndoc.people.size == 3)
+
 // tag::epdoc[]
-abstract class Animal(val name: String)
+interface Animal : Named {
 
-class Dog(name: String, val breed: String) : Animal(name)
+}
 
-abstract class MyPluginExtensionExtensiblePolymorphicDomainObjectContainer(objectFactory: ObjectFactory) {
+interface Dog : Animal {
+    val breed: Property<String>
+}
+
+abstract class MyPluginExtensionExtensiblePolymorphicDomainObjectContainer {
     // Define a container for animals
-    private val animals: ExtensiblePolymorphicDomainObjectContainer<Animal> = objectFactory.polymorphicDomainObjectContainer(Animal::class)
+    abstract val animals: ExtensiblePolymorphicDomainObjectContainer<Animal> 
 
-    // Add a dog to the container
-    fun addDog(name: String, breed: String) {
-        var dog : Dog = Dog(name, breed)
-        animals.add(dog)
+    fun animals(action: Action<in ExtensiblePolymorphicDomainObjectContainer<Animal>>) = action.execute(animals)
+}
+
+val epdoc = extensions.create<MyPluginExtensionExtensiblePolymorphicDomainObjectContainer>("epdoc")
+
+// Register available types for container
+epdoc.animals.registerBinding(Dog::class, Dog::class)
+
+epdoc.apply {
+    animals {
+        val bubba by registering(Dog::class) {
+            breed = "basset hound"
+        }
     }
 }
+
 // end::epdoc[]
+
+require(epdoc.animals.size == 1)
