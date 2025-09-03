@@ -45,6 +45,14 @@ class CGroupMemoryInfoTest extends Specification {
         thrown(UnsupportedOperationException)
     }
 
+    def "throws unsupported operation exception when 'max' is read in total memory for cgroup v2"() {
+        when:
+        new CGroupMemoryInfo().getOsSnapshotFromCgroup(mbsToBytesAsString(1), "max")
+
+        then:
+        thrown(UnsupportedOperationException)
+    }
+
     long mbsToBytes(int mbs) {
         return mbs * MB_IN_BYTES
     }
