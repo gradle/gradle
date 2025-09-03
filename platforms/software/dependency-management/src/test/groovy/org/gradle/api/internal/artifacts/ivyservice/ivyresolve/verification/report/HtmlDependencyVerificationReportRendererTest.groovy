@@ -39,7 +39,6 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
