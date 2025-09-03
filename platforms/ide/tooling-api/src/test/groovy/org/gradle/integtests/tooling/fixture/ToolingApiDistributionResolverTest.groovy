@@ -25,6 +25,7 @@ import spock.lang.Specification
 import spock.util.environment.RestoreSystemProperties
 
 import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.FileTime
 import java.util.concurrent.TimeUnit
 
@@ -41,10 +42,21 @@ class ToolingApiDistributionResolverTest extends Specification {
 
     ToolingApiDistributionResolver underTest = new ToolingApiDistributionResolver()
 
+    static File findRandomJarFromClasspath() {
+        String[] paths = System.getProperty("java.class.path").split(File.pathSeparator);
+
+        for (String path : paths) {
+            if (path.toLowerCase().endsWith(".jar")) {
+                return new File(path)
+            }
+        }
+        throw new RuntimeException("No jars found in ${System.getProperty("java.class.path")}")
+    }
+
     @RestoreSystemProperties
     def "uses distribution from classpath when resolving current version"() {
         given:
-        System.setProperty("toolingApi.shadedJar", "path/to/fake-unexisted-shaded.jar")
+        System.setProperty("toolingApi.shadedJar", findRandomJarFromClasspath().absolutePath)
         def version = GradleVersion.current().baseVersion.version
 
         when:
@@ -73,6 +85,7 @@ class ToolingApiDistributionResolverTest extends Specification {
         when:
         def localToolingApi = localRepo.file("org/gradle/gradle-tooling-api/10000.0/gradle-tooling-api-10000.0.jar")
         localToolingApi.touch()
+        Files.copy(findRandomJarFromClasspath().toPath(), localToolingApi.toPath(), StandardCopyOption.REPLACE_EXISTING)
         def result = underTest.resolve("10000.0")
 
         then:
