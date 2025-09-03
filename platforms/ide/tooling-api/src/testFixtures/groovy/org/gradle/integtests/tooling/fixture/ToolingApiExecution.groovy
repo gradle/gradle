@@ -16,16 +16,18 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.api.internal.jvm.JavaVersionParser
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor
 import org.gradle.util.GradleVersion
 import org.spockframework.runtime.extension.IMethodInvocation
 
+import java.util.function.Predicate
+import java.util.stream.Collectors
+
 class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
 
     private static final GradleVersion INSTALLATION_GRADLE_VERSION
-    private static final GradleVersionSpec GRADLE_VERSION_SPEC = new GradleVersionSpec()
+    private static final GradleVersionPredicate GRADLE_VERSION_PREDICATE = new GradleVersionPredicate()
 
     static {
         // If we are testing a non-current tooling API version, we will have loaded the class using its classloader and thus
@@ -82,30 +84,24 @@ class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
 
     @Override
     boolean isTestEnabled(AbstractMultiTestInterceptor.TestDetails testDetails) {
-        // We cannot use JavaVersionParser.parseCurrentMajorVersion, since that method
-        // is new and the target distribution version of the class sometimes shadows the
-        // version of this class that has the new method.
-        int currentJavaVersion = JavaVersionParser.parseMajorVersion(System.getProperty("java.version"))
-        return toolingApiSupported(testDetails, currentJavaVersion) && daemonSupported(testDetails, currentJavaVersion)
+        return toolingApiSupported(testDetails) && daemonSupported(testDetails)
     }
 
-    private boolean daemonSupported(AbstractMultiTestInterceptor.TestDetails testDetails, int jvmVersion) {
+    private boolean daemonSupported(AbstractMultiTestInterceptor.TestDetails testDetails) {
         TargetGradleVersion gradleVersionAnnotation = testDetails.getAnnotation(TargetGradleVersion)
-        Spec<GradleVersion> gradleVersionSpec = toVersionSpec(gradleVersionAnnotation)
-        gradleVersionSpec.isSatisfiedBy(this.gradleVersion)
+        return toVersionPredicate(gradleVersionAnnotation).test(this.gradleVersion)
     }
 
-    private boolean toolingApiSupported(AbstractMultiTestInterceptor.TestDetails testDetails, int jvmVersion) {
+    private boolean toolingApiSupported(AbstractMultiTestInterceptor.TestDetails testDetails) {
         ToolingApiVersion toolingVersionAnnotation = testDetails.getAnnotation(ToolingApiVersion)
-        Spec<GradleVersion> toolingVersionSpec = toVersionSpec(toolingVersionAnnotation)
-        toolingVersionSpec.isSatisfiedBy(this.toolingApiVersion)
+        return toVersionPredicate(toolingVersionAnnotation).test(this.toolingApiVersion)
     }
 
-    private static Spec<GradleVersion> toVersionSpec(annotation) {
+    private static Predicate<GradleVersion> toVersionPredicate(annotation) {
         if (annotation == null) {
-            return Specs.satisfyAll()
+            return (v) -> true;
         }
-        return GRADLE_VERSION_SPEC.toSpec(constraintFor(annotation))
+        return GRADLE_VERSION_PREDICATE.toPredicate(constraintFor(annotation))
     }
 
     private static String constraintFor(annotation) {
