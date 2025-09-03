@@ -394,7 +394,7 @@ class JavaClassChangeIncrementalCompilationIntegrationTest extends BaseJavaClass
         outputs.recompiledClasses('MyClass', 'MyClass2', 'TopLevel$Inner', 'TopLevel')
     }
 
-    // Expected since any change inside same compile task will cause recompilation of any dependent class
+    @Issue("https://github.com/gradle/gradle/issues/26337")
     def "non-abi change to constant origin class causes partial recompilation"() {
         source "class A { final static int x = 1; int method() { return 1; } }",
             "class B { int method() { return A.x; }  }",
@@ -403,6 +403,36 @@ class JavaClassChangeIncrementalCompilationIntegrationTest extends BaseJavaClass
 
         when:
         source "class A { final static int x = 1; int method() { return 2; } }"
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses('A')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26337")
+    def "abi change to method origin class causes partial recompilation"() {
+        source "class A { final static int x = 1; int method() { return 1; } }",
+            "class B { int method() { return A.x; }  }",
+            "class C {}"
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        source "class A { final static int x = 1; long method() { return 2L; } }"
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses('A', 'B')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26337")
+    def "abi change to constant origin class causes partial recompilation"() {
+        source "class A { final static int x = 1; int method() { return 1; } }",
+            "class B { int method() { return A.x; }  }",
+            "class C {}"
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        source "class A { final static int x = 2; int method() { return 1; } }"
         run language.compileTaskName
 
         then:

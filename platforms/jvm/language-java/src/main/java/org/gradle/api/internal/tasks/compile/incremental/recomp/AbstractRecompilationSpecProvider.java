@@ -85,6 +85,35 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         return recompilationSpec;
     }
 
+    @Override
+    public RecompilationSpec provideAbiDependentRecompilationSpec(JavaCompileSpec spec, CurrentCompilation current, PreviousCompilation previous, Set<String> alreadyCompiledClasses) {
+        RecompilationSpec recompilationSpec = new RecompilationSpec();
+        SourceFileClassNameConverter sourceFileClassNameConverter = new FileNameDerivingClassNameConverter(previous.getSourceToClassConverter(), getFileExtensions());
+
+        processAbiChanges(current, previous, alreadyCompiledClasses, recompilationSpec);
+
+        SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
+        processCompilerSpecificDependencies(spec, recompilationSpec, sourceFileChangeProcessor, sourceFileClassNameConverter);
+        collectAllSourcePathsAndIndependentClasses(sourceFileChangeProcessor, recompilationSpec, sourceFileClassNameConverter);
+
+        Set<String> typesToReprocess = previous.getTypesToReprocess(recompilationSpec.getClassesToCompile());
+        processTypesToReprocess(typesToReprocess, recompilationSpec, sourceFileClassNameConverter);
+        addModuleInfoToCompile(recompilationSpec, sourceFileClassNameConverter);
+
+        return recompilationSpec;
+    }
+
+    private static void processAbiChanges(CurrentCompilation current, PreviousCompilation previous, Set<String> alreadyCompiledClasses, RecompilationSpec recompilationSpec) {
+        DependentsSet dependents = current.findDependentsOfAbiSourceChanges(previous, alreadyCompiledClasses);
+        if (dependents.isDependencyToAll()) {
+            recompilationSpec.setFullRebuildCause(dependents.getDescription());
+        } else {
+            recompilationSpec.addClassesToCompile(dependents.getPrivateDependentClasses());
+            recompilationSpec.addClassesToCompile(dependents.getAccessibleDependentClasses());
+            recompilationSpec.addResourcesToGenerate(dependents.getDependentResources());
+        }
+    }
+
     protected abstract Set<String> getFileExtensions();
 
     private static void processClasspathChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {

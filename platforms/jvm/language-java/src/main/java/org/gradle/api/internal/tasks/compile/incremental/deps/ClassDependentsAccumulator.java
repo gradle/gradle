@@ -35,13 +35,18 @@ public class ClassDependentsAccumulator {
     private final Map<String, Set<String>> accessibleDependents = new HashMap<>();
     private final ImmutableMap.Builder<String, IntSet> classesToConstants = ImmutableMap.builder();
     private final Map<String, HashCode> seenClasses = new HashMap<>();
+    private final Map<String, ClassAbi> classesToAbis = new HashMap<>();
     private String fullRebuildCause;
 
     public void addClass(ClassAnalysis classAnalysis, HashCode hashCode) {
-        addClass(classAnalysis.getClassName(), hashCode, classAnalysis.getDependencyToAllReason(), classAnalysis.getPrivateClassDependencies(), classAnalysis.getAccessibleClassDependencies(), classAnalysis.getConstants());
+        addClass(classAnalysis.getClassName(), hashCode, classAnalysis.getDependencyToAllReason(), classAnalysis.getPrivateClassDependencies(), classAnalysis.getAccessibleClassDependencies(), classAnalysis.getConstants(), classAnalysis.getClassAbi());
     }
 
     public void addClass(String className, HashCode hash, String dependencyToAllReason, Iterable<String> privateClassDependencies, Iterable<String> accessibleClassDependencies, IntSet constants) {
+        addClass(className, hash, dependencyToAllReason, privateClassDependencies, accessibleClassDependencies, constants, null);
+    }
+
+    public void addClass(String className, HashCode hash, String dependencyToAllReason, Iterable<String> privateClassDependencies, Iterable<String> accessibleClassDependencies, IntSet constants, ClassAbi classAbi) {
         if (seenClasses.containsKey(className)) {
             // same classes may be found in different classpath trees/jars
             // and we keep only the first one
@@ -65,6 +70,9 @@ public class ClassDependentsAccumulator {
             if (!dependency.equals(className) && !dependenciesToAll.containsKey(dependency)) {
                 addDependency(accessibleDependents, dependency, className);
             }
+        }
+        if (classAbi != null) {
+            classesToAbis.put(className, classAbi);
         }
     }
 
@@ -116,9 +124,9 @@ public class ClassDependentsAccumulator {
 
     public ClassSetAnalysisData getAnalysis() {
         if (fullRebuildCause == null) {
-            return new ClassSetAnalysisData(ImmutableMap.copyOf(seenClasses), getDependentsMap(), getClassesToConstants(), null);
+            return new ClassSetAnalysisData(ImmutableMap.copyOf(seenClasses), getDependentsMap(), getClassesToConstants(), null, ImmutableMap.copyOf(classesToAbis));
         } else {
-            return new ClassSetAnalysisData(ImmutableMap.of(), ImmutableMap.of(), ImmutableMap.of(), fullRebuildCause);
+            return new ClassSetAnalysisData(ImmutableMap.of(), ImmutableMap.of(), ImmutableMap.of(), fullRebuildCause, ImmutableMap.of());
         }
     }
 

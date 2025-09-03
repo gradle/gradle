@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.Depend
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Set;
 
 public class CurrentCompilation {
     private final JavaCompileSpec spec;
@@ -45,6 +46,16 @@ public class CurrentCompilation {
         }
         ClassSetAnalysis.ClassSetDiff classpathChanges = currentClasspath.findChangesSince(previousClasspath);
         return previous.findDependentsOfClasspathChanges(classpathChanges);
+    }
+
+    public DependentsSet findDependentsOfAbiSourceChanges(PreviousCompilation previous, Set<String> alreadyCompiledClasses) {
+        // Need to acquire the analysis of the just compiled class files to understand ABI changes
+        ClassSetAnalysis classSetAnalysis = new ClassSetAnalysis(classpathSnapshotter.analyzeOutputFolder(spec.getDestinationDir()));
+        ClassSetAnalysis.ClassSetDiff abiChangesSince = previous.findAbiChangesSince(classSetAnalysis, spec.getClassesToCompile());
+        if (abiChangesSince.getDependents().isDependencyToAll()) {
+            return abiChangesSince.getDependents();
+        }
+        return previous.findDependentsOfAbiSourceChanges(abiChangesSince, alreadyCompiledClasses);
     }
 
     private ClassSetAnalysis getClasspath() {

@@ -86,6 +86,14 @@ public class ClassSetAnalysis {
     }
 
     /**
+     * Computes the types affected by the changes since some other class set.
+     */
+    public ClassSetDiff findAbiChangesSince(ClassSetAnalysis other, Set<String> compiledClasses) {
+        DependentsSet directChanges = classAnalysis.getAbiChangedClasses(other.classAnalysis, compiledClasses);
+        return new ClassSetDiff(directChanges, Collections.emptyMap());
+    }
+
+    /**
      * Computes the transitive dependents of a set of changed classes. If the classes had any changes to inlineable constants, these need to be provided as the second parameter.
      *
      * If incremental annotation processing encountered issues in the previous compilation, a full recompilation is required.
@@ -134,6 +142,49 @@ public class ClassSetAnalysis {
 
         privateDependents.removeAll(classes);
         accessibleDependents.removeAll(classes);
+        return DependentsSet.dependents(privateDependents, accessibleDependents, dependentResources);
+    }
+
+    public DependentsSet findAbiDependents(Collection<String> classes, Map<String, IntSet> changedConstantsByClass, Set<String> alreadyCompiledClasses) {
+        if (classes.isEmpty()) {
+            return DependentsSet.empty();
+        }
+        String fullRebuildCause = annotationProcessingData.getFullRebuildCause();
+        if (fullRebuildCause != null) {
+            return DependentsSet.dependencyToAll(fullRebuildCause);
+        }
+        if (!compilerApiData.isSupportsConstantsMapping()) {
+            for (Map.Entry<String, IntSet> changedConstantsOfClass : changedConstantsByClass.entrySet()) {
+                if (!changedConstantsOfClass.getValue().isEmpty()) {
+                    return DependentsSet.dependencyToAll("an inlineable constant in '" + changedConstantsOfClass.getKey() + "' has changed");
+                }
+            }
+        }
+        Set<String> privateDependents = new HashSet<>();
+        Set<String> accessibleDependents = new HashSet<>();
+        Set<GeneratedResource> dependentResources = new HashSet<>(annotationProcessingData.getGeneratedResourcesDependingOnAllOthers());
+        Set<String> visited = new HashSet<>();
+        Deque<String> remaining = new ArrayDeque<>(classes);
+        remaining.addAll(annotationProcessingData.getGeneratedTypesDependingOnAllOthers());
+
+        while (!remaining.isEmpty()) {
+            String current = remaining.pop();
+            if (!visited.add(current)) {
+                continue;
+            }
+            DependentsSet dependents = findDirectDependents(current);
+            if (dependents.isDependencyToAll()) {
+                return dependents;
+            }
+            dependentResources.addAll(dependents.getDependentResources());
+            privateDependents.addAll(dependents.getPrivateDependentClasses());
+            accessibleDependents.addAll(dependents.getAccessibleDependentClasses());
+        }
+
+        privateDependents.removeAll(classes);
+        accessibleDependents.removeAll(classes);
+        privateDependents.removeAll(alreadyCompiledClasses);
+        accessibleDependents.removeAll(alreadyCompiledClasses);
         return DependentsSet.dependents(privateDependents, accessibleDependents, dependentResources);
     }
 

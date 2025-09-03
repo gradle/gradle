@@ -49,6 +49,17 @@ public class PreviousCompilation {
         return classAnalysis.findTransitiveDependents(classNames, classNames.stream().collect(Collectors.toMap(Function.identity(), classAnalysis::getConstants)));
     }
 
+    public ClassSetAnalysis.ClassSetDiff findAbiChangesSince(ClassSetAnalysis classSetAnalysis, Set<String> classesToCompile) {
+        return classSetAnalysis.findAbiChangesSince(classAnalysis, classesToCompile);
+    }
+
+    public DependentsSet findDependentsOfAbiSourceChanges(ClassSetAnalysis.ClassSetDiff diff, Set<String> alreadyCompiledClasses) {
+        if (diff.getDependents().isDependencyToAll()) {
+            return diff.getDependents();
+        }
+        return classAnalysis.findAbiDependents(diff.getDependents().getAllDependentClasses(), diff.getConstants(), alreadyCompiledClasses);
+    }
+
     public DependentsSet getAnnotationProcessingDependentsSet(String className) {
         return classAnalysis.getAnnotationProcessingDependentsSet(className);
     }

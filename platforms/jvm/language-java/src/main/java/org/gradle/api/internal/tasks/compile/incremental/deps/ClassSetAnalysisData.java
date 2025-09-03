@@ -25,6 +25,7 @@ import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
 import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.CompilerApiData;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentSetSerializer;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
@@ -77,6 +78,7 @@ public class ClassSetAnalysisData {
         Map<String, IntSet> classesToConstants = new HashMap<>(constantsCount);
         Multimap<String, DependentsSet> dependents = ArrayListMultimap.create(dependentsCount, 10);
         String fullRebuildCause = null;
+        Map<String, ClassAbi> classesToAbis = new HashMap<>(classCount);
 
         for (ClassSetAnalysisData data : Lists.reverse(datas)) {
             classHashes.putAll(data.classHashes);
@@ -85,28 +87,35 @@ public class ClassSetAnalysisData {
             if (fullRebuildCause == null) {
                 fullRebuildCause = data.fullRebuildCause;
             }
+            classesToAbis.putAll(data.classAbis);
         }
         ImmutableMap.Builder<String, DependentsSet> mergedDependents = ImmutableMap.builderWithExpectedSize(dependents.size());
         for (Map.Entry<String, Collection<DependentsSet>> entry : dependents.asMap().entrySet()) {
             mergedDependents.put(entry.getKey(), DependentsSet.merge(entry.getValue()));
         }
-        return new ClassSetAnalysisData(classHashes, mergedDependents.build(), classesToConstants, fullRebuildCause);
+        return new ClassSetAnalysisData(classHashes, mergedDependents.build(), classesToConstants, fullRebuildCause, classesToAbis);
     }
 
     private final Map<String, HashCode> classHashes;
     private final Map<String, DependentsSet> dependents;
     private final Map<String, IntSet> classesToConstants;
     private final String fullRebuildCause;
+    private final Map<String, ClassAbi> classAbis;
 
     public ClassSetAnalysisData() {
-        this(Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), null);
+        this(Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), null, Collections.emptyMap());
     }
 
     public ClassSetAnalysisData(Map<String, HashCode> classHashes, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, String fullRebuildCause) {
+        this(classHashes, dependents, classesToConstants, fullRebuildCause, Collections.emptyMap());
+    }
+
+    public ClassSetAnalysisData(Map<String, HashCode> classHashes, Map<String, DependentsSet> dependents, Map<String, IntSet> classesToConstants, String fullRebuildCause, Map<String, ClassAbi> classAbis) {
         this.classHashes = classHashes;
         this.dependents = dependents;
         this.classesToConstants = classesToConstants;
         this.fullRebuildCause = fullRebuildCause;
+        this.classAbis = classAbis;
     }
 
     /**
@@ -155,6 +164,7 @@ public class ClassSetAnalysisData {
         Map<String, HashCode> classHashes = new HashMap<>(usedClasses.size());
         Map<String, DependentsSet> dependents = new HashMap<>(usedClasses.size());
         Map<String, IntSet> classesToConstants = new HashMap<>(usedClasses.size());
+        Map<String, ClassAbi> classesToAbis = new HashMap<>(usedClasses.size());
         for (String usedClass : usedClasses) {
             HashCode hash = this.classHashes.get(usedClass);
             if (hash != null) {
@@ -175,10 +185,14 @@ public class ClassSetAnalysisData {
                 if (constants != null && usedConstantSources.contains(usedClass)) {
                     classesToConstants.put(usedClass, constants);
                 }
+                ClassAbi classAbi = this.classAbis.get(usedClass);
+                if (classAbi != null) {
+                    classesToAbis.put(usedClass, classAbi);
+                }
             }
         }
 
-        return new ClassSetAnalysisData(classHashes, dependents, classesToConstants, null);
+        return new ClassSetAnalysisData(classHashes, dependents, classesToConstants, null, classesToAbis);
     }
 
     /**
@@ -229,6 +243,25 @@ public class ClassSetAnalysisData {
                 return dependents;
             }
             changed.add(removedOrChanged.getKey());
+        }
+        return DependentsSet.dependentClasses(ImmutableSet.of(), changed.build());
+    }
+
+    public DependentsSet getAbiChangedClasses(ClassSetAnalysisData other, Set<String> compiledClasses) {
+        if (fullRebuildCause != null) {
+            return DependentsSet.dependencyToAll(fullRebuildCause);
+        }
+        if (other.fullRebuildCause != null) {
+            return DependentsSet.dependencyToAll(other.fullRebuildCause);
+        }
+
+        ImmutableSet.Builder<String> changed = ImmutableSet.builder();
+        for (String compiledClass : compiledClasses) {
+            ClassAbi previousClassAbi = other.classAbis.get(compiledClass);
+            ClassAbi currentClassAbi = classAbis.get(compiledClass);
+            if (previousClassAbi == null || currentClassAbi == null || !previousClassAbi.isCompatible(currentClassAbi)) {
+                changed.add(compiledClass);
+            }
         }
         return DependentsSet.dependentClasses(ImmutableSet.of(), changed.build());
     }
@@ -312,7 +345,16 @@ public class ClassSetAnalysisData {
 
             String fullRebuildCause = decoder.readNullableString();
 
-            return new ClassSetAnalysisData(classHashes.build(), dependentsBuilder.build(), classesToConstantsBuilder.build(), fullRebuildCause);
+            ClassAbi.Serializer classAbiSerializer = new ClassAbi.Serializer(new StringInterner());
+            count = decoder.readSmallInt();
+            ImmutableMap.Builder<String, ClassAbi> classesToAbisBuilder = ImmutableMap.builderWithExpectedSize(count);
+            for (int i = 0; i < count; i++) {
+                String className = hierarchicalNameSerializer.read(decoder);
+                ClassAbi classAbi = classAbiSerializer.read(decoder);
+                classesToAbisBuilder.put(className, classAbi);
+            }
+
+            return new ClassSetAnalysisData(classHashes.build(), dependentsBuilder.build(), classesToConstantsBuilder.build(), fullRebuildCause, classesToAbisBuilder.build());
         }
 
         @Override
@@ -337,6 +379,13 @@ public class ClassSetAnalysisData {
                 IntSetSerializer.INSTANCE.write(encoder, entry.getValue());
             }
             encoder.writeNullableString(value.fullRebuildCause);
+
+            ClassAbi.Serializer classAbiSerializer = new ClassAbi.Serializer(new StringInterner());
+            encoder.writeSmallInt(value.classAbis.size());
+            for (Map.Entry<String, ClassAbi> entry : value.classAbis.entrySet()) {
+                hierarchicalNameSerializer.write(encoder, entry.getKey());
+                classAbiSerializer.write(encoder, entry.getValue());
+            }
         }
     }
 }
