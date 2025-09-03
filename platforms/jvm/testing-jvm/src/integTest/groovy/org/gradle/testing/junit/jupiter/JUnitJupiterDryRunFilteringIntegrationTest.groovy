@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.jupiter
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import org.gradle.testing.DryRunFilteringTest
@@ -25,12 +26,7 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 @TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterDryRunFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest implements JUnitJupiterMultiVersionTest, DryRunFilteringTest {
     @Override
-    String testName(String methodName) {
-        return methodName + "()"
-    }
-
-    @Override
-    String getPathToTestPackages() {
-        return ":"
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.JUNIT_JUPITER
     }
 }
