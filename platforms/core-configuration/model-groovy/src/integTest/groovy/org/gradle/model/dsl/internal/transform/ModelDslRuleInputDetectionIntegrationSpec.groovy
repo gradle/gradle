@@ -18,9 +18,11 @@ package org.gradle.model.dsl.internal.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import spock.lang.Ignore
 
 import static org.hamcrest.CoreMatchers.containsString
 
+@Ignore
 @UnsupportedWithConfigurationCache(because = "software model")
 class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec {
 

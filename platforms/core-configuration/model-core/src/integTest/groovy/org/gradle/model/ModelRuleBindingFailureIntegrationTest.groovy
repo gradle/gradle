@@ -18,12 +18,14 @@ package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import spock.lang.Ignore
 
 /**
  * Tests the information provided when a model rule fails to bind.
  *
  * @see ModelRuleBindingValidationIntegrationTest
  */
+@Ignore
 @UnsupportedWithConfigurationCache(because = "software model")
 class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 

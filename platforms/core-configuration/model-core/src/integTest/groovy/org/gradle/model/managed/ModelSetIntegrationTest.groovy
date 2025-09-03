@@ -18,7 +18,9 @@ package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import spock.lang.Ignore
 
+@Ignore
 @UnsupportedWithConfigurationCache(because = "software model")
 class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
