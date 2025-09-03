@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.report.generic
 
+import com.google.common.base.Strings
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.ImmutableMultiset
 import com.google.common.collect.Iterables
@@ -35,6 +36,7 @@ import java.util.stream.Collectors
 import java.util.stream.Stream
 
 import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.hasItem
 import static org.hamcrest.CoreMatchers.hasItems
 import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.MatcherAssert.assertThat
@@ -101,7 +103,8 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
     }
 
     private java.nio.file.Path diskPathForTestPath(String testPath) {
-        htmlReportDirectory.toPath().resolve(GenericHtmlTestReportGenerator.getFilePath(Path.path(testPath)))
+        String processedPath = Strings.isNullOrEmpty(testPath) ? "index.html" : GenericHtmlTestReportGenerator.getFilePath(Path.path(testPath))
+        htmlReportDirectory.toPath().resolve(processedPath)
     }
 
     @Override
@@ -121,7 +124,8 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
                 break
             case TestFramework.JUNIT_JUPITER:
             case TestFramework.KOTLIN_TEST:
-                frameworkPathToTest = testClassName + ":" + testMethodName + "()"
+                def suffix = Strings.isNullOrEmpty(testMethodName) ? "" : "()"
+                frameworkPathToTest = testClassName + ":" + testMethodName + suffix
                 break
             case TestFramework.TEST_NG:
                 frameworkPathToTest = ":Gradle-suite:Gradle-test:" + testClassName + ":" + testMethodName
@@ -232,9 +236,18 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         }
 
         @Override
-        TestPathRootExecutionResult assertChildrenExecuted(String... testNames) {
+        TestPathRootExecutionResult assertOnlyChildrenExecuted(String... testNames) {
             def executedAndNotSkipped = Multisets.difference(testsExecuted.keys(), testsSkipped.keys())
             assertThat(executedAndNotSkipped, equalTo(ImmutableMultiset.copyOf(testNames)))
+            return this
+        }
+
+        @Override
+        TestPathRootExecutionResult assertChildrenExecuted(String... testNames) {
+            def executedAndNotSkipped = Multisets.difference(testsExecuted.keys(), testsSkipped.keys())
+            testNames.each {
+                assertThat(executedAndNotSkipped, hasItem(it))
+            }
             return this
         }
 
