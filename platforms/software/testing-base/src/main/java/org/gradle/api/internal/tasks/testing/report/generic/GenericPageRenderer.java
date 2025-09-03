@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.function.Function;
 
 final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
     private static final URL STYLE_URL = Resources.getResource(GenericPageRenderer.class, "style.css");
@@ -87,19 +88,20 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
     @Override
     protected String getTitle() {
         // Show "All Results" in the root, otherwise show nothing, the display name will be provided in each root.
-        if (getModel().getPath().getName() == null) {
-            return "All Results";
-        }
-        return "";
+        return buildTitle("All Results", name -> "");
     }
 
     @Override
     protected String getPageTitle() {
-        String title = getModel().getPath().getName();
-        if (title == null) {
-            title = "All Results";
+        return buildTitle("Test results - All Results", name -> "Test results - " + name);
+    }
+
+    private String buildTitle(String rootTitle, Function<String, String> buildTitleFromName) {
+        String name = getModel().getPath().getName();
+        if (name == null) {
+            return rootTitle;
         }
-        return "Test results - " + title;
+        return buildTitleFromName.apply(name);
     }
 
     @Override
