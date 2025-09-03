@@ -23,5 +23,5 @@ import org.gradle.platform.base.ApplicationSpec;
  */
 @Incubating
 public interface NativeExecutableSpec extends ApplicationSpec, NativeComponentSpec, TargetedNativeComponent {
-    
+
 }

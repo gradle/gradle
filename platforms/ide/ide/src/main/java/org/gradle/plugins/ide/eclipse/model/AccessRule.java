@@ -69,4 +69,3 @@ public class AccessRule {
         return "AccessRule{kind='" + kind + "', pattern='" + pattern +  "'}";
     }
 }
-

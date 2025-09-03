@@ -132,4 +132,3 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
         }
     }
 }
-

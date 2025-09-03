@@ -92,7 +92,7 @@ public class ShutdownCoordinator implements DaemonStartListener, Stoppable {
             //
             // We should instead create services for each known daemon registry or make it so a different shutdown
             // is used for each daemon registry.
-            // 
+            //
             // This has complications in TestKit because we shutdown all running daemons in a shutdown hook
             // Our integration testing infrastructure does not expect any tests to write to test file directories
             // when the test process stops. This is treated as an error.

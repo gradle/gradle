@@ -41,3 +41,5 @@ configure<DependencyAnalysisExtension> {
 
     useTypesafeProjectAccessors(true) // FIXME: has no effect
 }
+
+apply(from = "gradle/quality-gate.gradle")

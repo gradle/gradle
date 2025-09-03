@@ -140,4 +140,3 @@ final class AnsiConsoleUtil {
     }
 
 }
-

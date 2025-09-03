@@ -113,4 +113,3 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
         return new DefaultModuleComponentIdentifier(moduleVersionIdentifier.getModule(), moduleVersionIdentifier.getVersion());
     }
 }
-

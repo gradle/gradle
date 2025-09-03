@@ -32,4 +32,3 @@ public class ReadonlyImmutableManagedPropertyException extends GradleException {
         return String.format("Invalid managed model type '%s': read only property '%s' has non managed type %s, only managed types can be used", managedModelType, name, propertyType);
     }
 }
-

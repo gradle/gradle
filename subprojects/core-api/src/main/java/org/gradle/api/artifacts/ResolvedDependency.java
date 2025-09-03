@@ -65,7 +65,7 @@ public interface ResolvedDependency {
 
     /**
      * Returns the module artifacts belonging to this ResolvedDependency. A module artifact is an artifact that belongs
-     * to a ResolvedDependency independent of a particular parent. Returns never null. 
+     * to a ResolvedDependency independent of a particular parent. Returns never null.
      */
     Set<ResolvedArtifact> getModuleArtifacts();
 

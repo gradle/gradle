@@ -26,7 +26,7 @@ public class GradlewRunner {
         Process process = null;
 
         String[] combinedArgs;
-        
+
         if (System.getProperty("os.name").startsWith("Windows")) {
             combinedArgs = new String[4 + args.length];
             combinedArgs[0] = "cmd.exe";
@@ -65,7 +65,7 @@ public class GradlewRunner {
             process.destroy();
         }
     }
-    
+
     private static void forwardAsync(final InputStream input, final OutputStream output) {
         new Thread(new Runnable() {
             @Override

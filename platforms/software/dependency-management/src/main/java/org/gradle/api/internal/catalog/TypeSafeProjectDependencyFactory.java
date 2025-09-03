@@ -36,4 +36,3 @@ public abstract class TypeSafeProjectDependencyFactory {
         return this;
     }
 }
-
