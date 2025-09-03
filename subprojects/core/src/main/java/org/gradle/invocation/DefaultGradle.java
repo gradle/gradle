@@ -138,7 +138,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public String getBuildPath() {
-        return getIdentityPath().getPath();
+        return getIdentityPath().asString();
     }
 
     @Override
@@ -151,7 +151,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         if (isRootBuild()) {
             return description;
         } else {
-            return description + " (" + getIdentityPath().getPath() + ")";
+            return description + " (" + getIdentityPath().asString() + ")";
         }
     }
 

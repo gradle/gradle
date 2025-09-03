@@ -63,7 +63,7 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
             // so we need to investigate why they are failing and then remove this condition.
             // Specifically, the following test breaks when we remove this check:
             // IsolatedProjectsToolingApiIdeaProjectIntegrationTest.ensures unique name for all Idea modules in composite
-            if (projectIdentifier.getBuild().getBuildPath().equals(currentBuildPath.getPath())) {
+            if (projectIdentifier.getBuild().getBuildPath().equals(currentBuildPath.asString())) {
                 projectComponentObservationListener.projectObserved(currentProjectPath, targetProjectPath);
             }
         }

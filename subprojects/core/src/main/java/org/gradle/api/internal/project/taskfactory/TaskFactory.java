@@ -54,7 +54,7 @@ public class TaskFactory implements ITaskFactory {
         if (!Task.class.isAssignableFrom(identity.getTaskType())) {
             throw new InvalidUserDataException(String.format(
                 "Cannot create task '%s' of type '%s' as it does not implement the Task interface.",
-                identity.getBuildTreePath().getPath(),
+                identity.getBuildTreePath().asString(),
                 identity.getTaskType().getSimpleName()));
         }
 
@@ -68,16 +68,16 @@ public class TaskFactory implements ITaskFactory {
         } else if (identity.getTaskType() == org.gradle.api.internal.AbstractTask.class || identity.getTaskType() == TaskInternal.class) {
             throw new InvalidUserDataException(String.format(
                 "Cannot create task '%s' of type '%s' as this type is not supported for task registration.",
-                identity.getBuildTreePath().getPath(),
+                identity.getBuildTreePath().asString(),
                 identity.getTaskType().getSimpleName()));
         } else {
             throw new InvalidUserDataException(String.format(
                 "Cannot create task '%s' of type '%s' as directly extending AbstractTask is not supported.",
-                identity.getBuildTreePath().getPath(),
+                identity.getBuildTreePath().asString(),
                 identity.getTaskType().getSimpleName()));
         }
 
-        Describable displayName = Describables.withTypeAndName("task", identity.getBuildTreePath().getPath());
+        Describable displayName = Describables.withTypeAndName("task", identity.getBuildTreePath().asString());
 
         return org.gradle.api.internal.AbstractTask.injectIntoNewInstance(project, identity, new Callable<S>() {
             @Override

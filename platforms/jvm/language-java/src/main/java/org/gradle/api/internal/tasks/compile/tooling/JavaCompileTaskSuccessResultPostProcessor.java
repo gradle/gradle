@@ -61,7 +61,7 @@ public class JavaCompileTaskSuccessResultPostProcessor implements OperationResul
 
     @Override
     public AbstractTaskResult process(AbstractTaskResult taskResult, TaskInternal taskInternal) {
-        CompileJavaBuildOperationType.Result compileResult = results.remove(taskInternal.getIdentityPath().getPath());
+        CompileJavaBuildOperationType.Result compileResult = results.remove(taskInternal.getIdentityPath().asString());
         if (taskResult instanceof DefaultTaskSuccessResult) {
             if (compileResult != null) {
                 return new DefaultJavaCompileTaskSuccessResult((DefaultTaskSuccessResult) taskResult, toAnnotationProcessorResults(compileResult.getAnnotationProcessorDetails()));
