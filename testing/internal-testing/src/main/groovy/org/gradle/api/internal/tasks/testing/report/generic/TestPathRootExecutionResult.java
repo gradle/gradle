@@ -38,6 +38,16 @@ public interface TestPathRootExecutionResult {
      * This method only works on direct children of the current test path.
      * </p>
      */
+    TestPathRootExecutionResult assertOnlyChildrenExecuted(String... testNames);
+
+    /**
+     * Asserts that the given child paths were executed for the current test path.
+     * <p>
+     * Unlike {@link #assertOnlyChildrenExecuted(String...)}, this method does not fail if other children were executed.
+     * <p>
+     * This method only works on direct children of the current test path.
+     * </p>
+     */
     TestPathRootExecutionResult assertChildrenExecuted(String... testNames);
 
     TestPathRootExecutionResult assertChildCount(int tests, int failures);

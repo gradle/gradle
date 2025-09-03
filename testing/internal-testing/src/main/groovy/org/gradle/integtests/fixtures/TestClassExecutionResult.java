@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures;
 
+import org.gradle.api.tasks.testing.TestResult;
 import org.hamcrest.Matcher;
 
 import java.util.List;
@@ -41,16 +42,16 @@ public interface TestClassExecutionResult {
     /**
      * Asserts that the given tests have the given outcome for the given test class.
      */
-    default TestClassExecutionResult assertTestOutcomes(TestOutcome status, String... testNames) {
-        if (status == TestOutcome.SKIPPED) {
+    default TestClassExecutionResult assertTestOutcomes(TestResult.ResultType status, String... testNames) {
+        if (status == TestResult.ResultType.SKIPPED) {
             return assertTestsSkipped(testNames);
         }
         for (String testName : testNames) {
             switch (status) {
-                case PASSED:
+                case SUCCESS:
                     assertTestPassed(testName);
                     break;
-                case FAILED:
+                case FAILURE:
                     assertTestFailedIgnoreMessages(testName);
                     break;
                 default:

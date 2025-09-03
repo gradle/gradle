@@ -17,7 +17,6 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.DryRunFilteringTest
@@ -27,15 +26,6 @@ import org.gradle.util.Matchers
 
 @TargetCoverage({ TestNGCoverage.SUPPORTS_DRY_RUN })
 class TestNGDryRunFilteringIntegrationTest extends AbstractTestNGFilteringIntegrationTest implements DryRunFilteringTest {
-    @Override
-    TestResult.ResultType getPassedTestOutcome() {
-        return TestResult.ResultType.SUCCESS
-    }
-
-    @Override
-    TestResult.ResultType getFailedTestOutcome() {
-        return TestResult.ResultType.FAILURE
-    }
 
     def "dry-run property is not preserved across invocations"() {
         buildFile << """
