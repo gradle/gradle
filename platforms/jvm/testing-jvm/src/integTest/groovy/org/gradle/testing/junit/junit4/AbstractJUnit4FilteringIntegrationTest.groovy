@@ -16,11 +16,17 @@
 
 
 package org.gradle.testing.junit.junit4
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import spock.lang.Issue
 
 abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.JUNIT4
+    }
 
     void theParameterizedFiles() {
         file("src/test/java/ParameterizedFoo.java") << """
@@ -105,9 +111,11 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
         succeedsWithTestTaskArguments("test")
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("ParameterizedFoo")
-        result.testClass("ParameterizedFoo").assertTestOutcomes(passedTestOutcome, "pass[0]", "pass[1]", "pass[2]", "pass[3]", "pass[4]")
+        GenericTestExecutionResult testResult = resultsFor("tests/test")
+        testResult.testPath("ParameterizedFoo", "", testFramework).onlyRoot().assertOnlyChildrenExecuted("pass[0]", "pass[1]", "pass[2]", "pass[3]", "pass[4]")
+        for (int i = 0; i < 5; i++) {
+            testResult.testPath("ParameterizedFoo", "pass[$i]", testFramework).onlyRoot().assertHasResult(passedTestOutcome)
+        }
     }
 
     @Issue("GRADLE-3112")
@@ -119,9 +127,11 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
         succeedsWithTestTaskArguments("test", "--tests", "*ParameterizedFoo.pass*")
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("ParameterizedFoo")
-        result.testClass("ParameterizedFoo").assertTestOutcomes(passedTestOutcome, "pass[0]", "pass[1]", "pass[2]", "pass[3]", "pass[4]")
+        GenericTestExecutionResult testResult = resultsFor("tests/test")
+        testResult.testPath("ParameterizedFoo", "", testFramework).onlyRoot().assertOnlyChildrenExecuted("pass[0]", "pass[1]", "pass[2]", "pass[3]", "pass[4]")
+        for (int i = 0; i < 5; i++) {
+            testResult.testPath("ParameterizedFoo", "pass[$i]", testFramework).onlyRoot().assertHasResult(passedTestOutcome)
+        }
     }
 
     @Issue("GRADLE-3112")
@@ -133,13 +143,13 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
         succeedsWithTestTaskArguments("test", "--tests", "*AllFooTests")
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-
-        result.assertTestClassesExecuted("FooTest", "FooServerTest")
-        result.testClass("FooTest").assertTestCount(1, 0, 0);
-        result.testClass("FooTest").assertTestOutcomes(passedTestOutcome, "testFoo")
-        result.testClass("FooServerTest").assertTestCount(1, 0, 0);
-        result.testClass("FooServerTest").assertTestOutcomes(passedTestOutcome, "testFooServer")
+        GenericTestExecutionResult testResult = resultsFor("tests/test")
+        testResult.testPath("", "", testFramework).onlyRoot().assertOnlyChildrenExecuted("FooTest", "FooServerTest")
+        testResult.testPath("FooTest", "", testFramework).onlyRoot().assertChildCount(1, 0)
+        testResult.testPath("FooTest", "testFoo", testFramework).onlyRoot().assertHasResult(passedTestOutcome)
+        testResult.testPath("", "", testFramework).onlyRoot().assertOnlyChildrenExecuted("FooTest", "FooServerTest")
+        testResult.testPath("FooServerTest", "", testFramework).onlyRoot().assertChildCount(1, 0)
+        testResult.testPath("FooServerTest", "testFooServer", testFramework).onlyRoot().assertHasResult(passedTestOutcome)
     }
 
     @Issue("GRADLE-3112")
@@ -160,12 +170,9 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
         succeedsWithTestTaskArguments("test")
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-
-        result.assertTestClassesExecuted("FooTest", "FooServerTest")
-        result.testClass("FooTest").assertTestCount(1, 0, 0);
-        result.testClass("FooTest").assertTestOutcomes(passedTestOutcome, "testFoo")
-        result.testClass("FooServerTest").assertTestCount(1, 0, 0);
-        result.testClass("FooServerTest").assertTestOutcomes(passedTestOutcome, "testFooServer")
+        GenericTestExecutionResult testResult = resultsFor("tests/test")
+        testResult.testPath("AllFooTests", "", testFramework).onlyRoot().assertOnlyChildrenExecuted("testFoo", "testFooServer")
+        testResult.testPath("AllFooTests", "testFoo", testFramework).onlyRoot().assertHasResult(passedTestOutcome)
+        testResult.testPath("AllFooTests", "testFooServer", testFramework).onlyRoot().assertHasResult(passedTestOutcome)
     }
 }

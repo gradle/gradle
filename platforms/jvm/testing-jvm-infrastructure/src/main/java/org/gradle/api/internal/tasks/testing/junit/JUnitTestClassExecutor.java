@@ -25,6 +25,7 @@ import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
+import org.jspecify.annotations.Nullable;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.Description;
 import org.junit.runner.Request;
@@ -63,21 +64,28 @@ public class JUnitTestClassExecutor implements Action<String> {
 
     @Override
     public void execute(String testClassName) {
-        executionListener.testClassStarted(testClassName);
+        boolean started = false;
         try {
-            runTestClass(testClassName);
-            executionListener.testClassFinished(null);
+            Runner testClassRunner = shouldRunTestClass(testClassName);
+            if (testClassRunner != null) {
+                executionListener.testClassStarted(testClassName);
+                started = true;
+                runTestClass(testClassRunner);
+                executionListener.testClassFinished(null);
+            }
         } catch (Throwable throwable) {
-            executionListener.testClassFinished(TestFailure.fromTestFrameworkFailure(throwable));
+            if (started) {
+                executionListener.testClassFinished(TestFailure.fromTestFrameworkFailure(throwable));
+            }
         }
     }
 
-    private void runTestClass(String testClassName) throws ClassNotFoundException {
+    private @Nullable Runner shouldRunTestClass(String testClassName) throws ClassNotFoundException {
         final Class<?> testClass = Class.forName(testClassName, false, applicationClassLoader);
         if (isNestedClassInsideEnclosedRunner(testClass)) {
-            return;
+            return null;
         }
-        List<Filter> filters = new ArrayList<Filter>();
+        List<Filter> filters = new ArrayList<>();
         if (spec.hasCategoryConfiguration()) {
             verifyJUnitCategorySupport();
             filters.add(new CategoryFilter(spec.getIncludeCategories(), spec.getExcludeCategories(), applicationClassLoader));
@@ -106,13 +114,17 @@ public class JUnitTestClassExecutor implements Action<String> {
                     filterable.filter(filter);
                 } catch (NoTestsRemainException e) {
                     // Ignore
-                    return;
+                    return null;
                 }
             }
         } else if (allTestsFiltered(runner, filters)) {
-            return;
+            return null;
         }
 
+        return runner;
+    }
+
+    private void runTestClass(Runner runner) {
         if (spec.isDryRun()) {
             runner = new JUnitTestDryRunner(runner);
         }

@@ -82,7 +82,7 @@ abstract class AbstractJUnitClassDetectionIntegrationTest extends AbstractTestin
         when:
         succeeds("test", "--tests", "SomeTest")
         then:
-        new DefaultTestExecutionResult(testDirectory).testClass('com.example.SomeTest').assertTestCount(1, 0, 0)
+        new DefaultTestExecutionResult(testDirectory).testClass('com.example.SomeTest').assertTestCount(1, 0)
         new DefaultTestExecutionResult(testDirectory).assertTestClassesExecuted('com.example.SomeTest')
 
         when:
@@ -92,7 +92,7 @@ abstract class AbstractJUnitClassDetectionIntegrationTest extends AbstractTestin
         testDirectory.file("build.gradle").replace(jarName, jarNameNew)
         succeeds("test", "--tests", "SomeTest")
         then:
-        new DefaultTestExecutionResult(testDirectory).testClass('com.example.SomeTest').assertTestCount(1, 0, 0)
+        new DefaultTestExecutionResult(testDirectory).testClass('com.example.SomeTest').assertTestCount(1, 0)
         new DefaultTestExecutionResult(testDirectory).assertTestClassesExecuted('com.example.SomeTest')
     }
 
@@ -146,7 +146,7 @@ abstract class AbstractJUnitClassDetectionIntegrationTest extends AbstractTestin
         succeeds('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory).testClass('com.example.MyTest').assertTestCount(1, 0, 0)
+        new DefaultTestExecutionResult(testDirectory).testClass('com.example.MyTest').assertTestCount(1, 0)
     }
 
     private static void assertJarContainsAllEntries(final File jar, final Set<String> entries) {

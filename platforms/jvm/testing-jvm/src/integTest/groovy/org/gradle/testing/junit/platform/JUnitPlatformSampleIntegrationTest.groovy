@@ -35,7 +35,8 @@ class JUnitPlatformSampleIntegrationTest extends AbstractSampleIntegrationTest {
         succeeds 'test'
 
         then:
-        new DefaultTestExecutionResult(sample.dir).testClassByHtml('org.gradle.junitplatform.JupiterTest').assertTestCount(5, 0, 0)
+        new DefaultTestExecutionResult(sample.dir).testClassByHtml('org.gradle.junitplatform.JupiterTest')
+            .assertTestCount(5, 0)
             .assertTestPassed('ok')
             .assertTestPassed('repeated()[1]', 'repetition 1 of 2')
             .assertTestPassed('repeated()[2]', 'repetition 2 of 2')
@@ -53,11 +54,11 @@ class JUnitPlatformSampleIntegrationTest extends AbstractSampleIntegrationTest {
 
         then:
         new DefaultTestExecutionResult(sample.dir)
-            .testClass('org.gradle.junitplatform.JUnit3Test').assertTestCount(1, 0, 0)
+            .testClass('org.gradle.junitplatform.JUnit3Test').assertTestCount(1, 0)
         new DefaultTestExecutionResult(sample.dir)
-            .testClass('org.gradle.junitplatform.JUnit4Test').assertTestCount(1, 0, 0)
+            .testClass('org.gradle.junitplatform.JUnit4Test').assertTestCount(1, 0)
         new DefaultTestExecutionResult(sample.dir)
-            .testClass('org.gradle.junitplatform.JupiterTest').assertTestCount(1, 0, 0)
+            .testClass('org.gradle.junitplatform.JupiterTest').assertTestCount(1, 0)
     }
 
     @UsesSample('testing/junitplatform-engine/groovy')
@@ -71,7 +72,7 @@ class JUnitPlatformSampleIntegrationTest extends AbstractSampleIntegrationTest {
         then:
         new DefaultTestExecutionResult(sample.dir)
             .assertTestClassesExecuted('org.gradle.junitplatform.JUnit4Test')
-            .testClass('org.gradle.junitplatform.JUnit4Test').assertTestCount(1, 0, 0)
+            .testClass('org.gradle.junitplatform.JUnit4Test').assertTestCount(1, 0)
     }
 
     @UsesSample('testing/junitplatform-tagging/groovy')
@@ -83,7 +84,8 @@ class JUnitPlatformSampleIntegrationTest extends AbstractSampleIntegrationTest {
         succeeds('test')
 
         then:
-        new DefaultTestExecutionResult(sample.dir).testClass('org.gradle.junitplatform.TagTest').assertTestCount(1, 0, 0)
+        new DefaultTestExecutionResult(sample.dir).testClass('org.gradle.junitplatform.TagTest')
+            .assertTestCount(1, 0)
             .assertTestPassed('fastTest()')
     }
 }

@@ -17,14 +17,19 @@
 
 package org.gradle.testing.testng
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
 
-@TargetCoverage({ TestNGCoverage.SUPPORTED_BY_JDK })
+@TargetCoverage({ TestNGCoverage.SUPPORTS_GENERIC_TEST_REPORTING })
 class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest implements TestNGMultiVersionTest {
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.TEST_NG
+    }
 
     void theUsualFiles() {
         buildFile << """
@@ -79,9 +84,9 @@ class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTes
         def result = new DefaultTestExecutionResult(testDirectory)
 
         result.assertTestClassesExecuted('FooTest', 'BarTest')
-        result.testClass('FooTest').assertTestCount(1, 0, 0)
+        result.testClass('FooTest').assertTestCount(1, 0)
         result.testClass('FooTest').assertTestsExecuted('pass')
-        result.testClass('BarTest').assertTestCount(1, 0, 0)
+        result.testClass('BarTest').assertTestCount(1, 0)
         result.testClass('BarTest').assertTestsExecuted('pass')
     }
 
@@ -105,9 +110,9 @@ class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTes
         def result = new DefaultTestExecutionResult(testDirectory)
 
         result.assertTestClassesExecuted('FooTest', 'BarTest')
-        result.testClass('FooTest').assertTestCount(1, 0, 0)
+        result.testClass('FooTest').assertTestCount(1, 0)
         result.testClass('FooTest').assertTestsExecuted('pass')
-        result.testClass('BarTest').assertTestCount(1, 0, 0)
+        result.testClass('BarTest').assertTestCount(1, 0)
         result.testClass('BarTest').assertTestsExecuted('pass')
     }
 }

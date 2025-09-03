@@ -68,7 +68,7 @@ class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec {
         new DefaultTestExecutionResult(testDirectory)
             .assertTestClassesExecuted("SubClass")
             .testClass("SubClass")
-            .assertTestCount(1, 0, 0)
+            .assertTestCount(1, 0)
             .assertTestPassed(testMethod)
 
         where:
@@ -83,7 +83,7 @@ class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec {
         new DefaultTestExecutionResult(testDirectory)
             .assertTestClassesExecuted("SubClass")
             .testClass("SubClass")
-            .assertTestCount(2, 0, 0)
+            .assertTestCount(2, 0)
             .assertTestPassed("$testMethod [param: value1, #0]")
             .assertTestPassed("$testMethod [param: value2, #1]")
 
@@ -99,7 +99,7 @@ class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec {
         new DefaultTestExecutionResult(testDirectory)
             .assertTestClassesExecuted("SubClass")
             .testClass("SubClass")
-            .assertTestCount(2, 0, 0)
+            .assertTestCount(2, 0)
             .assertTestPassed("$testMethod param=value1")
             .assertTestPassed("$testMethod param=value2")
 
