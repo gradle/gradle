@@ -73,6 +73,8 @@ class DefaultDeploymentDescriptorTest extends Specification {
         '9'     | _
         '10'    | _
         '11'    | _
+        null    | _
+        'ABC'   | _
         acceptableDescriptors = defaultDescriptorForVersion(version)
     }
 
@@ -124,7 +126,9 @@ class DefaultDeploymentDescriptorTest extends Specification {
                 return attributesPermutations('<?xml version="1.0"?>\n<application ##ATTRIBUTES##/>\n', attributes).collect { String descriptor ->
                     toPlatformLineSeparators(descriptor)
                 }
-            default:
+            case '9':
+            case '10':
+            case '11':
                 def attributes = [
                     'xmlns="https://jakarta.ee/xml/ns/jakartaee"',
                     "xsi:schemaLocation=\"https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/application_${version}.xsd\"",
@@ -132,6 +136,17 @@ class DefaultDeploymentDescriptorTest extends Specification {
                     "version=\"${version}\""
                 ]
                 return attributesPermutations('<?xml version="1.0"?>\n<application ##ATTRIBUTES##/>\n', attributes).collect { String descriptor ->
+                    toPlatformLineSeparators(descriptor)
+                }
+            default:
+                def attributes = ['xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"']
+                if (version != null) {
+                    attributes.add("version=\"${version}\"")
+                }
+                // variant asNode results in an extra attribute: xmlns="" while asElement does not
+                def permutations = attributesPermutations('<?xml version="1.0"?>\n<application ##ATTRIBUTES##/>\n', attributes)
+                permutations.addAll(attributesPermutations('<?xml version="1.0"?>\n<application ##ATTRIBUTES##/>\n', attributes + 'xmlns=""'))
+                return permutations.collect { String descriptor ->
                     toPlatformLineSeparators(descriptor)
                 }
         }
@@ -220,6 +235,10 @@ class DefaultDeploymentDescriptorTest extends Specification {
         '10'    | 'asElement'        | { it.asElement() }
         '11'    | 'asNode'           | { it.asNode() }
         '11'    | 'asElement'        | { it.asElement() }
+        null    | 'asNode'           | { it.asNode() }
+        null    | 'asElement'        | { it.asElement() }
+        'ABC'   | 'asNode'           | { it.asNode() }
+        'ABC'   | 'asElement'        | { it.asElement() }
         acceptableDescriptors = defaultDescriptorForVersion(version)
     }
 
