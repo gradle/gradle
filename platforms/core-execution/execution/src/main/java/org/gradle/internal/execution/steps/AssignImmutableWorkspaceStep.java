@@ -143,13 +143,22 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
 
         if (lockingStrategy == LockingStrategy.WORKSPACE_LOCK) {
             LockingImmutableWorkspace workspace = workspaceProvider.getLockingWorkspace(uniqueId);
-            return workspace.withWorkspaceLock(() ->
-                loadImmutableWorkspaceIfExists(work, workspace)
-                    .orElseGet(() -> {
-                        deleteStaleFiles(workspace.getImmutableLocation());
-                        return executeInWorkspace(work, context, workspace.getImmutableLocation());
-                    })
-            );
+            return loadImmutableWorkspaceIfNotStale(work, workspace)
+                .orElseGet(() ->
+                    workspace.withWorkspaceLock(() -> {
+                        fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
+                        return loadImmutableWorkspaceIfExists(work, workspace)
+                            .map(result -> {
+                                // If we got result make sure to unstale in case it was stale
+                                workspace.unstale();
+                                return result;
+                            }).orElseGet(() -> {
+                                if (workspace.deleteStaleFiles()) {
+                                    fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
+                                }
+                                return executeInWorkspace(work, context, workspace.getImmutableLocation());
+                            });
+                    }));
         } else {
             AtomicMoveImmutableWorkspace workspace = workspaceProvider.getAtomicMoveWorkspace(uniqueId);
             return loadImmutableWorkspaceIfExists(work, workspace)
@@ -157,13 +166,15 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         }
     }
 
-    private void deleteStaleFiles(File workspace) {
-        try  {
-            deleter.deleteRecursively(workspace);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+    private Optional<WorkspaceResult> loadImmutableWorkspaceIfNotStale(UnitOfWork work, LockingImmutableWorkspace workspace) {
+        if (workspace.isStale()) {
+            // If the workspace is stale, we need to run the work under the lock
+            return Optional.empty();
         }
+
+        return loadImmutableWorkspaceIfExists(work, workspace);
     }
+
 
     private Optional<WorkspaceResult> loadImmutableWorkspaceIfExists(UnitOfWork work, ImmutableWorkspace workspace) {
         File immutableLocation = workspace.getImmutableLocation();
@@ -253,7 +264,9 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         // We don't need to invalidate the workspace, as there is surely nothing there yet,
         // but we still want to record that this build is writing to the given location, so that
         // file system watching won't care about it
-        fileSystemAccess.invalidate(ImmutableList.of(workspace.getAbsolutePath()));
+        if (lockingStrategy == LockingStrategy.ATOMIC_MOVE) {
+            fileSystemAccess.invalidate(ImmutableList.of(workspace.getAbsolutePath()));
+        }
 
         // There is no previous execution in the immutable case
         PreviousExecutionContext previousExecutionContext = new PreviousExecutionContext(workspaceContext, null);

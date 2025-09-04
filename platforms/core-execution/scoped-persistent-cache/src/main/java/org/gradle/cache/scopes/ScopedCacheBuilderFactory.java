@@ -17,6 +17,7 @@
 package org.gradle.cache.scopes;
 
 import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.FineGrainedCacheBuilder;
 
 import java.io.File;
 
@@ -34,6 +35,8 @@ public interface ScopedCacheBuilderFactory {
      * @return The builder.
      */
     CacheBuilder createCacheBuilder(String key);
+
+    FineGrainedCacheBuilder createFineGrainedCacheBuilder(String key);
 
     /**
      * Creates a builder for cross Gradle version caches with the given key in this scope.
