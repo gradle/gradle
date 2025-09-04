@@ -372,7 +372,9 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     private DomNode toXmlNode() {
         DomNode root = new DomNode(nodeNameFor("application"));
         Map<String, String> rootAttributes = Cast.uncheckedCast(root.attributes());
-        rootAttributes.put("version", version);
+        if (version != null) {
+            rootAttributes.put("version", version);
+        }
         if (!"1.3".equals(version)) {
             rootAttributes.put("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
         }
