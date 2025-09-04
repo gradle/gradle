@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonArray
 import gradlebuild.basics.capitalize
 import gradlebuild.basics.testing.TestType
+import gradlebuild.identity.extension.ReleasedVersionsDetails
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.configureIde
 import gradlebuild.integrationtests.createTestTask
 import gradlebuild.integrationtests.setSystemPropertiesOfTestJVM
+import java.nio.charset.StandardCharsets
 
 plugins {
     java
@@ -28,26 +32,44 @@ plugins {
     id("gradlebuild.jvm-compile")
 }
 
-val sourceSet = sourceSets.create("${TestType.CROSSVERSION.prefix}Test")
-jvmCompile {
-    addCompilationFrom(sourceSet)
-}
-addDependenciesAndConfigurations(TestType.CROSSVERSION.prefix)
-createQuickFeedbackTasks()
-createAggregateTasks(sourceSet)
-configureIde(TestType.CROSSVERSION)
+project.layout.settingsDirectory.file(".teamcity/subprojects.json").asFile.apply {
+    if (exists()) {
+        val json = GsonBuilder().create().fromJson(readText(StandardCharsets.UTF_8), JsonArray::class.java)
+        val subprojectInfo = json.firstOrNull { jsonElement ->
+            jsonElement.asJsonObject.get("name").asString.equals(project.name)
+        }
 
-val tapiProjectDependency = configurations.dependencyScope("tapiProjectDependency")
-val tapiShadedResolvable = configurations.resolvable("tapiShadedResolvable") {
-    extendsFrom(tapiProjectDependency.get())
-    attributes {
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("Shaded"))
+        if (subprojectInfo?.asJsonObject?.get("crossVersionTests")?.asBoolean == true) {
+            val sourceSet = sourceSets.create("${TestType.CROSSVERSION.prefix}Test")
+            val releasedVersions = gradleModule.identity.releasedVersions.orNull
+
+            jvmCompile {
+                // crossVersion tests must be able to run the TAPI client, which is still JVM 8 compatible,
+                // code may also run in Gradle versions that may not support the JVM version used to compile
+                // the production code for the in-development Gradle version
+                addCompilationFrom(sourceSet) {
+                    targetJvmVersion = 8
+                }
+            }
+
+            val tapiProjectDependency = configurations.dependencyScope("tapiProjectDependency")
+            val tapiShadedResolvable = configurations.resolvable("tapiShadedResolvable") {
+                extendsFrom(tapiProjectDependency.get())
+                attributes {
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("Shaded"))
+                }
+            }
+
+            addDependenciesAndConfigurations(TestType.CROSSVERSION.prefix)
+            createQuickFeedbackTasks(sourceSet, releasedVersions, tapiShadedResolvable)
+            createAggregateTasks(sourceSet, releasedVersions, tapiShadedResolvable)
+            configureIde(TestType.CROSSVERSION)
+            configureDependenciesForCrossVersionTests(tapiProjectDependency)
+        }
     }
 }
 
-configureDependenciesForCrossVersionTests()
-
-fun configureDependenciesForCrossVersionTests() {
+fun configureDependenciesForCrossVersionTests(tapiProjectDependency: NamedDomainObjectProvider<DependencyScopeConfiguration>) {
     // do not attempt to find projects when the plugin is applied just to generate accessors
     if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "test" /* remove once wrapper is updated */) {
         dependencies {
@@ -57,7 +79,6 @@ fun configureDependenciesForCrossVersionTests() {
     }
 }
 
-val releasedVersions = gradleModule.identity.releasedVersions.orNull
 
 class TAPIShadedJarCommandLineArgumentProvider(
     @InputFiles
@@ -74,18 +95,18 @@ class TAPIShadedJarCommandLineArgumentProvider(
     }
 }
 
-fun Test.addTapiShadedJarDependency() {
+fun Test.addTapiShadedJarDependency(tapiShadedResolvable: NamedDomainObjectProvider<ResolvableConfiguration>) {
     jvmArgumentProviders.add(TAPIShadedJarCommandLineArgumentProvider(tapiShadedResolvable.get()))
 }
 
-fun createQuickFeedbackTasks() {
+fun createQuickFeedbackTasks(sourceSet: SourceSet, releasedVersions: ReleasedVersionsDetails?, tapiShadedResolvable: NamedDomainObjectProvider<ResolvableConfiguration>) {
     val testType = TestType.CROSSVERSION
     val defaultExecuter = "embedded"
     val prefix = testType.prefix
     testType.executers.forEach { executer ->
         val taskName = "$executer${prefix.capitalize()}Test"
         val testTask = createTestTask(taskName, executer, sourceSet, testType) {
-            addTapiShadedJarDependency()
+            addTapiShadedJarDependency(tapiShadedResolvable)
             this.setSystemPropertiesOfTestJVM("latest")
             this.systemProperties["org.gradle.integtest.crossVersion"] = "true"
             this.systemProperties["org.gradle.integtest.crossVersion.lowestTestedVersion"] = releasedVersions?.lowestTestedVersion?.version
@@ -101,7 +122,16 @@ fun createQuickFeedbackTasks() {
     }
 }
 
-fun createAggregateTasks(sourceSet: SourceSet) {
+fun createAggregateTasks(sourceSet: SourceSet, releasedVersions: ReleasedVersionsDetails?, tapiShadedResolvable: NamedDomainObjectProvider<ResolvableConfiguration>) {
+    tasks.register("allVersionsCrossVersionTest") {
+        description = "Run cross-version tests against all released versions (latest patch release of each)"
+        group = "ci lifecycle"
+    }
+
+    tasks.named("allVersionsCrossVersionTest") {
+        dependsOn("allVersionsCrossVersionTests")
+    }
+
     val allVersionsCrossVersionTests = tasks.register("allVersionsCrossVersionTests") {
         group = "verification"
         description = "Runs the cross-version tests against all Gradle versions with 'forking' executer"
@@ -112,10 +142,9 @@ fun createAggregateTasks(sourceSet: SourceSet) {
         description = "Runs the cross-version tests against a subset of selected Gradle versions with 'forking' executer for quick feedback"
     }
 
-    val releasedVersions = gradleModule.identity.releasedVersions.orNull
     releasedVersions?.allTestedVersions?.forEach { targetVersion ->
         val crossVersionTest = createTestTask("gradle${targetVersion.version}CrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION) {
-            addTapiShadedJarDependency()
+            addTapiShadedJarDependency(tapiShadedResolvable)
             this.description = "Runs the cross-version tests against Gradle ${targetVersion.version}"
             this.systemProperties["org.gradle.integtest.versions"] = targetVersion.version
             this.systemProperties["org.gradle.integtest.crossVersion"] = "true"
