@@ -20,7 +20,7 @@ Command-line usability is improved with [console enhancements](#cli) and [cleare
 
 Gradle @version@ introduces enhancements to the [Configuration Cache](#configuration-cache), a new read-only mode optimized for CI workflows, smarter reuse of cache entries when command-line properties change, and better compatibility with customized JVM security policies.
 
-This release also includes several [build authoring improvements](#build-authoring), enhancements to the [Antlr](#antlr) and [EAR](#ear) plugins, and fixes for [composite builds using `--dry-run`](#dry-run).
+This release also includes several [build authoring improvements](#build-authoring), enhancements to the [Antlr](#antlr), [EAR](#ear) and [Publishing plugin](#plugin-publishing), and fixes for [composite builds using `--dry-run`](#dry-run).
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Eng Zer Jun](https://github.com/Juneezee),
@@ -490,19 +490,19 @@ Note that tasks from some included builds may still be executed during configura
 This restores expected behavior and makes `--dry-run` safer for previewing task execution plans across composite builds.
 
 <a name="plugin-publishing"></a>
-## Plugin Publishing Plugin update
+### Publishing plugin improvements
 
-The [Plugin Publishing Plugin](https://plugins.gradle.org/plugin/com.gradle.plugin-publish/2.0.0) has been updated to version 2.0.0.
+The [Plugin Publishing plugin](https://plugins.gradle.org/plugin/com.gradle.plugin-publish/2.0.0) has been updated to version 2.0.0.
 
-The plugin is now compatible with Configuration Cache.
-Note that the signing task is compatible with Configuration Cache only starting from Gradle 8.1, so it's required to use at least Gradle 8.1.1 for signed publications if you want full Configuration Cache compatibility.
+This release adds compatibility with the Configuration Cache.
+Note that the `signing` task only supports the Configuration Cache starting with Gradle 8.1.
+For full compatibility, you’ll need Gradle 8.1.1 or later for signed publications.
 
-Provider API is now used for all configuration properties.
-There is no impact on users, and straightforward scenarios will continue to work as before, but you'll need to update your build scripts if you did something advanced. 
+All configuration properties now use the [Provider API](javadoc/org/gradle/api/provider/Provider.html).
+Most builds won’t be affected, but you may need to adjust your scripts if you rely on advanced configurations.
 
-The support for old Gradle versions has been removed.
-The minimum supported Gradle version is now 7.4.
-Also, bundled dependencies have been updated.
+Support for older Gradle versions has been removed.
+The minimum supported version is now 7.4. Bundled dependencies have also been updated.
 
 ## Promoted features
 
