@@ -27,6 +27,7 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.Description;
+import org.junit.runner.JUnitCore;
 import org.junit.runner.Request;
 import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
@@ -115,11 +116,14 @@ public class JUnitTestClassExecutor implements Action<String> {
 
         if (spec.isDryRun()) {
             runner = new JUnitTestDryRunner(runner);
+            RunNotifier notifier = new RunNotifier();
+            notifier.addListener(listener);
+            runner.run(notifier);
+        } else {
+            JUnitCore junit = new JUnitCore();
+            junit.addListener(listener);
+            junit.run(request);
         }
-
-        RunNotifier notifier = new RunNotifier();
-        notifier.addListener(listener);
-        runner.run(notifier);
     }
 
     // https://github.com/gradle/gradle/issues/2319

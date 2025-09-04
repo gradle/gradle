@@ -229,4 +229,8 @@ public class JUnitTestEventAdapter extends RunListener {
         return new TestStartEvent(clock.getCurrentTime());
     }
 
+    @Override
+    public void testRunStarted(Description description) throws Exception {
+        super.testRunStarted(description);
+    }
 }
