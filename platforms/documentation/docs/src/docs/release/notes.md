@@ -489,6 +489,20 @@ Note that tasks from some included builds may still be executed during configura
 
 This restores expected behavior and makes `--dry-run` safer for previewing task execution plans across composite builds.
 
+<a name="plugin-publishing"></a>
+## Plugin Publishing Plugin update
+
+The [Plugin Publishing Plugin](https://plugins.gradle.org/plugin/com.gradle.plugin-publish/2.0.0) has been updated to version 2.0.0.
+
+This release adds compatibility with the Configuration Cache.
+Note that the `signing` task only supports the Configuration Cache starting with Gradle 8.1, so for full compatibility, you’ll need Gradle 8.1.1 or later for signed publications.
+
+All configuration properties now use the Provider API.
+Most builds won’t be affected, but you may need to adjust your scripts if you rely on advanced configurations.
+
+Support for older Gradle versions has been removed.
+The minimum supported version is now 7.4. Bundled dependencies have also been updated.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
