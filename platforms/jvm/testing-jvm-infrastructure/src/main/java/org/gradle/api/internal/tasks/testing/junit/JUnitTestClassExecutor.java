@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestExecutor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -42,7 +43,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class JUnitTestClassExecutor implements Action<String> {
+public class JUnitTestClassExecutor implements TestExecutor {
     private final ClassLoader applicationClassLoader;
     private final JUnitSpec spec;
     private final TestClassExecutionListener executionListener;
