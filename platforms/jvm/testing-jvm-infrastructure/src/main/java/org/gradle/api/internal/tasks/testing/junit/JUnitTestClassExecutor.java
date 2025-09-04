@@ -25,6 +25,7 @@ import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
+import org.jspecify.annotations.Nullable;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.Description;
 import org.junit.runner.JUnitCore;
@@ -46,6 +47,7 @@ public class JUnitTestClassExecutor implements Action<String> {
     private final JUnitSpec spec;
     private final TestClassExecutionListener executionListener;
     private final RunListener listener;
+    private @Nullable CategoryFilter categoryFilter;
 
     public JUnitTestClassExecutor(
         ClassLoader applicationClassLoader,
@@ -60,6 +62,12 @@ public class JUnitTestClassExecutor implements Action<String> {
         this.spec = spec;
         this.executionListener = executionListener;
         this.listener = new JUnitTestEventAdapter(threadSafeResultProcessor, clock, idGenerator);
+
+        if (spec.hasCategoryConfiguration()) {
+            verifyJUnitCategorySupport(applicationClassLoader);
+            categoryFilter = new CategoryFilter(spec.getIncludeCategories(), spec.getExcludeCategories(), applicationClassLoader);
+            categoryFilter.verifyCategories(applicationClassLoader);
+        }
     }
 
     @Override
@@ -78,14 +86,14 @@ public class JUnitTestClassExecutor implements Action<String> {
         if (isNestedClassInsideEnclosedRunner(testClass)) {
             return;
         }
-        List<Filter> filters = new ArrayList<Filter>();
-        if (spec.hasCategoryConfiguration()) {
-            verifyJUnitCategorySupport();
-            filters.add(new CategoryFilter(spec.getIncludeCategories(), spec.getExcludeCategories(), applicationClassLoader));
-        }
 
         Request request = Request.aClass(testClass);
         Runner runner = request.getRunner();
+
+        List<Filter> filters = new ArrayList<>();
+        if (categoryFilter != null) {
+            filters.add(categoryFilter);
+        }
 
         TestFilterSpec filterSpec = spec.getFilter();
         if (!filterSpec.getIncludedTests().isEmpty()
@@ -141,7 +149,7 @@ public class JUnitTestClassExecutor implements Action<String> {
         return runWith != null && Enclosed.class.equals(runWith.value());
     }
 
-    private void verifyJUnitCategorySupport() {
+    private static void verifyJUnitCategorySupport(ClassLoader applicationClassLoader) {
         boolean failed = false;
         try {
             applicationClassLoader.loadClass("org.junit.experimental.categories.Category");
