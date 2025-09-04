@@ -166,6 +166,16 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     @Override
+    public void testSuiteStarted(Description description) throws Exception {
+        super.testSuiteStarted(description);
+    }
+
+    @Override
+    public void testSuiteFinished(Description description) throws Exception {
+        super.testSuiteFinished(description);
+    }
+
+    @Override
     public void testFinished(Description description) {
         long endTime = clock.getCurrentTime();
         TestDescriptorInternal testInternal;

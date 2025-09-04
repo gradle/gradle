@@ -20,8 +20,15 @@ import org.gradle.api.internal.tasks.testing.detection.TestClassVisitor;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
 
-class JUnitTestClassDetector extends TestClassVisitor {
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class JUnitTestClassDetector extends TestClassVisitor {
+    private final List<String> suiteClassNames = new ArrayList<>();
+
     JUnitTestClassDetector(final TestFrameworkDetector detector) {
         super(detector);
     }
@@ -35,6 +42,24 @@ class JUnitTestClassDetector extends TestClassVisitor {
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
         if ("Lorg/junit/runner/RunWith;".equals(desc)) {
             setTest(true);
+        }
+
+        if ("Lorg/junit/runners/Suite$SuiteClasses;".equals(desc)) {
+            return new AnnotationVisitor(AsmConstants.ASM_LEVEL) {
+                @Override
+                public AnnotationVisitor visitArray(String name) {
+                    if ("value".equals(name)) {
+                        return new AnnotationVisitor(AsmConstants.ASM_LEVEL) {
+                            @Override
+                            public void visit(String name, Object value) {
+                                suiteClassNames.add(((Type) value).getClassName());
+                            }
+                        };
+                    }
+
+                    return null;
+                }
+            };
         }
 
         return null;
@@ -57,5 +82,8 @@ class JUnitTestClassDetector extends TestClassVisitor {
         }
     }
 
-
+    @Override
+    public List<String> getSuiteClassNames() {
+        return Collections.unmodifiableList(suiteClassNames);
+    }
 }
