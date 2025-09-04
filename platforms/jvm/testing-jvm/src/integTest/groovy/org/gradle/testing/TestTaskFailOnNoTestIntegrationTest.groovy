@@ -49,6 +49,45 @@ class TestTaskFailOnNoTestIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.")
     }
 
+    def "resource-based testing detects tests from resources"() { // but fails trying to execute them
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'jvm-test-suite'
+            }
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation 'org.junit.jupiter:junit-jupiter:${LATEST_JUPITER_VERSION}'
+            }
+            testing.suites.test {
+                useJUnitJupiter()
+                targets.all {
+                    testTask.configure {
+                        setScanForTestClasses(false)
+                        testResourcesDirs.from(file("src/test/rbts"))
+                    }
+                }
+            }
+        """
+
+        // TODO: figure out test (NO-SOURCE) detection for resource-based testing
+        // Currently, the test task will not fail if no classes exist here
+        file("src/test/java/NotATest.java") << """
+            public class NotATest {}
+        """
+
+        file("src/test/rbts/SomeTestSpec.rbt") << """
+            <xml>
+                <testcase name="test1" />
+                <testcase name="test2" />
+            </xml>
+        """
+
+        expect:
+        fails("test")
+        failure.assertHasCause("Could not execute test class 'Resource-Based tests from: SomeTestSpec.rbt'.")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/30315")
     def "no deprecation warning when only disabled template tests are present"() {
         createBuildFileWithJUnitJupiter()
