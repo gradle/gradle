@@ -73,7 +73,7 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     public WorkerProcessBuilder create(Action<? super WorkerProcessContext> workerAction) {
         DefaultWorkerProcessBuilder builder = newWorkerProcessBuilder();
         builder.worker(workerAction);
-        builder.setImplementationClasspath(ClasspathUtil.getClasspath(workerAction.getClass().getClassLoader()).getAsURLs());
+        builder.setImplementationClasspath(ClasspathUtil.getClasspath(workerAction.getClass().getClassLoader()));
         return builder;
     }
 

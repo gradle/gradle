@@ -119,7 +119,6 @@ platforms/jvm/                                      @gradle/bt-jvm
 platforms/core-configuration/java-api-extractor     @gradle/bt-jvm
 
 # JVM testing services also shared by GE testing plugins
-platforms/jvm/testing-junit-platform/       @gradle/bt-jvm @gradle/dv-testing-team
 platforms/jvm/testing-jvm/                  @gradle/bt-jvm @gradle/dv-testing-team
 platforms/jvm/testing-jvm-infrastructure/   @gradle/bt-jvm @gradle/dv-testing-team
 
