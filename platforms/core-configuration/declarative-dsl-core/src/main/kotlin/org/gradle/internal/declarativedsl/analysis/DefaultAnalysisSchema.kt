@@ -30,6 +30,7 @@ import org.gradle.declarative.dsl.schema.FunctionSemantics.Pure
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaItemMetadata
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.declarative.dsl.schema.SoftwareFeatureOrigin
 import org.gradle.declarative.dsl.schema.VarargParameter
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 
@@ -378,6 +379,17 @@ object SchemaItemMetadataInternal {
         @Serializable
         @SerialName("containerElementFactory")
         data class DefaultContainerElementFactory(override val elementType: DataTypeRef) : ContainerElementFactory
+
+        @Serializable
+        @SerialName("softwareFeatureOrigin")
+        data class DefaultSoftwareFeatureOrigin(
+            override val featureName: String,
+            override val featurePluginClassName: String,
+            override val ecosystemPluginClassName: String,
+            override val ecosystemPluginId: String?,
+            override val targetDefinitionClassName: String?,
+            override val targetBuildModelClassName: String?
+        ) : SoftwareFeatureOrigin
     }
 }
 

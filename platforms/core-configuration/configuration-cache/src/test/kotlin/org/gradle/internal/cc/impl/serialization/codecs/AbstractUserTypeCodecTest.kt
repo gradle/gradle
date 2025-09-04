@@ -16,10 +16,10 @@
 
 package org.gradle.internal.cc.impl.serialization.codecs
 
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.cc.base.problems.AbstractProblemsListener
 import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
 import org.gradle.internal.cc.impl.serialize.DefaultClassDecoder
 import org.gradle.internal.cc.impl.serialize.DefaultClassEncoder
@@ -181,7 +181,7 @@ abstract class AbstractUserTypeCodecTest {
 
     internal
     fun codecs(): ConfigurationCacheCodecs = DefaultConfigurationCacheCodecs(
-        startParameter(),
+        modelParameters(),
         directoryFileTreeFactory = mock(),
         fileCollectionFactory = mock(),
         artifactSetConverter = mock(),
@@ -216,8 +216,8 @@ abstract class AbstractUserTypeCodecTest {
     )
 
     private
-    fun startParameter(): ConfigurationCacheStartParameter = mock {
-        on { isParallelStore } doReturn false
-        on { isParallelLoad } doReturn false
+    fun modelParameters(): BuildModelParameters = mock {
+        on { isConfigurationCacheParallelStore } doReturn false
+        on { isConfigurationCacheParallelLoad } doReturn false
     }
 }

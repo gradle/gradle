@@ -33,20 +33,20 @@ import org.gradle.internal.declarativedsl.evaluator.checks.AccessOnCurrentReceiv
 import org.gradle.internal.declarativedsl.evaluator.defaults.DefaultsConfiguringBlock
 import org.gradle.internal.declarativedsl.evaluator.defaults.DefineModelDefaults
 import org.gradle.internal.declarativedsl.evaluator.defaults.DEFAULTS_BLOCK_NAME
-import org.gradle.internal.declarativedsl.software.softwareTypesComponent
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry
+import org.gradle.internal.declarativedsl.software.softwareFeaturesComponent
+import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
 
 
 internal
-fun defineModelDefaultsInterpretationSequenceStep(softwareTypeRegistry: SoftwareTypeRegistry) = SimpleInterpretationSequenceStep(
+fun defineModelDefaultsInterpretationSequenceStep(softwareFeatureRegistry: SoftwareFeatureRegistry) = SimpleInterpretationSequenceStep(
     "settingsDefaults",
     features = setOf(DefineModelDefaults(), UnsupportedSyntaxFeatureCheck.feature, AccessOnCurrentReceiverCheck.feature),
-    buildEvaluationAndConversionSchema = { defaultsEvaluationSchema(softwareTypeRegistry) }
+    buildEvaluationAndConversionSchema = { defaultsEvaluationSchema(softwareFeatureRegistry) }
 )
 
 
 private
-fun defaultsEvaluationSchema(softwareTypeRegistry: SoftwareTypeRegistry): EvaluationSchema =
+fun defaultsEvaluationSchema(softwareFeatureRegistry: SoftwareFeatureRegistry): EvaluationSchema =
     buildEvaluationSchema(
         DefaultsTopLevelReceiver::class,
         isTopLevelElement.implies(isDefaultsConfiguringCall),
@@ -54,9 +54,9 @@ fun defaultsEvaluationSchema(softwareTypeRegistry: SoftwareTypeRegistry): Evalua
     ) {
         gradleDslGeneralSchema()
         dependencyCollectors()
-        softwareTypesComponent(
+        softwareFeaturesComponent(
             DefaultsConfiguringBlock::class,
-            softwareTypeRegistry,
+            softwareFeatureRegistry,
             // This is the schema for collecting defaults, so it should not apply defaults:
             withDefaultsApplication = false
         )

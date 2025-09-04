@@ -18,6 +18,7 @@ package org.gradle.docs.asciidoctor;
 import org.asciidoctor.ast.Document;
 import org.asciidoctor.extension.IncludeProcessor;
 import org.asciidoctor.extension.PreprocessorReader;
+import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,21 +50,21 @@ public class GuidesContributeIncludeProcessor extends IncludeProcessor {
         reader.pushInclude(contributeMessage, target, target, 1, attributes);
     }
 
-    private String issueUrl(String guideName) {
+    private String issueUrl(@Nullable String guideName) {
         if (guideName == null) {
             return "https://github.com/gradle/guides/issues/new";
         }
         return String.format("https://github.com/gradle/guides/issues/new?labels=in:%s", guideName);
     }
 
-    private String repositoryUrl(String guideName) {
+    private String repositoryUrl(@Nullable String guideName) {
         if (guideName == null) {
             return "https://github.com/gradle/guides";
         }
         return String.format("https://github.com/gradle/guides/tree/master/subprojects/%s", guideName);
     }
 
-    private String getContributeMessage(String guideName) {
+    private String getContributeMessage(@Nullable String guideName) {
         return String.format("%n[.contribute]%n== Help improve this guide%n%nHave feedback or a question? Found a typo? Like all Gradle guides, help is just a GitHub issue away. Please %s[add an issue] or pull request to %s[gradle/guides] and we'll get back to you.", issueUrl(guideName), repositoryUrl(guideName));
     }
 }

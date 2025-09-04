@@ -34,7 +34,10 @@ public interface GradlePropertiesListener {
     /**
      * Tracks property loading.
      */
-    void onGradlePropertiesLoaded(GradlePropertyScope propertyScope, File propertiesDir);
+    void onGradlePropertiesLoaded(
+        GradlePropertyScope propertyScope,
+        File propertiesDir
+    );
 
     /**
      * Tracks property access.

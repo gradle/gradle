@@ -62,7 +62,7 @@ public class DefaultProjectDependencyFactory {
     public ProjectDependency create(Path projectIdentityPath) {
         ProjectState projectState = projectStateRegistry.findProjectState(projectIdentityPath);
         if (projectState == null) {
-            throw new UnknownProjectException(String.format("Project with path '%s' could not be found.", projectIdentityPath.getPath()));
+            throw new UnknownProjectException(String.format("Project with path '%s' could not be found.", projectIdentityPath.asString()));
         }
         return create(projectState);
     }

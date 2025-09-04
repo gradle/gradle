@@ -54,6 +54,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.integtests.fixtures.compatibility.AbstractContextualMultiVersionTestInterceptor.VERSIONS_SYSPROP_NAME;
+import static org.gradle.integtests.tooling.fixture.CrossVersionTestEngine.loadAndInitializeClass;
 
 
 public class CrossVersionTestEngine extends HierarchicalTestEngine<SpockExecutionContext> {
@@ -98,6 +99,14 @@ public class CrossVersionTestEngine extends HierarchicalTestEngine<SpockExecutio
             }
         }
         return rootDescriptor;
+    }
+
+    public static Class<?> loadAndInitializeClass(String className, ClassLoader classLoader) {
+        try {
+            return Class.forName(className, true, classLoader);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
 
@@ -225,11 +234,7 @@ class ToolingApiClassloaderDiscoveryRequest extends DelegatingDiscoveryRequest {
         for (ClassSelector selector : delegate.getSelectorsByType(ClassSelector.class)) {
             if (ToolingApiSpecification.class.isAssignableFrom(selector.getJavaClass())) {
                 ClassLoader classLoader = toolingApiClassLoaderForTest(selector.getJavaClass(), toolingApiVersionToLoad);
-                try {
-                    addSelector(DiscoverySelectors.selectClass(classLoader.loadClass(selector.getClassName())));
-                } catch (ClassNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
+                addSelector(DiscoverySelectors.selectClass(loadAndInitializeClass(selector.getClassName(), classLoader)));
             }
         }
     }
@@ -270,7 +275,7 @@ class ToolingApiClassloaderDiscoveryRequest extends DelegatingDiscoveryRequest {
             try {
                 Class<?> testClass = Class.forName(classToLoad);
                 if (ToolingApiSpecification.class.isAssignableFrom(testClass)) {
-                    return toolingApiClassLoaderForTest(testClass, toolingApiVersionToLoad).loadClass(classToLoad);
+                    return loadAndInitializeClass(classToLoad, toolingApiClassLoaderForTest(testClass, toolingApiVersionToLoad));
                 }
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException(e);
@@ -308,11 +313,7 @@ class ToolingApiCurrentDiscoveryRequest extends DelegatingDiscoveryRequest {
         for (ClassSelector selector : delegate.getSelectorsByType(ClassSelector.class)) {
             if (ToolingApiSpecification.class.isAssignableFrom(selector.getJavaClass())) {
                 ClassLoader classLoader = toolingApiClassLoaderForTest(selector.getJavaClass(), GradleVersion.current().getBaseVersion().getVersion());
-                try {
-                    addSelector(DiscoverySelectors.selectClass(classLoader.loadClass(selector.getClassName())));
-                } catch (ClassNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
+                addSelector(DiscoverySelectors.selectClass(loadAndInitializeClass(selector.getClassName(), classLoader)));
             }
         }
     }

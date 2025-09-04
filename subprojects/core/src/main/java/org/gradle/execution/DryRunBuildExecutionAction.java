@@ -49,7 +49,7 @@ public class DryRunBuildExecutionAction implements BuildWorkExecutor {
         }
         for (Task task : plan.getContents().getTasks()) {
             textOutputFactory.create(DryRunBuildExecutionAction.class)
-                .append(((TaskInternal) task).getIdentityPath().getPath())
+                .append(((TaskInternal) task).getIdentityPath().asString())
                 .append(" ")
                 .style(StyledTextOutput.Style.ProgressStatus)
                 .append("SKIPPED")

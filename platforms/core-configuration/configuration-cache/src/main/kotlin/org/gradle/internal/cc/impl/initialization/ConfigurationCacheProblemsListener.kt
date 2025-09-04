@@ -143,7 +143,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         }
 
     private
-    fun locationForTask(task: TaskInternal) = PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path)
+    fun locationForTask(task: TaskInternal) = PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.asString())
 
     private
     fun problemsListenerFor(task: TaskInternal): ProblemsListener {

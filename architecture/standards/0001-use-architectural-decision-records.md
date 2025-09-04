@@ -73,6 +73,6 @@ ACCEPTED
 
 * We start to use Architectural Decision Records
 * We use the proposed template from this ADR
-* We locate `.md` files in the folder `/architecture-standards`
+* We locate `.md` files in the folder `/architecture/standards`
 * We highly encourage usage of ADR to communicate decisions
 * We use links to ADRs in *Specifications*, *Discoveries* and *Pull-Requests* to simplify communication

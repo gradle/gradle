@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.cc.impl.fixtures.GradlePropertiesIncludedBuildFixture
 import org.gradle.internal.cc.impl.fixtures.SystemPropertiesCompositeBuildFixture
 import org.gradle.util.internal.ToBeImplemented
@@ -540,5 +541,46 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         "project.providers.gradleProperty().isPresent"  | "build.gradle"    | "providers.gradleProperty('foo').isPresent()" | true
         "settings.providers.gradleProperty()"           | "settings.gradle" | "providers.gradleProperty('foo').orNull"      | false
         "settings.providers.gradleProperty().isPresent" | "settings.gradle" | "providers.gradleProperty('foo').isPresent()" | true
+    }
+
+    def "fine-grained property tracking can be disabled via #source"() {
+        given:
+        settingsFile.touch()
+        switch (source) {
+            case 'command-line':
+                executer.beforeExecute {
+                    withArgument "-D${StartParameterBuildOptions.ConfigurationCacheFineGrainedPropertyTracking.PROPERTY_NAME}=false"
+                }
+                break
+            case 'gradle.properties':
+                propertiesFile.writeProperties(
+                    (StartParameterBuildOptions.ConfigurationCacheFineGrainedPropertyTracking.PROPERTY_NAME): "false"
+                )
+                break
+            default:
+                assert false
+        }
+
+        when:
+        configurationCacheRun "help", "-PgradleProp=1", "-PunusedProperty=42"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "help", "-PunusedProperty=42", "-PgradleProp=1"
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        when:
+        configurationCacheRun "help", "-PgradleProp=2"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains "because the set of Gradle properties has changed: the value of 'gradleProp' was changed and 'unusedProperty' was removed."
+
+        where:
+        source << ['command-line', 'gradle.properties']
     }
 }

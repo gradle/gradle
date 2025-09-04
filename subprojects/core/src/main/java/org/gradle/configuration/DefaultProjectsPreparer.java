@@ -44,7 +44,7 @@ public class DefaultProjectsPreparer implements ProjectsPreparer {
             return;
         }
 
-        if (buildModelParameters.isIsolatedProjects()) {
+        if (buildModelParameters.isParallelProjectConfiguration()) {
             projectConfigurer.configureHierarchyInParallel(gradle.getRootProject());
         } else {
             projectConfigurer.configureHierarchy(gradle.getRootProject());

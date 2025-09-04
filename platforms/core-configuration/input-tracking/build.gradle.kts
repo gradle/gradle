@@ -10,3 +10,7 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
+
+errorprone {
+    nullawayEnabled = true
+}

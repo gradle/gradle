@@ -20,9 +20,9 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.gradle.api.Describable
 import org.gradle.api.internal.GeneratedSubclasses.unpackType
 import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.properties.GradlePropertyScope
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
-import org.gradle.api.internal.properties.GradlePropertyScope
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.RenderingUtils.oxfordListOf
 import org.gradle.internal.RenderingUtils.quotedOxfordListOf
@@ -55,6 +55,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         val isEncrypted: Boolean
         val encryptionKeyHashCode: HashCode
         val gradleUserHomeDir: File
+        val startParameterProperties: Map<String, Any?>
         val allInitScripts: List<File>
         val buildStartTime: Long
         val invalidateCoupledProjects: Boolean
@@ -271,7 +272,11 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             is ConfigurationCacheFingerprint.GradleEnvironment -> input.run {
                 when {
                     host.gradleUserHomeDir != gradleUserHomeDir -> text("Gradle user home directory has changed")
+
                     jvmFingerprint() != jvm -> text("JVM has changed")
+
+                    startParameterProperties != null && host.startParameterProperties != startParameterProperties ->
+                        text("the set of Gradle properties has changed: ").text(detailedMessageForChanges(startParameterProperties, host.startParameterProperties))
 
                     host.ignoreInputsDuringConfigurationCacheStore != ignoreInputsDuringConfigurationCacheStore ->
                         text("the value of ignored configuration inputs flag (${StartParameterBuildOptions.ConfigurationCacheIgnoreInputsDuringStore.PROPERTY_NAME}) has changed")

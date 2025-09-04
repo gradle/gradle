@@ -13,3 +13,7 @@ dependencies {
 
     testImplementation(testFixtures(projects.hashing))
 }
+
+errorprone {
+    nullawayEnabled = true
+}

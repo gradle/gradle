@@ -28,12 +28,12 @@ class DefaultPolymorphicDomainObjectContainerDslTest extends AbstractProjectBuil
     def instantiator
     def collectionCallbackActionDecorator = CollectionCallbackActionDecorator.NOOP
 
-    def container
+    def testContainer
 
     def setup() {
         instantiator = project.services.get(Instantiator)
-        container = instantiator.newInstance(DefaultPolymorphicDomainObjectContainer, Person, instantiator, collectionCallbackActionDecorator)
-        project.extensions.add("container", container)
+        testContainer = instantiator.newInstance(DefaultPolymorphicDomainObjectContainer, Person, instantiator, collectionCallbackActionDecorator)
+        project.extensions.add("testContainer", testContainer)
     }
 
     interface Person extends Named {}
@@ -69,45 +69,45 @@ class DefaultPolymorphicDomainObjectContainerDslTest extends AbstractProjectBuil
     }
 
     def "create elements with default type"() {
-        container.registerDefaultFactory({ new DefaultPerson(name: it) } as NamedDomainObjectFactory )
+        testContainer.registerDefaultFactory({ new DefaultPerson(name: it) } as NamedDomainObjectFactory )
 
         when:
-        project.container {
+        project.testContainer {
             Fred
             Barney {}
         }
 
         then:
-        container.size() == 2
-        container.findByName("Fred") == realFred
-        container.findByName("Barney") == realBarney
-        container.asDynamicObject.getProperty("Fred") == realFred
-        container.asDynamicObject.getProperty("Barney") == realBarney
+        testContainer.size() == 2
+        testContainer.findByName("Fred") == realFred
+        testContainer.findByName("Barney") == realBarney
+        testContainer.asDynamicObject.getProperty("Fred") == realFred
+        testContainer.asDynamicObject.getProperty("Barney") == realBarney
     }
 
     def "create elements with specified type"() {
-        container.registerFactory(Person, { new DefaultPerson(name: it) } as NamedDomainObjectFactory)
-        container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it, age: 42) } as NamedDomainObjectFactory)
+        testContainer.registerFactory(Person, { new DefaultPerson(name: it) } as NamedDomainObjectFactory)
+        testContainer.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it, age: 42) } as NamedDomainObjectFactory)
 
         when:
-        project.container {
+        project.testContainer {
             Fred(Person)
             Barney(AgeAwarePerson) {}
         }
 
         then:
-        container.size() == 2
-        container.findByName("Fred") == realFred
-        container.findByName("Barney") == agedBarney
-        container.asDynamicObject.getProperty("Fred") == realFred
-        container.asDynamicObject.getProperty("Barney") == agedBarney
+        testContainer.size() == 2
+        testContainer.findByName("Fred") == realFred
+        testContainer.findByName("Barney") == agedBarney
+        testContainer.asDynamicObject.getProperty("Fred") == realFred
+        testContainer.asDynamicObject.getProperty("Barney") == agedBarney
     }
 
     def "configure elements with default type"() {
-        container.registerDefaultFactory({ new DefaultAgeAwarePerson(name: it, age: 42) } as NamedDomainObjectFactory)
+        testContainer.registerDefaultFactory({ new DefaultAgeAwarePerson(name: it, age: 42) } as NamedDomainObjectFactory)
 
         when:
-        project.container {
+        project.testContainer {
             Fred {
                 age = 11
             }
@@ -117,16 +117,16 @@ class DefaultPolymorphicDomainObjectContainerDslTest extends AbstractProjectBuil
         }
 
         then:
-        container.size() == 2
-        container.findByName("Fred").age == 11
-        container.findByName("Barney").age == 22
+        testContainer.size() == 2
+        testContainer.findByName("Fred").age == 11
+        testContainer.findByName("Barney").age == 22
     }
 
     def "configure elements with specified type"() {
-        container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it, age: 42) } as NamedDomainObjectFactory)
+        testContainer.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it, age: 42) } as NamedDomainObjectFactory)
 
         when:
-        project.container {
+        project.testContainer {
             Fred(AgeAwarePerson) {
                 age = 11
             }
@@ -136,16 +136,16 @@ class DefaultPolymorphicDomainObjectContainerDslTest extends AbstractProjectBuil
         }
 
         then:
-        container.size() == 2
-        container.findByName("Fred").age == 11
-        container.findByName("Barney").age == 22
+        testContainer.size() == 2
+        testContainer.findByName("Fred").age == 11
+        testContainer.findByName("Barney").age == 22
     }
 
     def "configure same element multiple times"() {
-        container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it, age: 42) } as NamedDomainObjectFactory)
+        testContainer.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it, age: 42) } as NamedDomainObjectFactory)
 
         when:
-        project.container {
+        project.testContainer {
             Fred(AgeAwarePerson) {
                 age = 11
             }
@@ -161,24 +161,24 @@ class DefaultPolymorphicDomainObjectContainerDslTest extends AbstractProjectBuil
         }
 
         then:
-        container.size() == 2
-        container.findByName("Fred").age == 33
-        container.findByName("Barney").age == 44
+        testContainer.size() == 2
+        testContainer.findByName("Fred").age == 33
+        testContainer.findByName("Barney").age == 44
     }
 
     def "create elements without configuration"() {
-        container.registerDefaultFactory({ new DefaultAgeAwarePerson(name: it, age: 42) } as NamedDomainObjectFactory)
-        container.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it, age: 43) } as NamedDomainObjectFactory)
+        testContainer.registerDefaultFactory({ new DefaultAgeAwarePerson(name: it, age: 42) } as NamedDomainObjectFactory)
+        testContainer.registerFactory(AgeAwarePerson, { new DefaultAgeAwarePerson(name: it, age: 43) } as NamedDomainObjectFactory)
 
         when:
-        project.container {
+        project.testContainer {
             Fred
             Barney(AgeAwarePerson)
         }
 
         then:
-        container.size() == 2
-        container.findByName("Fred").age == 42
-        container.findByName("Barney").age == 43
+        testContainer.size() == 2
+        testContainer.findByName("Fred").age == 42
+        testContainer.findByName("Barney").age == 43
     }
 }

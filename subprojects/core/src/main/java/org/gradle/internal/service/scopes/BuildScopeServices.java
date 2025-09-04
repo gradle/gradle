@@ -215,7 +215,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.PluginHandler;
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+import org.gradle.plugin.software.internal.SoftwareFeatureRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.internal.DefaultExecOperations;
@@ -777,8 +777,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected SharedModelDefaults createSharedModelDefaults(Instantiator instantiator, SoftwareTypeRegistry softwareTypeRegistry) {
-        return instantiator.newInstance(DefaultSharedModelDefaults.class, softwareTypeRegistry);
+    protected SharedModelDefaults createSharedModelDefaults(Instantiator instantiator, SoftwareFeatureRegistry softwareFeatureRegistry) {
+        return instantiator.newInstance(DefaultSharedModelDefaults.class, softwareFeatureRegistry);
     }
 
     @Provides
