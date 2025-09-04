@@ -166,7 +166,7 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
         theSuiteFiles()
 
         when:
-        succeedsWithTestTaskArguments("test")
+        succeedsWithTestTaskArguments("test", "--debug-jvm")
 
         then:
         GenericTestExecutionResult testResult = resultsFor("tests/test")
