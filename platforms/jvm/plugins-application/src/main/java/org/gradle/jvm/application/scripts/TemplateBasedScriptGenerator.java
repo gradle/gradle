@@ -17,6 +17,7 @@
 package org.gradle.jvm.application.scripts;
 
 import org.gradle.api.resources.TextResource;
+import org.gradle.api.tasks.Nested;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
@@ -37,6 +38,7 @@ public interface TemplateBasedScriptGenerator extends ScriptGenerator {
      * @return Template reader
      */
     @ToBeReplacedByLazyProperty
+    @Nested
     TextResource getTemplate();
 
 }
