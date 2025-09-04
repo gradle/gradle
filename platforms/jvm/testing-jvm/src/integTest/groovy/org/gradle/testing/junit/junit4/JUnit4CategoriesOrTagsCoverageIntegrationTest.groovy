@@ -25,7 +25,7 @@ import org.junit.Assume
 import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT4_CATEGORIES
-import static org.hamcrest.CoreMatchers.startsWith
+import static org.gradle.util.Matchers.matchesRegexp
 
 @TargetCoverage({ JUNIT4_CATEGORIES })
 class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest implements JUnit4MultiVersionTest {
@@ -61,9 +61,9 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('SomeTestClass')
-        result.testClass("SomeTestClass").assertTestCount(1, 1, 0)
-        result.testClass("SomeTestClass").assertTestFailed("initializationError", startsWith("org.gradle.api.InvalidUserDataException: Can't load category class [org.gradle.CategoryA]"))
+        result.assertTestClassesNotExecuted('SomeTestClass')
+
+        failure.assertThatCause(matchesRegexp(/Could not start Gradle Test Executor \d+: Can't load category class \[org\.gradle\.CategoryA\]\./))
 
         where:
         type << ['includeCategories', 'excludeCategories']
