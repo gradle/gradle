@@ -28,6 +28,7 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public class TestClassExecutionEventGenerator implements TestResultProcessor, TestClassExecutionListener {
@@ -37,6 +38,8 @@ public class TestClassExecutionEventGenerator implements TestResultProcessor, Te
     private final Set<Object> currentTests = new LinkedHashSet<Object>();
     private boolean testsStarted;
     private TestDescriptorInternal currentTestClass;
+    @SuppressWarnings("unused")
+    private JUnit4TestSuiteDescriptor currentTestSuite;
 
     public TestClassExecutionEventGenerator(TestResultProcessor resultProcessor, IdGenerator<?> idGenerator, Clock clock) {
         this.resultProcessor = resultProcessor;
@@ -48,6 +51,12 @@ public class TestClassExecutionEventGenerator implements TestResultProcessor, Te
     public void testClassStarted(String testClassName) {
         currentTestClass = new DefaultTestClassDescriptor(idGenerator.generateId(), testClassName, classDisplayName(testClassName));
         resultProcessor.started(currentTestClass, new TestStartEvent(clock.getCurrentTime()));
+    }
+
+    @Override
+    public void testSuiteStarted(String suiteName, List<String> testClassNames) {
+        currentTestSuite = new JUnit4TestSuiteDescriptor(idGenerator.generateId(), suiteName, testClassNames);
+        testClassStarted(suiteName);
     }
 
     @Override
@@ -74,6 +83,12 @@ public class TestClassExecutionEventGenerator implements TestResultProcessor, Te
             currentTests.clear();
             currentTestClass = null;
         }
+    }
+
+    @Override
+    public void testSuiteFinished(TestFailure failure) {
+        testClassFinished(failure);
+        currentTestSuite = null;
     }
 
     @Override

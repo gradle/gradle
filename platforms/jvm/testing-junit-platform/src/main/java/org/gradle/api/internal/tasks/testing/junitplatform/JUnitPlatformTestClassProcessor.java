@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
-import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestExecutor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -90,7 +91,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     }
 
     @Override
-    protected Action<String> createTestExecutor(Actor resultProcessorActor) {
+    protected TestExecutor createTestExecutor(Actor resultProcessorActor) {
         TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
         launcherSession = BackwardsCompatibleLauncherSession.open();
         junitClassLoader = Thread.currentThread().getContextClassLoader();
@@ -107,7 +108,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
     }
 
-    private class CollectAllTestClassesExecutor implements Action<String> {
+    private class CollectAllTestClassesExecutor implements TestExecutor {
         private final List<Class<?>> testClasses = new ArrayList<>();
         private final TestResultProcessor resultProcessor;
 
@@ -116,8 +117,8 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
 
         @Override
-        public void execute(@NonNull String testClassName) {
-            Class<?> klass = loadClass(testClassName);
+        public void execute(@NonNull TestClassRunInfo testClassInfo) {
+            Class<?> klass = loadClass(testClassInfo.getTestClassName());
             if (isInnerClass(klass) || (supportsVintageTests() && isNestedClassInsideEnclosedRunner(klass))) {
                 return;
             }
