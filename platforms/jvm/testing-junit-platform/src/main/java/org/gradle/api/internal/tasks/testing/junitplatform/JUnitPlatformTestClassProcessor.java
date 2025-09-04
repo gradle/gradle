@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
-import org.gradle.api.internal.tasks.testing.TestClassConsumer;
+import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -116,8 +116,8 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
 
         @Override
-        public void consumeClass(@NonNull String testClassName) {
-            Class<?> klass = loadClass(testClassName);
+        public void consumeClass(@NonNull TestClassRunInfo testClassInfo) {
+            Class<?> klass = loadClass(testClassInfo.getTestClassName());
             if (isInnerClass(klass) || (supportsVintageTests() && isNestedClassInsideEnclosedRunner(klass))) {
                 return;
             }

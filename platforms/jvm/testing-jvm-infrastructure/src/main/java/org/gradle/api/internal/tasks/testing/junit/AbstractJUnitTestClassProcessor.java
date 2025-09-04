@@ -57,7 +57,11 @@ public abstract class AbstractJUnitTestClassProcessor implements RequiresTestFra
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
         if (startedProcessing) {
-            LOGGER.debug("Executing test class {}", testClass.getTestClassName());
+            if (testClass.getSuiteClassNames().isEmpty()) {
+                LOGGER.debug("Executing test class {}", testClass.getTestClassName());
+            } else {
+                LOGGER.debug("Executing test suite {} containing classes {}", testClass.getTestClassName(), testClass.getSuiteClassNames());
+            }
             executor.consumeClass(testClass.getTestClassName());
         }
     }
