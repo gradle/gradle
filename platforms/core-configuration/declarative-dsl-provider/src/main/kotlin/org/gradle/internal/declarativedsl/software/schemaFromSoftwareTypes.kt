@@ -18,7 +18,6 @@ package org.gradle.internal.declarativedsl.software
 
 import org.gradle.api.Project
 import org.gradle.api.internal.plugins.HasBuildModel
-import org.gradle.api.internal.plugins.TargetTypeInformation
 import org.gradle.api.internal.plugins.TargetTypeInformation.BuildModelTargetTypeInformation
 import org.gradle.api.internal.plugins.TargetTypeInformation.DefinitionTargetTypeInformation
 import org.gradle.api.internal.project.ProjectInternal
@@ -48,11 +47,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.withTag
 import org.gradle.plugin.software.internal.SoftwareFeatureApplicator
 import org.gradle.plugin.software.internal.SoftwareFeatureImplementation
 import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
-import kotlin.collections.associate
-import kotlin.collections.flatten
-import kotlin.collections.groupBy
-import kotlin.collections.map
-import kotlin.jvm.kotlin
+import org.gradle.plugin.software.internal.TargetTypeInformationChecks
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.allSupertypes
@@ -254,23 +249,9 @@ private class RuntimeModelTypeAccessors(
 
     private fun applySoftwareFeaturePlugin(receiverObject: Any, softwareFeature: SoftwareFeatureImplementation<*, *>, softwareFeatureApplicator: SoftwareFeatureApplicator): Any {
         require(receiverObject is ExtensionAware) { "unexpected receiver, expected a ExtensionAware instance, got $receiverObject" }
-        require(isValidBindingType(softwareFeature.targetDefinitionType, receiverObject::class.java)) {
+        require(TargetTypeInformationChecks.isValidBindingType(softwareFeature.targetDefinitionType, receiverObject::class.java)) {
             "unexpected receiver; software feature ${softwareFeature.featureName} binds to '${softwareFeature.targetDefinitionType}', got '$receiverObject' definition"
         }
         return softwareFeatureApplicator.applyFeatureTo(receiverObject, softwareFeature)
     }
-
-    private fun isValidBindingType(expectedTargetDefinitionType: TargetTypeInformation<*>, actualTargetDefinitionType: Class<*>): Boolean =
-        when (expectedTargetDefinitionType) {
-            is DefinitionTargetTypeInformation ->
-                expectedTargetDefinitionType.definitionType.isAssignableFrom(actualTargetDefinitionType)
-
-            is BuildModelTargetTypeInformation<*> ->
-                HasBuildModel::class.java.isAssignableFrom(actualTargetDefinitionType) &&
-                    actualTargetDefinitionType.kotlin.allSupertypes.find { it.classifier == HasBuildModel::class }
-                        ?.let { (it.arguments.singleOrNull()?.type?.classifier as? KClass<*>)?.java?.let(expectedTargetDefinitionType.buildModelType::isAssignableFrom) }
-                    ?: false
-
-            else -> true
-        }
 }

@@ -45,18 +45,25 @@ abstract public class SoftwareFeaturesDynamicObject extends AbstractDynamicObjec
 
     @Override
     public boolean hasMethod(String name, @Nullable Object... arguments) {
-        return isSoftwareTypeConfigureMethod(name, arguments);
+        return isSoftwareFeatureConfigureMethod(name, arguments);
     }
 
-    private boolean isSoftwareTypeConfigureMethod(String name, @Nullable Object[] arguments) {
-        return arguments != null && arguments.length == 1 &&
-            arguments[0] instanceof Closure &&
-            getSoftwareTypeRegistry().getSoftwareFeatureImplementations().containsKey(name);
+    private boolean isSoftwareFeatureConfigureMethod(String name, @Nullable Object[] arguments) {
+        if (arguments == null || arguments.length != 1 || !(arguments[0] instanceof Closure)) {
+            return false;
+        }
+
+        SoftwareFeatureImplementation<?, ?> feature = getSoftwareTypeRegistry().getSoftwareFeatureImplementations().get(name);
+        if (feature == null) {
+            return false;
+        }
+
+        return TargetTypeInformationChecks.isValidBindingType(feature.getTargetDefinitionType(), target.getClass());
     }
 
     @Override
     public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... arguments) {
-        if (isSoftwareTypeConfigureMethod(name, arguments)) {
+        if (isSoftwareFeatureConfigureMethod(name, arguments)) {
             Object softwareFeatureConfigurationModel = getSoftwareFeatureApplicator().applyFeatureTo(target, getSoftwareTypeRegistry().getSoftwareFeatureImplementations().get(name));
             return DynamicInvokeResult.found(ConfigureUtil.configure((Closure) arguments[0], softwareFeatureConfigurationModel));
         }
