@@ -72,19 +72,26 @@ public class JUnitTestClassExecutor implements Action<String> {
 
     @Override
     public void execute(String testClassName) {
-        executionListener.testClassStarted(testClassName);
+        boolean started = false;
         try {
-            maybeRunTestClass(testClassName);
-            executionListener.testClassFinished(null);
+            Request request = shouldRunTestClass(testClassName);
+            if (request != null) {
+                executionListener.testClassStarted(testClassName);
+                started = true;
+                runRequest(request);
+                executionListener.testClassFinished(null);
+            }
         } catch (Throwable throwable) {
-            executionListener.testClassFinished(TestFailure.fromTestFrameworkFailure(throwable));
+            if (started) {
+                executionListener.testClassFinished(TestFailure.fromTestFrameworkFailure(throwable));
+            }
         }
     }
 
-    private void maybeRunTestClass(String testClassName) throws ClassNotFoundException {
+    private @Nullable Request shouldRunTestClass(String testClassName) throws ClassNotFoundException {
         final Class<?> testClass = Class.forName(testClassName, false, applicationClassLoader);
         if (isNestedClassInsideEnclosedRunner(testClass)) {
-            return;
+            return null;
         }
 
         // See if there is anything left to run after applying filters, as we could filter
@@ -94,7 +101,7 @@ public class JUnitTestClassExecutor implements Action<String> {
             return;
         }
 
-        runRequest(filteredRequest);
+        return filteredRequest;
     }
 
     /**
@@ -141,7 +148,6 @@ public class JUnitTestClassExecutor implements Action<String> {
             || !filterSpec.getIncludedTestsCommandLine().isEmpty()
             || !filterSpec.getExcludedTests().isEmpty()) {
             TestSelectionMatcher matcher = new TestSelectionMatcher(filterSpec);
-
             // For test suites (including suite-like custom Runners), if the test suite class
             // matches the filter, run the entire suite instead of filtering away its contents.
             if (!filteredRunner.getDescription().isSuite() || !matcher.matchesTest(testClassName, null)) {
