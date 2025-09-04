@@ -84,7 +84,7 @@ public class DefaultSoftwareFeatureRegistry extends CompatibleSoftwareFeatureReg
                 TypeMetadata pluginClassTypeMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(pluginClass);
                 TypeAnnotationMetadata pluginClassAnnotationMetadata = pluginClassTypeMetadata.getTypeAnnotationMetadata();
                 registerSoftwareTypeIfPresent(registeringPluginClass, pluginClass, pluginClassAnnotationMetadata, softwareFeatureImplementationsBuilder);
-                registerSoftwareFeatureIfPresent(registeringPluginClass, pluginClass, pluginClassAnnotationMetadata, softwareFeatureImplementationsBuilder);
+                registerSoftwareFeaturesIfPresent(registeringPluginClass, pluginClass, pluginClassAnnotationMetadata, softwareFeatureImplementationsBuilder);
             })
         );
         legacySoftwareTypeDiscovery.discoverSoftwareTypeImplementations(registeredTypes, pluginClasses).forEach(implementation -> {
@@ -123,7 +123,7 @@ public class DefaultSoftwareFeatureRegistry extends CompatibleSoftwareFeatureReg
         );
     }
 
-    private void registerSoftwareFeatureIfPresent(
+    private void registerSoftwareFeaturesIfPresent(
         RegisteringPluginKey registeringPluginClass,
         Class<? extends Plugin<Project>> pluginClass,
         TypeAnnotationMetadata pluginClassAnnotationMetadata,

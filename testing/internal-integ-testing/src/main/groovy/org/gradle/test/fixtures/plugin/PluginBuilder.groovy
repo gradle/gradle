@@ -42,6 +42,10 @@ class PluginBuilder {
     String packageName = "org.gradle.test"
 
     final Map<String, String> pluginIds = [:]
+    final Set<BuildScriptPlugin> buildScriptPlugins = [
+        new BuildScriptPlugin("java-gradle-plugin"),
+        new BuildScriptPlugin("groovy")
+    ]
 
     PluginBuilder(TestFile projectDir) {
         this.projectDir = projectDir
@@ -63,6 +67,11 @@ class PluginBuilder {
         file("src/main/java/${sourceFilePath(path)}")
     }
 
+    PluginBuilder applyBuildScriptPlugin(String id, String version = null) {
+        buildScriptPlugins << new BuildScriptPlugin(id, version)
+        this
+    }
+
     private String sourceFilePath(String path) {
         packageName ? "${packageName.replaceAll("\\.", "/")}/$path" : path
     }
@@ -70,8 +79,10 @@ class PluginBuilder {
     @SuppressWarnings("GrMethodMayBeStatic")
     String generateManagedBuildScript() {
         """
-            apply plugin: "java-gradle-plugin"
-            apply plugin: "groovy"
+            plugins {
+                ${buildScriptPlugins.collect { it.asPluginDeclaration() }.join("\n")}
+            }
+
             dependencies {
                 implementation localGroovy()
             }
@@ -290,6 +301,24 @@ class PluginBuilder {
         PluginHttpPublicationResults allowAll() {
             ([pluginModule] + markerModules)*.allowAll()
             return this
+        }
+    }
+
+    class BuildScriptPlugin {
+        final String id
+        final String version
+
+        BuildScriptPlugin(String id, String version = null) {
+            this.id = id
+            this.version = version
+        }
+
+        String asPluginDeclaration() {
+            if (version) {
+                return "id('$id') version '$version'"
+            } else {
+                return "id('$id')"
+            }
         }
     }
 }
