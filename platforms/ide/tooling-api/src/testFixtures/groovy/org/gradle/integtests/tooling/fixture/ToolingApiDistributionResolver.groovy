@@ -23,13 +23,11 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.file.locking.ExclusiveFileAccessManager
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Assert
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.zip.ZipFile
 
 /**
  * Downloads Tooling API clients of a given version, for use in cross version testing.
@@ -56,28 +54,16 @@ class ToolingApiDistributionResolver {
     ToolingApiDistribution resolve(String toolingApiVersion) {
         if (!distributions[toolingApiVersion]) {
             if (useToolingApiFromTestClasspath(toolingApiVersion)) {
-                distributions[toolingApiVersion] = resolveExternalToolingApiDistribution(toolingApiVersion, new File(System.getProperty("toolingApi.shadedJar")))
+                distributions[toolingApiVersion] = new TestClasspathToolingApiDistribution()
             } else if (CommitDistribution.isCommitDistribution(toolingApiVersion)) {
                 throw new UnsupportedOperationException(String.format("Commit distributions are not supported in this context. Adjust %s code to support them", this.class.canonicalName))
             } else {
-                distributions[toolingApiVersion] = resolveExternalToolingApiDistribution(toolingApiVersion, locateToolingApi(toolingApiVersion))
+                File toolingApiJar = locateToolingApi(toolingApiVersion)
+                File slf4jApi = locateLocalSlf4j()
+                distributions[toolingApiVersion] = new ExternalToolingApiDistribution(toolingApiVersion, [slf4jApi, toolingApiJar])
             }
         }
         distributions[toolingApiVersion]
-    }
-
-    private void checkTapiJar(File tapiJar) {
-        Assert.assertTrue("${tapiJar.absolutePath} doesn't exist!", tapiJar.exists())
-        Assert.assertTrue("${tapiJar.absolutePath} is not readable!", Files.isReadable(tapiJar.toPath()))
-        try (ZipFile zipFile = new ZipFile(tapiJar)) {
-            Assert.assertTrue("${tapiJar.absolutePath} has no entries!", zipFile.stream().findFirst().isPresent())
-        }
-    }
-
-    private ExternalToolingApiDistribution resolveExternalToolingApiDistribution(String tapiVersion, File tapiJar) {
-        checkTapiJar(tapiJar)
-        File slf4jApi = locateLocalSlf4j()
-        return new ExternalToolingApiDistribution(tapiVersion, [slf4jApi, tapiJar])
     }
 
     private File locateToolingApi(String version) {
