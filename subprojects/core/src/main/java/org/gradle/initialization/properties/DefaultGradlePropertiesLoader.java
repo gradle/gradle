@@ -18,6 +18,7 @@ package org.gradle.initialization.properties;
 
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.Environment;
+import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.gradle.api.Project.GRADLE_PROPERTIES;
+import static org.gradle.internal.Cast.uncheckedCast;
 
 public class DefaultGradlePropertiesLoader implements GradlePropertiesLoader {
 
@@ -52,8 +54,11 @@ public class DefaultGradlePropertiesLoader implements GradlePropertiesLoader {
 
     @Override
     public Map<String, String> loadFrom(File dir) {
-        Map<String, String> loadedProperties = environment.propertiesFile(new File(dir, GRADLE_PROPERTIES));
-        return loadedProperties == null ? Collections.emptyMap() : loadedProperties;
+        // Intentionally bypass `Environment` since `DefaultGradlePropertiesController` already tracks property file loads
+        File propertyFile = new File(dir, GRADLE_PROPERTIES);
+        return propertyFile.isFile()
+            ? uncheckedCast(GUtil.loadProperties(propertyFile))
+            : Collections.emptyMap();
     }
 
     @Override
