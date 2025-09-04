@@ -33,6 +33,7 @@ public interface VariantArtifactResolveState {
      *
      * This is used to resolve artifacts declared as part of a dependency.
      */
+    // TODO: This should be a property of a component, not a variant.
     ImmutableList<ComponentArtifactMetadata> getAdhocArtifacts(List<IvyArtifactName> dependencyArtifacts);
 
     /**
