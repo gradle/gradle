@@ -21,6 +21,7 @@ import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
+import org.gradle.internal.logging.events.StyledTextOutputEvent
 import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.OperationIdentifier
@@ -81,6 +82,10 @@ abstract class OutputSpecification extends Specification {
 
     LogEvent event(String text, Throwable throwable) {
         return new LogEvent(tenAm, 'category', LogLevel.INFO, text, throwable)
+    }
+
+    StyledTextOutputEvent styledEvent(String text, LogLevel logLevel, OperationIdentifier buildOperationId) {
+        return new StyledTextOutputEvent(tenAm, 'category', logLevel, buildOperationId, text);
     }
 
     ProgressStartEvent start(String description) {
