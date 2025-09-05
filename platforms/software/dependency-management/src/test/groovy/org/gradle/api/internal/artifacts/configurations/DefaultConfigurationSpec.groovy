@@ -305,9 +305,11 @@ class DefaultConfigurationSpec extends Specification {
         resolver.resolveGraph(configuration) >> graphResolved(fileSet)
 
         when:
+        def files = configuration.getFiles()
         def resolved = configuration.resolve()
 
         then:
+        files == fileSet
         resolved == fileSet
         configuration.state == RESOLVED
     }
@@ -329,7 +331,7 @@ class DefaultConfigurationSpec extends Specification {
         configuration.getState() == RESOLVED_WITH_FAILURES
 
         when:
-        configuration.resolve()
+        configuration.files
 
         then:
         def t = thrown(ResolveException)

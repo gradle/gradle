@@ -43,7 +43,7 @@ class ResolveFailureTestFixture {
                         }
                     } else {
                         doLast {
-                            configurations.${config}.resolve()
+                            configurations.${config}.getFiles()
                         }
                     }
                 }
