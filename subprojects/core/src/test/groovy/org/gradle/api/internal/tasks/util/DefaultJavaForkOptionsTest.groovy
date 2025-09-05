@@ -116,6 +116,28 @@ class DefaultJavaForkOptionsTest extends Specification {
         events[0].message.startsWith('The DefaultJavaForkOptions.setAllJvmArgs method has been deprecated.')
     }
 
+    def "can clear jvmArgs and jvmArgumentProviders and set new ones"() {
+
+        def jvmArgumentProvider = new CommandLineArgumentProvider() {
+            @Override
+            Iterable<String> asArguments() {
+                return ['argFromProvider']
+            }
+        }
+
+        when:
+        options.jvmArgumentProviders << jvmArgumentProvider
+        then:
+        options.allJvmArgs == ['argFromProvider', fileEncodingProperty(), *localeProperties()]
+
+        when:
+        options.jvmArgumentProviders.clear()
+        options.setJvmArgs([])
+        then:
+        options.allJvmArgs == [fileEncodingProperty(), *localeProperties()]
+
+    }
+
     def "can add jvmArgs"() {
         when:
         options.jvmArgs('arg1', 'arg2')

@@ -288,11 +288,28 @@ There is no direct replacement for this method.
 
 The link:{javadocPath}/org/gradle/process/JavaForkOptions.html#setAllJvmArgs(java.util.List)[`setAllJvmArgs()` method] on `JavaForkOptions` has been deprecated and will be removed in Gradle 10.0.0.
 
-Instead, use one of the following:
+Instead, to overwrite existing JVM arguments, use:
 
 * `JavaForkOptions.jvmArgs()`
 * `JavaForkOptions.setJvmArgs()`
 * Provide a <<incremental_build.adoc#sec:task_input_nested_inputs,`CommandLineArgumentProvider`>> to add arguments via `JavaForkOptions.getJvmArgumentProviders()`.
+
+Note that previously, link:{javadocPath}/org/gradle/process/JavaForkOptions.html#setAllJvmArgs(java.util.List)[`setAllJvmArgs()` method] on `JavaForkOptions` cleared any existing JVM argument providers in addition to setting jvmArgs. Going forward, this will not happen automatically and will have to be implemented as two separate commands. To clear existing providers, use `JavaForkOptions.getJvmArgumentProviders().clear()`.
+
+Example of replacing `setAllJvmArgs`:
+
+[source,java]
+----
+import java.util.ArrayList;class Example {
+    //Given an existing argumentProvider and some existing jvmArgs
+    DefaultJavaForkOptions options; // options contains ['foo', 'bar', 'argFromProvider'];
+
+        void example () {
+            options.getJvmArgumentProviders().clear(); // Clear existing providers if needed
+            options.setJvmArgs(new ArrayList<>()); // Clear existing jvmArgs
+    }
+}
+----
 
 [[archives-configuration]]
 ==== Deprecation of `archives` configuration
