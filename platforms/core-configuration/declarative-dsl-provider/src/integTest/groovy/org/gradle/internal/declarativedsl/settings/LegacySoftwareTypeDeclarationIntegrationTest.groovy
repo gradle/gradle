@@ -65,7 +65,7 @@ class LegacySoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSp
 
         settingsFile() << """
             plugins {
-                id("com.example.test-software-type").version("1.0")
+                id("com.example.test-software-ecosystem").version("1.0")
             }
         """
 
@@ -124,7 +124,7 @@ class LegacySoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSp
         fails(":printTestSoftwareTypeExtensionConfiguration")
 
         then:
-        failure.assertHasCause("Failed to apply plugin 'com.example.test-software-type'.")
+        failure.assertHasCause("Failed to apply plugin 'com.example.test-software-ecosystem'.")
         failure.assertHasCause("A problem was found with the SoftwareTypeImplPlugin plugin.")
         failure.assertThatCause(containsText("Type 'org.gradle.test.SoftwareTypeImplPlugin' property 'testSoftwareTypeExtension' has @SoftwareType annotation with public type 'AnotherSoftwareTypeExtension' used on property of type 'TestSoftwareTypeExtension'."))
     }

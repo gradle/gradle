@@ -36,6 +36,10 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
     def setup() {
         // enable DCL support to have KTS accessors generated
         propertiesFile << "org.gradle.kotlin.dsl.dcl=true"
+
+        // We only need the test plugin portal for one test, but we need the actual plugin portal for
+        // other tests, so we stop it by default and start it only when needed.
+        pluginPortal.stop()
     }
 
     def 'can declare and configure a custom software type from included build'() {
@@ -59,12 +63,13 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
 
     def 'can declare and configure a custom software type from published plugin'() {
         given:
+        pluginPortal.start()
         def pluginBuilder = withSoftwareTypePlugins()
         pluginBuilder.publishAs("com", "example", "1.0", pluginPortal, createExecuter()).allowAll()
 
         settingsFile() << """
             plugins {
-                id("com.example.test-software-type").version("1.0")
+                id("com.example.test-software-ecosystem").version("1.0")
             }
         """
 
@@ -96,7 +101,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
                 }
             }
             plugins {
-                id("com.example.test-software-type").version("1.0")
+                id("com.example.test-software-ecosystem").version("1.0")
             }
         """
 
@@ -208,9 +213,9 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         fails(":help")
 
         then:
-        failure.assertHasCause("Failed to apply plugin 'com.example.test-software-type'.")
+        failure.assertHasCause("Failed to apply plugin 'com.example.test-software-ecosystem'.")
         failure.assertHasCause("A problem was found with the NotASoftwareTypePlugin plugin.")
-        failure.assertHasCause("Type 'org.gradle.test.NotASoftwareTypePlugin' is registered as a software type plugin but does not expose a software type.")
+        failure.assertHasCause("Type 'org.gradle.test.NotASoftwareTypePlugin' is registered as a software feature plugin but does not expose a software feature.")
     }
 
     def 'a software type plugin can declare multiple software types'() {

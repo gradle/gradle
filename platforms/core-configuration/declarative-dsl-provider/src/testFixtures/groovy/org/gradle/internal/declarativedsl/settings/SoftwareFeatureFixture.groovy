@@ -51,6 +51,80 @@ trait SoftwareFeatureFixture extends SoftwareTypeFixture {
         return withSoftwareFeaturePlugins(softwareTypeDefinition, softwareType, softwareFeatureDefinition, softwareFeature, settingsBuilder)
     }
 
+    PluginBuilder withMultipleSoftwareFeaturePlugins() {
+        def softwareTypeDefinition = new SoftwareTypeDefinitionClassBuilder()
+        def softwareType = new SoftwareTypePluginClassBuilder()
+        def softwareFeatureDefinition = new SoftwareFeatureDefinitionClassBuilder()
+        def softwareFeature = new SoftwareFeaturePluginClassBuilder()
+        def anotherFeatureDefinition = new SoftwareFeatureDefinitionClassBuilder()
+            .implementationTypeClassName("AnotherFeatureDefinition")
+        def anotherSoftwareFeature = new SoftwareFeaturePluginClassBuilder()
+            .definitionImplementationType(anotherFeatureDefinition.implementationTypeClassName)
+            .softwareFeaturePluginClassName("AnotherSoftwareFeatureImplPlugin")
+            .name("anotherFeature")
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersSoftwareType(softwareType.softwareTypePluginClassName)
+            .registersSoftwareFeature(softwareFeature.softwareFeaturePluginClassName)
+            .registersSoftwareFeature(anotherSoftwareFeature.softwareFeaturePluginClassName)
+
+        def pluginBuilder = withSoftwareFeaturePlugins(softwareTypeDefinition, softwareType, softwareFeatureDefinition, softwareFeature, settingsBuilder)
+
+        anotherSoftwareFeature.build(pluginBuilder)
+        anotherFeatureDefinition.build(pluginBuilder)
+
+        return pluginBuilder
+    }
+
+    PluginBuilder withSoftwareFeatureDefinitionThatHasPublicAndImplementationTypes() {
+        def softwareTypeDefinition = new SoftwareTypeDefinitionClassBuilder()
+        def softwareType = new SoftwareTypePluginClassBuilder()
+        def softwareFeatureDefinition = new SoftwareFeatureDefinitionWithPublicTypeClassBuilder()
+        def softwareFeature = new SoftwareFeaturePluginClassBuilder()
+            .definitionPublicType(softwareFeatureDefinition.publicTypeClassName)
+            .definitionImplementationType(softwareFeatureDefinition.implementationTypeClassName)
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersSoftwareType(softwareType.softwareTypePluginClassName)
+            .registersSoftwareFeature(softwareFeature.softwareFeaturePluginClassName)
+        return withSoftwareFeaturePlugins(softwareTypeDefinition, softwareType, softwareFeatureDefinition, softwareFeature, settingsBuilder)
+    }
+
+    PluginBuilder withSoftwareFeaturePluginThatDoesNotExposeSoftwareFeatures() {
+        def softwareTypeDefinition = new SoftwareTypeDefinitionClassBuilder()
+        def softwareType = new SoftwareTypePluginClassBuilder()
+        def softwareFeatureDefinition = new SoftwareFeatureDefinitionClassBuilder()
+        def softwareFeature = new NotASoftwareFeaturePluginClassBuilder()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersSoftwareType(softwareType.softwareTypePluginClassName)
+            .registersSoftwareFeature(softwareFeature.softwareFeaturePluginClassName)
+        return withSoftwareFeaturePlugins(softwareTypeDefinition, softwareType, softwareFeatureDefinition, softwareFeature, settingsBuilder)
+    }
+
+    PluginBuilder withSoftwareFeatureThatBindsToBuildModel() {
+        def softwareTypeDefinition = new SoftwareTypeDefinitionClassBuilder()
+        def softwareType = new SoftwareTypePluginClassBuilder()
+        def softwareFeatureDefinition = new SoftwareFeatureDefinitionClassBuilder()
+        def softwareFeature = new SoftwareFeaturePluginClassBuilder()
+            .bindToBuildModel()
+            .bindingTypeClassName(softwareTypeDefinition.buildModelClassName)
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersSoftwareType(softwareType.softwareTypePluginClassName)
+            .registersSoftwareFeature(softwareFeature.softwareFeaturePluginClassName)
+        return withSoftwareFeaturePlugins(softwareTypeDefinition, softwareType, softwareFeatureDefinition, softwareFeature, settingsBuilder)
+    }
+
+    PluginBuilder withSoftwareFeatureBuildModelThatHasPublicAndImplementationTypes() {
+        def softwareTypeDefinition = new SoftwareTypeDefinitionClassBuilder()
+        def softwareType = new SoftwareTypePluginClassBuilder()
+        def softwareFeatureDefinition = new SoftwareFeatureDefinitionWithPublicBuildModelTypeClassBuilder()
+        def softwareFeature = new SoftwareFeaturePluginClassBuilder()
+            .buildModelPublicTypeClassName(softwareFeatureDefinition.buildModelFullClassName)
+            .buildModelImplementationTypeClassName(softwareFeatureDefinition.buildModelFullImplementationClassName)
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersSoftwareType(softwareType.softwareTypePluginClassName)
+            .registersSoftwareFeature(softwareFeature.softwareFeaturePluginClassName)
+        return withSoftwareFeaturePlugins(softwareTypeDefinition, softwareType, softwareFeatureDefinition, softwareFeature, settingsBuilder)
+    }
+
     PluginBuilder withKotlinSoftwareFeaturePlugins() {
         def softwareTypeDefinition = new SoftwareTypeDefinitionClassBuilder()
         def softwareType = new SoftwareTypePluginClassBuilder()
@@ -65,39 +139,55 @@ trait SoftwareFeatureFixture extends SoftwareTypeFixture {
     static class SoftwareFeaturePluginClassBuilder {
         String definitionImplementationTypeClassName = "FeatureDefinition"
         String definitionPublicTypeClassName = null
-        String buildModelImplementationTypeClassName = "FeatureModel"
+        String buildModelImplementationTypeClassName = null
         String buildModelPublicTypeClassName = null
         String softwareFeaturePluginClassName = "SoftwareFeatureImplPlugin"
         String bindingTypeClassName = "TestSoftwareTypeExtension"
+        String bindingMethodName = "bindSoftwareFeatureToDefinition"
         String name = "feature"
 
-        SoftwareFeaturePluginClassBuilder withDefinitionImplementationType(String className) {
+        SoftwareFeaturePluginClassBuilder definitionImplementationType(String className) {
             this.definitionImplementationTypeClassName = className
             return this
         }
 
-        SoftwareFeaturePluginClassBuilder withDefinitionPublicType(String className) {
+        SoftwareFeaturePluginClassBuilder definitionPublicType(String className) {
             this.definitionPublicTypeClassName = className
             return this
         }
 
-        SoftwareFeaturePluginClassBuilder withBuildModelImplementationType(String className) {
+        SoftwareFeaturePluginClassBuilder buildModelImplementationTypeClassName(String className) {
             this.buildModelImplementationTypeClassName = className
             return this
         }
 
-        SoftwareFeaturePluginClassBuilder withBuildModelPublicType(String className) {
+        SoftwareFeaturePluginClassBuilder buildModelPublicTypeClassName(String className) {
             this.buildModelPublicTypeClassName = className
             return this
         }
 
-        SoftwareFeaturePluginClassBuilder withSoftwareFeaturePlugin(String className) {
+        SoftwareFeaturePluginClassBuilder softwareFeaturePluginClassName(String className) {
             this.softwareFeaturePluginClassName = className
             return this
         }
 
-        SoftwareFeaturePluginClassBuilder withName(String name) {
+        SoftwareFeaturePluginClassBuilder name(String name) {
             this.name = name
+            return this
+        }
+
+        SoftwareFeaturePluginClassBuilder bindToDefinition() {
+            this.bindingMethodName = "bindSoftwareFeatureToDefinition"
+            return this
+        }
+
+        SoftwareFeaturePluginClassBuilder bindToBuildModel() {
+            this.bindingMethodName = "bindSoftwareFeatureToBuildModel"
+            return this
+        }
+
+        SoftwareFeaturePluginClassBuilder bindingTypeClassName(String className) {
+            this.bindingTypeClassName = className
             return this
         }
 
@@ -122,15 +212,16 @@ trait SoftwareFeatureFixture extends SoftwareTypeFixture {
 
                     static class Binding implements SoftwareFeatureBindingRegistration {
                         @Override public void register(SoftwareFeatureBindingBuilder builder) {
-                            builder.bindSoftwareFeatureToDefinition(
+                            builder.${bindingMethodName}(
                                 "${name}",
                                 ${dslTypeClassName}.class,
                                 ${bindingTypeClassName}.class,
                                 (context, feature, model, parent) -> {
-                                    System.out.println("Binding FeatureDefinition");
+                                    System.out.println("Binding ${dslTypeClassName}");
+                                    System.out.println("${name} model class: " + model.getClass().getSimpleName());
                                     model.getText().set(feature.getText());
-                                    context.getProject().getTasks().register("printTestSoftwareFeatureConfiguration", task -> {
-                                        task.doLast(t -> System.out.println("feature text = " + model.getText().get()));
+                                    context.getProject().getTasks().register("print${dslTypeClassName}Configuration", task -> {
+                                        task.doLast(t -> System.out.println("${name} text = " + model.getText().get()));
                                     });
                                 }
                             )
@@ -153,6 +244,29 @@ trait SoftwareFeatureFixture extends SoftwareTypeFixture {
 
         String maybeDeclareBuildModelImplementationType() {
             return (buildModelPublicTypeClassName && buildModelPublicTypeClassName != buildModelImplementationTypeClassName) ? ".withBuildModelImplementationType(${buildModelImplementationTypeClassName}.class);" : ""
+        }
+    }
+
+    static class NotASoftwareFeaturePluginClassBuilder extends SoftwareFeaturePluginClassBuilder {
+        NotASoftwareFeaturePluginClassBuilder() {
+            this.softwareFeaturePluginClassName = "NotASoftwareFeaturePlugin"
+        }
+
+        @Override
+        protected String getClassContent() {
+            return """
+                package org.gradle.test;
+
+                import org.gradle.api.Plugin;
+                import org.gradle.api.Project;
+
+                public class ${softwareFeaturePluginClassName} implements Plugin<Project> {
+                    @Override
+                    public void apply(Project project) {
+
+                    }
+                }
+            """
         }
     }
 
@@ -183,9 +297,9 @@ trait SoftwareFeatureFixture extends SoftwareTypeFixture {
                     class Binding : SoftwareFeatureBindingRegistration {
                         override fun register(builder: SoftwareFeatureBindingBuilder) {
                             builder.bindSoftwareFeatureToDefinition("${name}", ${dslTypeClassName}::class, ${bindingTypeClassName}::class) { feature, model, parent  ->
-                                println("Binding FeatureDefinition")
+                                println("Binding ${dslTypeClassName}")
                                 model.getText().set(feature.getText())
-                                getProject().getTasks().register("printTestSoftwareFeatureConfiguration") { task: Task ->
+                                getProject().getTasks().register("print${definitionImplementationTypeClassName}Configuration") { task: Task ->
                                     task.doLast { _: Task -> System.out.println("feature text = " + model.getText().get()) }
                                 }
                             }
@@ -227,15 +341,19 @@ trait SoftwareFeatureFixture extends SoftwareTypeFixture {
     }
 
     static class SoftwareFeatureDefinitionClassBuilder {
-        String className = "FeatureDefinition"
+        String implementationTypeClassName = "FeatureDefinition"
 
-        SoftwareFeatureDefinitionClassBuilder className(String className) {
-            this.className = className
+        SoftwareFeatureDefinitionClassBuilder implementationTypeClassName(String className) {
+            this.implementationTypeClassName = className
             return this
         }
 
+        String getBuildModelFullClassName() {
+            return "${implementationTypeClassName}.FeatureModel"
+        }
+
         void build(PluginBuilder pluginBuilder) {
-            pluginBuilder.file("src/main/java/org/gradle/test/${className}.java") << getClassContent()
+            pluginBuilder.file("src/main/java/org/gradle/test/${implementationTypeClassName}.java") << getClassContent()
         }
 
         protected String getClassContent() {
@@ -248,12 +366,118 @@ trait SoftwareFeatureFixture extends SoftwareTypeFixture {
                 import org.gradle.declarative.dsl.model.annotations.Restricted;
 
                 @Restricted
-                public interface FeatureDefinition extends HasBuildModel<FeatureDefinition.FeatureModel> {
+                public interface ${implementationTypeClassName} extends HasBuildModel<${implementationTypeClassName}.FeatureModel> {
                     @Restricted
                     Property<String> getText();
 
                     interface FeatureModel extends BuildModel {
                         Property<String> getText();
+                    }
+                }
+            """
+        }
+    }
+
+    static class SoftwareFeatureDefinitionWithPublicTypeClassBuilder extends SoftwareFeatureDefinitionClassBuilder {
+        String publicTypeClassName = "FeatureDefinition"
+
+        SoftwareFeatureDefinitionWithPublicTypeClassBuilder(String publicTypeClassName) {
+            this.implementationTypeClassName = publicTypeClassName + "Impl"
+        }
+
+        SoftwareFeatureDefinitionWithPublicTypeClassBuilder withPublicType(String className) {
+            this.publicTypeClassName = className
+            return this
+        }
+
+        @Override
+        protected String getClassContent() {
+            return """
+                package org.gradle.test;
+
+                import org.gradle.api.provider.Property;
+                import org.gradle.declarative.dsl.model.annotations.Restricted;
+
+                @Restricted
+                public interface ${implementationTypeClassName} extends ${publicTypeClassName} {
+                    @Restricted
+                    Property<String> getNonPublicProperty();
+                }
+            """
+        }
+
+        private String getPublicTypeContent() {
+            return """
+                package org.gradle.test;
+
+                import org.gradle.api.provider.Property;
+                import org.gradle.declarative.dsl.model.annotations.Restricted;
+                import ${HasBuildModel.class.name};
+                import ${BuildModel.class.name};
+
+                @Restricted
+                public interface ${publicTypeClassName} extends HasBuildModel<${publicTypeClassName}.FeatureModel> {
+                    @Restricted
+                    Property<String> getText();
+
+                    interface FeatureModel extends BuildModel {
+                        Property<String> getText();
+                    }
+                }
+            """
+        }
+
+        @Override
+        void build(PluginBuilder pluginBuilder) {
+            super.build(pluginBuilder)
+            pluginBuilder.file("src/main/java/org/gradle/test/${publicTypeClassName}.java") << getPublicTypeContent()
+        }
+    }
+
+    static class SoftwareFeatureDefinitionWithPublicBuildModelTypeClassBuilder extends SoftwareFeatureDefinitionClassBuilder {
+        String buildModelPublicTypeClassName = "FeatureModel"
+        String buildModelImplementationTypeClassName = "FeatureModelImpl"
+
+        SoftwareFeatureDefinitionWithPublicBuildModelTypeClassBuilder buildModelPublicTypeClassName(String className) {
+            this.buildModelPublicTypeClassName = className
+            return this
+        }
+
+        SoftwareFeatureDefinitionWithPublicBuildModelTypeClassBuilder buildModelImplementationTypeClassName(String className) {
+            this.buildModelImplementationTypeClassName = className
+            return this
+        }
+
+        @Override
+        String getBuildModelFullClassName() {
+            return "${implementationTypeClassName}.${buildModelPublicTypeClassName}"
+        }
+
+        String getBuildModelFullImplementationClassName() {
+            return "${implementationTypeClassName}.${buildModelImplementationTypeClassName}"
+        }
+
+        @Override
+        protected String getClassContent() {
+            return """
+                package org.gradle.test;
+
+                import org.gradle.api.provider.Property;
+                import org.gradle.declarative.dsl.model.annotations.Restricted;
+                import ${HasBuildModel.class.name};
+                import ${BuildModel.class.name};
+
+                @Restricted
+                public interface ${implementationTypeClassName} extends HasBuildModel<${implementationTypeClassName}.${buildModelPublicTypeClassName}> {
+                    @Restricted
+                    Property<String> getText();
+
+                    interface ${buildModelPublicTypeClassName} extends BuildModel {
+                        Property<String> getText();
+                    }
+
+                    abstract class ${buildModelImplementationTypeClassName} implements ${buildModelPublicTypeClassName} {
+
                     }
                 }
             """

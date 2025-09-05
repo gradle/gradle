@@ -108,12 +108,12 @@ public class SoftwareFeatureRegistrationPluginTarget implements PluginTarget {
 
     private void registerFeatures(Class<? extends Plugin<Project>>[] featurePlugins, Class<? extends Plugin<Settings>> registeringPlugin, @Nullable String pluginId) {
         for (Class<? extends Plugin<Project>> softwareFeatureImplClass : featurePlugins) {
-            validateSoftwareTypePluginExposesExactlyOneSoftwareType(softwareFeatureImplClass, registeringPlugin);
+            validateSoftwareFeatures(softwareFeatureImplClass, registeringPlugin);
             softwareFeatureRegistry.register(pluginId, softwareFeatureImplClass, registeringPlugin);
         }
     }
 
-    void validateSoftwareTypePluginExposesExactlyOneSoftwareType(Class<? extends Plugin<Project>> softwareTypePluginImplClass, Class<?> registeringPlugin) {
+    void validateSoftwareFeatures(Class<? extends Plugin<Project>> softwareTypePluginImplClass, Class<?> registeringPlugin) {
         DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(softwareTypePluginImplClass, false, problems);
         TypeToken<?> softwareTypePluginImplType = TypeToken.of(softwareTypePluginImplClass);
         TypeMetadata softwareTypePluginImplMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(softwareTypePluginImplType.getRawType());
@@ -134,12 +134,12 @@ public class SoftwareFeatureRegistrationPluginTarget implements PluginTarget {
             if (exposedSoftwareTypes.isEmpty()) {
                 typeValidationContext.visitTypeProblem(problem ->
                     problem.withAnnotationType(softwareTypePluginImplClass)
-                        .id("missing-software-type", "Missing software type annotation", GradleCoreProblemGroup.validation().type())
-                        .contextualLabel("is registered as a software type plugin but does not expose a software type")
+                        .id("missing-software-type", "Missing software feature annotation", GradleCoreProblemGroup.validation().type())
+                        .contextualLabel("is registered as a software feature plugin but does not expose a software feature")
                         .severity(Severity.ERROR)
-                        .details("This class was registered as a software type plugin, but it does not expose a software type. Software type plugins must expose exactly one software type via a property with the @SoftwareType annotation.")
+                        .details("This class was registered as a software feature plugin, but it does not expose a software feature. Software feature plugins must expose exactly one software feature via either a @BindsSoftwareType or @BindsSoftwareFeature annotation on the plugin class.")
                         .solution("Add @SoftwareType annotations to properties of " + softwareTypePluginImplClass.getSimpleName())
-                        .solution("Remove " + softwareTypePluginImplClass.getSimpleName() + " from the @RegistersSoftwareTypes annotation on " + registeringPlugin.getSimpleName())
+                        .solution("Remove " + softwareTypePluginImplClass.getSimpleName() + " from the @RegistersSoftwareTypes or @RegistersSoftwareFeature annotation on " + registeringPlugin.getSimpleName())
                 );
             } else if (exposedSoftwareTypes.size() > 1) {
                 typeValidationContext.visitTypeProblem(problem ->

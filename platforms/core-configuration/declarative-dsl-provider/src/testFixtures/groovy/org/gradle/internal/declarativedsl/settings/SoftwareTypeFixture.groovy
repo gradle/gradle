@@ -33,7 +33,7 @@ trait SoftwareTypeFixture {
     PluginBuilder withSoftwareTypePlugins(SoftwareTypeDefinitionClassBuilder definitionBuilder, SoftwareTypePluginClassBuilder softwareTypeBuilder, SettingsPluginClassBuilder settingsBuilder) {
         def pluginBuilder = new PluginBuilder(file("plugins"))
         pluginBuilder.addPluginId("com.example.test-software-type-impl", softwareTypeBuilder.softwareTypePluginClassName)
-        pluginBuilder.addPluginId("com.example.test-software-type", settingsBuilder.pluginClassName)
+        pluginBuilder.addPluginId("com.example.test-software-ecosystem", settingsBuilder.pluginClassName)
 
         definitionBuilder.build(pluginBuilder)
         softwareTypeBuilder.build(pluginBuilder)
@@ -434,6 +434,10 @@ trait SoftwareTypeFixture {
             return this
         }
 
+        String getBuildModelClassName() {
+            return implementationTypeClassName + ".ModelType"
+        }
+
         void build(PluginBuilder pluginBuilder) {
             pluginBuilder.file("src/main/java/org/gradle/test/${implementationTypeClassName}.java") << getClassContent()
         }
@@ -455,7 +459,7 @@ trait SoftwareTypeFixture {
                 import javax.inject.Inject;
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements HasBuildModel<TestSoftwareTypeExtension.ModelType> ${maybeImplementsPublicType()} {
+                public abstract class ${implementationTypeClassName} implements HasBuildModel<${implementationTypeClassName}.ModelType> ${maybeImplementsPublicType()} {
                     private final Foo foo;
                     private boolean isFooConfigured = false;
 
@@ -840,7 +844,7 @@ trait SoftwareTypeFixture {
                 includeBuild("plugins")
             }
             plugins {
-                id("com.example.test-software-type")
+                id("com.example.test-software-ecosystem")
             }
         """
     }

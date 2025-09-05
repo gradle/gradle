@@ -453,7 +453,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 includeBuild("plugins")
             }
             plugins {
-                id("com.example.test-software-type")
+                id("com.example.test-software-ecosystem")
             }
             include("a")
             include("b")
