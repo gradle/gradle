@@ -41,9 +41,9 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
-==== Upgrade to Kotlin 2.2.10
+==== Upgrade to Kotlin 2.2.20
 
-The embedded Kotlin has been updated from 2.2.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.10[Kotlin 2.2.10].
+The embedded Kotlin has been updated from 2.2.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.20[Kotlin 2.2.20].
 
 ==== Removed incubating method `ObjectFactory#dependencyCollector()`
 
