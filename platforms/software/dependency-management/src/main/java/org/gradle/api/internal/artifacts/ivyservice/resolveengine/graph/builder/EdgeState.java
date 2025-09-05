@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.component.ComponentSelectorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
@@ -35,6 +36,7 @@ import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -79,8 +81,9 @@ class EdgeState implements DependencyGraphEdge {
         this.isConstraint = dependencyMetadata.isConstraint();
     }
 
-    void computeSelector() {
-        this.selector = resolveState.computeSelectorFor(dependencyState, from.versionProvidedByAncestors(dependencyState));
+    void computeSelector(StrictVersionConstraints ancestorsStrictVersions) {
+        boolean ignoreVersion = !dependencyState.isForced() && ancestorsStrictVersions.contains(dependencyState.getModuleIdentifier());
+        this.selector = resolveState.computeSelectorFor(dependencyState, ignoreVersion);
     }
 
     @Override
@@ -420,6 +423,10 @@ class EdgeState implements DependencyGraphEdge {
             assert node.getComponent() == getSelectedComponent();
             return node.getNodeId();
         }
+    }
+
+    public Collection<NodeState> getTargetNodes() {
+        return targetNodes;
     }
 
     @Nullable
