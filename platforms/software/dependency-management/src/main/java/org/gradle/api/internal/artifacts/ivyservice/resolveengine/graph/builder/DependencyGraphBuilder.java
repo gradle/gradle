@@ -207,9 +207,7 @@ public class DependencyGraphBuilder {
                 // Initialize and collect any new outgoing edges of this node
                 dependencies.clear();
                 node.visitOutgoingDependencies(dependencies);
-                // TODO: Merge these now?
-                boolean edgeWasProcessed = resolveEdges(node, dependencies, ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC, false, resolveState);
-                resolveEdges(node, dependencies, NOT_ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC, edgeWasProcessed, resolveState);
+                resolveEdges(node, dependencies, resolveState);
             } else {
                 // We have some batched up conflicts. Resolve the first, and continue traversing the graph
                 if (moduleConflictHandler.hasConflicts()) {
@@ -272,35 +270,22 @@ public class DependencyGraphBuilder {
         return foundConflict.get();
     }
 
-    private boolean resolveEdges(
+    private void resolveEdges(
         final NodeState node,
         final List<EdgeState> dependencies,
-        final Spec<EdgeState> edgeFilter,
-        final boolean recomputeSelectors,
         final ResolveState resolveState
     ) {
         if (dependencies.isEmpty()) {
-            return false;
-        }
-        if (performSelectionSerially(dependencies, edgeFilter, resolveState, recomputeSelectors)/* && node.isSelected()*/) { // We check this node is selected since sometimes performing selection can deselect this node. We don't want to attach our edges to our children so that we can make sure to properly disassemble our subgraph
-            maybeDownloadMetadataInParallel(node, dependencies, edgeFilter, buildOperationExecutor, resolveState.getComponentMetadataResolver());
-            attachToTargetRevisionsSerially(dependencies, edgeFilter);
-            return true;
-        } else {
-            return false;
+            return;
         }
 
+        performSelectionSerially(dependencies, resolveState);
+        maybeDownloadMetadataInParallel(node, dependencies, buildOperationExecutor, resolveState.getComponentMetadataResolver());
+        attachToTargetRevisionsSerially(dependencies);
     }
 
-    private static boolean performSelectionSerially(List<EdgeState> edges, Spec<EdgeState> edgeFilter, ResolveState resolveState, boolean recomputeSelectors) {
-        boolean processed = false;
+    private static void performSelectionSerially(List<EdgeState> edges, ResolveState resolveState) {
         for (EdgeState edge : edges) {
-            if (!edgeFilter.isSatisfiedBy(edge)) {
-                continue;
-            }
-            if (recomputeSelectors) {
-                edge.computeSelector();
-            }
             SelectorState selector = edge.getSelector();
             ModuleResolveState module = selector.getTargetModule();
 
@@ -315,9 +300,7 @@ public class DependencyGraphBuilder {
             if (edge.isUsed()) {
                 module.addUnattachedEdge(edge);
             }
-            processed = true;
         }
-        return processed;
     }
 
     /**
@@ -360,12 +343,9 @@ public class DependencyGraphBuilder {
      * Prepares the resolution of edges, either serially or concurrently.
      * It uses a simple heuristic to determine if we should perform concurrent resolution, based on the number of edges, and whether they have unresolved metadata.
      */
-    private static void maybeDownloadMetadataInParallel(NodeState node, List<EdgeState> edges, Spec<EdgeState> edgeFilter, BuildOperationExecutor buildOperationExecutor, ComponentMetaDataResolver componentMetaDataResolver) {
+    private static void maybeDownloadMetadataInParallel(NodeState node, List<EdgeState> edges, BuildOperationExecutor buildOperationExecutor, ComponentMetaDataResolver componentMetaDataResolver) {
         List<ComponentState> requiringDownload = null;
         for (EdgeState edge : edges) {
-            if (!edgeFilter.isSatisfiedBy(edge)) {
-                continue;
-            }
             ComponentState targetComponent = edge.getTargetComponent();
             if (targetComponent != null && targetComponent.isSelected() && !targetComponent.alreadyResolved()) {
                 if (!componentMetaDataResolver.isFetchingMetadataCheap(targetComponent.getComponentId())) {
@@ -389,14 +369,12 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private static void attachToTargetRevisionsSerially(List<EdgeState> edges, Spec<EdgeState> edgeFilter) {
+    private static void attachToTargetRevisionsSerially(List<EdgeState> edges) {
         // the following only needs to be done serially to preserve ordering of dependencies in the graph: we have visited the edges
         // but we still didn't add the result to the queue. Doing it from resolve threads would result in non-reproducible graphs, where
         // edges could be added in different order. To avoid this, the addition of new edges is done serially.
         for (EdgeState edge : edges) {
-            if (edgeFilter.isSatisfiedBy(edge)) {
-                edge.attachToTargetNodes();
-            }
+            edge.attachToTargetNodes();
         }
     }
 

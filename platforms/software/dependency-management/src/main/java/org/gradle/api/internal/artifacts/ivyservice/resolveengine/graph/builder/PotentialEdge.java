@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.jspecify.annotations.Nullable;
 
@@ -51,16 +52,12 @@ class PotentialEdge {
         this.component = component;
     }
 
-    static PotentialEdge of(ResolveState resolveState, NodeState from, ModuleComponentIdentifier toComponent, ModuleComponentSelector toSelector, ComponentIdentifier owner) {
+    static PotentialEdge of(ResolveState resolveState, NodeState from, ModuleComponentIdentifier toComponent, ModuleComponentSelector toSelector, ComponentIdentifier owner, StrictVersionConstraints ancestorsStrictVersions, ExcludeSpec resolutionFilter) {
         DependencyState dependencyState = new DependencyState(new LenientPlatformDependencyMetadata(resolveState, from, toSelector, toComponent, owner, hasStrongOpinion(from), true), resolveState.getComponentSelectorConverter());
         dependencyState = NodeState.maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
-        ExcludeSpec exclusions = from.previousTraversalExclusions;
-        if (exclusions == null) {
-            exclusions = resolveState.getModuleExclusions().nothing();
-        }
         EdgeState edge = new EdgeState(from, dependencyState, resolveState);
-        edge.updateTransitiveExcludes(exclusions);
-        edge.computeSelector();
+        edge.updateTransitiveExcludes(resolutionFilter);
+        edge.computeSelector(ancestorsStrictVersions);
         ModuleVersionIdentifier toModuleVersionId = DefaultModuleVersionIdentifier.newId(toSelector.getModuleIdentifier(), toSelector.getVersion());
         ComponentState version = resolveState.getModule(toSelector.getModuleIdentifier()).getVersion(toModuleVersionId, toComponent);
         // We need to check if the target version exists. For this, we have to try to get metadata for the aligned version.
