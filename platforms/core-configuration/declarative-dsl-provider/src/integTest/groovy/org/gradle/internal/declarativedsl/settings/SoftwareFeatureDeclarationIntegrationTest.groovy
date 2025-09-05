@@ -19,7 +19,9 @@ package org.gradle.internal.declarativedsl.settings
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
+import org.gradle.integtests.fixtures.polyglot.SkipDsl
 import org.gradle.internal.declarativedsl.DeclarativeTestUtils
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.gradle.test.precondition.Requires
@@ -66,7 +68,6 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
         outputContains("Binding FeatureDefinition")
     }
 
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "software features are not supported in Groovy yet")
     def 'can declare and configure a custom software feature from published plugin'() {
         given:
         pluginPortal.start()
@@ -94,7 +95,6 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
         outputContains("Binding FeatureDefinition")
     }
 
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "software features are not supported in Groovy yet")
     def 'can declare and configure a custom software feature from plugin published to a custom repository'() {
         given:
         PluginBuilder pluginBuilder = withSoftwareFeaturePlugins()
@@ -149,7 +149,6 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
         outputContains("Binding FeatureDefinition")
     }
 
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "software features are not supported in Groovy yet")
     def 'can apply multiple software features to a target receiver'() {
         given:
         PluginBuilder pluginBuilder = withMultipleSoftwareFeaturePlugins()
@@ -189,7 +188,7 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
         outputContains("Binding AnotherFeatureDefinition")
     }
 
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "software features are not supported in Groovy yet")
+    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy has no problem with finding non-public methods/types ...")
     def 'can declare and configure a custom software feature with a definition that has public and implementation types'() {
         given:
         PluginBuilder pluginBuilder = withSoftwareFeatureDefinitionThatHasPublicAndImplementationTypes()
@@ -247,7 +246,6 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
         failure.assertHasCause("Type 'org.gradle.test.NotASoftwareFeaturePlugin' is registered as a software feature plugin but does not expose a software feature.")
     }
 
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "software features are not supported in Groovy yet")
     def 'can declare and configure a custom software feature that binds to a build model'() {
         given:
         PluginBuilder pluginBuilder = withSoftwareFeatureThatBindsToBuildModel()
@@ -270,8 +268,7 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
         outputContains("Binding FeatureDefinition")
     }
 
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "software features are not supported in Groovy yet")
-    def 'can declare and configure a custom software feature that has a build type with public and implementation class types'() {
+    def 'can declare and configure a custom software feature that has a build model with public and implementation class types'() {
         given:
         PluginBuilder pluginBuilder = withSoftwareFeatureBuildModelThatHasPublicAndImplementationTypes()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
