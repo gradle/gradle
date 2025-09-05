@@ -119,15 +119,11 @@ jobs:
       - run: ./gradlew ${{ matrix.bucket.tasks }} -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}
 
   unit-test-windows-arm:
-    name: "${{ matrix.bucket.name }} (Unit Test Windows ARM)"
+    name: "Unit Test Windows ARM"
     permissions:
       contents: read
     runs-on: windows-11-arm
     needs: build
-    strategy:
-      matrix:
-        bucket: ${{ fromJson(needs.build.outputs.matrix) }}
-      fail-fast: false
     defaults:
       run:
         shell: pwsh
@@ -135,7 +131,6 @@ jobs:
       - name: Set up ARM64 architecture
         run: |
           echo "##[group]Switching to ARM64"
-          # No-op: windows-latest is x64, but you can use ARM64 runners when available
           echo "##[endgroup]"
       - name: git clone
         uses: actions/checkout@v5
