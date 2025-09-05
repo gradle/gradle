@@ -17,7 +17,7 @@ package org.gradle.ide.sync
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.ide.starter.IdeCommand
-import org.gradle.ide.starter.IdeScenarios
+import org.gradle.ide.starter.IdeScenario
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleDistribution
@@ -52,7 +52,7 @@ abstract class AbstractIdeSyncTest extends Specification {
     // https://youtrack.jetbrains.com/articles/IDEA-A-21/IDEA-Latest-Builds-And-Release-Notes
     final static String IDEA_COMMUNITY_VERSION = "2025.2"
     // https://developer.android.com/studio/archive
-    final static String ANDROID_STUDIO_VERSION = "2025.1.1.1"
+    final static String ANDROID_STUDIO_VERSION = "2025.1.3.7"
 
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
@@ -77,9 +77,9 @@ abstract class AbstractIdeSyncTest extends Specification {
     protected void androidStudioSync(
         String version,
         File testProject = testDirectory,
-        List<IdeCommand> commandsAfterSync = Collections.emptyList()
+        @Nullable IdeScenario scenario = null
     ) {
-        ideSync("ai-$version", testProject, commandsAfterSync)
+        ideSync("ai-$version", testProject, scenario)
     }
 
     /**
@@ -94,13 +94,13 @@ abstract class AbstractIdeSyncTest extends Specification {
     protected void ideaSync(
         String version,
         File testProject = testDirectory,
-        List<IdeCommand> commandsAfterSync = Collections.emptyList()
+        @Nullable IdeScenario scenario = null
     ) {
-        ideSync("ic-$version", testProject, commandsAfterSync)
+        ideSync("ic-$version", testProject, scenario)
     }
 
-    private void ideSync(String ide, File testProject, List<IdeCommand> commandsAfterSync) {
-        def scenarioFile = writeScenarioOfCommands(commandsAfterSync)
+    private void ideSync(String ide, File testProject, IdeScenario scenario) {
+        def scenarioFile = writeScenario(scenario)
         def gradleDist = distribution.gradleHomeDir.toPath()
         runIdeStarterWith(gradleDist, testProject.toPath(), ideHome, scenarioFile, ide)
     }
@@ -191,12 +191,12 @@ abstract class AbstractIdeSyncTest extends Specification {
     }
 
     @Nullable
-    private Path writeScenarioOfCommands(List<IdeCommand> commands) {
-        if (commands.isEmpty()) {
+    private Path writeScenario(@Nullable IdeScenario scenario) {
+        if (scenario == null) {
             return null
         }
         def scenarioFile = file("scenario.json").touch().toPath()
-        IdeScenarios.writeScenario(scenarioFile, commands)
+        scenario.writeTo(scenarioFile)
         return scenarioFile
     }
 }

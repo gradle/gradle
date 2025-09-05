@@ -16,15 +16,16 @@
 
 package org.gradle.ide.sync
 
-import org.gradle.ide.starter.IdeCommand
+
+import org.gradle.ide.starter.IdeScenarioBuilder
 import org.gradle.ide.sync.fixtures.IsolatedProjectsIdeSyncFixture
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.fixtures.file.TestFile
 
 class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
 
-    private TestFile gradleDir = testDirectory.createDir("gradle-checkout")
-    private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(gradleDir)
+    private TestFile gradleCheckout = testDirectory.createDir("gradle-checkout")
+    private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(gradleCheckout)
 
     def "can sync gradle/gradle build without problems"() {
         given:
@@ -34,7 +35,7 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
         ideXmxMb = 4096
 
         when:
-        ideaSync(IDEA_COMMUNITY_VERSION, gradleDir)
+        ideaSync(IDEA_COMMUNITY_VERSION, gradleCheckout)
 
         then:
         fixture.assertHtmlReportHasNoProblems()
@@ -50,18 +51,19 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
         expect:
         ideaSync(
             IDEA_COMMUNITY_VERSION,
-            gradleDir,
-            [
-                new IdeCommand.AppendTextToFile("subprojects/core-api/build.gradle.kts", "dependencies {}"),
-                IdeCommand.ImportGradleProject.INSTANCE
-            ]
+            gradleCheckout,
+            IdeScenarioBuilder
+                .initialImportProject()
+                .appendTextToFile("subprojects/core-api/build.gradle.kts", "dependencies {}")
+                .importProject()
+                .finish()
         )
     }
 
     private void gradle() {
-        new TestFile("build/gradleSources").copyTo(gradleDir)
+        new TestFile("build/gradleSources").copyTo(gradleCheckout)
 
-        gradleDir.file("gradle.properties") << """
+        gradleCheckout.file("gradle.properties") << """
             org.gradle.unsafe.isolated-projects=true
 
             # gradle/gradle build contains gradle/gradle-daemon-jvm.properties, which requires daemon to be run with Java 17.
