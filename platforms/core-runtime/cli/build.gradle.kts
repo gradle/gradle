@@ -5,7 +5,7 @@ plugins {
 description = "Utilities for parsing command line arguments"
 
 dependencies {
-    implementation(libs.jspecify)
+    compileOnly(libs.jspecify)
 }
 
 gradleModule {

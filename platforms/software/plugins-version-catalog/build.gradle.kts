@@ -35,7 +35,7 @@ dependencies {
     implementation(projects.platformJvm)
     implementation(projects.stdlibJavaExtensions)
 
-    implementation(libs.jspecify)
+    compileOnly(libs.jspecify)
 
     runtimeOnly(libs.groovy)
 
