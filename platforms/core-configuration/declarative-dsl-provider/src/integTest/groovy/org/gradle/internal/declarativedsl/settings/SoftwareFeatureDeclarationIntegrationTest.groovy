@@ -22,9 +22,7 @@ import org.gradle.api.internal.plugins.software.RegistersSoftwareFeatures
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
-import org.gradle.integtests.fixtures.polyglot.SkipDsl
 import org.gradle.internal.declarativedsl.DeclarativeTestUtils
-import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -36,7 +34,6 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
         file("gradle.properties") << "org.gradle.kotlin.dsl.dcl=true"
     }
 
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "software features are not supported in Groovy yet")
     def 'can declare and configure a custom software feature from included build'() {
         given:
         PluginBuilder pluginBuilder = withSoftwareTypePlugins()
@@ -70,7 +67,6 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
     }
 
     @Requires(UnitTestPreconditions.Jdk23OrEarlier) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "software features are not supported in Groovy yet")
     def "can declare and configure a custom software feature in Kotlin"() {
         PluginBuilder pluginBuilder = withSoftwareTypePlugins()
         pluginBuilder.buildFile << "\n" + """
