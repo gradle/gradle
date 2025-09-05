@@ -25,6 +25,7 @@ repositories {
             includeModule("org.gradle", "gradle-tooling-api")
             includeModule("org.gradle.buildtool.internal", "configuration-cache-report")
             includeModule("org.gradle.buildtool.internal", "gradle-ide-starter")
+            includeModule("org.gradle.buildtool.internal", "gradle-ide-starter-scenarios")
         }
     }
     google {
