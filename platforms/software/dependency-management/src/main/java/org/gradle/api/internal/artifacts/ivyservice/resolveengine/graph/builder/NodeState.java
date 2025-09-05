@@ -24,10 +24,12 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ArtifactSelectionDetailsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
@@ -529,12 +531,12 @@ public class NodeState implements DependencyGraphNode {
             for (VirtualComponentIdentifier owner : owners) {
                 if (owner instanceof ModuleComponentIdentifier) {
                     ModuleComponentIdentifier platformId = (ModuleComponentIdentifier) owner;
-                    final ModuleComponentSelector cs = DefaultModuleComponentSelector.newSelector(platformId.getModuleIdentifier(), platformId.getVersion());
 
                     // There are 2 possibilities here:
                     // 1. the "platform" referenced is a real module, in which case we directly add it to the graph
                     // 2. the "platform" is a virtual, constructed thing, in which case we add virtual edges to the graph
-                    addPlatformEdges(discoveredEdges, platformId, cs, ancestorsStrictVersions, resolutionFilter);
+                    resolvePlatform(platformId);
+                    visitVirtualPlatformEdge(discoveredEdges, platformId, ancestorsStrictVersions, resolutionFilter);
                     visitor.markNotPending(platformId.getModuleIdentifier());
                 }
             }
@@ -542,29 +544,64 @@ public class NodeState implements DependencyGraphNode {
         }
     }
 
-    private void addPlatformEdges(Collection<EdgeState> discoveredEdges, ModuleComponentIdentifier platformComponentIdentifier, ModuleComponentSelector platformSelector, StrictVersionConstraints ancestorsStrictVersions, ExcludeSpec resolutionFilter) {
-        PotentialEdge potentialEdge = PotentialEdge.of(resolveState, this, platformComponentIdentifier, platformSelector, platformComponentIdentifier, ancestorsStrictVersions, resolutionFilter);
-        ComponentGraphResolveState state = potentialEdge.state;
+    /**
+     * Resolve the given platform, creating a lenient platform if the platform does not exist.
+     */
+    private void resolvePlatform(ModuleComponentIdentifier componentId) {
+        ModuleVersionIdentifier toModuleVersionId = DefaultModuleVersionIdentifier.newId(componentId.getModuleIdentifier(), componentId.getVersion());
+        ComponentState componentState = resolveState.getModule(componentId.getModuleIdentifier()).getVersion(toModuleVersionId, componentId);
+        // We need to check if the target version exists. For this, we have to try to get metadata for the aligned version.
+        // If it's there, it means we can align, otherwise, we must NOT add the edge, or resolution would fail
+        ComponentGraphResolveState resolvedComponent = componentState.getResolveStateOrNull();
+
         VirtualPlatformState virtualPlatformState = null;
-        if (state == null || state instanceof LenientPlatformGraphResolveState) {
-            virtualPlatformState = potentialEdge.component.getModule().getPlatformState();
+        if (resolvedComponent == null || resolvedComponent instanceof LenientPlatformGraphResolveState) {
+            virtualPlatformState = componentState.getModule().getPlatformState();
             virtualPlatformState.participatingModule(component.getModule());
         }
-        if (state == null) {
+        if (resolvedComponent == null) {
             // the platform doesn't exist, so we're building a lenient one
-            state = LenientPlatformGraphResolveState.of(resolveState.getIdGenerator(), platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState, this, resolveState);
-            potentialEdge.component.setState(state, ComponentGraphSpecificResolveState.EMPTY_STATE);
+            ComponentGraphResolveState newLenientPlatform = LenientPlatformGraphResolveState.of(resolveState.getIdGenerator(), componentId, toModuleVersionId, virtualPlatformState, this, resolveState);
+            componentState.setState(newLenientPlatform, ComponentGraphSpecificResolveState.EMPTY_STATE);
             // And now let's make sure we do not have another version of that virtual platform missing its metadata
-            potentialEdge.component.getModule().maybeCreateVirtualMetadata(resolveState);
+            componentState.getModule().maybeCreateVirtualMetadata(resolveState);
         }
+    }
+
+    /**
+     * Creates a virtual edge to the given platform component.
+     * The platform may be a real component or a lenient platform component.
+     */
+    private void visitVirtualPlatformEdge(
+        Collection<EdgeState> discoveredEdges,
+        ModuleComponentIdentifier componentId,
+        StrictVersionConstraints ancestorsStrictVersions,
+        ExcludeSpec resolutionFilter
+    ) {
+        boolean forced = hasStrongOpinion();
+        final ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(componentId.getModuleIdentifier(), componentId.getVersion());
+        DependencyMetadata dependencyMetadata = new LenientPlatformDependencyMetadata(resolveState, this, selector, componentId, componentId, forced, true);
+        DependencyState dependencyState = new DependencyState(dependencyMetadata, resolveState.getComponentSelectorConverter());
+        dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
+        EdgeState edge = new EdgeState(this, dependencyState, resolveState);
+        edge.updateTransitiveExcludes(resolutionFilter);
+        edge.computeSelector(ancestorsStrictVersions);
         if (virtualEdges == null) {
             virtualEdges = new ArrayList<>();
         }
-        EdgeState edge = potentialEdge.edge;
         virtualEdges.add(edge);
         edge.markUsed();
         discoveredEdges.add(edge);
         edge.getSelector().use(false);
+    }
+
+    private boolean hasStrongOpinion() {
+        for (EdgeState edgeState : incomingEdges) {
+            if (edgeState.getSelector().hasStrongOpinion()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
