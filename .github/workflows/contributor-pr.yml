@@ -90,6 +90,92 @@ jobs:
           name: binary-compatibility-report
           path: testing/architecture-test/build/reports/binary-compatibility/report.html
 
+  pmd-check:
+    name: "PMD"
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        bucket: ${{ fromJson(needs.build.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: git clone
+        uses: actions/checkout@v5
+      - name: setup java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: actions/download-artifact@v5
+        with:
+          name: build-receipt.properties
+          path: incoming-distributions/build-receipt.properties
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+      - run: ./gradlew pmdMain -DdisableLocalCache=true ${{ needs.build.outputs.sys-prop-args }}
+
+  spotless-check:
+    name: "Spotless"
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        bucket: ${{ fromJson(needs.build.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: git clone
+        uses: actions/checkout@v5
+      - name: setup java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: actions/download-artifact@v5
+        with:
+          name: build-receipt.properties
+          path: incoming-distributions/build-receipt.properties
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+      - run: ./gradlew spotlessCheck -DdisableLocalCache=true ${{ needs.build.outputs.sys-prop-args }}
+
+  rewrite-check:
+    name: "Rewrite"
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        bucket: ${{ fromJson(needs.build.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: git clone
+        uses: actions/checkout@v5
+      - name: setup java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: actions/download-artifact@v5
+        with:
+          name: build-receipt.properties
+          path: incoming-distributions/build-receipt.properties
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+      - run: ./gradlew rewriteDiscover -DdisableLocalCache=true ${{ needs.build.outputs.sys-prop-args }} -Dorg.gradle.jvmargs=-Xmx16G
+      # - run: ./gradlew rewriteDryRun -DdisableLocalCache=true ${{ needs.build.outputs.sys-prop-args }} -Dorg.gradle.jvmargs=-Xmx16G
+        timeout-minutes: 240
+
   unit-test:
     name: "${{ matrix.bucket.name }} (Unit Test)"
     permissions:

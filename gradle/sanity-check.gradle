@@ -1,0 +1,55 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ *
+ * Modifications Copyright OpenSearch Contributors. See
+ * GitHub history for details.
+ */
+
+project.apply plugin: "com.diffplug.spotless"
+project.apply plugin: "org.openrewrite.rewrite"
+allprojects {
+    project.apply plugin: "pmd"
+    pmd {
+        consoleOutput = true
+        ruleSetFiles = files("${rootDir}/gradle/sanity-check.pmd.xml")
+        toolVersion = "7.16.0"
+    }
+}
+rewrite {
+    activeRecipe("SanityCheck")
+    configFile = project.getRootProject().file("${rootDir}/gradle/sanity-check.rewrite.yml")
+    setExportDatatables(true)
+    setFailOnDryRunResults(true)
+    exclusion(
+        "platforms/documentation/**",
+        "platforms/enterprise/enterprise-plugin-performance/src/templates/**",
+        "platforms/jvm/language-groovy/src/testFixtures/resources/**",
+        "testing/performance/src/templates/**"
+    )
+}
+spotless {
+    java {
+        // endWithNewline()
+        // removeWildcardImports() https://docs.openrewrite.org/recipes/java/removeunusedimports
+        // trimTrailingWhitespace()
+        removeUnusedImports()
+        target "**/*.java"
+        targetExclude(
+            "platforms/documentation/**",
+            "platforms/enterprise/enterprise-plugin-performance/src/templates/**",
+            "platforms/jvm/language-groovy/src/testFixtures/resources/**",
+            "testing/performance/src/templates/**",
+        )
+    }
+}
+repositories {
+    mavenCentral()
+}
+dependencies {
+    rewrite("org.openrewrite.recipe:rewrite-static-analysis:2.15.0")
+}
+check.dependsOn(spotlessCheck)
