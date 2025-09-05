@@ -23,6 +23,7 @@ import org.gradle.api.SupportsKotlinAssignmentOverloading
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.logging.ConsoleRenderer
+import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.assignment.plugin.AssignmentComponentRegistrar
 import org.jetbrains.kotlin.assignment.plugin.AssignmentConfigurationKeys
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
@@ -485,6 +486,7 @@ fun CompilerConfiguration.addScriptDefinition(scriptDef: ScriptDefinition) {
 }
 
 
+@OptIn(K1Deprecation::class)
 private
 fun Disposable.kotlinCoreEnvironmentFor(configuration: CompilerConfiguration): KotlinCoreEnvironment {
     org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
@@ -501,6 +503,7 @@ fun Disposable.kotlinCoreEnvironmentFor(configuration: CompilerConfiguration): K
 }
 
 
+@OptIn(K1Deprecation::class)
 internal
 fun disposeKotlinCompilerContext() =
     KotlinCoreEnvironment.disposeApplicationEnvironment()
