@@ -47,8 +47,8 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
     def 'can declare and configure a custom software feature from included build'() {
         given:
         PluginBuilder pluginBuilder = withSoftwareFeaturePlugins()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
         pluginBuilder.prepareToExecute()
-        pluginBuilder.buildFile << pluginBuildScriptForJava
 
         settingsFile() << pluginsFromIncludedBuild
 
@@ -71,8 +71,8 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
         given:
         pluginPortal.start()
         PluginBuilder pluginBuilder = withSoftwareFeaturePlugins()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
         pluginBuilder.publishAs("com", "example", "1.0", pluginPortal, createExecuter()).allowAll()
-        pluginBuilder.buildFile << pluginBuildScriptForJava
 
         settingsFile() << """
             plugins {
@@ -99,7 +99,7 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
         given:
         PluginBuilder pluginBuilder = withSoftwareFeaturePlugins()
         pluginBuilder.publishAs("com", "example", "1.0", mavenHttpRepo, createExecuter()).allowAll()
-        pluginBuilder.buildFile << pluginBuildScriptForJava
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
 
         settingsFile() << """
             pluginManagement {
@@ -130,8 +130,8 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
     def "can declare and configure a custom software feature in Kotlin"() {
         PluginBuilder pluginBuilder = withKotlinSoftwareFeaturePlugins()
         pluginBuilder.applyBuildScriptPlugin("org.jetbrains.kotlin.jvm", "2.1.0")
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForKotlin
         pluginBuilder.prepareToExecute()
-        pluginBuilder.buildFile << pluginBuildScriptForKotlin
 
         settingsFile() << pluginsFromIncludedBuild
 
@@ -153,8 +153,8 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
     def 'can apply multiple software features to a target receiver'() {
         given:
         PluginBuilder pluginBuilder = withMultipleSoftwareFeaturePlugins()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
         pluginBuilder.prepareToExecute()
-        pluginBuilder.buildFile << pluginBuildScriptForJava
 
         settingsFile() << pluginsFromIncludedBuild
 
@@ -193,8 +193,8 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
     def 'can declare and configure a custom software feature with a definition that has public and implementation types'() {
         given:
         PluginBuilder pluginBuilder = withSoftwareFeatureDefinitionThatHasPublicAndImplementationTypes()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
         pluginBuilder.prepareToExecute()
-        pluginBuilder.buildFile << pluginBuildScriptForJava
 
         settingsFile() << pluginsFromIncludedBuild
 
@@ -251,8 +251,8 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
     def 'can declare and configure a custom software feature that binds to a build model'() {
         given:
         PluginBuilder pluginBuilder = withSoftwareFeatureThatBindsToBuildModel()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
         pluginBuilder.prepareToExecute()
-        pluginBuilder.buildFile << pluginBuildScriptForJava
 
         settingsFile() << pluginsFromIncludedBuild
 
@@ -274,8 +274,8 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
     def 'can declare and configure a custom software feature that has a build type with public and implementation class types'() {
         given:
         PluginBuilder pluginBuilder = withSoftwareFeatureBuildModelThatHasPublicAndImplementationTypes()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
         pluginBuilder.prepareToExecute()
-        pluginBuilder.buildFile << pluginBuildScriptForJava
 
         settingsFile() << pluginsFromIncludedBuild
 

@@ -42,7 +42,7 @@ fun <T: Any> getSoftwareFeatureDefinitionInstance(softwareType: SoftwareFeatureI
     }
 
 
-private fun  getBoundSoftwareFeatureDefinitionInstance(softwareFeatureImplementation: BoundSoftwareFeatureImplementation<*, *>, receiverObject: Any): Any =
+private fun getBoundSoftwareFeatureDefinitionInstance(softwareFeatureImplementation: BoundSoftwareFeatureImplementation<*, *>, receiverObject: Any): Any =
     if (receiverObject is ExtensionAware) {
         receiverObject.extensions.getByName(softwareFeatureImplementation.featureName)
     } else throw GradleException(

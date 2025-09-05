@@ -46,6 +46,7 @@ class PluginBuilder {
         new BuildScriptPlugin("java-gradle-plugin"),
         new BuildScriptPlugin("groovy")
     ]
+    final Set<String> additionalBuildScriptContent = []
 
     PluginBuilder(TestFile projectDir) {
         this.projectDir = projectDir
@@ -91,8 +92,13 @@ class PluginBuilder {
         """
     }
 
+    void addBuildScriptContent(String content) {
+        additionalBuildScriptContent << content
+    }
+
     void prepareToExecute() {
-        buildFile << generateManagedBuildScript()
+        buildFile.text = generateManagedBuildScript()
+        additionalBuildScriptContent.each { buildFile << it + "\n" }
         buildFile << getPluginDescriptors(pluginIds)
         projectDir.file('settings.gradle').write("")
     }
