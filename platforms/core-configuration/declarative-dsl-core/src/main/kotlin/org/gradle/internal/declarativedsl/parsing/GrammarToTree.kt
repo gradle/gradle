@@ -590,7 +590,7 @@ class GrammarToTree(
     private
     fun unaryExpression(tree: CachingLightTree, node: LighterASTNode): ElementResult<Expr> =
         elementOrFailure {
-            var operationTokenName: String? = null
+            var operationToken: LighterASTNode? = null
             var argument: LighterASTNode? = null
 
             val children = childrenWithParsingErrorCollection(tree, node)
@@ -600,18 +600,18 @@ class GrammarToTree(
                     .forEach {
                         when (it.tokenType) {
                             OPERATION_REFERENCE -> {
-                                operationTokenName = it.asText
+                                operationToken = it
                             }
                             else -> if (it.isExpression()) argument = it
                         }
                     }
 
                 elementIfNoFailures {
-                    if (operationTokenName == null) collectingFailure(tree.parsingError(node, "Missing operation token in unary expression"))
+                    if (operationToken == null) collectingFailure(tree.parsingError(node, "Missing operation token in unary expression"))
                     if (argument == null) collectingFailure(tree.parsingError(node, "Missing argument in unary expression"))
 
                     elementIfNoFailures {
-                        when (operationTokenName!!.getOperationSymbol()) {
+                        when (operationToken?.getOperationSymbol(tree)) {
                             MINUS -> {
                                 val constantExpression = checkForFailure(constantExpression(tree, argument!!))
                                 elementIfNoFailures {
@@ -626,7 +626,7 @@ class GrammarToTree(
                                     }
                                 }
                             }
-                            else -> tree.parsingError(node, "Unsupported operation in unary expression: $operationTokenName")
+                            else -> tree.parsingError(node, "Unsupported operation in unary expression: $operationToken")
                         }
                     }
                 }
@@ -675,7 +675,7 @@ class GrammarToTree(
                     if (rightArg == null) collectingFailure(tree.parsingError(node, "Missing right hand side in binary expression"))
 
                     elementIfNoFailures {
-                        val operationToken = operation!!.asText.getOperationSymbol()
+                        val operationToken = operation?.getOperationSymbol(tree)
                         when (operationToken) {
                             EQ, KtTokens.PLUSEQ -> {
                                 val lhs = checkForFailure(
