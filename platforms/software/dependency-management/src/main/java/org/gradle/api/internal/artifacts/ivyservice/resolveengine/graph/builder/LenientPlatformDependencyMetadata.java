@@ -61,17 +61,17 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
 
     @Override
     public ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Applying component metadata rules to lenient platform dependencies is not supported.");
     }
 
     @Override
     public ModuleDependencyMetadata withReason(String reason) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Applying component metadata rules to lenient platform dependencies is not supported.");
     }
 
     @Override
     public ModuleDependencyMetadata withEndorseStrictVersions(boolean endorse) {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("Applying component metadata rules to lenient platform dependencies is not supported.");
     }
 
     @Override
@@ -103,13 +103,15 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
     @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
         // TODO: This gets called when performing substitutions.
-        //       Is it okay to ignore this?
+        //       We probably shouldn't ignore this.
         return this;
     }
 
     @Override
     public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
-        throw new UnsupportedOperationException();
+        // TODO: This gets called when performing substitutions.
+        //       We probably shouldn't ignore this.
+        return this;
     }
 
     @Override

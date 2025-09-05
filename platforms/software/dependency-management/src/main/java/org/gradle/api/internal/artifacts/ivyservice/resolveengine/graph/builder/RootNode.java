@@ -64,7 +64,7 @@ class RootNode extends NodeState implements RootGraphNode {
 
     @Override
     public void deselect() {
-        // TODO: Throw an exception. This should never happen.
+        // TODO: Throw an exception. We should never attempt to deselect the root node.
     }
 
     @Override

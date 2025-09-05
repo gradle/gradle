@@ -52,7 +52,7 @@ public class MavenDependencyDescriptor extends ExternalDependencyDescriptor {
 
     @Override
     public String toString() {
-        return "'" + getSelector() + "' (" + scope.getLowerName() + ")";
+        return "dependency: " + getSelector() + ", scope: " + scope + ", optional: " + isOptional();
     }
 
     public MavenScope getScope() {

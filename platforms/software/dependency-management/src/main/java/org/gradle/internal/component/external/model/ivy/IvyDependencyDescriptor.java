@@ -60,7 +60,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
         this.transitive = transitive;
         this.optional = optional;
         this.confs = ImmutableSetMultimap.copyOf(confMappings);
-        this.dependencyArtifacts = ImmutableList.copyOf(artifacts);
+        dependencyArtifacts = ImmutableList.copyOf(artifacts);
         this.excludes = ImmutableList.copyOf(excludes);
     }
 
@@ -70,7 +70,7 @@ public class IvyDependencyDescriptor extends ExternalDependencyDescriptor {
 
     @Override
     public String toString() {
-        return "'" + getSelector() + "' (" + confs + ")";
+        return "dependency: " + getSelector() + ", confs: " + confs;
     }
 
     @Override

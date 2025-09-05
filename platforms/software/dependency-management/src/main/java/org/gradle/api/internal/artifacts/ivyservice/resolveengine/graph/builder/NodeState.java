@@ -567,7 +567,6 @@ public class NodeState implements DependencyGraphNode {
         edge.getSelector().use(false);
     }
 
-
     /**
      * Execute any dependency substitution rules that apply to this dependency.
      *
