@@ -229,18 +229,18 @@ To enable the incubating support for Groovy compilation avoidance, add a link:{j
 ====
 [.multi-language-sample]
 =====
-.settings.gradle
-[source, groovy]
-----
-enableFeaturePreview('GROOVY_COMPILATION_AVOIDANCE')
-----
-=====
-[.multi-language-sample]
-=====
 .settings.gradle.kts
 [source,kotlin]
 ----
 enableFeaturePreview("GROOVY_COMPILATION_AVOIDANCE")
+----
+=====
+[.multi-language-sample]
+=====
+.settings.gradle
+[source, groovy]
+----
+enableFeaturePreview('GROOVY_COMPILATION_AVOIDANCE')
 ----
 =====
 ====

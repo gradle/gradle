@@ -220,8 +220,8 @@ class FingerprintCheckResult(
     ) : ProjectInvalidationReasons {
 
         constructor(invalidation: CheckedFingerprint.InvalidProject) : this(
-            invalidation.buildPath.path,
-            invalidation.projectPath.path,
+            invalidation.buildPath.asString(),
+            invalidation.projectPath.asString(),
             listOf(FingerprintInvalidationReasonImpl(invalidation.reason.toString()))
         )
 

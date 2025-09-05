@@ -106,6 +106,6 @@ class ToolingApiClassLoaderProvider {
 
         def parentClassLoader = new MultiParentClassLoader(toolingApi.classLoader, sharedClassLoader)
 
-        return new VisitableURLClassLoader("test", parentClassLoader, testClassPath.collect { it.toURI().toURL() })
+        return new VisitableURLClassLoader("tapi-test", parentClassLoader, testClassPath.collect { it.toURI().toURL() })
     }
 }

@@ -464,13 +464,13 @@ public class StandardJavadocDocletOptionsTest {
         TestFile optionsFile = temporaryFolder.file("javadoc.options");
         options.write(optionsFile);
 
+        assertEquals("addMultilineStringsOption:[a, b, c], addStringsOption:[a, b, c], addMultilineMultiValueOption:[[a], [b, c]]", options.getExtraOptions());
+
         optionsFile.assertContents(containsNormalizedString("-addMultilineStringsOption 'a'\n" +
             "-addMultilineStringsOption 'b'\n" +
-            "-addMultilineStringsOption 'c'"));
-
-        optionsFile.assertContents(containsNormalizedString("-addStringsOption 'a b c'"));
-
-        optionsFile.assertContents(containsNormalizedString("-addMultilineMultiValueOption \n" +
+            "-addMultilineStringsOption 'c'\n" +
+            "-addStringsOption 'a b c'\n" +
+            "-addMultilineMultiValueOption \n" +
             "'a' \n" +
             "-addMultilineMultiValueOption \n" +
             "'b' 'c' "));

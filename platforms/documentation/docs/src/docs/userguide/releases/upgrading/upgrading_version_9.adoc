@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Gradle, Inc.
+// Copyright (C) 2025 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -40,6 +40,10 @@ The previous step will help you identify potential problems by issuing deprecati
 == Upgrading from 9.1.0 and earlier
 
 === Potential breaking changes
+
+==== Upgrade to Kotlin 2.2.10
+
+The embedded Kotlin has been updated from 2.2.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.10[Kotlin 2.2.10].
 
 ==== Removed incubating method `ObjectFactory#dependencyCollector()`
 
@@ -89,6 +93,17 @@ configurations.named("name").configure {
 ----
 
 === Deprecations
+
+[[project_container_methods]]
+=== Deprecated `Project.container(...)` methods
+
+The link:{javadocPath}/org/gradle/api/Project.html#container-java.lang.Class-[`Project.container(...)`] methods are deprecated and will be removed in Gradle 10. These methods were used to manually create named domain object containers.
+
+A named domain object container can be created with a <<properties_providers.adoc#mutable_managed_properties,managed property>>, which delegates the responsibility to Gradle to instantiate the container properly.
+
+Since Gradle 5.5, `ObjectFactory.domainObjectContainer(...)` has provided equivalent functionality if the plugin cannot use a managed property.
+
+Unlike `Project.container(Class)`, `ObjectFactory.domainObjectContainer(Class)` requires the given type is non-final and elements of the container will be decorated and made extension aware like all other Gradle instantiated objects.
 
 [[dependency_management_rules]]
 ==== RuleSource-based dependency management APIs have been deprecated

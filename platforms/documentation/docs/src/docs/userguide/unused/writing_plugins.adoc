@@ -202,4 +202,4 @@ include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[ta
 include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=apply]"]
 ====
 
-Consult the <<custom_plugins.adoc#custom_plugins,Developing Plugins chapter>> to learn more.
+Consult the <<plugins.adoc#custom_plugins,Developing Plugins chapter>> to learn more.

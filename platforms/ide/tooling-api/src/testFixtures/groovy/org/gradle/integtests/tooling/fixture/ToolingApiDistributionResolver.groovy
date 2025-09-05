@@ -54,19 +54,16 @@ class ToolingApiDistributionResolver {
     ToolingApiDistribution resolve(String toolingApiVersion) {
         if (!distributions[toolingApiVersion]) {
             if (useToolingApiFromTestClasspath(toolingApiVersion)) {
-                distributions[toolingApiVersion] = resolveExternalToolingApiDistribution(toolingApiVersion, new File(System.getProperty("toolingApi.shadedJar")))
+                distributions[toolingApiVersion] = new TestClasspathToolingApiDistribution()
             } else if (CommitDistribution.isCommitDistribution(toolingApiVersion)) {
                 throw new UnsupportedOperationException(String.format("Commit distributions are not supported in this context. Adjust %s code to support them", this.class.canonicalName))
             } else {
-                distributions[toolingApiVersion] = resolveExternalToolingApiDistribution(toolingApiVersion, locateToolingApi(toolingApiVersion))
+                File toolingApiJar = locateToolingApi(toolingApiVersion)
+                File slf4jApi = locateLocalSlf4j()
+                distributions[toolingApiVersion] = new ExternalToolingApiDistribution(toolingApiVersion, [slf4jApi, toolingApiJar])
             }
         }
         distributions[toolingApiVersion]
-    }
-
-    private ExternalToolingApiDistribution resolveExternalToolingApiDistribution(String tapiVersion, File tapiJar) {
-        File slf4jApi = locateLocalSlf4j()
-        return new ExternalToolingApiDistribution(tapiVersion, [slf4jApi, tapiJar])
     }
 
     private File locateToolingApi(String version) {

@@ -95,7 +95,7 @@ class TaskOperationMapper implements BuildOperationMapper<ExecuteTaskBuildOperat
         OperationIdentifier id = buildOperation.getId();
         String taskIdentityPath = buildOperation.getName();
         String displayName = buildOperation.getDisplayName();
-        String taskPath = details.getTask().getIdentityPath().getPath();
+        String taskPath = details.getTask().getIdentityPath().asString();
         Set<InternalOperationDescriptor> dependencies = operationDependenciesResolver.resolveDependencies(details.getTaskNode());
         InternalPluginIdentifier originPlugin = taskOriginTracker.getOriginPlugin(details.getTask().getTaskIdentity());
         DefaultTaskDescriptor descriptor = new DefaultTaskDescriptor(id, taskIdentityPath, taskPath, displayName, parent, dependencies, originPlugin);

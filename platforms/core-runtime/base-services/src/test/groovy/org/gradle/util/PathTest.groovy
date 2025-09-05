@@ -27,14 +27,14 @@ import static org.gradle.util.Path.path
 class PathTest extends Specification {
     def "construction from string"() {
         expect:
-        path(':').getPath() == ':'
+        path(':').asString() == ':'
         path(':').is(Path.ROOT)
-        Path.ROOT.getPath() == ':'
-        path('a').getPath() == 'a'
-        path('a:b:c').getPath() == 'a:b:c'
-        path(':a').getPath() == ':a'
-        path(':a:b').getPath() == ':a:b'
-        path(':a:b:').getPath() == ':a:b'
+        Path.ROOT.asString() == ':'
+        path('a').asString() == 'a'
+        path('a:b:c').asString() == 'a:b:c'
+        path(':a').asString() == ':a'
+        path(':a:b').asString() == ':a:b'
+        path(':a:b:').asString() == ':a:b'
     }
 
     def "equals and hashCode"() {

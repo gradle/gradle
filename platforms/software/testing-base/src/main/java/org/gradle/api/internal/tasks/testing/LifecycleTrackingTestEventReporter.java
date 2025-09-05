@@ -91,7 +91,7 @@ class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements
         delegate.close();
 
         if (state == State.STARTED) {
-            throw new IllegalStateException("completed(...) must be called before close() if started(...) was called");
+            throw new IllegalStateException("succeeded(...)/skipped(...)/failed(...) must be called before close() if started(...) was called");
         }
         state = State.CLOSED;
     }
@@ -105,7 +105,7 @@ class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements
             case CREATED:
                 throw new IllegalStateException("started(...) must be called before any other method");
             case COMPLETED:
-                throw new IllegalStateException("completed(...) has already been called");
+                throw new IllegalStateException("succeeded(...)/skipped(...)/failed(...) has already been called");
             case CLOSED:
                 throw new IllegalStateException("close() has already been called");
             case STARTED:

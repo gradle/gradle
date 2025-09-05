@@ -60,7 +60,7 @@ class ProjectDependencyFactoryTest extends Specification {
         def projectDependency = factory.createFromMap(projectFinder, mapNotation);
 
         then:
-        projectDependency.path == projectState.identity.projectPath.path
+        projectDependency.path == projectState.identity.projectPath.asString()
         projectDependency.targetConfiguration == "compile"
         projectDependency.isTransitive() == expectedTransitive
     }
@@ -76,6 +76,6 @@ class ProjectDependencyFactoryTest extends Specification {
 
     def "can create project dependency from path"() {
         expect:
-        depFactory.create(Path.path(":foo:bar")).path == projectState.identity.projectPath.path
+        depFactory.create(Path.path(":foo:bar")).path == projectState.identity.projectPath.asString()
     }
 }
