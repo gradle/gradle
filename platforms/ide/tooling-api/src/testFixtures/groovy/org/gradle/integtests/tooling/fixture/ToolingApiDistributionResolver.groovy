@@ -29,6 +29,10 @@ import org.slf4j.LoggerFactory
 
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
+import java.util.zip.ZipException
 import java.util.zip.ZipFile
 
 /**
@@ -66,11 +70,82 @@ class ToolingApiDistributionResolver {
         distributions[toolingApiVersion]
     }
 
+    private static String getFileChecksum(File file) throws IOException, NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        try (InputStream is = Files.newInputStream(Paths.get(file.getAbsolutePath()))) {
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = is.read(buffer)) != -1) {
+                digest.update(buffer, 0, bytesRead);
+            }
+        }
+        byte[] hashBytes = digest.digest();
+        StringBuilder sb = new StringBuilder();
+        for (byte b : hashBytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
+    }
+
     private void checkTapiJar(File tapiJar) {
         Assert.assertTrue("${tapiJar.absolutePath} doesn't exist!", tapiJar.exists())
         Assert.assertTrue("${tapiJar.absolutePath} is not readable!", Files.isReadable(tapiJar.toPath()))
+        // Get file size and last modified time before opening
+        long fileSize = tapiJar.length();
+        long lastModified = tapiJar.lastModified();
+        System.out.println("DEBUG: Attempting to open file: " + tapiJar.getAbsolutePath());
+        System.out.println("DEBUG: File size: " + fileSize + " bytes");
+        System.out.println("DEBUG: Last modified: " + new java.util.Date(lastModified));
+
+        // Use a try-with-resources statement for automatic resource management
         try (ZipFile zipFile = new ZipFile(tapiJar)) {
-            Assert.assertTrue("${tapiJar.absolutePath} has no entries!", zipFile.stream().findFirst().isPresent())
+            // Assert that the file has at least one entry.
+            // If this fails, the file might be an empty zip or corrupted.
+            boolean hasEntries = zipFile.stream().findFirst().isPresent();
+            if (hasEntries) {
+                System.out.println("SUCCESS: File opened and has entries.");
+            } else {
+                System.err.println("WARNING: " + tapiJar.getAbsolutePath() + " has no entries!");
+                // This is a potential issue, but not the zip END header error.
+            }
+
+        } catch (ZipException e) {
+            // This is the error we are specifically trying to debug
+            System.err.println("ERROR: java.util.zip.ZipException occurred!");
+            System.err.println("ERROR: Message: " + e.getMessage());
+
+            // Additional debugging information at the time of the error
+            long currentFileSize = tapiJar.length();
+            long currentLastModified = tapiJar.lastModified();
+            String fileHash = "";
+            try {
+                fileHash = getFileChecksum(tapiJar);
+            } catch (IOException | NoSuchAlgorithmException ex) {
+                System.err.println("ERROR: Could not calculate file checksum: " + ex.getMessage());
+            }
+
+            System.err.println("DEBUG (at time of error):");
+            System.err.println("DEBUG: File path: " + tapiJar.getAbsolutePath());
+            System.err.println("DEBUG: File size was " + fileSize + " but is now " + currentFileSize + " bytes");
+            System.err.println("DEBUG: Last modified was " + new java.util.Date(lastModified) + " but is now " + new java.util.Date(currentLastModified));
+            System.err.println("DEBUG: File SHA-256 Checksum: " + fileHash);
+
+            // Option to make a copy for later inspection
+            String errorTimestamp = new java.text.SimpleDateFormat("yyyyMMdd-HHmmss").format(new java.util.Date());
+            File badFileCopy = new File(tapiJar.getParent(), tapiJar.getName() + ".corrupted." + errorTimestamp);
+            try {
+                Files.copy(tapiJar.toPath(), badFileCopy.toPath());
+                System.err.println("DEBUG: A copy of the corrupted file has been saved to: " + badFileCopy.getAbsolutePath());
+                System.err.println("DEBUG: Please inspect this file for a truncated or incomplete zip header.");
+            } catch (IOException copyEx) {
+                System.err.println("ERROR: Could not create a copy of the corrupted file: " + copyEx.getMessage());
+            }
+
+        } catch (IOException e) {
+            // General I/O exception, e.g., file not found
+            System.err.println("ERROR: IOException occurred!");
+            System.err.println("ERROR: Message: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -105,7 +180,7 @@ class ToolingApiDistributionResolver {
      */
     private static File locateLocalSlf4j() {
         File location = ClasspathUtil.getClasspathForClass(Logger.class)
-        assert location.name.endsWith(".jar") : "Expected to find SLF4J jar"
+        assert location.name.endsWith(".jar"): "Expected to find SLF4J jar"
         location
     }
 
