@@ -83,9 +83,6 @@ import java.util.stream.Collectors;
 @ServiceScope(Scope.Project.class)
 public class DependencyGraphBuilder {
 
-    static final Spec<EdgeState> ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC = dependencyState -> dependencyState.getDependencyState().getDependency().isEndorsingStrictVersions();
-    static final Spec<EdgeState> NOT_ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC = dependencyState -> !dependencyState.getDependencyState().getDependency().isEndorsingStrictVersions();
-
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyGraphBuilder.class);
 
     private final ModuleExclusions moduleExclusions;

@@ -19,26 +19,24 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
 
-import java.util.Collections;
-import java.util.Set;
-
+@NullMarked
 public class StrictVersionConstraints {
 
-    public static final StrictVersionConstraints EMPTY = new StrictVersionConstraints() {
+    public static final StrictVersionConstraints EMPTY = new StrictVersionConstraints(ImmutableSet.of()) {
         @Override
-        public final StrictVersionConstraints union(StrictVersionConstraints other) {
+        public StrictVersionConstraints union(StrictVersionConstraints other) {
             return other;
         }
 
         @Override
-        public final StrictVersionConstraints intersect(StrictVersionConstraints other) {
+        public StrictVersionConstraints intersect(StrictVersionConstraints other) {
             return EMPTY;
         }
 
         @Override
-        public StrictVersionConstraints minus(@Nullable StrictVersionConstraints other) {
+        public StrictVersionConstraints minus(StrictVersionConstraints other) {
             return EMPTY;
         }
 
@@ -58,24 +56,20 @@ public class StrictVersionConstraints {
         }
     };
 
-    private final Set<ModuleIdentifier> modules;
+    private final ImmutableSet<ModuleIdentifier> modules;
 
-    private StrictVersionConstraints() {
-        modules = Collections.emptySet();
-    }
-
-    private StrictVersionConstraints(Set<ModuleIdentifier> modules) {
+    private StrictVersionConstraints(ImmutableSet<ModuleIdentifier> modules) {
         this.modules = modules;
     }
 
-    public static StrictVersionConstraints of(Set<ModuleIdentifier> modules) {
+    public static StrictVersionConstraints of(ImmutableSet<ModuleIdentifier> modules) {
         if (modules.isEmpty()) {
             return EMPTY;
         }
         return new StrictVersionConstraints(modules);
     }
 
-    public Set<ModuleIdentifier> getModules() {
+    public ImmutableSet<ModuleIdentifier> getModules() {
         return modules;
     }
 
@@ -119,7 +113,7 @@ public class StrictVersionConstraints {
         return "modules=" + modules;
     }
 
-    public StrictVersionConstraints minus(@Nullable StrictVersionConstraints other) {
+    public StrictVersionConstraints minus(StrictVersionConstraints other) {
         if (other == EMPTY) {
             return this;
         }
