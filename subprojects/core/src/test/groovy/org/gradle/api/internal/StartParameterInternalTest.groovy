@@ -18,13 +18,10 @@ package org.gradle.api.internal
 
 
 import org.gradle.internal.buildoption.Option
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class StartParameterInternalTest extends Specification {
     def 'can query whether configuration caching is requested'() {
-        TestUtil.initDeprecationLogger("because this parameter is deprecated, see StartParameterDeprecations.nagOnIsConfigurationCacheRequested")
-
         def parameter = new StartParameterInternal()
 
         expect:

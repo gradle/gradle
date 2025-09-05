@@ -20,6 +20,7 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -73,7 +74,7 @@ public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInsp
     }
 
     @Override
-    public void beforeComplete() {
+    public void beforeComplete(@Nullable Throwable failure) {
         updateOnFinishBuild();
         synchronized (lock) {
             try {

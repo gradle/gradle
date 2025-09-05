@@ -52,6 +52,7 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Reporting;
@@ -174,7 +175,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private final BroadcastSubscriptions<TestListener> testListenerSubscriptions;
     private final BroadcastSubscriptions<TestOutputListener> testOutputListenerSubscriptions;
     private final TestLoggingContainer testLogging;
-    private final DirectoryProperty binaryResultsDirectory;
     private TestReporter testReporter;
     private boolean ignoreFailures;
     private boolean failFast;
@@ -184,9 +184,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
         testListenerSubscriptions = new BroadcastSubscriptions<TestListener>(TestListener.class);
         testOutputListenerSubscriptions = new BroadcastSubscriptions<TestOutputListener>(TestOutputListener.class);
-        binaryResultsDirectory = getProject().getObjects().directoryProperty();
 
-        reports = getProject().getObjects().newInstance(DefaultTestTaskReports.class, Describables.quoted("Task", getIdentityPath()));
+        reports = getObjectFactory().newInstance(DefaultTestTaskReports.class, Describables.quoted("Task", getIdentityPath()));
         reports.getJunitXml().getRequired().set(true);
         reports.getHtml().getRequired().set(true);
 
@@ -217,6 +216,9 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     @Inject
     protected abstract FileSystemOperations getFileSystemOperations();
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
 
     /**
      * Creates test executer. For internal use only.
@@ -252,9 +254,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @since 4.4
      */
     @OutputDirectory
-    public DirectoryProperty getBinaryResultsDirectory() {
-        return binaryResultsDirectory;
-    }
+    public abstract DirectoryProperty getBinaryResultsDirectory();
 
     /**
      * Registers a test listener with this task. Consider also the following handy methods for quicker hooking into test execution: {@link #beforeTest(Closure)}, {@link

@@ -43,7 +43,7 @@ abstract class AbstractNativeDependenciesIntegrationTest extends AbstractInstall
         run(assembleDevBinaryTask)
 
         then:
-        result.assertTasksExecuted(libDebugTasks, assembleDevBinaryTasks, assembleDevBinaryTask)
+        result.assertTasksScheduled(libDebugTasks, assembleDevBinaryTasks, assembleDevBinaryTask)
     }
 
     def "can define implementation dependencies on each binary"() {
@@ -65,7 +65,7 @@ abstract class AbstractNativeDependenciesIntegrationTest extends AbstractInstall
         run(assembleDevBinaryTask)
 
         then:
-        result.assertTasksExecuted(libDebugTasks, assembleDevBinaryTasks, assembleDevBinaryTask)
+        result.assertTasksScheduled(libDebugTasks, assembleDevBinaryTasks, assembleDevBinaryTask)
     }
 
     /**

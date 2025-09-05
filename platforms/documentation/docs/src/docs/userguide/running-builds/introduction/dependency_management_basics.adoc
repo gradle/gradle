@@ -138,7 +138,5 @@ include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotl
 include::sample[dir="snippets/dependencyManagement/introductionDependencies/groovy",files="build.gradle[tags=dependency-intro-catalog]"]
 ====
 
-To learn more, consult the <<getting_started_dep_man.adoc#dependency-management-in-gradle,Dependency Management chapter>>.
-
 [.text-right]
 **Next Step:** <<task_basics.adoc#task_basics,Learn about Tasks>> >>

@@ -20,11 +20,12 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
+import java.util.Optional;
 
 @ServiceScope(Scope.Global.class)
 public interface ImmutableWorkspaceMetadataStore {
 
-    ImmutableWorkspaceMetadata loadWorkspaceMetadata(File workspace);
+    Optional<ImmutableWorkspaceMetadata> loadWorkspaceMetadata(File workspace);
 
     void storeWorkspaceMetadata(File workspace, ImmutableWorkspaceMetadata metadata);
 

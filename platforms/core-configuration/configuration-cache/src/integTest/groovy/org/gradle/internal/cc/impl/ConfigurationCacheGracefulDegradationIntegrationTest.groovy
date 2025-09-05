@@ -23,6 +23,9 @@ import javax.inject.Inject
 class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     public static final String CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER = "Some tasks or features in this build are not compatible with the configuration cache."
     public static final String CONFIGURATION_CACHE_DISABLED_REASON = "Configuration cache disabled because incompatible"
+    public static final String CONFIGURATION_CACHE_DISABLED_READ_ONLY_REASON = "Configuration cache disabled as cache is in read-only mode."
+    public static final String INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME = "invocation of Task.project at execution time is unsupported with the configuration cache."
+    public static final String INVOCATION_OF_TASK_DEPENDENCIES_AT_EXECUTION_TIME = "invocation of Task.taskDependencies at execution time is unsupported with the configuration cache."
 
     def "a compatible build does not print degradation reasons"() {
         buildFile """
@@ -42,6 +45,68 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def configurationCache = newConfigurationCacheFixture()
+
+    def "should not fail evaluating lazy properties in Groovy in graceful degradation mode"() {
+        def configurationCache = newConfigurationCacheFixture()
+
+        given:
+        // any way to trigger graceful degradation will do
+        enableSourceDependencies()
+
+        buildFile """
+        class TaskWithLazyProperty extends DefaultTask {
+            private String value
+            @Input
+            String getLazyValue() {
+                if (value == null) {
+                    value = project.name
+                }
+                return value
+            }
+        }
+        tasks.register("lazy", TaskWithLazyProperty) { task ->
+           doLast {
+               println("Value is " + task.lazyValue)
+           }
+        }
+        """
+
+        when:
+        configurationCacheRun("lazy")
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+        result.assertTaskExecuted(":lazy")
+    }
+
+    def "should not fail evaluating lazy properties in Kotlin in graceful degradation mode"() {
+        def configurationCache = newConfigurationCacheFixture()
+
+        given:
+        // any way to trigger graceful degradation will do
+        enableSourceDependencies()
+
+        buildKotlinFile """
+        abstract class TaskWithLazyProperty: DefaultTask() {
+            @get:Input
+            val lazyValue: String by lazy {
+                this.project.name
+            }
+        }
+        tasks.register("lazy", TaskWithLazyProperty::class) {
+            doLast {
+                println("Value is " + lazyValue)
+            }
+        }
+        """
+
+        when:
+        configurationCacheRun("lazy")
+
+        then:
+        configurationCache.assertNoConfigurationCache()
+        result.assertTaskExecuted(":lazy")
+    }
 
     def "a task can require CC degradation#mode"() {
         buildFile """
@@ -64,7 +129,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         problems.assertResultConsoleSummaryHasNoProblems(result)
         problems.assertResultHtmlReportHasProblems(result) {
             totalProblemsCount = 1
-            withProblem("Build file 'build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
             withIncompatibleTask(":a", "Project access.")
         }
 
@@ -116,10 +181,9 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         }
 
         where:
-        expectedProblems                                                                                                | _
-        ["Build file 'build.gradle': line 10: invocation of 'Task.project' at execution time is unsupported."]          | _
-        ["Build file 'build.gradle': line 10: invocation of 'Task.project' at execution time is unsupported.",
-         "Build file 'build.gradle': line 14: invocation of 'Task.taskDependencies' at execution time is unsupported."] | _
+        expectedProblems                                                                                    | _
+        [INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME]                                                      | _
+        [INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME, INVOCATION_OF_TASK_DEPENDENCIES_AT_EXECUTION_TIME]   | _
         __
         args                                                          | expectedOutputs                                               | degradationReason
         ["-DaccessTaskProject=true"]                                  | ["Task's project accessed!"]                                  | "Project access."
@@ -127,17 +191,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     }
 
     def "features may cause CC degradation"() {
-        settingsFile """
-            sourceControl {
-                vcsMappings {
-                    withModule("org.test:sourceModule") {
-                        from(GitVersionControlSpec) {
-                            url = "some-repo"
-                        }
-                    }
-                }
-            }
-        """
+        enableSourceDependencies()
 
         when:
         configurationCacheRun("help")
@@ -186,8 +240,8 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         }
         problems.assertResultHtmlReportHasProblems(result) {
             totalProblemsCount = 2
-            withProblem("Build file 'build.gradle': line 11: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file 'build.gradle': line 17: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
+            withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
             withIncompatibleTask(":foo", "Project access.")
         }
     }
@@ -216,7 +270,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         problems.assertResultConsoleSummaryHasNoProblems(result)
         problems.assertResultHtmlReportHasProblems(result) {
             totalProblemsCount = 1
-            withProblem("Build file 'included/build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
             withIncompatibleTask(":included:foo", "Project access.")
         }
 
@@ -282,7 +336,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         problems.assertResultConsoleSummaryHasNoProblems(result)
         problems.assertResultHtmlReportHasProblems(result) {
             totalProblemsCount = 1
-            withProblem("Build file 'included/build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
             withIncompatibleTask(":included:foo", "Project access.")
         }
 
@@ -452,16 +506,57 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
             tasks.register("foo", DegradingTask) { task ->
                 getDegradationController().requireConfigurationCacheDegradation(task, provider { "Because reasons" })
                 doLast {
-                    println("Hello")
+                    println("Hello from " + project.path)
                 }
             }
         """
+        executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. This will fail with an error in Gradle 10. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
 
         when:
         run ":foo"
 
         then:
         executed ":foo"
+
+        and:
+        assertNoConfigurationCacheDegradation()
+    }
+
+    def "degradation works in read-only mode"() {
+        given:
+        buildFile """
+            ${taskWithInjectedDegradationController()}
+
+            tasks.register("foo", DegradingTask) { task ->
+                getDegradationController().requireConfigurationCacheDegradation(task, provider { "Because reasons" })
+                doLast {
+                    println("Hello from " + project.path)
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun(":foo", ENABLE_READ_ONLY_CACHE)
+
+        then:
+        executed ":foo"
+
+        and:
+        // no problems on the console
+        problems.assertResultConsoleSummaryHasNoProblems(result)
+        // but problems should be in CC report
+        problems.assertResultHtmlReportHasProblems(result) {
+            totalProblemsCount = 1
+            withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
+            withIncompatibleTask(":foo", "Because reasons.")
+        }
+
+        and:
+        // expect link to CC report
+        outputContains(CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER)
+        // but disablement reason is not about incompatible tasks, but read-only mode
+        postBuildOutputDoesNotContain(CONFIGURATION_CACHE_DISABLED_REASON)
+        postBuildOutputContains(CONFIGURATION_CACHE_DISABLED_READ_ONLY_REASON)
     }
 
     def "CC report link is present even when no problems were reported"() {
@@ -554,7 +649,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         }
         problems.assertResultHtmlReportHasProblems(result) {
             totalProblemsCount = 1
-            withProblem("Build file 'build.gradle': line 17: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
             withIncompatibleTask(":bar", "Project access.")
             withIncompatibleTask(":foo", "Because reasons.")
         }
@@ -581,5 +676,19 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     private void assertNoConfigurationCacheDegradation() {
         outputDoesNotContain(CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER)
         postBuildOutputDoesNotContain(CONFIGURATION_CACHE_DISABLED_REASON)
+    }
+
+    private void enableSourceDependencies() {
+        settingsFile("""
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:sourceModule") {
+                        from(GitVersionControlSpec) {
+                            url = "some-repo"
+                        }
+                    }
+                }
+            }
+        """)
     }
 }

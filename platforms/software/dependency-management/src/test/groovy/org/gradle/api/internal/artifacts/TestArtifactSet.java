@@ -20,13 +20,13 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.model.CalculatedValue;
@@ -37,13 +37,14 @@ import java.io.File;
 import java.util.Collection;
 
 public class TestArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
+
     public static final String DEFAULT_TEST_VARIANT = "test variant";
-    private final DisplayName variantName;
+    private final String variantName;
     private final ImmutableAttributes variant;
     private final ImmutableSet<ResolvedArtifact> artifacts;
 
     private TestArtifactSet(String variantName, ImmutableAttributes variant, Collection<? extends ResolvedArtifact> artifacts) {
-        this.variantName = Describables.of(variantName);
+        this.variantName = variantName;
         this.variant = variant;
         this.artifacts = ImmutableSet.copyOf(artifacts);
     }
@@ -68,7 +69,9 @@ public class TestArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet
     @Override
     public void visit(ArtifactVisitor visitor) {
         for (final ResolvedArtifact artifact : artifacts) {
-            visitor.visitArtifact(variantName, variant, ImmutableCapabilities.EMPTY, new Adapter(artifact));
+            ComponentIdentifier componentId = artifact.getId().getComponentIdentifier();
+            NamedVariantIdentifier id = new NamedVariantIdentifier(componentId, variantName);
+            visitor.visitArtifact(Describables.of(variantName), id, variant, ImmutableCapabilities.EMPTY, new Adapter(artifact));
         }
     }
 
@@ -133,4 +136,5 @@ public class TestArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet
             return artifact;
         }
     }
+
 }

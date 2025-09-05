@@ -57,7 +57,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         run "visualStudio"
 
         then:
-        result.assertTasksExecuted(":visualStudio", ":appVisualStudioSolution", projectTasks)
+        result.assertTasksScheduled(":visualStudio", ":appVisualStudioSolution", projectTasks)
 
         and:
         def contexts = VariantContext.from(dimensions("buildType", ['debug', 'release']), dimensions("architecture", ['x86', 'x86-64']))
@@ -82,7 +82,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         run "visualStudio"
 
         then:
-        result.assertTasksExecuted(":visualStudio", ":appVisualStudioSolution", projectTasks)
+        result.assertTasksScheduled(":visualStudio", ":appVisualStudioSolution", projectTasks)
 
         and:
         projectFile.assertHasComponentSources(componentUnderTest, "src/main")
@@ -124,7 +124,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
 
         then:
         resultDebug.size() == 1
-        resultDebug[0].assertTasksExecuted(getTasksToBuildFromIde("debugX86"))
+        resultDebug[0].assertTasksScheduled(getTasksToBuildFromIde("debugX86"))
         file(getBuildFile(VariantContext.of(buildType: 'debug', architecture: 'x86'))).assertIsFile()
 
         when:
@@ -137,7 +137,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
 
         then:
         resultRelease.size() == 1
-        resultRelease[0].assertTasksExecuted(getTasksToBuildFromIde("releaseX86-64"))
+        resultRelease[0].assertTasksScheduled(getTasksToBuildFromIde("releaseX86-64"))
         file(getBuildFile(VariantContext.of(buildType: 'release', architecture: 'x86-64'))).assertIsFile()
     }
 
@@ -271,7 +271,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         succeeds "visualStudio"
 
         then:
-        result.assertTasksExecuted(":visualStudio", ":appVisualStudioSolution", projectTasks)
+        result.assertTasksScheduled(":visualStudio", ":appVisualStudioSolution", projectTasks)
 
         and:
         projectFile.projectConfigurations.size() == 2
@@ -310,7 +310,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         succeeds "visualStudio"
 
         then:
-        result.assertTasksExecuted(":visualStudio", ":appVisualStudioSolution", projectTasks)
+        result.assertTasksScheduled(":visualStudio", ":appVisualStudioSolution", projectTasks)
 
         and:
         projectFile.projectConfigurations.size() == 2
@@ -329,7 +329,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         succeeds "visualStudio"
 
         then:
-        result.assertTasksExecuted(":visualStudio", ":appVisualStudioSolution", projectTasks)
+        result.assertTasksScheduled(":visualStudio", ":appVisualStudioSolution", projectTasks)
 
         and:
         projectFile.projectConfigurations.size() == 2

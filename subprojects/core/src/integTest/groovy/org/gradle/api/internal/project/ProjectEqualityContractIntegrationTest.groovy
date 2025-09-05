@@ -30,10 +30,7 @@ import org.gradle.internal.operations.OperationFinishEvent
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 
-@Requires(IntegTestPreconditions.NotIsolatedProjects) // IP mode introduces different equality model because of projects wrapping
 class ProjectEqualityContractIntegrationTest extends AbstractIntegrationSpec {
 
     def 'Symmetrical equality between raw and wrapped projects'() {

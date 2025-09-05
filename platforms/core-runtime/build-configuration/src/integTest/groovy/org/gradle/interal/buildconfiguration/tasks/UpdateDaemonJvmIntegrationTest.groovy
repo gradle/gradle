@@ -84,7 +84,6 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         then:
         assertJvmCriteria(Jvm.current().javaVersion)
         assertToolchainDownloadUrlsProperties(fromConstantUrl())
-        outputContains("Daemon JVM criteria is an incubating feature.")
     }
 
     def "can configure updateDaemonJvm to not generate download URLs"() {

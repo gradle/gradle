@@ -33,14 +33,12 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import javax.inject.Inject;
 
 public abstract class DefaultCppApplication extends DefaultCppComponent implements CppApplication, PublicationAwareComponent {
-    private final Property<CppExecutable> developmentBinary;
     private final MainExecutableVariant mainVariant;
     private final DefaultComponentDependencies dependencies;
 
     @Inject
     public DefaultCppApplication(String name) {
         super(name);
-        this.developmentBinary = getObjectFactory().property(CppExecutable.class);
         this.dependencies = getObjectFactory().newInstance(DefaultComponentDependencies.class, getNames().withSuffix("implementation"));
         this.mainVariant = new MainExecutableVariant(getObjectFactory());
     }
@@ -76,7 +74,5 @@ public abstract class DefaultCppApplication extends DefaultCppComponent implemen
     }
 
     @Override
-    public Property<CppExecutable> getDevelopmentBinary() {
-        return developmentBinary;
-    }
+    public abstract Property<CppExecutable> getDevelopmentBinary();
 }

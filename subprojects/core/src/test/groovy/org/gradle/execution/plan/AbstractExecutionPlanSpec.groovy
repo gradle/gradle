@@ -21,7 +21,6 @@ import org.gradle.api.Task
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
@@ -67,16 +66,19 @@ abstract class AbstractExecutionPlanSpec extends Specification {
     protected ProjectInternal project(ProjectInternal parent = null, String name = "root") {
         def projectState = Mock(ProjectState)
 
+        def identity
+        if (parent == null) {
+            identity = ProjectIdentity.forRootProject(Path.ROOT, name)
+        } else {
+            identity = ProjectIdentity.forSubproject(
+                parent.projectIdentity.buildPath,
+                parent.projectIdentity.projectPath.child(name)
+            )
+        }
+
         def project = Mock(ProjectInternal, name: name)
-        _ * project.identityPath >> (parent == null ? Path.ROOT : Path.ROOT.child(name))
-        _ * project.projectPath(_) >> { taskName -> Path.ROOT.child(taskName) }
-        _ * project.identityPath(_) >> { taskName -> (parent == null ? Path.ROOT : Path.ROOT.child(name)).child(taskName) }
-        _ * project.projectIdentity >> new ProjectIdentity(
-            DefaultBuildIdentifier.ROOT,
-            project.identityPath,
-            project.identityPath,
-            name
-        )
+        _ * project.identityPath >> identity.buildTreePath
+        _ * project.projectIdentity >> identity
         _ * project.gradle >> thisBuild
         _ * project.owner >> projectState
         _ * project.services >> backing.services

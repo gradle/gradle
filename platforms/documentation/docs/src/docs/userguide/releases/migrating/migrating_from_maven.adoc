@@ -102,7 +102,7 @@ The rest of this chapter looks in more detail at specific aspects of migrating a
 == Understanding the build lifecycle
 
 Maven builds are based around the concept of https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html[_build lifecycles_] that consist of a set of fixed phases.
-This can be a challenge for users migrating to Gradle because the build lifecycle is <<build_lifecycle#build_lifecycle,a new concept>>.
+This can be a challenge for users migrating to Gradle because the build lifecycle is <<build_lifecycle_intermediate.adoc#build_lifecycle,a new concept>>.
 Although it's important to understand how Gradle builds fit into the structure of *initialization*, *configuration*, and *execution* phases, Gradle provides a helper feature that can mimic Maven's phases: <<organizing_tasks.adoc#sec:lifecycle_tasks,_lifecycle tasks_>>.
 
 This feature allow you to define your own "lifecycles" by creating no-action tasks that simply depend on the tasks you're interested in.
@@ -449,7 +449,7 @@ Let's say you have different deployment settings depending on the environment: l
 To add profile-like behavior, you first create build scripts for each environment in the project root: `profile-default.gradle`, `profile-test.gradle`, and `profile-prod.gradle`.
 You can then conditionally apply one of those profile scripts based on a <<build_environment.adoc#sec:project_properties,project property>> of your own choice.
 
-The following example demonstrates the basic technique using a project property called `buildProfile` and profile scripts that simply initialize an <<writing_build_scripts#sec:extra_properties,extra project property>> called `message`:
+The following example demonstrates the basic technique using a project property called `buildProfile` and profile scripts that simply initialize an <<writing_build_scripts_intermediate.adoc#sec:extra_properties,extra project property>> called `message`:
 
 .Mimicking the behavior of Maven profiles in Gradle
 ====

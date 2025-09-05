@@ -111,7 +111,7 @@ public class IsolatedProjectsSafeGradleProjectBuilder implements GradleProjectBu
             .setDescription(isolatedModel.getDescription())
             .setBuildDirectory(isolatedModel.getBuildDirectory())
             .setProjectDirectory(isolatedModel.getProjectDirectory())
-            .setBuildTreePath(project.getIdentityPath().getPath());
+            .setBuildTreePath(project.getIdentityPath().asString());
 
         model.getBuildScript().setSourceFile(isolatedModel.getBuildScript().getSourceFile());
 

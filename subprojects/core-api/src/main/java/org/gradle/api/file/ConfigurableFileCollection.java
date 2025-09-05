@@ -18,7 +18,6 @@ package org.gradle.api.file;
 import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
 import org.gradle.api.model.ManagedType;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.api.provider.SupportsConvention;
 import org.jspecify.annotations.Nullable;
@@ -28,9 +27,10 @@ import java.util.Set;
 /**
  * <p>A {@code ConfigurableFileCollection} is a mutable {@code FileCollection}.</p>
  *
- * <p>You can obtain an instance of {@code ConfigurableFileCollection} by calling {@link org.gradle.api.Project#files(Object...)} or {@link ObjectFactory#fileCollection()}.</p>
- *
  * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.</p>
+ *
+ * @see ManagedType Create an instance of this as a managed property (preferred).
+ * @see org.gradle.api.model.ObjectFactory#fileCollection() Create an instance of this manually.
  */
 @ManagedType
 @SupportsKotlinAssignmentOverloading

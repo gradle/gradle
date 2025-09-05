@@ -25,7 +25,6 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
@@ -261,7 +260,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         }
 
         private static TestedGradleDistribution underDevelopmentDistribution() {
-            if (GradleContextualExecuter.embedded) {
+            if (IntegrationTestBuildContext.embedded) {
                 TestedGradleDistribution.EMBEDDED_UNDER_DEVELOPMENT
             } else {
                 TestedGradleDistribution.UNDER_DEVELOPMENT

@@ -78,4 +78,47 @@ class DaemonRegistryUnavailableExpirationStrategyTest extends Specification {
         expirationCheck.status == DO_NOT_EXPIRE
         expirationCheck.reason == null
     }
+
+    def "daemon expiration result does not execute expiration check when daemon registry has not changed"() {
+        given:
+        Address address = new Address() {
+            String getDisplayName() {
+                return "DAEMON_ADDRESS"
+            }
+        }
+        DaemonRegistryUnavailableExpirationStrategy expirationStrategy = new DaemonRegistryUnavailableExpirationStrategy(daemon)
+        DaemonContext daemonContext = new DefaultDaemonContext("user", null, JavaLanguageVersion.current(), null, daemonDir, 51234L, 10000, [] as List<String>, false, NativeServicesMode.ENABLED, DaemonPriority.NORMAL)
+        DaemonDir daemonDirObject = new DaemonDir(daemonDir)
+        DaemonRegistry registry = new EmbeddedDaemonRegistry()
+        daemonDirObject.getRegistry().createNewFile()
+        registry.store(new DaemonInfo(address, daemonContext, "password".bytes, Idle))
+
+        when:
+        DaemonExpirationResult expirationCheck = expirationStrategy.checkExpiration()
+
+        then:
+        1 * daemon.getDaemonContext() >> { daemonContext }
+        1 * daemon.getDaemonRegistry() >> { registry }
+        expirationCheck.status == DO_NOT_EXPIRE
+        expirationCheck.reason == null
+
+        when:
+        expirationCheck = expirationStrategy.checkExpiration()
+
+        then:
+        1 * daemon.getDaemonContext() >> { daemonContext }
+        0 * daemon.getDaemonRegistry()
+        expirationCheck.status == DO_NOT_EXPIRE
+
+        when:
+        daemonDirObject.getRegistry().setLastModified(System.currentTimeMillis())
+        expirationCheck = expirationStrategy.checkExpiration()
+
+        then:
+        1 * daemon.getDaemonContext() >> { daemonContext }
+        1 * daemon.getDaemonRegistry() >> { registry }
+        expirationCheck.status == DO_NOT_EXPIRE
+        expirationCheck.reason == null
+
+    }
 }

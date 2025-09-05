@@ -74,7 +74,6 @@ import static org.gradle.performance.fixture.PerformanceTestScenarioDefinition.P
 enum ScenarioType {
     PER_COMMIT,
     PER_DAY,
-    PER_WEEK
 }
 
 @CompileStatic

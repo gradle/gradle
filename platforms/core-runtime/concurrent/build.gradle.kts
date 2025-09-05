@@ -34,3 +34,7 @@ dependencies {
 
     implementation(libs.slf4jApi)
 }
+
+errorprone {
+    nullawayEnabled = true
+}

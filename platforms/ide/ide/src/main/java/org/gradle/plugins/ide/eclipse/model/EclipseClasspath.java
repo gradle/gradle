@@ -163,17 +163,10 @@ public abstract class EclipseClasspath {
 
     private final org.gradle.api.Project project;
 
-    private final Property<Boolean> containsTestFixtures;
-
-    private final SetProperty<SourceSet> testSourceSets;
-    private final SetProperty<Configuration> testConfigurations;
-
     @Inject
     public EclipseClasspath(org.gradle.api.Project project) {
         this.project = project;
-        this.containsTestFixtures = project.getObjects().property(Boolean.class).convention(false);
-        this.testSourceSets = project.getObjects().setProperty(SourceSet.class);
-        this.testConfigurations = project.getObjects().setProperty(Configuration.class);
+        getContainsTestFixtures().convention(false);
     }
 
     /**
@@ -383,9 +376,7 @@ public abstract class EclipseClasspath {
      *
      * @since 6.8
      */
-    public Property<Boolean> getContainsTestFixtures() {
-        return containsTestFixtures;
-    }
+    public abstract Property<Boolean> getContainsTestFixtures();
 
     /**
      * Returns the test source sets.
@@ -401,9 +392,7 @@ public abstract class EclipseClasspath {
      * @since 7.5
      */
     @Incubating
-    public SetProperty<SourceSet> getTestSourceSets() {
-        return testSourceSets;
-    }
+    public abstract SetProperty<SourceSet> getTestSourceSets();
 
     /**
      * Returns the test configurations.
@@ -412,7 +401,7 @@ public abstract class EclipseClasspath {
      * <p>
      * The default value contains the following elements:
      * <ul>
-     *     <li>The compile and runtime configurations of the {@link #testSourceSets}, including the jvm-test-suite source sets</li>
+     *     <li>The compile and runtime configurations of the {@link #getTestSourceSets()}, including the jvm-test-suite source sets</li>
      *     <li>Other configurations with names containing the 'test' substring (case ignored)</li>
      * </ul>
      * <p>
@@ -421,7 +410,5 @@ public abstract class EclipseClasspath {
      * @since 7.5
      */
     @Incubating
-    public SetProperty<Configuration> getTestConfigurations() {
-        return testConfigurations;
-    }
+    public abstract SetProperty<Configuration> getTestConfigurations();
 }

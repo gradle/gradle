@@ -18,6 +18,7 @@ package org.gradle.internal.build;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.DisplayName;
@@ -41,8 +42,12 @@ public interface BuildState {
 
     /**
      * Returns the identifier for this build. The identifier is fixed for the lifetime of the build.
+     * <p>
+     * Prefer {@link #getIdentityPath()}.
      */
-    BuildIdentifier getBuildIdentifier();
+    default BuildIdentifier getBuildIdentifier() {
+        return new DefaultBuildIdentifier(getIdentityPath());
+    }
 
     /**
      * Returns an identifying path for this build in the build tree. This path is fixed for the lifetime of the build.
@@ -63,13 +68,6 @@ public interface BuildState {
      * Should this build be imported into an IDE? Some implicit builds, such as source dependency builds, are not intended to be imported into the IDE or editable by users.
      */
     boolean isImportableBuild();
-
-    /**
-     * Calculates the identity path for a project in this build.
-     */
-    default Path calculateIdentityPathForProject(Path projectPath) {
-        return getIdentityPath().append(projectPath);
-    }
 
     /**
      * Loads the projects for this build so that {@link #getProjects()} can be used, if not already done.

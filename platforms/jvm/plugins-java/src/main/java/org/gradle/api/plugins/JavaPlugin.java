@@ -262,14 +262,16 @@ public abstract class JavaPlugin implements Plugin<Project> {
         configurePublishing(project.getPlugins(), project.getExtensions(), javaComponent.getMainFeature().getSourceSet());
 
         // Set the 'java' component as the project's default.
-        Configuration defaultConfiguration = project.getConfigurations().getByName(Dependency.DEFAULT_CONFIGURATION);
-        defaultConfiguration.extendsFrom(javaComponent.getMainFeature().getRuntimeElementsConfiguration());
+        project.getConfigurations().named(Dependency.DEFAULT_CONFIGURATION).configure(conf -> {
+            conf.extendsFrom(javaComponent.getMainFeature().getRuntimeElementsConfiguration().get());
+        });
         ((SoftwareComponentContainerInternal) project.getComponents()).getMainComponent().convention(javaComponent);
 
         // Build the main jar when running `assemble`.
         DeprecationLogger.whileDisabled(() -> {
             project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).getArtifacts()
-                .add(javaComponent.getMainFeature().getRuntimeElementsConfiguration().getArtifacts().iterator().next());
+                .addAllLater(javaComponent.getMainFeature().getRuntimeElementsConfiguration().map(conf -> conf.getArtifacts())
+            );
         });
 
         configureTestTaskOrdering(project.getTasks());

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.extensibility
 
+import org.gradle.initialization.properties.DefaultGradleProperties
+
 class DefaultExtraPropertiesExtensionTest extends ExtraPropertiesExtensionTest<DefaultExtraPropertiesExtension> {
 
     DefaultExtraPropertiesExtension createExtension() {
@@ -26,7 +28,7 @@ class DefaultExtraPropertiesExtensionTest extends ExtraPropertiesExtensionTest<D
 
         DefaultExtraPropertiesExtension createExtension() {
             new DefaultExtraPropertiesExtension().tap {
-                it.setGradleProperties([:])
+                it.setGradleProperties(new DefaultGradleProperties([:]))
             }
         }
     }

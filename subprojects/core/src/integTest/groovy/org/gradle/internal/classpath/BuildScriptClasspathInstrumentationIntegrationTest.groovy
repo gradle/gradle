@@ -751,7 +751,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
     }
 
     Set<TestFile> findOutputs(String outputEndsWith, File cacheDir) {
-        return Files.find(cacheDir.toPath(), 4, (path, attributes) -> normaliseFileSeparators(path.toString()).endsWith(outputEndsWith))
+        return Files.find(cacheDir.toPath(), 5, (path, attributes) -> normaliseFileSeparators(path.toString()).endsWith(outputEndsWith))
             .map { new TestFile(it.toFile()) }
             .collect(Collectors.toSet())
     }

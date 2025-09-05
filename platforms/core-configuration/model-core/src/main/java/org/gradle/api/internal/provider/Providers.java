@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableSupplier;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
@@ -27,6 +28,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 public class Providers {
     private static final NoValueProvider<Object> NULL_PROVIDER = new NoValueProvider<>(ValueSupplier.Value.MISSING);
@@ -91,6 +93,69 @@ public class Providers {
 
     public static <T> ProviderInternal<T> changing(SerializableCallable<T> value) {
         return new ChangingProvider<>(value);
+    }
+
+    public static <T> ProviderInternal<T> memoizing(ProviderInternal<T> provider) {
+        return memoizing(provider, null);
+    }
+
+    public static <T> ProviderInternal<T> memoizing(ProviderInternal<T> provider, @Nullable SerializableSupplier<DisplayName> displayName) {
+        return new MemoizingProvider<>(provider, displayName);
+    }
+
+    private static class MemoizingProvider<T> extends AbstractMinimalProvider<T> {
+        private final ProviderInternal<T> provider;
+        @Nullable
+        private Value<? extends T> value;
+        @Nullable
+        private final Supplier<DisplayName> displayName;
+
+        public MemoizingProvider(ProviderInternal<T> provider, @Nullable SerializableSupplier<DisplayName> displayName) {
+            this.provider = provider;
+            this.displayName = displayName;
+        }
+
+        @Override
+        protected @Nullable DisplayName getDeclaredDisplayName() {
+            return displayName != null ? displayName.get() : null;
+        }
+
+        @Override
+        public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+            if (value != null) {
+                return ExecutionTimeValue.value(value);
+            }
+            ExecutionTimeValue<? extends T> executionTimeValue = provider.calculateExecutionTimeValue();
+            if (executionTimeValue.isMissing()) {
+                return executionTimeValue;
+            }
+            if (executionTimeValue.hasFixedValue()) {
+                value = executionTimeValue.toValue();
+                return ExecutionTimeValue.value(value);
+            }
+            return ExecutionTimeValue.changingValue(this);
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            if (value != null) {
+                return ValueProducer.noProducer();
+            }
+            return provider.getProducer();
+        }
+
+        @Override
+        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+            if (value == null) {
+                value = provider.calculateValue(consumer);
+            }
+            return value;
+        }
+
+        @Override
+        public @Nullable Class<T> getType() {
+            return provider.getType();
+        }
     }
 
     public static class FixedValueProvider<T> extends AbstractProviderWithValue<T> {

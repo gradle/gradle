@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures
 
+
 import org.gradle.internal.SystemProperties
 
 import java.nio.file.Files
@@ -60,6 +61,7 @@ class AutoTestedSamplesUtil {
             sample = sample.replace('&lt;', '<')
             sample = sample.replace('&gt;', '>')
             sample = sample.replace('&amp;', '&')
+            sample = sample.replace('&commat;', '@')
             sample = LITERAL_PATTERN.matcher(sample).replaceAll('$1')
             try {
                 runner.call(file, sample, tagSuffix)

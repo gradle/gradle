@@ -15,16 +15,23 @@
 
 package gradlebuild.integrationtests.model
 
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
-import java.io.File
-import java.util.SortedSet
 
+abstract class GradleDistribution {
 
-open class GradleDistribution(private val gradleHomeDir: FileCollection) {
+    @get:Internal
+    abstract val homeDir: DirectoryProperty
+
+    @get:Input
+    val name: Provider<String> = homeDir.asFile.map { it.parentFile.parentFile.name }
 
     /**
      * Make sure this stays type FileCollection (lazy) to avoid losing dependency information.
@@ -32,7 +39,7 @@ open class GradleDistribution(private val gradleHomeDir: FileCollection) {
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     val staticContent: FileCollection
-        get() = gradleHomeDir.asFileTree.matching {
+        get() = homeDir.asFileTree.matching {
             exclude("lib/**")
             exclude("src/**")
             exclude("docs/**")
@@ -41,19 +48,21 @@ open class GradleDistribution(private val gradleHomeDir: FileCollection) {
         }
 
     @get:Classpath
-    val coreJars: SortedSet<File>
-        get() = filesIn("lib/*.jar")
+    val coreJars: FileCollection
+        get() = homeDir.asFileTree.matching {
+            include("lib/*.jar")
+        }
 
     @get:Classpath
-    val agentJars: SortedSet<File>
-        get() = filesIn("lib/agents/*.jar")
+    val agentJars: FileCollection
+        get() = homeDir.asFileTree.matching {
+            include("lib/agents/*.jar")
+        }
 
     @get:Classpath
-    val pluginJars: SortedSet<File>
-        get() = filesIn("lib/plugins/*.jar")
+    val pluginJars: FileCollection
+        get() = homeDir.asFileTree.matching {
+            include("lib/plugins/*.jar")
+        }
 
-    private
-    fun filesIn(glob: String) = gradleHomeDir.asFileTree.matching {
-        include(glob)
-    }.files.toSortedSet()
 }

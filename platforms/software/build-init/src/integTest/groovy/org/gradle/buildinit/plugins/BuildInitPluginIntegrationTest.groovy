@@ -134,7 +134,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         initFailsWith targetScriptDsl as BuildInitDsl
 
         then:
-        result.assertTasksExecuted(":init")
+        result.assertTasksScheduled(":init")
         result.assertHasErrorOutput("Aborting build initialization due to existing files in the project directory: '${existingDslFixture.rootDir.toPath()}'.")
 
         and:
@@ -157,7 +157,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         initFailsWith targetScriptDsl as BuildInitDsl
 
         then:
-        result.assertTasksExecuted(":init")
+        result.assertTasksScheduled(":init")
         result.assertHasErrorOutput("Aborting build initialization due to existing files in the project directory: '${existingDslFixture.rootDir.toPath()}'.")
 
         and:
@@ -180,7 +180,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         initFailsWith targetScriptDsl as BuildInitDsl
 
         then:
-        result.assertTasksExecuted(":init")
+        result.assertTasksScheduled(":init")
         result.assertHasErrorOutput("Aborting build initialization due to existing files in the project directory: '${existingDslFixture.rootDir.toPath()}'.")
 
         and:

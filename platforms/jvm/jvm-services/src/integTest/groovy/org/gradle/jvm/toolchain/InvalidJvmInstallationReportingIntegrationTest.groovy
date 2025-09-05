@@ -59,7 +59,7 @@ class InvalidJvmInstallationReportingIntegrationTest extends AbstractIntegration
         when: "running two consecutive builds in a daemon"
         def results = (0..1).collect {
             executer
-                .withArgument("-Porg.gradle.java.installations.paths=$invalidJdkHome1.canonicalPath,$invalidJdkHome2.canonicalPath,$existingJdk.javaHome.absolutePath")
+                .withArgument("-Dorg.gradle.java.installations.paths=$invalidJdkHome1.canonicalPath,$invalidJdkHome2.canonicalPath,$existingJdk.javaHome.absolutePath")
                 .withArgument("--info")
                 .requireIsolatedDaemons()
                 .withStackTraceChecksDisabled() // expect the info logs from JVM metadata detector to contain the stack trace

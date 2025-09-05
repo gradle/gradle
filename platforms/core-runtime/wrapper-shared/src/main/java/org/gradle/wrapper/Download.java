@@ -127,6 +127,16 @@ public class Download implements IDownload {
             conn.setRequestProperty("User-Agent", userAgentValue);
             conn.setConnectTimeout(networkTimeout);
             conn.setReadTimeout(networkTimeout);
+            
+            // Check HTTP response code before downloading
+            if (conn instanceof HttpURLConnection) {
+                HttpURLConnection httpConn = (HttpURLConnection) conn;
+                int responseCode = httpConn.getResponseCode();
+                if (responseCode != HttpURLConnection.HTTP_OK) {
+                    throw new IOException("Server returned HTTP response code: " + responseCode + " for URL: " + safeUrl);
+                }
+            }
+            
             in = conn.getInputStream();
             byte[] buffer = new byte[BUFFER_SIZE];
             int numRead;

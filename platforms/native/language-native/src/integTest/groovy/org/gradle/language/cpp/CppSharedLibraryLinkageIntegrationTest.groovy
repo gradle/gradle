@@ -66,7 +66,7 @@ class CppSharedLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest 
         succeeds('assemble')
 
         then:
-        result.assertTasksExecuted(':compileDebugCpp', ':linkDebug', ':assemble')
+        result.assertTasksScheduled(':compileDebugCpp', ':linkDebug', ':assemble')
         sharedLibrary('build/lib/main/debug/foo').assertExists()
     }
 }

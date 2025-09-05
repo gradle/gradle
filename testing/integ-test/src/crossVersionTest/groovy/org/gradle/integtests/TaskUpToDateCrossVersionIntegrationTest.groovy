@@ -31,10 +31,10 @@ class Person { }
 """
 
         expect:
-        version previous withTasks 'compileJava' run() assertTaskNotSkipped(":compileJava")
+        version previous withTasks 'compileJava' run() assertTaskExecuted(":compileJava")
         version previous withTasks 'compileJava' run() assertTaskSkipped(":compileJava")
 
-        version current withTasks 'compileJava' run() assertTaskNotSkipped(":compileJava")
+        version current withTasks 'compileJava' run() assertTaskExecuted(":compileJava")
         version current withTasks 'compileJava' run() assertTaskSkipped(":compileJava")
     }
 }

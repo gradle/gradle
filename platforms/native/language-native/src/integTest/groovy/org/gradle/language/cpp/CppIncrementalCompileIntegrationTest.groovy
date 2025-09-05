@@ -39,7 +39,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(tasks.debug.allToInstall, ":assemble")
+        result.assertTasksScheduled(tasks.debug.allToInstall, ":assemble")
         result.assertTasksSkipped(tasks.debug.allToInstall, ":assemble")
 
         executable("build/exe/main/debug/app").assertExists()
@@ -47,7 +47,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
 
         and:
         succeeds "assembleRelease"
-        result.assertTasksExecuted(tasks.release.allToInstall, tasks.release.extract, ":assembleRelease")
+        result.assertTasksScheduled(tasks.release.allToInstall, tasks.release.extract, ":assembleRelease")
         result.assertTasksSkipped( tasks.release.allToInstall, tasks.release.extract, ":assembleRelease")
 
         executable("build/exe/main/release/app").assertExists()
@@ -71,13 +71,13 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
 
         expect:
         succeeds "assemble"
-        result.assertTasksExecuted(tasks.debug.allToLink, ":assemble")
+        result.assertTasksScheduled(tasks.debug.allToLink, ":assemble")
         result.assertTasksSkipped(tasks.debug.allToLink, ":assemble")
 
         sharedLibrary("build/lib/main/debug/hello").assertExists()
 
         succeeds "assembleRelease"
-        result.assertTasksExecuted(tasks.release.allToLink, tasks.release.extract, ":assembleRelease")
+        result.assertTasksScheduled(tasks.release.allToLink, tasks.release.extract, ":assembleRelease")
         result.assertTasksSkipped(tasks.release.allToLink, tasks.release.extract, ":assembleRelease")
 
         sharedLibrary("build/lib/main/release/hello").assertExists()

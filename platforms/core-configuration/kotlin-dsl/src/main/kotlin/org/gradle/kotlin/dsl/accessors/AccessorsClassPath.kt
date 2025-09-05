@@ -23,8 +23,8 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -137,8 +137,8 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
 
 fun isDclEnabledForScriptTarget(target: Any): Boolean {
     val gradleProperties = when (target) {
-        is Project -> target.serviceOf<GradlePropertiesController>()
-        is Settings -> target.serviceOf<GradlePropertiesController>()
+        is Project -> target.serviceOf<GradleProperties>()
+        is Settings -> target.serviceOf<GradleProperties>()
         else -> null
     }
     return gradleProperties?.let { getBooleanKotlinDslOption(it, DCL_ENABLED_PROPERTY_NAME, false) } ?: false
@@ -315,6 +315,7 @@ private fun importsRequiredByOptInAnnotations(accessibleTypes: List<TypeAccessib
             when (annotationValueRepresentation) {
                 is AnnotationValueRepresentation.PrimitiveValue,
                 is AnnotationValueRepresentation.ValueArray -> Unit
+
                 is AnnotationValueRepresentation.AnnotationValue -> visitAnnotation(annotationValueRepresentation.representation)
                 is AnnotationValueRepresentation.EnumValue -> addTypeName(annotationValueRepresentation.type.kotlinString)
                 is AnnotationValueRepresentation.ClassValue -> addTypeName(annotationValueRepresentation.type.kotlinString)
@@ -701,7 +702,7 @@ fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run 
     putAll(schema.tasks)
     putAll(schema.containerElements)
     putContainerElementFactoryEntries(schema.containerElementFactories)
-    putSoftwareTypeEntries(schema.softwareTypeEntries)
+    putSoftwareFeatureEntries(schema.softwareFeatureEntries)
     putAllSorted(schema.configurations.map { it.target })
     hash()
 }
@@ -733,11 +734,12 @@ private fun Hasher.putContainerElementFactoryEntries(entries: List<ContainerElem
     }
 }
 
-private fun Hasher.putSoftwareTypeEntries(entries: List<SoftwareTypeEntry<SchemaType>>) {
+private fun Hasher.putSoftwareFeatureEntries(entries: List<SoftwareFeatureEntry<SchemaType>>) {
     putInt(entries.size)
     entries.forEach { entry ->
-        putString(entry.softwareTypeName)
-        putString(entry.modelType.kotlinString)
+        putString(entry.softwareFeatureName)
+        putString(entry.ownDefinitionType.kotlinString)
+        putString(entry.targetDefinitionType.kotlinString)
     }
 }
 

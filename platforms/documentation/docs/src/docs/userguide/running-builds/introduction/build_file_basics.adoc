@@ -108,7 +108,5 @@ In addition to applying plugins and setting convention properties, build scripts
 * Configure tasks
 * Reference shared settings (from version catalogs or convention plugins)
 
-To learn more about scripting the build file, see <<writing_build_scripts.adoc#writing_build_scripts,Writing Build Files>>.
-
 [.text-right]
 **Next Step:** <<dependency_management_basics.adoc#dependency_management_basics,Learn about Dependency Management>> >>

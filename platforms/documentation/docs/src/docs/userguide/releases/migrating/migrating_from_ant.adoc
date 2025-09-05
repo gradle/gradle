@@ -437,7 +437,7 @@ These can be set from the command line, in the <<build_environment#sec:gradle_co
 If you have existing Ant properties files, you can copy their contents into the project's `gradle.properties` file.
 Just be aware that:
 
- * Properties set in `gradle.properties` **do not** override <<writing_build_scripts#sec:extra_properties,extra project properties>> defined in the build script with the same name
+ * Properties set in `gradle.properties` **do not** override <<writing_build_scripts_intermediate.adoc#sec:extra_properties,extra project properties>> defined in the build script with the same name
  * Imported Ant tasks will not automatically "see" the Gradle project properties — you must copy them into the Ant properties map for that to happen
 
 Another important factor to understand is that a Gradle build script works with an object-oriented API and it's often best to use the properties of tasks, source sets, and other objects where possible.
@@ -452,7 +452,7 @@ include::sample[dir="snippets/antMigration/fileDeps/groovy",files="build.gradle[
 <2> Uses the location of the Javadoc JAR held by the `javadocJar` task
 <3> Uses an project property called `tmpDistDir` to define the location of the 'dist' directory
 
-As you can see from the example with `tmpDistDir`, there is often a need to define paths through properties, which is why Gradle also provides <<writing_build_scripts#sec:extra_properties,extra properties>> that can be attached to the project, tasks, and some other types of objects.
+As you can see from the example with `tmpDistDir`, there is often a need to define paths through properties, which is why Gradle also provides <<writing_build_scripts_intermediate.adoc#sec:extra_properties,extra properties>> that can be attached to the project, tasks, and some other types of objects.
 
 [[migant:multi_project_builds]]
 == Migrating multi-project builds

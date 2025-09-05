@@ -245,6 +245,8 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             import org.gradle.workers.WorkAction
             import org.gradle.internal.instrumentation.agent.AgentStatus
             import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
+            import org.gradle.internal.classpath.ClassPath
+            import org.gradle.internal.installation.CurrentGradleInstallation
 
             abstract class WorkerTask extends DefaultTask {
                 @Inject
@@ -291,7 +293,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
                     super(NativeServices.getInstance())
 
                     add(OutputEventListener.class, OutputEventListener.NO_OP)
-                    addProvider(new GlobalScopeServices(true, AgentStatus.disabled()))
+                    addProvider(new GlobalScopeServices(true, AgentStatus.disabled(), ClassPath.EMPTY, new CurrentGradleInstallation(null)))
                 }
 
                  static def getInstance(File gradleUserHome) {

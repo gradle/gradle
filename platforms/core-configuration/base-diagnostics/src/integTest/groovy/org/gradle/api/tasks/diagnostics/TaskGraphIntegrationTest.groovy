@@ -41,6 +41,9 @@ Tasks graph for: root
 (*) - details omitted (listed previously)
 """)
         outputDoesNotContain("I'm a task called")
+
+        and:
+        outputContains("Task graph printing is an incubating feature.")
     }
 
     def "shows simple graph of tasks with multiple roots"() {
@@ -256,7 +259,7 @@ Tasks graph for: root
             }
         """
         executer
-                .inDirectory(file("buildSrc"))
+            .inDirectory(file("buildSrc"))
 
         succeeds("jar", "--task-graph")
 
@@ -290,7 +293,7 @@ Tasks graph for: jar
                 group = 'org.test'
                 version = '1.0'
             """
-            javaFile 'src/main/java/Lib.java',  """
+            javaFile 'src/main/java/Lib.java', """
                 public class Lib { public static void main() {
                     System.out.println("Before!");
                 } }

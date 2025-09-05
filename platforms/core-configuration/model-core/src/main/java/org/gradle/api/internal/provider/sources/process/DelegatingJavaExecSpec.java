@@ -236,11 +236,13 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     default void setAllJvmArgs(List<String> arguments) {
         getDelegate().setAllJvmArgs(arguments);
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     default void setAllJvmArgs(Iterable<?> arguments) {
         getDelegate().setAllJvmArgs(arguments);
     }

@@ -63,23 +63,23 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds "thing"
-            result.assertTasksExecutedInOrder ":thing", ":finalizerDep", ":finalizer"
+            result.assertTasksScheduledInOrder ":thing", ":finalizerDep", ":finalizer"
         }
         2.times {
             fails "thing", "-Pthing.broken"
-            result.assertTasksExecutedInOrder ":thing", ":finalizerDep", ":finalizer"
+            result.assertTasksScheduledInOrder ":thing", ":finalizerDep", ":finalizer"
         }
         2.times {
             fails "thing", "-PfinalizerDep.broken"
-            result.assertTasksExecutedInOrder ":thing", ":finalizerDep"
+            result.assertTasksScheduledInOrder ":thing", ":finalizerDep"
         }
         2.times {
             fails "thing", "-PfinalizerDep.broken", "--continue"
-            result.assertTasksExecutedInOrder ":thing", ":finalizerDep"
+            result.assertTasksScheduledInOrder ":thing", ":finalizerDep"
         }
         2.times {
             fails "thing", "-Pfinalizer.broken"
-            result.assertTasksExecutedInOrder ":thing", ":finalizerDep", ":finalizer"
+            result.assertTasksScheduledInOrder ":thing", ":finalizerDep", ":finalizer"
         }
     }
 
@@ -104,27 +104,27 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds 'entryPoint'
-            result.assertTasksExecutedInOrder ':entryPointDep', ':entryPoint', ':finalizerDep', ':finalizer'
+            result.assertTasksScheduledInOrder ':entryPointDep', ':entryPoint', ':finalizerDep', ':finalizer'
         }
         2.times {
             fails 'entryPoint', '-PentryPoint.broken'
-            result.assertTasksExecutedInOrder ':entryPointDep', ':entryPoint'
+            result.assertTasksScheduledInOrder ':entryPointDep', ':entryPoint'
         }
         2.times {
             fails 'entryPoint', '-PentryPoint.broken', '--continue'
-            result.assertTasksExecutedInOrder ':entryPointDep', ':entryPoint'
+            result.assertTasksScheduledInOrder ':entryPointDep', ':entryPoint'
         }
         2.times {
             fails 'entryPoint', '-PentryPointDep.broken'
-            result.assertTasksExecutedInOrder ':entryPointDep'
+            result.assertTasksScheduledInOrder ':entryPointDep'
         }
         2.times {
             fails 'entryPoint', '-PentryPointDep.broken', '--continue'
-            result.assertTasksExecutedInOrder ':entryPointDep'
+            result.assertTasksScheduledInOrder ':entryPointDep'
         }
         2.times {
             fails 'entryPoint', '-PfinalizerDep.broken'
-            result.assertTasksExecutedInOrder ':entryPointDep', ':entryPoint', ':finalizerDep'
+            result.assertTasksScheduledInOrder ':entryPointDep', ':entryPoint', ':finalizerDep'
         }
     }
 
@@ -166,13 +166,13 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
         2.times {
             fails 'entryPoint', '-PfinalizerDepDep1.broken', '--continue'
-            result.assertTasksExecuted(':entryPoint', ':finalizerDepDep1', ':finalizerDepDep2', ':finalizerDep2')
+            result.assertTasksScheduled(':entryPoint', ':finalizerDepDep1', ':finalizerDepDep2', ':finalizerDep2')
             result.assertTaskOrder ':entryPoint', ':finalizerDepDep1'
             result.assertTaskOrder ':entryPoint', ':finalizerDepDep2', ':finalizerDep2'
         }
         2.times {
             fails 'entryPoint', '-PfinalizerDep1.broken', '--continue'
-            result.assertTasksExecuted(':entryPoint', ':finalizerDepDep1', ':finalizerDep1', ':finalizerDepDep2', ':finalizerDep2')
+            result.assertTasksScheduled(':entryPoint', ':finalizerDepDep1', ':finalizerDep1', ':finalizerDepDep2', ':finalizerDep2')
             result.assertTaskOrder ':entryPoint', ':finalizerDepDep1', ':finalizerDep1'
             result.assertTaskOrder ':entryPoint', ':finalizerDepDep2', ':finalizerDep2'
         }
@@ -204,19 +204,19 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
         2.times {
             fails 'entryPoint', '-PentryPoint.broken'
-            result.assertTasksExecuted ':entryPoint'
+            result.assertTasksScheduled ':entryPoint'
         }
         2.times {
             fails 'entryPoint', '-PentryPoint.broken', '--continue'
-            result.assertTasksExecutedInOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep'
+            result.assertTasksScheduledInOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep'
         }
         2.times {
             fails 'entryPoint', '-PfinalizerDepDep.broken'
-            result.assertTasksExecutedInOrder ':entryPoint', ':finalizerDepDep'
+            result.assertTasksScheduledInOrder ':entryPoint', ':finalizerDepDep'
         }
         2.times {
             fails 'entryPoint', '-PfinalizerDep.broken'
-            result.assertTasksExecutedInOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep'
+            result.assertTasksScheduledInOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep'
         }
     }
 
@@ -336,11 +336,11 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
         2.times {
             fails 'processResources', '-PprocessResources.broken', '--continue' // add --continue to force compileJava to always run
-            result.assertTasksExecutedInOrder ':processResources', ':compileJava'
+            result.assertTasksScheduledInOrder ':processResources', ':compileJava'
         }
         2.times {
             fails 'processResources', '-Pclasses.broken'
-            result.assertTasksExecutedInOrder ':processResources', ':compileJava', ':classes'
+            result.assertTasksScheduledInOrder ':processResources', ':compileJava', ':classes'
         }
     }
 
@@ -383,42 +383,42 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds 'entry'
-            result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo', ':entry'
+            result.assertTasksScheduled ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo', ':entry'
             result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
         }
         2.times {
             fails 'entry', '-PjarOne.broken'
-            result.assertTaskExecuted(':jarOne')
-            result.assertTaskExecuted(':classes')
-            result.assertTaskExecuted(':shadowJar')
-            result.assertTaskExecuted(':jar')
-            result.assertTaskExecuted(':copyJars')
+            result.assertTaskScheduled(':jarOne')
+            result.assertTaskScheduled(':classes')
+            result.assertTaskScheduled(':shadowJar')
+            result.assertTaskScheduled(':jar')
+            result.assertTaskScheduled(':copyJars')
             // lifecycleTwo may or may not run
             result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
         }
         2.times {
             fails 'entry', '-PjarOne.broken', '--continue'
-            result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'
+            result.assertTasksScheduled ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'
             result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
         }
         2.times {
             fails 'entry', '-PlifecycleTwo.broken'
-            result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'
+            result.assertTasksScheduled ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'
             result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
         }
         2.times {
             fails 'entry', '-PshadowJar.broken', '--continue'
-            result.assertTasksExecuted ':classes', ':jar', ':shadowJar', ':jarOne'
+            result.assertTasksScheduled ':classes', ':jar', ':shadowJar', ':jarOne'
             result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar'
         }
         2.times {
             succeeds 'jarOne', 'lifecycleTwo'
-            result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'
+            result.assertTasksScheduled ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'
             result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
         }
         2.times {
             fails 'jarOne', 'lifecycleTwo', '-PjarOne.broken', '--continue'
-            result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'
+            result.assertTasksScheduled ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'
             result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
         }
     }
@@ -430,7 +430,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds(*requestedTasks)
-            result.assertTasksExecutedInOrder any(':d', exact(':c', ':a')), ':b'
+            result.assertTasksScheduledInOrder any(':d', exact(':c', ':a')), ':b'
         }
 
         where:
@@ -454,7 +454,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds 'a'
-            result.assertTasksExecutedInOrder(expectedExecutedTasks as Object[])
+            result.assertTasksScheduledInOrder(expectedExecutedTasks as Object[])
         }
 
         where:
@@ -480,7 +480,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails(*requestedTasks)
-            result.assertTasksExecutedInOrder(expectedExecutedTasks as Object[])
+            result.assertTasksScheduledInOrder(expectedExecutedTasks as Object[])
         }
 
         where:
@@ -512,7 +512,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails("b", "d")
-            result.assertTasksExecutedInOrder ":b", ":a"
+            result.assertTasksScheduledInOrder ":b", ":a"
         }
     }
 
@@ -530,7 +530,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds 'a'
-            result.assertTasksExecuted(':c')
+            result.assertTasksScheduled(':c')
         }
 
         where:
@@ -557,7 +557,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds 'a'
-            result.assertTasksExecutedInOrder(any(':b:d', exact(':a:c', ':a:a')), ':b:b')
+            result.assertTasksScheduledInOrder(any(':b:d', exact(':a:c', ':a:a')), ':b:b')
         }
     }
 
@@ -575,7 +575,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds 'a'
-            result.assertTasksExecutedInOrder ':a', ':b', ':c'
+            result.assertTasksScheduledInOrder ':a', ':b', ':c'
         }
     }
 
@@ -594,19 +594,19 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds 'a'
-            result.assertTasksExecutedInOrder ':a', ':b', ':c'
+            result.assertTasksScheduledInOrder ':a', ':b', ':c'
         }
         2.times {
             fails 'a', '-Pa.broken'
-            result.assertTasksExecutedInOrder ':a', ':b', ':c'
+            result.assertTasksScheduledInOrder ':a', ':b', ':c'
         }
         2.times {
             fails 'a', '-Pb.broken'
-            result.assertTasksExecutedInOrder ':a', ':b', ':c'
+            result.assertTasksScheduledInOrder ':a', ':b', ':c'
         }
         2.times {
             fails 'a', '-Pc.broken'
-            result.assertTasksExecutedInOrder ':a', ':b', ':c'
+            result.assertTasksScheduledInOrder ':a', ':b', ':c'
         }
     }
 
@@ -628,19 +628,19 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds 'a'
-            result.assertTasksExecutedInOrder ':a', ':d', ':b', ':c'
+            result.assertTasksScheduledInOrder ':a', ':d', ':b', ':c'
         }
         2.times {
             fails 'a', '-Pa.broken'
-            result.assertTasksExecutedInOrder ':a', ':d', ':b', ':c'
+            result.assertTasksScheduledInOrder ':a', ':d', ':b', ':c'
         }
         2.times {
             fails 'a', '-Pd.broken'
-            result.assertTasksExecutedInOrder ':a', ':d'
+            result.assertTasksScheduledInOrder ':a', ':d'
         }
         2.times {
             fails 'a', '-Pb.broken'
-            result.assertTasksExecutedInOrder ':a', ':d', ':b', ':c'
+            result.assertTasksScheduledInOrder ':a', ':d', ':b', ':c'
         }
     }
 
@@ -659,19 +659,19 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds 'b'
-            result.assertTasksExecutedInOrder ':a', ':b', ':c'
+            result.assertTasksScheduledInOrder ':a', ':b', ':c'
         }
         2.times {
             fails 'b', '-Pb.broken'
-            result.assertTasksExecutedInOrder ':a', ':b', ':c'
+            result.assertTasksScheduledInOrder ':a', ':b', ':c'
         }
         2.times {
             fails 'b', '-Pa.broken'
-            result.assertTasksExecutedInOrder ':a', ':c'
+            result.assertTasksScheduledInOrder ':a', ':c'
         }
         2.times {
             fails 'b', '-Pc.broken'
-            result.assertTasksExecutedInOrder ':a', ':b', ':c'
+            result.assertTasksScheduledInOrder ':a', ':b', ':c'
         }
     }
 
@@ -689,7 +689,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds 'a'
-            result.assertTasksExecutedInOrder ':c', ':b', ':a'
+            result.assertTasksScheduledInOrder ':c', ':b', ':a'
         }
     }
 
@@ -802,19 +802,19 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds 'dockerTest'
-            result.assertTasksExecutedInOrder ':removeContainer', ':createContainer', ':dockerUp', ':dockerTest', ':dockerStop'
+            result.assertTasksScheduledInOrder ':removeContainer', ':createContainer', ':dockerUp', ':dockerTest', ':dockerStop'
         }
         2.times {
             fails 'dockerTest', '-PdockerTest.broken'
-            result.assertTasksExecutedInOrder ':removeContainer', ':createContainer', ':dockerUp', ':dockerTest', ':dockerStop'
+            result.assertTasksScheduledInOrder ':removeContainer', ':createContainer', ':dockerUp', ':dockerTest', ':dockerStop'
         }
         2.times {
             fails 'dockerTest', '-PremoveContainer.broken'
-            result.assertTasksExecutedInOrder ':removeContainer'
+            result.assertTasksScheduledInOrder ':removeContainer'
         }
         2.times {
             fails 'dockerTest', '-PremoveContainer.broken', '--continue'
-            result.assertTasksExecutedInOrder ':removeContainer', ':createContainer', ':dockerUp', ':dockerTest'
+            result.assertTasksScheduledInOrder ':removeContainer', ':createContainer', ':dockerUp', ':dockerTest'
         }
     }
 

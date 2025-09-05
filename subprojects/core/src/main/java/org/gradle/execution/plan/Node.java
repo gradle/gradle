@@ -29,7 +29,6 @@ import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.function.Consumer;
 
 /**
@@ -373,7 +372,7 @@ public abstract class Node {
         return this.executionFailure;
     }
 
-    public SortedSet<Node> getDependencyPredecessors() {
+    public Set<Node> getDependencyPredecessors() {
         return dependentNodes.getDependencyPredecessors();
     }
 
@@ -547,7 +546,7 @@ public abstract class Node {
         dependencyNodes.getDependencySuccessors().forEach(visitor);
     }
 
-    public SortedSet<Node> getFinalizers() {
+    public Set<Node> getFinalizers() {
         return dependentNodes.getFinalizers();
     }
 
@@ -589,7 +588,7 @@ public abstract class Node {
     public void visitPostExecutionNodes(Consumer<? super Node> visitor) {
     }
 
-    public void mutationsResolved(MutationInfo mutationInfo)  {
+    public void mutationsResolved(MutationInfo mutationInfo) {
         this.mutationInfo = mutationInfo;
     }
 

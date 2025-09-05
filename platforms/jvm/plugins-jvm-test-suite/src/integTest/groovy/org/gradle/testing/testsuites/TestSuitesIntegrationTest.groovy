@@ -432,7 +432,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("integTest")
 
         and:
-        result.assertTaskExecuted(":integTest")
+        result.assertTaskScheduled(":integTest")
     }
 
     def "task configuration overrules test suite configuration with test suite set test framework"() {
@@ -482,7 +482,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("integTest")
 
         and:
-        result.assertTaskExecuted(":integTest")
+        result.assertTaskScheduled(":integTest")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18622")

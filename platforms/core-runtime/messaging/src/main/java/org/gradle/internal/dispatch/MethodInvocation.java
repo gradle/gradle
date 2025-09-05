@@ -15,8 +15,10 @@
  */
 package org.gradle.internal.dispatch;
 
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.CollectionUtils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
@@ -67,6 +69,17 @@ public class MethodInvocation {
     @Override
     public String toString() {
         return String.format("[MethodInvocation method: %s(%s)]", method.getName(), CollectionUtils.join(", ", arguments));
+    }
+
+    public void invokeOn(Object target) {
+        try {
+            method.setAccessible(true);
+            method.invoke(target, arguments);
+        } catch (InvocationTargetException e) {
+            throw UncheckedException.throwAsUncheckedException(e.getCause());
+        } catch (Throwable throwable) {
+            throw UncheckedException.throwAsUncheckedException(throwable);
+        }
     }
 }
 

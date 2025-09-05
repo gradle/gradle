@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
+import org.gradle.api.internal.file.FileCollectionInternal;
 
 public interface ArtifactCollectionInternal extends ArtifactCollection {
     ResolutionHost getResolutionHost();
@@ -25,4 +26,7 @@ public interface ArtifactCollectionInternal extends ArtifactCollection {
     boolean isLenient();
 
     void visitArtifacts(ArtifactVisitor visitor);
+
+    @Override
+    FileCollectionInternal getArtifactFiles();
 }

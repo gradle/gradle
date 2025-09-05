@@ -103,7 +103,7 @@ Output:
 $t.buildResult.output"""
 
         def buildOutput = OutputScrapingExecutionResult.from(t.buildResult.output, "")
-        buildOutput.assertTasksExecuted(":helloWorld")
+        buildOutput.assertTasksScheduled(":helloWorld")
         buildOutput.groupedOutput.task(":helloWorld").output == "Hello world!"
 
         normaliseLineSeparators(t.message).startsWith(normaliseLineSeparators(expectedMessage))
@@ -163,7 +163,7 @@ Output:
 $t.buildResult.output"""
 
         def failure = OutputScrapingExecutionFailure.from(t.buildResult.output, "")
-        failure.assertTasksExecuted(':helloWorld')
+        failure.assertTasksScheduled(':helloWorld')
         failure.assertHasDescription("Execution failed for task ':helloWorld'.")
         failure.assertHasCause('Unexpected exception')
 

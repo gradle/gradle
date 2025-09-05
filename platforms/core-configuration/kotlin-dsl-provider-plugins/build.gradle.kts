@@ -14,12 +14,12 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.persistentCache)
     api(projects.declarativeDslToolingModels)
+    api(projects.softwareFeatures)
 
     api(libs.inject)
     api(libs.kotlinStdlib)
 
     implementation(projects.baseServices)
-    implementation(projects.buildDiscoveryApi)
     implementation(projects.concurrent)
     implementation(projects.functional)
     implementation(projects.fileCollections)

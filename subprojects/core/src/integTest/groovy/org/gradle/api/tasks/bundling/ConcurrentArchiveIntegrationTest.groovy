@@ -87,7 +87,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'verify'
 
         then:
-        result.assertTasksExecutedAndNotSkipped(':project1:update', ':project2:update', ':project1:verify', ':project2:verify')
+        result.assertTasksExecuted(':project1:update', ':project2:update', ':project1:verify', ':project2:verify')
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22685")
@@ -146,7 +146,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'verify'
 
         then:
-        result.assertTasksExecutedAndNotSkipped(':project1:update', ':project2:update', ':project1:verify', ':project2:verify')
+        result.assertTasksExecuted(':project1:update', ':project2:update', ':project1:verify', ':project2:verify')
     }
 
 
@@ -200,7 +200,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'verify'
 
         then:
-        result.assertTasksExecutedAndNotSkipped(':lib:update', ':utils:lib:update', ':lib:verify', ':utils:lib:verify')
+        result.assertTasksExecuted(':lib:update', ':utils:lib:update', ':lib:verify', ':utils:lib:verify')
     }
 
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
@@ -279,8 +279,8 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         def result2 = handle2.waitForFinish()
 
         then: "both builds ran, with the settings script editing the archive atomically"
-        result1.assertTasksExecuted(':tasks')
-        result2.assertTasksExecuted(':tasks')
+        result1.assertTasksScheduled(':tasks')
+        result2.assertTasksScheduled(':tasks')
 
         cleanup:
         handle1?.abort()
@@ -364,8 +364,8 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         def result2 = handle2.waitForFinish()
 
         then: "both builds ran, with the settings script editing the archive atomically"
-        result1.assertTasksExecuted(':tasks')
-        result2.assertTasksExecuted(':tasks')
+        result1.assertTasksScheduled(':tasks')
+        result2.assertTasksScheduled(':tasks')
 
         cleanup:
         handle1?.abort()
@@ -533,7 +533,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'verify1', 'verify2'
 
         then:
-        result.assertTasksExecutedAndNotSkipped(':update1', ':update2', ':verify1', ':verify2')
+        result.assertTasksExecuted(':update1', ':update2', ':verify1', ':verify2')
     }
 
     def "can operate on 2 different zip files in the same project"() {
@@ -592,7 +592,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'verify1', 'verify2'
 
         then:
-        result.assertTasksExecutedAndNotSkipped(':update1', ':update2', ':verify1', ':verify2')
+        result.assertTasksExecuted(':update1', ':update2', ':verify1', ':verify2')
     }
 
     def "when two identical archives have the same hashes and same decompression cache entry is reused"() {
@@ -642,7 +642,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'verify'
 
         then:
-        result.assertTasksExecutedAndNotSkipped(':update1', ':update2', ':verify')
+        result.assertTasksExecuted(':update1', ':update2', ':verify')
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23253")

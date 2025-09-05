@@ -94,6 +94,6 @@ The rule for the lower bound is the following:
 - Gradle 5 and above require a minimum version of Java 8.
 
 The Tooling API version is guaranteed to support running builds with all Gradle versions for the last five major releases.
-For example, the Tooling API 9.0 release is compatible with Gradle versions >= 4.0.
+For example, the Tooling API 9.0.0 release is compatible with Gradle versions >= 4.0.
 Besides, the Tooling API is guaranteed to be compatible with future Gradle releases for the current and the next major.
 This means, for example, that the 8.1 version of the Tooling API will be able to run Gradle 9.x builds and _might_ break with Gradle 10.

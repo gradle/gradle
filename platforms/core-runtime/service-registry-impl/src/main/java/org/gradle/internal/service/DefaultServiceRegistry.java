@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.service;
 
-import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.jspecify.annotations.Nullable;
@@ -676,12 +675,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
             this.accessScope = accessScope;
             this.serviceTypes = serviceTypes;
-            serviceTypesAsClasses = collect(serviceTypes, new InternalTransformer<Class<?>, Type>() {
-                @Override
-                public Class<?> transform(Type type) {
-                    return unwrap(type);
-                }
-            });
+            serviceTypesAsClasses = collect(serviceTypes, DefaultServiceRegistry::unwrap);
         }
 
         @Override
@@ -1303,12 +1297,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         if (types.size() == 1) {
             return TypeStringFormatter.format(types.get(0));
         } else {
-            return join(", ", types, new InternalTransformer<String, Type>() {
-                @Override
-                public String transform(Type type) {
-                    return TypeStringFormatter.format(type);
-                }
-            });
+            return join(", ", types, TypeStringFormatter::format);
         }
     }
 

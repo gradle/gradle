@@ -58,7 +58,7 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCache
 
         then:
         configurationCache.assertStateStored()
-        result.assertTasksExecuted(*expectedTasks)
+        result.assertTasksScheduled(*expectedTasks)
 
         and:
         classFile.isFile()
@@ -76,7 +76,7 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCache
 
         then:
         configurationCache.assertStateLoaded()
-        result.assertTasksExecuted(*expectedTasks)
+        result.assertTasksScheduled(*expectedTasks)
 
         and:
         classFile.isFile()
@@ -106,7 +106,7 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCache
 
         then:
         configurationCache.assertStateLoaded()
-        result.assertTaskExecuted(":compileGroovy")
+        result.assertTaskScheduled(":compileGroovy")
         result.assertTaskSkipped(":compileGroovy")
     }
 
@@ -127,7 +127,7 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCache
         configurationCache.assertStateStored()
 
         and:
-        result.assertTaskExecuted(":compileGroovy")
+        result.assertTaskScheduled(":compileGroovy")
         failureDescriptionStartsWith("Execution failed for task ':compileGroovy'.")
         failureCauseContains("Cannot infer Groovy class path because no Groovy Jar was found on class path")
 
@@ -136,7 +136,7 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCache
 
         then:
         configurationCache.assertStateLoaded()
-        result.assertTaskExecuted(":compileGroovy")
+        result.assertTaskScheduled(":compileGroovy")
         failureDescriptionStartsWith("Execution failed for task ':compileGroovy'.")
         failureCauseContains("Cannot infer Groovy class path because no Groovy Jar was found on class path")
     }

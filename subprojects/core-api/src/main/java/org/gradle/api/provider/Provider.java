@@ -104,7 +104,7 @@ import java.util.function.BiFunction;
  * Following the rules below ensures that your Providers remain configuration-cache compatible regardless of applied optimizations.
  * </p>
  * <ol>
- *     <li>Providers returned by {@link ProviderFactory#provider(Callable)} are always computed at configuration time.
+ *     <li>Providers returned by {@link ProviderFactory#provider(Callable)} or {@link Project#provider(Callable)} are always computed at configuration time.
  *     The {@code Callable} may capture arbitrary data types and freely call configuration-time-only APIs.
  *     This is the preferred way to bridge non-lazy and lazy APIs, like passing {@link Project#getVersion()} into task's input {@link Property}.
  *     </li>
@@ -114,20 +114,23 @@ import java.util.function.BiFunction;
  *     </li>
  *     <li>Any value captured by the computation of the provider (e.g. a variable captured by the {@code Transformer} lambda supplied to {@link #map(Transformer)})
  *     must conform to the
- *     <a href="https://docs.gradle.org/current/userguide/configuration_cache_requirements.html#config_cache:requirements">configuration cache requirements</a>.
+ *     <a href="https://docs.gradle.org/current/userguide/configuration_cache_requirements.html#config_cache:requirements">configuration cache requirements</a>,
+ *     except the {@code Callable} of {@link ProviderFactory#provider(Callable)} or {@link Project#provider(Callable)}.
  *     This requirement may not be enforced when the Configuration Cache runs the computation chain containing non-conforming transformation to cache the end result.
  *     </li>
- *     <li>The computation of the provider (except the {@code Callable} of {@link ProviderFactory#provider(Callable)}) should not invoke configuration-time only APIs.
+ *     <li>The computation of the provider (except the {@code Callable} of {@link ProviderFactory#provider(Callable)} or {@link Project#provider(Callable)}) should not invoke configuration-time only
+ *     APIs.
  *     This requirement may not be enforced when the Configuration Cache runs the computation chain containing non-conforming transformation to cache the end result.
  *     </li>
  *     <li>The computation of the provider should not use external state (read system properties, environment variables, or files) to avoid introducing accidental build configuration inputs.
  *     Preferably, these should be obtained through providers returned by {@link ProviderFactory} and {@link Provider#zip(Provider, BiFunction)} should be used to mix them into the computation chain.
- *     The {@code Callable} of {@link ProviderFactory#provider(Callable)} must ignore this requirement if the external state is used by configuration-time-only API because adding an input is
- *     unavoidable in this case.
+ *     The {@code Callable} of {@link ProviderFactory#provider(Callable)} or {@link Project#provider(Callable)} must ignore this requirement if the external state is used by configuration-time-only
+ *     API because adding an input is unavoidable in this case.
  *     </li>
  * </ol>
  * <p>
- * Configuration Cache's support of providers that do not conform to these requirements is unspecified.
+ * Configuration Cache's support of providers that do not conform to these requirements is unspecified and may change between Gradle versions or depending on when values of the providers are obtained
+ * during build.
  * </p>
  *
  * <p>Some providers returned by Gradle APIs provide types that cannot be configuration-cached, for example {@link TaskProvider} or {@code Provider<Configuration>}.

@@ -16,12 +16,12 @@
 package org.gradle.api.internal.project.antbuilder;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.classloading.GroovySystemLoader;
-import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.groovyloader.GroovySystemLoader;
+import org.gradle.internal.groovyloader.GroovySystemLoaderFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +41,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * cleared before we have a chance to clean it up. So we use a PhantomReference to the cached class loader, in addition to the soft reference, to finalize the class loader before it gets kicked off
  * the cache.
  */
-public class ClassPathToClassLoaderCache implements Stoppable {
+class ClassPathToClassLoaderCache implements Stoppable {
     private final static Logger LOG = LoggerFactory.getLogger(ClassPathToClassLoaderCache.class);
 
     private final FinalizerThread finalizerThread;

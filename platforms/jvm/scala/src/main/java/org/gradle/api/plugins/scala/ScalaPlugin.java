@@ -18,7 +18,6 @@ package org.gradle.api.plugins.scala;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
@@ -53,13 +52,13 @@ public abstract class ScalaPlugin implements Plugin<Project> {
 
         configureScaladoc(project, mainFeature);
 
-        final Configuration incrementalAnalysisElements = project.getConfigurations().getByName("incrementalScalaAnalysisElements");
         String compileTaskName = mainFeature.getSourceSet().getCompileTaskName("scala");
         final TaskProvider<AbstractScalaCompile> compileScala = project.getTasks().withType(AbstractScalaCompile.class).named(compileTaskName);
         final Provider<RegularFile> compileScalaMapping = project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + compileTaskName + ".mapping");
         compileScala.configure(task -> task.getAnalysisMappingFile().set(compileScalaMapping));
-        incrementalAnalysisElements.getOutgoing().artifact(
-            compileScalaMapping, configurablePublishArtifact -> configurablePublishArtifact.builtBy(compileScala));
+        project.getConfigurations().named("incrementalScalaAnalysisElements", conf ->  {
+            conf.getOutgoing().artifact(compileScalaMapping, artifact -> artifact.builtBy(compileScala));
+        });
     }
 
     private static void configureScaladoc(final Project project, final JvmFeatureInternal feature) {

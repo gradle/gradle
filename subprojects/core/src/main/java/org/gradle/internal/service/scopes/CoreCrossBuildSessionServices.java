@@ -31,6 +31,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.BuildOperationsParameters;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationExecutor;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
@@ -43,9 +44,11 @@ import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.work.DefaultResourceLockStatistics;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.DefaultWorkerLimits;
 import org.gradle.internal.work.ProjectParallelExecutionController;
+import org.gradle.internal.work.ResourceLockStatistics;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.internal.work.WorkerLimits;
 
@@ -56,6 +59,18 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
         registration.add(ResourceLockCoordinationService.class, DefaultResourceLockCoordinationService.class);
         registration.add(WorkerLeaseService.class, ProjectParallelExecutionController.class, DefaultWorkerLeaseService.class);
         registration.add(DynamicCallContextTracker.class, DefaultDynamicCallContextTracker.class);
+    }
+
+    @Provides
+    ResourceLockStatistics createResourceLockStatistics(
+        BuildOperationRunner buildOperationRunner,
+        BuildOperationsParameters buildOperationsParameters
+    ) {
+        if (buildOperationsParameters.emitLockingOperations()) {
+            return new DefaultResourceLockStatistics(buildOperationRunner);
+        } else {
+            return ResourceLockStatistics.NO_OP;
+        }
     }
 
     @Provides

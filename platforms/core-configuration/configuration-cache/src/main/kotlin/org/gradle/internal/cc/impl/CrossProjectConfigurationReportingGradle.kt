@@ -361,7 +361,7 @@ class CrossProjectConfigurationReportingGradle private constructor(
         delegate.setBaseProjectClassLoaderScope(classLoaderScope)
     }
 
-    override fun getProjectRegistry(): ProjectRegistry<ProjectInternal> =
+    override fun getProjectRegistry(): ProjectRegistry =
         delegate.projectRegistry
 
     override fun includedBuilds(): MutableList<out IncludedBuildInternal> =

@@ -909,7 +909,6 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void mixesInSetValueMethodForSingleValuedProperty() throws Exception {
-        TestUtil.initDeprecationLogger("because space assignment is used");
         BeanWithVariousGettersAndSetters bean = newInstance(BeanWithVariousGettersAndSetters.class);
 
         call("{ it.prop 'value'}", bean);
@@ -939,8 +938,6 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void doesNotUseConventionValueOnceSetValueMethodHasBeenCalled() throws Exception {
-        TestUtil.initDeprecationLogger("because space assignment is used");
-
         Bean bean = newInstance(Bean.class);
         IConventionAware conventionAware = (IConventionAware) bean;
         conventionAware.getConventionMapping().map("prop", new Callable<Object>() {
@@ -1014,8 +1011,6 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void addsInsteadOfOverridesSetValueMethodIfOnlyMultiArgMethods() throws Exception {
-        TestUtil.initDeprecationLogger("because space assignment is used");
-
         BeanWithMultiArgDslMethods bean = newInstance(BeanWithMultiArgDslMethods.class);
         // this method should have been added to the class
         call("{ it.prop 'value'}", bean);

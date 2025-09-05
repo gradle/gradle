@@ -30,6 +30,6 @@ class NativeBasePluginIntegrationTest extends AbstractIntegrationSpec {
         run "assemble"
 
         then:
-        result.assertTasksExecuted(":assemble")
+        result.assertTasksScheduled(":assemble")
     }
 }

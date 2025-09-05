@@ -49,7 +49,7 @@ class CiEnvironmentProvider(private val test: Test) : CommandLineArgumentProvide
 
     private
     fun getToolchainInstallationPathsProperty(): List<String> {
-        return toolchainInstallationPaths.map { listOf("-D$JAVA_INSTALLATIONS_PATHS_PROPERTY=$it") }.getOrElse(emptyList())
+        return toolchainInstallationPaths.map { listOf("-D$JAVA_INSTALLATIONS_PATHS_PROPERTY.integTest=$it") }.getOrElse(emptyList())
     }
 
     private

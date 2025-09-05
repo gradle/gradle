@@ -23,7 +23,9 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionHost
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.internal.Describables
+import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.IvyArtifactName
+import org.gradle.internal.model.CalculatedValue
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.util.TestUtil
@@ -256,13 +258,12 @@ class DefaultResolvedDependencySpec extends Specification {
     }
 
     def artifact(String name, String classifier, String type, String extension) {
-        ResolvedArtifact artifact = Mock()
-        _ * artifact.toString() >> "$name-$classifier-$type.$extension"
-        _ * artifact.name >> name
-        _ * artifact.classifier >> classifier
-        _ * artifact.type >> type
-        _ * artifact.extension >> extension
-        return artifact
+        return new DefaultResolvedArtifact(
+            Stub(ComponentArtifactIdentifier),
+            Mock(CalculatedValue),
+            null,
+            new DefaultIvyArtifactName(name, type, extension, classifier)
+        )
     }
 
     def add(DefaultResolvedDependency dependency, ResolvedArtifact artifact) {
@@ -294,7 +295,7 @@ class DefaultResolvedDependencySpec extends Specification {
         }
         def calculatedValueContainerFactory = TestUtil.calculatedValueContainerFactory()
         def artifactSource = calculatedValueContainerFactory.create(Describables.of("artifact"), new File("pathTo" + name))
-        return new DefaultResolvableArtifact(id, artifactStub, Mock(ComponentArtifactIdentifier), Mock(TaskDependencyContainer), artifactSource, calculatedValueContainerFactory).toPublicView()
+        return new DefaultResolvableArtifact(id, artifactStub, Stub(ComponentArtifactIdentifier), Mock(TaskDependencyContainer), artifactSource, calculatedValueContainerFactory).toPublicView()
     }
 
     private DefaultResolvedDependency newDependency(

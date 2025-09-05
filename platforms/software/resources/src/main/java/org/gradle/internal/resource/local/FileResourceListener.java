@@ -21,7 +21,7 @@ import org.gradle.internal.service.scopes.Scope;
 
 import java.io.File;
 
-@EventScope({Scope.Global.class, Scope.Build.class})
+@EventScope({Scope.BuildTree.class, Scope.Build.class})
 public interface FileResourceListener {
     /**
      * Called when a file system resource is accessed as a regular file.

@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
-import org.gradle.internal.InternalTransformer;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.TestExecutionException;
 import org.gradle.tooling.TestLauncher;
@@ -87,12 +86,7 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
 
     @Override
     public TestLauncher withJvmTestClasses(Iterable<String> testClasses) {
-        List<InternalJvmTestRequest> newRequests = CollectionUtils.collect(testClasses, new InternalTransformer<InternalJvmTestRequest, String>() {
-            @Override
-            public InternalJvmTestRequest transform(String testClass) {
-                return new DefaultInternalJvmTestRequest(testClass, null, null);
-            }
-        });
+        List<InternalJvmTestRequest> newRequests = CollectionUtils.collect(testClasses, testClass -> new DefaultInternalJvmTestRequest(testClass, null, null));
         internalJvmTestRequests.addAll(newRequests);
         testClassNames.addAll(CollectionUtils.toList(testClasses));
         return this;
@@ -106,12 +100,7 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
 
     @Override
     public TestLauncher withJvmTestMethods(final String testClass, Iterable<String> methods) {
-        List<InternalJvmTestRequest> newRequests = CollectionUtils.collect(methods, new InternalTransformer<InternalJvmTestRequest, String>() {
-            @Override
-            public InternalJvmTestRequest transform(String methodName) {
-                return new DefaultInternalJvmTestRequest(testClass, methodName, null);
-            }
-        });
+        List<InternalJvmTestRequest> newRequests = CollectionUtils.collect(methods, methodName -> new DefaultInternalJvmTestRequest(testClass, methodName, null));
         this.internalJvmTestRequests.addAll(newRequests);
         this.testClassNames.add(testClass);
         return this;
@@ -119,12 +108,7 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
 
     @Override
     public TestLauncher withTaskAndTestClasses(String task, Iterable<String> testClasses) {
-        List<InternalJvmTestRequest> tests = CollectionUtils.collect(testClasses, new InternalTransformer<InternalJvmTestRequest, String>() {
-            @Override
-            public InternalJvmTestRequest transform(String testClass) {
-                return new DefaultInternalJvmTestRequest(testClass, null, null);
-            }
-        });
+        List<InternalJvmTestRequest> tests = CollectionUtils.collect(testClasses, testClass -> new DefaultInternalJvmTestRequest(testClass, null, null));
 
         addTests(task, tests);
         return this;
@@ -132,12 +116,7 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
 
     @Override
     public TestLauncher withTaskAndTestMethods(String task, final String testClass, Iterable<String> methods) {
-        List<InternalJvmTestRequest> tests = CollectionUtils.collect(methods, new InternalTransformer<InternalJvmTestRequest, String>() {
-            @Override
-            public InternalJvmTestRequest transform(String methodName) {
-                return new DefaultInternalJvmTestRequest(testClass, methodName, null);
-            }
-        });
+        List<InternalJvmTestRequest> tests = CollectionUtils.collect(methods, methodName -> new DefaultInternalJvmTestRequest(testClass, methodName, null));
         addTests(task, tests);
         return this;
     }

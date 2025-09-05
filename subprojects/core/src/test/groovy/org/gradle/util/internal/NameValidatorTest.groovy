@@ -20,7 +20,6 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.ConfigurationResolver
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationFactory
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyFactory
@@ -64,11 +63,9 @@ class NameValidatorTest extends Specification {
     def "tasks are not allowed to be named '#name'"() {
         when:
         def project = Mock(ProjectInternal) {
-            getProjectIdentity() >> new ProjectIdentity(
-                DefaultBuildIdentifier.ROOT,
-                Path.path(":build:foo:bar"),
-                Path.path(":build:foo:bar"),
-                "root"
+            getProjectIdentity() >> ProjectIdentity.forSubproject(
+                Path.path(":build"),
+                Path.path(":foo:bar")
             )
             getGradle() >> Mock(GradleInternal) {
                 getIdentityPath() >> Path.path(":build:foo:bar")

@@ -95,7 +95,7 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
     }
 
     void compileIsNotCached() {
-        result.assertTaskNotSkipped(compilationTask)
+        result.assertTaskExecuted(compilationTask)
     }
 
     def populateCache() {

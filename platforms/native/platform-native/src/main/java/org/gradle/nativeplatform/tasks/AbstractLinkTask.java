@@ -60,32 +60,24 @@ import javax.inject.Inject;
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBinary {
-    private final RegularFileProperty linkedFile;
-    private final DirectoryProperty destinationDirectory;
-    private final ListProperty<String> linkerArgs;
     private final ConfigurableFileCollection source;
     private final ConfigurableFileCollection libs;
     private final Property<Boolean> debuggable;
-    private final Property<NativePlatform> targetPlatform;
-    private final Property<NativeToolChain> toolChain;
 
     public AbstractLinkTask() {
         final ObjectFactory objectFactory = getProject().getObjects();
         this.libs = getProject().files();
         this.source = getProject().files();
-        this.linkedFile = objectFactory.fileProperty();
-        this.destinationDirectory = objectFactory.directoryProperty();
-        destinationDirectory.set(linkedFile.getLocationOnly().map(regularFile -> {
+        getDestinationDirectory().convention(getLinkedFile().getLocationOnly().map(regularFile -> {
             // TODO: Get rid of destinationDirectory entirely and replace it with a
             // collection of link outputs
             DirectoryProperty dirProp = objectFactory.directoryProperty();
             dirProp.set(regularFile.getAsFile().getParentFile());
             return dirProp.get();
         }));
-        this.linkerArgs = getProject().getObjects().listProperty(String.class);
+        // TODO: There is something wrong in the ASM class generator that does not allow us to create
+        // this as a managed property as long as we have isDebuggable.
         this.debuggable = objectFactory.property(Boolean.class).value(false);
-        this.targetPlatform = objectFactory.property(NativePlatform.class);
-        this.toolChain = objectFactory.property(NativeToolChain.class);
     }
 
     /**
@@ -94,9 +86,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      * @since 4.7
      */
     @Internal
-    public Property<NativeToolChain> getToolChain() {
-        return toolChain;
-    }
+    public abstract Property<NativeToolChain> getToolChain();
 
     /**
      * The platform being linked for.
@@ -104,9 +94,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      * @since 4.7
      */
     @Nested
-    public Property<NativePlatform> getTargetPlatform() {
-        return targetPlatform;
-    }
+    public abstract Property<NativePlatform> getTargetPlatform();
 
     /**
      * Include the destination directory as an output, to pick up auxiliary files produced alongside the main output file
@@ -114,9 +102,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      * @since 4.7
      */
     @OutputDirectory
-    public DirectoryProperty getDestinationDirectory() {
-        return destinationDirectory;
-    }
+    public abstract DirectoryProperty getDestinationDirectory();
 
     /**
      * The file where the linked binary will be located.
@@ -124,9 +110,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      * @since 4.7
      */
     @OutputFile
-    public RegularFileProperty getLinkedFile() {
-        return linkedFile;
-    }
+    public abstract RegularFileProperty getLinkedFile();
 
     /**
      * <em>Additional</em> arguments passed to the linker.
@@ -134,9 +118,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      * @since 4.3
      */
     @Input
-    public ListProperty<String> getLinkerArgs() {
-        return linkerArgs;
-    }
+    public abstract ListProperty<String> getLinkerArgs();
 
     /**
      * Create a debuggable binary?
@@ -145,7 +127,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      */
     @Internal
     public boolean isDebuggable() {
-        return debuggable.get();
+        return getDebuggable().get();
     }
 
     /**
@@ -191,14 +173,14 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
      */
     @Override
     public void source(Object source) {
-        this.source.from(source);
+        this.getSource().from(source);
     }
 
     /**
      * Adds a set of library files to be linked. The provided libs object is evaluated as per {@link Project#files(Object...)}.
      */
     public void lib(Object libs) {
-        this.libs.from(libs);
+        this.getLibs().from(libs);
     }
 
     /**
@@ -251,7 +233,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
 
     @SuppressWarnings("unchecked")
     private Compiler<LinkerSpec> createCompiler() {
-        NativePlatformInternal targetPlatform = Cast.cast(NativePlatformInternal.class, this.targetPlatform.get());
+        NativePlatformInternal targetPlatform = Cast.cast(NativePlatformInternal.class, this.getTargetPlatform().get());
         NativeToolChainInternal toolChain = Cast.cast(NativeToolChainInternal.class, getToolChain().get());
         PlatformToolProvider toolProvider = toolChain.select(targetPlatform);
         Class<LinkerSpec> linkerSpecType = (Class<LinkerSpec>) createLinkerSpec().getClass();

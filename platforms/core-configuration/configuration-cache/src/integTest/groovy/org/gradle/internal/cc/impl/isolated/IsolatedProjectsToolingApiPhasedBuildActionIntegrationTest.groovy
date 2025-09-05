@@ -16,7 +16,7 @@
 
 package org.gradle.internal.cc.impl.isolated
 
-import org.gradle.integtests.tooling.fixture.SomeToolingModel
+import org.gradle.internal.cc.impl.fixtures.SomeToolingModel
 
 class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def setup() {
@@ -206,7 +206,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         }
         outputContains("creating model for root project 'root'")
         outputContains("creating model for project ':a'")
-        result.ignoreBuildSrc.assertTasksExecuted(":a:thing")
+        result.ignoreBuildSrc.assertTasksScheduled(":a:thing")
 
         when:
         withIsolatedProjects()
@@ -229,7 +229,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
             runsTasks = true
         }
         outputDoesNotContain("creating model")
-        result.ignoreBuildSrc.assertTasksExecuted(":a:thing")
+        result.ignoreBuildSrc.assertTasksScheduled(":a:thing")
     }
 
     def "caches execution of phased BuildAction with same component types and different state"() {

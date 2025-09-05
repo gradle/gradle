@@ -25,4 +25,37 @@ class ClassTestResultsTest extends Specification {
         new ClassTestResults(1, 'org.gradle.Test', 'TestDisplay', null).reportName == 'TestDisplay'
         new ClassTestResults(2, 'Test', 'TestDisplay', null).reportName == 'TestDisplay'
     }
+
+    def "generates correct baseUrl for unicode class names"() {
+        expect:
+        def result = new ClassTestResults(1, className, null)
+        result.baseUrl == expectedUrl
+        !result.baseUrl.contains('#')
+
+        where:
+        className                     | expectedUrl
+        '한글테스트클래스'                | 'classes/한글테스트클래스.html'
+        '中文测试类'                     | 'classes/中文测试类.html'
+        'テストクラス'                   | 'classes/テストクラス.html'
+        'com/example/TestClass'       | 'classes/com-example-TestClass.html'
+        'com:example:TestClass'       | 'classes/com-example-TestClass.html'
+        'MyTest한글Class'            | 'classes/MyTest한글Class.html'
+        'com.example.StandardTest'    | 'classes/com.example.StandardTest.html'
+    }
+
+    def "baseUrl handles illegal filesystem characters correctly"() {
+        expect:
+        def result = new ClassTestResults(1, className, null)
+        result.baseUrl.startsWith('classes/')
+        result.baseUrl.endsWith('.html')
+        !result.baseUrl.contains('#')
+
+        where:
+        className << [
+            'Test<>Class',
+            'Test|With*Special?Chars',
+            '특수문자<>포함:테스트|클래스*',
+            'very.long.package.name.TestClass'
+        ]
+    }
 }

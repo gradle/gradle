@@ -18,7 +18,6 @@ package org.gradle.integtests.fixtures.executer
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.cache.internal.CacheVersion
-import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.util.GradleVersion
@@ -47,6 +46,7 @@ class DefaultGradleDistribution implements GradleDistribution {
         22: "8.8",
         23: "8.10",
         24: "8.14",
+        25: "9.1.0",
     ]
 
     /**
@@ -94,11 +94,6 @@ class DefaultGradleDistribution implements GradleDistribution {
     @Override
     GradleVersion getVersion() {
         return version;
-    }
-
-    @Override
-    GradleExecuter executer(TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
-        return new NoDaemonGradleExecuter(this, testDirectoryProvider, version, buildContext)
     }
 
     @Override

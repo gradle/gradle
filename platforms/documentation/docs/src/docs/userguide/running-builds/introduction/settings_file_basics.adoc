@@ -95,7 +95,21 @@ include("sub-project-c")
 The settings script is evaluated before any build scripts, making it the right place to enable or configure **build-wide features** such as plugin management, included builds, version catalogs, and more.
 We will explore these Gradle features in the advanced concepts section.
 
-To learn more about scripting the settings file, see <<writing_settings_files.adoc#writing_settings_files,Writing Settings Files>>.
+Based on the example settings file, Gradle expects the project to look as follows:
+
+[source,text]
+----
+.
+├── settings.gradle(.kts)   // <1>
+├── sub-project-a
+│   └── build.gradle(.kts)      // <2>
+├── sub-project-b
+│   └── build.gradle(.kts)      // <2>
+└── sub-project-c
+    └── build.gradle(.kts)      // <2>
+----
+<1> The `settings.gradle(.kts)` file.
+<2> The three subprojects, each with their own `build.gradle(.kts)` file.
 
 [.text-right]
 **Next Step:** <<build_file_basics.adoc#build_file_basics,Learn about the Build scripts>> >>

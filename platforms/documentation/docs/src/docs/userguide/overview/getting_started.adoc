@@ -1,0 +1,140 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[introduction]]
+= Getting Started
+
+== Gradle for Software Engineers
+
+Everyone has to start somewhere, and if you're new to Gradle, this is where to begin.
+
+[[run_gradle_intro]]
+=== 1. Learn how to run Gradle Builds
+
+This section goes through the Gradle core concepts so that you can quickly understand how to invoke tasks, turn on features, apply plugins, add dependencies to your project, and more.
+
+[sidebar]
+_Training level_: **Beginner** +
+_Reading time_: **25 minutes**
+
+This section covers:
+
+<<gradle_basics.adoc#gradle,Part 1.>> Core Concepts +
+<<gradle_wrapper_basics.adoc#gradle_wrapper_basics,Part 2.>> Wrapper Basics +
+<<command_line_interface_basics.adoc#command_line_interface_basics,Part 3.>> Command Line Interface Basics +
+<<settings_file_basics.adoc#settings_file_basics,Part 4.>> Settings File Basics +
+<<build_file_basics.adoc#build_file_basics,Part 5.>> Build Files Basics +
+<<dependency_management_basics.adoc#dependency_management_basics,Part 6.>> Dependencies and Dependency Management Basics +
+<<task_basics.adoc#task_basics,Part 7.>> Tasks Basics +
+<<gradle_optimizations.adoc#gradle_optimizations,Part 8.>> Incremental Builds and Build Caching Basics +
+<<plugin_basics.adoc#plugin_basics,Part 9.>> Plugins Basics +
+<<build_scans.adoc#build_scans,Part 10.>> Build Scan +
+
+[[beginner_tutorial]]
+=== 2. Beginner Gradle Tutorial
+
+The tutorial will take you from Gradle initialization all the way through to utilizing Gradle's task caching for your basic Java App.
+No previous experience is necessary but a basic knowledge of Java and Kotlin is nice to have.
+
+If you need to install Gradle before the tutorial, you can do so in the <<installation.adoc#installation,installation section>>.
+
+[sidebar]
+_Training level_: **Beginner** +
+_Training time_: **55 minutes**
+
+The tutorial covers:
+
+<<part1_gradle_init.adoc#part1_begin,Part 1.>> Initializing the Project +
+<<part2_gradle_tasks.adoc#part2_begin,Part 2.>> Running Tasks +
+<<part3_gradle_dep_man.adoc#part3_begin,Part 3.>> Understanding Dependencies +
+<<part4_gradle_plugins.adoc#part4_begin,Part 4.>> Applying Plugins +
+<<part5_gradle_inc_builds.adoc#part5_begin,Part 5.>> Exploring Incremental Builds +
+<<part6_gradle_caching.adoc#part6_begin,Part 6.>> Enabling the Cache
+
+== Gradle for Build Engineers
+
+Build engineers that are ready to configure and organize custom build logic should start here.
+
+[[author_gradle_intro]]
+=== 1. Learn how to write Gradle scripts
+
+This section goes through some Gradle authoring basics so that you can quickly understand how to configure builds, create tasks, and organize logic.
+
+[sidebar]
+_Training level_: **Intermediate** +
+_Reading time_: **35 minutes**
+
+This section covers:
+
+<<gradle_directories_intermediate.adoc#gradle_directories,Part 1.>> Anatomy of a Gradle Build +
+<<multi_project_builds_intermediate.adoc#intro_multi_project_builds,Part 2.>> Structuring Multi-Project Builds +
+<<build_lifecycle_intermediate.adoc#build_lifecycle,Part 3.>> Gradle Build Lifecycle +
+<<writing_build_scripts_intermediate.adoc#writing_build_scripts,Part 4.>> Writing Build Scripts +
+<<gradle_managed_types_intermediate.adoc#gradle_types_intro,Part 5.>> Gradle Managed Types +
+<<dependencies_intermediate.adoc#dependencies_intro,Part 6.>> Declaring and Managing Dependencies +
+<<writing_tasks_intermediate.adoc#writing_tasks,Part 7.>> Creating and Registering Tasks +
+<<plugins_intermediate.adoc#using_plugins,Part 8.>> Working With Plugins +
+
+[[intermediate_tutorial]]
+=== 2. Intermediate Gradle Tutorial
+
+The tutorial will take you from Gradle initialization all the way through registering tasks and the basics of plugins.
+
+[sidebar]
+_Training level_: **Intermediate** +
+_Training time_: **65 minutes**
+
+The tutorial covers:
+
+<<part1_gradle_init_project.adoc#part1_begin,Part 1.>> Initializing the Project +
+<<part2_build_lifecycle.adoc#part2_begin,Part 2.>> Understanding the Build Lifecycle +
+<<part3_multi_project_builds.adoc#part3_begin,Part 3.>> Multi-Project Builds +
+<<part4_settings_file.adoc#part4_begin,Part 6.>> Writing the Settings File +
+<<part5_build_scripts.adoc#part5_begin,Part 5.>> Writing Build Scripts +
+<<part6_writing_tasks.adoc#part6_begin,Part 6.>> Writing Tasks +
+<<part7_writing_plugins.adoc#part7_begin,Part 7.>> Writing Plugins +
+
+== Gradle for Plugin Developers
+
+Plugin authors that are ready to write their own plugins and publish it should start here.
+
+[[gradle_plugin_intro]]
+=== 1. Learn how to develop Gradle Plugins
+
+This section goes through developing tasks, writing, and publishing plugins.
+
+[sidebar]
+_Training level_: **Advanced** +
+_Reading time_: **35 minutes**
+
+This section covers:
+
+<<plugin_introduction_advanced.adoc#plugin_introduction_advanced,Part 1.>> Plugin Introduction +
+<<pre_compiled_script_plugin_advanced.adoc#pre_compiled_script_plugins_advanced,Part 2.>> Pre-Compiled Script Plugins +
+<<binary_plugin_advanced.adoc#binary_plugins_advanced,Part 3.>> Binary Plugins +
+<<developing_binary_plugin_advanced.adoc#develop_binary_plugins_advanced,Part 4.>> Binary Plugin Development +
+<<publishing_binary_plugin_advanced.adoc#publish_binary_plugins_advanced,Part 5.>> Binary Plugin Publishing +
+
+[[advanced_tutorial]]
+=== 2. Advanced Gradle Tutorial
+
+The tutorial will take you from Gradle initialization all the way through creating and publishing a binary plugin.
+
+[sidebar]
+_Training level_: **Advanced** +
+_Training time_: **65 minutes**
+
+The tutorial covers:
+
+<<part1_gradle_init_plugin.adoc#part1_begin,Part 1.>> Initializing the Project +

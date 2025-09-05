@@ -19,7 +19,6 @@ package org.gradle.internal.build
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
@@ -41,12 +40,7 @@ class BuildOperationFiringBuildWorkPreparerTest extends Specification {
     def "build operation provides execution plan when queries with all node types"() {
         def project = Stub(ProjectInternal) {
             projectPath(_) >> { args -> Path.path(":" + args[0]) }
-            getProjectIdentity() >> new ProjectIdentity(
-                DefaultBuildIdentifier.ROOT,
-                Path.ROOT,
-                Path.ROOT,
-                "root"
-            )
+            getProjectIdentity() >> ProjectIdentity.forRootProject(Path.ROOT, "root")
         }
         def ti1 = TestTaskIdentities.create("t1", Task, project)
         def t = Stub(LocalTaskNode) {

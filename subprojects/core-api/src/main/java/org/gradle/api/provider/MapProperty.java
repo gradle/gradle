@@ -28,10 +28,6 @@ import java.util.Set;
  * Represents a property whose type is a {@link Map} of keys of type {@link K} and values of type {@link V}. Retains iteration order.
  *
  * <p>
- * You can create a {@link MapProperty} instance using factory method {@link org.gradle.api.model.ObjectFactory#mapProperty(Class, Class)}.
- * </p>
- *
- * <p>
  * Instances of this interface are not thread-safe for reading and writing.
  * It is not safe to share the same MapProperty instance between different projects.
  * </p>
@@ -41,6 +37,9 @@ import java.util.Set;
  * @param <K> the type of keys.
  * @param <V> the type of values.
  * @since 5.1
+ *
+ * @see ManagedType Create an instance of this as a managed property (preferred).
+ * @see org.gradle.api.model.ObjectFactory#mapProperty(Class,Class) Create an instance of this manually.
  */
 @ManagedType
 @SupportsKotlinAssignmentOverloading

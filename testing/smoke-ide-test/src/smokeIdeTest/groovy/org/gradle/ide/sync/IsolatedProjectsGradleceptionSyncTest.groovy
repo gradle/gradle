@@ -24,7 +24,7 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
 
     private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(testDirectory)
 
-    def "can sync gradle/gradle build with known problems"() {
+    def "can sync gradle/gradle build without problems"() {
         given:
         gradle()
 
@@ -32,19 +32,13 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
         ideaSync(IDEA_COMMUNITY_VERSION)
 
         then:
-        fixture.assertHtmlReportHasProblems {
-            // In gradle/gradle total problems count depends on amount of subprojects.
-            // We want to avoid useless test failures
-            ignoreTotalProblemsCount = true
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.extensions' functionality on subprojects via 'allprojects'")
-        }
+        fixture.assertHtmlReportHasNoProblems()
     }
 
     private void gradle() {
         new TestFile("build/gradleSources").copyTo(testDirectory)
 
         file("gradle.properties") << """
-            org.gradle.configuration-cache.problems=warn
             org.gradle.unsafe.isolated-projects=true
 
             # gradle/gradle build contains gradle/gradle-daemon-jvm.properties, which requires daemon to be run with Java 17.

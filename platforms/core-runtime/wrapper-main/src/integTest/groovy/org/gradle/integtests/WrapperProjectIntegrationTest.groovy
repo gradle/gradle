@@ -74,7 +74,7 @@ class WrapperProjectIntegrationTest extends AbstractWrapperIntegrationSpec {
         when:
         def result = wrapperExecuter.inDirectory(projectDir).withTasks('assertProjectDirHasMeta').run()
         then:
-        result.assertTaskExecuted(":assertProjectDirHasMeta")
+        result.assertTaskScheduled(":assertProjectDirHasMeta")
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-1871")

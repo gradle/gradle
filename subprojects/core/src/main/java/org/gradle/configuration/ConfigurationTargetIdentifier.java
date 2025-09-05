@@ -81,12 +81,12 @@ public abstract class ConfigurationTargetIdentifier {
             @Nullable
             @Override
             public String getTargetPath() {
-                return project.getProjectPath().getPath();
+                return project.getProjectPath().asString();
             }
 
             @Override
             public String getBuildPath() {
-                return project.getGradle().getIdentityPath().getPath();
+                return project.getGradle().getIdentityPath().asString();
             }
         };
     }
@@ -106,7 +106,7 @@ public abstract class ConfigurationTargetIdentifier {
 
             @Override
             public String getBuildPath() {
-                return settings.getGradle().getIdentityPath().getPath();
+                return settings.getGradle().getIdentityPath().asString();
             }
         };
     }
@@ -126,7 +126,7 @@ public abstract class ConfigurationTargetIdentifier {
 
             @Override
             public String getBuildPath() {
-                return gradle.getIdentityPath().getPath();
+                return gradle.getIdentityPath().asString();
             }
         };
     }

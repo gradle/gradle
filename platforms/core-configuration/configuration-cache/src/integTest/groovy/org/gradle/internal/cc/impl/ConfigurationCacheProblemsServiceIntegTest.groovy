@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl
 
 
 import org.gradle.api.problems.Severity
+import org.gradle.initialization.StartParameterBuildOptions
 
 class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -61,7 +62,7 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
         }
 
         when:
-        configurationCacheRunLenient '-Pdummy=true', 'run'
+        configurationCacheRunLenient 'run', "-D${StartParameterBuildOptions.ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
 
         then:
         verifyAll(receivedProblem) {

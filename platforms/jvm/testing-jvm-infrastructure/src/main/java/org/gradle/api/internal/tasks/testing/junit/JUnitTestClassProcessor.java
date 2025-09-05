@@ -47,7 +47,7 @@ public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor {
         try {
             Class.forName("org.junit.runner.notification.RunListener");
         } catch (ClassNotFoundException e) {
-            throw new TestFrameworkNotAvailableException("Failed to load JUnit 4.  Please ensure that JUnit 4 is available on the test runtime classpath.");
+            throw new TestFrameworkNotAvailableException("Failed to load JUnit 4.  Please ensure that the JUnit 4 library is available on the test's runtime classpath.");
         }
     }
 

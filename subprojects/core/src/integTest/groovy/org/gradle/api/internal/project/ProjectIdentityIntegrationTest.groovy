@@ -26,16 +26,13 @@ class ProjectIdentityIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         file("buildSrc/src/main/kotlin/LifetimeKeeper.kt") << """
-            import ${WeakHashMap.name}
-            import ${Project.name}
-
             object LifetimeKeeper {
-                val map = WeakHashMap<Project, Unit>()
+                val map = ${Collections.name}.synchronizedMap(${IdentityHashMap.name}<${Project.name}, Unit>())
             }
         """
         file("buildSrc/src/main/kotlin/lifetime.gradle.kts") << """
             if (LifetimeKeeper.map.put(project.rootProject, Unit) == null) {
-                println("Action executed: \${project.name}")
+                println("New project added: \${project.name}")
             }
         """
         file("buildSrc/build.gradle.kts") << """
@@ -47,38 +44,8 @@ class ProjectIdentityIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @Requires(value = IntegTestPreconditions.NotIsolatedProjects, reason = "IP enables parallel configuration")
-    def 'project lifetime is same as build'() {
-        given:
-        settingsFile """
-            include(":a")
-            include(":b")
-        """
-
-        buildFile("a/build.gradle", """
-            plugins {
-                id("lifetime")
-            }
-            System.gc()
-        """)
-
-        buildFile("b/build.gradle", """
-            plugins {
-                id("lifetime")
-            }
-            System.gc()
-        """)
-
-        when:
-        run "help"
-
-        then:
-        outputContains("Action executed: a")
-        outputDoesNotContain("Action executed: b")
-    }
-
     @Requires(IntegTestPreconditions.NotConfigCached)
-    def 'project identity doesnt survive build finish'() {
+    def 'a new Project instance is used for each build'() {
         given:
         executer.requireIsolatedDaemons()
         settingsFile """
@@ -94,12 +61,12 @@ class ProjectIdentityIntegrationTest extends AbstractIntegrationSpec {
         run "help"
 
         then:
-        outputContains("Action executed: root")
+        outputContains("New project added: root")
 
         when:
         run "help"
 
         then:
-        outputContains("Action executed: root")
+        outputContains("New project added: root")
     }
 }

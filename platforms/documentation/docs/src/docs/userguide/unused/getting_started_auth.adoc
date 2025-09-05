@@ -1,0 +1,39 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[plugin_introduction]]
+= Getting Started
+
+Plugin authors that are ready to write their own plugins and publish it should start here.
+
+To get started developing Gradle plugins:
+
+1. Read the <<#gradle_plugin_intro,Deep Dive chapters>>.
+
+[[gradle_plugin_intro]]
+== 1. Gradle Deep Dive
+
+The deep dive section goes through developing tasks, understanding services, writing and publishing plugins.
+
+[sidebar]
+_Training level_: **Advanced** +
+_Reading time_: **35 minutes**
+
+This section covers:
+
+<<plugin_introduction_advanced.adoc#plugin_introduction_advanced,Part 1.>> Plugin Introduction +
+<<pre_compiled_script_plugin_advanced.adoc#pre_compiled_script_plugins_advanced,Part 2.>> Pre-Compiled Script Plugins +
+<<binary_plugin_advanced.adoc#binary_plugins_advanced,Part 3.>> Binary Plugins +
+
+[[plugin_tutorial]]

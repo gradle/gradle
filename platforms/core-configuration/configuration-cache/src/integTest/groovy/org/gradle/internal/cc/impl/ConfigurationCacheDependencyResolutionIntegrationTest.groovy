@@ -107,7 +107,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
         result.assertTaskSkipped(":additionalFile")
-        result.assertTaskNotSkipped(":a:producer")
+        result.assertTaskExecuted(":a:producer")
         result.assertTaskSkipped(":b:producer")
         outputContains("result = [a.thing, b.thing, a.out, b.out, lib1-6500.jar]")
     }
@@ -152,7 +152,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
         result.assertTaskSkipped(":additionalFile")
-        result.assertTaskNotSkipped(":a:producer")
+        result.assertTaskExecuted(":a:producer")
         result.assertTaskSkipped(":b:producer")
         outputContains("files = [a.thing, b.thing, a.out, b.out, lib1-6500.jar]")
         outputContains("artifacts = [a.thing (a.thing), b.thing (b.thing), a.out (project :a), b.out (project :b), lib1-6500.jar (group:lib1:6500)]")
@@ -214,9 +214,9 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         configurationCache.assertStateLoaded()
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
-        result.assertTaskNotSkipped(":a:producer")
+        result.assertTaskExecuted(":a:producer")
         result.assertTaskSkipped(":b:producer")
-        result.assertTaskNotSkipped(":resolve")
+        result.assertTaskExecuted(":resolve")
         file('out.txt').text == "12,10"
     }
 
@@ -268,7 +268,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
         assertTransformed("a.jar")
-        result.assertTaskNotSkipped(":a:producer")
+        result.assertTaskExecuted(":a:producer")
         result.assertTaskSkipped(":b:producer")
         outputContains("result = [a.jar.green, b.jar.green]")
     }
@@ -308,7 +308,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         configurationCache.assertStateLoaded()
         result.assertTaskOrder(":a:producer", ":resolveArtifacts")
         result.assertTaskOrder(":b:producer", ":resolveArtifacts")
-        result.assertTaskNotSkipped(":a:producer")
+        result.assertTaskExecuted(":a:producer")
         result.assertTaskSkipped(":b:producer")
         assertTransformed("a.jar")
         outputContains("files = [a.jar.green, b.jar.green]")
@@ -607,7 +607,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         configurationCache.assertStateLoaded()
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
-        result.assertTaskNotSkipped(":a:producer")
+        result.assertTaskExecuted(":a:producer")
         result.assertTaskSkipped(":b:producer")
         assertTransformed("a.jar", "a.jar.red")
         outputContains("result = [a.jar.red.green, b.jar.red.green")
@@ -658,7 +658,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         configurationCache.assertStateLoaded()
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
-        result.assertTaskNotSkipped(":a:producer")
+        result.assertTaskExecuted(":a:producer")
         result.assertTaskSkipped(":b:producer")
         output.count("processing") == 3
         outputContains("processing a.jar to make red")
@@ -720,7 +720,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         result.assertTaskOrder(":b:producer", ":resolve")
         result.assertTaskOrder(":c:producer", ":resolve")
         result.assertTaskSkipped(":a:producer")
-        result.assertTaskNotSkipped(":b:producer")
+        result.assertTaskExecuted(":b:producer")
         result.assertTaskSkipped(":c:producer")
         output.count("processing") == 2
         outputContains("processing b.jar using []")
@@ -856,7 +856,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         result.assertTaskOrder(":b:producer", ":resolve")
         result.assertTaskOrder(":c:producer", ":resolve")
         result.assertTaskSkipped(":a:producer")
-        result.assertTaskNotSkipped(":b:producer")
+        result.assertTaskExecuted(":b:producer")
         result.assertTaskSkipped(":c:producer")
         output.count("processing") == 3
         outputContains("processing b.jar")
@@ -1077,9 +1077,9 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
 
         then:
         fixture.assertStateStored()
-        result.assertTaskExecuted(":buildSrc:producer:producer")
-        result.assertTaskExecuted(":buildSrc:resolve")
-        result.assertTaskExecuted(":help")
+        result.assertTaskScheduled(":buildSrc:producer:producer")
+        result.assertTaskScheduled(":buildSrc:resolve")
+        result.assertTaskScheduled(":help")
         assertTransformed("producer.jar", "test-12.jar", "thing.blue")
 
         when:
@@ -1087,7 +1087,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
 
         then:
         fixture.assertStateLoaded()
-        result.assertTasksExecuted(":help")
+        result.assertTasksScheduled(":help")
         assertTransformed()
     }
 
@@ -1359,7 +1359,7 @@ dependencies {
         configurationCache.assertStateStored()
         outputFile.text == expectedOutput
         outputContains 'Transforming input.txt...'
-        result.assertTaskExecuted ':summarize'
+        result.assertTaskScheduled ':summarize'
 
         when: 'input file changes'
         inputFile.text = inputFile.text.reverse()
@@ -1369,7 +1369,7 @@ dependencies {
         configurationCache.assertStateLoaded()
         outputFile.text == expectedOutput
         outputContains 'Transforming input.txt...'
-        result.assertTaskExecuted ':summarize'
+        result.assertTaskScheduled ':summarize'
     }
 
     def 'can use ListProperty of ComponentArtifactIdentifier as task input'() {

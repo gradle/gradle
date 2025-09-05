@@ -59,7 +59,6 @@ import static org.gradle.internal.serialization.Transient.varOf;
 public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
     private final Transient.Var<DefaultMavenArtifactRepository> repository = varOf();
     private final Cached<PublishSpec> spec = Cached.of(this::computeSpec);
-    private final Property<Credentials> credentials = getProject().getObjects().property(Credentials.class);
 
     /**
      * The repository to publish to.
@@ -74,9 +73,7 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
 
     @Nested
     @Optional
-    Property<Credentials> getCredentials() {
-        return credentials;
-    }
+    abstract Property<Credentials> getCredentials();
 
     @Inject
     protected abstract ListenerManager getListenerManager();
@@ -88,7 +85,7 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
      */
     public void setRepository(MavenArtifactRepository repository) {
         this.repository.set((DefaultMavenArtifactRepository) repository);
-        this.credentials.set(((DefaultMavenArtifactRepository) repository).getConfiguredCredentials());
+        this.getCredentials().set(((DefaultMavenArtifactRepository) repository).getConfiguredCredentials());
     }
 
     @TaskAction

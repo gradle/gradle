@@ -177,13 +177,13 @@ class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         succeeds "sampleLibBinaryOne"
 
         then:
-        result.assertTasksExecuted(":sampleLibBinaryOne")
+        result.assertTasksScheduled(":sampleLibBinaryOne")
 
         when:
         succeeds "sampleLibOtherBinary"
 
         then:
-        result.assertTasksExecuted(":sampleLibOtherBinaryOtherTask", ":sampleLibOtherBinary")
+        result.assertTasksScheduled(":sampleLibOtherBinaryOtherTask", ":sampleLibOtherBinary")
     }
 
     def "can use additional parameters as rule inputs"() {

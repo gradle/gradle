@@ -41,9 +41,8 @@ abstract class SamplePlugin : Plugin<Project> { // <1>
         }
     }
 }
-
-apply<SamplePlugin>() // <3>
 // end::plugin[]
+apply<SamplePlugin>() // <3>
 
 // tag::plugin-1[]
 abstract class SamplePlugin1 : Plugin<Project> { // <1>

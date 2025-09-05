@@ -17,6 +17,7 @@ package org.gradle.api.internal.catalog;
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.CacheCleanupStrategyFactory;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.CacheBasedImmutableWorkspaceProvider;
@@ -34,7 +35,8 @@ public class DependenciesAccessorsWorkspaceProvider implements ImmutableWorkspac
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         CacheConfigurationsInternal cacheConfigurations,
-        CacheCleanupStrategyFactory cacheCleanupStrategyFactory
+        CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
+        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
     ) {
         this.delegate = CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(
             cacheBuilderFactory
@@ -42,13 +44,19 @@ public class DependenciesAccessorsWorkspaceProvider implements ImmutableWorkspac
                 .withDisplayName("dependencies-accessors"),
             fileAccessTimeJournal,
             cacheConfigurations,
-            cacheCleanupStrategyFactory
+            cacheCleanupStrategyFactory,
+            unscopedCacheBuilderFactory
         );
     }
 
     @Override
-    public ImmutableWorkspace getWorkspace(String path) {
-        return delegate.getWorkspace(path);
+    public AtomicMoveImmutableWorkspace getAtomicMoveWorkspace(String path) {
+        return delegate.getAtomicMoveWorkspace(path);
+    }
+
+    @Override
+    public LockingImmutableWorkspace getLockingWorkspace(String path) {
+        return delegate.getLockingWorkspace(path);
     }
 
     @Override

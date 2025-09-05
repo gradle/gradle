@@ -30,4 +30,6 @@ dependencies {
                 "this project should be usable by Kotlin-less consumers, see: `DeclarativeDslDependencyTest`"
         )
     }
+
+    compileOnly(libs.jspecify)
 }

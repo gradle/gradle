@@ -60,8 +60,7 @@ class TestPerformanceTest(
                     "-PtestJavaVendor=${os.perfTestJavaVendor.name.lowercase()}",
                     "-PautoDownloadAndroidStudio=true",
                     "-PrunAndroidStudioInHeadlessMode=true",
-                    os.javaInstallationLocations(),
-                ),
+                ) + os.javaInstallationLocations(),
             )
         }
 

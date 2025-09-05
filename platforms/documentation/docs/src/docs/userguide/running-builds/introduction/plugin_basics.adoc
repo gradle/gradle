@@ -31,7 +31,7 @@ It can:
 
 Plugins are applied to build scripts using the `plugins` block (Kotlin DSL or Groovy DSL), and they bring in all the logic needed for a specific domain or workflow.
 
-== Common plugins
+== Common Plugins
 
 Here are some popular plugins and what they do:
 
@@ -45,7 +45,7 @@ Configures Firebase and Google APIs in Android builds. Adds DSL like `googleServ
 Publishes artifacts to Bintray (or other Maven-style repositories) using a `bintray {}` configuration block.
 
 [[applying_plugins]]
-== Applying plugins
+== Applying Plugins
 
 *Applying* a plugin to a project allows the plugin to extend the project's capabilities.
 
@@ -73,21 +73,11 @@ This tells Gradle to:
 * Apply the built-in `java-library` plugin, which adds tasks for compiling Java, running tests, and packaging libraries.
 * Apply the community-maintained `spotless` plugin (version `6.25.0`), which adds code formatting tasks and integrates tools like `ktlint`, `prettier`, and `google-java-format`.
 
-== Plugin types
-
-Gradle supports three types of plugins:
-
-1. **Script plugins** – Reusable `.gradle` or `.gradle.kts` files that are applied using `apply from:`.
-2. **Pre-compiled plugins** – Packaged Kotlin or Groovy code applied with the `plugins {}` block.
-3. **Binary plugins** – Packaged and published plugins (often from the Plugin Portal or Maven) that are applied with the `plugins {}` block.
-
-Most modern builds prefer **binary** or **precompiled** plugins.
-
-== Plugin distribution
+== Plugin Distribution and Availability
 
 Gradle plugins come from different sources, and you can choose the right type depending on your use case.
 
-=== 1. Core Plugins (built into Gradle)
+=== 1. Core Plugins
 
 Gradle Core plugins are a set of plugins that are included in the Gradle distribution itself.
 These plugins provide essential functionality for building and managing projects.
@@ -105,13 +95,13 @@ plugins {
 These plugins are maintained by the Gradle team.
 See the <<plugin_reference#plugin_reference,Core Plugin Reference>> for a full list.
 
-=== 2. Community Plugins (from the Plugin Portal)
+=== 2. Community Plugins
 
 Community plugins are plugins developed by the Gradle community, rather than being part of the core Gradle distribution.
 These plugins provide additional functionality that may be specific to certain use cases or technologies.
 
 Gradle’s plugin ecosystem includes thousands of open-source plugins shared by the community.
-These are published to the link:https://plugins.gradle.org/[Gradle Plugin Portal] and can be applied by ID and version:
+These are typically published to the link:https://plugins.gradle.org/[Gradle Plugin Portal] and can be applied by ID and version:
 
 [source,kotlin]
 ----
@@ -121,14 +111,15 @@ plugins {
 ----
 
 Gradle will automatically download the plugin when the build runs.
+See the link:https://plugins.gradle.org/[Gradle Plugin Portal] to search for a plugin.
 
-=== 3. Local or Custom Plugins (defined in your build)
+=== 3. Custom / Local Plugins
 
 You can also write your own plugins — either for use in a single project or shared across multiple projects in the same build.
 
-The most common type of custom plugin is a **convention plugin**, which lives in either a `buildSrc/` directory or a standalone `build-logic` module. These plugins are written in Kotlin or Groovy and follow the same structure as published plugins.
+Custom plugins are typically written in Java, Kotlin, or Groovy and follow the same structure as published plugins.
 
-Convention plugins are applied using the `plugins {}` block, just like external plugins:
+They are normally applied by name:
 
 [source,kotlin]
 ----
@@ -137,7 +128,5 @@ plugins {
 }
 ----
 
-To learn how to create your own plugin, see the <<custom_plugins.adoc#custom_plugins,Plugin development chapter>>.
-
 [.text-right]
-**Next Step:** <<gradle_optimizations.adoc#gradle_optimizations,Learn about Incremental Builds and Build Caching>> >>
+**Next Step:** <<build_scans.adoc#build_scans,Learn about Build Scan>> >>

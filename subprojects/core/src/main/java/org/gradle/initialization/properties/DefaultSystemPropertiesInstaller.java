@@ -17,10 +17,8 @@
 package org.gradle.initialization.properties;
 
 import org.gradle.api.Project;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.initialization.EnvironmentChangeTracker;
 
 import java.util.Map;
 
@@ -28,20 +26,10 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 public class DefaultSystemPropertiesInstaller implements SystemPropertiesInstaller {
 
-    private final EnvironmentChangeTracker environmentChangeTracker;
-
     private final StartParameterInternal startParameter;
 
-    private final GradleInternal gradleInternal;
-
-    public DefaultSystemPropertiesInstaller(
-        EnvironmentChangeTracker environmentChangeTracker,
-        StartParameterInternal startParameter,
-        GradleInternal gradleInternal
-    ) {
-        this.environmentChangeTracker = environmentChangeTracker;
+    public DefaultSystemPropertiesInstaller(StartParameterInternal startParameter) {
         this.startParameter = startParameter;
-        this.gradleInternal = gradleInternal;
     }
 
     @Override
@@ -49,34 +37,24 @@ public class DefaultSystemPropertiesInstaller implements SystemPropertiesInstall
         // TODO:configuration-cache What happens when a system property is set from a Gradle property and
         //    that same system property is then used to set a Gradle property from an included build?
         //    e.g., included-build/gradle.properties << systemProp.org.gradle.project.fromSystemProp=42
-        setSystemPropertiesFromGradleProperties(gradleProperties.getProperties());
+        setSystemPropertiesFromGradleProperties(gradleProperties);
         setSystemPropertiesFromStartParameter();
     }
 
     private void setSystemPropertiesFromStartParameter() {
         Map<String, String> systemPropertiesArgs = startParameter.getSystemPropertiesArgs();
-
-        for (String key : systemPropertiesArgs.keySet()) {
-            environmentChangeTracker.systemPropertyOverridden(key);
-        }
-
         System.getProperties().putAll(systemPropertiesArgs);
     }
 
-    private void setSystemPropertiesFromGradleProperties(Map<String, String> properties) {
-        if (properties.isEmpty()) {
-            return;
-        }
+    private static void setSystemPropertiesFromGradleProperties(GradleProperties properties) {
         String prefix = Project.SYSTEM_PROP_PREFIX + '.';
         int prefixLength = prefix.length();
-        for (String key : properties.keySet()) {
-            if (key.length() > prefixLength && key.startsWith(prefix)) {
-                String systemPropertyKey = key.substring(prefixLength);
-                if (!gradleInternal.isRootBuild()) {
-                    environmentChangeTracker.systemPropertyLoaded(systemPropertyKey, properties.get(key), System.getProperty(systemPropertyKey));
-                }
-                System.setProperty(systemPropertyKey, uncheckedNonnullCast(properties.get(key)));
-            }
+        Map<String, String> prefixedProperties = properties.getPropertiesWithPrefix(prefix);
+        for (Map.Entry<String, String> entry : prefixedProperties.entrySet()) {
+            String prefixedPropertyName = entry.getKey();
+            String systemPropertyKey = prefixedPropertyName.substring(prefixLength);
+            String propertyValue = entry.getValue();
+            System.setProperty(systemPropertyKey, uncheckedNonnullCast(propertyValue));
         }
     }
 }

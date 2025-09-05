@@ -30,6 +30,7 @@ import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.Requires
 import org.gradle.test.precondition.TestPrecondition
+import org.gradle.util.DebugUtil
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.RedirectStdOutAndErr
 
@@ -100,10 +101,11 @@ class ToolingApiClassLoaderProvider {
         sharedSpec.allowClass(ClassLoaderFixture)
         sharedSpec.allowClass(SupportedJavaVersionsExpectations)
         sharedSpec.allowClass(JavaVersionParser)
+        sharedSpec.allowClass(DebugUtil)
         def sharedClassLoader = classLoaderFactory.createFilteringClassLoader(Thread.currentThread().getContextClassLoader(), sharedSpec)
 
         def parentClassLoader = new MultiParentClassLoader(toolingApi.classLoader, sharedClassLoader)
 
-        return new VisitableURLClassLoader("test", parentClassLoader, testClassPath.collect { it.toURI().toURL() })
+        return new VisitableURLClassLoader("tapi-test", parentClassLoader, testClassPath.collect { it.toURI().toURL() })
     }
 }

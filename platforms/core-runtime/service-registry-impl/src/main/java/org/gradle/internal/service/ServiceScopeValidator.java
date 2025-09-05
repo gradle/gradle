@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service;
 
-import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
@@ -178,12 +177,7 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
             return "service scope '" + scopes[0].getSimpleName() + "'";
         }
 
-        return "service scopes " + join(", ", scopes, new InternalTransformer<String, Class<? extends Scope>>() {
-            @Override
-            public String transform(Class<? extends Scope> aClass) {
-                return "'" + aClass.getSimpleName() + "'";
-            }
-        });
+        return "service scopes " + join(", ", scopes, aClass -> "'" + aClass.getSimpleName() + "'");
     }
 
     @Nullable

@@ -33,6 +33,13 @@ fi
 EC2_INSTANCE_TYPE=$(curl -s "http://169.254.169.254/latest/meta-data/instance-type")
 echo "##teamcity[addBuildTag 'ec2-instance-type=$EC2_INSTANCE_TYPE']"
 
+AWS_REGION=$(curl -s "http://169.254.169.254/latest/meta-data/placement/region")
+
+if [[ "$AWS_REGION" == us-* ]]; then
+  echo "For $AWS_REGION switching to user teamcityus access token"
+  echo "##teamcity[setParameter name='env.DEVELOCITY_ACCESS_KEY' value='%ge.gradle.org.access.key.us%;%gbt-td.grdev.net.access.key%']"
+fi
+
 # READ-ONLY DEPENDENCY CACHE
 if [ -d "/opt/gradle-cache" ]; then
   echo "##teamcity[setParameter name='env.GRADLE_RO_DEP_CACHE' value='/opt/gradle-cache']"

@@ -165,9 +165,7 @@ fun determineScenariosFor(
     performanceTestConfigurations: List<PerformanceTestConfiguration>,
 ): List<PerformanceScenario> {
     val performanceTestTypes =
-        if (performanceTestSpec.performanceTestType in
-            setOf(PerformanceTestType.HISTORICAL, PerformanceTestType.FLAKINESS_DETECTION)
-        ) {
+        if (performanceTestSpec.performanceTestType == PerformanceTestType.FLAKINESS_DETECTION) {
             listOf(PerformanceTestType.PER_COMMIT, PerformanceTestType.PER_DAY)
         } else {
             listOf(performanceTestSpec.performanceTestType)

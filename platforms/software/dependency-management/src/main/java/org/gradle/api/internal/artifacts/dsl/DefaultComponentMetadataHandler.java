@@ -46,6 +46,7 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.action.ConfigurableRule;
 import org.gradle.internal.action.DefaultConfigurableRule;
 import org.gradle.internal.component.external.model.VariantDerivationStrategy;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.reflect.Instantiator;
@@ -173,7 +174,12 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     }
 
     @Override
+    @Deprecated
     public ComponentMetadataHandler all(Object ruleSource) {
+        DeprecationLogger.deprecateMethod(ComponentMetadataHandler.class, "all(Object)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "dependency_management_rules")
+            .nagUser();
         return addRule(createAllSpecRuleAction(ruleActionAdapter.createFromRuleSource(ComponentMetadataDetails.class, ruleSource)));
     }
 
@@ -188,7 +194,12 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     }
 
     @Override
+    @Deprecated
     public ComponentMetadataHandler withModule(Object id, Object ruleSource) {
+        DeprecationLogger.deprecateMethod(ComponentMetadataHandler.class, "withModule(Object,Object)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "dependency_management_rules")
+            .nagUser();
         return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromRuleSource(ComponentMetadataDetails.class, ruleSource)));
     }
 

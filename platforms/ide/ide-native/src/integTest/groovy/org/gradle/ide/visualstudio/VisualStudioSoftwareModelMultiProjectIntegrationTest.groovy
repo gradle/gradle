@@ -19,6 +19,7 @@ import org.apache.commons.io.FilenameUtils
 import org.gradle.api.Project
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.ide.visualstudio.fixtures.MSBuildExecutor
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.plugins.ide.internal.IdePlugin
@@ -330,7 +331,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
 
         then:
         resultDebug.size() == 1
-        resultDebug[0].assertTasksExecuted(':exe:compileMainDebugExecutableMainCpp', ':exe:linkMainDebugExecutable', ':exe:mainDebugExecutable', ':exe:installMainDebugExecutable', ':lib:compileHelloDebugStaticLibraryHelloCpp', ':lib:createHelloDebugStaticLibrary', ':lib:helloDebugStaticLibrary')
+        resultDebug[0].assertTasksScheduled(':exe:compileMainDebugExecutableMainCpp', ':exe:linkMainDebugExecutable', ':exe:mainDebugExecutable', ':exe:installMainDebugExecutable', ':lib:compileHelloDebugStaticLibraryHelloCpp', ':lib:createHelloDebugStaticLibrary', ':lib:helloDebugStaticLibrary')
         installation('exe/build/install/main/debug').assertInstalled()
     }
 
@@ -525,7 +526,6 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
     }
 
     /** @see IdePlugin#toGradleCommand(Project) */
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
     def "detects gradle wrapper and uses in vs project"() {
         when:
         hostGradleWrapperFile << "dummy wrapper"
@@ -549,7 +549,13 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
         then:
         final exeProject = projectFile("exe/exe_mainExe.vcxproj")
         exeProject.projectConfigurations.values().each {
-            assert it.buildCommand == "\"../${hostGradleWrapperFile.name}\" -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
+            def gradleFile = executer.distribution.gradleHomeDir.file("bin/gradle")
+            def formattedGradleFile = gradleFile.toString()
+            if (OperatingSystem.current().isWindows()) {
+                // For some reason we use forward slashes even on Windows
+                formattedGradleFile = formattedGradleFile.replace("\\", "/")
+            }
+            assert it.buildCommand == "\"${formattedGradleFile}\" -p \"..\" :exe:installMain${it.name.capitalize()}Executable"
         }
     }
 

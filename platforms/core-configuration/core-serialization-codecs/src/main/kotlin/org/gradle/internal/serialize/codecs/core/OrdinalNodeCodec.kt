@@ -16,18 +16,17 @@
 
 package org.gradle.internal.serialize.codecs.core
 
+import org.gradle.execution.plan.OrdinalGroupFactory
+import org.gradle.execution.plan.OrdinalNode
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readEnum
+import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.serialize.graph.writeEnum
-import org.gradle.execution.plan.OrdinalGroupFactory
-import org.gradle.execution.plan.OrdinalNode
 
 
-class OrdinalNodeCodec(
-    private val ordinalGroups: OrdinalGroupFactory
-) : Codec<OrdinalNode> {
+object OrdinalNodeCodec : Codec<OrdinalNode> {
     override suspend fun WriteContext.encode(value: OrdinalNode) {
         writeEnum(value.type)
         writeInt(value.ordinalGroup.ordinal)
@@ -36,6 +35,7 @@ class OrdinalNodeCodec(
     override suspend fun ReadContext.decode(): OrdinalNode {
         val ordinalType = readEnum<OrdinalNode.Type>()
         val ordinal = readInt()
+        val ordinalGroups = isolate.owner.serviceOf<OrdinalGroupFactory>()
         return ordinalGroups.group(ordinal).locationsNode(ordinalType)
     }
 }

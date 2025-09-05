@@ -119,7 +119,7 @@ class ChangesDuringBuildContinuousIntegrationTest extends AbstractContinuousInte
         sendEOT()
         results.size() == 2
         results.each {
-            assert it.assertTasksExecuted(':a', ':b', ':c', ':d')
+            assert it.assertTasksScheduled(':a', ':b', ':c', ':d')
         }
 
         where:
@@ -171,7 +171,7 @@ class ChangesDuringBuildContinuousIntegrationTest extends AbstractContinuousInte
         sendEOT()
         results.size() == 2
         results.each {
-            assert it.assertTasksExecuted(':a', ':b', ':c', ':d')
+            assert it.assertTasksScheduled(':a', ':b', ':c', ':d')
         }
 
         where:

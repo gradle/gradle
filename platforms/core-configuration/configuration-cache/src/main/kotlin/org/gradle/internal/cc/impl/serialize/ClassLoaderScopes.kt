@@ -79,7 +79,7 @@ open class InlineClassLoaderScopeSpecEncoder : ClassLoaderScopeSpecEncoder {
 
     override fun Encoder.encodeScope(scope: ClassLoaderScopeSpec) {
         val id = scopes.getId(scope)
-        if (id != null) {
+        if (id >= 0) {
             writeSmallInt(id)
         } else {
             val newId = scopes.putInstance(scope)

@@ -144,8 +144,8 @@ platforms/ide/ide-native/         @gradle/bt-tide @gradle/bt-jvm
 platforms/documentation/          @gradle/bt-docs-reviewers
 
 platforms/documentation/docs/src/snippets/kotlinDsl/                                                        @gradle/bt-docs-reviewers @gradle/bt-tide
-platforms/documentation/docs/src/docs/userguide/reference/apis/kotlin_dsl.adoc                              @gradle/bt-docs-reviewers @gradle/bt-tide
-platforms/documentation/docs/src/docs/userguide/releases/migrating/migrating_from_groovy_to_kotlin_dsl.adoc @gradle/bt-docs-reviewers @gradle/bt-tide
+platforms/documentation/docs/src/docs/userguide/reference/dsl-apis/kotlin_dsl.adoc                          @gradle/bt-docs-reviewers @gradle/bt-tide
+platforms/documentation/docs/src/docs/userguide/reference/dsl-apis/migrating_from_groovy_to_kotlin_dsl.adoc @gradle/bt-docs-reviewers @gradle/bt-tide
 
 platforms/documentation/docs/src/docs/userguide/reference/core-plugins/base_plugin.adoc                 @gradle/bt-docs-reviewers @gradle/bt-jvm
 platforms/documentation/docs/src/docs/userguide/reference/core-plugins/build_dashboard_plugin.adoc      @gradle/bt-docs-reviewers @gradle/bt-jvm
@@ -158,6 +158,6 @@ platforms/documentation/docs/src/docs/userguide/reference/core-plugins/jacoco_pl
 platforms/documentation/docs/src/docs/userguide/reference/core-plugins/java_gradle_plugin.adoc          @gradle/bt-docs-reviewers @gradle/bt-jvm
 platforms/documentation/docs/src/docs/userguide/reference/core-plugins/pmd_plugin.adoc                  @gradle/bt-docs-reviewers @gradle/bt-jvm
 platforms/documentation/docs/src/docs/userguide/reference/core-plugins/war_plugin.adoc                  @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/dep-man/                                                @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/dependency-management/                                  @gradle/bt-docs-reviewers @gradle/bt-jvm
 platforms/documentation/docs/src/docs/userguide/platforms/jvm/                                          @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/running-builds/directory_layout.adoc                    @gradle/bt-docs-reviewers @gradle/bt-jvm
+platforms/documentation/docs/src/docs/userguide/reference/runtime-configuration/directory_layout.adoc   @gradle/bt-docs-reviewers @gradle/bt-jvm
