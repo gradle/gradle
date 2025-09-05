@@ -44,6 +44,8 @@ public interface BuildModelParameters {
 
     boolean isIsolatedProjects();
 
+    boolean isIsolatedProjectsProblemDetection();
+
     /**
      * Whether projects should be configured in parallel.
      * <p>

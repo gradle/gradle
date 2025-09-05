@@ -19,6 +19,7 @@ package org.gradle.internal.cc.buildtree
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.initialization.StartParameterBuildOptions.IsolatedProjectsOption
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOption
@@ -84,22 +85,23 @@ object BuildModelParametersProvider {
         warnOnPreviouslyExistingOptions(options)
         val requiresModels = requirements.isCreatesModel
 
-        val isolatedProjects = startParameter.isolatedProjects.get()
+        val useIsolatedProjectFlags = startParameter.isolatedProjects != IsolatedProjectsOption.Mode.DISABLED
+        val isolatedProjectsEnabled = startParameter.isolatedProjects == IsolatedProjectsOption.Mode.ENABLED
         val configureOnDemand =
-            if (isolatedProjects) isolatedProjectsConfigureOnDemand.forInvocation(requirements, options)
+            if (useIsolatedProjectFlags) isolatedProjectsConfigureOnDemand.forInvocation(requirements, options)
             else !requiresModels && startParameter.isConfigureOnDemand
 
         // --parallel
         val vintageParallel = requirements.startParameter.isParallelProjectExecutionEnabled
-        val parallelIsolatedProjectsAllowed = isolatedProjectsParallel.forInvocation(requirements, options)
-        val parallelProjectConfiguration = isolatedProjects && parallelIsolatedProjectsAllowed
+        val parallelIsolatedProjectsAllowed = startParameter.isolatedProjects == IsolatedProjectsOption.Mode.ENABLED && isolatedProjectsParallel.forInvocation(requirements, options)
+        val parallelProjectConfiguration = parallelIsolatedProjectsAllowed
         val parallelProjectExecution =
-            if (isolatedProjects) parallelIsolatedProjectsAllowed
+            if (useIsolatedProjectFlags) parallelIsolatedProjectsAllowed
             else vintageParallel
 
         // Isolated projects without parallelism must be safe, so we ignore the Parallel CC flag
         val parallelConfigurationCacheStore =
-            if (isolatedProjects) parallelIsolatedProjectsAllowed && options[configurationCacheParallelStore]
+            if (useIsolatedProjectFlags) parallelIsolatedProjectsAllowed && options[configurationCacheParallelStore]
             else startParameter.isConfigurationCacheParallel && options[configurationCacheParallelStore]
         // Parallel load is always safe, as opposed to parallel store
         val parallelConfigurationCacheLoad = options[configurationCacheParallelLoad]
@@ -107,8 +109,8 @@ object BuildModelParametersProvider {
         validateIsolatedProjectsCachingOption(options)
 
         val parallelToolingActions = parallelProjectExecution && options[parallelBuilding]
-        val invalidateCoupledProjects = isolatedProjects && options[invalidateCoupledProjects]
-        val modelAsProjectDependency = isolatedProjects && options[modelProjectDependencies]
+        val invalidateCoupledProjects = isolatedProjectsEnabled && options[invalidateCoupledProjects]
+        val modelAsProjectDependency = isolatedProjectsEnabled && options[modelProjectDependencies]
         val resilientModelBuilding = options[resilientModelBuilding]
 
         return if (requiresModels) {
@@ -116,19 +118,20 @@ object BuildModelParametersProvider {
                 requiresToolingModels = true,
                 parallelProjectExecution = parallelProjectExecution,
                 configureOnDemand = configureOnDemand,
-                configurationCache = isolatedProjects,
+                configurationCache = isolatedProjectsEnabled,
                 configurationCacheParallelStore = parallelConfigurationCacheStore,
                 configurationCacheParallelLoad = parallelConfigurationCacheLoad,
-                isolatedProjects = isolatedProjects,
-                parallelProjectConfiguration = parallelProjectConfiguration,
-                intermediateModelCache = isolatedProjects && options[isolatedProjectsCaching].buildingModels,
+                isolatedProjects = isolatedProjectsEnabled,
+                isolatedProjectsProblemDetection = useIsolatedProjectFlags,
+                parallelProjectConfiguration = parallelIsolatedProjectsAllowed,
+                intermediateModelCache = isolatedProjectsEnabled && options[isolatedProjectsCaching].buildingModels,
                 parallelToolingApiActions = parallelToolingActions,
                 invalidateCoupledProjects = invalidateCoupledProjects,
                 modelAsProjectDependency = modelAsProjectDependency,
                 resilientModelBuilding = resilientModelBuilding
             )
         } else {
-            val configurationCache = isolatedProjects || startParameter.configurationCache.get()
+            val configurationCache = isolatedProjectsEnabled || startParameter.configurationCache.get()
 
             fun disabledConfigurationCacheBuildModelParameters(buildOptionReason: String): BuildModelParameters {
                 logger.log(configurationCacheLogLevel, "{} as configuration cache cannot be reused due to --{}", requirements.actionDisplayName.capitalizedDisplayName, buildOptionReason)
@@ -140,6 +143,7 @@ object BuildModelParametersProvider {
                     configurationCacheParallelStore = false,
                     configurationCacheParallelLoad = false,
                     isolatedProjects = false,
+                    isolatedProjectsProblemDetection = useIsolatedProjectFlags,
                     parallelProjectConfiguration = parallelProjectConfiguration,
                     intermediateModelCache = false,
                     parallelToolingApiActions = parallelToolingActions,
@@ -161,7 +165,8 @@ object BuildModelParametersProvider {
                     configurationCache = configurationCache,
                     configurationCacheParallelStore = parallelConfigurationCacheStore,
                     configurationCacheParallelLoad = parallelConfigurationCacheLoad,
-                    isolatedProjects = isolatedProjects,
+                    isolatedProjects = isolatedProjectsEnabled,
+                    isolatedProjectsProblemDetection = useIsolatedProjectFlags,
                     parallelProjectConfiguration = parallelProjectConfiguration,
                     intermediateModelCache = false,
                     parallelToolingApiActions = parallelToolingActions,
@@ -213,6 +218,7 @@ object BuildModelParametersProvider {
             configurationCacheParallelStore = false,
             configurationCacheParallelLoad = false,
             isolatedProjects = false,
+            isolatedProjectsProblemDetection = false,
             parallelProjectConfiguration = false,
             intermediateModelCache = false,
             parallelToolingApiActions = false,

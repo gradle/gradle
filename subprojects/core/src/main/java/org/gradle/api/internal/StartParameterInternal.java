@@ -19,6 +19,7 @@ package org.gradle.api.internal;
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
+import org.gradle.initialization.StartParameterBuildOptions.IsolatedProjectsOption;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
@@ -34,7 +35,7 @@ public class StartParameterInternal extends StartParameter {
     private boolean vfsVerboseLogging;
 
     private Option.Value<Boolean> configurationCache = Option.Value.defaultValue(false);
-    private Option.Value<Boolean> isolatedProjects = Option.Value.defaultValue(false);
+    private IsolatedProjectsOption.Mode isolatedProjects = IsolatedProjectsOption.Mode.DISABLED;
     private ConfigurationCacheProblemsOption.Value configurationCacheProblems = ConfigurationCacheProblemsOption.Value.FAIL;
     private boolean configurationCacheDebug;
     private boolean configurationCacheIgnoreInputsDuringStore = false;
@@ -153,7 +154,7 @@ public class StartParameterInternal extends StartParameter {
         this.configurationCache = configurationCache;
     }
 
-    public Option.Value<Boolean> getIsolatedProjects() {
+    public IsolatedProjectsOption.Mode getIsolatedProjects() {
         return isolatedProjects;
     }
 
@@ -164,7 +165,7 @@ public class StartParameterInternal extends StartParameter {
         return configurationCache.get();
     }
 
-    public void setIsolatedProjects(Option.Value<Boolean> isolatedProjects) {
+    public void setIsolatedProjects(IsolatedProjectsOption.Mode isolatedProjects) {
         this.isolatedProjects = isolatedProjects;
     }
 

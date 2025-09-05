@@ -18,10 +18,10 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
+import org.gradle.initialization.StartParameterBuildOptions.IsolatedProjectsOption
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.initialization.layout.BuildTreeLocations
 import org.gradle.internal.buildoption.DefaultInternalOptions
-import org.gradle.internal.buildoption.Option
 import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.buildtree.DefaultBuildModelParameters
@@ -95,34 +95,23 @@ class ConfigurationCacheKeyTest {
 
     @Test
     fun `cache key honours isolated projects option`() {
-        assertThat(
-            cacheKeyStringFromStartParameter {
-                isolatedProjects = Option.Value.value(true)
-            },
-            equalTo(cacheKeyStringFromStartParameter {
-                isolatedProjects = Option.Value.value(true)
-            })
-        )
-        assertThat(
-            cacheKeyStringFromStartParameter {
-                isolatedProjects = Option.Value.value(true)
-            },
-            not(equalTo(cacheKeyStringFromStartParameter {
-                isolatedProjects = Option.Value.value(false)
-            }))
-        )
-        assertThat(
-            cacheKeyStringFromStartParameter {
-                isolatedProjects = Option.Value.defaultValue(false)
-            },
-            equalTo(cacheKeyStringFromStartParameter { })
-        )
-        assertThat(
-            cacheKeyStringFromStartParameter {
-                isolatedProjects = Option.Value.value(false)
-            },
-            equalTo(cacheKeyStringFromStartParameter { })
-        )
+        for (actualValue in IsolatedProjectsOption.Mode.entries) {
+            for (otherValue in IsolatedProjectsOption.Mode.entries) {
+                val expectedEquality = actualValue == otherValue
+                val equalToOtherValue = equalTo(
+                    cacheKeyStringFromStartParameter {
+                        isolatedProjects = otherValue
+                    }
+                )
+                assertThat(
+                    "$actualValue should be ${if (expectedEquality) "equal to" else "different from"} $otherValue",
+                    cacheKeyStringFromStartParameter {
+                        isolatedProjects = actualValue
+                    },
+                    if (expectedEquality) equalToOtherValue else not(equalToOtherValue)
+                )
+            }
+        }
     }
 
     @Test
@@ -136,7 +125,7 @@ class ConfigurationCacheKeyTest {
     private
     fun cacheKeyStringFromStartParameter(configure: StartParameterInternal.() -> Unit): String {
         val startParameter = StartParameterInternal().apply(configure)
-        val isolatedProjects = startParameter.isolatedProjects.get()
+        val isolatedProjectsEnabled = startParameter.isolatedProjects == IsolatedProjectsOption.Mode.ENABLED
         return ConfigurationCacheKey(
             ConfigurationCacheStartParameter(
                 BuildTreeLocations(BuildLayout(file("root"), null, DefaultScriptFileResolver())),
@@ -147,10 +136,11 @@ class ConfigurationCacheKeyTest {
                     parallelProjectExecution = false,
                     configureOnDemand = false,
                     configurationCache = true,
-                    configurationCacheParallelStore = isolatedProjects,
-                    configurationCacheParallelLoad = isolatedProjects,
-                    isolatedProjects = isolatedProjects,
-                    parallelProjectConfiguration = isolatedProjects,
+                    configurationCacheParallelStore = isolatedProjectsEnabled,
+                    configurationCacheParallelLoad = isolatedProjectsEnabled,
+                    isolatedProjects = isolatedProjectsEnabled,
+                    isolatedProjectsProblemDetection = startParameter.isolatedProjects != IsolatedProjectsOption.Mode.DISABLED,
+                    parallelProjectConfiguration = isolatedProjectsEnabled,
                     intermediateModelCache = false,
                     parallelToolingApiActions = false,
                     invalidateCoupledProjects = false,

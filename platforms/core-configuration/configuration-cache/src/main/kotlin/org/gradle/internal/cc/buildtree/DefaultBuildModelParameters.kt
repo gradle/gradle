@@ -27,6 +27,7 @@ data class DefaultBuildModelParameters(
     private val configurationCacheParallelStore: Boolean,
     private val configurationCacheParallelLoad: Boolean,
     private val isolatedProjects: Boolean,
+    private val isolatedProjectsProblemDetection: Boolean,
     private val parallelProjectConfiguration: Boolean,
     private val intermediateModelCache: Boolean,
     private val parallelToolingApiActions: Boolean,
@@ -49,6 +50,8 @@ data class DefaultBuildModelParameters(
 
     override fun isIsolatedProjects(): Boolean = isolatedProjects
 
+    override fun isIsolatedProjectsProblemDetection(): Boolean = isolatedProjectsProblemDetection
+
     override fun isParallelProjectConfiguration(): Boolean = parallelProjectConfiguration
 
     override fun isIntermediateModelCache(): Boolean = intermediateModelCache
@@ -69,6 +72,7 @@ data class DefaultBuildModelParameters(
         "configurationCacheParallelStore" to configurationCacheParallelStore,
         "configurationCacheParallelLoad" to configurationCacheParallelLoad,
         "isolatedProjects" to isolatedProjects,
+        "isolatedProjectsProblemDetection" to isolatedProjectsProblemDetection,
         "parallelProjectConfiguration" to parallelProjectConfiguration,
         "intermediateModelCache" to intermediateModelCache,
         "parallelToolingApiActions" to parallelToolingApiActions,
