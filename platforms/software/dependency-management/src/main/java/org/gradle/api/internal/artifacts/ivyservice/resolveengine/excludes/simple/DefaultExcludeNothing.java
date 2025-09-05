@@ -58,8 +58,4 @@ class DefaultExcludeNothing implements ExcludeNothing {
     public boolean equals(Object obj) {
         return this == obj;
     }
-
-    private int size() {
-        return 1;
-    }
 }

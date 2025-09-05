@@ -59,15 +59,6 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
         this.local = local;
     }
 
-    private <T extends DirectoryBuildCache> T localInternal(Class<T> type, Action<? super T> configuration) {
-        if (!type.equals(DirectoryBuildCache.class)) {
-            throw new IllegalArgumentException("Using a local build cache type other than " + DirectoryBuildCache.class.getSimpleName() + " is not allowed");
-        }
-        T configurationObject = Cast.uncheckedNonnullCast(local);
-        configuration.execute(configurationObject);
-        return configurationObject;
-    }
-
     @Override
     public void local(Action<? super DirectoryBuildCache> configuration) {
         configuration.execute(local);
