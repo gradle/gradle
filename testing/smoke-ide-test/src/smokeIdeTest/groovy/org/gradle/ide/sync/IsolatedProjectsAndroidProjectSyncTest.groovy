@@ -18,7 +18,6 @@ package org.gradle.ide.sync
 
 import org.gradle.ide.sync.fixtures.IsolatedProjectsIdeSyncFixture
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
-import org.gradle.test.fixtures.Flaky
 
 class IsolatedProjectsAndroidProjectSyncTest extends AbstractIdeSyncTest {
 

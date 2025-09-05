@@ -16,7 +16,6 @@
 package org.gradle.ide.sync
 
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.ide.starter.IdeCommand
 import org.gradle.ide.starter.IdeScenario
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.integtests.fixtures.AvailableJavaHomes
@@ -71,7 +70,7 @@ abstract class AbstractIdeSyncTest extends Specification {
 
     /**
      * Runs a full sync with a given Android Studio version as an external process.
-     * Optionally, a list of {@link IdeCommand} to perform after the sync may be provided.
+     * Optionally, an {@link IdeScenario} may be provided.
      * The IDE distribution is automatically downloaded if required.
      */
     protected void androidStudioSync(
@@ -84,7 +83,7 @@ abstract class AbstractIdeSyncTest extends Specification {
 
     /**
      * Runs a full sync with a given IntelliJ IDEA Community version as an external process.
-     * Optionally, a list of {@link IdeCommand} to perform after the sync may be provided.
+     * Optionally, an {@link IdeScenario} may be provided.
      * The IDE distribution is automatically downloaded if required.
      * <p>
      * The version can be optionally suffixed with a "build type", which is one of {@code release}, {@code rc}, {@code eap}.
