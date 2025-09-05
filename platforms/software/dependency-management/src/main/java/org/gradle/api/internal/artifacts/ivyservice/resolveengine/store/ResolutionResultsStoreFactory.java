@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.Store;
@@ -27,6 +28,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 import java.io.File;
@@ -35,14 +37,16 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @ServiceScope(Scope.BuildTree.class)
-public class ResolutionResultsStoreFactory implements Closeable {
+public class ResolutionResultsStoreFactory implements Closeable, HoldsProjectState {
     private final static Logger LOG = Logging.getLogger(ResolutionResultsStoreFactory.class);
     private static final int DEFAULT_MAX_SIZE = 2000000000; //2 gigs
 
     private final TemporaryFileProvider temp;
     private final int maxSize;
 
+    @Nullable
     private CachedStoreFactory<TransientConfigurationResults> oldModelCache;
+    @Nullable
     private CachedStoreFactory<ResolvedComponentResultInternal> newModelCache;
 
     private final AtomicInteger storeSetBaseId = new AtomicInteger();
@@ -58,6 +62,16 @@ public class ResolutionResultsStoreFactory implements Closeable {
     ResolutionResultsStoreFactory(TemporaryFileProvider temp, int maxSize) {
         this.temp = temp;
         this.maxSize = maxSize;
+    }
+
+    @Override
+    public void discardAll() {
+        if (oldModelCache != null) {
+            oldModelCache.discardAll();
+        }
+        if (newModelCache != null) {
+            newModelCache.discardAll();
+        }
     }
 
     private final Map<String, DefaultBinaryStore> stores = new HashMap<>();
