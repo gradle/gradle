@@ -262,34 +262,48 @@ public class NodeState implements DependencyGraphNode {
                 visitOwners(discoveredEdges, strictVersions, resolutionFilter);
             }
             this.visitedDependencies = false;
-        } else if (previousTraversalExclusions == null) {
-            // We have not visited this node's dependencies yet. Visit all outgoing dependencies.
-            visitAllDependencies(resolutionFilter, discoveredEdges, strictVersions);
-        } else if (virtualPlatformNeedsRefresh) {
-            // Virtual platforms require their constraints to be recomputed each time, as each module addition
-            // can cause a shift in versions. Therefore, we perform a full dependency visit even though
-            // we've already visited this node's dependencies before.
-            clearDependencyVisitState();
-            visitAllDependencies(resolutionFilter, discoveredEdges, strictVersions);
-        } else if ((previousTraversalExclusions.equals(resolutionFilter) || (doesNotHaveDependencies && !dependenciesMayChange)) && visitedDependencies && strictVersions.equals(previousAncestorsStrictVersions)) {
-            // The excludes did not change, or we have no dependencies at all. Skip normal visiting.
-            visitNewAndInvalidatedDependencies(resolutionFilter, discoveredEdges, strictVersions);
-        } else if (cachedFilteredDependencyStates != null && !recomputeOutgoingDependencies(resolutionFilter) && visitedDependencies && strictVersions.equals(previousAncestorsStrictVersions)) {
-            // The excludes changed, and after applying the new excludes to our outgoing dependencies, the
-            // filtered dependencies did not change. We can skip normal dependency visit logic and just update the edges
-            // that need to be updated. However, we will also be skipping other logic that updates the resolution filter
-            // on our outgoing edges. So, do that here instead.
-            for (EdgeState outgoingEdge : outgoingEdges) {
-                outgoingEdge.updateTransitiveExcludesAndRequeueTargetNodes(resolutionFilter);
+            return;
+        }
+
+        // Virtual platforms require their constraints to be recomputed each time, as each module addition
+        // can cause a shift in versions. Therefore, we perform a full dependency visit even though
+        // we've already visited this node's dependencies before.
+        assert (previousTraversalExclusions == null) == (previousAncestorsStrictVersions == null);
+        if (visitedDependencies && !virtualPlatformNeedsRefresh && previousTraversalExclusions != null) {
+            if (doesNotHaveDependencies && !dependenciesMayChange) {
+                return;
             }
 
-            visitNewAndInvalidatedDependencies(resolutionFilter, discoveredEdges, strictVersions);
-        } else {
-            // Our transitive excludes changed, which changed which direct dependencies we are targeting.
-            // Clear any old visit state and perform a full visit of our dependencies.
-            clearDependencyVisitState();
-            visitAllDependencies(resolutionFilter, discoveredEdges, strictVersions);
+            boolean sameExcludes = resolutionFilter.equals(previousTraversalExclusions);
+            boolean sameDependenciesAsPreviousTraversal = sameExcludes || (cachedFilteredDependencyStates != null && !recomputeOutgoingDependencies(resolutionFilter));
+            if (sameDependenciesAsPreviousTraversal && strictVersions.equals(previousAncestorsStrictVersions)) {
+                // Our excludes did not change, or after applying new excludes to our outgoing dependencies,
+                // the filtered dependencies did not change. We have the same dependencies as the previous traversal.
+
+                if (!sameExcludes) {
+                    // Our excludes did change, so we need to update our current dependencies with the new excludes.
+                    for (EdgeState outgoingEdge : outgoingEdges) {
+                        outgoingEdge.updateTransitiveExcludesAndRequeueTargetNodes(resolutionFilter);
+                    }
+                }
+
+                visitNewAndInvalidatedDependencies(resolutionFilter, discoveredEdges, strictVersions);
+                return;
+            }
         }
+
+        if (previousTraversalExclusions != null) {
+            removeOutgoingEdges();
+            edgesToRecompute = null;
+            potentiallyActivatedConstraints = null;
+            ownStrictVersionConstraints = null;
+            visitedDependencies = false;
+        }
+
+        // We are processing dependencies, anything in the previous state will be handled
+        upcomingNoLongerPendingConstraints = null;
+        visitDependencies(resolutionFilter, discoveredEdges, strictVersions);
+        visitOwners(discoveredEdges, strictVersions, resolutionFilter);
     }
 
     private static void maybeRecomputeSelectors(Collection<EdgeState> discoveredEdges, StrictVersionConstraints strictVersions) {
@@ -306,29 +320,6 @@ public class NodeState implements DependencyGraphNode {
                 }
             }
         }
-    }
-
-    /**
-     * Invalidate any state that was previously set for this node so that we may visit
-     * all dependencies again in {@link #visitAllDependencies(ExcludeSpec, Collection, StrictVersionConstraints)}.
-     */
-    private void clearDependencyVisitState() {
-        assert (previousTraversalExclusions == null) == (previousAncestorsStrictVersions == null);
-        removeOutgoingEdges();
-        edgesToRecompute = null;
-        potentiallyActivatedConstraints = null;
-        ownStrictVersionConstraints = null;
-        visitedDependencies = false;
-    }
-
-    /**
-     * Perform a full visit of all outgoing dependencies of this node.
-     */
-    private void visitAllDependencies(ExcludeSpec resolutionFilter, Collection<EdgeState> discoveredEdges, StrictVersionConstraints ancestorsStrictVersions) {
-        // We are processing dependencies, anything in the previous state will be handled
-        upcomingNoLongerPendingConstraints = null;
-        visitDependencies(resolutionFilter, discoveredEdges, ancestorsStrictVersions);
-        visitOwners(discoveredEdges, ancestorsStrictVersions, resolutionFilter);
     }
 
     /**
