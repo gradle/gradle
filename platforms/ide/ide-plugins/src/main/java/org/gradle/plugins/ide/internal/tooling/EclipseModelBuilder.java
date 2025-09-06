@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -95,7 +96,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
     private List<DefaultEclipseProject> eclipseProjects;
     private TasksFactory tasksFactory;
     private DefaultGradleProject rootGradleProject;
-    private Project currentProject;
+    private ProjectIdentity currentProjectId;
     private EclipseRuntime eclipseRuntime;
     private Map<String, Boolean> projectOpenStatus = new HashMap<>();
 
@@ -145,7 +146,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         boolean includeTasks = modelName.equals("org.gradle.tooling.model.eclipse.EclipseProject");
         tasksFactory = new TasksFactory(includeTasks);
         projectDependenciesOnly = modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
-        currentProject = project;
+        currentProjectId = ((ProjectInternal) project).getProjectIdentity();
         eclipseProjects = new ArrayList<>();
         ProjectInternal root = (ProjectInternal) project.getRootProject();
         ProjectState rootProjectState = root.getOwner();
@@ -192,22 +193,24 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
             children.add(buildHierarchy(child));
         }
 
-        Project mutableProject = projectState.getMutableModel();
-        EclipseModel eclipseModel = mutableProject.getExtensions().getByType(EclipseModel.class);
+        EclipseModel eclipseModel = projectState.getMutableModel().getExtensions().getByType(EclipseModel.class);
         org.gradle.plugins.ide.eclipse.model.EclipseProject internalProject = eclipseModel.getProject();
+
         String name = internalProject.getName();
+        String path = projectState.getIdentity().getProjectPath().asString();
         String description = GUtil.elvis(internalProject.getComment(), null);
-        DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, mutableProject.getPath(), description, mutableProject.getProjectDir(), children).setGradleProject(rootGradleProject.findByPath(mutableProject.getPath()));
+        File projectDir = projectState.getProjectDir();
+        DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, path, description, projectDir, children).setGradleProject(rootGradleProject.findByPath(path));
 
         for (DefaultEclipseProject child : children) {
             child.setParent(eclipseProject);
         }
-        addProject(mutableProject, eclipseProject);
+        addProject(projectState, eclipseProject);
         return eclipseProject;
     }
 
-    private void addProject(Project project, DefaultEclipseProject eclipseProject) {
-        if (project == currentProject) {
+    private void addProject(ProjectState project, DefaultEclipseProject eclipseProject) {
+        if (project.getIdentity().equals(currentProjectId)) {
             result = eclipseProject;
         }
         eclipseProjects.add(eclipseProject);

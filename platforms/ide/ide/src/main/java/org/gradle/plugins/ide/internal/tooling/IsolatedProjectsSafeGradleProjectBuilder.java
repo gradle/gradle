@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -28,7 +29,6 @@ import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
 import org.jspecify.annotations.NullMarked;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -80,7 +80,7 @@ public class IsolatedProjectsSafeGradleProjectBuilder implements GradleProjectBu
 
     private DefaultGradleProject build(ProjectState root, ProjectState project, IsolatedGradleProjectInternal isolatedModel, IsolatedGradleProjectParameter parameter) {
         DefaultGradleProject model = buildWithoutChildren(project, isolatedModel);
-        List<ProjectState> children = new ArrayList<>(project.getChildProjects());
+        List<ProjectState> children = ImmutableList.copyOf(project.getChildProjects());
         List<IsolatedGradleProjectInternal> isolatedChildrenModels = getIsolatedModels(root, children, parameter);
         model.setChildren(buildChildren(root, model, parameter, children, isolatedChildrenModels));
         return model;
