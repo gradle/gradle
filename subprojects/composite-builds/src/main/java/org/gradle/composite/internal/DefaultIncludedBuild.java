@@ -16,12 +16,13 @@
 
 package org.gradle.composite.internal;
 
-import com.google.common.base.Preconditions;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.tasks.DefaultTaskReference;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.build.BuildState;
@@ -29,7 +30,6 @@ import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.composite.IncludedBuildInternal;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -39,15 +39,13 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     private final Path identityPath;
     private final BuildDefinition buildDefinition;
     private final boolean isImplicit;
-    private final IncludedBuildImpl model;
 
     public DefaultIncludedBuild(
         Path identityPath,
         BuildDefinition buildDefinition,
         boolean isImplicit,
         BuildState owner,
-        BuildTreeState buildTree,
-        Instantiator instantiator
+        BuildTreeState buildTree
     ) {
         // Use a defensive copy of the build definition, as it may be mutated during build execution
         super(buildTree, buildDefinition.newInstance(), owner);
@@ -56,7 +54,6 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         this.identityPath = identityPath;
         this.buildDefinition = buildDefinition;
         this.isImplicit = isImplicit;
-        this.model = instantiator.newInstance(IncludedBuildImpl.class, this);
     }
 
     @Override
@@ -86,7 +83,8 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
 
     @Override
     public IncludedBuildInternal getModel() {
-        return model;
+        TaskDependencyFactory taskDependencyFactory = getBuildServices().get(TaskDependencyFactory.class);
+        return new IncludedBuildImpl(this, taskDependencyFactory);
     }
 
     @Override
@@ -133,10 +131,13 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     }
 
     public static class IncludedBuildImpl implements IncludedBuildInternal {
-        private final DefaultIncludedBuild buildState;
 
-        public IncludedBuildImpl(DefaultIncludedBuild buildState) {
+        private final DefaultIncludedBuild buildState;
+        private final TaskDependencyFactory taskDependencyFactory;
+
+        public IncludedBuildImpl(DefaultIncludedBuild buildState, TaskDependencyFactory taskDependencyFactory) {
             this.buildState = buildState;
+            this.taskDependencyFactory = taskDependencyFactory;
         }
 
         @Override
@@ -150,14 +151,14 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         }
 
         @Override
-        public TaskReference task(String path) {
-            Preconditions.checkArgument(path.startsWith(":"), "Task path '%s' is not a qualified task path (e.g. ':task' or ':project:task').", path);
-            return new IncludedBuildTaskReference(buildState, path);
+        public TaskReference task(String pathStr) {
+            return DefaultTaskReference.create(pathStr, taskDependencyFactory);
         }
 
         @Override
         public BuildState getTarget() {
             return buildState;
         }
+
     }
 }

@@ -87,8 +87,8 @@ class ProblemReportingCrossProjectModelAccess(
     private val buildModelParameters: BuildModelParameters,
     private val instantiator: Instantiator
 ) : CrossProjectModelAccess {
-    override fun findProject(referrer: ProjectInternal, relativeTo: ProjectInternal, path: String): ProjectInternal? {
-        return delegate.findProject(referrer, relativeTo, path)?.let {
+    override fun findProject(referrer: ProjectInternal, path: Path): ProjectInternal? {
+        return delegate.findProject(referrer, path)?.let {
             it.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, it), instantiator)
         }
     }

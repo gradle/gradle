@@ -21,6 +21,8 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Set;
@@ -40,8 +42,12 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     }
 
     @Override
-    public ProjectInternal findProject(ProjectInternal referrer, ProjectInternal relativeTo, String path) {
-        return projectRegistry.getProject(relativeTo.absoluteProjectPath(path));
+    public @Nullable ProjectInternal findProject(ProjectInternal referrer, Path path) {
+        if (!path.isAbsolute()) {
+            throw new IllegalArgumentException("Project path must be absolute");
+        }
+
+        return projectRegistry.getProject(path.asString());
     }
 
     @Override
