@@ -79,7 +79,7 @@ class DefaultBuildModelControllerServices(
             } else {
                 registration.addProvider(VintageBuildControllerProvider())
             }
-            if (buildModelParameters.isIsolatedProjects) {
+            if (buildModelParameters.isIsolatedProjectsProblemDetection) {
                 registration.addProvider(ConfigurationCacheIsolatedProjectsProvider())
             } else {
                 registration.addProvider(VintageIsolatedProjectsProvider())
@@ -159,6 +159,7 @@ class DefaultBuildModelControllerServices(
         fun createCrossProjectModelAccess(
             projectRegistry: ProjectRegistry,
             problemsListener: ProblemsListener,
+            isolatedProjectsProblems: IsolatedProjectsProblems,
             problemFactory: ProblemFactory,
             listenerManager: ListenerManager,
             dynamicCallProblemReporting: DynamicCallProblemReporting,
@@ -169,6 +170,7 @@ class DefaultBuildModelControllerServices(
             return ProblemReportingCrossProjectModelAccess(
                 delegate,
                 problemsListener,
+                isolatedProjectsProblems,
                 listenerManager.getBroadcaster(CoupledProjectsListener::class.java),
                 problemFactory,
                 dynamicCallProblemReporting,
@@ -186,12 +188,8 @@ class DefaultBuildModelControllerServices(
 
         @Provides
         fun createDynamicLookupRoutine(
-            dynamicCallContextTracker: DynamicCallContextTracker,
-            buildModelParameters: BuildModelParameters
-        ): DynamicLookupRoutine = when {
-            buildModelParameters.isIsolatedProjects -> TrackingDynamicLookupRoutine(dynamicCallContextTracker)
-            else -> DefaultDynamicLookupRoutine()
-        }
+            dynamicCallContextTracker: DynamicCallContextTracker
+        ): DynamicLookupRoutine = TrackingDynamicLookupRoutine(dynamicCallContextTracker)
     }
 
     private

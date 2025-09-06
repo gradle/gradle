@@ -82,7 +82,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val startParameter = requirements.startParameter
 
         // Isolated projects also implies configuration cache
-        if (startParameter.isolatedProjects == IsolatedProjectsOption.Mode.ENABLED && !startParameter.configurationCache.get()) {
+        if (startParameter.isolatedProjects != IsolatedProjectsOption.Mode.DISABLED && !startParameter.configurationCache.get()) {
             if (startParameter.configurationCache.isExplicit) {
                 throw GradleException("The configuration cache cannot be disabled when isolated projects is enabled.")
             }
@@ -92,7 +92,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         val modelParameters = BuildModelParametersProvider.parameters(requirements, startParameter, configurationCacheLogLevel)
         logger.info("Operational build model parameters: {}", modelParameters.toDisplayMap())
 
-        if (modelParameters.isIsolatedProjects) {
+        if (modelParameters.isIsolatedProjectsProblemDetection) {
             IncubationLogger.incubatingFeatureUsed("Isolated projects")
         } else {
             if (modelParameters.isConfigurationCacheParallelStore) {
@@ -167,6 +167,9 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
                 ConfigurationCacheInputFileChecker.Host::class.java,
                 DefaultConfigurationCacheInputFileCheckerHost::class.java
             )
+            if (modelParameters.isIsolatedProjectsProblemDetection) {
+                registration.add(IsolatedProjectsProblems::class.java)
+            }
             if (modelParameters.isIsolatedProjects) {
                 registration.add(
                     ClassLoaderScopesFingerprintController::class.java,

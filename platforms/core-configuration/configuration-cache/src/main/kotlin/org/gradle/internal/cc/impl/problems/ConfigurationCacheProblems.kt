@@ -249,8 +249,8 @@ class ConfigurationCacheProblems(
         summarizer.onIncompatibleFeature()
     }
 
-    override fun onProblem(problem: PropertyProblem) {
-        onProblem(problem, ProblemSeverity.Deferred)
+    override fun onProblem(problem: PropertyProblem, interrupting: Boolean) {
+        onProblem(problem, if (interrupting) ProblemSeverity.Interrupting else ProblemSeverity.Deferred)
     }
 
     private
@@ -519,7 +519,8 @@ class ConfigurationCacheProblems(
         val problemSeverity: ProblemSeverity
     ) : AbstractProblemsListener() {
 
-        override fun onProblem(problem: PropertyProblem) {
+        override fun onProblem(problem: PropertyProblem, interrupting: Boolean) {
+            // ignore interrupting flag, always use the configured severity
             onProblem(problem, problemSeverity)
         }
 

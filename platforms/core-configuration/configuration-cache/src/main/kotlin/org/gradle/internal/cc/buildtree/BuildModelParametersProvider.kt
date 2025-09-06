@@ -118,7 +118,7 @@ object BuildModelParametersProvider {
                 requiresToolingModels = true,
                 parallelProjectExecution = parallelProjectExecution,
                 configureOnDemand = configureOnDemand,
-                configurationCache = isolatedProjectsEnabled,
+                configurationCache = useIsolatedProjectFlags,
                 configurationCacheParallelStore = parallelConfigurationCacheStore,
                 configurationCacheParallelLoad = parallelConfigurationCacheLoad,
                 isolatedProjects = isolatedProjectsEnabled,
@@ -131,7 +131,7 @@ object BuildModelParametersProvider {
                 resilientModelBuilding = resilientModelBuilding
             )
         } else {
-            val configurationCache = isolatedProjectsEnabled || startParameter.configurationCache.get()
+            val configurationCache = useIsolatedProjectFlags || startParameter.configurationCache.get()
 
             fun disabledConfigurationCacheBuildModelParameters(buildOptionReason: String): BuildModelParameters {
                 logger.log(configurationCacheLogLevel, "{} as configuration cache cannot be reused due to --{}", requirements.actionDisplayName.capitalizedDisplayName, buildOptionReason)
@@ -143,7 +143,7 @@ object BuildModelParametersProvider {
                     configurationCacheParallelStore = false,
                     configurationCacheParallelLoad = false,
                     isolatedProjects = false,
-                    isolatedProjectsProblemDetection = useIsolatedProjectFlags,
+                    isolatedProjectsProblemDetection = false,
                     parallelProjectConfiguration = parallelProjectConfiguration,
                     intermediateModelCache = false,
                     parallelToolingApiActions = parallelToolingActions,
