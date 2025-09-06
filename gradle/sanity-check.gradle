@@ -1,0 +1,22 @@
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * The OpenSearch Contributors require contributions made to
+ * this file be licensed under the Apache-2.0 license or a
+ * compatible open source license.
+ *
+ * Modifications Copyright OpenSearch Contributors. See
+ * GitHub history for details.
+ */
+
+allprojects {
+    project.apply plugin: "pmd"
+    pmd {
+        consoleOutput = true
+        ruleSetFiles = files("${rootDir}/gradle/sanity-check.pmd.xml")
+        toolVersion = "7.16.0"
+    }
+    // check.dependsOn(pmdMain)
+    // sanityCheck.dependsOn(pmdMain)
+    // why not working? (Maybe after merge/release?) Task with path 'pmdMain' not found in root project 'gradle'.
+}

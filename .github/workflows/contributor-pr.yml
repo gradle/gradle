@@ -82,7 +82,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
-      - run: ./gradlew sanityCheck -DdisableLocalCache=true ${{ needs.build.outputs.sys-prop-args }}
+      - run: ./gradlew sanityCheck pmdMain -DdisableLocalCache=true ${{ needs.build.outputs.sys-prop-args }}
       - name: Upload Compatibility Report
         if: always()
         uses: actions/upload-artifact@v4

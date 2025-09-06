@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<ruleset name="SanityCheck"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.net/ruleset_2_0_0.xsd">
+    <description>SanityCheck</description>
+    <exclude-pattern>.*DependencyMetadataRules.java</exclude-pattern>
+    <exclude-pattern>.*classpath/FileUtils.java</exclude-pattern>
+    <exclude-pattern>.*platforms/documentation.*</exclude-pattern>
+    <exclude-pattern>.*platforms/enterprise/enterprise-plugin-performance/src/templates.*</exclude-pattern>
+    <exclude-pattern>.*platforms/jvm/language-groovy/src/testFixtures/resources.*</exclude-pattern>
+    <exclude-pattern>.*testing/performance/src/templates.*</exclude-pattern>
+    <rule ref="category/java/bestpractices.xml/UnusedLocalVariable"/>
+    <rule ref="category/java/codestyle.xml/UnnecessaryImport"/>
+    <rule ref="category/java/security.xml" />
+    <!--<rule ref="category/java/bestpractices.xml" />-->
+    <!--<rule ref="category/java/codestyle.xml" />-->
+    <!--<rule ref="category/java/design.xml" />-->
+    <!--<rule ref="category/java/documentation.xml" />-->
+    <!--<rule ref="category/java/errorprone.xml" />-->
+    <!--<rule ref="category/java/multithreading.xml" />-->
+    <!--<rule ref="category/java/performance.xml" />-->
+</ruleset>
