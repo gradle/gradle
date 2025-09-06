@@ -59,7 +59,7 @@ import java.util.Set;
 import static org.gradle.language.cpp.CppBinary.DEBUGGABLE_ATTRIBUTE;
 import static org.gradle.language.cpp.CppBinary.OPTIMIZED_ATTRIBUTE;
 
-public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBinary {
+public abstract class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBinary {
     private final NativeDependencyCache nativeDependencyCache;
     private final NativeVariantIdentity identity;
     private final Provider<String> module;
@@ -68,8 +68,6 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
     private final FileCollection compileModules;
     private final Configuration linkLibs;
     private final Configuration runtimeLibs;
-    private final RegularFileProperty moduleFile;
-    private final Property<SwiftCompile> compileTaskProperty;
     private final SwiftPlatform targetPlatform;
     private final NativeToolChainInternal toolChain;
     private final PlatformToolProvider platformToolProvider;
@@ -81,8 +79,6 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
         this.module = module;
         this.testable = testable;
         this.source = source;
-        this.moduleFile = objectFactory.fileProperty();
-        this.compileTaskProperty = objectFactory.property(SwiftCompile.class);
         this.targetPlatform = targetPlatform;
         this.toolChain = toolChain;
         this.platformToolProvider = platformToolProvider;
@@ -176,18 +172,14 @@ public class DefaultSwiftBinary extends DefaultNativeBinary implements SwiftBina
     }
 
     @Override
-    public RegularFileProperty getModuleFile() {
-        return moduleFile;
-    }
+    public abstract RegularFileProperty getModuleFile();
 
     public Configuration getImportPathConfiguration() {
         return importPathConfiguration;
     }
 
     @Override
-    public Property<SwiftCompile> getCompileTask() {
-        return compileTaskProperty;
-    }
+    public abstract Property<SwiftCompile> getCompileTask();
 
     @Override
     public TargetMachine getTargetMachine() {

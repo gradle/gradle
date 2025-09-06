@@ -20,7 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
 
-class CustomTask extends DefaultTask {
+abstract class CustomTask extends DefaultTask {
     String property
 
     @TaskAction

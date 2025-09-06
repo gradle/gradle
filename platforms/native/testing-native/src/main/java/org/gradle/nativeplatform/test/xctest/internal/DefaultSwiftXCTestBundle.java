@@ -34,17 +34,12 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import javax.inject.Inject;
 
-public class DefaultSwiftXCTestBundle extends DefaultSwiftXCTestBinary implements SwiftXCTestBundle {
-    private final Property<LinkMachOBundle> linkTask;
-
+public abstract class DefaultSwiftXCTestBundle extends DefaultSwiftXCTestBinary implements SwiftXCTestBundle {
     @Inject
     public DefaultSwiftXCTestBundle(Names names, ObjectFactory objectFactory, NativeDependencyCache nativeDependencyCache, TaskDependencyFactory taskDependencyFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
         super(names, objectFactory, nativeDependencyCache, taskDependencyFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
-        linkTask = objectFactory.property(LinkMachOBundle.class);
     }
 
     @Override
-    public Property<LinkMachOBundle> getLinkTask() {
-        return linkTask;
-    }
+    public abstract Property<LinkMachOBundle> getLinkTask();
 }

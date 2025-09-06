@@ -61,21 +61,18 @@ public abstract class Ear extends Jar {
     public static final String EAR_EXTENSION = "ear";
 
     private String libDirName;
-    private final Property<Boolean> generateDeploymentDescriptor;
     private DeploymentDescriptor deploymentDescriptor;
     private CopySpec lib;
-    private final DirectoryProperty appDir;
 
     public Ear() {
         getArchiveExtension().set(EAR_EXTENSION);
         setMetadataCharset("UTF-8");
-        generateDeploymentDescriptor = getObjectFactory().property(Boolean.class);
-        generateDeploymentDescriptor.convention(true);
+        getGenerateDeploymentDescriptor().convention(true);
         lib = getRootSpec().addChildBeforeSpec(getMainSpec()).into(
             callable(() -> GUtil.elvis(getLibDirName(), DEFAULT_LIB_DIR_NAME))
         );
         getMainSpec().appendCachingSafeCopyAction(action(details -> {
-            if (generateDeploymentDescriptor.get()) {
+            if (getGenerateDeploymentDescriptor().get()) {
                 checkIfShouldGenerateDeploymentDescriptor(details);
                 recordTopLevelModules(details);
             }
@@ -89,7 +86,7 @@ public abstract class Ear extends Jar {
         descriptorChild.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE);
         descriptorChild.from(callable(() -> {
             final DeploymentDescriptor descriptor = getDeploymentDescriptor();
-            if (descriptor != null && generateDeploymentDescriptor.get()) {
+            if (descriptor != null && getGenerateDeploymentDescriptor().get()) {
                 if (descriptor.getLibraryDirectory() == null) {
                     descriptor.setLibraryDirectory(getLibDirName());
                 }
@@ -118,8 +115,6 @@ public abstract class Ear extends Jar {
 
             return null;
         }));
-
-        appDir = getObjectFactory().directoryProperty();
     }
 
     private FileCollectionFactory fileCollectionFactory() {
@@ -250,9 +245,7 @@ public abstract class Ear extends Jar {
      * @since 6.0
      */
     @Input
-    public Property<Boolean> getGenerateDeploymentDescriptor() {
-        return generateDeploymentDescriptor;
-    }
+    public abstract Property<Boolean> getGenerateDeploymentDescriptor();
 
     /**
      * The deployment descriptor configuration.
@@ -277,7 +270,5 @@ public abstract class Ear extends Jar {
      * @since 7.1
      */
     @Internal
-    public DirectoryProperty getAppDirectory() {
-        return appDir;
-    }
+    public abstract DirectoryProperty getAppDirectory();
 }
