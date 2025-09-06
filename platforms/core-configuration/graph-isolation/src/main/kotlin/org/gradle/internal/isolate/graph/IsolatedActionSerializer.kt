@@ -182,7 +182,7 @@ class EnvironmentDecoder(
  */
 private
 object ThrowingProblemsListener : AbstractProblemsListener() {
-    override fun onProblem(problem: PropertyProblem) {
+    override fun onProblem(problem: PropertyProblem, interrupting: Boolean) {
         // TODO: consider throwing more specific exception
         throw ConfigurationCacheError("Failed to isolate 'GradleLifecycle' action: ${problem.message}")
     }

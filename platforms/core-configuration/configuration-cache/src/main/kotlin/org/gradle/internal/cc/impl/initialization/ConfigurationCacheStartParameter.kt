@@ -187,6 +187,9 @@ class ConfigurationCacheStartParameter internal constructor(
     val isIsolatedProjects: Boolean
         get() = modelParameters.isIsolatedProjects
 
+    val isIsolatedProjectsProblemDetection: Boolean
+        get() = modelParameters.isIsolatedProjectsProblemDetection
+
     val entriesPerKey: Int
         get() = startParameter.configurationCacheEntriesPerKey
 }

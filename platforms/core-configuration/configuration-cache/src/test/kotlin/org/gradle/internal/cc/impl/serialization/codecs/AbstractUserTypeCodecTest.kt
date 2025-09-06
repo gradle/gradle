@@ -64,7 +64,7 @@ abstract class AbstractUserTypeCodecTest {
                 bean,
                 codec,
                 object : AbstractProblemsListener() {
-                    override fun onProblem(problem: PropertyProblem) {
+                    override fun onProblem(problem: PropertyProblem, interrupting: Boolean) {
                         problems += problem
                     }
 
@@ -163,7 +163,7 @@ abstract class AbstractUserTypeCodecTest {
         )
 
     private fun loggingProblemsListener() = object : AbstractProblemsListener() {
-        override fun onProblem(problem: PropertyProblem) {
+        override fun onProblem(problem: PropertyProblem, interrupting: Boolean) {
             println(problem)
         }
 

@@ -26,6 +26,7 @@ import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
+import org.gradle.initialization.StartParameterBuildOptions.IsolatedProjectsOption;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
@@ -137,7 +138,7 @@ public class BuildActionSerializer {
             encoder.writeString(startParameter.getWatchFileSystemMode().name());
             encoder.writeBoolean(startParameter.isVfsVerboseLogging());
             valueSerializer.write(encoder, startParameter.getConfigurationCache());
-            valueSerializer.write(encoder, startParameter.getIsolatedProjects());
+            encoder.writeString(startParameter.getIsolatedProjects().name());
             encoder.writeString(startParameter.getConfigurationCacheProblems().name());
             encoder.writeBoolean(startParameter.isConfigurationCacheIgnoreInputsDuringStore());
             encoder.writeBoolean(startParameter.isConfigurationCacheIgnoreUnsupportedBuildEventsListeners());
@@ -232,7 +233,7 @@ public class BuildActionSerializer {
             startParameter.setWatchFileSystemMode(WatchMode.valueOf(decoder.readString()));
             startParameter.setVfsVerboseLogging(decoder.readBoolean());
             startParameter.setConfigurationCache(valueSerializer.read(decoder));
-            startParameter.setIsolatedProjects(valueSerializer.read(decoder));
+            startParameter.setIsolatedProjects(IsolatedProjectsOption.Mode.valueOf(decoder.readString()));
             startParameter.setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value.valueOf(decoder.readString()));
             startParameter.setConfigurationCacheIgnoreInputsDuringStore(decoder.readBoolean());
             startParameter.setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(decoder.readBoolean());
