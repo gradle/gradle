@@ -18,6 +18,7 @@ package org.gradle.tooling.provider.model.internal;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.NullMarked;
@@ -38,20 +39,20 @@ public interface IntermediateToolingModelProvider {
     /**
      * Fetches models of a given type for the given projects passing a parameter to the underlying builder.
      */
-    <T> List<T> getModels(Project requester, List<Project> targets, String modelName, Class<T> modelType, @Nullable Object parameter);
+    <T> List<T> getModels(ProjectState requester, List<ProjectState> targets, String modelName, Class<T> modelType, @Nullable Object parameter);
 
     /**
      * Fetches models of a given type for the given projects passing a parameter to the underlying builder.
      * <p>
      * Model name to find the underlying builder is derived from the binary name of the {@code modelType}.
      */
-    default <T> List<T> getModels(Project requester, List<Project> targets, Class<T> modelType, @Nullable Object parameter) {
+    default <T> List<T> getModels(ProjectState requester, List<ProjectState> targets, Class<T> modelType, @Nullable Object parameter) {
         return getModels(requester, targets, modelType.getName(), modelType, parameter);
     }
 
     /**
      * Applies a plugin of a given type to the given projects.
      */
-    <P extends Plugin<Project>> void applyPlugin(Project requester, List<Project> targets, Class<P> pluginClass);
+    <P extends Plugin<Project>> void applyPlugin(ProjectState requester, List<ProjectState> targets, Class<P> pluginClass);
 
 }

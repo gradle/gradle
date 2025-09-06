@@ -18,8 +18,8 @@ package org.gradle.api.tasks.diagnostics;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
-import org.gradle.api.internal.project.ProjectHierarchyUtils;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectOrderingUtil;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.initialization.BuildClientMetaData;
@@ -29,7 +29,6 @@ import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.plugin.software.internal.SoftwareFeatureImplementation;
 import org.gradle.util.Path;
-import org.gradle.util.internal.CollectionUtils;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
@@ -120,7 +119,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
             ProjectDetails.of(project),
             calculateChildrenProjectsFor(project),
             getSoftwareTypesForProject(project),
-            project == project.getRootProject(),
+            project.getParent() == null,
             project.absoluteProjectPath(ProjectInternal.TASKS_TASK),
             project.getRootProject().absoluteProjectPath(ProjectInternal.PROJECTS_TASK),
             calculateIncludedBuildIdentityPaths()
@@ -139,12 +138,10 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     }
 
     private List<ProjectReportModel> calculateChildrenProjectsFor(Project project) {
-        List<Project> childProjects = CollectionUtils.sort(ProjectHierarchyUtils.getChildProjectsForInternalUse(project));
-        List<ProjectReportModel> children = new ArrayList<>(childProjects.size());
-        for (Project childProject : childProjects) {
-            children.add(calculateReportModelFor(childProject));
-        }
-        return children;
+        return ((ProjectInternal) project).getOwner().getChildProjects().stream()
+            .sorted(ProjectOrderingUtil::compare)
+            .map(state -> calculateReportModelFor(state.getMutableModel()))
+            .collect(Collectors.toList());
     }
 
     private List<Path> calculateIncludedBuildIdentityPaths() {

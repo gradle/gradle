@@ -21,6 +21,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.tasks.PublicTaskSpecification;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultBuildInvocations;
@@ -39,7 +40,6 @@ import java.util.Set;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Maps.newTreeMap;
-import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport.buildFromTask;
 
 public class BuildInvocationsBuilder implements ToolingModelBuilder {
@@ -63,13 +63,14 @@ public class BuildInvocationsBuilder implements ToolingModelBuilder {
         if (!canBuild(modelName)) {
             throw new GradleException("Unknown model name " + modelName);
         }
+        ProjectState projectState = ((ProjectInternal) project).getOwner();
 
         DefaultProjectIdentifier projectIdentifier = getProjectIdentifier(project);
         // construct task selectors
         List<LaunchableGradleTaskSelector> selectors = new ArrayList<>();
         Map<String, LaunchableGradleTaskSelector> selectorsByName = newTreeMap(Ordering.natural());
         Set<String> visibleTasks = new LinkedHashSet<>();
-        findTasks(project, selectorsByName, visibleTasks);
+        findTasks(projectState, selectorsByName, visibleTasks);
         for (String selectorName : selectorsByName.keySet()) {
             LaunchableGradleTaskSelector selector = selectorsByName.get(selectorName);
             selectors.add(selector
@@ -101,12 +102,12 @@ public class BuildInvocationsBuilder implements ToolingModelBuilder {
             .collect(toImmutableList());
     }
 
-    private void findTasks(Project p, Map<String, LaunchableGradleTaskSelector> taskSelectors, Collection<String> visibleTasks) {
-        for (Project child : getChildProjectsForInternalUse(p)) {
+    private void findTasks(ProjectState p, Map<String, LaunchableGradleTaskSelector> taskSelectors, Collection<String> visibleTasks) {
+        for (ProjectState child : p.getChildProjects()) {
             findTasks(child, taskSelectors, visibleTasks);
         }
 
-        ((ProjectInternal) p).getOwner().applyToMutableState(project -> {
+        p.applyToMutableState(project -> {
             for (Task task : taskLister.listProjectTasks(project)) {
                 // in the map, store a minimally populated LaunchableGradleTaskSelector that contains just the description and the path
                 // replace the LaunchableGradleTaskSelector stored in the map iff we come across a task with the same name whose path has a smaller ordering
