@@ -37,13 +37,19 @@ public class ClassAnalysis {
     private final Set<String> accessibleClassDependencies;
     private final String dependencyToAllReason;
     private final IntSet constants;
+    private final ClassAbi classAbi;
 
     public ClassAnalysis(String className, Set<String> privateClassDependencies, Set<String> accessibleClassDependencies, String dependencyToAllReason, IntSet constants) {
+        this(className, privateClassDependencies, accessibleClassDependencies, dependencyToAllReason, constants, null);
+    }
+
+    public ClassAnalysis(String className, Set<String> privateClassDependencies, Set<String> accessibleClassDependencies, String dependencyToAllReason, IntSet constants, ClassAbi classAbi) {
         this.className = className;
         this.privateClassDependencies = ImmutableSet.copyOf(privateClassDependencies);
         this.accessibleClassDependencies = ImmutableSet.copyOf(accessibleClassDependencies);
         this.dependencyToAllReason = dependencyToAllReason;
         this.constants = constants.isEmpty() ? IntSets.EMPTY_SET : constants;
+        this.classAbi = classAbi;
     }
 
     public String getClassName() {
@@ -66,13 +72,19 @@ public class ClassAnalysis {
         return dependencyToAllReason;
     }
 
+    public ClassAbi getClassAbi() {
+        return classAbi;
+    }
+
     public static class Serializer extends AbstractSerializer<ClassAnalysis> {
 
         private final StringInterner interner;
         private final SetSerializer<String> stringSetSerializer;
+        private final ClassAbi.Serializer abiSerializer;
 
         public Serializer(StringInterner interner) {
             stringSetSerializer = new SetSerializer<>(new InterningStringSerializer(interner), false);
+            abiSerializer = new ClassAbi.Serializer(interner);
             this.interner = interner;
         }
 
@@ -83,7 +95,8 @@ public class ClassAnalysis {
             Set<String> privateClasses = stringSetSerializer.read(decoder);
             Set<String> accessibleClasses = stringSetSerializer.read(decoder);
             IntSet constants = IntSetSerializer.INSTANCE.read(decoder);
-            return new ClassAnalysis(className, privateClasses, accessibleClasses, dependencyToAllReason, constants);
+            ClassAbi classAbi = abiSerializer.read(decoder);
+            return new ClassAnalysis(className, privateClasses, accessibleClasses, dependencyToAllReason, constants, classAbi);
         }
 
         @Override
@@ -93,6 +106,7 @@ public class ClassAnalysis {
             stringSetSerializer.write(encoder, value.getPrivateClassDependencies());
             stringSetSerializer.write(encoder, value.getAccessibleClassDependencies());
             IntSetSerializer.INSTANCE.write(encoder, value.getConstants());
+            abiSerializer.write(encoder, value.getClassAbi());
         }
 
     }
