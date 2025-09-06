@@ -483,7 +483,7 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
             }
 
             plugins {
-                id("com.example.test-software-type")
+                id("com.example.test-software-ecosystem")
             }
 
             defaults {
