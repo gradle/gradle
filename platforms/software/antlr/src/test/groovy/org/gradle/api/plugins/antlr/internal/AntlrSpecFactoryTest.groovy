@@ -127,6 +127,7 @@ class AntlrSpecFactoryTest extends Specification {
         _ * task.getArguments() >> ["-package", "foo.bar"]
         _ * task.getPackageName() >> TestUtil.objectFactory().property(String).value("com.example")
 
+        TestUtil.initDeprecationLogger("because -package arguments are deprecated and should not be used")
         def spec = factory.create(task, [] as Set, sourceSetDirectories)
 
         then:

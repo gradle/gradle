@@ -42,6 +42,7 @@ import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.problems.Problem
 import org.gradle.api.problems.ProblemReporter
@@ -57,6 +58,7 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.tasks.util.internal.PatternSets
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.hash.ChecksumService
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -81,6 +83,8 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.CrossBuildSessionParameters
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.internal.work.DefaultWorkerLimits
+import org.gradle.problems.ProblemDiagnostics
+import org.gradle.problems.buildtree.ProblemStream
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
@@ -282,6 +286,32 @@ class TestUtil {
 
     static NamedObjectInstantiator objectInstantiator() {
         return services().get(NamedObjectInstantiator)
+    }
+
+    static void initDeprecationLogger(String reason) {
+        assert reason != null && reason.size() > 10: "Please provide a reason why the deprecation logger is used in unit tests."
+        // initializes the deprecation logger to avoid warnings about it not being initialized in unit tests
+        DeprecationLogger.init(WarningMode.None, null, null, new ProblemStream() {
+            @Override
+            ProblemDiagnostics forCurrentCaller(ProblemStream.StackTraceTransformer transformer) {
+                return null
+            }
+
+            @Override
+            ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception) {
+                return null
+            }
+
+            @Override
+            ProblemDiagnostics forCurrentCaller() {
+                return null
+            }
+
+            @Override
+            ProblemDiagnostics forCurrentCaller(com.google.common.base.Supplier<? extends Throwable> exceptionFactory) {
+                return null
+            }
+        })
     }
 
     static FeaturePreviews featurePreviews() {
