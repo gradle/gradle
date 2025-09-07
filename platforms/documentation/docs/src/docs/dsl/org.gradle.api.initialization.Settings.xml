@@ -54,6 +54,9 @@
                 <td>includeFlat</td>
             </tr>
             <tr>
+                <td>includeVirtual</td>
+            </tr>
+            <tr>
                 <td>findProject</td>
             </tr>
             <tr>

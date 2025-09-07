@@ -88,7 +88,7 @@ class DefaultSettingsTest extends DefaultSettingsCommonTest {
         File testDir = new File("testDir")
 
         when:
-        ProjectDescriptorInternal projectDescriptor = settings.createProjectDescriptor(settings.getRootProject(), testName, testDir)
+        ProjectDescriptorInternal projectDescriptor = settings.createProjectDescriptor(settings.getRootProject(), testName, testDir, false)
 
         then:
         settings.rootProject.is(projectDescriptor.parent)
@@ -137,7 +137,7 @@ class DefaultSettingsTest extends DefaultSettingsCommonTest {
     private ProjectDescriptorInternal createTestDescriptor() {
         String testName = "testname"
         File testDir = new File("testDir")
-        return settings.createProjectDescriptor(settings.rootProject, testName, testDir)
+        return settings.createProjectDescriptor(settings.rootProject, testName, testDir, false)
     }
 
     def 'can get and set dynamic properties'() {

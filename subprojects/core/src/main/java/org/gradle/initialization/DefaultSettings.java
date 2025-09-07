@@ -109,7 +109,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         this.settingsScript = settingsScript;
         this.startParameter = startParameter;
         this.services = serviceRegistryFactory.createFor(this);
-        this.rootProjectDescriptor = createProjectDescriptor(null, getProjectName(settingsDir), settingsDir);
+        this.rootProjectDescriptor = createProjectDescriptor(null, getProjectName(settingsDir), settingsDir, false);
         this.dependencyResolutionManagement = services.get(DependencyResolutionManagementInternal.class);
         this.toolchainManagement = services.get(ToolchainManagementInternal.class);
     }
@@ -149,8 +149,8 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         return scriptHandler;
     }
 
-    public ProjectDescriptorInternal createProjectDescriptor(@Nullable ProjectDescriptorInternal parent, String name, File dir) {
-        return new DefaultProjectDescriptor(parent, name, dir, getProjectDescriptorRegistry(), getFileResolver(), getScriptFileResolver());
+    public ProjectDescriptorInternal createProjectDescriptor(@Nullable ProjectDescriptorInternal parent, String name, File dir, boolean virtual) {
+        return new DefaultProjectDescriptor(parent, name, dir, getProjectDescriptorRegistry(), getFileResolver(), getScriptFileResolver(), virtual);
     }
 
     @Override
@@ -199,7 +199,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
                 subPath = subPath + ":" + pathElement;
                 ProjectDescriptorInternal projectDescriptor = getProjectDescriptorRegistry().getProject(subPath);
                 if (projectDescriptor == null) {
-                    parentProjectDescriptor = createProjectDescriptor(parentProjectDescriptor, pathElement, new File(parentProjectDescriptor.getProjectDir(), pathElement));
+                    parentProjectDescriptor = createProjectDescriptor(parentProjectDescriptor, pathElement, new File(parentProjectDescriptor.getProjectDir(), pathElement), false);
                 } else {
                     parentProjectDescriptor = projectDescriptor;
                 }
@@ -211,7 +211,17 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     public void includeFlat(Iterable<String> projectNames) {
         for (String projectName : projectNames) {
             createProjectDescriptor(rootProjectDescriptor, projectName,
-                new File(rootProjectDescriptor.getProjectDir().getParentFile(), projectName));
+                new File(rootProjectDescriptor.getProjectDir().getParentFile(), projectName),
+                false);
+        }
+    }
+
+    @Override
+    public void includeVirtual(Iterable<String> projectNames) {
+        for (String projectName : projectNames) {
+            createProjectDescriptor(rootProjectDescriptor, projectName,
+                new File(rootProjectDescriptor.getProjectDir().getParentFile(), projectName),
+                true);
         }
     }
 

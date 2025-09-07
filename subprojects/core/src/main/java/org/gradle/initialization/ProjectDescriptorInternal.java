@@ -39,4 +39,5 @@ public interface ProjectDescriptorInternal extends ProjectDescriptor {
 
     Path path();
 
+    boolean isVirtual();
 }
