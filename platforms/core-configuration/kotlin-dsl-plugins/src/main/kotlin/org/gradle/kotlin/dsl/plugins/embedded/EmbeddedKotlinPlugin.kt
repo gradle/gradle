@@ -66,28 +66,8 @@ fun Logger.warnOnDifferentKotlinVersion(kotlinVersion: String?) {
         val warning =
             """|WARNING: Unsupported Kotlin plugin version.
                |The `embedded-kotlin` and `kotlin-dsl` plugins rely on features of Kotlin `$embeddedKotlinVersion` that might work differently than in the requested version `$kotlinVersion`.
-               |
                |Using the `kotlin-dsl` plugin together with a different Kotlin version (for example, by using the Kotlin Gradle plugin (`kotlin(jvm)`)) in the same module is not recommended.
-               |
-               |If you are writing a convention plugin (or a precompiled script plugin in general), it's recommended to use only the `kotlin-dsl` plugin and use the embedded Kotlin version. If you are writing a binary plugin, it's recommended that you do not use the `kotlin-dsl` plugin and use the Kotlin Gradle plugin (`kotlin(jvm)`).
-               |
-               |You can configure your module to use, for example, 2.1, by overriding `kotlin-dsl` behavior using the following snippet:
-               |
-               |    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-               |        compilerOptions {
-               |            apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_1)
-               |            languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_1)
-               |        }
-               |    }
-               |
-               |Note that this may lead to some hard to predict behavior and in general should be avoided, see documentation for more information.
-               |
-               |Solutions:
-               |    • Do not use `kotlin(jvm)` explicitly in this module and allow `kotlin-dsl` to auto-provide a compatible version on its own. If you prefer staying explicit, consider using the `embeddedKotlinVersion` constant.
-               |    • Do not use `kotlin-dsl` in this module.
-               |    • Configure your module to override `kotlin-dsl` behavior, as shown above.
-               |
-               |See https://kotl.in/gradle/kotlin-dsl-version-incompatibility for more details.""".trimMargin()
+               |See https://kotl.in/gradle/kotlin-dsl-version-incompatibility for more details.""".trimMargin() // TODO: link is not yet live
         warn(warning)
     }
 }
