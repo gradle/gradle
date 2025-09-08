@@ -17,10 +17,10 @@
 package org.gradle.internal.resolve.result
 
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult.State.Failed
 import static org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult.State.Listed
 import static org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult.State.Unknown
@@ -46,7 +46,7 @@ class DefaultBuildableModuleVersionListingResolveResultTest extends Specificatio
 
     def "can mark as failed"() {
         org.gradle.internal.Factory<String> broken = { "too bad" }
-        def failure = new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId("a", "b"), "c"), broken)
+        def failure = new ModuleVersionResolveException(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("a", "b"), "c"), broken)
 
         when:
         descriptor.failed(failure)

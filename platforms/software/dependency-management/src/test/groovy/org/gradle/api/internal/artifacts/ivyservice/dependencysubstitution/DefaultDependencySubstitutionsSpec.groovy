@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
@@ -107,8 +108,8 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         substitutions.allWithDependencyResolveDetails(action, componentSelectorConverter)
 
         def mid = DefaultModuleIdentifier.newId("org.utils", "api")
-        def moduleOldRequested = DefaultModuleVersionSelector.newSelector(mid, "1.5")
-        def moduleTarget = DefaultModuleComponentSelector.newSelector(moduleOldRequested)
+        def moduleOldRequested = DefaultModuleVersionIdentifier.newId(mid, "1.5")
+        def moduleTarget = DefaultModuleComponentSelector.newSelector(moduleOldRequested.module, moduleOldRequested.version)
         def moduleDetails = Mock(DependencySubstitutionInternal)
 
         when:
@@ -117,14 +118,14 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         then:
         _ * moduleDetails.target >> moduleTarget
         _ * moduleDetails.requested >> moduleTarget
-        1 * componentSelectorConverter.getSelector(moduleTarget) >> moduleOldRequested
+        1 * componentSelectorConverter.getModuleVersionId(moduleTarget) >> moduleOldRequested
         1 * action.execute({ DefaultDependencyResolveDetails details ->
-            details.requested == moduleOldRequested
+            details.requested == DefaultModuleVersionSelector.newSelector(moduleOldRequested)
         })
         1 * moduleDetails.artifactSelection(Actions.doNothing())
         0 * _
 
-        def projectOldRequested = DefaultModuleVersionSelector.newSelector(mid, "1.5")
+        def projectOldRequested = DefaultModuleVersionIdentifier.newId(mid, "1.5")
         def projectTarget = TestComponentIdentifiers.newSelector(":api")
         def projectDetails = Mock(DependencySubstitutionInternal)
 
@@ -134,9 +135,9 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         then:
         _ * projectDetails.target >> projectTarget
         _ * projectDetails.requested >> projectTarget
-        1 * componentSelectorConverter.getSelector(projectTarget) >> projectOldRequested
+        1 * componentSelectorConverter.getModuleVersionId(projectTarget) >> projectOldRequested
         1 * action.execute({ DefaultDependencyResolveDetails details ->
-            details.requested == projectOldRequested
+            details.requested.module == projectOldRequested.module && details.requested.version == projectOldRequested.version
         })
         1 * projectDetails.artifactSelection(Actions.doNothing())
         0 * _

@@ -33,7 +33,6 @@ import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.util.AttributeTestUtil
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class ResolutionResultDataBuilder {
 
@@ -44,7 +43,7 @@ class ResolutionResultDataBuilder {
     static DefaultUnresolvedDependencyResult newUnresolvedDependency(String group='x', String module='x', String version='1', String selectedVersion='1') {
         def requested = newSelector(group, module, version)
         org.gradle.internal.Factory<String> broken = { "broken" }
-        new DefaultUnresolvedDependencyResult(requested, false, ComponentSelectionReasons.requested(), newModule(group, module, selectedVersion), new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId(group, module), version), broken))
+        new DefaultUnresolvedDependencyResult(requested, false, ComponentSelectionReasons.requested(), newModule(group, module, selectedVersion), new ModuleVersionResolveException(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, module), version), broken))
     }
 
     static DefaultResolvedComponentResult newModule(String group='a', String module='a', String version='1', ComponentSelectionReason selectionReason = ComponentSelectionReasons.requested(), ResolvedVariantResult variant = newVariant(), String repoId = null) {
