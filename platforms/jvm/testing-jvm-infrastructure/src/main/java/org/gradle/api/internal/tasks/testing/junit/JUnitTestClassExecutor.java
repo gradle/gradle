@@ -79,14 +79,14 @@ public class JUnitTestClassExecutor implements TestClassConsumer {
                 return;
             }
 
-            executionListener.testClassStarted(testClassName);
+            notifyListenerOfStart(testClassInfo);
             started = true;
             runRequest(request);
             started = false;
-            executionListener.testClassFinished(null);
+            notifyListenerOfFinish(testClassInfo, null);
         } catch (Throwable throwable) {
             if (started) {
-                executionListener.testClassFinished(TestFailure.fromTestFrameworkFailure(throwable));
+                notifyListenerOfFinish(testClassInfo, TestFailure.fromTestFrameworkFailure(throwable));
             } else {
                 // If we haven't even started to run the request, this is a Gradle problem, so propagate it
                 throw new GradleException("Failed to execute test class: '" + testClassName + "'.", throwable);
@@ -174,6 +174,22 @@ public class JUnitTestClassExecutor implements TestClassConsumer {
         JUnitCore junit = new JUnitCore();
         junit.addListener(listener);
         junit.run(request);
+    }
+
+    private void notifyListenerOfStart(TestClassRunInfo testClassInfo) {
+        if (testClassInfo.getSuiteClassNames().isEmpty()) {
+            executionListener.testClassStarted(testClassInfo.getTestClassName());
+        } else {
+            executionListener.testSuiteStarted(testClassInfo.getTestClassName(), testClassInfo.getSuiteClassNames());
+        }
+    }
+
+    private void notifyListenerOfFinish(TestClassRunInfo testClassInfo, TestFailure failure) {
+        if (testClassInfo.getSuiteClassNames().isEmpty()) {
+            executionListener.testClassFinished(failure);
+        } else {
+            executionListener.testSuiteFinished(failure);
+        }
     }
 
     // https://github.com/gradle/gradle/issues/2319
