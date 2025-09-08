@@ -147,102 +147,129 @@ include::sample[dir="snippets/bestPractices/usePluginsBlock-do/groovy",files="bu
 
 Gradle does not guarantee the order in which plugins are applied, especially across multiple build scripts, projects, convention plugins, or included builds.
 
-As a result, you should never write build logic or plugins that depend on a specific plugin order.
+As a result, you should not write build logic or plugins that depend on a specific plugin application order.
 
 === Explanation
 
-==== Build Engineers
-
 In a single `build.gradle(.kts)` file, plugins appear to be applied sequentially:
 
-[source,groovy]
-.build.gradle
+[source,kotlin]
+.build.gradle.kts
 ----
-apply plugin: 'pluginA'
-apply plugin: 'pluginB'
+plugins {
+    id("pluginA")
+    id("pluginB")
+}
 ----
 
-However, in multi-project builds, with multiple `build.gradle(.kts)` files or convention plugin, plugin application becomes non-deterministic.
-Gradle executes configuration in parallel when possible, and the exact order of plugin execution may vary between runs:
+However, in <<multi_project_builds.adoc#multi_project_builds,multi-project builds>>, with multiple `build.gradle(.kts)` files or a <<plugins.adoc#sec:convention_plugins,convention plugin>>, plugin application can be non-deterministic.
+Gradle may configure projects in parallel, and the effective order can vary between runs:
 
-[source,groovy]
-.convention-build.gradle
+[source,kotlin]
+.convention-build.gradle.kts
 ----
-apply plugin: 'pluginC'
-apply plugin: 'pluginD'
+plugins {
+    id("pluginC")
+    id("pluginD")
+}
 ----
 
 You cannot assume whether `pluginA`, `pluginB`, `pluginC`, or `pluginD` will be applied first.
 
+==== Build Engineers
+
 Writing build logic that assumes plugin ordering can lead to:
 
-- *Fragile builds* that break when project structure changes.
-- *Brittle plugins* that work locally but fail in CI or in composite builds.
-- *Undetectable bugs* when plugins behave inconsistently due to race conditions.
+- Fragile builds that break when project structure changes.
+- Brittle behavior that works locally but fails in CI or in <<composite_builds.adoc#composite_builds,composite builds>>.
+- Hard-to-diagnose bugs when plugins interact inconsistently due to race conditions.
 
-Even techniques like `allprojects {}`, `subprojects {}`, or `afterEvaluate {}` do not reliably control plugin order across all cases.
+Techniques like `allprojects {}`, `subprojects {}`, or `afterEvaluate {}` do not reliably control plugin order across projects or included builds.
 
-Always avoid writing build logic that assumes ordering between different projects, included builds, or applied scripts—that order is not guaranteed.
+Avoid build logic that assumes ordering between different projects, included builds, or applied scripts, the order is not guaranteed.
 
 ==== Plugin Developers
 
-When developing plugins, there are two things to keep in mind.
+If your plugin requires another plugin, do not assume it has already been applied.
+Either:
 
-If your plugin requires another plugin to function, do not assume it’s already been applied.
-
-Instead, either:
-
-- *Apply it yourself*, or
-- *Fail fast with a clear error* or warning if it’s missing.
+- Apply it yourself, or
+- Fail fast with a clear error if it is missing.
 
 [source,groovy]
 ----
 if (!project.pluginManager.hasPlugin(requiredPlugin)) {
-    // Warn users
+    // Warn or fail with a clear message
 }
-
 project.pluginManager.apply('com.example.required-plugin')
 ----
 
-If your plugin can work with or without another plugin, and the behavior changes when the other plugin is present, use `withPlugin()`:
+If your plugin can work with or without another plugin, and behavior changes when that plugin is present, use link:{javadocPath}/org/gradle/api/plugins/PluginManager.html#withPlugin(java.lang.String,org.gradle.api.Action)[`withPlugin()`]: to defer configuration until it is actually applied:
 
 [source,groovy]
 ----
 pluginManager.withPlugin('ivy-publish') {
-    // Configure 'ivy-publish' after it's applied
+    // Configure 'ivy-publish' after it is applied
 }
 ----
 
-This is safe and defers configuration until the target plugin is applied, regardless of order.
+This is order-independent and safe.
 
 === Example
 
+Given the following project layout:
+
+[source,text]
+----
+.
+├── settings.gradle.kts
+├── build.gradle.kts
+├── buildSrc/
+│   ├── build.gradle.kts
+│   └── src/main/kotlin/MyPlugin.kt
+└── app/
+    └── build.gradle.kts
+----
+
 ==== Don't Do This
 
-Use afterEvaluate wisely?
-Don't apply plugins in your own plugin
+This setup makes several assumptions about the `java` plugin.
 
-[source,kotlin]
-----
-class MyPlugin : Plugin<Project> {
-    override fun apply(project: Project) {
-        project.pluginManager.apply("java-library") // Explicit dependency
-    }
-}
-----
+In the root build, `subprojects {}` and `afterEvaluate {}` obscure when a plugin is applied and attempt to force ordering:
+
+====
+include::sample[dir="snippets/bestPractices/dontAssumePluginOrder-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+====
+
+In the `app` subproject, the build file uses `extensions.getByType(...)` which assumes `java` has already been applied:
+
+====
+include::sample[dir="snippets/bestPractices/dontAssumePluginOrder-avoid/kotlin",files="app/build.gradle.kts[tags=avoid-this]"]
+====
+
+In the plugin implementation, `MyPlugin.kt` also assumes `java` is already applied:
+
+====
+include::sample[dir="snippets/bestPractices/dontAssumePluginOrder-avoid/kotlin",files="buildSrc/src/main/kotlin/MyPlugin.kt[tags=avoid-this]"]
+====
 
 ==== Do This Instead
 
-Use pluginManager.withPlugin() to safely react when another plugin is added
+The fixed version removes `afterEvaluate` and avoids assumptions about when or where the `java` plugin is applied.
 
-[source,kotlin]
-----
-// Correct way to react to another plugin
-project.pluginManager.withPlugin("java") {
-    // Code that configures behavior when the Java plugin is present
-}
-----
+The root build file has been deleted as there is no longer a need to use `subprojects {}`.
 
+In the `app` subproject, the build file uses `plugins.withId("java") {}` to safely configure tasks once `java` is applied.
+
+====
+include::sample[dir="snippets/bestPractices/dontAssumePluginOrder-do/kotlin",files="app/build.gradle.kts[tags=do-this]"]
+====
+
+In the plugin implementation, `MyPlugin.kt` explicitly applies the `java` plugin:
+
+====
+include::sample[dir="snippets/bestPractices/dontAssumePluginOrder-do/kotlin",files="buildSrc/src/main/kotlin/MyPlugin.kt[tags=do-this]"]
+====
 
 === References
 
