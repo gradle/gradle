@@ -178,14 +178,6 @@ class DefaultKotlinDslBaseScriptModel implements KotlinDslBaseScriptModel, Seria
         names.add("org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate");
         names.add("org.gradle.kotlin.dsl.KotlinProjectScriptTemplate");
 
-        // Legacy script templates for IDE support
-        names.add("org.gradle.kotlin.dsl.KotlinInitScript");
-        names.add("org.gradle.kotlin.dsl.KotlinSettingsScript");
-        names.add("org.gradle.kotlin.dsl.KotlinBuildScript");
-
-        // Legacy script dependencies resolver for IDE support
-        names.add("org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver");
-
         return names;
     }
 }
