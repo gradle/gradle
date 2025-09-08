@@ -293,14 +293,14 @@ Always name your root project in the `settings.gradle(.kts)` file.
 
 === Explanation
 
-While an empty `settings.gradle(.kts)` file is all that is minimally necessary for a multi-project build, you should always set the `rootProject.name` property in it.
+While an empty `settings.gradle(.kts)` file is enough to create a multi-project build, you should always set the `rootProject.name` property.
 
-Without setting a name explicitly, the root project's name implicitly defaults to the name of the directory containing the build.
-Some directory names may not be valid or suitable as project names, such as those containing spaces, Gradle logical path separators or other special characters.
-The paths to tasks in build should be able to be specified reliably regardless of where the build lives.
+By default, the root project’s name is taken from the directory containing the build.
+This can be problematic if the directory name contains spaces, Gradle logical path separators, or other special characters.
+It also makes task paths dependent on the directory name, rather than being reliably defined.
 
-Explicitly setting the root project's name also ensures that it referred to consistently.
-Project names are used in various places, such as error messages, logs, and reports.
+Explicitly setting the root project's name ensures consistency across environments.
+Project names appear in error messages, logs, and reports, and builds often run on different machines, such as CI servers.
 Builds may execute on a variety of machines or environments, such as CI servers, and should report the same root project name anywhere to make the project more comprehensible.
 
 === Example
@@ -312,8 +312,8 @@ include::sample[dir="snippets/bestPractices/nameYourRootProject-avoid/kotlin",fi
 include::sample[dir="snippets/bestPractices/nameYourRootProject-avoid/groovy",files="settings.gradle[]"]
 ====
 
-In this build, the settings file is empty and the root project is unnamed.
-If you try running the `projects` report, you will see an implicit name used for the root project that is based on the build's current location.
+In this build, the settings file is empty and the root project has no explicit name.
+Running the `projects` report shows that Gradle assigns an implicit name to the root project, derived from the build’s current directory.
 
 ==== Do This Instead
 
