@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ArtifactSelectionDetails;
+import org.gradle.api.artifacts.DependencyArtifactSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
@@ -27,34 +29,41 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static org.gradle.api.artifacts.result.ComponentSelectionCause.SELECTED_BY_RULE;
 
 public class DefaultDependencySubstitution implements DependencySubstitutionInternal {
+
+    private static final NotationParser<Object, ComponentSelector> COMPONENT_SELECTOR_PARSER = ComponentSelectorParsers.parser();
+
     private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
-    private final ComponentSelector requested;
-    private List<ComponentSelectionDescriptorInternal> ruleDescriptors;
-    private ComponentSelector target;
-    private final ArtifactSelectionDetailsInternal artifactSelectionDetails;
+    private final ComponentSelector requestedSelector;
+    private final ImmutableList<IvyArtifactName> requestedArtifacts;
+
+    private @Nullable ComponentSelector target;
+    private @Nullable List<ComponentSelectionDescriptorInternal> ruleDescriptors;
+    private @Nullable ArtifactSelectionDetailsInternal artifactSelectionDetails;
 
     @Inject
-    public DefaultDependencySubstitution(ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-                                         ComponentSelector requested,
-                                         List<IvyArtifactName> artifacts) {
+    public DefaultDependencySubstitution(
+        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+        ComponentSelector requestedSelector,
+        ImmutableList<IvyArtifactName> requestedArtifacts
+    ) {
         this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
-        this.requested = requested;
-        this.target = requested;
-        this.artifactSelectionDetails = new DefaultArtifactSelectionDetails(this, artifacts);
+        this.requestedSelector = requestedSelector;
+        this.requestedArtifacts = requestedArtifacts;
     }
 
     @Override
     public ComponentSelector getRequested() {
-        return requested;
+        return requestedSelector;
     }
 
     @Override
@@ -69,41 +78,52 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
 
     @Override
     public void artifactSelection(Action<? super ArtifactSelectionDetails> action) {
+        if (artifactSelectionDetails == null) {
+            artifactSelectionDetails = new DefaultArtifactSelectionDetails(requestedArtifacts);
+        }
         action.execute(artifactSelectionDetails);
     }
 
     @Override
     public void useTarget(Object notation, ComponentSelectionDescriptor ruleDescriptor) {
-        this.target = ComponentSelectorParsers.parser().parseNotation(notation);
-        addRuleDescriptor((ComponentSelectionDescriptorInternal) ruleDescriptor);
-        validateTarget(target);
-    }
-
-    void addRuleDescriptor(ComponentSelectionDescriptorInternal ruleDescriptor) {
+        this.target = COMPONENT_SELECTOR_PARSER.parseNotation(notation);
         if (this.ruleDescriptors == null) {
             this.ruleDescriptors = new ArrayList<>();
         }
-        this.ruleDescriptors.add(ruleDescriptor);
+        this.ruleDescriptors.add((ComponentSelectionDescriptorInternal) ruleDescriptor);
+        validateTarget(target);
     }
 
     @Override
-    public List<ComponentSelectionDescriptorInternal> getRuleDescriptors() {
-        return ruleDescriptors == null ? Collections.emptyList() : ruleDescriptors;
+    public @Nullable ImmutableList<ComponentSelectionDescriptorInternal> getRuleDescriptors() {
+        boolean hasConfiguredTarget = getConfiguredTargetSelector() != null;
+        boolean hasConfiguredArtifactSelectors = getConfiguredArtifactSelectors() != null;
+
+        if (!hasConfiguredTarget && !hasConfiguredArtifactSelectors) {
+            return null;
+        }
+
+        ImmutableList.Builder<ComponentSelectionDescriptorInternal> builder = ImmutableList.builder();
+        if (hasConfiguredTarget) {
+            assert ruleDescriptors != null;
+            builder.addAll(ruleDescriptors);
+        }
+
+        if (hasConfiguredArtifactSelectors) {
+            builder.add(ComponentSelectionReasons.SELECTED_BY_RULE);
+        }
+
+        return builder.build();
     }
 
     @Override
-    public ComponentSelector getTarget() {
+    public @Nullable ComponentSelector getConfiguredTargetSelector() {
         return target;
     }
 
     @Override
-    public boolean isUpdated() {
-        return ruleDescriptors != null;
-    }
-
-    @Override
-    public ArtifactSelectionDetailsInternal getArtifactSelectionDetails() {
-        return artifactSelectionDetails;
+    public @Nullable ImmutableList<DependencyArtifactSelector> getConfiguredArtifactSelectors() {
+        return artifactSelectionDetails != null ? artifactSelectionDetails.getConfiguredSelectors() : null;
     }
 
     public static void validateTarget(ComponentSelector componentSelector) {
@@ -111,4 +131,5 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
             throw new InvalidUserDataException("Must specify version for target of dependency substitution");
         }
     }
+
 }

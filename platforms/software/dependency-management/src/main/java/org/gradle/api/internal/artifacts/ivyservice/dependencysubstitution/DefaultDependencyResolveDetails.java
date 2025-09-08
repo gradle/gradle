@@ -55,7 +55,7 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
     public DefaultDependencyResolveDetails(DependencySubstitutionInternal delegate, ModuleVersionIdentifier requested) {
         this.delegate = delegate;
         this.requested = requested;
-        this.target = delegate.getTarget();
+        this.target = delegate.getConfiguredTargetSelector() != null ? delegate.getConfiguredTargetSelector() : delegate.getRequested();
     }
 
     @Override

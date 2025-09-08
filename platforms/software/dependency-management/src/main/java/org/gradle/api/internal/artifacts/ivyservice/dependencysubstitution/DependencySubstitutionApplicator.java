@@ -15,51 +15,29 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
-import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyState;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * A dependency substitution applicator is responsible for applying substitution rules to dependency metadata.
  * Substitution result may either be the same module (no substitution), a different module (target of the substitution
  * is going to be different) or a failure.
  */
+@NullMarked
 public interface DependencySubstitutionApplicator {
-    SubstitutionResult NO_OP_SUBSTITUTION_RESULT = SubstitutionResult.of(NoOpSubstitution.INSTANCE);
-    DependencySubstitutionApplicator NO_OP = dependency -> NO_OP_SUBSTITUTION_RESULT;
 
-    SubstitutionResult apply(DependencyMetadata dependency);
+    /**
+     * A substitution applicator that does not perform any substitutions.
+     */
+    DependencySubstitutionApplicator NO_OP = metadata -> new DependencyState(metadata, metadata.getSelector(), ImmutableList.of(), null);
 
-    class SubstitutionResult {
-        private final DependencySubstitutionInternal result;
-        private final Throwable failure;
-
-        private SubstitutionResult(@Nullable DependencySubstitutionInternal result, @Nullable Throwable failure) {
-            this.result = result;
-            this.failure = failure;
-        }
-
-        public static SubstitutionResult of(DependencySubstitutionInternal details) {
-            return new SubstitutionResult(details, null);
-        }
-
-        public static SubstitutionResult failed(Throwable err) {
-            return new SubstitutionResult(null, err);
-        }
-
-        @Nullable
-        public DependencySubstitutionInternal getResult() {
-            return result;
-        }
-
-        @Nullable
-        public Throwable getFailure() {
-            return failure;
-        }
-
-        public boolean hasFailure() {
-            return failure != null;
-        }
-    }
+    /**
+     * Execute any dependency substitution rules that apply to the given dependency metadata.
+     *
+     * @return a dependency state representing the result of applying any substitution rules.
+     */
+    DependencyState applySubstitutions(DependencyMetadata metadata);
 
 }
