@@ -30,7 +30,7 @@ import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
@@ -82,16 +82,7 @@ public class GradleDslBaseScriptModelBuilder implements BuildScopeModelBuilder {
         if (!name.endsWith(".jar")) {
             return false;
         }
-        if (name.startsWith("gradle-kotlin-dsl-")) {
-            return true;
-        }
-        if (name.startsWith("gradle-core-api-")) {
-            return true;
-        }
-        if (name.startsWith("kotlin-script-runtime-")) {
-            return true;
-        }
-        return false;
+        return name.startsWith("gradle-kotlin-dsl-") || name.startsWith("gradle-core-api-") || name.startsWith("kotlin-script-runtime-");
     }
 }
 
@@ -144,6 +135,12 @@ class DefaultGroovyDslBaseScriptModel implements GroovyDslBaseScriptModel, Seria
 @NullMarked
 class DefaultKotlinDslBaseScriptModel implements KotlinDslBaseScriptModel, Serializable {
 
+    private static final List<String> TEMPLATE_CLASS_NAMES = Arrays.asList(
+        "org.gradle.kotlin.dsl.KotlinGradleScriptTemplate",
+        "org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate",
+        "org.gradle.kotlin.dsl.KotlinProjectScriptTemplate"
+    );
+
     private final List<File> scriptTemplatesClassPath;
     private final List<File> compileClassPath;
     private final List<String> implicitImports;
@@ -171,13 +168,6 @@ class DefaultKotlinDslBaseScriptModel implements KotlinDslBaseScriptModel, Seria
 
     @Override
     public List<String> getTemplateClassNames() {
-        ArrayList<String> names = new ArrayList<>();
-
-        // Script templates for IDE support
-        names.add("org.gradle.kotlin.dsl.KotlinGradleScriptTemplate");
-        names.add("org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate");
-        names.add("org.gradle.kotlin.dsl.KotlinProjectScriptTemplate");
-
-        return names;
+        return TEMPLATE_CLASS_NAMES;
     }
 }
