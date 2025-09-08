@@ -22,7 +22,6 @@ tasks.named("platformTest") {
     dependsOn("test")
 }
 tasks.configureCIIntegrationTestDistributionLifecycleTasks()
-tasks.configureCICrossVersionTestDistributionLifecycleTasks()
 
 val ciGroup = "CI Lifecycle"
 
@@ -70,19 +69,5 @@ fun TaskContainer.configureCIIntegrationTestDistributionLifecycleTasks() {
 
     named("forceRealizeDependencyManagementTest") {
         dependsOn("integForceRealizeTest")
-    }
-}
-
-fun TaskContainer.configureCICrossVersionTestDistributionLifecycleTasks() {
-    named("quickTest") {
-        dependsOn("embeddedCrossVersionTest")
-    }
-
-    named("platformTest") {
-        dependsOn("forkingCrossVersionTest")
-    }
-
-    named("quickFeedbackCrossVersionTest") {
-        dependsOn("quickFeedbackCrossVersionTests")
     }
 }
