@@ -21,6 +21,7 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildToolingModelController
 import org.gradle.internal.build.BuildToolingModelControllerFactory
 import org.gradle.internal.build.DefaultBuildToolingModelController
+import org.gradle.internal.build.ResilientBuildToolingModelController
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup
 
@@ -30,11 +31,12 @@ class DefaultBuildToolingModelControllerFactory(
     private val modelParameters: BuildModelParameters
 ) : BuildToolingModelControllerFactory {
     override fun createController(owner: BuildState, controller: BuildLifecycleController): BuildToolingModelController {
-        val defaultController = DefaultBuildToolingModelController(
-            owner,
-            controller,
-            controller.gradle.services.get(ToolingModelBuilderLookup::class.java),
-        )
+        val modelBuilderLookup = controller.gradle.services.get(ToolingModelBuilderLookup::class.java)
+        val defaultController = if (modelParameters.isResilientModelBuilding) {
+            ResilientBuildToolingModelController(owner, controller, modelBuilderLookup)
+        } else {
+            DefaultBuildToolingModelController(owner, controller, modelBuilderLookup)
+        }
         return if (modelParameters.isIntermediateModelCache) {
             ConfigurationCacheAwareBuildToolingModelController(defaultController, controller.gradle.services.get(BuildTreeConfigurationCache::class.java))
         } else {
