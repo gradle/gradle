@@ -116,7 +116,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         substitutions.ruleAction.execute(moduleDetails)
 
         then:
-        _ * moduleDetails.target >> moduleTarget
+        _ * moduleDetails.configuredTargetSelector >> moduleTarget
         _ * moduleDetails.requested >> moduleTarget
         1 * componentSelectorConverter.getModuleVersionId(moduleTarget) >> moduleOldRequested
         1 * action.execute({ DefaultDependencyResolveDetails details ->
@@ -133,7 +133,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         substitutions.ruleAction.execute(projectDetails)
 
         then:
-        _ * projectDetails.target >> projectTarget
+        _ * projectDetails.configuredTargetSelector >> projectTarget
         _ * projectDetails.requested >> projectTarget
         1 * componentSelectorConverter.getModuleVersionId(projectTarget) >> projectOldRequested
         1 * action.execute({ DefaultDependencyResolveDetails details ->
