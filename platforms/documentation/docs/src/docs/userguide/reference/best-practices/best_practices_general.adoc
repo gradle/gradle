@@ -354,7 +354,7 @@ include::sample[dir="snippets/bestPractices/nameYourRootProject-do/tests",files=
 [[do_not_use_gradle_properties_in_subprojects]]
 == Do not use `gradle.properties` in subprojects
 
-Do not use `gradle.properties` in subprojects to set properties in your build.
+Do not place a `gradle.properties` file inside subprojects to configure your build.
 
 === Explanation
 
