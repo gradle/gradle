@@ -17,10 +17,16 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.List;
 
-public class JUnit4TestSuiteDescriptor extends DefaultTestSuiteDescriptor {
+/**
+ * A descriptor for a JUnit 4 test suite {@code org.junit.runners.Suite}, which can execute tests in
+ * multiple test classes.
+ */
+@NullMarked
+public final class JUnit4TestSuiteDescriptor extends DefaultTestSuiteDescriptor {
     private final List<String> testClasses;
 
     public JUnit4TestSuiteDescriptor(Object id, String name, List<String> testClasses) {
