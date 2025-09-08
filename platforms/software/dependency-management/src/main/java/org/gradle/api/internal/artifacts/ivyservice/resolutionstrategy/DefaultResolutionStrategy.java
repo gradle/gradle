@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.CapabilitiesResolution;
 import org.gradle.api.artifacts.ComponentSelection;
@@ -24,16 +25,18 @@ import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ResolutionStrategy;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.configurations.CachePolicy;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
-import org.gradle.api.internal.artifacts.configurations.CachePolicy;
-import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
+import org.gradle.api.internal.artifacts.dsl.ModuleComponentSelectorParsers;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -44,6 +47,7 @@ import org.gradle.internal.typeconversion.NormalizedTimeUnit;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.TimeUnitsParser;
 import org.gradle.vcs.internal.VcsResolver;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.util.Collections;
@@ -56,10 +60,10 @@ import static org.gradle.api.internal.artifacts.configurations.MutationValidator
 public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
-    private static final NotationParser<Object, Set<ModuleVersionSelector>> FORCED_MODULES_PARSER = ModuleVersionSelectorParsers.multiParser("force()");
+    private static final NotationParser<Object, Set<ModuleComponentSelector>> FORCED_MODULES_PARSER = ModuleComponentSelectorParsers.multiParser("force()");
 
     private final Set<Object> forcedModules = new LinkedHashSet<>();
-    private Set<ModuleVersionSelector> parsedForcedModules;
+    private @Nullable Set<ModuleComponentSelector> parsedForcedModules;
     private ConflictResolution conflictResolution = ConflictResolution.latest;
     private final DefaultComponentSelectionRules componentSelectionRules;
 
@@ -128,10 +132,16 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     @Override
     public Set<ModuleVersionSelector> getForcedModules() {
+        return getParsedForcedModules().stream()
+            .map(DefaultModuleVersionSelector::newSelector)
+            .collect(ImmutableSet.toImmutableSet());
+    }
+
+    private Set<ModuleComponentSelector> getParsedForcedModules() {
         if (parsedForcedModules == null) {
             parsedForcedModules = FORCED_MODULES_PARSER.parseNotation(forcedModules);
         }
-        return Collections.unmodifiableSet(parsedForcedModules);
+        return parsedForcedModules;
     }
 
     @Override
@@ -226,7 +236,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     @Override
     public ImmutableActionSet<DependencySubstitutionInternal> getDependencySubstitutionRule() {
         ImmutableActionSet<DependencySubstitutionInternal> result = ImmutableActionSet.empty();
-        Set<ModuleVersionSelector> forcedModules = getForcedModules();
+        Set<ModuleComponentSelector> forcedModules = getParsedForcedModules();
         if (!forcedModules.isEmpty()) {
             result = result.add(new ModuleForcingResolveRule(forcedModules));
         }

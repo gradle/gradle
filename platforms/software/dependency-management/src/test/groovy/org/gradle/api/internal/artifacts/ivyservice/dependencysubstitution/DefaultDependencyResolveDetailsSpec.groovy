@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
@@ -187,7 +188,13 @@ class DefaultDependencyResolveDetailsSpec extends Specification {
     }
 
     private static def newDependencyResolveDetails(String group, String name, String version, String reason = null, List<IvyArtifactName> artifacts = []) {
-        return new DefaultDependencyResolveDetails(new DefaultDependencySubstitution(DependencyManagementTestUtil.componentSelectionDescriptorFactory(), newComponentSelector(group, name, version), artifacts), newVersionSelector(group, name, version))
+        return new DefaultDependencyResolveDetails(
+            new DefaultDependencySubstitution(
+                DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
+                newComponentSelector(group, name, version), artifacts
+            ),
+            DefaultModuleVersionIdentifier.newId(group, name, version)
+        )
     }
 
     private static ModuleComponentSelector newComponentSelector(String group, String module, String version) {

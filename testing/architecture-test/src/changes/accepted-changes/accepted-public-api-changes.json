@@ -89,6 +89,14 @@
             ]
         },
         {
+            "type": "org.gradle.plugin.management.PluginRequest",
+            "member": "Method org.gradle.plugin.management.PluginRequest.getSelector()",
+            "acceptation": "No need to incubate",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
             "type": "org.gradle.testing.jacoco.tasks.JacocoReportBase",
             "member": "Method org.gradle.testing.jacoco.tasks.JacocoReportBase.getAdditionalClassDirs()",
             "acceptation": "Replaced with abstract getter",

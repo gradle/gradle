@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 
 public class DefaultModuleVersionSelector implements ModuleVersionSelector {
@@ -30,12 +31,6 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
     private DefaultModuleVersionSelector(ModuleIdentifier module, String versionConstraint) {
         this.module = module;
         this.version = versionConstraint;
-    }
-
-    // DO NOT USE THIS CONSTRUCTOR DIRECTLY
-    // It's only there for backwards compatibility with the Nebula plugin
-    public DefaultModuleVersionSelector(String group, String name, String version) {
-        this(DefaultModuleIdentifier.newId(group, name), version);
     }
 
     @Override
@@ -87,8 +82,28 @@ public class DefaultModuleVersionSelector implements ModuleVersionSelector {
         return Objects.hashCode(module, version);
     }
 
+    /**
+     * Only used for tests.
+     *
+     * @deprecated Prefer the below factory methods, as this class is only intended to wrap existing types.
+     */
+    @Deprecated
     public static ModuleVersionSelector newSelector(ModuleIdentifier module, String version) {
         return new DefaultModuleVersionSelector(module, version);
+    }
+
+    public static ModuleVersionSelector newSelector(ModuleVersionIdentifier moduleVersionId) {
+        return new DefaultModuleVersionSelector(
+            moduleVersionId.getModule(),
+            moduleVersionId.getVersion()
+        );
+    }
+
+    public static ModuleVersionSelector newSelector(ModuleComponentIdentifier moduleComponentId) {
+        return new DefaultModuleVersionSelector(
+            moduleComponentId.getModuleIdentifier(),
+            moduleComponentId.getVersion()
+        );
     }
 
     public static ModuleVersionSelector newSelector(ModuleComponentSelector selector) {
