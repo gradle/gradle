@@ -28,6 +28,7 @@ import org.jspecify.annotations.Nullable;
  * (i.e. via the {@code Authorization: Basic} header).</p>
  *
  * @see HttpBuildCache
+ * @since 3.5
  */
 public class HttpBuildCacheCredentials implements PasswordCredentials {
     private String username;
