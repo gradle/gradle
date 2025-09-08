@@ -17,6 +17,11 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.Action;
+import org.jspecify.annotations.NullMarked;
 
+/**
+ * A type that can execute tests give a {@link TestClassRunInfo}.
+ */
+@NullMarked
 public interface TestExecutor extends Action<TestClassRunInfo> {
 }

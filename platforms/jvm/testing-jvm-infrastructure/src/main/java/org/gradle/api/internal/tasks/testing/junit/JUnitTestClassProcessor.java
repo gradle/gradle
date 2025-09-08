@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestExecutor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
