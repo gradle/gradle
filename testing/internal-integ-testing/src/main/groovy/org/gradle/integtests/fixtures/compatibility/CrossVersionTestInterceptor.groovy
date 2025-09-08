@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.IgnoreVersions
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor
-import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor
 import org.gradle.util.GradleVersion
 import org.spockframework.runtime.extension.IMethodInvocation
 
