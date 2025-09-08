@@ -30,5 +30,5 @@ public interface TestClassConsumer {
      *
      * @param testClassName The FQN of the test class to consume
      */
-    void consumeClass(String testClassName);
+    void consumeClass(TestClassRunInfo testClassName);
 }
