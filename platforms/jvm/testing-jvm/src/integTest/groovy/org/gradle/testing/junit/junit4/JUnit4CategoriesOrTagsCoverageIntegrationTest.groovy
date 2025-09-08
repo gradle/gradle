@@ -74,7 +74,8 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         Assume.assumeTrue(VersionNumber.parse(version) >= VersionNumber.parse('4.11'))
 
         given:
-        file('src/test/java/CategoryA.java') << """
+        file('src/test/java/org/gradle/CategoryA.java') << """
+            package org.gradle;
             public interface CategoryA { }
         """
         file('src/test/java/CustomRunner.java') << """
