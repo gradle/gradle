@@ -21,6 +21,7 @@ The command-line interface is the **primary method of interacting with Gradle**.
 The following is a reference for executing and customizing the Gradle command-line.
 It also serves as a reference when writing scripts or configuring continuous integration.
 
+[[command_line_interface_reference]]
 **Use of the <<gradle_wrapper.adoc#gradle_wrapper, Gradle Wrapper>> is highly encouraged**.
 Substitute `./gradlew` (in macOS / Linux) or `gradlew.bat` (in Windows) for `gradle` in the following examples.
 

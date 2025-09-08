@@ -1,3 +1,19 @@
 ++++
-<meta http-equiv="refresh" content="0;URL=writing_tasks_intermediate.html">
+<script>
+const currentAnchor = window.location.hash.substring(1); // Remove the '#' symbol
+
+const redirectionRules = {
+  "task_group_and_description": "more_about_tasks.html#sec:task_groups"
+};
+
+const defaultRedirect = "writing_tasks_intermediate.html";
+
+if (currentAnchor) {
+  if (redirectionRules[currentAnchor]) {
+    window.location.href = redirectionRules[currentAnchor];
+  }
+} else {
+  window.location.href = defaultRedirect;
+}
+</script>
 ++++

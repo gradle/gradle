@@ -1,3 +1,26 @@
 ++++
-<meta http-equiv="refresh" content="0;URL=writing_build_scripts_intermediate.html">
+<script>
+const currentAnchor = window.location.hash.substring(1); // Remove the '#' symbol
+
+const redirectionRules = {
+  "sec:standard_project_properties": "writing_build_scripts_intermediate.html#accessing_project_properties_in_build_scripts",
+  "sec:dynamic_tasks": "",
+  "sec:gradle_types": "gradle_managed_types_intermediate.html",
+  "sec:configuring_arbitrary_objects": "",
+  "sec:closure_delegate": "writing_build_scripts_intermediate.html#closures_and_lambdas",
+  "sec:build_script_external_dependencies": "",
+  "sec:configuring_arbitrary_objects_using_an_external_script": "",
+  "sec:closures_as_the_last_parameter_in_a_method":""
+};
+
+const defaultRedirect = "writing_build_scripts_intermediate.html";
+
+if (currentAnchor) {
+  if (redirectionRules[currentAnchor]) {
+    window.location.href = redirectionRules[currentAnchor];
+  }
+} else {
+  window.location.href = defaultRedirect;
+}
+</script>
 ++++

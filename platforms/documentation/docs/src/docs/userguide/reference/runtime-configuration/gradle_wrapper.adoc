@@ -18,6 +18,7 @@
 
 The **recommended way to execute any Gradle build** is with the help of the Gradle Wrapper (referred to as "Wrapper").
 
+[[gradle_wrapper_reference]]
 *The Wrapper is a script* (called `gradlew` or `gradlew.bat`) that invokes a declared version of Gradle, downloading it beforehand if necessary.
 Instead of running `gradle build` using the installed Gradle, you use the Gradle Wrapper by calling `./gradlew build`.
 

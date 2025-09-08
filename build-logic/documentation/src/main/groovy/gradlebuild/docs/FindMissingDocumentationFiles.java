@@ -84,7 +84,18 @@ public abstract class FindMissingDocumentationFiles extends DefaultTask {
         "sec:declaring_without_version",
         "rich-version-constraints",
         "dependency_management_in_gradle",
-        "sec:dependency-mgmt-in-gradle"
+        "sec:identifying_project_structure",
+        "sec:multiproject_build_and_test",
+        "sec:dependency-mgmt-in-gradle",
+        "sec:standard_project_properties",
+        "sec:dynamic_tasks",
+        "sec:gradle_types",
+        "sec:configuring_arbitrary_objects",
+        "sec:closure_delegate",
+        "sec:build_script_external_dependencies",
+        "sec:configuring_arbitrary_objects_using_an_external_script",
+        "sec:closures_as_the_last_parameter_in_a_method",
+        "task_group_and_description"
     ));
 
     @InputDirectory

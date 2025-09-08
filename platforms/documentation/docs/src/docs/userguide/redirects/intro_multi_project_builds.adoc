@@ -1,3 +1,20 @@
 ++++
-<meta http-equiv="refresh" content="0;URL=multi_project_builds_intermediate.html">
+<script>
+const currentAnchor = window.location.hash.substring(1); // Remove the '#' symbol
+
+const redirectionRules = {
+  "sec:identifying_project_structure": "organizing_gradle_projects.html#organizing_gradle_projects",
+  "sec:multiproject_build_and_test": "java_plugin.html#java_plugin_lifecycle_tasks"
+};
+
+const defaultRedirect = "multi_project_builds_intermediate.html";
+
+if (currentAnchor) {
+  if (redirectionRules[currentAnchor]) {
+    window.location.href = redirectionRules[currentAnchor];
+  }
+} else {
+  window.location.href = defaultRedirect;
+}
+</script>
 ++++
