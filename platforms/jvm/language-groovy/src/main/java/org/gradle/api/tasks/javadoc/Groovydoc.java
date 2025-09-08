@@ -84,14 +84,6 @@ public abstract class Groovydoc extends SourceTask {
 
     private Set<Link> links = new LinkedHashSet<Link>();
 
-    private final Property<GroovydocAccess> access = getProject().getObjects().property(GroovydocAccess.class);
-
-    private final Property<Boolean> includeAuthor = getProject().getObjects().property(Boolean.class);
-
-    private final Property<Boolean> processScripts = getProject().getObjects().property(Boolean.class);
-
-    private final Property<Boolean> includeMainForScripts = getProject().getObjects().property(Boolean.class);
-
     @Inject
     protected abstract WorkerExecutor getWorkerExecutor();
 
@@ -370,9 +362,7 @@ public abstract class Groovydoc extends SourceTask {
      * @since 7.5
      */
     @Input
-    public Property<GroovydocAccess> getAccess() {
-        return access;
-    }
+    public abstract Property<GroovydocAccess> getAccess();
 
     /**
      * Whether to include author paragraphs.
@@ -380,9 +370,7 @@ public abstract class Groovydoc extends SourceTask {
      * @since 7.5
      */
     @Input
-    public Property<Boolean> getIncludeAuthor() {
-        return includeAuthor;
-    }
+    public abstract Property<Boolean> getIncludeAuthor();
 
     /**
      * Whether to process scripts.
@@ -390,9 +378,7 @@ public abstract class Groovydoc extends SourceTask {
      * @since 7.5
      */
     @Input
-    public Property<Boolean> getProcessScripts() {
-        return processScripts;
-    }
+    public abstract Property<Boolean> getProcessScripts();
 
     /**
      * Whether to include main method for scripts.
@@ -400,9 +386,7 @@ public abstract class Groovydoc extends SourceTask {
      * @since 7.5
      */
     @Input
-    public Property<Boolean> getIncludeMainForScripts() {
-        return includeMainForScripts;
-    }
+    public abstract Property<Boolean> getIncludeMainForScripts();
 
     /**
      * Returns the links to groovydoc/javadoc output at the given URL.

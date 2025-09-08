@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.NamedVariantIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements
@@ -1117,12 +1118,13 @@ class DependencyGraphBuilderTest extends Specification {
             )
         )
 
+        def id = new NamedVariantIdentifier(componentId, name)
         def metadata = new DefaultLocalVariantGraphResolveMetadata(
-            name, true, attributes, ImmutableCapabilities.EMPTY, false
+            id, name, true, attributes, ImmutableCapabilities.EMPTY, false
         )
 
         return resolveStateFactory.realizedVariantStateFor(
-            componentId, metadata, dependencyMetadata, artifactSets
+            metadata, dependencyMetadata, artifactSets
         )
     }
 

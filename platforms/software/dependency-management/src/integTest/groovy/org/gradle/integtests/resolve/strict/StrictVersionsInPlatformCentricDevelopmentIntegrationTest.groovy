@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.strict
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import org.gradle.util.GradleVersion
 
 import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.expectStrictVersion
 import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.ENFORCED_PLATFORM
@@ -309,13 +310,17 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         } else {
             fails ':checkDeps'
         }
+
         then:
         def platformVariant = platformType == MODULE ? 'runtime' : 'apiElements'
-        (platformType == ENFORCED_PLATFORM && !failed) || failure.assertHasCause(
-            """Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path: 'root project :' (conf) --> 'org:bar:2.0' (runtime) --> 'org:foo:3.1'
-   Constraint path: 'root project :' (conf) --> 'org:platform:1.1' (${platformVariant}) --> 'org:foo:{strictly 3.1.1; reject 3.1 & 3.2}'
-   Constraint path: 'root project :' (conf) --> 'org:foo:3.2'""")
+        (platformType == ENFORCED_PLATFORM && !failed) ||
+            (failure.assertHasCause("Could not resolve org:foo:3.2.") &&
+            failure.assertHasCause("""Component is the target of multiple version constraints with conflicting requirements:
+3.1.1 - directly in 'org:platform:1.1' ($platformVariant)
+3.2""") &&
+                failure.assertHasResolution("Run with :dependencyInsight --configuration conf --dependency org:foo to get more insight on how to solve the conflict.") &&
+                failure.assertHasResolution("Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection.")
+        )
 
         where:
         platformType << PlatformType.values()
@@ -371,10 +376,13 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
 
         then:
         if (platformType == ENFORCED_PLATFORM) {
-            failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path: 'root project :' (conf) --> 'org:bar:2.0' (runtime) --> 'org:foo:3.1'
-   Constraint path: 'root project :' (conf) --> 'org:platform:1.1' (enforcedApiElements) --> 'org:foo:{require 3.1.1; reject 3.1 & 3.2}'
-   Constraint path: 'root project :' (conf) --> 'org:foo:{strictly 3.2}'"""
+            failure.assertHasCause "Could not resolve org:foo:{strictly 3.2}."
+            failure.assertHasCause """Component is the target of multiple version constraints with conflicting requirements:
+3.1.1 - directly in 'org:platform:1.1' (enforcedApiElements)
+3.2"""
+            failure.assertHasResolution "Run with :dependencyInsight --configuration conf --dependency org:foo to get more insight on how to solve the conflict."
+            failure.assertHasResolution "Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection."
+
         } else {
             resolve.expectGraph {
                 root(':', ':test:') {
@@ -462,19 +470,12 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         fails ':checkDeps'
 
         then:
-        if (platformType == ENFORCED_PLATFORM) {
-            failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path: 'root project :' (conf) --> 'project :recklessLibrary' (conf) --> 'org:bar:2.0' (runtime) --> 'org:foo:3.1'
-   Constraint path: 'root project :' (conf) --> 'project :recklessLibrary' (conf) --> 'org:platform:1.1' (enforcedApiElements) --> 'org:foo:{require 3.1.1; reject 3.1 & 3.2}'
-   Constraint path: 'root project :' (conf) --> 'project :recklessLibrary' (conf) --> 'org:foo:{strictly 3.2}'"""
-        } else {
-            def platformVariant = platformType == MODULE ? 'runtime' : 'apiElements'
-            failure.assertHasCause(
-                """Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path: 'root project :' (conf) --> 'project :recklessLibrary' (conf) --> 'org:bar:2.0' (runtime) --> 'org:foo:3.1'
-   Constraint path: 'root project :' (conf) --> 'project :recklessLibrary' (conf) --> 'org:platform:1.1' (${platformVariant}) --> 'org:foo:{strictly 3.1.1; reject 3.1 & 3.2}'
-   Constraint path: 'root project :' (conf) --> 'project :recklessLibrary' (conf) --> 'org:foo:{strictly 3.2}'""")
-        }
+        failure.assertHasCause "Could not resolve org:foo:{strictly 3.2}."
+        failure.assertHasCause """Component is the target of multiple version constraints with conflicting requirements:
+3.1.1 - transitively via 'project :recklessLibrary' (conf)
+3.2 - directly in 'project :recklessLibrary' (conf)"""
+        failure.assertHasResolution("Run with :dependencyInsight --configuration conf --dependency org:foo to get more insight on how to solve the conflict.") &&
+        failure.assertHasResolution("Debugging using the dependencyInsight report is described in more detail at: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sec:identifying-reason-dependency-selection.")
 
         where:
         platformType << PlatformType.values()

@@ -30,7 +30,6 @@ jvmCompile {
 
 dependencies {
     api(projects.baseServices)
-    api(projects.configurationCacheBase)
     api(projects.core)
     api(projects.coreApi)
     api(projects.dependencyManagement)
@@ -49,6 +48,7 @@ dependencies {
     implementation(projects.baseServicesGroovy)
     implementation(projects.beanSerializationServices)
     implementation(projects.buildOperations)
+    implementation(projects.configurationCacheBase)
     implementation(projects.configurationProblemsBase)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.execution)

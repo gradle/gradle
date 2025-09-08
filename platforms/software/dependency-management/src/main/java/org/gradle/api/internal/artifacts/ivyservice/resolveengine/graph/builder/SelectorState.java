@@ -63,7 +63,7 @@ import static org.gradle.util.internal.TextUtil.getPluralEnding;
  * 3. The selector was part of resolution to a particular module version.
  * In this case {@link #resolved} will be `true` and {@link ModuleResolveState#getSelected()} will point to the selected component.
  */
-class SelectorState implements DependencyGraphSelector, ResolvableSelectorState {
+public class SelectorState implements DependencyGraphSelector, ResolvableSelectorState {
 
     private final DependencyState dependencyState;
     private final DependencyToComponentIdResolver resolver;
@@ -338,6 +338,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     @Override
+    @Nullable
     public ResolvedVersionConstraint getVersionConstraint() {
         return versionConstraint;
     }

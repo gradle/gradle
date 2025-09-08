@@ -206,6 +206,7 @@ abstract class BuildCommitDistribution @Inject internal constructor(
             ":distributions-full:binDistributionZip",
             ":tooling-api:installToolingApiShadedJar",
             "-PtoolingApiShadedJarInstallPath=" + commitDistributionToolingApiJar.get().asFile.absolutePath,
+            "-Dorg.gradle.java.installations.paths=${getJavaHomeFor(11)},${getJavaHomeFor(17)}",
             "-Porg.gradle.java.installations.paths=${getJavaHomeFor(11)},${getJavaHomeFor(17)}",
             "-PbuildCommitDistribution=true",
             "-Dorg.gradle.ignoreBuildJavaVersionCheck=true"

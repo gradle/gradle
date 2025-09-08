@@ -57,7 +57,7 @@ class FileTreeIntegrationTest extends AbstractIntegrationSpec {
         run 'copy'
 
         then:
-        result.assertTaskNotSkipped(':copy')
+        result.assertTaskExecuted(':copy')
         file('dest').assertHasDescendants(
             'one.txt',
             'two.txt',
@@ -110,7 +110,7 @@ class FileTreeIntegrationTest extends AbstractIntegrationSpec {
         run 'copy'
 
         then:
-        result.assertTaskNotSkipped(':copy')
+        result.assertTaskExecuted(':copy')
         file('dest').assertHasDescendants(
             'one.txt',
             'two.txt',
@@ -175,7 +175,7 @@ class FileTreeIntegrationTest extends AbstractIntegrationSpec {
         outputContains("checking one.txt")
         outputContains("checking ignore.txt")
         outputContains("checking three.txt")
-        result.assertTaskNotSkipped(':copy')
+        result.assertTaskExecuted(':copy')
         file('dest').assertHasDescendants(
             'one.txt',
             'two.txt',
@@ -238,7 +238,7 @@ class FileTreeIntegrationTest extends AbstractIntegrationSpec {
         run 'copy'
 
         then:
-        result.assertTaskNotSkipped(':copy')
+        result.assertTaskExecuted(':copy')
         file('dest').assertHasDescendants(
             'one.txt',
             'a/two.txt',

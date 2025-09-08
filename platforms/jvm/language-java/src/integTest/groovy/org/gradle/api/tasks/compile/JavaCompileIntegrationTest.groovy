@@ -61,7 +61,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         run("compileJava")
 
         then:
-        result.assertTaskExecuted(":compileJava")
+        result.assertTaskScheduled(":compileJava")
     }
 
     def "task does nothing when only minimal configuration applied"() {

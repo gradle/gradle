@@ -16,7 +16,9 @@
 
 package org.gradle.api.tasks.diagnostics
 
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 
 class TaskGraphIntegrationTest extends AbstractIntegrationSpec {
 
@@ -33,12 +35,15 @@ Tasks graph for: root
 \\--- :root (org.gradle.api.DefaultTask)
      +--- :leaf1 (org.gradle.api.DefaultTask)
      \\--- :middle (org.gradle.api.DefaultTask)
-          +--- :leaf1 (org.gradle.api.DefaultTask) (*)
+          +--- :leaf1 (*)
           \\--- :leaf2 (org.gradle.api.DefaultTask)
 
 (*) - details omitted (listed previously)
 """)
         outputDoesNotContain("I'm a task called")
+
+        and:
+        outputContains("Task graph printing is an incubating feature.")
     }
 
     def "shows simple graph of tasks with multiple roots"() {
@@ -66,10 +71,10 @@ Tasks graph for: root r2
 +--- :root (org.gradle.api.DefaultTask)
 |    +--- :leaf1 (org.gradle.api.DefaultTask)
 |    \\--- :middle (org.gradle.api.DefaultTask)
-|         +--- :leaf1 (org.gradle.api.DefaultTask) (*)
+|         +--- :leaf1 (*)
 |         \\--- :leaf2 (org.gradle.api.DefaultTask)
 \\--- :root2 (org.gradle.api.DefaultTask)
-     \\--- :leaf2 (org.gradle.api.DefaultTask) (*)
+     \\--- :leaf2 (*)
 
 (*) - details omitted (listed previously)
 """)
@@ -114,7 +119,7 @@ Tasks graph for: root r2
 +--- :root (org.gradle.api.DefaultTask)
 |    +--- :leaf1 (org.gradle.api.DefaultTask)
 |    \\--- :middle (org.gradle.api.DefaultTask)
-|         +--- :leaf1 (org.gradle.api.DefaultTask) (*)
+|         +--- :leaf1 (*)
 |         \\--- :leaf2 (org.gradle.api.DefaultTask)
 \\--- :root2 (org.gradle.api.DefaultTask)
      \\--- other build task :included:fromIncluded (org.gradle.api.DefaultTask)
@@ -174,7 +179,7 @@ Tasks graph for: :included:fromIncluded
      +--- :included:leaf2 (org.gradle.api.DefaultTask)
      +--- :included:middle (org.gradle.api.DefaultTask)
      |    +--- :included:leaf1 (org.gradle.api.DefaultTask)
-     |    \\--- :included:leaf2 (org.gradle.api.DefaultTask) (*)
+     |    \\--- :included:leaf2 (*)
      \\--- :included:leaf3 (org.gradle.api.DefaultTask, finalizer)
 
 (*) - details omitted (listed previously)
@@ -196,7 +201,7 @@ Tasks graph for: fromIncluded
      +--- :leaf2 (org.gradle.api.DefaultTask)
      +--- :middle (org.gradle.api.DefaultTask)
      |    +--- :leaf1 (org.gradle.api.DefaultTask)
-     |    \\--- :leaf2 (org.gradle.api.DefaultTask) (*)
+     |    \\--- :leaf2 (*)
      \\--- :leaf3 (org.gradle.api.DefaultTask, finalizer)
 
 (*) - details omitted (listed previously)
@@ -218,7 +223,7 @@ Tasks graph for: root
 \\--- :root (org.gradle.api.DefaultTask)
      +--- :leaf1 (org.gradle.api.DefaultTask)
      \\--- :middle (org.gradle.api.DefaultTask)
-          +--- :leaf1 (org.gradle.api.DefaultTask) (*)
+          +--- :leaf1 (*)
           \\--- :leaf2 (org.gradle.api.DefaultTask)
 
 (*) - details omitted (listed previously)
@@ -254,7 +259,7 @@ Tasks graph for: root
             }
         """
         executer
-                .inDirectory(file("buildSrc"))
+            .inDirectory(file("buildSrc"))
 
         succeeds("jar", "--task-graph")
 
@@ -266,7 +271,7 @@ Tasks graph for: jar
      |    +--- :compileJava (org.gradle.api.tasks.compile.JavaCompile)
      |    |    \\--- :buildSorcerer (org.gradle.api.DefaultTask)
      |    \\--- :processResources (org.gradle.language.jvm.tasks.ProcessResources)
-     \\--- :compileJava (org.gradle.api.tasks.compile.JavaCompile) (*)
+     \\--- :compileJava (*)
 
 (*) - details omitted (listed previously)
 """)
@@ -288,7 +293,7 @@ Tasks graph for: jar
                 group = 'org.test'
                 version = '1.0'
             """
-            javaFile 'src/main/java/Lib.java',  """
+            javaFile 'src/main/java/Lib.java', """
                 public class Lib { public static void main() {
                     System.out.println("Before!");
                 } }
@@ -315,7 +320,7 @@ Tasks graph for: root
 \\--- :root (org.gradle.api.DefaultTask)
      +--- :leaf1 (org.gradle.api.DefaultTask)
      \\--- :middle (org.gradle.api.DefaultTask)
-          +--- :leaf1 (org.gradle.api.DefaultTask) (*)
+          +--- :leaf1 (*)
           \\--- :leaf2 (org.gradle.api.DefaultTask)
 
 (*) - details omitted (listed previously)
@@ -342,16 +347,16 @@ Tasks graph for: jar
      |    |         \\--- :generatePluginAdapters (org.gradle.plugin.devel.internal.precompiled.GeneratePluginAdaptersTask)
      |    |              \\--- :extractPluginRequests (org.gradle.plugin.devel.internal.precompiled.ExtractPluginRequestsTask)
      |    +--- :compileGroovyPlugins (org.gradle.plugin.devel.internal.precompiled.CompileGroovyScriptPluginsTask)
-     |    |    +--- :compileGroovy (org.gradle.api.tasks.compile.GroovyCompile) (*)
-     |    |    \\--- :compileJava (org.gradle.api.tasks.compile.JavaCompile) (*)
-     |    +--- :compileJava (org.gradle.api.tasks.compile.JavaCompile) (*)
-     |    +--- :extractPluginRequests (org.gradle.plugin.devel.internal.precompiled.ExtractPluginRequestsTask) (*)
+     |    |    +--- :compileGroovy (*)
+     |    |    \\--- :compileJava (*)
+     |    +--- :compileJava (*)
+     |    +--- :extractPluginRequests (*)
      |    \\--- :processResources (org.gradle.language.jvm.tasks.ProcessResources)
      |         \\--- :pluginDescriptors (org.gradle.plugin.devel.tasks.GeneratePluginDescriptors)
-     +--- :compileGroovy (org.gradle.api.tasks.compile.GroovyCompile) (*)
-     +--- :compileGroovyPlugins (org.gradle.plugin.devel.internal.precompiled.CompileGroovyScriptPluginsTask) (*)
-     +--- :compileJava (org.gradle.api.tasks.compile.JavaCompile) (*)
-     \\--- :extractPluginRequests (org.gradle.plugin.devel.internal.precompiled.ExtractPluginRequestsTask) (*)
+     +--- :compileGroovy (*)
+     +--- :compileGroovyPlugins (*)
+     +--- :compileJava (*)
+     \\--- :extractPluginRequests (*)
 
 (*) - details omitted (listed previously)
 """)
@@ -396,7 +401,7 @@ Tasks graph for: root
 \\--- :root (org.gradle.api.DefaultTask)
      +--- :leaf1 (org.gradle.api.DefaultTask)
      \\--- :middle (org.gradle.api.DefaultTask, disabled)
-          +--- :leaf1 (org.gradle.api.DefaultTask) (*)
+          +--- :leaf1 (*)
           \\--- :leaf2 (org.gradle.api.DefaultTask)
 
 (*) - details omitted (listed previously)
@@ -436,7 +441,7 @@ Tasks graph for: root root2
 |         +--- :leaf1 (org.gradle.api.DefaultTask)
 |         \\--- :leaf2 (org.gradle.api.DefaultTask)
 \\--- :root2 (org.gradle.api.DefaultTask)
-     \\--- :leaf1 (org.gradle.api.DefaultTask) (*)
+     \\--- :leaf1 (*)
 
 (*) - details omitted (listed previously)
 """)
@@ -474,7 +479,7 @@ Tasks graph for: root root2
 |         +--- :leaf1 (org.gradle.api.DefaultTask)
 |         \\--- :leaf2 (org.gradle.api.DefaultTask)
 \\--- :root2 (org.gradle.api.DefaultTask)
-     +--- :leaf1 (org.gradle.api.DefaultTask) (*)
+     +--- :leaf1 (*)
      \\--- :leaf4 (org.gradle.api.DefaultTask, finalizer)
           \\--- :leaf3 (org.gradle.api.DefaultTask)
 
@@ -501,7 +506,7 @@ Tasks graph for: clean root
 \\--- :root (org.gradle.api.DefaultTask)
      +--- :leaf1 (org.gradle.api.DefaultTask)
      \\--- :middle (org.gradle.api.DefaultTask)
-          +--- :leaf1 (org.gradle.api.DefaultTask) (*)
+          +--- :leaf1 (*)
           \\--- :leaf2 (org.gradle.api.DefaultTask)
 
 (*) - details omitted (listed previously)
@@ -775,7 +780,7 @@ Tasks graph for: root
      |         \\--- :lib:libleaf1 (org.gradle.api.DefaultTask)
      +--- :app:leaf1 (org.gradle.api.DefaultTask)
      \\--- :app:middle (org.gradle.api.DefaultTask)
-          +--- :app:leaf1 (org.gradle.api.DefaultTask) (*)
+          +--- :app:leaf1 (*)
           \\--- :app:leaf2 (org.gradle.api.DefaultTask)
 
 (*) - details omitted (listed previously)
@@ -899,6 +904,54 @@ Tasks graph for: root
             ":build-logic-settings:settingsTask",
             ":build-logic-commons:basics:commonsTask", ":build-logic-commons:basics:jar"
         )
+    }
+
+    def "configuration cache is reused"() {
+        given:
+        buildFile """
+            def leaf1 = tasks.register("leaf1")
+            def leaf2 = tasks.register("leaf2") {
+                enabled = false
+            }
+            def leaf3 = tasks.register("leaf3")
+            def leaf4 = tasks.register("leaf4") {
+                dependsOn(leaf3)
+            }
+            def middle = tasks.register("middle") {
+                dependsOn(leaf1, leaf2)
+            }
+            tasks.register("root") {
+                dependsOn(middle)
+            }
+            tasks.register("root2") {
+                dependsOn(leaf1)
+                finalizedBy(leaf4)
+            }
+        """
+        def expectedOutput = """
+Tasks graph for: root r2
++--- :root (org.gradle.api.DefaultTask)
+|    \\--- :middle (org.gradle.api.DefaultTask)
+|         +--- :leaf1 (org.gradle.api.DefaultTask)
+|         \\--- :leaf2 (org.gradle.api.DefaultTask, disabled)
+\\--- :root2 (org.gradle.api.DefaultTask)
+     +--- :leaf1 (*)
+     \\--- :leaf4 (org.gradle.api.DefaultTask, finalizer)
+          \\--- :leaf3 (org.gradle.api.DefaultTask)
+
+(*) - details omitted (listed previously)
+        """
+
+        def configurationCache = new ConfigurationCacheFixture(this)
+        run("root", "r2", "--task-graph", "--${StartParameterBuildOptions.ConfigurationCacheOption.LONG_OPTION}")
+        outputContains(expectedOutput)
+
+        when:
+        run("root", "r2", "--task-graph", "--${StartParameterBuildOptions.ConfigurationCacheOption.LONG_OPTION}")
+
+        then:
+        outputContains(expectedOutput)
+        configurationCache.assertStateLoaded()
     }
 
     private def sampleGraph = buildScriptSnippet """

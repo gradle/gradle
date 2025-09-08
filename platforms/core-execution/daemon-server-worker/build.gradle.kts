@@ -48,6 +48,7 @@ dependencies {
     implementation(projects.fileCollections)
     implementation(projects.fileOperations)
     implementation(projects.fileTemp)
+    implementation(projects.groovyLoader)
     implementation(projects.hashing)
     implementation(projects.messaging)
     implementation(projects.persistentCache)

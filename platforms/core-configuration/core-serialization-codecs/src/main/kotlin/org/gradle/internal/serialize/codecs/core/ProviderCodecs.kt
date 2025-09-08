@@ -67,6 +67,7 @@ import org.gradle.internal.serialize.graph.encodePreservingSharedIdentityOf
 import org.gradle.internal.serialize.graph.logPropertyProblem
 import org.gradle.internal.serialize.graph.readClassOf
 import org.gradle.internal.serialize.graph.readNonNull
+import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.serialize.graph.withDebugFrame
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.graph.withPropertyTrace
@@ -153,9 +154,7 @@ class FixedValueReplacingProviderCodec(
 }
 
 
-class FlowProvidersCodec(
-    private val flowProviders: FlowProviders
-) : Codec<BuildWorkResultProvider> {
+object FlowProvidersCodec : Codec<BuildWorkResultProvider> {
 
     override suspend fun WriteContext.encode(value: BuildWorkResultProvider) {
         if (isolate.owner !is IsolateOwners.OwnerFlowAction) {
@@ -167,6 +166,7 @@ class FlowProvidersCodec(
     }
 
     override suspend fun ReadContext.decode(): BuildWorkResultProvider {
+        val flowProviders = isolate.owner.serviceOf<FlowProviders>()
         return flowProviders.buildWorkResult.uncheckedCast()
     }
 }
@@ -280,9 +280,7 @@ object BuildServiceParameterCodec : Codec<BuildServiceParameters> {
 }
 
 
-class ValueSourceProviderCodec(
-    private val valueSourceProviderFactory: ValueSourceProviderFactory
-) : Codec<ValueSourceProvider<*, *>> {
+object ValueSourceProviderCodec : Codec<ValueSourceProvider<*, *>> {
 
     override suspend fun WriteContext.encode(value: ValueSourceProvider<*, *>) {
         writeSharedObject(value) {
@@ -335,6 +333,7 @@ class ValueSourceProviderCodec(
             val parametersType = if (hasParameters) readClass() else null
             val parameters = if (hasParameters) read()!! else null
 
+            val valueSourceProviderFactory = isolate.owner.serviceOf<ValueSourceProviderFactory>()
             val provider =
                 valueSourceProviderFactory.instantiateValueSourceProvider<Any, ValueSourceParameters>(
                     valueSourceType.uncheckedCast(),

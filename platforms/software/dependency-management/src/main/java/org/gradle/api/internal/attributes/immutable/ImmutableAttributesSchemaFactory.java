@@ -193,7 +193,7 @@ public class ImmutableAttributesSchemaFactory {
 
     /**
      * Merge the consumer strategy with another producer strategy, giving priority to rules
-     * configured in this consumer strategy.
+     * configured in the consumer strategy.
      */
     public static <T> ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<T> doMergeStrategies(
         ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<T> consumer,
@@ -201,12 +201,12 @@ public class ImmutableAttributesSchemaFactory {
     ) {
         return new ImmutableAttributesSchema.ImmutableAttributeMatchingStrategy<>(
             ImmutableList.<Action<? super CompatibilityCheckDetails<T>>>builder()
-                .addAll(consumer.compatibilityRules.rules)
-                .addAll(producer.compatibilityRules.rules)
+                .addAll(consumer.compatibilityRules)
+                .addAll(producer.compatibilityRules)
                 .build(),
             ImmutableList.<Action<? super MultipleCandidatesDetails<T>>>builder()
-                .addAll(consumer.disambiguationRules.rules)
-                .addAll(producer.disambiguationRules.rules)
+                .addAll(consumer.disambiguationRules)
+                .addAll(producer.disambiguationRules)
                 .build()
         );
     }

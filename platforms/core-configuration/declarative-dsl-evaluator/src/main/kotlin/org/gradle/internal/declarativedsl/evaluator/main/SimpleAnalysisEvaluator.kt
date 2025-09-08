@@ -23,7 +23,7 @@ import org.gradle.internal.declarativedsl.evaluator.defaults.ApplyModelDefaultsH
 import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsDefinitionCollector
 import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsRepository
 import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsResolutionResults
-import org.gradle.internal.declarativedsl.evaluator.defaults.defaultsForAllUsedSoftwareTypes
+import org.gradle.internal.declarativedsl.evaluator.defaults.defaultsForAllUsedSoftwareFeatures
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepContext
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepResult
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepRunner
@@ -97,5 +97,5 @@ class SimpleAnalysisEvaluator(
 private
 class AllSoftwareTypesApplyModelDefaultsHandler(val modelDefaultsRepository: ModelDefaultsRepository) : ApplyModelDefaultsHandler {
     override fun getDefaultsResolutionResults(resolutionResult: ResolutionResult): List<ModelDefaultsResolutionResults> =
-        defaultsForAllUsedSoftwareTypes(modelDefaultsRepository, resolutionResult)
+        defaultsForAllUsedSoftwareFeatures(modelDefaultsRepository, resolutionResult)
 }

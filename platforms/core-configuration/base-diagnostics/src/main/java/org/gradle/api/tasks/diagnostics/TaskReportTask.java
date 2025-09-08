@@ -76,7 +76,7 @@ public abstract class TaskReportTask extends ConventionReportTask {
     @ToBeReplacedByLazyProperty
     public ReportRenderer getRenderer() {
         if (renderer == null) {
-            renderer = new TaskReportRenderer();
+            renderer = new TaskReportRenderer(getClientMetaData());
         }
         return renderer;
     }
@@ -292,8 +292,8 @@ public abstract class TaskReportTask extends ConventionReportTask {
             .startsWith(relativeProjectIdentity.getBuildTreePath());
 
         return isParentProject
-            ? relativeProjectIdentity.getProjectPath().relativePath(taskId.projectPath)
-            : taskId.projectPath;
+            ? relativeProjectIdentity.getProjectPath().relativePath(taskId.getPath())
+            : taskId.getPath();
     }
 
     /**

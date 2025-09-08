@@ -178,6 +178,38 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         assert output.count("configuring :") == 0
     }
 
+    def "consumable configurations are not realized during configuration-time"() {
+        Assume.assumeFalse(pluginName in [
+            'signing' // Almost everything in signing is eager. We need to re-write this plugin.
+        ])
+
+        given:
+        applyPlugin()
+        buildFile("""
+            configurations.withType(ConsumableConfiguration).configureEach {
+                throw new RuntimeException("Realized \${name}")
+            }
+            configurations.configureEach {
+                // The archives configuration from the base plugin is always realized eagerly.
+                // We can either fix this or wait for its removal in 10.0.0.
+                if (canBeConsumed && !["archives"].contains(name)) {
+                    throw new RuntimeException("Realized \${name}")
+                }
+            }
+
+            if (configurations.names.contains("archives")) {
+                boolean archivesRealized = false
+                configurations.named("archives").configure {
+                    archivesRealized = true
+                }
+                assert archivesRealized : "If you fixed this, nice! Let's remove the special case above."
+            }
+        """)
+
+        expect:
+        succeeds("help")
+    }
+
     void expectTaskProjectDeprecationIfNeeded() {
         if (expectTaskProjectDeprecation) {
             expectTaskProjectDeprecation()

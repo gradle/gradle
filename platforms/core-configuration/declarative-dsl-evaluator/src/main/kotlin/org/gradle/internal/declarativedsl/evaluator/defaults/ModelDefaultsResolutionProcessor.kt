@@ -30,18 +30,18 @@ internal
 object ModelDefaultsResolutionProcessor {
     fun process(resolutionResult: ResolutionResult): Map<String, ModelDefaultsResolutionResults> {
         val assignments = resolutionResult.assignments.groupBy { assignment ->
-            getSoftwareType(assignment.lhs.receiverObject).function.simpleName
+            getSoftwareFeature(assignment.lhs.receiverObject).function.simpleName
         }
         val additions = resolutionResult.additions.groupBy { addition ->
-            getSoftwareType(addition.container).function.simpleName
+            getSoftwareFeature(addition.container).function.simpleName
         }
         val nestedObjectAccess = resolutionResult.nestedObjectAccess.mapNotNull { access ->
-            findSoftwareType(access.dataObject)?.let { access to it.function.simpleName }
-        }.groupBy({ (_, softwareTypeName) -> softwareTypeName }, valueTransform = { (access, _) -> access })
+            findSoftwareFeature(access.dataObject)?.let { access to it.function.simpleName }
+        }.groupBy({ (_, softwareFeatureName) -> softwareFeatureName }, valueTransform = { (access, _) -> access })
 
-        val softwareTypeNames = assignments.keys + additions.keys + nestedObjectAccess.keys
+        val softwareFeatureNames = assignments.keys + additions.keys + nestedObjectAccess.keys
 
-        return softwareTypeNames.associateWith {
+        return softwareFeatureNames.associateWith {
             ModelDefaultsResolutionResults(it, assignments[it].orEmpty(), additions[it].orEmpty(), nestedObjectAccess[it].orEmpty())
         }
     }
@@ -52,7 +52,7 @@ object ModelDefaultsResolutionProcessor {
  * The operations for model defaults extracted from a resolution result.
  */
 data class ModelDefaultsResolutionResults(
-    val softwareTypeName: String,
+    val softwareFeatureName: String,
     val assignments: List<AssignmentRecord>,
     val additions: List<DataAdditionRecord>,
     val nestedObjectAccess: List<NestedObjectAccessRecord>
@@ -64,8 +64,8 @@ data class ModelDefaultsResolutionResults(
  * is not in the hierarchy.
  */
 private
-fun getSoftwareType(objectOrigin: ObjectOrigin): ObjectOrigin.AccessAndConfigureReceiver =
-    findSoftwareType(objectOrigin) ?: error("could not discover softwareType for $objectOrigin")
+fun getSoftwareFeature(objectOrigin: ObjectOrigin): ObjectOrigin.AccessAndConfigureReceiver =
+    findSoftwareFeature(objectOrigin) ?: error("could not discover software feature for $objectOrigin")
 
 
 /**
@@ -73,12 +73,12 @@ fun getSoftwareType(objectOrigin: ObjectOrigin): ObjectOrigin.AccessAndConfigure
  * is not in the hierarchy.
  */
 private
-fun findSoftwareType(objectOrigin: ObjectOrigin): ObjectOrigin.AccessAndConfigureReceiver? =
+fun findSoftwareFeature(objectOrigin: ObjectOrigin): ObjectOrigin.AccessAndConfigureReceiver? =
     when (objectOrigin) {
-        is ObjectOrigin.ImplicitThisReceiver -> findSoftwareType(objectOrigin.resolvedTo)
+        is ObjectOrigin.ImplicitThisReceiver -> findSoftwareFeature(objectOrigin.resolvedTo)
         is ObjectOrigin.AccessAndConfigureReceiver ->
-            if (isSoftwareType(objectOrigin)) objectOrigin else findSoftwareType(objectOrigin.receiver)
-        is ObjectOrigin.NewObjectFromMemberFunction -> findSoftwareType(objectOrigin.receiver)
+            if (isSoftwareFeature(objectOrigin)) objectOrigin else findSoftwareFeature(objectOrigin.receiver)
+        is ObjectOrigin.NewObjectFromMemberFunction -> findSoftwareFeature(objectOrigin.receiver)
         is ObjectOrigin.TopLevelReceiver -> null
         else -> null
     }
@@ -88,7 +88,7 @@ fun findSoftwareType(objectOrigin: ObjectOrigin): ObjectOrigin.AccessAndConfigur
  * Checks if a given ObjectOrigin is a software type configuration block.
  */
 internal
-fun isSoftwareType(objectOrigin: ObjectOrigin): Boolean =
+fun isSoftwareFeature(objectOrigin: ObjectOrigin): Boolean =
     true == (objectOrigin as? ObjectOrigin.AccessAndConfigureReceiver)?.receiver?.let { receiver ->
         (receiver as? ObjectOrigin.ImplicitThisReceiver)?.resolvedTo?.let { parent ->
             isDefaultsCall(parent)

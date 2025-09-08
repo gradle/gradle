@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.fixtures
 
+import org.gradle.api.internal.classpath.RuntimeApiInfo
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
@@ -204,7 +205,7 @@ class SimplifiedKotlinScriptEvaluator(
         override fun onScriptClassLoaded(scriptSource: ScriptSource, specializedProgram: Class<*>) = Unit
 
         override val implicitImports: List<String>
-            get() = ImplicitImports(DefaultImportsReader()).list
+            get() = ImplicitImports(DefaultImportsReader(RuntimeApiInfo(InterpreterHost::class.java.classLoader))).list
 
         override val compilerOptions: KotlinCompilerOptions
             get() = KotlinCompilerOptions()

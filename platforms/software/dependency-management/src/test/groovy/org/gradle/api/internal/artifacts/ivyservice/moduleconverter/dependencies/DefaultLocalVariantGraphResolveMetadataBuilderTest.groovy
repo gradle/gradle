@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
-import org.gradle.api.internal.attributes.AttributeContainerInternal
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.internal.component.model.ComponentIdGenerator
 import org.gradle.internal.component.model.Exclude
@@ -64,7 +64,7 @@ class DefaultLocalVariantGraphResolveMetadataBuilderTest extends Specification {
         configuration.outgoing >> outgoing
         configuration.dependencies >> dependencySet
         configuration.dependencyConstraints >> dependencyConstraintSet
-        configuration.attributes >> Stub(AttributeContainerInternal)
+        configuration.attributes >> ImmutableAttributes.EMPTY
         configuration.excludeRules >> ([] as Set)
         dependencySet.iterator() >> [].iterator()
         dependencyConstraintSet.iterator() >> [].iterator()

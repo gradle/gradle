@@ -1,4 +1,5 @@
 import com.google.gson.Gson
+import gradlebuild.basics.ArchitectureDataType
 import org.gradle.api.internal.FeaturePreviews
 import java.io.PrintWriter
 import java.io.Serializable
@@ -29,8 +30,8 @@ buildscript {
 plugins {
     id("gradlebuild.build-environment")
     id("gradlebuild.configuration-cache-compatibility")
-    id("com.gradle.develocity").version("4.1") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
-    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.2")
+    id("com.gradle.develocity").version("4.1.1") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
+    id("io.github.gradle.develocity-conventions-plugin").version("0.12.1")
     id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
 }
 
@@ -79,6 +80,7 @@ val core = platform("core") {
         subproject("functional")
         subproject("gradle-cli-main")
         subproject("gradle-cli")
+        subproject("groovy-loader")
         subproject("installation-beacon")
         subproject("instrumentation-agent")
         subproject("instrumentation-agent-services")
@@ -148,6 +150,9 @@ val core = platform("core") {
         subproject("model-core")
         subproject("model-reflect")
         subproject("model-groovy")
+        subproject("software-features")
+        subproject("software-features-api")
+        subproject("software-features-demos")
     }
 
     // Core Execution Module
@@ -345,15 +350,29 @@ gradle.rootProject {
         outputFile = layout.projectDirectory.file("architecture/platforms.md")
         elements = provider { architectureElements.map { it.build() } }
     }
-    tasks.register("platformsData", GeneratePlatformsDataTask::class) {
+    val platformsData = tasks.register("platformsData", GeneratePlatformsDataTask::class) {
         description = "Generates the platforms data"
-        outputFile = layout.projectDirectory.file("build/architecture/platforms.json")
+        outputFile = layout.buildDirectory.file("architecture/platforms.json")
         platforms = provider { architectureElements.filterIsInstance<PlatformBuilder>().map { it.build() } }
     }
-    tasks.register("packageInfoData", GeneratePackageInfoDataTask::class) {
+    val packageInfoData = tasks.register("packageInfoData", GeneratePackageInfoDataTask::class) {
         description = "Map packages to the list of package-info.java files that apply to them"
-        outputFile = layout.projectDirectory.file("build/architecture/package-info.json")
-        packageInfoFiles = provider { GeneratePackageInfoDataTask.findPackageInfoFiles(projectBaseDirs) }
+        outputFile = layout.buildDirectory.file("architecture/package-info.json")
+        packageInfoFiles.from(GeneratePackageInfoDataTask.findPackageInfoFiles(objects, provider { projectBaseDirs }))
+    }
+
+    configurations.consumable("platformsData") {
+        outgoing.artifact(platformsData)
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(ArchitectureDataType.PLATFORMS))
+        }
+    }
+
+    configurations.consumable("packageInfoData") {
+        outgoing.artifact(packageInfoData)
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(ArchitectureDataType.PACKAGE_INFO))
+        }
     }
 }
 
@@ -364,21 +383,20 @@ abstract class GeneratePackageInfoDataTask : DefaultTask() {
     companion object {
         val packageLineRegex = Regex("""package\s*([^;\s]+)\s*;""")
 
-        fun findPackageInfoFiles(projectBaseDirs: List<File>): List<File> =
-            listOf("src/main/java", "src/main/groovy").let { sourceRootPaths ->
-                projectBaseDirs.flatMap { projectBaseDir ->
-                    sourceRootPaths.asSequence().mapNotNull { sourceRootPath ->
-                        projectBaseDir.resolve(sourceRootPath).takeIf { it.exists() }
-                    }.flatMap { sourceRoot ->
-                        sourceRoot.walkTopDown().filter { it.isFile && it.name == "package-info.java" }
-                    }
-                }
+        fun findPackageInfoFiles(objects: ObjectFactory, projectBaseDirs: Provider<List<File>>): FileCollection {
+            return objects.fileCollection().from(projectBaseDirs.map {
+                it.flatMap { projectDir -> listOf(File(projectDir, "src/main/java"), File(projectDir, "src/main/groovy")) }
+            }).asFileTree.matching {
+                include("**/package-info.java")
+            }.filter {
+                it.isFile
             }
+        }
     }
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    abstract val packageInfoFiles: ListProperty<File>
+    abstract val packageInfoFiles: ConfigurableFileCollection
 
     @get:OutputFile
     abstract val outputFile: RegularFileProperty
@@ -389,7 +407,7 @@ abstract class GeneratePackageInfoDataTask : DefaultTask() {
     fun action() {
         val results = mutableListOf<Pair<String, String>>()
 
-        for (packageInfoFile in packageInfoFiles.get()) {
+        for (packageInfoFile in packageInfoFiles.files) {
             val packageLine = packageInfoFile.useLines { lines -> lines.first { it.startsWith("package") } }
             val packageName = packageLineRegex.find(packageLine)!!.groupValues[1]
             results.add(packageName to packageInfoFile.relativeTo(baseDir).path)

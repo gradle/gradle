@@ -257,7 +257,9 @@ abstract class AddOpensArgumentProvider : CommandLineArgumentProvider {
 
     override fun asArguments(): Iterable<String> {
         return if (unitTest.get() || embedded.get()) {
-            JpmsConfiguration.forDaemonProcesses(jvmVersion.get().toInt(), true)
+            JpmsConfiguration.forDaemonProcesses(jvmVersion.get().toInt(), true) +
+                // https://github.com/gradle/gradle-private/issues/4756
+                "--add-opens=java.base/java.time=ALL-UNNAMED"
         } else {
             listOf("--add-opens", "java.base/java.util=ALL-UNNAMED") + // Used in tests by native platform library: WrapperProcess.getEnv
                 listOf("--add-opens", "java.base/java.lang=ALL-UNNAMED")   // Used in tests by ClassLoaderUtils

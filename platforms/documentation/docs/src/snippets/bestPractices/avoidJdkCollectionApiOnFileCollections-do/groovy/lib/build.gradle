@@ -1,0 +1,27 @@
+import static org.gradle.api.artifacts.Configuration.State.RESOLVED
+
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api("org.apache.commons:commons-lang3:3.12.0")
+}
+
+// tag::do-this[]
+abstract class FileCounterTask extends DefaultTask {
+    @InputFiles
+    abstract ConfigurableFileCollection getCountMe();
+
+    @TaskAction
+    void countFiles() {
+        logger.lifecycle("Count: " + countMe.files.size())
+    }
+}
+
+tasks.register("goodCountingTask", FileCounterTask) {
+    countMe.from(configurations.runtimeClasspath) // <1>
+    countMe.from(layout.projectDirectory.file("extra.txt")) // <2>
+    logger.lifecycle("Resolved: " + (configurations.runtimeClasspath.state == RESOLVED))
+}
+// end::do-this[]

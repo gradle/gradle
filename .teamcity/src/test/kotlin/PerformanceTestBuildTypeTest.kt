@@ -78,7 +78,7 @@ class PerformanceTestBuildTypeTest {
                 "%linux.java11.openjdk.64bit%",
                 "%linux.java17.openjdk.64bit%",
                 "%linux.java21.openjdk.64bit%",
-                "%linux.java24.openjdk.64bit%",
+                "%linux.java25.openjdk.64bit%",
             )
         val expectedInstallationPaths = linuxPaths.joinToString(",")
         val expectedRunnerParams =
@@ -88,7 +88,9 @@ class PerformanceTestBuildTypeTest {
                 "-PtestJavaVendor=openjdk",
                 "-PautoDownloadAndroidStudio=true",
                 "-PrunAndroidStudioInHeadlessMode=true",
+                "-Dorg.gradle.java.installations.auto-download=false",
                 "-Porg.gradle.java.installations.auto-download=false",
+                "\"-Dorg.gradle.java.installations.paths=$expectedInstallationPaths\"",
                 "\"-Porg.gradle.java.installations.paths=$expectedInstallationPaths\"",
                 "\"-Porg.gradle.performance.branchName=%teamcity.build.branch%\"",
                 "\"-Porg.gradle.performance.db.url=%performance.db.url%\"",
@@ -153,7 +155,7 @@ class PerformanceTestBuildTypeTest {
                 "%windows.java11.openjdk.64bit%",
                 "%windows.java17.openjdk.64bit%",
                 "%windows.java21.openjdk.64bit%",
-                "%windows.java24.openjdk.64bit%",
+                "%windows.java25.openjdk.64bit%",
             )
         val expectedInstallationPaths = windowsPaths.joinToString(",")
         val expectedRunnerParams =
@@ -163,7 +165,9 @@ class PerformanceTestBuildTypeTest {
                 "-PtestJavaVendor=openjdk",
                 "-PautoDownloadAndroidStudio=true",
                 "-PrunAndroidStudioInHeadlessMode=true",
+                "-Dorg.gradle.java.installations.auto-download=false",
                 "-Porg.gradle.java.installations.auto-download=false",
+                "\"-Dorg.gradle.java.installations.paths=$expectedInstallationPaths\"",
                 "\"-Porg.gradle.java.installations.paths=$expectedInstallationPaths\"",
                 "-Porg.gradle.performance.branchName=\"%teamcity.build.branch%\"",
                 "-Porg.gradle.performance.db.url=\"%performance.db.url%\"",

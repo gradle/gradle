@@ -56,6 +56,7 @@ tasks {
     val shrinkGradle by registering(Sync::class) {
         from(fetchGradle.map { it.outputDirectory }) {
             exclude("subprojects/*/*/src/**")
+            exclude("testing/*/*/src/**")
             filesMatching("platforms/*/*/src/**") {
                 // /platforms/documentation/docs/samples must be included
                 if (!sourcePath.contains("documentation/docs/samples/templates")) {
@@ -90,5 +91,12 @@ dependencies {
     smokeIdeTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("Tests starts an IDE with using current Gradle distribution")
     }
+    smokeIdeTestImplementation(libs.gradleIdeStarterScenarios)
     smokeIdeTestImplementation(testFixtures(projects.core))
+}
+
+integTest.testJvmXmx = "5g"
+
+errorprone {
+    nullawayEnabled = true
 }

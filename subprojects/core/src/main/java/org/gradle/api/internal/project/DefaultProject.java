@@ -87,6 +87,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.extensibility.NoConventionMapping;
@@ -482,6 +483,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return group;
     }
 
+    /**
+     * Constructs a default group for this project based on its hierarchy.
+     *
+     * For example, a project ":a:b:c" in a build with a root project named "root"
+     * will have a default group "root.a.b".
+     */
     private String getDefaultGroup() {
         ProjectInternal parent = getParent();
         if (parent == null) {
@@ -615,7 +622,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public String getBuildTreePath() {
-        return getIdentityPath().getPath();
+        return getIdentityPath().asString();
     }
 
     @Override
@@ -639,6 +646,20 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public int compareTo(Project otherProject) {
         return ProjectOrderingUtil.compare(this, otherProject);
+    }
+
+    @Override
+    public final boolean equals(Object obj) {
+        if (!(obj instanceof ProjectInternal)) {
+            return false;
+        }
+        ProjectInternal otherProject = (ProjectInternal) obj;
+        return getProjectIdentity().equals(otherProject.getProjectIdentity());
+    }
+
+    @Override
+    public final int hashCode() {
+        return getProjectIdentity().hashCode();
     }
 
     @Override
@@ -1446,17 +1467,38 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
+    @Deprecated
     public <T> NamedDomainObjectContainer<T> container(Class<T> type) {
+// KGP uses this method to create a container for the Kotlin DSL
+//        DeprecationLogger.deprecateMethod(Project.class, "container(Class)").
+//            replaceWith("objects.domainObjectContainer(Class)").
+//            willBeRemovedInGradle10().
+//            withUpgradeGuideSection(9, "project_container_methods").
+//            nagUser();
         return getServices().get(DomainObjectCollectionFactory.class).newNamedDomainObjectContainerUndecorated(type);
     }
 
     @Override
+    @Deprecated
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory) {
+// KGP uses this method to create a container for the Kotlin DSL
+// https://youtrack.jetbrains.com/issue/KT-80186
+//        DeprecationLogger.deprecateMethod(Project.class, "container(Class, NamedDomainObjectFactory)").
+//            replaceWith("objects.domainObjectContainer(Class, NamedDomainObjectFactory)").
+//            willBeRemovedInGradle10().
+//            withUpgradeGuideSection(9, "project_container_methods").
+//            nagUser();
         return getServices().get(DomainObjectCollectionFactory.class).newNamedDomainObjectContainer(type, factory);
     }
 
     @Override
+    @Deprecated
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure) {
+        DeprecationLogger.deprecateMethod(Project.class, "container(Class, Closure)").
+            replaceWith("objects.domainObjectContainer(Class, NamedDomainObjectFactory)").
+            willBeRemovedInGradle10().
+            withUpgradeGuideSection(9, "project_container_methods").
+            nagUser();
         return getServices().get(DomainObjectCollectionFactory.class).newNamedDomainObjectContainer(type, factoryClosure);
     }
 

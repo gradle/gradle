@@ -57,7 +57,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         run "adHocTask", "executedTask"
 
         then:
-        result.assertTasksNotSkipped(":adHocTask", ":executedTask")
+        result.assertTasksExecuted(":adHocTask", ":executedTask")
         result.assertHasPostBuildOutput "2 actionable tasks: 2 executed"
 
         when:
@@ -65,7 +65,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
 
         then:
         result.assertTaskSkipped(":adHocTask")
-        result.assertTasksNotSkipped(":executedTask")
+        result.assertTasksExecuted(":executedTask")
         result.assertHasPostBuildOutput "2 actionable tasks: 1 executed, 1 up-to-date"
     }
 
@@ -74,7 +74,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         withBuildCache().run "adHocTask", "executedTask"
 
         then:
-        result.assertTasksNotSkipped(":adHocTask", ":executedTask")
+        result.assertTasksExecuted(":adHocTask", ":executedTask")
         result.assertHasPostBuildOutput "2 actionable tasks: 2 executed"
 
         when:
@@ -83,7 +83,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
 
         then:
         result.assertTasksSkipped(":adHocTask")
-        result.assertTasksNotSkipped(":executedTask")
+        result.assertTasksExecuted(":executedTask")
         result.assertHasPostBuildOutput "2 actionable tasks: 1 executed, 1 from cache"
     }
 
@@ -92,7 +92,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         run "noActions"
 
         then:
-        result.assertTasksNotSkipped(":noActions", ":executedTask")
+        result.assertTasksExecuted(":noActions", ":executedTask")
         result.assertHasPostBuildOutput "1 actionable task: 1 executed"
     }
 
@@ -106,7 +106,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
 
         then:
         // No stats are reported because no tasks had any actions
-        result.assertTasksNotSkipped(":noActions")
+        result.assertTasksExecuted(":noActions")
         result.assertNotOutput("actionable tasks")
     }
 
@@ -121,7 +121,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         run "adHocTask"
 
         then:
-        result.assertTasksNotSkipped(":buildSrc:compileJava", ":buildSrc:jar", ":buildSrc:classes", ":adHocTask")
+        result.assertTasksExecuted(":buildSrc:compileJava", ":buildSrc:jar", ":buildSrc:classes", ":adHocTask")
         result.assertHasPostBuildOutput("3 actionable tasks: 3 executed")
 
         when:
@@ -150,7 +150,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         run("executedTask")
 
         then:
-        result.assertTasksNotSkipped(":child:executedTask", ":executedTask")
+        result.assertTasksExecuted(":child:executedTask", ":executedTask")
         result.assertHasPostBuildOutput "2 actionable tasks: 2 executed"
     }
 
@@ -196,7 +196,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         run("executedTask")
 
         then:
-        result.assertTasksNotSkipped(":plugins:compileJava", ":plugins:pluginDescriptors", ":plugins:processResources", ":plugins:classes", ":plugins:jar", ":executedTask")
+        result.assertTasksExecuted(":plugins:compileJava", ":plugins:pluginDescriptors", ":plugins:processResources", ":plugins:classes", ":plugins:jar", ":executedTask")
         result.assertHasPostBuildOutput "5 actionable tasks: 5 executed"
 
         when:

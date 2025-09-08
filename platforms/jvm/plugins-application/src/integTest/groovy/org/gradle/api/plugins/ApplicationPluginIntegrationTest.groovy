@@ -732,7 +732,7 @@ rootProject.name = 'sample'
         fails('execStartScript')
 
         then:
-        result.assertTaskExecuted(":execStartScript")
+        result.assertTaskScheduled(":execStartScript")
         !exploit.exists()
 
         where:

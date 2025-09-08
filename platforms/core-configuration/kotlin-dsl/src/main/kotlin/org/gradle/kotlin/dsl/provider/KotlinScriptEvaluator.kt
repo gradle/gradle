@@ -23,12 +23,12 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.plugins.PluginAwareInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.cache.CacheOpenException
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeOrigin
-import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.classloader.ClasspathHasher
@@ -114,7 +114,7 @@ class StandardKotlinScriptEvaluator(
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter,
     private val internalOptions: InternalOptions,
-    private val gradlePropertiesController: GradlePropertiesController,
+    private val gradleProperties: GradleProperties,
     private val transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy,
     private val gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
     private val propertyUpgradeReportConfig: PropertyUpgradeReportConfig
@@ -162,8 +162,8 @@ class StandardKotlinScriptEvaluator(
     private
     val interpreter by lazy {
         when (propertyUpgradeReportConfig.isEnabled) {
-            true -> Interpreter(InterpreterHostWithoutInMemoryCache(gradlePropertiesController))
-            false -> Interpreter(InterpreterHost(gradlePropertiesController))
+            true -> Interpreter(InterpreterHostWithoutInMemoryCache(gradleProperties))
+            false -> Interpreter(InterpreterHost(gradleProperties))
         }
     }
 
@@ -172,14 +172,14 @@ class StandardKotlinScriptEvaluator(
      * Used for property upgrade report since we don't cache a report in-memory.
      */
     inner class InterpreterHostWithoutInMemoryCache(
-        gradleProperties: GradlePropertiesController
+        gradleProperties: GradleProperties
     ) : Interpreter.Host by InterpreterHost(gradleProperties) {
         override fun cachedClassFor(programId: ProgramId): CompiledScript? = null
         override fun cache(specializedProgram: CompiledScript, programId: ProgramId) = Unit
     }
 
     inner class InterpreterHost(
-        gradleProperties: GradlePropertiesController,
+        gradleProperties: GradleProperties,
     ) : Interpreter.Host {
 
         override val compilerOptions: KotlinCompilerOptions =

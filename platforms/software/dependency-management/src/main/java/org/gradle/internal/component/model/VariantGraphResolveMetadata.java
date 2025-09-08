@@ -46,6 +46,11 @@ public interface VariantGraphResolveMetadata {
         return getName();
     }
 
+    /**
+     * Get the ID of this variant.
+     */
+    VariantIdentifier getId();
+
     ImmutableAttributes getAttributes();
 
     ImmutableCapabilities getCapabilities();

@@ -185,15 +185,15 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractCompositeBuildT
 
         expect:
         succeeds(":other-build:dSo")
-        result.assertTaskExecuted(":other-build:doSomething")
+        result.assertTaskScheduled(":other-build:doSomething")
         outputContains("do something")
 
         succeeds(":o-b:doSomething")
-        result.assertTaskExecuted(":other-build:doSomething")
+        result.assertTaskScheduled(":other-build:doSomething")
         outputContains("do something")
 
         succeeds("o-b:dS")
-        result.assertTaskExecuted(":other-build:doSomething")
+        result.assertTaskScheduled(":other-build:doSomething")
         outputContains("do something")
     }
 
@@ -299,11 +299,11 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractCompositeBuildT
 
         expect:
         succeeds(":other-plugin:taskFromIncludedPlugin")
-        result.assertTaskExecuted(":other-plugin:taskFromIncludedPlugin")
-        result.assertTaskExecuted(":other-plugin:jar")
+        result.assertTaskScheduled(":other-plugin:taskFromIncludedPlugin")
+        result.assertTaskScheduled(":other-plugin:jar")
 
         succeeds(":other-plugin:taskFromIncludedPlugin")
-        result.assertTaskExecuted(":other-plugin:taskFromIncludedPlugin")
+        result.assertTaskScheduled(":other-plugin:taskFromIncludedPlugin")
         // build logic tasks do not run when configuration cache is enabled
     }
 
@@ -324,7 +324,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractCompositeBuildT
 
         expect:
         succeeds(":build-logic:classes")
-        result.assertTaskExecuted(":build-logic:classes")
+        result.assertTaskScheduled(":build-logic:classes")
 
         succeeds(":build-logic:classes")
         // build logic tasks are not run when configuration cache is enabled (because their inputs are encoded in the cache key)
@@ -348,7 +348,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractCompositeBuildT
         expect:
         2.times {
             succeeds(":app:assemble")
-            result.assertTaskExecuted(":app:processResources")
+            result.assertTaskScheduled(":app:processResources")
         }
     }
 

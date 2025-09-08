@@ -21,14 +21,14 @@ import gradlebuild.modules.model.License
 abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
 
     val groovyVersion = when (bundleGroovyMajor) {
-        4 -> "4.0.27"
+        4 -> "4.0.28"
         // This is expected to contain Groovy 5 soon, once it's released or we need to test it.
         else -> error("Unsupported Groovy major version: $bundleGroovyMajor")
     }
 
-    val configurationCacheReportVersion = "1.26"
-    val gradleIdeStarterVersion = "0.6"
-    val kotlinVersion = "2.2.0"
+    val configurationCacheReportVersion = "1.27"
+    val gradleIdeStarterVersion = "0.8.1"
+    val kotlinVersion = "2.2.10"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
@@ -70,6 +70,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val googleOauthClient = "com.google.oauth-client:google-oauth-client"
     val gradleFileEvents = "org.gradle.fileevents:gradle-fileevents"
     val gradleIdeStarter = "org.gradle.buildtool.internal:gradle-ide-starter:$gradleIdeStarterVersion"
+    val gradleIdeStarterScenarios = "org.gradle.buildtool.internal:gradle-ide-starter-scenarios:$gradleIdeStarterVersion"
     val gradleProfiler = "org.gradle.profiler:gradle-profiler"
     val groovy = "org.apache.groovy:groovy"
     val groovyAnt = "org.apache.groovy:groovy-ant"
@@ -165,7 +166,6 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val tomlj = "org.tomlj:tomlj"
     val trove4j = "org.jetbrains.intellij.deps:trove4j"
     val xbeanReflect = "org.apache.xbean:xbean-reflect"
-    val xmlApis = "xml-apis:xml-apis"
 
     // Compile only dependencies (dynamically downloaded if needed)
     val maven3Compat = "org.apache.maven:maven-compat"
@@ -200,7 +200,6 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val kotlinCoroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm"
     val kotlinCoroutinesDebug = "org.jetbrains.kotlinx:kotlinx-coroutines-debug"
     val littleproxy = "xyz.rogfam:littleproxy"
-    val mina = "org.apache.mina:mina-core"
     val mockitoCore = "org.mockito:mockito-core"
     val mockitoKotlin = "org.mockito.kotlin:mockito-kotlin"
     val mockwebserver = "com.squareup.okhttp3:mockwebserver"
@@ -327,7 +326,6 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
         tomlj to License.Apache2,
         trove4j to License.LGPL21,
         xbeanReflect to License.Apache2,
-        xmlApis to License.Apache2,
         zinc to License.Apache2
     )
 }

@@ -92,7 +92,7 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
     private final PublicationArtifactSet<MavenArtifact> metadataArtifacts;
     private final PublicationArtifactSet<MavenArtifact> derivedArtifacts;
     private final PublicationArtifactSet<MavenArtifact> publishableArtifacts;
-    private final SetProperty<MavenArtifact> componentArtifacts;
+
     private final Set<String> silencedVariants = new HashSet<>();
     private MavenArtifact pomArtifact;
     private SingleOutputTaskMavenArtifact moduleMetadataArtifact;
@@ -127,9 +127,8 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
 
         MavenComponentParser mavenComponentParser = objectFactory.newInstance(MavenComponentParser.class, mavenArtifactParser);
 
-        this.componentArtifacts = objectFactory.setProperty(MavenArtifact.class);
-        this.componentArtifacts.convention(getComponent().map(mavenComponentParser::parseArtifacts));
-        this.componentArtifacts.finalizeValueOnRead();
+        getComponentArtifacts().convention(getComponent().map(mavenComponentParser::parseArtifacts));
+        getComponentArtifacts().finalizeValueOnRead();
 
         this.mainArtifacts = objectFactory.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser, fileCollectionFactory, collectionCallbackActionDecorator);
         this.metadataArtifacts = new DefaultPublicationArtifactSet<>(MavenArtifact.class, "metadata artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
@@ -261,10 +260,12 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
             return;
         }
         populated = true;
-        if (!artifactsOverridden && componentArtifacts.isPresent()) {
-            mainArtifacts.addAll(componentArtifacts.get());
+        if (!artifactsOverridden && getComponentArtifacts().isPresent()) {
+            mainArtifacts.addAll(getComponentArtifacts().get());
         }
     }
+
+    protected abstract SetProperty<MavenArtifact> getComponentArtifacts();
 
     @Override
     public MavenArtifact artifact(Object source) {

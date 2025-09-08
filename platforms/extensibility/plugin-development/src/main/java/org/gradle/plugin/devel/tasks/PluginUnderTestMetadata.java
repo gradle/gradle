@@ -45,24 +45,18 @@ public abstract class PluginUnderTestMetadata extends DefaultTask {
 
     public static final String IMPLEMENTATION_CLASSPATH_PROP_KEY = "implementation-classpath";
     public static final String METADATA_FILE_NAME = "plugin-under-test-metadata.properties";
-    private final ConfigurableFileCollection pluginClasspath = getProject().files();
-    private final DirectoryProperty outputDirectory = getProject().getObjects().directoryProperty();
 
     /**
      * The code under test. Defaults to {@code sourceSets.main.runtimeClasspath}.
      */
     @Classpath
-    public ConfigurableFileCollection getPluginClasspath() {
-        return pluginClasspath;
-    }
+    public abstract ConfigurableFileCollection getPluginClasspath();
 
     /**
      * The target output directory used for writing the classpath manifest. Defaults to {@code "$buildDir/$task.name"}.
      */
     @OutputDirectory
-    public DirectoryProperty getOutputDirectory() {
-        return outputDirectory;
-    }
+    public abstract DirectoryProperty getOutputDirectory();
 
     @TaskAction
     public void generate() {

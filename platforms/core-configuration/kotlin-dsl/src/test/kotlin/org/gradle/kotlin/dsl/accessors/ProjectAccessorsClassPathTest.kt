@@ -82,7 +82,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 tasks = listOf(),
                 configurations = listOf(),
                 modelDefaults = listOf(),
-                softwareTypeEntries = emptyList(),
+                softwareFeatureEntries = emptyList(),
                 containerElementFactories = listOf()
             )
 
@@ -142,7 +142,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     ConfigurationEntry("compile", listOf("api", "implementation"))
                 ),
                 modelDefaults = listOf(),
-                softwareTypeEntries = emptyList(),
+                softwareFeatureEntries = emptyList(),
                 containerElementFactories = listOf()
             )
 
@@ -172,13 +172,24 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     dependencyHandlerExtensionMethods(name).forEach {
                         assertEquals(
                             isDeprecated(it),
-                            config.hasDeclarationDeprecations()
+                            config.hasDeclarationDeprecations() || isDeprecatedAccessor(it)
                         )
                     }
                 }
             }
         }
     }
+
+    /**
+     * Determines whether the method is the multi-string accessor, which is deprecated
+     * for removal in Gradle 10.
+     */
+    private
+    fun isDeprecatedAccessor(method: Method): Boolean =
+        method.parameters.map { it.type } == listOf(
+            DependencyHandler::class.java, String::class.java, String::class.java, String::class.java,
+            String::class.java, String::class.java, String::class.java, Action::class.java
+        )
 
     @Test
     fun `#buildAccessorsFor (default package types)`() {
@@ -205,7 +216,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     ),
                     configurations = listOf(),
                     modelDefaults = listOf(),
-                    softwareTypeEntries = emptyList(),
+                    softwareFeatureEntries = emptyList(),
                     containerElementFactories = listOf()
                 )
 
@@ -285,7 +296,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 ),
                 configurations = listOf(ConfigurationEntry("api")),
                 modelDefaults = listOf(),
-                softwareTypeEntries = emptyList(),
+                softwareFeatureEntries = emptyList(),
                 containerElementFactories = listOf()
             )
 

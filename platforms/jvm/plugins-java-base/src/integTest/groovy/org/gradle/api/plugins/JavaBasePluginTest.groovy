@@ -21,7 +21,6 @@ import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport
-import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
@@ -274,6 +273,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     def "applies mappings to tasks defined by build script"() {
         when:
         project.pluginManager.apply(JavaBasePlugin)
+        project.version = "1.0"
 
         then:
         def compile = project.task('customCompile', type: JavaCompile)
@@ -288,7 +288,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         def javadoc = project.task('customJavadoc', type: Javadoc)
         javadoc.destinationDir == project.java.docsDir.file("javadoc").get().asFile
-        javadoc.title == project.extensions.getByType(ReportingExtension).apiDocTitle
+        javadoc.title == "test-project 1.0 API"
     }
 
     def "applies mappings to custom jar tasks"() {

@@ -20,6 +20,8 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.internal.plugins.HasBuildModel
+import org.gradle.api.internal.plugins.TargetTypeInformation
 import org.gradle.api.reflect.TypeOf
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.declarative.dsl.schema.ContainerElementFactory
@@ -32,15 +34,15 @@ import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaB
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.kotlin.dsl.accessors.ContainerElementFactoryEntry
-import org.gradle.kotlin.dsl.accessors.SoftwareTypeEntry
+import org.gradle.kotlin.dsl.accessors.SoftwareFeatureEntry
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry
+import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
 data class KotlinDslDclSchema(
     val containerElementFactories: List<ContainerElementFactoryEntry<TypeOf<*>>>,
-    val softwareTypes: List<SoftwareTypeEntry<TypeOf<*>>>
+    val softwareFeatures: List<SoftwareFeatureEntry<TypeOf<*>>>
 )
 
 /**
@@ -48,10 +50,10 @@ data class KotlinDslDclSchema(
  * the collection of the DCL schema parts that are relevant to Kotlin DSL.
  */
 internal fun KotlinDslDclSchemaCollector.collectDclSchemaForKotlinDslTarget(target: Any, targetScope: ClassLoaderScope): KotlinDslDclSchema? {
-    fun softwareTypeRegistryOf(target: Any): SoftwareTypeRegistry? =
+    fun softwareTypeRegistryOf(target: Any): SoftwareFeatureRegistry? =
         when (target) {
-            is Project -> target.serviceOf<SoftwareTypeRegistry>()
-            is Settings -> target.serviceOf<SoftwareTypeRegistry>()
+            is Project -> target.serviceOf<SoftwareFeatureRegistry>()
+            is Settings -> target.serviceOf<SoftwareFeatureRegistry>()
             else -> null
         }
 
@@ -77,7 +79,7 @@ internal fun KotlinDslDclSchemaCollector.collectDclSchemaForKotlinDslTarget(targ
 @ServiceScope(Scope.UserHome::class)
 internal interface KotlinDslDclSchemaCollector {
     fun collectContainerFactories(interpretationSequence: InterpretationSequence, classLoaderScope: ClassLoaderScope): List<ContainerElementFactoryEntry<TypeOf<*>>>
-    fun collectSoftwareTypes(softwareTypeRegistry: SoftwareTypeRegistry): List<SoftwareTypeEntry<TypeOf<*>>>
+    fun collectSoftwareTypes(softwareFeatureRegistry: SoftwareFeatureRegistry): List<SoftwareFeatureEntry<TypeOf<*>>>
 }
 
 internal class CachedKotlinDslDclSchemaCollector(
@@ -87,8 +89,8 @@ internal class CachedKotlinDslDclSchemaCollector(
     override fun collectContainerFactories(interpretationSequence: InterpretationSequence, classLoaderScope: ClassLoaderScope): List<ContainerElementFactoryEntry<TypeOf<*>>> =
         cache.getOrPutContainerElementFactories(interpretationSequence, classLoaderScope) { delegate.collectContainerFactories(interpretationSequence, classLoaderScope) }
 
-    override fun collectSoftwareTypes(softwareTypeRegistry: SoftwareTypeRegistry): List<SoftwareTypeEntry<TypeOf<*>>> =
-        cache.getOrPutContainerElementSoftwareTypes(softwareTypeRegistry) { delegate.collectSoftwareTypes(softwareTypeRegistry) }
+    override fun collectSoftwareTypes(softwareFeatureRegistry: SoftwareFeatureRegistry): List<SoftwareFeatureEntry<TypeOf<*>>> =
+        cache.getOrPutContainerElementSoftwareTypes(softwareFeatureRegistry) { delegate.collectSoftwareTypes(softwareFeatureRegistry) }
 }
 
 internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector {
@@ -136,9 +138,14 @@ internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector 
         }
     }
 
-    override fun collectSoftwareTypes(softwareTypeRegistry: SoftwareTypeRegistry): List<SoftwareTypeEntry<TypeOf<*>>> =
-        softwareTypeRegistry.softwareTypeImplementations.entries.map { (name, implementation) ->
-            SoftwareTypeEntry(name, TypeOf.typeOf(implementation.modelPublicType))
+    override fun collectSoftwareTypes(softwareFeatureRegistry: SoftwareFeatureRegistry): List<SoftwareFeatureEntry<TypeOf<*>>> =
+        softwareFeatureRegistry.softwareFeatureImplementations.entries.map { (name, implementation) ->
+            val targetType = when (val target = implementation.targetDefinitionType) {
+                is TargetTypeInformation.DefinitionTargetTypeInformation ->  TypeOf.typeOf(target.definitionType)
+                is TargetTypeInformation.BuildModelTargetTypeInformation<*> -> parameterizedTypeOfRawGenericClass(listOf(target.buildModelType), HasBuildModel::class.java)
+                else -> error("Unexpected target type $target")
+            }
+            SoftwareFeatureEntry(name, TypeOf.typeOf(implementation.definitionPublicType), targetType)
         }
 
     /**

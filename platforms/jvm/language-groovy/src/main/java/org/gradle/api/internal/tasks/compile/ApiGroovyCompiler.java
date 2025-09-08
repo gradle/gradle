@@ -39,8 +39,6 @@ import org.codehaus.groovy.tools.javac.JavaAwareCompilationUnit;
 import org.codehaus.groovy.tools.javac.JavaCompiler;
 import org.codehaus.groovy.tools.javac.JavaCompilerFactory;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.classloading.GroovySystemLoader;
-import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.classloader.ClassLoaderUtils;
@@ -48,6 +46,8 @@ import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.groovyloader.GroovySystemLoader;
+import org.gradle.internal.groovyloader.GroovySystemLoaderFactory;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.internal.VersionNumber;
 

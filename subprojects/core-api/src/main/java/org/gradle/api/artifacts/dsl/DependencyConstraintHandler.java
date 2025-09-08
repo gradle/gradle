@@ -25,7 +25,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 /**
  * <p>A {@code DependencyConstraintHandler} is used to declare dependency constraints.</p>
  *
- *
  * <h2>Dependency constraint notations</h2>
  *
  * <p>There are several supported dependency constraint notations. These are described below. For each dependency constraint declared this
@@ -40,32 +39,23 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * <h3>External dependencies</h3>
  *
- * <p>There are two notations supported for declaring a dependency constraint on an external module.
- * One is a string notation formatted this way:</p>
+ * Module dependencies are declared using single-string notation, where each coordinate is separated by a colon.
+ * All properties, except the name, are optional.
  *
  * <code><i>configurationName</i>("<i>group</i>:<i>name</i>:<i>version</i>")</code>
  *
- * <p>The other is a map notation:</p>
- *
- * <code><i>configurationName</i>(group: <i>group</i>, name: <i>name</i>, version: <i>version</i>)</code>
- *
- * <p>In both notations, all properties, except name, are optional.</p>
- *
  * <pre class='autoTested'>
  * plugins {
- *     id("java-library") // so that we can use 'implementation', 'testImplementation' for dependency constraints
+ *     id("java-library")
  * }
  *
  * dependencies {
- *   constraints {
- *     //for dependencies found in artifact repositories you can use
- *     //the string notation, e.g. group:name:version
- *     implementation 'commons-lang:commons-lang:2.6'
- *     testImplementation 'org.mockito:mockito:1.9.0-rc1'
- *
- *     //map notation:
- *     implementation group: 'com.google.code.guice', name: 'guice', version: '1.0'
- *   }
+ *     constraints {
+ *         // Declaring constraints on module components
+ *         // Coordinates are separated by a single colon -- group:name:version
+ *         implementation("org.apache.commons:commons-lang3:3.17.0")
+ *         testImplementation("org.mockito:mockito-core:5.18.0")
+ *     }
  * }
  * </pre>
  *

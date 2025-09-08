@@ -16,42 +16,63 @@
 
 package org.gradle.ide.sync
 
+
+import org.gradle.ide.starter.IdeScenarioBuilder
 import org.gradle.ide.sync.fixtures.IsolatedProjectsIdeSyncFixture
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.fixtures.file.TestFile
 
 class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
 
-    private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(testDirectory)
+    private TestFile gradleCheckout = testDirectory.createDir("gradle-checkout")
+    private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(gradleCheckout)
 
-    def "can sync gradle/gradle build with known problems"() {
+    def "can sync gradle/gradle build without problems"() {
         given:
         gradle()
 
+        and:
+        ideXmxMb = 4096
+
         when:
-        ideaSync(IDEA_COMMUNITY_VERSION)
+        ideaSync(IDEA_COMMUNITY_VERSION, gradleCheckout)
 
         then:
-        fixture.assertHtmlReportHasProblems {
-            // In gradle/gradle total problems count depends on amount of subprojects.
-            // We want to avoid useless test failures
-            ignoreTotalProblemsCount = true
-            withLocatedProblem("Build file 'testing/architecture-test/build.gradle.kts'", "Project ':architecture-test' cannot access 'Project.tasks' functionality on another project ':'")
-            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Project ':' cannot access 'Project.extensions' functionality on subprojects via 'allprojects'")
-        }
+        fixture.assertHtmlReportHasNoProblems()
+    }
+
+    def "can sync gradle/gradle incrementally without error"() {
+        given:
+        gradle()
+
+        and:
+        ideXmxMb = 4096
+
+        expect:
+        ideaSync(
+            IDEA_COMMUNITY_VERSION,
+            gradleCheckout,
+            IdeScenarioBuilder
+                .initialImportProject()
+                .appendTextToFile("subprojects/core-api/build.gradle.kts", "dependencies {}")
+                .importProject()
+                .finish()
+        )
     }
 
     private void gradle() {
-        new TestFile("build/gradleSources").copyTo(testDirectory)
+        new TestFile("build/gradleSources").copyTo(gradleCheckout)
 
-        file("gradle.properties") << """
-            org.gradle.configuration-cache.problems=warn
+        gradleCheckout.file("gradle.properties") << """
             org.gradle.unsafe.isolated-projects=true
 
             # gradle/gradle build contains gradle/gradle-daemon-jvm.properties, which requires daemon to be run with Java 17.
             # However, on CI JDK's installed not in the default location, and Gradle can't find appropriate toolchain to run.
             # So we need to specify required JDK explicitly.
             org.gradle.java.installations.paths=$AvailableJavaHomes.jdk17.javaHome.absolutePath
+
+            # we don't want to publish scans
+            systemProp.scan.dump=true
         """
     }
 }

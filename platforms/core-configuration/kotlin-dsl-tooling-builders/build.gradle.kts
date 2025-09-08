@@ -16,6 +16,7 @@ dependencies {
     implementation(projects.time)
     implementation(projects.kotlinDsl)
     implementation(projects.baseServices)
+    implementation(projects.logging)
     implementation(projects.resources)
     implementation(projects.platformBase)
     implementation(projects.platformJvm)
@@ -24,7 +25,7 @@ dependencies {
     implementation(projects.kotlinDslToolingModels)
     implementation(projects.buildProcessServices)
 
-    implementation(libs.jspecify)
+    compileOnly(libs.jspecify)
 
     testImplementation(testFixtures(projects.kotlinDsl))
     integTestImplementation(testFixtures(projects.toolingApi))

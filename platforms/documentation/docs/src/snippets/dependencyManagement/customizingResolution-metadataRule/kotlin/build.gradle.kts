@@ -66,16 +66,22 @@ abstract class JaxenCapabilitiesRule: ComponentMetadataRule {
 // end::jaxen-rule-2[]
 
 // tag::jaxen-dependencies[]
+// tag::capability-ex[]
 dependencies {
+    // end::capability-ex[]
     components {
         withModule<JaxenDependenciesRule>("jaxen:jaxen")
         withModule<JaxenCapabilitiesRule>("jaxen:jaxen")
     }
     implementation("jaxen:jaxen:1.1.3")
+    // tag::capability-ex[]
     runtimeOnly("jaxen:jaxen:1.1.3") {
-        capabilities { requireCapability("jaxen:jaxen-dom4j") }
+        capabilities {
+            requireCapability("jaxen:jaxen-dom4j")
+        }
     }
 }
+// end::capability-ex[]
 // end::jaxen-dependencies[]
 
 

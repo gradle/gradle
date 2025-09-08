@@ -46,7 +46,7 @@ class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegration
         expect:
         def wrapperResult = wrapperExecuter.withTasks("help").run()
         wrapperResult.assertOutputContains("Version: " + Jvm.current().javaVersion)
-        wrapperResult.assertTaskExecuted(":help")
+        wrapperResult.assertTaskScheduled(":help")
 
         where:
         jdk << AvailableJavaHomes.getSupportedClientJdks()

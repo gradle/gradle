@@ -19,8 +19,8 @@ package org.gradle.test.fixtures.keystore
 import groovy.transform.CompileStatic
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.gradle.api.Action
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.Actions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServerFixture
@@ -117,7 +117,7 @@ class TestKeyStore {
 
     void configureServerCert(GradleExecuter executer) {
         def args = getTrustStoreArguments()
-        if (GradleContextualExecuter.embedded) {
+        if (IntegrationTestBuildContext.embedded) {
             args.each {
                 executer.withArgument(it)
             }
@@ -131,7 +131,7 @@ class TestKeyStore {
         def args = getTrustStoreSettings()
             .tap { it["javax.net.ssl.trustStore"] = this.keyStore.path }
             .collect { "-D${it.key}=${it.value}".toString() }
-        if (GradleContextualExecuter.embedded) {
+        if (IntegrationTestBuildContext.embedded) {
             args.each {
                 executer.withArgument(it)
             }
@@ -142,7 +142,7 @@ class TestKeyStore {
 
     void configureServerAndClientCerts(GradleExecuter executer) {
         def args = getServerAndClientCertArgs()
-        if (GradleContextualExecuter.embedded) {
+        if (IntegrationTestBuildContext.embedded) {
             args.each {
                 executer.withArgument(it)
             }

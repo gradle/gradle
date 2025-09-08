@@ -208,7 +208,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             ${importStatements()}
 
             components {
-                registerBinding(JvmSoftwareComponentInternal::class.java, DefaultJvmSoftwareComponent::class.java)
+                registerBinding(JvmSoftwareComponentInternal::class, DefaultJvmSoftwareComponent::class)
             }
         """
     }

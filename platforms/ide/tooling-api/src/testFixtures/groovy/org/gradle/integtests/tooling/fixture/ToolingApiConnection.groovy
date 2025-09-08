@@ -26,6 +26,9 @@ import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.TestLauncher
 
+import static org.gradle.util.DebugUtil.DAEMON_DEBUG_PORT
+import static org.gradle.util.DebugUtil.isDebuggerAttached
+
 trait ToolingApiConfigurableLauncher<T extends ConfigurableLauncher<T>> {
     T configurableLauncher
     OutputStream stdout
@@ -37,6 +40,9 @@ trait ToolingApiConfigurableLauncher<T extends ConfigurableLauncher<T>> {
         configurableLauncher.standardError = stderr
         this.stdout = stdout
         this.stderr = stderr
+        if(isDebuggerAttached()){
+            configurableLauncher.setJvmArguments("-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=${DAEMON_DEBUG_PORT}")
+        }
     }
 
     T setStandardOutput(OutputStream outputStream) {

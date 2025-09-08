@@ -41,34 +41,31 @@ class PrintAccessorsTest {
 
     @Test
     fun `prints accessors for all schema entries`() {
-        assertThat(
-            accessorsSourceFor(
-                TypedProjectSchema(
-                    extensions = listOf(
-                        entry<Project, ExtraPropertiesExtension>("extra")
-                    ),
-                    tasks = listOf(
-                        entry<TaskContainer, Delete>("delete")
-                    ),
-                    configurations = listOf(
-                        ConfigurationEntry("api"),
-                        ConfigurationEntry("compile", listOf("api", "implementation"))
-                    ),
-                    containerElements = listOf(
-                        entry<SourceSetContainer, SourceSet>("main")
-                    ),
-                    modelDefaults = listOf(
-                        entry<SharedModelDefaults, TestSoftwareType>("softwareType")
-                    ),
-                    softwareTypeEntries = emptyList(),
-                    containerElementFactories = listOf()
+        val expectedText = accessorsSourceFor(
+            TypedProjectSchema(
+                extensions = listOf(
+                    entry<Project, ExtraPropertiesExtension>("extra")
                 ),
-                ::accessible
-            ).withoutTrailingWhitespace(),
-            equalTo(
-                textFromResource("PrintAccessors-expected-output.txt")
-            )
-        )
+                tasks = listOf(
+                    entry<TaskContainer, Delete>("delete")
+                ),
+                configurations = listOf(
+                    ConfigurationEntry("api"),
+                    ConfigurationEntry("compile", listOf("api", "implementation"))
+                ),
+                containerElements = listOf(
+                    entry<SourceSetContainer, SourceSet>("main")
+                ),
+                modelDefaults = listOf(
+                    entry<SharedModelDefaults, TestSoftwareType>("softwareType")
+                ),
+                softwareFeatureEntries = emptyList(),
+                containerElementFactories = listOf()
+            ),
+            ::accessible
+        ).withoutTrailingWhitespace()
+
+        assertThat(expectedText, equalTo(textFromResource("PrintAccessors-expected-output.txt")))
     }
 
     @Test
@@ -86,7 +83,7 @@ class PrintAccessorsTest {
                     ),
                     containerElements = listOf(),
                     modelDefaults = listOf(),
-                    softwareTypeEntries = emptyList(),
+                    softwareFeatureEntries = emptyList(),
                     containerElementFactories = listOf()
                 ),
                 ::accessible

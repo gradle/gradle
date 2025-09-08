@@ -17,9 +17,9 @@
 package org.gradle.initialization
 
 import org.gradle.api.Project
-import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.properties.GradleProperties
+import org.gradle.initialization.properties.DefaultGradleProperties
 import org.gradle.initialization.properties.DefaultSystemPropertiesInstaller
 import org.gradle.initialization.properties.SystemPropertiesInstaller
 import org.gradle.util.SetSystemProperties
@@ -30,21 +30,16 @@ import static java.util.Collections.emptyMap
 
 class DefaultSystemPropertiesInstallerTest extends Specification {
 
-    private GradleProperties loadedGradleProperties = Mock(GradleProperties) {
-        getProperties() >> [
-            (Project.SYSTEM_PROP_PREFIX + ".userSystemProp"): "userSystemValue",
-            (Project.SYSTEM_PROP_PREFIX + ".userSystemProp2"): "userSystemValue2",
-        ]
-    }
-    private EnvironmentChangeTracker environmentChangeTracker = Mock(EnvironmentChangeTracker)
+    private GradleProperties loadedGradleProperties = new DefaultGradleProperties([
+        (Project.SYSTEM_PROP_PREFIX + ".userSystemProp"): "userSystemValue",
+        (Project.SYSTEM_PROP_PREFIX + ".userSystemProp2"): "userSystemValue2",
+    ])
     private StartParameterInternal startParameter = Mock(StartParameterInternal) {
         systemPropertiesArgs >> { startParameterSystemProperties }
     }
-    private GradleInternal gradle = Mock(GradleInternal)
-
     private Map<String, String> startParameterSystemProperties = emptyMap()
 
-    private SystemPropertiesInstaller systemPropertiesInstaller = new DefaultSystemPropertiesInstaller(environmentChangeTracker, startParameter, gradle)
+    private SystemPropertiesInstaller systemPropertiesInstaller = new DefaultSystemPropertiesInstaller(startParameter)
 
     @Rule
     public SetSystemProperties sysProp = new SetSystemProperties()
@@ -56,36 +51,6 @@ class DefaultSystemPropertiesInstallerTest extends Specification {
         then:
         "userSystemValue" == System.getProperty("userSystemProp")
         "userSystemValue2" == System.getProperty("userSystemProp2")
-    }
-
-    def "track loaded properties"() {
-        given:
-        gradle.isRootBuild() >> isRootBuild
-
-        when:
-        systemPropertiesInstaller.setSystemPropertiesFrom(loadedGradleProperties)
-
-        then:
-        if (isRootBuild) {
-            0 * environmentChangeTracker.systemPropertyLoaded(_)
-        } else {
-            1 * environmentChangeTracker.systemPropertyLoaded("userSystemProp", "userSystemValue", null)
-            1 * environmentChangeTracker.systemPropertyLoaded("userSystemProp2", "userSystemValue2", null)
-        }
-
-        where:
-        isRootBuild << [true, false]
-    }
-
-    def "track override properties"() {
-        given:
-        startParameterSystemProperties = [("overrideSystemProp"): "overrideSystemValue"]
-
-        when:
-        systemPropertiesInstaller.setSystemPropertiesFrom(loadedGradleProperties)
-
-        then:
-        1 * environmentChangeTracker.systemPropertyOverridden("overrideSystemProp")
     }
 
     def "build system properties"() {

@@ -22,11 +22,11 @@ import org.gradle.cache.internal.CrossBuildInMemoryCache
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.kotlin.dsl.accessors.ContainerElementFactoryEntry
-import org.gradle.kotlin.dsl.accessors.SoftwareTypeEntry
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry
+import org.gradle.kotlin.dsl.accessors.SoftwareFeatureEntry
+import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
 
 typealias ContainerElementFactories = List<ContainerElementFactoryEntry<TypeOf<*>>>
-typealias SoftwareTypeEntries = List<SoftwareTypeEntry<TypeOf<*>>>
+typealias SoftwareTypeEntries = List<SoftwareFeatureEntry<TypeOf<*>>>
 
 interface KotlinDslDclSchemaCache {
     fun getOrPutContainerElementFactories(
@@ -36,7 +36,7 @@ interface KotlinDslDclSchemaCache {
     ): ContainerElementFactories
 
     fun getOrPutContainerElementSoftwareTypes(
-        forRegistry: SoftwareTypeRegistry,
+        forRegistry: SoftwareFeatureRegistry,
         produceIfAbsent: () -> SoftwareTypeEntries
     ): SoftwareTypeEntries
 }
@@ -48,7 +48,7 @@ class CrossBuildInMemoryKotlinDslDclSchemaCache(
     private val containerElementFactoriesCache: CrossBuildInMemoryCache<ContainerElementFactoriesKey, ContainerElementFactories> =
         crossBuildInMemoryCacheFactory.newCache()
 
-    private val softwareTypeEntriesCache: CrossBuildInMemoryCache<SoftwareTypeRegistry, SoftwareTypeEntries> =
+    private val softwareTypeEntriesCache: CrossBuildInMemoryCache<SoftwareFeatureRegistry, SoftwareTypeEntries> =
         crossBuildInMemoryCacheFactory.newCache()
 
     private data class ContainerElementFactoriesKey(
@@ -66,7 +66,7 @@ class CrossBuildInMemoryKotlinDslDclSchemaCache(
         }
 
     override fun getOrPutContainerElementSoftwareTypes(
-        forRegistry: SoftwareTypeRegistry,
+        forRegistry: SoftwareFeatureRegistry,
         produceIfAbsent: () -> SoftwareTypeEntries
     ): SoftwareTypeEntries = softwareTypeEntriesCache.get(forRegistry) { _ ->
         produceIfAbsent()

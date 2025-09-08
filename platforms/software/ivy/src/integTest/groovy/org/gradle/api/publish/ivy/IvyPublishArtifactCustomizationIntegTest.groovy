@@ -52,7 +52,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         then:
         module.assertPublished()
         module.assertArtifactsPublished("ivy-2.4.xml", "ivyPublish-2.4.txt",  "ivyPublish-2.4.foo", "ivyPublish-2.4.bar", "ivyPublish-2.4.html", "ivyPublish-2.4.reg", "ivyPublish-2.4.jar")
-        result.assertTasksExecuted(":customDocsTask", ":customJar", ":regularFileTask", ":generateDescriptorFileForIvyPublication", ":publishIvyPublicationToIvyRepository", ":publish")
+        result.assertTasksScheduled(":customDocsTask", ":customJar", ":regularFileTask", ":generateDescriptorFileForIvyPublication", ":publishIvyPublicationToIvyRepository", ":publish")
 
         and:
         def ivy = module.parsedIvy

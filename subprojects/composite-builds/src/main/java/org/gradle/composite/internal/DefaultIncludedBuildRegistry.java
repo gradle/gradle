@@ -59,7 +59,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     // TODO: Locking around the following state
     private RootBuildState rootBuild;
-    private final Map<BuildIdentifier, BuildState> buildsByIdentifier = new HashMap<>();
+    private final Map<Path, BuildState> buildsByPath = new HashMap<>();
     private final Map<BuildState, StandAloneNestedBuild> buildSrcBuildsByOwner = new HashMap<>();
     private final Map<File, IncludedBuildState> includedBuildsByRootDir = new LinkedHashMap<>();
     private final Map<File, NestedBuildState> nestedBuildsByRootDir = new LinkedHashMap<>();
@@ -100,7 +100,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     private void addBuild(BuildState build) {
-        BuildState before = buildsByIdentifier.put(build.getBuildIdentifier(), build);
+        BuildState before = buildsByPath.put(build.getIdentityPath(), build);
         if (before != null) {
             throw new IllegalArgumentException("Build is already registered: " + build.getBuildIdentifier());
         }
@@ -134,26 +134,29 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public IncludedBuildState getIncludedBuild(BuildIdentifier buildIdentifier) {
-        BuildState includedBuildState = findBuild(buildIdentifier);
-        if (!(includedBuildState instanceof IncludedBuildState)) {
-            throw new IllegalArgumentException("Could not find " + buildIdentifier);
-        }
-        return (IncludedBuildState) includedBuildState;
+    public BuildState getBuild(BuildIdentifier buildIdentifier) {
+        return getBuild(((DefaultBuildIdentifier) buildIdentifier).getIdentityPath());
+    }
+
+    @Nullable
+    @Override
+    public BuildState findBuild(BuildIdentifier buildIdentifier) {
+        return findBuild(((DefaultBuildIdentifier) buildIdentifier).getIdentityPath());
     }
 
     @Override
-    public BuildState getBuild(BuildIdentifier buildIdentifier) {
-        BuildState buildState = findBuild(buildIdentifier);
+    public BuildState getBuild(Path identityPath) throws IllegalArgumentException {
+        BuildState buildState = findBuild(identityPath);
         if (buildState == null) {
-            throw new IllegalArgumentException("Could not find " + buildIdentifier);
+            throw new IllegalArgumentException("Could not find " + identityPath);
         }
         return buildState;
     }
 
+    @Nullable
     @Override
-    public BuildState findBuild(BuildIdentifier buildIdentifier) {
-        return buildsByIdentifier.get(buildIdentifier);
+    public BuildState findBuild(Path identityPath) {
+        return buildsByPath.get(identityPath);
     }
 
     @Override
@@ -177,8 +180,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
         BuildDefinition buildDefinition = buildStateFactory.buildDefinitionFor(buildSrcDir, owner);
         Path identityPath = assignPath(owner, buildDefinition.getName(), buildDefinition.getBuildRootDir());
-        BuildIdentifier buildIdentifier = idFor(identityPath);
-        StandAloneNestedBuild build = buildStateFactory.createNestedBuild(buildIdentifier, identityPath, buildDefinition, owner);
+        StandAloneNestedBuild build = buildStateFactory.createNestedBuild(identityPath, buildDefinition, owner);
         buildSrcBuildsByOwner.put(owner, build);
         nestedBuildsByRootDir.put(buildSrcDir, build);
         addBuild(build);
@@ -193,13 +195,12 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         String name = MoreObjects.firstNonNull(buildName, dir.getName());
         validateNameIsNotBuildSrc(name, dir);
         Path identityPath = assignPath(owner, name, dir);
-        BuildIdentifier buildIdentifier = idFor(identityPath);
-        return buildStateFactory.createNestedTree(buildInvocationScopeId, buildDefinition, buildIdentifier, identityPath, owner);
+        return buildStateFactory.createNestedTree(buildInvocationScopeId, buildDefinition, identityPath, owner);
     }
 
     @Override
     public void visitBuilds(Consumer<? super BuildState> visitor) {
-        List<BuildState> ordered = new ArrayList<>(buildsByIdentifier.values());
+        List<BuildState> ordered = new ArrayList<>(buildsByPath.values());
         ordered.sort(Comparator.comparing(BuildState::getIdentityPath));
         for (BuildState buildState : ordered) {
             visitor.accept(buildState);
@@ -229,9 +230,8 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
             }
             validateNameIsNotBuildSrc(buildName, buildDir);
             Path idPath = buildPath != null ? buildPath : assignPath(rootBuild, buildName, buildDir);
-            BuildIdentifier buildIdentifier = idFor(idPath);
 
-            includedBuild = includedBuildFactory.createBuild(buildIdentifier, buildDefinition, isImplicit, rootBuild);
+            includedBuild = includedBuildFactory.createBuild(idPath, buildDefinition, isImplicit, rootBuild);
             includedBuildsByRootDir.put(buildDir, includedBuild);
             nestedBuildsByRootDir.put(buildDir, includedBuild);
             pendingIncludedBuilds.add(includedBuild);
@@ -243,10 +243,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
             // TODO: verify that the build definition is the same
         }
         return includedBuild;
-    }
-
-    private static BuildIdentifier idFor(Path absoluteBuildPath) {
-        return new DefaultBuildIdentifier(absoluteBuildPath);
     }
 
     private Path assignPath(BuildState owner, String name, File dir) {
@@ -275,7 +271,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     @Override
     public void stop() {
-        CompositeStoppable.stoppable(buildsByIdentifier.values()).stop();
+        CompositeStoppable.stoppable(buildsByPath.values()).stop();
     }
 
     private void assertNameDoesNotClashWithRootSubproject(IncludedBuildState includedBuild) {

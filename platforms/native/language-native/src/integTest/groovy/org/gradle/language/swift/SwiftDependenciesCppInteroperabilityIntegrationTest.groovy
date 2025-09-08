@@ -51,7 +51,7 @@ class SwiftDependenciesCppInteroperabilityIntegrationTest extends AbstractSwiftM
         succeeds ":app:installDebug"
 
         then:
-        result.assertTasksExecuted(":hello:compileDebugSwift", ":hello:linkDebug",
+        result.assertTasksScheduled(":hello:compileDebugSwift", ":hello:linkDebug",
             ":log:compileDebugCpp", ":log:linkDebug",
             ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug")
         assertAppHasOutputFor("debug")
@@ -60,7 +60,7 @@ class SwiftDependenciesCppInteroperabilityIntegrationTest extends AbstractSwiftM
         succeeds ":app:installRelease"
 
         then:
-        result.assertTasksExecuted(":hello:compileReleaseSwift", ":hello:linkRelease", ":hello:stripSymbolsRelease",
+        result.assertTasksScheduled(":hello:compileReleaseSwift", ":hello:linkRelease", ":hello:stripSymbolsRelease",
             ":log:compileReleaseCpp", ":log:linkRelease", ":log:stripSymbolsRelease",
             ":app:compileReleaseSwift", ":app:linkRelease", ":app:stripSymbolsRelease", ":app:installRelease")
         assertAppHasOutputFor("release")

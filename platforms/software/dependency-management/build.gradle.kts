@@ -49,6 +49,7 @@ dependencies {
     api(projects.functional)
     api(projects.hashing)
     api(projects.logging)
+    api(projects.loggingApi)
     api(projects.messaging)
     api(projects.modelCore)
     api(projects.modelReflect)
@@ -79,10 +80,9 @@ dependencies {
     implementation(projects.time)
     implementation(projects.baseAsm)
     implementation(projects.baseServicesGroovy)
-    implementation(projects.loggingApi)
     implementation(projects.resourcesHttp)
     implementation(projects.serviceRegistryBuilder)
-    
+
     implementation(libs.asm)
     implementation(libs.asmCommons)
     implementation(libs.commonsIo)

@@ -16,12 +16,12 @@
 
 package org.gradle.api.reporting.components
 
-import org.gradle.internal.InternalTransformer
+import java.util.function.Function
 
-class ComponentReportOutputFormatter implements InternalTransformer<String, String> {
+class ComponentReportOutputFormatter implements Function<String, String> {
 
     @Override
-    String transform(String original) {
+    String apply(String original) {
          return original
                 .replaceAll("(\\w+/)+\\w+") { it[0].replace('/', File.separator) }
     }

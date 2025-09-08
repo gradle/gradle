@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSortedMap;
@@ -30,9 +31,12 @@ import org.gradle.internal.execution.history.ImmutableWorkspaceMetadata;
 import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore;
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.AtomicMoveImmutableWorkspace;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ImmutableWorkspace;
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.LockingImmutableWorkspace;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -88,12 +92,18 @@ import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE;
 public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements Step<C, WorkspaceResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AssignImmutableWorkspaceStep.class);
 
+    enum LockingStrategy {
+        WORKSPACE_LOCK,
+        ATOMIC_MOVE
+    }
+
     private final Deleter deleter;
     private final FileSystemAccess fileSystemAccess;
 
     private final ImmutableWorkspaceMetadataStore workspaceMetadataStore;
     private final OutputSnapshotter outputSnapshotter;
     private final Step<? super PreviousExecutionContext, ? extends CachingResult> delegate;
+    private final LockingStrategy lockingStrategy;
 
     public AssignImmutableWorkspaceStep(
         Deleter deleter,
@@ -102,27 +112,63 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         OutputSnapshotter outputSnapshotter,
         Step<? super PreviousExecutionContext, ? extends CachingResult> delegate
     ) {
+        this(deleter, fileSystemAccess, workspaceMetadataStore, outputSnapshotter, delegate,
+            OperatingSystem.current().isWindows()
+                ? LockingStrategy.WORKSPACE_LOCK
+                : LockingStrategy.ATOMIC_MOVE
+        );
+    }
+
+    @VisibleForTesting
+    AssignImmutableWorkspaceStep(
+        Deleter deleter,
+        FileSystemAccess fileSystemAccess,
+        ImmutableWorkspaceMetadataStore workspaceMetadataStore,
+        OutputSnapshotter outputSnapshotter,
+        Step<? super PreviousExecutionContext, ? extends CachingResult> delegate,
+        LockingStrategy lockingStrategy
+    ) {
         this.deleter = deleter;
         this.fileSystemAccess = fileSystemAccess;
         this.workspaceMetadataStore = workspaceMetadataStore;
         this.outputSnapshotter = outputSnapshotter;
         this.delegate = delegate;
+        this.lockingStrategy = lockingStrategy;
     }
 
     @Override
     public WorkspaceResult execute(UnitOfWork work, C context) {
         ImmutableWorkspaceProvider workspaceProvider = ((ImmutableUnitOfWork) work).getWorkspaceProvider();
         String uniqueId = context.getIdentity().getUniqueId();
-        ImmutableWorkspace workspace = workspaceProvider.getWorkspace(uniqueId);
 
-        return loadImmutableWorkspaceIfExists(work, workspace)
-            .orElseGet(() -> executeInTemporaryWorkspace(work, context, workspace));
+        if (lockingStrategy == LockingStrategy.WORKSPACE_LOCK) {
+            LockingImmutableWorkspace workspace = workspaceProvider.getLockingWorkspace(uniqueId);
+            return workspace.withWorkspaceLock(() ->
+                loadImmutableWorkspaceIfExists(work, workspace)
+                    .orElseGet(() -> {
+                        deleteStaleFiles(workspace.getImmutableLocation());
+                        return executeInWorkspace(work, context, workspace.getImmutableLocation());
+                    })
+            );
+        } else {
+            AtomicMoveImmutableWorkspace workspace = workspaceProvider.getAtomicMoveWorkspace(uniqueId);
+            return loadImmutableWorkspaceIfExists(work, workspace)
+                .orElseGet(() -> executeInTemporaryWorkspace(work, context, workspace));
+        }
+    }
+
+    private void deleteStaleFiles(File workspace) {
+        try  {
+            deleter.deleteRecursively(workspace);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private Optional<WorkspaceResult> loadImmutableWorkspaceIfExists(UnitOfWork work, ImmutableWorkspace workspace) {
         File immutableLocation = workspace.getImmutableLocation();
-        FileSystemLocationSnapshot workspaceSnapshot = fileSystemAccess.read(immutableLocation.getAbsolutePath());
-        switch (workspaceSnapshot.getType()) {
+        FileSystemLocationSnapshot snapshot = fileSystemAccess.read(immutableLocation.getAbsolutePath());
+        switch (snapshot.getType()) {
             case Directory:
                 return loadImmutableWorkspaceIfConsistent(work, workspace);
             case RegularFile:
@@ -138,12 +184,16 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
 
     private Optional<WorkspaceResult> loadImmutableWorkspaceIfConsistent(UnitOfWork work, ImmutableWorkspace workspace) {
         File immutableLocation = workspace.getImmutableLocation();
-        ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots = outputSnapshotter.snapshotOutputs(work, immutableLocation);
+        Optional<ImmutableWorkspaceMetadata> metadata = workspaceMetadataStore.loadWorkspaceMetadata(immutableLocation);
+
+        if (!metadata.isPresent()) {
+            return handleMissingMetadata(immutableLocation);
+        }
 
         // Verify output hashes
+        ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots = outputSnapshotter.snapshotOutputs(work, immutableLocation);
         ImmutableListMultimap<String, HashCode> outputHashes = calculateOutputHashes(outputSnapshots);
-        ImmutableWorkspaceMetadata metadata = workspaceMetadataStore.loadWorkspaceMetadata(immutableLocation);
-        if (!metadata.getOutputPropertyHashes().equals(outputHashes)) {
+        if (!metadata.get().getOutputPropertyHashes().equals(outputHashes)) {
             fileSystemAccess.invalidate(ImmutableList.of(immutableLocation.getAbsolutePath()));
             String actualOutputHashes = outputSnapshots.entrySet().stream()
                 .map(entry -> entry.getKey() + ":\n" + entry.getValue().roots()
@@ -158,7 +208,30 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
                 immutableLocation.getAbsolutePath(), actualOutputHashes));
         }
 
-        return Optional.of(loadImmutableWorkspace(work, immutableLocation, metadata, outputSnapshots));
+        return Optional.of(loadImmutableWorkspace(work, immutableLocation, metadata.get(), outputSnapshots));
+    }
+
+    private Optional<WorkspaceResult> handleMissingMetadata(File immutableLocation) {
+        if (lockingStrategy == LockingStrategy.WORKSPACE_LOCK) {
+            // For the workspace lock strategy this is not fatal, and we can recover from it
+            return Optional.empty();
+        }
+
+        // For ATOMIC_MOVE strategy, we expect the metadata file to be present if the workspace directory exists.
+        fileSystemAccess.invalidate(ImmutableList.of(immutableLocation.getAbsolutePath()));
+        if (immutableLocation.exists()) {
+            // If metadata file is missing, and directory exists, it means that the workspace was created as a result of a previous
+            // execution, but the metadata was later deleted for some reason.
+            throw new IllegalStateException(String.format(
+                "The immutable workspace '%s' exists, but it does not contain the metadata file. " +
+                    "This is unexpected might have been caused by an external process or disk corruption. " +
+                    "You can try to delete the immutable workspace directory and re-run the build.",
+                immutableLocation.getAbsolutePath()
+            ));
+        } else {
+            // If the immutable workspace does not exist at all, we had just incorrect snapshot of the workspace
+            return Optional.empty();
+        }
     }
 
     private static WorkspaceResult loadImmutableWorkspace(UnitOfWork work, File immutableLocation, ImmutableWorkspaceMetadata metadata, ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots) {
@@ -174,33 +247,42 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             immutableLocation);
     }
 
-    private WorkspaceResult executeInTemporaryWorkspace(UnitOfWork work, C context, ImmutableWorkspace workspace) {
+    private WorkspaceResult executeInWorkspace(UnitOfWork work, C context, File workspace) {
+        WorkspaceContext workspaceContext = new WorkspaceContext(context, workspace, null, true);
+
+        // We don't need to invalidate the workspace, as there is surely nothing there yet,
+        // but we still want to record that this build is writing to the given location, so that
+        // file system watching won't care about it
+        fileSystemAccess.invalidate(ImmutableList.of(workspace.getAbsolutePath()));
+
+        // There is no previous execution in the immutable case
+        PreviousExecutionContext previousExecutionContext = new PreviousExecutionContext(workspaceContext, null);
+        CachingResult delegateResult = delegate.execute(work, previousExecutionContext);
+
+        if (delegateResult.getExecution().isSuccessful()) {
+            // Store workspace metadata
+            // TODO Capture in the type system the fact that we always have an after-execution output state here
+            @SuppressWarnings("OptionalGetWithoutIsPresent")
+            ExecutionOutputState executionOutputState = delegateResult.getAfterExecutionOutputState().get();
+            ImmutableListMultimap<String, HashCode> outputHashes = calculateOutputHashes(executionOutputState.getOutputFilesProducedByWork());
+            ImmutableWorkspaceMetadata metadata = new ImmutableWorkspaceMetadata(executionOutputState.getOriginMetadata(), outputHashes);
+            workspaceMetadataStore.storeWorkspaceMetadata(workspace, metadata);
+
+            return new WorkspaceResult(delegateResult, workspace);
+        } else {
+            // TODO Do not capture a null workspace in case of a failure
+            return new WorkspaceResult(delegateResult, null);
+        }
+    }
+
+    private WorkspaceResult executeInTemporaryWorkspace(UnitOfWork work, C context, AtomicMoveImmutableWorkspace workspace) {
         return workspace.withTemporaryWorkspace(temporaryWorkspace -> {
-            WorkspaceContext workspaceContext = new WorkspaceContext(context, temporaryWorkspace, null, true);
-
-            // We don't need to invalidate the temporary workspace, as there is surely nothing there yet,
-            // but we still want to record that this build is writing to the given location, so that
-            // file system watching won't care about it
-            fileSystemAccess.invalidate(ImmutableList.of(temporaryWorkspace.getAbsolutePath()));
-
-            // There is no previous execution in the immutable case
-            PreviousExecutionContext previousExecutionContext = new PreviousExecutionContext(workspaceContext, null);
-            CachingResult delegateResult = delegate.execute(work, previousExecutionContext);
-
-            if (delegateResult.getExecution().isSuccessful()) {
-                // Store workspace metadata
-                // TODO Capture in the type system the fact that we always have an after-execution output state here
-                @SuppressWarnings("OptionalGetWithoutIsPresent")
-                ExecutionOutputState executionOutputState = delegateResult.getAfterExecutionOutputState().get();
-                ImmutableListMultimap<String, HashCode> outputHashes = calculateOutputHashes(executionOutputState.getOutputFilesProducedByWork());
-                ImmutableWorkspaceMetadata metadata = new ImmutableWorkspaceMetadata(executionOutputState.getOriginMetadata(), outputHashes);
-                workspaceMetadataStore.storeWorkspaceMetadata(temporaryWorkspace, metadata);
-
+            WorkspaceResult result = executeInWorkspace(work, context, temporaryWorkspace);
+            if (result.getExecution().isSuccessful()) {
                 return moveTemporaryWorkspaceToImmutableLocation(workspace,
-                    new WorkspaceMoveHandler(work, workspace, temporaryWorkspace, delegateResult));
+                    new WorkspaceMoveHandler(work, workspace, temporaryWorkspace, result));
             } else {
-                // TODO Do not capture a null workspace in case of a failure
-                return new WorkspaceResult(delegateResult, null);
+                return result;
             }
         });
     }
@@ -216,7 +298,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             ));
     }
 
-    private WorkspaceResult moveTemporaryWorkspaceToImmutableLocation(ImmutableWorkspace workspace, WorkspaceMoveHandler move) {
+    private WorkspaceResult moveTemporaryWorkspaceToImmutableLocation(AtomicMoveImmutableWorkspace workspace, WorkspaceMoveHandler move) {
         return move.executeMoveOr(moveFailedException -> {
             // On Windows, files left open by the executed work can legitimately prevent an atomic move of the temporary directory
             // In this case we'll try to make a copy of the temporary workspace to another temporary workspace, and move that to
@@ -235,11 +317,11 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
 
     private class WorkspaceMoveHandler {
         private final UnitOfWork work;
-        private final ImmutableWorkspace workspace;
+        private final AtomicMoveImmutableWorkspace workspace;
         private final File temporaryWorkspace;
         private final CachingResult delegateResult;
 
-        public WorkspaceMoveHandler(UnitOfWork work, ImmutableWorkspace workspace, File temporaryWorkspace, CachingResult delegateResult) {
+        public WorkspaceMoveHandler(UnitOfWork work, AtomicMoveImmutableWorkspace workspace, File temporaryWorkspace, CachingResult delegateResult) {
             this.work = work;
             this.workspace = workspace;
             this.temporaryWorkspace = temporaryWorkspace;

@@ -39,8 +39,14 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
 
     public interface Details {
 
+        /**
+         * The path of the build this task belongs to.
+         */
         String getBuildPath();
 
+        /**
+         * Get the path of this task within the build.
+         */
         String getTaskPath();
 
         /**

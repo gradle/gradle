@@ -40,7 +40,7 @@ public interface DeploymentDescriptor {
     void setFileName(String fileName);
 
     /**
-     * The version of application.xml. Required. Valid versions are "1.3", "1.4", "5", "6", "7", "8", "9" and "10". Defaults to "6".
+     * The version of application.xml. Required. Valid versions are "1.3", "1.4", "5", "6", "7", "8", "9", "10" and "11". Defaults to "6".
      */
     @ToBeReplacedByLazyProperty
     String getVersion();

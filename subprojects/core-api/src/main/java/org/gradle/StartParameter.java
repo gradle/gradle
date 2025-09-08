@@ -286,6 +286,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     /**
      * Returns the names of the tasks to execute in this build. When empty, the default tasks for the project will be executed. If {@link TaskExecutionRequest}s are set for this build then names from these task parameters are returned.
+     * <p>
+     * <strong>Note that this will also return entries for each task ARGUMENT as well.</strong>>
      *
      * @return the names of the tasks to execute in this build. Never returns null.
      */

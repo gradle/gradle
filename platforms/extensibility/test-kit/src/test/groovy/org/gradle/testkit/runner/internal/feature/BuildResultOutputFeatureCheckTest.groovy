@@ -18,7 +18,6 @@ package org.gradle.testkit.runner.internal.feature
 
 import org.gradle.testkit.runner.UnsupportedFeatureException
 import org.gradle.util.GradleVersion
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class BuildResultOutputFeatureCheckTest extends Specification {
@@ -26,7 +25,6 @@ class BuildResultOutputFeatureCheckTest extends Specification {
     public static final GradleVersion UNSUPPORTED_GRADLE_VERSION = GradleVersion.version('2.8')
 
     def "supported Gradle version passes check [version = #gradleVersion, embedded = #embedded]"() {
-        TestUtil.initDeprecationLogger("because TestKit emits deprecation for ancient major versions")
         given:
         BuildResultOutputFeatureCheck featureCheck = new BuildResultOutputFeatureCheck(TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG.since, embedded)
 

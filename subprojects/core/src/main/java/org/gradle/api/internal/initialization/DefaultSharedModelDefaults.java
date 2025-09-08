@@ -25,22 +25,22 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
-import org.gradle.plugin.software.internal.SoftwareTypeImplementation;
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+import org.gradle.plugin.software.internal.SoftwareFeatureImplementation;
+import org.gradle.plugin.software.internal.SoftwareFeatureRegistry;
 import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.inject.Inject;
 
 public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, MethodMixIn {
-    private final SoftwareTypeRegistry softwareTypeRegistry;
+    private final SoftwareFeatureRegistry softwareFeatureRegistry;
     private final DynamicMethods dynamicMethods = new DynamicMethods();
 
     @SuppressWarnings("ThreadLocalUsage")
     private final ThreadLocal<ProjectLayout> projectLayout = new ThreadLocal<>();
 
     @Inject
-    public DefaultSharedModelDefaults(SoftwareTypeRegistry softwareTypeRegistry) {
-        this.softwareTypeRegistry = softwareTypeRegistry;
+    public DefaultSharedModelDefaults(SoftwareFeatureRegistry softwareFeatureRegistry) {
+        this.softwareFeatureRegistry = softwareFeatureRegistry;
     }
 
     @Override
@@ -64,12 +64,12 @@ public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, 
 
     @Override
     public <T> void add(String name, Class<T> publicType, Action<? super T> configureAction) {
-        if (softwareTypeRegistry.getSoftwareTypeImplementations().containsKey(name)) {
-            SoftwareTypeImplementation<?> softwareType = softwareTypeRegistry.getSoftwareTypeImplementations().get(name);
-            if (softwareType.getModelPublicType().isAssignableFrom(publicType)) {
-                softwareType.addModelDefault(new ActionBasedDefault<>(configureAction));
+        if (softwareFeatureRegistry.getSoftwareFeatureImplementations().containsKey(name)) {
+            SoftwareFeatureImplementation<?, ?> softwareFeature = softwareFeatureRegistry.getSoftwareFeatureImplementations().get(name);
+            if (softwareFeature.getDefinitionPublicType().isAssignableFrom(publicType)) {
+                softwareFeature.addModelDefault(new ActionBasedDefault<>(configureAction));
             } else {
-                throw new IllegalArgumentException(String.format("Cannot add convention for software type '%s' with public type '%s'. Expected public type to be assignable from '%s'.", name, publicType, softwareType.getModelPublicType()));
+                throw new IllegalArgumentException(String.format("Cannot add convention for software type '%s' with public type '%s'. Expected public type to be assignable from '%s'.", name, publicType, softwareFeature.getDefinitionPublicType()));
             }
         } else {
             throw new IllegalArgumentException(String.format("Cannot add convention for unknown software type '%s'.", name));
@@ -86,14 +86,14 @@ public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, 
         public boolean hasMethod(String name, Object... arguments) {
             return arguments.length == 1 &&
                 (arguments[0] instanceof Action || arguments[0] instanceof Closure) &&
-                softwareTypeRegistry.getSoftwareTypeImplementations().containsKey(name);
+                softwareFeatureRegistry.getSoftwareFeatureImplementations().containsKey(name);
         }
 
         @Override
         public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
             if (hasMethod(name, arguments)) {
-                SoftwareTypeImplementation<?> softwareType = softwareTypeRegistry.getSoftwareTypeImplementations().get(name);
-                add(name, softwareType.getModelPublicType(), Cast.uncheckedNonnullCast(toAction(arguments[0])));
+                SoftwareFeatureImplementation<?, ?> softwareFeature = softwareFeatureRegistry.getSoftwareFeatureImplementations().get(name);
+                add(name, softwareFeature.getDefinitionPublicType(), Cast.uncheckedNonnullCast(toAction(arguments[0])));
                 return DynamicInvokeResult.found();
             } else {
                 return DynamicInvokeResult.notFound();

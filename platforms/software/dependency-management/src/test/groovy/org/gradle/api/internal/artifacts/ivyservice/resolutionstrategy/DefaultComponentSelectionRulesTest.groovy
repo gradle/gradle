@@ -103,34 +103,6 @@ class DefaultComponentSelectionRulesTest extends Specification {
         rules.rules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
     }
 
-    def "add rule source rule that applies to all components"() {
-        when:
-        rules.all ruleSource
-
-        then:
-        1 * adapter.createFromRuleSource(ComponentSelection, ruleSource) >> ruleAction
-
-        and:
-        rules.rules.size() == 1
-        rules.rules[0].action == ruleAction
-        rules.rules[0].spec == Specs.satisfyAll()
-    }
-
-    def "add rule source rule that applies to module"() {
-        String notation = "${GROUP}:${MODULE}"
-
-        when:
-        rules.withModule(notation, ruleSource)
-
-        then:
-        1 * adapter.createFromRuleSource(ComponentSelection, ruleSource) >> ruleAction
-
-        and:
-        rules.rules.size() == 1
-        rules.rules[0].action == ruleAction
-        rules.rules[0].spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
-    }
-
     def "propagates error creating rule for closure" () {
         when:
         rules.all { }
@@ -151,28 +123,6 @@ class DefaultComponentSelectionRulesTest extends Specification {
 
         and:
         1 * adapter.createFromClosure(ComponentSelection, _) >> { throw new InvalidUserCodeException("bad targeted closure") }
-    }
-
-    def "propagates error creating rule for rule source" () {
-        when:
-        rules.all ruleSource
-
-        then:
-        def e = thrown(InvalidUserCodeException)
-        e.message == "bad rule source"
-
-        and:
-        1 * adapter.createFromRuleSource(ComponentSelection, ruleSource) >> { throw new InvalidUserCodeException("bad rule source") }
-
-        when:
-        rules.withModule("group:module", ruleSource)
-
-        then:
-        e = thrown(InvalidUserCodeException)
-        e.message == "bad targeted rule source"
-
-        and:
-        1 * adapter.createFromRuleSource(ComponentSelection, ruleSource) >> { throw new InvalidUserCodeException("bad targeted rule source") }
     }
 
     def "propagates error creating rule for action" () {
@@ -262,16 +212,10 @@ class DefaultComponentSelectionRulesTest extends Specification {
         when: rules.all(Closure.IDENTITY)
         then: 1 * checker.validateMutation(STRATEGY)
 
-        when: rules.all(ruleSource)
-        then: 1 * checker.validateMutation(STRATEGY)
-
         when: rules.withModule("something:else", Actions.doNothing())
         then: 1 * checker.validateMutation(STRATEGY)
 
         when: rules.withModule("something:else", Closure.IDENTITY)
-        then: 1 * checker.validateMutation(STRATEGY)
-
-        when: rules.withModule("something:else", ruleSource)
         then: 1 * checker.validateMutation(STRATEGY)
     }
 

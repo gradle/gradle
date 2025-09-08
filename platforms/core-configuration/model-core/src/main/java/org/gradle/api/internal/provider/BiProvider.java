@@ -23,12 +23,13 @@ import java.util.function.BiFunction;
 
 public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
+    @Nullable
     private final Class<R> type;
     private final BiFunction<? super A, ? super B, ? extends R> combiner;
     private final ProviderInternal<A> left;
     private final ProviderInternal<B> right;
 
-    public BiProvider(@Nullable Class<R> type, Provider<A> left, Provider<B> right, BiFunction<? super A, ? super B, ? extends R> combiner) {
+    public BiProvider(@Nullable Class<R> type, Provider<A> left, Provider<B> right, BiFunction<? super A, ? super B, ? extends @Nullable R> combiner) {
         this.type = type;
         this.combiner = combiner;
         this.left = Providers.internal(left);
@@ -47,7 +48,7 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
                 return false;
             }
         }
-        // Purposefully only calculate full value if left & right are both present, to save time
+        // Purposefully only calculate the full value if left and right are both present, to save time
         return super.calculatePresence(consumer);
     }
 

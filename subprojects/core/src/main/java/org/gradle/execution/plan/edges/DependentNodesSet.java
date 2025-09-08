@@ -19,9 +19,7 @@ package org.gradle.execution.plan.edges;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.execution.plan.Node;
 
-import java.util.Collections;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.function.Consumer;
 
 /**
@@ -52,21 +50,17 @@ public interface DependentNodesSet {
     /**
      * The dependency predecessors, in order.
      */
-    default SortedSet<Node> getDependencyPredecessors() {
+    default Set<Node> getDependencyPredecessors() {
         return ImmutableSortedSet.of();
     }
 
     DependentNodesSet addDependencyPredecessors(Node fromNode);
 
-    default SortedSet<Node> getFinalizers() {
+    default Set<Node> getFinalizers() {
         return ImmutableSortedSet.of();
     }
 
     DependentNodesSet addFinalizer(Node finalizer);
-
-    default Set<Node> getMustPredecessors() {
-        return Collections.emptySet();
-    }
 
     DependentNodesSet addMustPredecessor(Node fromNode);
 

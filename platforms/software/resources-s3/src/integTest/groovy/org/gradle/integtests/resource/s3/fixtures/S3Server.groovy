@@ -37,7 +37,7 @@ import java.time.format.DateTimeFormatter
 class S3Server extends HttpServer implements RepositoryServer {
 
     public static final String BUCKET_NAME = "tests3bucket"
-    protected static final DateTimeFormatter RCF_822_DATE_FORMAT = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z").withZone(ZoneId.of("GMT"))
+    protected static final DateTimeFormatter RCF_822_DATE_FORMAT = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z").withZone(ZoneId.of("GMT")).withLocale(Locale.ENGLISH)
 
     public static final String ETAG = 'd41d8cd98f00b204e9800998ecf8427e'
     public static final String X_AMZ_REQUEST_ID = '0A398F9A1BAD4027'

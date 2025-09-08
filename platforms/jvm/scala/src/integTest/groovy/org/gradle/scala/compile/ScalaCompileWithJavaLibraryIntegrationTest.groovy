@@ -66,7 +66,7 @@ class ScalaCompileWithJavaLibraryIntegrationTest extends AbstractIntegrationSpec
         succeeds 'compileJava'
 
         then:
-        result.assertTasksExecutedInOrder(':compileScala', ':compileJava')
+        result.assertTasksScheduledInOrder(':compileScala', ':compileJava')
 
         where:
         configurationStyle | setup
@@ -104,7 +104,7 @@ class ScalaCompileWithJavaLibraryIntegrationTest extends AbstractIntegrationSpec
         succeeds 'compileMySourcesJava'
 
         then:
-        result.assertTasksExecutedInOrder(':compileMySourcesScala', ':compileMySourcesJava')
+        result.assertTasksScheduledInOrder(':compileMySourcesScala', ':compileMySourcesJava')
     }
 
 }

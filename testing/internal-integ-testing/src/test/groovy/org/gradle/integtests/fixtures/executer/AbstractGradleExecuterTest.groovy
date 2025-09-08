@@ -19,6 +19,7 @@ package org.gradle.integtests.fixtures.executer
 
 import org.gradle.process.internal.JvmOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.GradleVersion
 import org.gradle.util.UsesNativeServices
 import org.junit.Assume
 import org.junit.Rule
@@ -29,7 +30,9 @@ class AbstractGradleExecuterTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass());
 
-    def gradleDistribution = Mock(GradleDistribution)
+    def gradleDistribution = Mock(GradleDistribution) {
+        getVersion() >> GradleVersion.current()
+    }
 
     AbstractGradleExecuter executer = new AbstractGradleExecuter(gradleDistribution, testDir) {
         @Override
@@ -96,8 +99,8 @@ class AbstractGradleExecuterTest extends Specification {
         def allArgs = executer.getAllArgs()
 
         then:
-        allArgs.contains("-Porg.gradle.java.installations.auto-detect=false")
-        allArgs.contains("-Porg.gradle.java.installations.auto-download=false")
+        allArgs.contains("-Dorg.gradle.java.installations.auto-detect=false")
+        allArgs.contains("-Dorg.gradle.java.installations.auto-download=false")
     }
 
     def "toolchain detection can be enabled"() {
@@ -106,8 +109,8 @@ class AbstractGradleExecuterTest extends Specification {
         def allArgs = executer.getAllArgs()
 
         then:
-        !allArgs.toString().contains("-Porg.gradle.java.installations.auto-detect")
-        allArgs.contains("-Porg.gradle.java.installations.auto-download=false")
+        !allArgs.toString().contains("-Dorg.gradle.java.installations.auto-detect")
+        allArgs.contains("-Dorg.gradle.java.installations.auto-download=false")
     }
 
     def "toolchain provisioning can be enabled"() {
@@ -116,7 +119,7 @@ class AbstractGradleExecuterTest extends Specification {
         def allArgs = executer.getAllArgs()
 
         then:
-        !allArgs.toString().contains("-Porg.gradle.java.installations.auto-download")
+        !allArgs.toString().contains("-Dorg.gradle.java.installations.auto-download")
     }
 
     def "does not allow you to use startBuildProcessInDebugger on CI"() {

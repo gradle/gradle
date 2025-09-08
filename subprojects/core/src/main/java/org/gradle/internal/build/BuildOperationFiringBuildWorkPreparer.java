@@ -113,7 +113,7 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
                 .details(new Details() {
                     @Override
                     public String getBuildPath() {
-                        return gradle.getIdentityPath().getPath();
+                        return gradle.getIdentityPath().asString();
                     }
                 });
         }

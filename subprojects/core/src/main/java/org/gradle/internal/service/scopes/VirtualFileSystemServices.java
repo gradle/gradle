@@ -98,6 +98,7 @@ import org.gradle.internal.watch.vfs.impl.DefaultWatchableFileSystemDetector;
 import org.gradle.internal.watch.vfs.impl.FileWatchingFilter;
 import org.gradle.internal.watch.vfs.impl.WatchingNotSupportedVirtualFileSystem;
 import org.gradle.internal.watch.vfs.impl.WatchingVirtualFileSystem;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.Optional;
@@ -188,7 +189,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
                 }
 
                 @Override
-                public void beforeComplete() {
+                public void beforeComplete(@Nullable Throwable failure) {
                     fileWatchingFilter.buildFinished();
                 }
             });

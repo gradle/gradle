@@ -97,7 +97,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then:
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
         transformed("b.jar", "c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -105,7 +105,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksNotSkipped(":a:resolve")
+        result.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -116,7 +116,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // new content, should run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -127,7 +127,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksNotSkipped(":a:resolve")
+        result.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -139,7 +139,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // path has changed, should run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -151,7 +151,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksNotSkipped(":a:resolve")
+        result.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -164,7 +164,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // new file name, should run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue.jar")
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
@@ -177,7 +177,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksNotSkipped(":a:resolve")
+        result.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
@@ -185,7 +185,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // have already seen these artifacts before, but the transform outputs have been overwritten
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -239,7 +239,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then:
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
         transformed("b-dir", "c-dir")
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -247,7 +247,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
-        result.assertTasksNotSkipped(":a:resolve")
+        result.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -258,7 +258,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // directory content has changed (file renamed)
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-dir")
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -269,7 +269,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
-        result.assertTasksNotSkipped(":a:resolve")
+        result.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -281,7 +281,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // directory content has changed (file contents changed)
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-dir")
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -293,7 +293,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
-        result.assertTasksNotSkipped(":a:resolve")
+        result.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -306,7 +306,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // directory name has changed
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue")
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -319,7 +319,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
-        result.assertTasksNotSkipped(":a:resolve")
+        result.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -333,7 +333,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // directory path has changed
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         if (incremental || sensitivity == null || sensitivity == PathSensitivity.ABSOLUTE) {
             transformed("b-blue")
         } else {
@@ -351,7 +351,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up-to-date
-        result.assertTasksNotSkipped(":a:resolve")
+        result.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -359,7 +359,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then:
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         // have already seen these artifacts before...
         if (incremental) {
             // ...but the transform outputs have been overwritten
@@ -422,7 +422,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then:
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
         transformed("b.jar", "c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -430,7 +430,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no changes
-        result.assertTasksNotSkipped(":a:resolve")
+        result.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -438,7 +438,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve", "-DbContent=")
 
         then: // file is missing, should run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("missing b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -446,7 +446,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // seen these before, but the transform outputs have been overwritten
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
     }
@@ -523,7 +523,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then:
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
         transformed("b.jar", "c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -534,7 +534,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, but should be up to date
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -546,7 +546,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // name has changed, should run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue.jar")
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
@@ -559,7 +559,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // new content, should run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -572,7 +572,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksNotSkipped(":a:resolve")
+        result.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -581,7 +581,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // have already seen these artifacts before
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
     }
@@ -622,7 +622,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then:
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
         transformed("b-dir", "c-dir")
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -633,7 +633,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, but should be up to date
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -645,7 +645,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // name has changed, should run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue")
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -658,7 +658,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content, should run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue")
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -671,7 +671,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksNotSkipped(":a:resolve")
+        result.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -685,7 +685,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content (renamed file), should run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue")
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -693,7 +693,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // have already seen these artifacts before
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -732,7 +732,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then:
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
         transformed("b.jar", "c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -743,7 +743,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, but should be up to date
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -755,7 +755,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // name has changed, should run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue.jar")
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
@@ -768,7 +768,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content, should run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue.jar")
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
@@ -781,7 +781,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksNotSkipped(":a:resolve")
+        result.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
@@ -789,7 +789,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // have already seen these artifacts before
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -832,7 +832,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then:
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
         transformed("b-dir", "c-dir")
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -843,7 +843,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // path has changed, but path is baked into workspace identity
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-dir")
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -855,7 +855,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // name has changed, but path is baked into workspace identity
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue")
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -868,7 +868,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // new content, should run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue")
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -881,7 +881,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksNotSkipped(":a:resolve")
+        result.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -895,7 +895,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // new content (renamed file), should not run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -903,7 +903,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // have already seen these artifacts before
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
     }
@@ -944,7 +944,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then:
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
         transformed("b-dir", "c-dir")
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -955,7 +955,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, should be up to date
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
 
@@ -967,7 +967,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // name has changed, should run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue")
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -980,7 +980,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content, should run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue")
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -993,7 +993,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksNotSkipped(":a:resolve")
+        result.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -1007,7 +1007,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content (renamed file), should not run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b-blue.green, c-dir.green]")
 
@@ -1015,7 +1015,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // have already seen these artifacts before
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b-dir.green, c-dir.green]")
     }
@@ -1214,7 +1214,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then:
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
         transformed("b.jar", "c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1222,7 +1222,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksNotSkipped(":a:resolve")
+        result.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1233,7 +1233,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // new content, should run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1244,7 +1244,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksNotSkipped(":a:resolve")
+        result.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1256,7 +1256,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // timestamp change only, should not run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1269,7 +1269,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // path has changed, but path is baked into workspace identity
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1283,7 +1283,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // new file name, but path is baked into workspace identity
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue.jar")
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
@@ -1291,7 +1291,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         succeeds(":a:resolve")
 
         then: // have already seen these artifacts before, but outputs have been overwritten
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1331,7 +1331,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then:
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
         transformed("b.jar", "c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1339,7 +1339,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksNotSkipped(":a:resolve")
+        result.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1350,7 +1350,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // new content, should run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1361,7 +1361,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // no change, should be up to date
-        result.assertTasksNotSkipped(":a:resolve")
+        result.assertTasksExecuted(":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1373,7 +1373,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // timestamp change only, should not run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1386,7 +1386,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // path has changed, should not run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1400,7 +1400,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // new file name, should run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-blue.jar")
         outputContains("result = [b-blue.jar.green, c.jar.green]")
 
@@ -1408,7 +1408,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         withBuildCache().succeeds(":a:resolve")
 
         then: // have already seen these artifacts before, should not run
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1459,7 +1459,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         run(":a:resolve")
 
         then:
-        result.assertTasksNotSkipped(":b:producer", ":c:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":c:producer", ":a:resolve")
         transformed("b.jar", "c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
 
@@ -1471,7 +1471,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         run(":a:resolve")
 
         then: // change is ignored due to normalization
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed()
         outputContains("result = [b.jar.green, c.jar.green]")
     }
@@ -1513,7 +1513,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         run(":a:resolve")
 
         then:
-        result.assertTasksNotSkipped(":b:producer", ":a:resolve")
+        result.assertTasksExecuted(":b:producer", ":a:resolve")
         transformed("b-dir")
         outputContains("result = [b-dir.green]")
     }

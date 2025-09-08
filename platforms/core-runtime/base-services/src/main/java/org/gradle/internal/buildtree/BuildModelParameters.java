@@ -19,6 +19,8 @@ package org.gradle.internal.buildtree;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.Map;
+
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildModelParameters {
 
@@ -36,7 +38,19 @@ public interface BuildModelParameters {
 
     boolean isConfigurationCache();
 
+    boolean isConfigurationCacheParallelStore();
+
+    boolean isConfigurationCacheParallelLoad();
+
     boolean isIsolatedProjects();
+
+    /**
+     * Whether projects should be configured in parallel.
+     * <p>
+     * This should only take effect if {@link #isConfigureOnDemand() configure-on-demand}
+     * is not making us skip eager project configuration.
+     */
+    boolean isParallelProjectConfiguration();
 
     /**
      * When {@link  #isIsolatedProjects()} is true, should intermediate tooling models be cached?
@@ -61,4 +75,16 @@ public interface BuildModelParameters {
      * This parameter is only used for benchmarking purposes.
      */
     boolean isModelAsProjectDependency();
+
+    /**
+     * Returns true if the model building is resilient so some failures in model building.
+     *
+     * @return true if the model building is resilient, false otherwise
+     */
+    boolean isResilientModelBuilding();
+
+    /**
+     * Collects all properties and their values in a map for logging and testing purposes.
+     */
+    Map<String, Boolean> toDisplayMap();
 }

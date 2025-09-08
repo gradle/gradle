@@ -22,6 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
@@ -338,7 +339,7 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
 
     private void addOutgoingConfigurationForLinkUsage(SoftwareComponentContainer components, final RoleBasedConfigurationContainerInternal configurations) {
         components.withType(ConfigurableComponentWithLinkUsage.class, component -> {
-            Configuration linkElements = configurations.consumableLocked(component.getNames().withSuffix("linkElements"), conf -> {
+            Provider<ConsumableConfiguration> linkElements = configurations.consumable(component.getNames().withSuffix("linkElements"), conf -> {
                 conf.extendsFrom(component.getImplementationDependencies());
                 copyAttributesTo(component.getLinkAttributes(), conf);
                 conf.getOutgoing().artifact(component.getLinkFile());
@@ -350,7 +351,7 @@ public abstract class NativeBasePlugin implements Plugin<Project> {
 
     private void addOutgoingConfigurationForRuntimeUsage(SoftwareComponentContainer components, final RoleBasedConfigurationContainerInternal configurations) {
         components.withType(ConfigurableComponentWithRuntimeUsage.class, component -> {
-            Configuration runtimeElements = configurations.consumableLocked(component.getNames().withSuffix("runtimeElements"), conf -> {
+            Provider<ConsumableConfiguration> runtimeElements = configurations.consumable(component.getNames().withSuffix("runtimeElements"), conf -> {
                 conf.extendsFrom(component.getImplementationDependencies());
                 copyAttributesTo(component.getRuntimeAttributes(), conf);
                 if (component.hasRuntimeFile()) {

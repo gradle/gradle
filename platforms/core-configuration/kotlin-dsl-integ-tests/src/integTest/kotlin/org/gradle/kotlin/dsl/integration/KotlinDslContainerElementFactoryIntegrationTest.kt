@@ -66,7 +66,7 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
             .assertHasErrorOutput("Unresolved reference '$otherElementFactoryName'")
 
         with(build("printNames", enableDclCliFlag)) {
-            assertTaskExecuted(":printNames")
+            assertTaskScheduled(":printNames")
             assertOutputContains("[one, two, four, three]")
         }
 
@@ -74,7 +74,7 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
         enableDclInGradleProperties()
 
         with(build("printNames")) {
-            assertTaskExecuted(":printNames")
+            assertTaskScheduled(":printNames")
             assertOutputContains("[one, two, four, three]")
         }
     }

@@ -134,7 +134,7 @@ configurations {
 }
 
 dependencies {
-    "sampleConfig"(group = "org.sample", name = "api", version = "1+")
+    "sampleConfig"("org.sample:api:1+")
 }
 
 tasks.register("resolveConfiguration") {

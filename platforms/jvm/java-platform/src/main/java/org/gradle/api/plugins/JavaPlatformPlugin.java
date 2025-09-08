@@ -20,6 +20,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationPublications;
+import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
@@ -31,6 +32,7 @@ import org.gradle.api.internal.java.DefaultJavaPlatformExtension;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
@@ -90,7 +92,7 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
         configurePublishing(project);
     }
 
-    private void createSoftwareComponent(Project project, Configuration apiElements, Configuration runtimeElements) {
+    private void createSoftwareComponent(Project project, Provider<ConsumableConfiguration> apiElements, Provider<ConsumableConfiguration> runtimeElements) {
         AdhocComponentWithVariants component = softwareComponentFactory.adhoc("javaPlatform");
         project.getComponents().add(component);
         component.addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", false));
@@ -104,7 +106,7 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
         // API
         Configuration api = configurations.dependencyScopeLocked(API_CONFIGURATION_NAME);
 
-        Configuration apiElements = createConsumableApi(project, api, API_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM, Collections.emptySet());
+        Provider<ConsumableConfiguration> apiElements = createConsumableApi(project, api, API_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM, Collections.emptySet());
         createConsumableApi(project, api, ENFORCED_API_ELEMENTS_CONFIGURATION_NAME, Category.ENFORCED_PLATFORM, Collections.singleton(enforcedCapability));
 
         // Runtime
@@ -112,7 +114,7 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
             conf.extendsFrom(api);
         });
 
-        Configuration runtimeElements = createConsumableRuntime(project, runtime, RUNTIME_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM, Collections.emptySet());
+        Provider<ConsumableConfiguration> runtimeElements = createConsumableRuntime(project, runtime, RUNTIME_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM, Collections.emptySet());
         createConsumableRuntime(project, runtime, ENFORCED_RUNTIME_ELEMENTS_CONFIGURATION_NAME, Category.ENFORCED_PLATFORM, Collections.singleton(enforcedCapability));
 
         // Resolvable configuration used for publishing resolved versions.
@@ -127,8 +129,8 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
         createSoftwareComponent(project, apiElements, runtimeElements);
     }
 
-    private Configuration createConsumableRuntime(ProjectInternal project, Configuration runtime, String name, String platformKind, Set<Capability> capabilities) {
-        return project.getConfigurations().consumableLocked(name, runtimeElements -> {
+    private Provider<ConsumableConfiguration> createConsumableRuntime(ProjectInternal project, Configuration runtime, String name, String platformKind, Set<Capability> capabilities) {
+        return project.getConfigurations().consumable(name, runtimeElements -> {
             runtimeElements.extendsFrom(runtime);
 
             declareConfigurationUsage(project.getObjects(), runtimeElements, Usage.JAVA_RUNTIME);
@@ -139,8 +141,8 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
         });
     }
 
-    private Configuration createConsumableApi(ProjectInternal project, Configuration api, String name, String platformKind, Set<Capability> capabilities) {
-        return project.getConfigurations().consumableLocked(name, apiElements -> {
+    private Provider<ConsumableConfiguration> createConsumableApi(ProjectInternal project, Configuration api, String name, String platformKind, Set<Capability> capabilities) {
+        return project.getConfigurations().consumable(name, apiElements -> {
             apiElements.extendsFrom(api);
 
             declareConfigurationUsage(project.getObjects(), apiElements, Usage.JAVA_API);

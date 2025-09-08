@@ -75,7 +75,6 @@ public class DefaultJavaExecAction implements JavaExecAction {
         return javaExecHandleBuilder.getMainClass();
     }
 
-    @Nullable
     @Override
     public List<String> getArgs() {
         return javaExecHandleBuilder.getArgs();
@@ -94,13 +93,13 @@ public class DefaultJavaExecAction implements JavaExecAction {
     }
 
     @Override
-    public JavaExecSpec setArgs(@Nullable List<String> args) {
+    public JavaExecSpec setArgs(List<String> args) {
         javaExecHandleBuilder.setArgs(args);
         return this;
     }
 
     @Override
-    public JavaExecSpec setArgs(@Nullable Iterable<?> args) {
+    public JavaExecSpec setArgs(Iterable<?> args) {
         javaExecHandleBuilder.setArgs(args);
         return this;
     }
@@ -236,19 +235,18 @@ public class DefaultJavaExecAction implements JavaExecAction {
         javaExecHandleBuilder.setMaxHeapSize(heapSize);
     }
 
-    @Nullable
     @Override
     public List<String> getJvmArgs() {
         return javaExecHandleBuilder.getJvmArgs();
     }
 
     @Override
-    public void setJvmArgs(@Nullable List<String> arguments) {
+    public void setJvmArgs(List<String> arguments) {
         javaExecHandleBuilder.setJvmArgs(arguments);
     }
 
     @Override
-    public void setJvmArgs(@Nullable Iterable<?> arguments) {
+    public void setJvmArgs(Iterable<?> arguments) {
         javaExecHandleBuilder.setJvmArgs(arguments);
     }
 
@@ -321,11 +319,13 @@ public class DefaultJavaExecAction implements JavaExecAction {
     }
 
     @Override
+    @Deprecated
     public void setAllJvmArgs(List<String> arguments) {
         throw new UnsupportedOperationException();
     }
 
     @Override
+    @Deprecated
     public void setAllJvmArgs(Iterable<?> arguments) {
         throw new UnsupportedOperationException();
     }

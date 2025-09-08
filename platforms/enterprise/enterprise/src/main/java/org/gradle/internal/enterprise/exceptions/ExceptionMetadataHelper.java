@@ -44,7 +44,7 @@ public final class ExceptionMetadataHelper {
 
         if (t instanceof TaskExecutionException) {
             TaskExecutionException taskExecutionException = (TaskExecutionException) t;
-            String taskPath = ((TaskInternal) taskExecutionException.getTask()).getIdentityPath().getPath();
+            String taskPath = ((TaskInternal) taskExecutionException.getTask()).getIdentityPath().asString();
             metadata.put(METADATA_KEY_TASK_PATH, taskPath);
         }
 

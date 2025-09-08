@@ -22,9 +22,9 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 public class DefaultProjectModelResolver implements ProjectModelResolver {
-    private final ProjectRegistry<ProjectInternal> delegate;
+    private final ProjectRegistry delegate;
 
-    public DefaultProjectModelResolver(ProjectRegistry<ProjectInternal> delegate) {
+    public DefaultProjectModelResolver(ProjectRegistry delegate) {
         this.delegate = delegate;
     }
 

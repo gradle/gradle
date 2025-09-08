@@ -75,7 +75,7 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
 
         val result = build("classes")
 
-        result.assertTaskExecuted(":compileKotlin")
+        result.assertTaskScheduled(":compileKotlin")
     }
 
     @Test
@@ -280,7 +280,7 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
 
         val result = build("classes")
 
-        result.assertTaskExecuted(":compileKotlin")
+        result.assertTaskScheduled(":compileKotlin")
     }
 
     @Test
@@ -334,7 +334,7 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
 
         val result = build("classes")
 
-        result.assertTaskExecuted(":compileKotlin")
+        result.assertTaskScheduled(":compileKotlin")
     }
 
     private

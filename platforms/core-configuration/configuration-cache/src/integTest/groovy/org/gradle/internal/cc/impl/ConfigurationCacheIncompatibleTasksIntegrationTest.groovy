@@ -32,7 +32,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         configurationCacheRun("declared")
 
         then:
-        result.assertTasksExecuted(":declared")
+        result.assertTasksScheduled(":declared")
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
             loadsAfterStore = false
@@ -45,7 +45,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         configurationCacheRun("declared")
 
         then:
-        result.assertTasksExecuted(":declared")
+        result.assertTasksScheduled(":declared")
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
             loadsAfterStore = false
@@ -78,7 +78,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         configurationCacheRun("reportedlyIncompatible")
 
         then:
-        result.assertTasksExecuted(":reportedlyIncompatible")
+        result.assertTasksScheduled(":reportedlyIncompatible")
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
             loadsAfterStore = false
@@ -98,14 +98,14 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         configurationCacheRun("declared")
 
         then:
-        result.assertTasksExecuted(":declared")
+        result.assertTasksScheduled(":declared")
         assertStateStoredAndDiscardedForDeclaredTask(9)
 
         when:
         configurationCacheRun("declared")
 
         then:
-        result.assertTasksExecuted(":declared")
+        result.assertTasksScheduled(":declared")
         assertStateStoredAndDiscardedForDeclaredTask(9)
     }
 
@@ -117,7 +117,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         configurationCacheRun "declared", "$MAX_PROBLEMS_SYS_PROP=1", "--configuration-cache-problems=$mode"
 
         then:
-        result.assertTasksExecuted(":declared")
+        result.assertTasksScheduled(":declared")
         assertStateStoredAndDiscardedForDeclaredTask(9)
 
         where:
@@ -165,7 +165,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         configurationCacheFails("markedIncompatible", "broken")
 
         then:
-        result.assertTasksExecuted(":markedIncompatible", ":broken")
+        result.assertTasksScheduled(":markedIncompatible", ":broken")
         fixture.assertStateStoredAndDiscarded {
             loadsAfterStore = false
             serializationProblem("Task `:broken` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
@@ -176,7 +176,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         configurationCacheFails("markedIncompatible", "broken")
 
         then:
-        result.assertTasksExecuted(":markedIncompatible", ":broken")
+        result.assertTasksScheduled(":markedIncompatible", ":broken")
         fixture.assertStateStoredAndDiscarded {
             loadsAfterStore = false
             serializationProblem("Task `:broken` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
@@ -208,7 +208,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         failureDescriptionStartsWith("Execution failed for task ':broken'.")
         failureCauseContains("Invocation of 'Task.project' by task ':broken' at execution time is unsupported with the configuration cache.")
 
-        result.assertTasksExecuted(":markedIncompatible", ":broken")
+        result.assertTasksScheduled(":markedIncompatible", ":broken")
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
             loadsAfterStore = false
@@ -225,7 +225,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         configurationCacheRun("declared")
 
         then:
-        result.assertTasksExecuted(":declared")
+        result.assertTasksScheduled(":declared")
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
             loadsAfterStore = false
@@ -235,7 +235,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         configurationCacheRun("declared")
 
         then:
-        result.assertTasksExecuted(":declared")
+        result.assertTasksScheduled(":declared")
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
             loadsAfterStore = false
@@ -249,7 +249,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         configurationCacheRunLenient("declared")
 
         then:
-        result.assertTasksExecuted(":declared")
+        result.assertTasksScheduled(":declared")
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
             loadsAfterStore = false
@@ -262,7 +262,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         configurationCacheRunLenient("declared")
 
         then:
-        result.assertTasksExecuted(":declared")
+        result.assertTasksScheduled(":declared")
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
             loadsAfterStore = false
@@ -279,7 +279,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         configurationCacheRunLenient("declared")
 
         then:
-        result.assertTasksExecuted(":declared")
+        result.assertTasksScheduled(":declared")
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
             loadsAfterStore = false
@@ -290,7 +290,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         configurationCacheRunLenient("declared")
 
         then:
-        result.assertTasksExecuted(":declared")
+        result.assertTasksScheduled(":declared")
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
             loadsAfterStore = false
@@ -315,7 +315,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         configurationCacheRun("reliesOnSerialization")
 
         then:
-        result.assertTasksExecuted(":declared", ":reliesOnSerialization")
+        result.assertTasksScheduled(":declared", ":reliesOnSerialization")
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
             loadsAfterStore = false

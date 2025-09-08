@@ -20,9 +20,7 @@ import groovy.transform.stc.SimpleType
 import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -53,7 +51,7 @@ class ToolingApi implements TestRule {
     private boolean requiresDaemon
     private boolean requireIsolatedDaemons
     private ConnectorFactory connectorFactory = new SharedConnectorFactory()
-    private context = new IntegrationTestBuildContext()
+    private context = IntegrationTestBuildContext.INSTANCE
 
     private final List<Closure> connectorConfigurers = []
     boolean verboseLogging = LOGGER.debugEnabled
@@ -67,7 +65,7 @@ class ToolingApi implements TestRule {
         this.useSeparateDaemonBaseDir = DefaultGradleConnector.metaClass.respondsTo(null, "daemonBaseDir")
         this.gradleUserHomeDir = context.gradleUserHomeDir
         this.daemonBaseDir = context.daemonBaseDir
-        this.requiresDaemon = !GradleContextualExecuter.embedded
+        this.requiresDaemon = !IntegrationTestBuildContext.embedded
         this.testWorkDirProvider = testWorkDirProvider
     }
 
@@ -75,21 +73,19 @@ class ToolingApi implements TestRule {
         this.dist = dist
     }
 
-    /**
-     * Specifies that the test use its own Gradle user home dir and daemon registry.
-     */
-    void requireIsolatedUserHome() {
-        withUserHome(testWorkDirProvider.testDirectory.file("user-home-dir"))
+    GradleDistribution getDistribution() {
+        return dist
     }
 
-    GradleExecuter createExecuter() {
-        def executer = dist.executer(testWorkDirProvider, context)
-            .withGradleUserHomeDir(gradleUserHomeDir)
-            .withDaemonBaseDir(daemonBaseDir)
-        if (requiresDaemon) {
-            executer.requireDaemon()
-        }
-        return executer
+    /**
+     * Specifies that the test use its own Gradle user home dir and daemon registry.
+     *
+     * @return the user home directory that is used by the test
+     */
+    TestFile requireIsolatedUserHome() {
+        TestFile dir = testWorkDirProvider.testDirectory.file("user-home-dir")
+        withUserHome(dir)
+        return dir
     }
 
     void withUserHome(TestFile userHomeDir) {
@@ -251,11 +247,7 @@ class ToolingApi implements TestRule {
 
         connector.forProjectDirectory(projectDir)
 
-        if (embedded) {
-            connector.useClasspathDistribution()
-        } else {
-            connector.useInstallation(dist.gradleHomeDir.absoluteFile)
-        }
+        connector.useInstallation(dist.gradleHomeDir.absoluteFile)
         connector.embedded(embedded)
 
         if (GradleVersion.version(dist.getVersion().version) < GradleVersion.version("6.0")) {
@@ -314,7 +306,7 @@ class ToolingApi implements TestRule {
      */
     boolean isEmbedded() {
         // Use in-process build when running tests in embedded mode and daemon is not required
-        return GradleContextualExecuter.embedded && !requiresDaemon && GradleVersion.current() == dist.version
+        return IntegrationTestBuildContext.embedded && !requiresDaemon && GradleVersion.current() == dist.version
     }
 
     @Override

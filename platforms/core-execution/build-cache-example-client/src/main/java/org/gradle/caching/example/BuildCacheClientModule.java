@@ -37,9 +37,8 @@ import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.ProcessMetaDataProvider;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
-import org.gradle.cache.internal.locklistener.InetAddressProvider;
+import org.gradle.cache.internal.locklistener.RejectingFileLockContentionHandler;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.DefaultBuildCacheController;
 import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration;
@@ -99,13 +98,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.util.function.Supplier;
 
-import static org.gradle.cache.FileLockManager.LockMode.OnDemand;
+import static org.gradle.cache.FileLockManager.LockMode.OnDemandEagerRelease;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 
 @SuppressWarnings("CloseableProvides")
@@ -162,22 +158,8 @@ class BuildCacheClientModule extends AbstractModule {
     }
 
     @Provides
-    FileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory) {
-        return new DefaultFileLockContentionHandler(executorFactory, new InetAddressProvider() {
-            @Override
-            public InetAddress getWildcardBindingAddress() {
-                return new InetSocketAddress(0).getAddress();
-            }
-
-            @Override
-            public InetAddress getCommunicationAddress() {
-                try {
-                    return InetAddress.getByName(null);
-                } catch (UnknownHostException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        });
+    FileLockContentionHandler createFileLockContentionHandler() {
+        return new RejectingFileLockContentionHandler();
     }
 
     @Provides
@@ -222,7 +204,7 @@ class BuildCacheClientModule extends AbstractModule {
             return new DefaultCacheBuilder(cacheFactory, buildCacheDir)
                 .withCleanupStrategy(cacheCleanupStrategy)
                 .withDisplayName("Build cache")
-                .withInitialLockMode(OnDemand)
+                .withInitialLockMode(OnDemandEagerRelease)
                 .open();
         }
 

@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.project.ProjectIdentity
@@ -44,8 +43,9 @@ class ProjectDependencyMetadataConverterTest extends AbstractDependencyDescripto
 
     def "test create from project dependency"() {
         given:
+        def projectId = ProjectIdentity.forRootProject(Path.ROOT, "foo")
         def projectState = Stub(ProjectState) {
-            getIdentity() >> new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "foo")
+            getIdentity() >> projectId
         }
 
         def projectDependency = new DefaultProjectDependency(projectState)
@@ -62,7 +62,7 @@ class ProjectDependencyMetadataConverterTest extends AbstractDependencyDescripto
         assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData, withArtifacts)
         !dependencyMetaData.changing
         !dependencyMetaData.force
-        dependencyMetaData.selector == new DefaultProjectComponentSelector(new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "root"), ImmutableAttributes.EMPTY, ImmutableSet.of())
+        dependencyMetaData.selector == new DefaultProjectComponentSelector(projectId, ImmutableAttributes.EMPTY, ImmutableSet.of())
 
         where:
         withArtifacts << [true, false]

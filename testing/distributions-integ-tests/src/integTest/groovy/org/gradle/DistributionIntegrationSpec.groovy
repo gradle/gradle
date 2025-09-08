@@ -34,7 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
-    protected static final THIRD_PARTY_LIB_COUNT = 127
+    protected static final THIRD_PARTY_LIB_COUNT = 126
 
     @Shared
     String baseVersion = GradleVersion.current().baseVersion.version
@@ -88,6 +88,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "functional",
         "gradle-cli",
         "gradle-cli-main",
+        "groovy-loader",
         "hashing",
         "input-tracking",
         "installation-beacon",
@@ -124,6 +125,8 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "service-registry-builder",
         "service-registry-impl",
         "snapshots",
+        "software-features",
+        "software-features-api",
         "stdlib-java-extensions",
         "stdlib-kotlin-extensions",
         "time",

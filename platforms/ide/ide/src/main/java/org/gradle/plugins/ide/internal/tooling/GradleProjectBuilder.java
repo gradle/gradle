@@ -62,7 +62,7 @@ public class GradleProjectBuilder implements GradleProjectBuilderInternal {
             .collect(toList());
 
         ProjectInternal projectInternal = (ProjectInternal) project;
-        String projectIdentityPath = projectInternal.getIdentityPath().getPath();
+        String projectIdentityPath = projectInternal.getIdentityPath().asString();
         DefaultGradleProject gradleProject = new DefaultGradleProject()
             .setProjectIdentifier(new DefaultProjectIdentifier(project.getRootDir(), project.getPath()))
             .setName(project.getName())

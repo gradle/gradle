@@ -183,5 +183,11 @@ If the output isn't present in the local cache, it'll be downloaded from the rem
 To try out the remote Build Cache, Gradle provides a free link:https://hub.docker.com/r/gradle/build-cache-node[Docker image] for a single remote Build Cache node.
 For production grade deployments, link:https://gradle.com/gradle-enterprise-solutions/build-cache/[Develocity] is recommended.
 
+== Step 5. Next steps
+
+If you haven’t read the <<gradle_basics.adoc#gradle,Learning the Basics>> section yet, we recommend starting there to build a solid foundation.
+
+Already comfortable with the basics? Great — you’re ready to move on to the intermediate concepts next.
+
 [.text-right]
-**Next Step:** <<part7_gradle_refs.adoc#part7_begin,Using Reference Materials>> >>
+**Next Step:** <<getting_started_dev.adoc#dev_introduction,Go Beyond The Basics>> >>

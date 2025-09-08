@@ -50,7 +50,7 @@ class CppLibraryWithStaticLinkagePublishingIntegrationTest extends AbstractInsta
         run('publish')
 
         then:
-        result.assertTasksExecuted(
+        result.assertTasksScheduled(
             tasks.debug.allToCreate,
             tasks.release.allToCreate,
             ":generatePomFileForMainDebugPublication",

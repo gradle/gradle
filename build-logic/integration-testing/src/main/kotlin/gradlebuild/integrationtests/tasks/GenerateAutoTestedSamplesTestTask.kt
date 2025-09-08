@@ -99,7 +99,7 @@ class ${className} extends AbstractAutoTestedSamplesTest {
     '''
     @Test
     void runSamples() {
-        runSamplesFromFile(new File('${file.file.absoluteFile}'), FILE_CONTENT)
+        runSamplesFromFile(new File('${file.relativePath.toString().replace("\\", "/")}'), FILE_CONTENT)
     }
 }
 """

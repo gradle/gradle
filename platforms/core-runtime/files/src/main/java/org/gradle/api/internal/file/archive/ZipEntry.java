@@ -76,8 +76,7 @@ public interface ZipEntry {
 
     // Copied from org.gradle.internal.io.IoFunction in :functional due to
     // JDK version mismatch between the projects
-    interface IoFunction<T, R> {
-        @Nullable
-        R apply(@Nullable T t) throws IOException;
+    interface IoFunction<T extends @Nullable Object, R extends @Nullable Object> {
+        R apply(T t) throws IOException;
     }
 }

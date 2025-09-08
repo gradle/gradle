@@ -404,7 +404,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         runWithInput("generate", prompt, "value")
 
         then:
-        result.assertTaskNotSkipped(":generate")
+        result.assertTaskExecuted(":generate")
         file("build/out.txt").text == "value"
 
         when:
@@ -417,7 +417,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         runWithInput("generate", prompt, "")
 
         then:
-        result.assertTaskNotSkipped(":generate")
+        result.assertTaskExecuted(":generate")
         file("build/out.txt").text == "<default>"
 
         when:

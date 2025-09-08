@@ -76,7 +76,7 @@ class ProjectCacheDirIntegrationTest extends AbstractIntegrationSpec implements 
         succeeds("doIt", "--project-cache-dir", projectCacheDir.name)
 
         then:
-        result.assertTasksExecuted(":buildSrc:classes", ":buildSrc:compileGroovy", ":buildSrc:compileJava", ":buildSrc:jar", ":buildSrc:processResources", ":doIt", ":included:doIt")
+        result.assertTasksScheduled(":buildSrc:classes", ":buildSrc:compileGroovy", ":buildSrc:compileJava", ":buildSrc:jar", ":buildSrc:processResources", ":doIt", ":included:doIt")
         projectCacheDir.assertExists()
         defaultProjectCacheDir.assertDoesNotExist()
     }

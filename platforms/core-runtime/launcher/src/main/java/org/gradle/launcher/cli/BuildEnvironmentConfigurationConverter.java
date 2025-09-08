@@ -64,7 +64,7 @@ public class BuildEnvironmentConfigurationConverter {
         this.startParameterConverter = startParameterConverter;
         this.daemonParametersConverter = daemonParametersConverter;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.toolchainConfigurationBuildOptionBackedConverter = new BuildOptionBackedConverter<>(new ToolchainBuildOptions());
+        this.toolchainConfigurationBuildOptionBackedConverter = new BuildOptionBackedConverter<>(ToolchainBuildOptions.forToolChainConfiguration());
     }
 
     public BuildEnvironmentConfigurationConverter(BuildLayoutFactory buildLayoutFactory, FileCollectionFactory fileCollectionFactory) {
