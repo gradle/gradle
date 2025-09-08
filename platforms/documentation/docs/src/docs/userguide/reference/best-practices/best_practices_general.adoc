@@ -194,7 +194,6 @@ include::sample[dir="snippets/bestPractices/avoidInternal-do/groovy",files="buil
 
 <<tags_reference.adoc#tag:upgrades,`#upgrades`>>
 
-
 [[use_the_gradle_properties_file]]
 == Set build flags in `gradle.properties`
 
