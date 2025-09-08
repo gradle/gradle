@@ -90,6 +90,18 @@ fun createQuickFeedbackTasks(sourceSet: SourceSet, releasedVersions: ReleasedVer
             tasks.named("check").configure { dependsOn(testTask) }
         }
     }
+
+    tasks.named("quickTest") {
+        dependsOn("embeddedCrossVersionTest")
+    }
+
+    tasks.named("platformTest") {
+        dependsOn("forkingCrossVersionTest")
+    }
+
+    tasks.named("quickFeedbackCrossVersionTest") {
+        dependsOn("quickFeedbackCrossVersionTests")
+    }
 }
 
 fun createAggregateTasks(sourceSet: SourceSet, releasedVersions: ReleasedVersionsDetails?) {
