@@ -362,7 +362,8 @@ Gradle allows `gradle.properties` files in both the root project and subprojects
 Gradle itself and many popular plugins (such as the Android Gradle Plugin and Kotlin Gradle Plugin) do not reliably handle this pattern.  
 
 Using it outside of the root project makes it also difficult to trace what Gradle property values are set throughout the project, understand where they were set or overridden, or predict what the actual value will be.
-If you need to set properties for a specific sub-project it's better to set them in your build files. If you need to set things across multiple subprojects it's better to use a convention plugin for this purpose. 
+If you need to set properties for a *single subproject*, define them directly in that subproject’s `build.gradle(.kts)`.  
+If you need to apply properties across *multiple subprojects*, extract the configuration into a <<custom_plugins.adoc#sec:convention_plugins,convention plugin>>.
 
 === Example
 
