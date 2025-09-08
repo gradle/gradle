@@ -28,7 +28,7 @@ val jaxbVersion = "3.0.0"
 val junit5Version = "5.12.2"
 val mavenVersion = "3.9.5"
 val mavenResolverVersion = "1.9.16" // Should remain in-sync with `mavenVersion`
-val nativePlatformVersion = "0.22-milestone-28"
+val nativePlatformVersion = "0.22-milestone-29"
 /**
  * Should be in sync with:
  * tooling API-related docs & snippets
