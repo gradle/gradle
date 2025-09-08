@@ -51,13 +51,11 @@ class JUnit4TestExecutionIntegrationTest extends AbstractJUnitTestExecutionInteg
         """
 
         when:
-        fails('test', '-x', 'compileTestJava')
+        fails('test', '-x', 'compileTestJava', '-S')
 
         then:
-        // TODO: This doesn't look like the other test frameworks
-        failure.assertHasCause("There were failing tests.")
-        DefaultTestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
-        assertFailedToExecute(testResult, 'com.example.Foo').assertTestCount(1, 1, 0)
+        failure.assertHasCause("Could not execute test class 'com.example.Foo'.")
+        failure.getError().contains("Caused by: java.lang.ClassFormatError: Incompatible magic value 1768846945 in class file com/example/Foo")
     }
 
     def "test thread name is reset after test execution"() {

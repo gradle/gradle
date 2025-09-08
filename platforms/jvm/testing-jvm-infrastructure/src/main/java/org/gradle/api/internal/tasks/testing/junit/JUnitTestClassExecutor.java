@@ -85,6 +85,11 @@ public class JUnitTestClassExecutor implements Action<String> {
             if (started) {
                 executionListener.testClassFinished(TestFailure.fromTestFrameworkFailure(throwable));
             }
+
+            // Don't swallow Errors, as they indicate JVM problems that should explode the test run
+            if (throwable instanceof Error) {
+                throw (Error) throwable;
+            }
         }
     }
 
