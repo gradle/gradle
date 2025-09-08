@@ -361,7 +361,9 @@ Do not place a `gradle.properties` file inside subprojects to configure your bui
 Gradle allows `gradle.properties` files in both the root project and subprojects, but support for subproject properties is inconsistent. 
 Gradle itself and many popular plugins (such as the Android Gradle Plugin and Kotlin Gradle Plugin) do not reliably handle this pattern.  
 
-Using it outside of the root project makes it also difficult to trace what Gradle property values are set throughout the project, understand where they were set or overridden, or predict what the actual value will be.
+Using subproject `gradle.properties` files also makes it harder to understand and debug your build. 
+Property values may be scattered across multiple locations, overridden in unexpected ways, or difficult to trace back to their source.
+
 If you need to set properties for a *single subproject*, define them directly in that subproject’s `build.gradle(.kts)`.  
 If you need to apply properties across *multiple subprojects*, extract the configuration into a <<custom_plugins.adoc#sec:convention_plugins,convention plugin>>.
 
