@@ -41,7 +41,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    def "broken settings file - strict mode - build action"() {
+    def "receive root project with broken settings file"() {
         given:
         settingsKotlinFile << """
             blow up !!!
@@ -58,7 +58,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         model.build.failure.toString().contains("Script compilation error")
     }
 
-    def "basic project - broken root build file with build action"() {
+    def "receive root project with broken root build file"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -74,7 +74,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         model.paths == [":"]
     }
 
-    def "basic project w/ included build - broken included build build file - build action"() {
+    def "receive root project and included build root project with broken included build file"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -102,7 +102,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
     }
 
 
-    def "basic project w/ included build in pluginManagement - broken included build build file - build action"() {
+    def "receive root project and included plugin project root with broken included build file"() {
         given:
         settingsKotlinFile << """
         pluginManagement {
@@ -126,7 +126,7 @@ class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
         model.paths == [":", ":included-plugin"]
     }
 
-    def "basic project w/ included build - broken included build settings file and build script - strict mode - build action"() {
+    def "receive root project and included build root project (non-relative) with broken included settings file"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
