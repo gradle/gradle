@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
@@ -38,7 +39,11 @@ class DefaultDependencySubstitutionSpec extends Specification {
     def details = newSubstitution()
 
     private DefaultDependencySubstitution newSubstitution() {
-        new DefaultDependencySubstitution(DependencyManagementTestUtil.componentSelectionDescriptorFactory(), componentSelector, artifacts)
+        new DefaultDependencySubstitution(
+            DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
+            componentSelector,
+            ImmutableList.copyOf(artifacts)
+        )
     }
 
     def "can override target and selection reason for project"() {
@@ -48,10 +53,9 @@ class DefaultDependencySubstitutionSpec extends Specification {
 
         then:
         details.requested == componentSelector
-        details.target.group == "org"
-        details.target.module == "foo"
-        details.target.version == "3.0"
-        details.updated
+        details.configuredTargetSelector.group == "org"
+        details.configuredTargetSelector.module == "foo"
+        details.configuredTargetSelector.version == "3.0"
         details.ruleDescriptors == [FORCED, SELECTED_BY_RULE]
     }
 
@@ -74,9 +78,8 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.useTarget("org:bar:2.0")
 
         then:
-        details.target instanceof ModuleComponentSelector
-        details.target.toString() == 'org:bar:2.0'
-        details.updated
+        details.configuredTargetSelector instanceof ModuleComponentSelector
+        details.configuredTargetSelector.toString() == 'org:bar:2.0'
         details.ruleDescriptors == [SELECTED_BY_RULE]
     }
 
@@ -85,9 +88,8 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.useTarget("org:bar:2.0", 'with custom reason')
 
         then:
-        details.target instanceof ModuleComponentSelector
-        details.target.toString() == 'org:bar:2.0'
-        details.updated
+        details.configuredTargetSelector instanceof ModuleComponentSelector
+        details.configuredTargetSelector.toString() == 'org:bar:2.0'
         details.ruleDescriptors.last().cause == ComponentSelectionCause.SELECTED_BY_RULE
         details.ruleDescriptors.last().description == 'with custom reason'
     }
@@ -105,9 +107,8 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.useTarget(project)
 
         then:
-        details.target instanceof ProjectComponentSelector
-        details.target.projectPath == ":bar"
-        details.updated
+        details.configuredTargetSelector instanceof ProjectComponentSelector
+        details.configuredTargetSelector.projectPath == ":bar"
         details.ruleDescriptors == [SELECTED_BY_RULE]
     }
 
@@ -118,13 +119,11 @@ class DefaultDependencySubstitutionSpec extends Specification {
         }
 
         then:
-        details.target == componentSelector
-        details.updated
-        details.artifactSelectionDetails.updated
-        details.artifactSelectionDetails.targetSelectors.size() == 1
-        details.artifactSelectionDetails.targetSelectors[0].type == type
-        details.artifactSelectionDetails.targetSelectors[0].extension == ext
-        details.artifactSelectionDetails.targetSelectors[0].classifier == classifier
+        details.configuredTargetSelector == null
+        details.configuredArtifactSelectors.size() == 1
+        details.configuredArtifactSelectors[0].type == type
+        details.configuredArtifactSelectors[0].extension == ext
+        details.configuredArtifactSelectors[0].classifier == classifier
 
         where:
         type  | ext   | classifier

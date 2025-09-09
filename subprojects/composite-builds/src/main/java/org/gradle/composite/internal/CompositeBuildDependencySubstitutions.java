@@ -63,7 +63,8 @@ public class CompositeBuildDependencySubstitutions implements Action<DependencyS
     public void execute(DependencySubstitution sub) {
         DependencySubstitutionInternal dependencySubstitution = (DependencySubstitutionInternal) sub;
         // Use the result of previous rules as the input for dependency substitution
-        ComponentSelector requested = dependencySubstitution.getTarget();
+        ComponentSelector requested = dependencySubstitution.getConfiguredTargetSelector() != null ?
+            dependencySubstitution.getConfiguredTargetSelector() : dependencySubstitution.getRequested();
         if (requested instanceof ModuleComponentSelector) {
             ModuleComponentSelector selector = (ModuleComponentSelector) requested;
             ProjectComponentIdentifierInternal replacement = getReplacementFor(selector);

@@ -32,7 +32,7 @@ class DefaultPendingDependenciesVisitor implements PendingDependenciesVisitor {
 
     @Override
     public PendingState maybeAddAsPendingDependency(NodeState sourceNode, DependencyState dependencyState) {
-        ModuleIdentifier key = dependencyState.getModuleIdentifier();
+        ModuleIdentifier key = dependencyState.getModuleIdentifier(resolveState.getComponentSelectorConverter());
         boolean isConstraint = dependencyState.getDependency().isConstraint();
         if (!isConstraint) {
             if (markNotPending(key)) {
