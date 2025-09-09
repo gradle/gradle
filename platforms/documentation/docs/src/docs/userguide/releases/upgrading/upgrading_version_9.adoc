@@ -294,7 +294,7 @@ Instead, to overwrite existing JVM arguments, use:
 * `JavaForkOptions.setJvmArgs()`
 * Provide a <<incremental_build.adoc#sec:task_input_nested_inputs,`CommandLineArgumentProvider`>> to add arguments via `JavaForkOptions.getJvmArgumentProviders()`.
 
-Note that previously, link:{javadocPath}/org/gradle/process/JavaForkOptions.html#setAllJvmArgs(java.util.List)[`setAllJvmArgs()` method] on `JavaForkOptions` cleared any existing JVM argument providers in addition to setting jvmArgs. Going forward, this will not happen automatically and will have to be implemented as two separate commands. To clear existing providers, use `JavaForkOptions.getJvmArgumentProviders().clear()`.
+Note that previously, link:{javadocPath}/org/gradle/process/JavaForkOptions.html#setAllJvmArgs(java.util.List)[`setAllJvmArgs()` method] on `JavaForkOptions` cleared any existing JVM argument providers in addition to setting jvmArgs. This should now be done by first clearing the arguments and then setting them to the new desired values.
 
 Example of replacing `setAllJvmArgs`:
 
