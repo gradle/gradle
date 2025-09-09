@@ -315,6 +315,19 @@ include::sample[dir="snippets/bestPractices/nameYourRootProject-avoid/groovy",fi
 In this build, the settings file is empty and the root project has no explicit name.
 Running the `projects` report shows that Gradle assigns an implicit name to the root project, derived from the build’s current directory.
 
+Unfortunately that name varies based on where the project currently lives.
+For example, if the project is checked out into a directory named `some-directory-name`, the output of `./gradlew projects` will look like this:
+
+```
+> Task :projects
+
+Projects:
+
+------------------------------------------------------------
+Root project 'some-directory-name'
+------------------------------------------------------------
+```
+
 ==== Do This Instead
 
 ====
@@ -324,6 +337,11 @@ include::sample[dir="snippets/bestPractices/nameYourRootProject-do/groovy",files
 
 In this build, the root project is explicitly named.
 The explicit name `my-example-project` will be used in all reports, logs, and error messages.
+Regardless of where the project lives, the output of `./gradlew projects` will look like this:
+
+====
+include::sample[dir="snippets/bestPractices/nameYourRootProject-do/tests",files="nameYourRootProject-do.out[]"]
+====
 
 === References
 
