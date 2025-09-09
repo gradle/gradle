@@ -49,18 +49,21 @@ public interface CrossProjectModelAccess {
 
     /**
      * @param referrer The project from which the return value will be used.
+     * @param target The project to get the children of.
      */
-    Map<String, Project> getChildProjects(ProjectInternal referrer, ProjectInternal relativeTo);
+    Map<String, Project> getChildProjects(ProjectInternal referrer, ProjectInternal target);
 
     /**
      * @param referrer The project from which the return value will be used.
+     * @param target The project to get the subprojects of.
      */
-    Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal relativeTo);
+    Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal target);
 
     /**
      * @param referrer The project from which the return value will be used.
+     * @param target The project to get all projects of.
      */
-    Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal relativeTo);
+    Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal target);
 
     /**
      * Given the request from the referrerProject to access the specified Gradle instance, returns

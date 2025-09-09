@@ -20,6 +20,7 @@ import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.tasks.TaskContainer;
 import org.jspecify.annotations.Nullable;
 
@@ -28,8 +29,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-
-import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 
 public class TaskNameResolver {
 
@@ -51,7 +50,7 @@ public class TaskNameResolver {
      * Finds tasks that will have exactly the given name, without necessarily creating or configuring the tasks. Returns null if no such match found.
      */
     @Nullable
-    public TaskSelectionResult selectWithName(final String taskName, final ProjectInternal project, boolean includeSubProjects) {
+    public TaskSelectionResult selectWithName(final String taskName, final ProjectState project, boolean includeSubProjects) {
         if (includeSubProjects) {
             Set<Task> tasks = new LinkedHashSet<>();
             new MultiProjectTaskSelectionResult(taskName, project, false).collectTasks(tasks);
@@ -59,12 +58,13 @@ public class TaskNameResolver {
                 return new FixedTaskSelectionResult(tasks);
             }
         } else {
-            discoverTasks(project);
-            if (hasTask(taskName, project)) {
+            ProjectInternal mutableProject = project.getMutableModel();
+            discoverTasks(mutableProject);
+            if (hasTask(taskName, mutableProject)) {
                 return new TaskSelectionResult() {
                     @Override
                     public void collectTasks(Collection<? super Task> tasks) {
-                        tasks.add(getExistingTask(project, taskName));
+                        tasks.add(getExistingTask(mutableProject, taskName));
                     }
                 };
             }
@@ -76,7 +76,7 @@ public class TaskNameResolver {
     /**
      * Finds the names of all tasks, without necessarily creating or configuring the tasks. Returns an empty map when none are found.
      */
-    public Map<String, TaskSelectionResult> selectAll(ProjectInternal project, boolean includeSubProjects) {
+    public Map<String, TaskSelectionResult> selectAll(ProjectState project, boolean includeSubProjects) {
         Map<String, TaskSelectionResult> selected = new LinkedHashMap<>();
 
         if (includeSubProjects) {
@@ -86,9 +86,10 @@ public class TaskNameResolver {
                 selected.put(taskName, new MultiProjectTaskSelectionResult(taskName, project, true));
             }
         } else {
-            discoverTasks(project);
-            for (String taskName : getTaskNames(project)) {
-                selected.put(taskName, new SingleProjectTaskSelectionResult(taskName, project.getTasks()));
+            ProjectInternal mutableProject = project.getMutableModel();
+            discoverTasks(mutableProject);
+            for (String taskName : mutableProject.getTasks().getNames()) {
+                selected.put(taskName, new SingleProjectTaskSelectionResult(taskName, mutableProject.getTasks()));
             }
         }
 
@@ -103,10 +104,6 @@ public class TaskNameResolver {
         }
     }
 
-    private static Set<String> getTaskNames(ProjectInternal project) {
-        return project.getTasks().getNames();
-    }
-
     private static boolean hasTask(String taskName, ProjectInternal project) {
         return project.getTasks().getNames().contains(taskName) || project.getTasks().findByName(taskName) != null;
     }
@@ -119,11 +116,12 @@ public class TaskNameResolver {
         }
     }
 
-    private void collectTaskNames(ProjectInternal project, Set<String> result) {
-        discoverTasks(project);
-        result.addAll(getTaskNames(project));
-        for (Project subProject : getChildProjectsForInternalUse(project)) {
-            collectTaskNames((ProjectInternal) subProject, result);
+    private static void collectTaskNames(ProjectState project, Set<String> result) {
+        ProjectInternal mutableProject = project.getMutableModel();
+        discoverTasks(mutableProject);
+        result.addAll(mutableProject.getTasks().getNames());
+        for (ProjectState subProject : project.getChildProjects()) {
+            collectTaskNames(subProject, result);
         }
     }
 
@@ -156,11 +154,11 @@ public class TaskNameResolver {
     }
 
     private static class MultiProjectTaskSelectionResult implements TaskSelectionResult {
-        private final ProjectInternal project;
+        private final ProjectState project;
         private final String taskName;
         private final boolean discovered;
 
-        MultiProjectTaskSelectionResult(String taskName, ProjectInternal project, boolean discovered) {
+        MultiProjectTaskSelectionResult(String taskName, ProjectState project, boolean discovered) {
             this.project = project;
             this.taskName = taskName;
             this.discovered = discovered;
@@ -171,19 +169,20 @@ public class TaskNameResolver {
             collect(project, tasks);
         }
 
-        private void collect(ProjectInternal project, Collection<? super Task> tasks) {
+        private void collect(ProjectState project, Collection<? super Task> tasks) {
+            ProjectInternal mutableProject = project.getMutableModel();
             if (!discovered) {
-                discoverTasks(project);
+                discoverTasks(mutableProject);
             }
-            if (hasTask(taskName, project)) {
-                TaskInternal task = getExistingTask(project, taskName);
+            if (hasTask(taskName, mutableProject)) {
+                TaskInternal task = getExistingTask(mutableProject, taskName);
                 tasks.add(task);
                 if (task.getImpliesSubProjects()) {
                     return;
                 }
             }
-            for (Project subProject : getChildProjectsForInternalUse(project)) {
-                collect((ProjectInternal) subProject, tasks);
+            for (ProjectState subProject : project.getChildProjects()) {
+                collect(subProject, tasks);
             }
         }
     }

@@ -16,22 +16,17 @@
 
 package org.gradle.scala.environment
 
-
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.scala.ScalaCompilationFixture
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.junit.Rule
 
 @TargetCoverage({ScalaCoverage.SUPPORTED_BY_JDK})
 class JreJavaHomeScalaIntegrationTest extends MultiVersionIntegrationSpec {
-
-    @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
 
     @Requires(value = [
         IntegTestPreconditions.BestJreAvailable,

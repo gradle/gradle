@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Named;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
@@ -34,6 +35,7 @@ import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
@@ -98,16 +100,30 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
         if (Named.class.isAssignableFrom(dslType)) {
             if (Named.class.isAssignableFrom(target.getClass())) {
                 T result = target.getExtensions().create(softwareFeature.getFeatureName(), dslType, ((Named) target).getName());
-                SoftwareFeatureSupportInternal.registerContextIfAbsent((ExtensionAware) result, this, softwareFeatureRegistry);
+                initializeDefinitionDslObject(result);
                 return result;
             } else {
                 throw new IllegalArgumentException("Cannot infer a name for " + dslType.getSimpleName() + " because the parent object of type " + target.getClass().getSimpleName() + " does not implement Named.");
             }
         } else {
             T result = target.getExtensions().create(softwareFeature.getFeatureName(), dslType);
-            SoftwareFeatureSupportInternal.registerContextIfAbsent((ExtensionAware) result, this, softwareFeatureRegistry);
+            initializeDefinitionDslObject(result);
             return result;
         }
+    }
+
+    private void initializeDefinitionDslObject(Object dslObjectToInitialize) {
+        ExtensionAware dslObject = (ExtensionAware) dslObjectToInitialize;
+
+        SoftwareFeatureSupportInternal.registerContextIfAbsent(dslObject, this, softwareFeatureRegistry);
+        addSoftwafeFeatureDynamicObjectToDefinition((DynamicObjectAware) dslObjectToInitialize);
+    }
+
+    private void addSoftwafeFeatureDynamicObjectToDefinition(DynamicObjectAware dslObjectToInitialize) {
+        ((ExtensibleDynamicObject) dslObjectToInitialize.getAsDynamicObject()).addObject(
+            objectFactory.newInstance(SoftwareFeaturesDynamicObject.class, dslObjectToInitialize),
+            ExtensibleDynamicObject.Location.BeforeConvention
+        );
     }
 
     private static <V> V createBuildModelObject(ExtensionAware target, SoftwareFeatureImplementation<?, V> softwareFeature) {

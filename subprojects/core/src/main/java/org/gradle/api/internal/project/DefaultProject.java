@@ -541,15 +541,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public Map<String, Project> getChildProjectsUnchecked() {
-        Map<String, Project> childProjects = new TreeMap<>();
-        for (ProjectState project : owner.getChildProjects()) {
-            childProjects.put(project.getName(), project.getMutableModel());
-        }
-        return childProjects;
-    }
-
-    @Override
     public Map<String, Project> getChildProjects() {
         return getChildProjects(this);
     }

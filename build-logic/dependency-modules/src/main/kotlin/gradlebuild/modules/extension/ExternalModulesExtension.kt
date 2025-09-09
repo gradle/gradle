@@ -27,7 +27,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     }
 
     val configurationCacheReportVersion = "1.27"
-    val gradleIdeStarterVersion = "0.6"
+    val gradleIdeStarterVersion = "0.8.1"
     val kotlinVersion = "2.2.10"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
@@ -70,6 +70,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val googleOauthClient = "com.google.oauth-client:google-oauth-client"
     val gradleFileEvents = "org.gradle.fileevents:gradle-fileevents"
     val gradleIdeStarter = "org.gradle.buildtool.internal:gradle-ide-starter:$gradleIdeStarterVersion"
+    val gradleIdeStarterScenarios = "org.gradle.buildtool.internal:gradle-ide-starter-scenarios:$gradleIdeStarterVersion"
     val gradleProfiler = "org.gradle.profiler:gradle-profiler"
     val groovy = "org.apache.groovy:groovy"
     val groovyAnt = "org.apache.groovy:groovy-ant"
