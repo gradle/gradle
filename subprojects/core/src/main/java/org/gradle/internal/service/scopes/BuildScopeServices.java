@@ -53,7 +53,6 @@ import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.BuildScopedTaskResolver;
-import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.DefaultProjectTaskLister;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.IProjectFactory;
@@ -209,6 +208,7 @@ import org.gradle.internal.resource.DefaultTextFileResourceLoader;
 import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.SharedResourceLeaseRegistry;
+import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.scripts.ScriptExecutionListener;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.Provides;
@@ -359,9 +359,11 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         return new TaskStatistics();
     }
 
-    @Provides
-    protected ProjectRegistry createProjectRegistry() {
-        return new DefaultProjectRegistry();
+    @SuppressWarnings("deprecation")
+    @UsedByScanPlugin("ImportJUnitXmlReports")
+    @Provides({ProjectRegistry.class, org.gradle.api.internal.project.DefaultProjectRegistry.class})
+    protected org.gradle.api.internal.project.DefaultProjectRegistry createProjectRegistry() {
+        return new org.gradle.api.internal.project.DefaultProjectRegistry();
     }
 
     @Provides
