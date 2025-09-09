@@ -887,7 +887,6 @@ Class <org.gradle.api.plugins.antlr.internal.antlr2.GrammarFileMetadata> is not 
 Class <org.gradle.api.plugins.antlr.internal.antlr2.GrammarMetadata> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (GrammarMetadata.java:0)
 Class <org.gradle.api.plugins.antlr.internal.antlr2.MetadataExtracter> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (MetadataExtracter.java:0)
 Class <org.gradle.api.plugins.antlr.internal.antlr2.XRef> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (XRef.java:0)
-Class <org.gradle.api.plugins.internal.DefaultBasePluginExtension> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultBasePluginExtension.java:0)
 Class <org.gradle.api.plugins.internal.DefaultJavaApplication> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultJavaApplication.java:0)
 Class <org.gradle.api.plugins.internal.DefaultJavaFeatureSpec> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultJavaFeatureSpec.java:0)
 Class <org.gradle.api.plugins.internal.DefaultJavaPluginExtension$DefaultJavaResolutionConsistency> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultJavaPluginExtension.java:0)

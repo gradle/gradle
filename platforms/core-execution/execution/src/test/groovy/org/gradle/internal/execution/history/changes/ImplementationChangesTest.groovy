@@ -109,8 +109,8 @@ class ImplementationChangesTest extends Specification {
         new ClassImplementationSnapshot(type.getName(), classLoaderHash)
     }
 
-    private class SimpleTask extends DefaultTask {}
-    private class PreviousTask extends DefaultTask {}
+    private abstract class SimpleTask extends DefaultTask {}
+    private abstract class PreviousTask extends DefaultTask {}
 
     private static class TestAction implements InputChangesAwareTaskAction {
         @Override

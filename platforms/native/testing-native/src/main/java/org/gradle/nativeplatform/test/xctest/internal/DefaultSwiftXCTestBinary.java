@@ -42,36 +42,19 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
  * Either way, the installation provides a single entry point for executing this binary.
  */
 public abstract class DefaultSwiftXCTestBinary extends DefaultSwiftBinary implements SwiftXCTestBinary {
-    private final RegularFileProperty executableFile;
-    private final DirectoryProperty installDirectory;
-    private final RegularFileProperty runScriptFile;
-    private final Property<XCTest> runTaskProperty;
-
     public DefaultSwiftXCTestBinary(Names names, ObjectFactory objectFactory, NativeDependencyCache nativeDependencyCache, TaskDependencyFactory taskDependencyFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
         super(names, objectFactory, nativeDependencyCache, taskDependencyFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
-        this.executableFile = objectFactory.fileProperty();
-        this.installDirectory = objectFactory.directoryProperty();
-        this.runScriptFile = objectFactory.fileProperty();
-        this.runTaskProperty = objectFactory.property(XCTest.class);
     }
 
     @Override
-    public RegularFileProperty getExecutableFile() {
-        return executableFile;
-    }
+    public abstract RegularFileProperty getExecutableFile();
 
     @Override
-    public DirectoryProperty getInstallDirectory() {
-        return installDirectory;
-    }
+    public abstract DirectoryProperty getInstallDirectory();
 
     @Override
-    public RegularFileProperty getRunScriptFile() {
-        return runScriptFile;
-    }
+    public abstract RegularFileProperty getRunScriptFile();
 
     @Override
-    public Property<XCTest> getRunTask() {
-        return runTaskProperty;
-    }
+    public abstract Property<XCTest> getRunTask();
 }

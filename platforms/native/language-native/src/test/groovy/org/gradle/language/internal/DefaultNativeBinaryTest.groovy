@@ -39,7 +39,7 @@ class DefaultNativeBinaryTest extends Specification {
 
     def "has implementation dependencies"() {
         given:
-        def binary = new TestBinary("binary", project.objects, implementation)
+        def binary = TestUtil.objectFactory().newInstance(TestBinary, "binary", project.objects, implementation)
 
         expect:
         binary.implementationDependencies == project.configurations.binaryImplementation
@@ -48,14 +48,14 @@ class DefaultNativeBinaryTest extends Specification {
 
     def "can add implementation dependency"() {
         given:
-        def binary = new TestBinary("binary", project.objects, implementation)
+        def binary = TestUtil.objectFactory().newInstance(TestBinary, "binary", project.objects, implementation)
         binary.dependencies.implementation("a:b:c:")
 
         expect:
         binary.implementationDependencies.dependencies.size() == 1
     }
 
-    class TestBinary extends DefaultNativeBinary {
+    abstract class TestBinary extends DefaultNativeBinary {
         @Inject
         TestBinary(String name, ObjectFactory objectFactory, Configuration componentImplementation) {
             super(Names.of(name), objectFactory, componentImplementation)

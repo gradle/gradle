@@ -94,9 +94,9 @@ class DefaultRealizableTaskCollectionTest extends Specification {
     }
 }
 
-class BasicTask extends DefaultTask {}
+abstract class BasicTask extends DefaultTask {}
 
-class ChildTask extends BasicTask {}
+abstract class ChildTask extends BasicTask {}
 
-class RedundantTask extends DefaultTask {}
+abstract class RedundantTask extends DefaultTask {}
 

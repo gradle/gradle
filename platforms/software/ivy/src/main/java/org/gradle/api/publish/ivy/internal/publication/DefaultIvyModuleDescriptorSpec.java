@@ -32,6 +32,7 @@ import org.gradle.api.publish.ivy.IvyModuleDescriptorLicense;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependency;
 import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
+import org.gradle.api.tasks.Nested;
 import org.gradle.internal.MutableActionSet;
 import org.jspecify.annotations.Nullable;
 
@@ -49,7 +50,6 @@ public abstract class DefaultIvyModuleDescriptorSpec implements IvyModuleDescrip
     private final IvyExtraInfoSpec extraInfo = new DefaultIvyExtraInfoSpec();
     private final List<IvyModuleDescriptorAuthor> authors = new ArrayList<>();
     private final List<IvyModuleDescriptorLicense> licenses = new ArrayList<>();
-    private IvyModuleDescriptorDescription description;
 
     @Inject
     public DefaultIvyModuleDescriptorSpec(ObjectFactory objectFactory, IvyPublicationCoordinates ivyPublicationCoordinates) {
@@ -124,7 +124,7 @@ public abstract class DefaultIvyModuleDescriptorSpec implements IvyModuleDescrip
 
     @Override
     public void license(Action<? super IvyModuleDescriptorLicense> action) {
-        configureAndAdd(DefaultIvyModuleDescriptorLicense.class, action, licenses);
+        configureAndAdd(IvyModuleDescriptorLicense.class, action, licenses);
     }
 
     @Override
@@ -134,7 +134,7 @@ public abstract class DefaultIvyModuleDescriptorSpec implements IvyModuleDescrip
 
     @Override
     public void author(Action<? super IvyModuleDescriptorAuthor> action) {
-        configureAndAdd(DefaultIvyModuleDescriptorAuthor.class, action, authors);
+        configureAndAdd(IvyModuleDescriptorAuthor.class, action, authors);
     }
 
     @Override
@@ -144,22 +144,18 @@ public abstract class DefaultIvyModuleDescriptorSpec implements IvyModuleDescrip
 
     @Override
     public void description(Action<? super IvyModuleDescriptorDescription> action) {
-        if (description == null) {
-            description = objectFactory.newInstance(DefaultIvyModuleDescriptorDescription.class, objectFactory);
-        }
-        action.execute(description);
+        action.execute(getDescription());
     }
 
     @Override
-    public IvyModuleDescriptorDescription getDescription() {
-        return description;
-    }
+    @Nested
+    public abstract IvyModuleDescriptorDescription getDescription();
 
     @Override
     public abstract Property<Boolean> getWriteGradleMetadataMarker();
 
     private <T> void configureAndAdd(Class<? extends T> clazz, Action<? super T> action, List<T> items) {
-        T item = objectFactory.newInstance(clazz, objectFactory);
+        T item = objectFactory.newInstance(clazz);
         action.execute(item);
         items.add(item);
     }
