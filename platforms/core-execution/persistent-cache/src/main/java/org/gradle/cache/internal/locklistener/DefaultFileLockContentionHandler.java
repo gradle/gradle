@@ -222,7 +222,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
             //the unlock was confirmed we are waiting
             return false;
         }
-        if (port == unlocksRequestedFrom.getOrDefault(lockId, UNKNOWN_PORT) && timeElapsed < PING_DELAY) {
+        if (timeElapsed < PING_DELAY && port == unlocksRequestedFrom.getOrDefault(lockId, UNKNOWN_PORT)) {
             //the unlock was just requested but not yet confirmed, give it some more time
             return false;
         }
