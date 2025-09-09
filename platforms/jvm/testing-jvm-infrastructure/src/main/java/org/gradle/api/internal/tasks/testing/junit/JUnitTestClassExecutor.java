@@ -25,6 +25,7 @@ import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.Description;
@@ -36,8 +37,8 @@ import org.junit.runner.manipulation.Filter;
 import org.junit.runner.manipulation.Filterable;
 import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runner.notification.RunListener;
-import org.junit.runner.notification.RunNotifier;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -87,9 +88,29 @@ public class JUnitTestClassExecutor implements Action<String> {
             return;
         }
 
-        Request request = Request.aClass(testClass);
-        Runner runner = request.getRunner();
+        Request originalRequest = Request.aClass(testClass);
+        Runner filteredRunner = originalRequest.getRunner();
 
+        List<Filter> filters = buildFilters(testClassName, filteredRunner);
+        if (filteredRunner instanceof Filterable) {
+            Filterable filterable = (Filterable) filteredRunner;
+            for (Filter filter : filters) {
+                try {
+                    filterable.filter(filter);
+                } catch (NoTestsRemainException e) {
+                    // Ignore
+                    return;
+                }
+            }
+        } else if (allTestsFiltered(filteredRunner, filters)) {
+            return;
+        }
+
+        runFilteredRequest(filteredRunner);
+    }
+
+    @Nonnull
+    private List<Filter> buildFilters(String testClassName, Runner filteredRunner) {
         List<Filter> filters = new ArrayList<>();
         if (categoryFilter != null) {
             filters.add(categoryFilter);
@@ -103,35 +124,27 @@ public class JUnitTestClassExecutor implements Action<String> {
 
             // For test suites (including suite-like custom Runners), if the test suite class
             // matches the filter, run the entire suite instead of filtering away its contents.
-            if (!runner.getDescription().isSuite() || !matcher.matchesTest(testClassName, null)) {
+            if (!filteredRunner.getDescription().isSuite() || !matcher.matchesTest(testClassName, null)) {
                 filters.add(new MethodNameFilter(matcher));
             }
         }
 
-        if (runner instanceof Filterable) {
-            Filterable filterable = (Filterable) runner;
-            for (Filter filter : filters) {
-                try {
-                    filterable.filter(filter);
-                } catch (NoTestsRemainException e) {
-                    // Ignore
-                    return;
-                }
-            }
-        } else if (allTestsFiltered(runner, filters)) {
-            return;
-        }
+        return filters;
+    }
 
-        if (spec.isDryRun()) {
-            runner = new JUnitTestDryRunner(runner);
-            RunNotifier notifier = new RunNotifier();
-            notifier.addListener(listener);
-            runner.run(notifier);
-        } else {
-            JUnitCore junit = new JUnitCore();
-            junit.addListener(listener);
-            junit.run(request);
-        }
+    /**
+     * Builds a new {@link Request} to wrap the given filtered runner (using the {@link JUnitTestDryRunner}
+     * iff this is a dry run) and executes it.
+     * <p>
+     * Note that we can't use {@link Request#runner(Runner)} for this, as it didn't exist in JUnit 4.0. But since there's
+     * only one abstract method to implement on {@link Runner}, we can easily build an implementation.
+     *
+     * @param filteredRunner the runner, with any applicable filters already applied
+     */
+    private void runFilteredRequest(Runner filteredRunner) {
+        JUnitCore junit = new JUnitCore();
+        junit.addListener(listener);
+        junit.run(new FilteredGradleRequest(filteredRunner));
     }
 
     // https://github.com/gradle/gradle/issues/2319
@@ -216,6 +229,24 @@ public class JUnitTestClassExecutor implements Action<String> {
         @Override
         public String describe() {
             return "Includes matching test methods";
+        }
+    }
+
+    @NullMarked
+    private final class FilteredGradleRequest extends Request {
+        private final Runner runner;
+
+        private FilteredGradleRequest(Runner filteredRunner) {
+            if (spec.isDryRun()) {
+                runner = new JUnitTestDryRunner(filteredRunner);
+            } else {
+                runner = filteredRunner;
+            }
+        }
+
+        @Override
+        public Runner getRunner() {
+            return runner;
         }
     }
 }
