@@ -20,9 +20,10 @@ trait BuildLogicGcTrigger {
 
     /**
      * Declares a best-effort method to trigger a garbage collection in the build logic.
-     * The implementation is borrowed from JMH sources.
+     * The implementation is borrowed from JMH sources, see
+     * <a href="https://github.com/openjdk/jmh/blob/master/jmh-core/src/main/java/org/openjdk/jmh/profile/GCProfiler.java">GCProfiler.java</a>.
      */
-    def withGcTriggerDeclaration() {
+    def withGcTriggerDeclaration(waitingForGcTimeoutMillis = 300) {
         """
             import java.lang.management.GarbageCollectorMXBean
             import java.lang.management.ManagementFactory
@@ -41,7 +42,13 @@ trait BuildLogicGcTrigger {
             void requireGc() {
                 long before = getCurrentGcCount()
                 System.gc()
-                while (getCurrentGcCount() == before);
+                long start = System.currentTimeMillis()
+                while (getCurrentGcCount() == before) {
+                    if (System.currentTimeMillis() - start > $waitingForGcTimeoutMillis) {
+                        throw new RuntimeException("Timeout waiting for GC to happen")
+                    }
+                    Thread.sleep(10)
+                }
             }
     """
     }
