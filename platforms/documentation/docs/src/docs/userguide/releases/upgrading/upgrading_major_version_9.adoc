@@ -270,6 +270,8 @@ As of Gradle 9.0.0, these configurations are no longer created or used by the Sc
 
 Gradle will fail if a project is included that does not correspond to an existing directory on the file system, or if the directory exists but is read-only.
 
+As of Gradle 9.2.0, there is a `includeVirtual` that will allow non-existent directories just like `include` used to do.
+
 For example, you may see an error like:
 
 [source,text]
