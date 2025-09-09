@@ -46,6 +46,10 @@ public class CachedStoreFactory<T> implements Closeable {
         stats = new Stats();
     }
 
+    void discardAll() {
+        cache.invalidateAll();
+    }
+
     public Store<T> createCachedStore(final Object id) {
         return new SimpleStore<>(cache, id, stats);
     }
