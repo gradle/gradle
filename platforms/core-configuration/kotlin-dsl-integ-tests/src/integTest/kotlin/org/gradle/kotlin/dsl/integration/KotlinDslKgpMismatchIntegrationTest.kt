@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.integration
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 import org.junit.Test
 
@@ -83,6 +84,6 @@ class KotlinDslKgpMismatchIntegrationTest : AbstractKotlinIntegrationTest() {
     private fun expectedWarningMessage(kotlinVersion: String): String =
         """|WARNING: Unsupported Kotlin plugin version.
            |The `embedded-kotlin` and `kotlin-dsl` plugins rely on features of Kotlin `$embeddedKotlinVersion` that might work differently than in the requested version `$kotlinVersion`.
-           |Using the `kotlin-dsl` plugin together with a different Kotlin version (for example, by using the Kotlin Gradle plugin (`kotlin(jvm)`)) in the same module is not recommended.
-           |See https://kotl.in/gradle/kotlin-dsl-version-incompatibility for more details.""".trimMargin()
+           |Using the `kotlin-dsl` plugin together with a different Kotlin version (for example, by using the Kotlin Gradle plugin (`kotlin(jvm)`)) in the same project is not recommended.
+           |See https://docs.gradle.org/${GradleVersion.current().version}/userguide/kotlin_dsl.html for more details.""".trimMargin()
 }
