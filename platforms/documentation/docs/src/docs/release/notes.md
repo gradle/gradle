@@ -492,7 +492,7 @@ This restores expected behavior and makes `--dry-run` safer for previewing task 
 <a name="plugin-publishing"></a>
 ### Publishing plugin improvements
 
-The [Plugin Publishing plugin](https://plugins.gradle.org/plugin/com.gradle.plugin-publish/2.0.0) has been updated to version 2.0.0.
+Version 2.0.0 of the [Plugin Publishing plugin](https://plugins.gradle.org/plugin/com.gradle.plugin-publish/2.0.0) has been released.
 
 This release adds compatibility with the Configuration Cache.
 Note that the `signing` task only supports the Configuration Cache starting with Gradle 8.1.
