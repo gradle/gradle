@@ -347,7 +347,6 @@ include::sample[dir="snippets/bestPractices/useGavString-do/groovy",files="build
 
 `<<tags_reference.adoc#tag:dependencies,#dependencies>>`
 
-
 [[use_content_filtering]]
 == Use Content Filtering with multiple Repositories
 
@@ -429,3 +428,71 @@ include::sample[dir="snippets/bestPractices/contentFilteringExclusive-do/groovy"
 === Tags
 
 `<<tags_reference.adoc#tag:repositories,#repositories>>`, `<<tags_reference.adoc#tag:dependencies,#dependencies>>`
+
+[[apply_exclusions_narrowly]]
+== Apply Exclusions Narrowly
+
+When excluding transitive dependencies, apply exclusions as narrowly as possible.
+
+=== Explanation
+
+Occasionally, you may need to <<how_to_exclude_transitive_dependencies.adoc#how_to_exclude_transitive_dependencies,exclude transitive dependencies>> that are causing conflicts or issues in your project.
+Gradle allows you to exclude transitive dependencies in several different ways.
+
+Always excludes transitive dependencies as narrowly as possible:
+
+ - Attach exclusions to *specific dependencies*, instead of every dependency in a configuration.
+ - Instead of excluding every dependency available from a particular `group`, only exclude a specific `module` from that `group`.
+ - *Never* exclude dependencies from *every configuration* using `configurations.all { ... }` or `configurations.configureEach { ... }`.
+
+Exclusions have a negative impact on the performance of dependency resolution.
+Applying exclusions as narrowly as possible minimizes this impact.
+It also reduces the risk of inadvertently and silently excluding dependencies that are needed by other parts of your build.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/applyExclusionsNarrowly-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/applyExclusionsNarrowly-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+<1> The `commons-pool2` dependency transitively includes `cglib:cglib` and `org.ow2.asm:asm-util` as optional dependencies, which we want to exclude from this project.
+`hibernate-core` transitively optionally includes `cglib:cglib`, and also `javaassist:javassist` - we want to exclude both.
+<2> This excludes *every* module provided by the `cglib` group from *every* dependency in the `implementation` configuration.
+If this project's other (or future) dependencies depend on other modules from `cglib`, compilation or runtime errors may result as those dependencies will not be resolved.
+<3> This excludes `org.ow2.asm:asm-util` from *every* dependency in the `implementation` configuration.
+If future dependencies are added that depend on `org.ow2.asm:asm-util`, compilation or runtime errors may result because those dependencies will be silently excluded.
+<4> This excludes `javaassist:javassist` from *every* dependency in *every* configuration, including configurations that may be added by plugins and in the future, which has the same risks as above but amplified.
+
+==== Do This Instead
+
+Exclude transitive dependencies narrowly at the individual dependency level:
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/applyExclusionsNarrowly-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/applyExclusionsNarrowly-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/bestPractices/applyExclusionsNarrowly-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/applyExclusionsNarrowly-do/groovy",files="build.gradle[tags=do-this]"]
+====
+<1> Exclusions are applied only to the dependency that actually transitively includes them.
+<2> All exclusions apply to a particular `module` instead of every module from a particular `group`.
+<3> `javaassist:javassist` is only excluded from the `hibernate-core` dependency - the only dependency that transitively includes it.
+
+Though it may seem repetitive to exclude the same transitive dependencies from multiple dependencies, this approach is safer, more performant, and makes it clearer exactly which dependencies are meant to be affected by each exclusion.
+
+=== References
+
+- <<resolution_rules.adoc#sec:exclude-trans-deps,Excluding Transitive Dependencies>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:dependencies,#dependencies>>`
