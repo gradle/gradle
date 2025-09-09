@@ -15,6 +15,7 @@
  */
 package org.gradle.execution;
 
+import com.google.common.collect.Iterables;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -118,7 +119,7 @@ public abstract class DefaultTaskSelector implements TaskSelector {
 
     @NonNull
     private static String getSearchContext(ProjectState targetProject, boolean includeSubprojects) {
-        if (includeSubprojects && !targetProject.getChildProjects().isEmpty()) {
+        if (includeSubprojects && !Iterables.isEmpty(targetProject.getChildProjects())) {
             return targetProject.getDisplayName() + " and its subprojects";
         }
         return targetProject.getDisplayName().getDisplayName();

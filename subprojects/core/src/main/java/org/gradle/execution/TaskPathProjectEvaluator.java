@@ -141,7 +141,7 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
-                for (final ProjectState child : next.getUnorderedChildProjects()) {
+                for (final ProjectState child : next.getChildProjects()) {
                     queue.add(traverseProject(child, readyQueue));
                     if (child.hasChildren()) {
                         // Only wait for projects that have children to be configured

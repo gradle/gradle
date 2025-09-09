@@ -28,7 +28,6 @@ import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -53,14 +52,9 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     ProjectState getParent();
 
     /**
-     * Returns the direct children of this project, in public iteration order.
-     */
-    Set<ProjectState> getChildProjects();
-
-    /**
      * Returns the direct children of this project in no particular order.
      */
-    Iterable<ProjectState> getUnorderedChildProjects();
+    Iterable<ProjectState> getChildProjects();
 
     /**
      * Checks whether this project has child projects.

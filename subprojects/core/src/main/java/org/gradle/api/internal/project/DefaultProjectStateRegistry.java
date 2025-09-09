@@ -324,16 +324,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         }
 
         @Override
-        public Set<ProjectState> getChildProjects() {
-            Set<ProjectState> children = new TreeSet<>(Comparator.comparing(ProjectState::getIdentityPath));
-            for (ProjectDescriptorInternal child : descriptor.children()) {
-                children.add(getStateForChild(child));
-            }
-            return children;
-        }
-
-        @Override
-        public Iterable<ProjectState> getUnorderedChildProjects() {
+        public Iterable<ProjectState> getChildProjects() {
             return Iterables.transform(descriptor.children(), this::getStateForChild);
         }
 
