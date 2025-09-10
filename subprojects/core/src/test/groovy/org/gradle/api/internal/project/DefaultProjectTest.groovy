@@ -64,7 +64,6 @@ import org.gradle.api.internal.resources.ApiTextResourceAdapter
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.internal.tasks.TaskDependencyFactory
-import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.PluginContainer
@@ -102,8 +101,8 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal
 import org.gradle.plugin.software.internal.SoftwareFeatureApplicator
-import org.gradle.plugin.software.internal.SoftwareFeaturesDynamicObject
 import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
+import org.gradle.plugin.software.internal.SoftwareFeaturesDynamicObject
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.gradle.util.TestClosure
@@ -245,7 +244,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get(CrossProjectModelAccess) >> new DefaultCrossProjectModelAccess(projectRegistry)
         serviceRegistryMock.get(GradleLifecycleActionExecutor) >> gradleLifecycleActionExecutor
         serviceRegistryMock.get(ObjectFactory) >> objectFactory
-        serviceRegistryMock.get(TaskDependencyFactory) >> DefaultTaskDependencyFactory.forProject(taskContainerMock, Mock(TaskDependencyUsageTracker))
+        serviceRegistryMock.get(TaskDependencyFactory) >> DefaultTaskDependencyFactory.withNoAssociatedProject()
         serviceRegistryMock.get(SoftwareFeatureRegistry) >> Stub(SoftwareFeatureRegistry)
         serviceRegistryMock.get(SoftwareFeatureApplicator) >> Stub(SoftwareFeatureApplicator)
         pluginManager.getPluginContainer() >> pluginContainer

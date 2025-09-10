@@ -23,24 +23,27 @@ import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Set;
 
 /**
- * Mediates access across project boundaries.
+ * Mediates access to other projects, across project boundaries, within a single build.
  */
 @ServiceScope(Scope.Build.class)
 public interface CrossProjectModelAccess {
+
     /**
-     * Locates the given project relative to some project.
+     * Locates the project with the given path.
      *
      * @param referrer The project from which the return value will be used.
-     * @param path absolute path
+     * @param path An absolute path to the requested project, relative to the current build.
+     *
+     * @throws IllegalArgumentException If {@code path} is not absolute.
      */
-    @Nullable
-    ProjectInternal findProject(ProjectInternal referrer, ProjectInternal relativeTo, String path);
+    @Nullable ProjectInternal findProject(ProjectInternal referrer, Path path);
 
     /**
      * @param referrer The project from which the return value will be used.
