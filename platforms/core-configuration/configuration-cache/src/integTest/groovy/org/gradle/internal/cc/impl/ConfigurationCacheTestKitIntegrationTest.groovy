@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -264,5 +265,122 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         then:
         def report = new JacocoReportXmlFixture(file("build/reports/jacoco/test/jacocoTestReport.xml"))
         report.assertHasClassCoverage("test.gradle.MyPlugin")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/34942")
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Testing build using a TestKit")
+    def "running a test with TestKit that applies Jacoco won't brake KTS script fingerprinting"() { // TODO: move the test from here, has nothing to do with CC
+        when:
+
+        // Setting Jacoco destination dir to non-ascii location causes some problems,
+        // so let's write to a temporary directory without non-ascii characters
+        def jacocoDestinationFile = TextUtil.normaliseFileSeparators("${jacocoDestinationDir.absolutePath}/jacoco.exec")
+
+        settingsFile.delete()
+        settingsKotlinFile << """
+            rootProject.name = "reproducer"
+
+            dependencyResolutionManagement { 
+                ${mavenCentralRepository(GradleDsl.KOTLIN)} 
+            }
+        """
+
+        buildFile.delete()
+        buildKotlinFile << """
+            plugins {
+                `kotlin-dsl`
+                jacoco
+                id("com.gradle.plugin-publish") version ("2.0.0")
+            }
+            
+            val jacocoRuntime by configurations.creating
+            
+            dependencies {
+                testImplementation("org.junit.jupiter:junit-jupiter:5.13.4")
+                testRuntimeOnly(files(layout.buildDirectory.dir("testkit")))
+                testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.4")
+            
+                jacocoRuntime("org.jacoco:org.jacoco.agent:\${JacocoPlugin.DEFAULT_JACOCO_VERSION}:runtime")
+            }
+            
+            gradlePlugin {
+                plugins {
+                    create("my-plugin") {
+                        id = "my-plugin"
+                        implementationClass = "com.reproducer.MyPlugin"
+                    }
+                }
+            }
+            
+            tasks {
+                test {
+                    useJUnitPlatform()
+                }
+            }
+            
+            tasks.withType<Test> {
+                val jacoco = the<JacocoTaskExtension>()
+                jacoco.setDestinationFile(File("$jacocoDestinationFile"))
+            
+                systemProperty("jacocoAgentJar", configurations.getByName("jacocoRuntime").singleFile.absolutePath)
+                systemProperty("jacocoDestFile", jacoco.destinationFile!!.absolutePath)
+            }
+        """
+
+        file("src/main/kotlin/com/reproducer/MyPlugin.kt") << """
+            package com.reproducer
+
+            import org.gradle.api.Plugin
+            import org.gradle.api.initialization.Settings
+            
+            class MyPlugin : Plugin<Settings> {
+            
+                override fun apply(settings: Settings) {
+                    println("\${MyPlugin::class.java.name} applied!")
+                }
+            }
+        """
+
+        file("src/test/kotlin/com/reproducer/PluginTest.kt") << """
+            package com.reproducer
+
+            import org.gradle.testkit.runner.GradleRunner
+            import org.junit.jupiter.api.Assertions.assertTrue
+            import org.junit.jupiter.api.Test
+            import org.junit.jupiter.api.io.TempDir
+            import java.io.File
+
+            class PluginTest {
+
+                @TempDir
+                lateinit var projectDir: File
+
+                @Test
+                fun test() {
+                    projectDir.resolve("settings.gradle.kts").writeText(
+                        "plugins { id(\\"my-plugin\\") }\\nrootProject.name = \\"test\\""
+                    )
+                    projectDir.resolve("gradle.properties").writeText(
+                        "org.gradle.jvmargs=\\"-javaagent:\${System.getProperty("jacocoAgentJar")}=destfile=\${System.getProperty("jacocoDestFile")}\\""
+                    )
+                    projectDir.resolve("build.gradle.kts").writeText("")
+
+                    val runner =
+                        GradleRunner.create()
+                            .withPluginClasspath()
+                            .withArguments("help", "--stacktrace")
+                            .forwardOutput()
+                            .withProjectDir(projectDir)
+
+                    val result = runner.build()
+
+                    assertTrue(result.output.contains("BUILD SUCCESSFUL"))
+
+                }
+            }
+        """
+
+        then:
+        succeeds("test")
     }
 }
