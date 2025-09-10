@@ -58,4 +58,19 @@ public class IncludedRootBuild implements IncludedBuildInternal {
         return rootBuild;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        IncludedRootBuild that = (IncludedRootBuild) o;
+        return rootBuild.equals(that.rootBuild);
+    }
+
+    @Override
+    public int hashCode() {
+        return rootBuild.hashCode();
+    }
+
 }

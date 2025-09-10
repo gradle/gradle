@@ -160,5 +160,19 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
             return buildState;
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            IncludedBuildImpl that = (IncludedBuildImpl) o;
+            return buildState.equals(that.buildState);
+        }
+
+        @Override
+        public int hashCode() {
+            return buildState.hashCode();
+        }
     }
 }
