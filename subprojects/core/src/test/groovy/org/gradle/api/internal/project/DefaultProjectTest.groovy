@@ -110,7 +110,6 @@ import org.gradle.util.TestClosure
 import org.gradle.util.TestUtil
 import org.jspecify.annotations.Nullable
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.lang.reflect.Type
@@ -158,12 +157,13 @@ class DefaultProjectTest extends Specification {
     ProcessOperations processOperationsMock = Stub(ProcessOperations)
     LoggingManagerInternal loggingManagerMock = Stub(LoggingManagerInternal)
     Instantiator instantiatorMock = Stub(Instantiator) {
-        newInstance(LifecycleAwareProject, _, _, _) >> { args ->
+        newInstance(LifecycleAwareProject, _, _) >> { args ->
             def params = args[1]
-            new LifecycleAwareProject(params[0], params[1], params[2])
+            new LifecycleAwareProject(params[0], params[1])
         }
         newInstance(SoftwareFeaturesDynamicObject, _) >> Stub(SoftwareFeaturesDynamicObject)
     }
+    ProjectWrapperFactory projectWrapperFactoryMock = new DefaultProjectWrapperFactory(new DefaultProjectWrapperRegistry(), instantiatorMock)
     SoftwareComponentContainer softwareComponentsMock = Stub(SoftwareComponentContainer)
     InputNormalizationHandlerInternal inputNormalizationHandler = Stub(InputNormalizationHandlerInternal)
     ProjectConfigurationActionContainer configureActions = Stub(ProjectConfigurationActionContainer)
@@ -242,7 +242,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) CrossProjectConfigurator) >> crossProjectConfigurator
         serviceRegistryMock.get(DependencyResolutionManagementInternal) >> dependencyResolutionManagement
         serviceRegistryMock.get(DomainObjectCollectionFactory) >> TestUtil.domainObjectCollectionFactory()
-        serviceRegistryMock.get(CrossProjectModelAccess) >> new DefaultCrossProjectModelAccess(projectRegistry)
+        serviceRegistryMock.get(CrossProjectModelAccess) >> new DefaultCrossProjectModelAccess(projectRegistry, projectWrapperFactoryMock)
         serviceRegistryMock.get(GradleLifecycleActionExecutor) >> gradleLifecycleActionExecutor
         serviceRegistryMock.get(ObjectFactory) >> objectFactory
         serviceRegistryMock.get(TaskDependencyFactory) >> DefaultTaskDependencyFactory.forProject(taskContainerMock, Mock(TaskDependencyUsageTracker))
@@ -511,8 +511,8 @@ class DefaultProjectTest extends Specification {
     def getChildProject() {
         expect:
         project.childProjects.size() == 2
-        project.childProjects.child1.is(child1)
-        project.childProjects.child2.is(child2)
+        project.childProjects.child1 == child1
+        project.childProjects.child2 == child2
     }
 
     def defaultTasks() {
@@ -576,10 +576,10 @@ class DefaultProjectTest extends Specification {
     def getProject() {
         expect:
         project.project(Project.PATH_SEPARATOR).is(project)
-        project.project(Project.PATH_SEPARATOR + "child1").is(child1)
-        project.project("child1").is(child1)
-        child1.project("childchild").is(childchild)
-        childchild.project(Project.PATH_SEPARATOR + "child1").is(child1)
+        project.project(Project.PATH_SEPARATOR + "child1") == child1
+        project.project("child1") == child1
+        child1.project("childchild") == childchild
+        childchild.project(Project.PATH_SEPARATOR + "child1") == child1
     }
 
     def getProjectWithUnknownAbsolutePath() {
@@ -614,11 +614,11 @@ class DefaultProjectTest extends Specification {
 
     def findProject() {
         expect:
-        project.findProject(Project.PATH_SEPARATOR).is(project)
-        project.findProject(Project.PATH_SEPARATOR + "child1").is(child1)
-        project.findProject("child1").is(child1)
-        child1.findProject('childchild').is(childchild)
-        childchild.findProject(Project.PATH_SEPARATOR + "child1").is(child1)
+        project.findProject(Project.PATH_SEPARATOR) == project
+        project.findProject(Project.PATH_SEPARATOR + "child1") == child1
+        project.findProject("child1") == child1
+        child1.findProject('childchild') == childchild
+        childchild.findProject(Project.PATH_SEPARATOR + "child1") == child1
     }
 
     def findProjectWithUnknownAbsolutePath() {
@@ -641,7 +641,7 @@ class DefaultProjectTest extends Specification {
         }
 
         then:
-        child.is(child1)
+        child == child1
         child1.newProp == newPropValue
     }
 
@@ -656,7 +656,7 @@ class DefaultProjectTest extends Specification {
         then:
         1 * action.execute(child1)
         0 * action._
-        child.is(child1)
+        child == child1
     }
 
     def methodMissing() {
@@ -926,14 +926,13 @@ def scriptMethod(Closure closure) {
     }
 
     def createsADomainObjectContainer() {
-        DeprecationLogger.init(WarningMode.All, Mock(BuildOperationProgressEventEmitter), TestUtil.problemsService(),  new NoOpProblemDiagnosticsFactory().newUnlimitedStream())
+        DeprecationLogger.init(WarningMode.All, Mock(BuildOperationProgressEventEmitter), TestUtil.problemsService(), new NoOpProblemDiagnosticsFactory().newUnlimitedStream())
         expect:
         project.container(String) instanceof FactoryNamedDomainObjectContainer
         project.container(String, Stub(NamedDomainObjectFactory)) instanceof FactoryNamedDomainObjectContainer
         project.container(String, {}) instanceof FactoryNamedDomainObjectContainer
     }
 
-    @Ignore("Wrapping is currently disabled")
     def selfAccessWithoutLifecycleAwareWrapping() {
         expect:
         project.project(":child1").parent instanceof DefaultProject
@@ -954,7 +953,6 @@ def scriptMethod(Closure closure) {
         }
     }
 
-    @Ignore("Wrapping is currently disabled")
     def referrerIsPreserved() {
         expect:
         assertLifecycleAwareWithReferrer(child1) { rootProject }
@@ -969,28 +967,26 @@ def scriptMethod(Closure closure) {
         assertLifecycleAwareWithReferrer(project) { project(":child1", Actions.doNothing()) }
 
         def p = project
-        p.allprojects { if (it != p) { assertLifecycleAwareWithReferrer(it, p) } }
-        p.subprojects { assertLifecycleAwareWithReferrer(it, p) }
+        p.allprojects { if (it != p) { DefaultProjectTest.assertLifecycleAwareWithReferrer(it, p) } }
+        p.subprojects { DefaultProjectTest.assertLifecycleAwareWithReferrer(it, p) }
     }
 
-    @Ignore("Wrapping is currently disabled")
     def equalsContractForWrappers() {
         when:
-        Project wrapped = LifecycleAwareProject.from(project, child1, gradleLifecycleActionExecutor, instantiatorMock)
-        Project overwrapped = LifecycleAwareProject.from(wrapped, child1, gradleLifecycleActionExecutor, instantiatorMock)
+        Project wrapped = LifecycleAwareProject.wrap(project, child1, projectWrapperFactoryMock)
+        Project overwrapped = LifecycleAwareProject.wrap(wrapped, child1, projectWrapperFactoryMock)
         then:
-        project.equals(wrapped)
-        wrapped.equals(project)
-        project.equals(overwrapped)
-        overwrapped.equals(project)
-        wrapped.equals(overwrapped)
-        overwrapped.equals(wrapped)
+        project == wrapped
+        wrapped == project
+        project == overwrapped
+        overwrapped == project
+        wrapped == overwrapped
+        overwrapped == wrapped
     }
 
-    @Ignore("Wrapping is currently disabled")
     def mapUsageForWrappers() {
         given:
-        Project wrapped = LifecycleAwareProject.from(project, child1, gradleLifecycleActionExecutor, instantiatorMock)
+        Project wrapped = LifecycleAwareProject.wrap(project, child1, projectWrapperFactoryMock)
         def map = [:]
         when:
         map[project] = "foo"
@@ -1010,10 +1006,6 @@ def scriptMethod(Closure closure) {
 
     static boolean assertLifecycleAwareWithReferrer(Project project, Project referrer) {
         project instanceof LifecycleAwareProject && project.referrer == referrer
-    }
-
-    static boolean assertLifecycleAwareProjectOf(Project crosslyAccessed, Project of) {
-        crosslyAccessed instanceof LifecycleAwareProject && crosslyAccessed == of
     }
 }
 

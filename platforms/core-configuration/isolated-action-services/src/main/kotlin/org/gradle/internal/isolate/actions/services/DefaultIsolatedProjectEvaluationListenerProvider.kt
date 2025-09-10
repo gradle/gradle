@@ -167,16 +167,13 @@ class IsolatedProjectEvaluationListener(
         when (val state = project.getLifecycleActionsState()) {
             null -> {
                 val actions = isolatedActions(gradle, isolated)
-
                 // preserve isolate semantics between `beforeProject` and `afterProject`
                 project.setLifecycleActionsState(IsolatedProjectActionsState.beforeProjectExecuted(actions.afterProject))
                 executeAll(actions.beforeProject, project)
             }
 
-            // beforeProject was executed eagerly
             is IsolatedProjectActionsState.BeforeProjectExecuted -> {
-                // preserve isolate semantics between `beforeProject` and `afterProject`
-                project.setLifecycleActionsState(IsolatedProjectActionsState.beforeProjectExecuted(state.afterProject))
+                // beforeProject was executed eagerly
             }
 
             else -> error("Unexpected isolated actions state $state")
