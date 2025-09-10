@@ -103,7 +103,7 @@ public class JUnitTestClassExecutor implements Action<String> {
         // out every method on this class, or even the entire class itself.
         Request filteredRequest = buildFilteredRequest(testClass);
         if (filteredRequest == null) {
-            return;
+            return null;
         }
 
         return filteredRequest;
