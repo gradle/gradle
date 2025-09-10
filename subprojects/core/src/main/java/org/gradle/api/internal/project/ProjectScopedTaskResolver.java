@@ -48,7 +48,7 @@ public class ProjectScopedTaskResolver implements TaskResolver {
             throw new IllegalArgumentException("The root path is not a valid task path");
         }
 
-        if (!path.isAbsolute() && path.getParent() == null) {
+        if (!path.isAbsolute() && path.segmentCount() == 1) {
             return taskContainer.getByName(targetTaskName);
         }
 

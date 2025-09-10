@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.internal.build.BuildState;
@@ -42,8 +41,10 @@ public class BuildScopedTaskResolver implements TaskResolver {
         }
 
         if (!path.isAbsolute()) {
-            throw new InvalidUserDataException(String.format("Cannot resolve task at path '%s' since the path is not absolute.", path));
+            throw new IllegalArgumentException(String.format("Cannot resolve task at path '%s' since the path is not absolute.", path));
         }
+
+        build.ensureProjectsConfigured();
 
         Path targetProjectPath = path.getParent() == null ? Path.ROOT : path.getParent();
         ProjectState projectState = build.getProjects().getProject(targetProjectPath);

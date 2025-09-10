@@ -474,7 +474,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public @Nullable Task findByPath(String pathStr) {
         Path path = Path.path(pathStr);
-        if (!path.isAbsolute() && path.getParent() == null) {
+        if (!path.isAbsolute() && path.segmentCount() == 1) {
             return findByName(pathStr);
         }
 
@@ -490,7 +490,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     /**
      * Find a task with the given name in the project with the given path.
      * <p>
-     * TODO: A task container in one project has no business providing the tasks of
+     * TODO #34939: A task container in one project has no business providing the tasks of
      *  another project. We should identify the use case(s) of `findByPath`
      *  and `getByPath`, and deprecate them if we have a suitable replacement.
      *

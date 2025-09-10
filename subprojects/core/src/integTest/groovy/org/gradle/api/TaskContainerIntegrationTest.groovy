@@ -39,8 +39,6 @@ trait AbstractTaskContainerIntegrationTest {
 
 class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest implements AbstractTaskContainerIntegrationTest {
 
-    def configurationCache = new ConfigurationCacheFixture(this)
-
     @Issue("https://github.com/gradle/gradle/issues/28347")
     def "filtering is lazy (`#filtering` + `#configAction`)"() {
         given:
@@ -134,20 +132,23 @@ class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrat
     }
 
     def "can access task by path from containing project"() {
-        buildFile << """
+        buildFile("""
             task foobar
-            println "unknown: " + tasks.findByPath(":unknown")
-            println "getByPath: " + tasks.getByPath(":foobar").name
-            println "findByPath: " + tasks.findByPath(":foobar").name
-        """
+            println([
+                tasks.findByPath("unknown"),
+                tasks.findByPath(":unknown"),
+                tasks.getByPath(":foobar").name,
+                tasks.getByPath("foobar").name,
+                tasks.findByPath(":foobar").name,
+                tasks.findByPath("foobar").name
+            ])
+        """)
 
         when:
         succeeds("help")
 
         then:
-        output.contains("unknown: null")
-        output.contains("getByPath: foobar")
-        output.contains("findByPath: foobar")
+        output.contains("[null, null, foobar, foobar, foobar, foobar]")
     }
 
     @Requires(value = IntegTestPreconditions.NotIsolatedProjects, reason = "This API is not IP compatible")
@@ -159,22 +160,24 @@ class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrat
             task foobar
         """)
         buildFile("other/build.gradle", """
-            println "unknown: " + tasks.findByPath(":unknown")
-            println "getByPath: " + tasks.getByPath(":foobar").name
-            println "findByPath: " + tasks.findByPath(":foobar").name
+            println([
+                tasks.findByPath(":unknown"),
+                tasks.getByPath(":foobar").name,
+                tasks.findByPath(":foobar").name
+            ])
         """)
 
         when:
         succeeds("help")
 
         then:
-        output.contains("unknown: null")
-        output.contains("getByPath: foobar")
-        output.contains("findByPath: foobar")
+        output.contains("[null, foobar, foobar]")
     }
 
     @Requires(value = IntegTestPreconditions.IsolatedProjects, reason = "This API is not IP compatible")
     def "cannot access task by path from another project with IP enabled"() {
+        def configurationCache = new ConfigurationCacheFixture(this)
+
         settingsFile("""
             include 'other'
         """)
@@ -182,9 +185,11 @@ class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrat
             task foobar
         """)
         buildFile("other/build.gradle", """
-            println "unknown: " + tasks.findByPath(":unknown")
-            println "getByPath: " + tasks.getByPath(":foobar").name
-            println "findByPath: " + tasks.findByPath(":foobar").name
+            println([
+                tasks.findByPath(":unknown"),
+                tasks.getByPath(":foobar").name,
+                tasks.findByPath(":foobar").name
+            ])
         """)
 
         when:
@@ -192,9 +197,9 @@ class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrat
 
         then:
         configurationCache.problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'other/build.gradle': line 2: Project ':other' cannot access 'Project.tasks' functionality on another project ':'")
             withProblem("Build file 'other/build.gradle': line 3: Project ':other' cannot access 'Project.tasks' functionality on another project ':'")
             withProblem("Build file 'other/build.gradle': line 4: Project ':other' cannot access 'Project.tasks' functionality on another project ':'")
+            withProblem("Build file 'other/build.gradle': line 5: Project ':other' cannot access 'Project.tasks' functionality on another project ':'")
         }
     }
 }
