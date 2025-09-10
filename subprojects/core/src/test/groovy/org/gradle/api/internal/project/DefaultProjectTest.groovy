@@ -510,8 +510,8 @@ class DefaultProjectTest extends Specification {
     def getChildProject() {
         expect:
         project.childProjects.size() == 2
-        project.childProjects.child1.is(child1)
-        project.childProjects.child2.is(child2)
+        project.childProjects.child1 == child1
+        project.childProjects.child2 == child2
     }
 
     def defaultTasks() {
@@ -925,7 +925,7 @@ def scriptMethod(Closure closure) {
     }
 
     def createsADomainObjectContainer() {
-        DeprecationLogger.init(WarningMode.All, Mock(BuildOperationProgressEventEmitter), TestUtil.problemsService(),  new NoOpProblemDiagnosticsFactory().newUnlimitedStream())
+        DeprecationLogger.init(WarningMode.All, Mock(BuildOperationProgressEventEmitter), TestUtil.problemsService(), new NoOpProblemDiagnosticsFactory().newUnlimitedStream())
         expect:
         project.container(String) instanceof FactoryNamedDomainObjectContainer
         project.container(String, Stub(NamedDomainObjectFactory)) instanceof FactoryNamedDomainObjectContainer
