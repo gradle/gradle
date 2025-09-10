@@ -306,6 +306,7 @@ plugins {
 
 tasks.named('myRunTask', JavaExec) {
         jvmArgumentProviders.clear() // Clear existing JVM argument providers
+        argumentProviders.clear() // Clear existing argument providers
         jvmArgs = ["-Dfoo", "-Dbar"] // Set new JVM arguments
     }
 ----
@@ -318,6 +319,7 @@ plugins {
 
 tasks.register<JavaExec>("myRunTask") {
         jvmArgumentProviders.clear() // Clear existing JVM argument providers
+        argumentProviders.clear() // Clear existing argument providers
         jvmArgs = listOf("-Dfoo", "-Dbar") // Set new JVM arguments
     }
 ----
