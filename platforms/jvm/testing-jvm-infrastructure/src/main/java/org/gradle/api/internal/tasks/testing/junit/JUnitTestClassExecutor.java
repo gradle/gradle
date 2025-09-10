@@ -99,7 +99,8 @@ public class JUnitTestClassExecutor implements Action<String> {
         }
     }
 
-    private @Nullable Request shouldRunTestClass(String testClassName) throws ClassNotFoundException {
+    @Nullable 
+    private Request shouldRunTestClass(String testClassName) throws ClassNotFoundException {
         final Class<?> testClass = Class.forName(testClassName, false, applicationClassLoader);
         if (isNestedClassInsideEnclosedRunner(testClass)) {
             return null;
