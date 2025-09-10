@@ -87,9 +87,12 @@ public class JUnitTestClassExecutor implements Action<String> {
         } catch (Throwable throwable) {
             if (started) {
                 executionListener.testClassFinished(TestFailure.fromTestFrameworkFailure(throwable));
+            } else {
+                // If we haven't even started to run the request, this is a Gradle problem, so propagate it
+                throw new GradleException("Failed to execute test class: '" + testClassName + "'.", throwable);
             }
 
-            // Don't swallow Errors, as they indicate JVM problems that should explode the test run
+            // Don't ever swallow Errors, as they likely indicate JVM problems that should always propagate
             if (throwable instanceof Error) {
                 throw (Error) throwable;
             }
