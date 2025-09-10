@@ -32,7 +32,7 @@ import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32
-import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32_AND_64
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP_2019
 
 class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def testApp = new PlatformDetectingTestApp()
@@ -213,6 +213,8 @@ model {
 
     @RequiresInstalledToolChain(SUPPORTS_32_AND_64)
     @ToBeFixedForConfigurationCache
+    // No arm support in VS2022+
+    @RequiresInstalledToolChain(VISUALCPP_2019)
     def "build binary for multiple target architectures"() {
         when:
         buildFile << """
