@@ -23,7 +23,6 @@ import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.hamcrest.CoreMatchers.instanceOf
@@ -62,8 +61,6 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
     }
 
     def "assemble task builds the published artifacts"() {
-        TestUtil.initDeprecationLogger("because archives configuration is deprecated")
-
         given:
         def someZip = project.tasks.create('someZip', Zip)
 
@@ -85,8 +82,6 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
     }
 
     def "adds implicit tasks for configuration"() {
-        TestUtil.initDeprecationLogger("because archives configuration is deprecated")
-
         given:
         def someZip = project.tasks.create('someZip', Zip)
 

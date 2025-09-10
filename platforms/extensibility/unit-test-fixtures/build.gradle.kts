@@ -34,7 +34,6 @@ dependencies {
 
     api(libs.jspecify)
 
-    implementation(libs.guava)
     implementation(projects.buildProcessServices)
     implementation(projects.buildState)
     implementation(projects.classloaders)

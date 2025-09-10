@@ -70,8 +70,8 @@ public class DeprecationLogger {
     private static boolean initialized = false;
 
     public synchronized static void init(WarningMode warningMode, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter, Problems problemsService, ProblemStream problemStream) {
-        initialized = true;
         DEPRECATED_FEATURE_HANDLER.init(warningMode, buildOperationProgressEventEmitter, problemsService, problemStream);
+        initialized = true;
     }
 
     public synchronized static void reset() {
@@ -232,7 +232,7 @@ public class DeprecationLogger {
                         "Most probably, it's because you are trying to use it from the launcher/wrapper. " +
                         "It's not available there. Move the deprecation logging to the daemon or use LOGGER.warn() instead. " +
                         "Another reason could be that you are trying to use it from a unit test. " +
-                        "In that case, either fix the test to not use deprecated features, or init it with TestUtil.initDeprecationLogger. " +
+                        "In that case, either fix the test to not use deprecated features, or mark it with @ExpectDeprecation. " +
                         "If you hit this error as a user of Gradle, please report it as a bug. " +
                         "The original deprecation message was: " +
                         deprecationMessageBuilder.build().toDeprecatedFeatureUsage(calledFrom).formattedMessage()

@@ -16,7 +16,6 @@
 
 package org.gradle.testfixtures.internal;
 
-import com.google.common.base.Supplier;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -66,6 +65,7 @@ import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
+import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -80,8 +80,6 @@ import org.gradle.internal.time.Time;
 import org.gradle.internal.work.ProjectParallelExecutionController;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
-import org.gradle.problems.ProblemDiagnostics;
-import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
@@ -169,31 +167,7 @@ public class ProjectBuilderImpl {
 
         // Project or applied plugins can emit deprecation warnings, so we need to initialize the deprecation logger
         //noinspection DataFlowIssue
-        DeprecationLogger.init(WarningMode.None, null, null, new ProblemStream() {
-            @SuppressWarnings("DataFlowIssue")
-            @Override
-            public ProblemDiagnostics forCurrentCaller(StackTraceTransformer transformer) {
-                return null;
-            }
-
-            @SuppressWarnings("DataFlowIssue")
-            @Override
-            public ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception) {
-                return null;
-            }
-
-            @SuppressWarnings("DataFlowIssue")
-            @Override
-            public ProblemDiagnostics forCurrentCaller() {
-                return null;
-            }
-
-            @SuppressWarnings("DataFlowIssue")
-            @Override
-            public ProblemDiagnostics forCurrentCaller(Supplier<? extends Throwable> exceptionFactory) {
-                return null;
-            }
-        });
+        DeprecationLogger.init(WarningMode.None, null, null, NoOpProblemDiagnosticsFactory.EMPTY_STREAM);
 
         // Take a root worker lease; this won't ever be released as ProjectBuilder has no lifecycle
         ResourceLockCoordinationService coordinationService = buildServices.get(ResourceLockCoordinationService.class);
