@@ -332,6 +332,73 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         !allJvmArgsFile.text.contains("-Dfoo=bar")
     }
 
+    def "setJvmArgs clears existing jvmArgs and respects user added jvm args"() {
+
+        given:
+        buildFile """
+            apply plugin: 'java'
+
+            task demo(type: JavaExec) {
+                classpath = sourceSets.main.runtimeClasspath
+                mainClass = 'com.example.demo.DemoApplication'
+                jvmArgumentProviders.add(objects.newInstance(MyApplicationJvmArguments))
+                argumentProviders.add(objects.newInstance(MyOtherApplicationArguments))
+                systemProperties = [foo: '1 2']
+            }
+
+            abstract class MyApplicationJvmArguments implements CommandLineArgumentProvider {
+
+                @Override
+                Iterable<String> asArguments() {
+                    return ['-Dbar=3 4']
+                }
+            }
+
+            abstract class MyOtherApplicationArguments implements CommandLineArgumentProvider {
+
+                @Override
+                Iterable<String> asArguments() {
+                    return ['baz=5 6']
+                }
+            }
+        """
+        file("src/main/java/com/example/demo/DemoApplication.java") << """
+            package com.example.demo;
+
+            public class DemoApplication {
+
+                public static void main(String[] args) {
+                    System.getProperties().entrySet().forEach(System.out::println);
+                    System.out.println("Arguments: " + String.join(" ", args));
+                }
+            }
+        """
+
+        expect:
+        succeeds("demo")
+
+        outputContains('foo=1 2')
+        outputContains('bar=3 4')
+        outputContains('Arguments: baz=5 6')
+
+        when:
+        buildFile << """
+            tasks.named("demo") {
+                jvmArgumentProviders.clear()
+                argumentProviders.clear()
+                setJvmArgs(["-Dshould=beErased"])
+            }
+        """
+        succeeds("demo")
+
+        then:
+        outputContains('should=beErased')
+        outputContains('foo=1 2')
+        outputDoesNotContain('bar=3 4')
+        outputDoesNotContain('Arguments: baz=5 6')
+
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/6072")
     def "can handle arguments with quotes and spaces"() {
         buildFile """

@@ -296,19 +296,30 @@ Instead, to overwrite existing JVM arguments, use:
 
 Note that previously, link:{javadocPath}/org/gradle/process/JavaForkOptions.html#setAllJvmArgs(java.util.List)[`setAllJvmArgs()` method] on `JavaForkOptions` cleared any existing JVM argument providers in addition to setting jvmArgs. This should now be done by first clearing the arguments and then setting them to the new desired values.
 
-Example of replacing `setAllJvmArgs`:
+Consider the following snippets for examples of how to implement this change:
 
-[source,java]
+[source, groovy]
 ----
-import java.util.ArrayList;class Example {
-    //Given an existing argumentProvider and some existing jvmArgs
-    DefaultJavaForkOptions options; // options contains ['foo', 'bar', 'argFromProvider'];
-
-        void example () {
-            options.getJvmArgumentProviders().clear(); // Clear existing providers if needed
-            options.setJvmArgs(new ArrayList<>()); // Clear existing jvmArgs
-    }
+plugins {
+    id("java")
 }
+
+tasks.named('myRunTask', JavaExec) {
+        jvmArgumentProviders.clear() // Clear existing JVM argument providers
+        jvmArgs = ["-Dfoo", "-Dbar"] // Set new JVM arguments
+    }
+----
+
+[source, kotlin]
+----
+plugins {
+    id("java")
+}
+
+tasks.register<JavaExec>("myRunTask") {
+        jvmArgumentProviders.clear() // Clear existing JVM argument providers
+        jvmArgs = listOf("-Dfoo", "-Dbar") // Set new JVM arguments
+    }
 ----
 
 [[archives-configuration]]
