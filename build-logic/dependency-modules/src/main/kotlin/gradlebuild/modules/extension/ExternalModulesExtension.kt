@@ -219,7 +219,6 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val sshdSftp = "org.apache.sshd:sshd-sftp"
     val testcontainers = "org.testcontainers:testcontainers"
     val testcontainersSpock = "org.testcontainers:spock"
-    val typesafeConfig = "com.typesafe:config"
     val xerces = "xerces:xercesImpl"
     val xmlunit = "xmlunit:xmlunit"
 

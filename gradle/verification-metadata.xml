@@ -720,11 +720,6 @@
             <pgp value="EE2CFEB6A2AECF44C781C5C3DCD5181297A43D24"/>
          </artifact>
       </component>
-      <component group="com.typesafe" name="config" version="1.3.3">
-         <artifact name="config-1.3.3.jar">
-            <pgp value="263923711EF4FE3F3F0C28AF11509ED50EC155E6"/>
-         </artifact>
-      </component>
       <component group="com.typesafe" name="config" version="1.4.1">
          <artifact name="config-1.4.1.jar">
             <pgp value="E88BF2559874BA889D34357C0555B3BA1CA4ECF9"/>
