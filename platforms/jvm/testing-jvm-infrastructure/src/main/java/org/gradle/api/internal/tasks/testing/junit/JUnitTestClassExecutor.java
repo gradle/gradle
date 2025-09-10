@@ -75,12 +75,15 @@ public class JUnitTestClassExecutor implements Action<String> {
         boolean started = false;
         try {
             Request request = shouldRunTestClass(testClassName);
-            if (request != null) {
-                executionListener.testClassStarted(testClassName);
-                started = true;
-                runRequest(request);
-                executionListener.testClassFinished(null);
+            if (request == null) {
+                return;
             }
+
+            executionListener.testClassStarted(testClassName);
+            started = true;
+            runRequest(request);
+            started = false;
+            executionListener.testClassFinished(null);
         } catch (Throwable throwable) {
             if (started) {
                 executionListener.testClassFinished(TestFailure.fromTestFrameworkFailure(throwable));
