@@ -64,7 +64,7 @@ class ReleasedVersionsDetails(currentBaseVersion: GradleVersion, releasedVersion
         // Limit to first and last release of each major version
         mainTestedVersions = testedVersions.map { VersionNumber.parse(it.gradleVersion().version) }
             .groupBy { it.major }
-            .map { (_, v) -> listOf(v.minOrNull()!!.format(), v.maxOrNull()!!.format()) }.flatten()
+            .map { (_, v) -> listOf(v.maxOrNull()!!.format()) }.flatten()
     }
 
     private
