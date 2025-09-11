@@ -376,26 +376,29 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         outputContains("Access: '${isPresence ? 'true' : 'two'}'")
 
         where:
-        description               | fileWithAccess    | accessExpr                    | isPresence
-        "project.ext.get()"       | "build.gradle"    | "project.ext.get('foo')"      | false
-        "project.ext.has()"       | "build.gradle"    | "project.ext.has('foo')"      | true
-        "project.ext.properties"  | "build.gradle"    | "project.ext.properties.foo"  | false
-        "project.ext.foo"         | "build.gradle"    | "project.ext.foo"             | false
-        "project.foo"             | "build.gradle"    | "project.foo"                 | false
-        "project script lookup"   | "build.gradle"    | "foo"                         | false
-        "project.hasProperty()"   | "build.gradle"    | "project.hasProperty('foo')"  | true
-        "settings.ext.get()"      | "settings.gradle" | "settings.ext.get('foo')"     | false
-        "settings.ext.has()"      | "settings.gradle" | "settings.ext.has('foo')"     | true
-        "settings.ext.properties" | "settings.gradle" | "settings.ext.properties.foo" | false
-        "settings.ext.foo"        | "settings.gradle" | "settings.ext.foo"            | false
-        "settings.foo"            | "settings.gradle" | "settings.foo"                | false
-        "settings script lookup"  | "settings.gradle" | "foo"                         | false
+        description                        | fileWithAccess    | accessExpr                                                   | isPresence
+        "project.ext.get()"                | "build.gradle"    | "project.ext.get('foo')"                                     | false
+        "project.ext.has()"                | "build.gradle"    | "project.ext.has('foo')"                                     | true
+        "project.ext.properties"           | "build.gradle"    | "project.ext.properties.foo"                                 | false
+        "project.ext.foo"                  | "build.gradle"    | "project.ext.foo"                                            | false
+        "project.foo"                      | "build.gradle"    | "project.foo"                                                | false
+        "project script lookup"            | "build.gradle"    | "foo"                                                        | false
+        "project.hasProperty()"            | "build.gradle"    | "project.hasProperty('foo')"                                 | true
+        "startParameter.projectProperties" | "build.gradle"    | "gradle.startParameter.projectProperties['foo']"             | false
+        "startParameter.projectProperties" | "build.gradle"    | "gradle.startParameter.projectProperties.containsKey('foo')" | true
+        "settings.ext.get()"               | "settings.gradle" | "settings.ext.get('foo')"                                    | false
+        "settings.ext.has()"               | "settings.gradle" | "settings.ext.has('foo')"                                    | true
+        "settings.ext.properties"          | "settings.gradle" | "settings.ext.properties.foo"                                | false
+        "settings.ext.foo"                 | "settings.gradle" | "settings.ext.foo"                                           | false
+        "settings.foo"                     | "settings.gradle" | "settings.foo"                                               | false
+        "settings script lookup"           | "settings.gradle" | "foo"                                                        | false
     }
 
     @ToBeImplemented
-    def "reuses cache when unused project property changes on command-line, if another property is accessed via ext.properties"() {
+    def "reuses cache when unused project property changes on command-line, if another property is accessed via #description"() {
         buildFile """
-            project.ext.properties.bar // access another property
+            // access another property that is not changing
+            ${accessExpr}
 
             tasks.register("some")
         """
@@ -413,9 +416,14 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored()
         // Must be:
 //        configurationCache.assertStateLoaded()
+
+        where:
+        description                        | accessExpr
+        "ext.properties"                   | "ext.properties.bar"
+        "startParameter.projectProperties" | "gradle.startParameter.projectProperties['bar']"
     }
 
-    def "reuses cache when project property changes on command-line, but was shadowed via build logic assignment"() {
+    def "reuses cache when project property, accessed via ext, changes on command-line, but was shadowed via build logic assignment"() {
         buildFile """
             project.ext.foo = "script"
             println("Access: '\${project.ext.foo}'")
@@ -583,4 +591,7 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         where:
         source << ['command-line', 'gradle.properties']
     }
+
+    // TODO: add test - execution time access behavior?
+    // TODO: add test - composite build behavior?
 }
