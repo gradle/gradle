@@ -424,6 +424,10 @@ public class Instrumented {
         listener().fileOpened(absoluteFileOf(file), consumer);
     }
 
+    public static void startParameterProjectPropertiesObserved() {
+        listener().startParameterProjectPropertiesObserved();
+    }
+
     private static File absoluteFileOf(File file) {
         return file.isAbsolute() ? file : new File(currentDir(), file.getPath());
     }

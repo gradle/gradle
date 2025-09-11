@@ -21,12 +21,14 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
 import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.deprecation.StartParameterDeprecations;
 import org.gradle.internal.watch.registry.WatchMode;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.time.Duration;
+import java.util.Map;
 
 public class StartParameterInternal extends StartParameter {
     private WatchMode watchFileSystemMode = WatchMode.DEFAULT;
@@ -95,6 +97,21 @@ public class StartParameterInternal extends StartParameter {
         p.useEmptySettings = useEmptySettings;
         p.enableProblemReportGeneration = enableProblemReportGeneration;
         return p;
+    }
+
+    @Override
+    public Map<String, String> getProjectProperties() {
+        Instrumented.startParameterProjectPropertiesObserved();
+        return super.getProjectProperties();
+    }
+
+    /**
+     * Returns the properties without making their snapshot a build input for Configuration Caching purposes.
+     * <p>
+     * This should be used with care because failing to track properties can lead to false-positive cache hits.
+     */
+    public Map<String, String> getProjectPropertiesUntracked() {
+        return super.getProjectProperties();
     }
 
     public File getGradleHomeDir() {

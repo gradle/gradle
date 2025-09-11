@@ -46,4 +46,6 @@ interface UndeclaredBuildInputListener {
     fun fileSystemEntryObserved(file: File, consumer: String?)
 
     fun directoryChildrenObserved(directory: File, consumer: String?)
+
+    fun startParameterProjectPropertiesObserved()
 }

@@ -124,7 +124,7 @@ class ConfigurationCacheStartParameter internal constructor(
     val isParallelLoad = options.getInternalFlag("org.gradle.configuration-cache.internal.parallel-load", true)
 
     val gradleProperties: Map<String, Any?>
-        get() = startParameter.projectProperties
+        get() = startParameter.projectPropertiesUntracked
             .filterKeys { !Workarounds.isIgnoredStartParameterProperty(it) }
 
     val configurationCacheLogLevel: LogLevel

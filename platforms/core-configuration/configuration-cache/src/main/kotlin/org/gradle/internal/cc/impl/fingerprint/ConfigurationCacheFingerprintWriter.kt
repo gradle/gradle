@@ -393,6 +393,12 @@ class ConfigurationCacheFingerprintWriter(
         addSystemPropertyToFingerprint(key, value, consumer)
     }
 
+    override fun startParameterProjectPropertiesObserved() {
+        startParameterProjectProperties.getAndSet(null)?.let {
+            addStartParameterProjectPropertiesToFingerprint(it)
+        }
+    }
+
     private
     fun addSystemPropertyToFingerprint(key: String, value: Any?, consumer: String? = null) {
         sink().systemPropertyRead(key, value)
