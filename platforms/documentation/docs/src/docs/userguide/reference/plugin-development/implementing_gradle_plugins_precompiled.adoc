@@ -13,15 +13,45 @@
 // limitations under the License.
 
 [[implemention_precompiled_plugins]]
-= Implementing Pre-compiled Script Plugins
+= Pre-compiled Script Plugins
 :keywords: precompiled, plugin
 
-A *precompiled script plugin* is typically a Kotlin script that has been compiled and distributed as Java class files packaged in a library.
-These scripts are intended to be consumed as binary Gradle plugins and are recommended for use as convention plugins.
+A *precompiled script plugin* is a `.gradle.kts` (Kotlin DSL) or `.gradle` (Groovy DSL) script stored in a plugin source set (e.g. `buildSrc` or an included build like `build-logic`).
+Gradle automatically compiles it into a proper plugin class, packages it like a normal plugin, and assigns the plugin ID based on the file name.
 
-A *convention plugin* is a plugin that normally configures existing core and community plugins with your own conventions (i.e. default values) such as setting the Java version by using `java.toolchain.languageVersion = JavaLanguageVersion.of(17)`.
-Convention plugins are also used to enforce project standards and help streamline the build process.
-They can apply and configure plugins, create new tasks and extensions, set dependencies, and much more.
+For example, you place a script in `build-logic/src/main/kotlin/java-library-conventions.gradle.kts`:
+
+[source,text]
+----
+some-project/
+├─ settings.gradle.kts
+├─ build-logic/
+│  ├─ build.gradle.kts
+│  └─ src/
+│     └─ main/
+│        └─ kotlin/
+│           └─ java-library-conventions.gradle.kts  // <1>
+└─ app/
+   ├─ build.gradle.kts                              // <2>
+   └─ src/
+----
+<1> Pre-compiled script plugin
+<2> Build file applies the plugin
+
+Gradle automatically compiles that script into a plugin.
+The plugin ID is derived from the file name: `java-library-conventions.gradle.kts`.
+
+You can now apply it in any build like a regular plugin.
+In the build file of the `app` project:
+
+[source,kotlin]
+.app/build.gradle.kts
+----
+plugins {
+    // Apply by ID derived from the file name:
+    id("java-library-conventions")
+}
+----
 
 [[sec:the_plugin_id]]
 == Setting the plugin ID
@@ -181,3 +211,6 @@ include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/g
 ====
 
 The plugin version in this case is defined in the dependency declaration.
+
+[[settings_pre_compiled_plugins]]
+== Creating a settings plugin as pre-compiled script plugin
