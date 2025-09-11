@@ -838,4 +838,33 @@ rootProject.name = 'sample'
         where:
         envVar << ["JAVA_OPTS", "SAMPLE_OPTS"]
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/34069")
+    def "Treat template as input for incremental build"() {
+        given:
+        buildFile.delete()
+        buildKotlinFile << """
+            tasks.register<CreateStartScripts>("foo") {
+                applicationName = "foo"
+                outputDir = temporaryDir
+                (unixStartScriptGenerator as TemplateBasedScriptGenerator).template = resources.text.fromFile("foo.txt")
+                (windowsStartScriptGenerator as TemplateBasedScriptGenerator).template = resources.text.fromFile("foo.txt")
+            }
+        """
+        when:
+        file('foo.txt') << '42'
+        succeeds('foo')
+
+        then:
+        file('build/tmp/foo/foo').text=='42'
+        file('build/tmp/foo/foo.bat').text=='42'
+
+        when:
+        file('foo.txt').text = '43'
+        succeeds('foo')
+
+        then:
+        file('build/tmp/foo/foo').text=='43'
+        file('build/tmp/foo/foo.bat').text=='43'
+    }
 }
