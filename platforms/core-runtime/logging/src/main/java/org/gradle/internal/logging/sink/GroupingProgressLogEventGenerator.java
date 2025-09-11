@@ -29,6 +29,7 @@ import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.logging.format.LogHeaderFormatter;
+import org.gradle.internal.logging.text.Span;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.util.internal.GUtil;
@@ -240,12 +241,9 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
                     approximateBufferCodepointSize += logMessageCodepoints;
                 } else if (output instanceof StyledTextOutputEvent) {
                     StyledTextOutputEvent styledTextOutputEvent = (StyledTextOutputEvent) output;
-                    int logMessageCodepoints = styledTextOutputEvent
-                        .getSpans()
-                        .stream()
-                        .mapToInt(span -> span.getText().length())
-                        .sum();
-                    approximateBufferCodepointSize += logMessageCodepoints;
+                    for (StyledTextOutputEvent.Span span : styledTextOutputEvent.getSpans()) {
+                        approximateBufferCodepointSize += span.getText().length();
+                    }
                 }
 
                 if (approximateBufferCodepointSize >= HIGH_WATERMARK_CODEPOINTS) {
