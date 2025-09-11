@@ -29,7 +29,6 @@ import org.gradle.internal.logging.events.RenderableOutputEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.logging.format.LogHeaderFormatter;
-import org.gradle.internal.logging.text.Span;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.util.internal.GUtil;
