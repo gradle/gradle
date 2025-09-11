@@ -51,7 +51,8 @@ class JUnit4TestExecutionIntegrationTest extends AbstractJUnitTestExecutionInteg
         """
 
         when:
-        fails('test', '-x', 'compileTestJava', '-S')
+        executer.withStacktraceEnabled()
+        fails('test', '-x', 'compileTestJava')
 
         then:
         failure.assertHasCause("Could not execute test class 'com.example.Foo'.")
