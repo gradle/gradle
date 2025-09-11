@@ -205,6 +205,7 @@ include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/g
 ====
 
 It can then be applied in the precompiled script plugin:
+
 ====
 include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/kotlin",files="buildSrc/src/main/kotlin/my-plugin.gradle.kts[]"]
 include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/groovy",files="buildSrc/src/main/groovy/my-plugin.gradle[]"]
@@ -212,5 +213,42 @@ include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/g
 
 The plugin version in this case is defined in the dependency declaration.
 
+[[project_pre_compiled_plugins]]
+== Example of a precompiled script plugin in the `Project` scope
+
+You can see an example <<pre_compiled_script_plugin_advanced.adoc#example_precompiled_script_plugin,here>>.
+
 [[settings_pre_compiled_plugins]]
-== Creating a settings plugin as pre-compiled script plugin
+== Example of a precompiled script plugin in the `Settings` scope
+
+Precompiled script plugins can also target the
+link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[`Settings`] scope.
+The following example defines a simple plugin in a separate build called `settings-plugin`.
+
+Configure plugin management for the plugin build:
+
+====
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/kotlin",files="settings-plugin/settings.gradle.kts[]"]
+====
+
+Set up the build to support precompiled script plugins:
+
+====
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/kotlin",files="settings-plugin/build.gradle.kts[]"]
+====
+
+Write the precompiled script plugin itself:
+
+====
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/kotlin",files="settings-plugin/src/main/kotlin/my-plugin.settings.gradle.kts[]"]
+====
+
+Because the file name ends with `.settings.gradle.kts`, Gradle compiles it into a plugin with a `Settings` scope.
+The plugin ID is `my-plugin`.
+You can use it as follows in a consumer project (root settings file of the consuming project):
+
+====
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/kotlin",files="settings.gradle.kts[]"]
+====
+
+TIP: Because the plugin was precompiled as a Settings plugin (the `.settings.gradle(.kts)` suffix), you apply it in the settings file’s `plugins {}` block, not in a project `build.gradle(.kts)` file.

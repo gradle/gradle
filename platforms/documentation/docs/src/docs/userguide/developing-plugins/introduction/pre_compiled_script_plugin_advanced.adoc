@@ -156,7 +156,8 @@ You can publish a precompiled script plugin to a repository, either a public one
 However, publishing precompiled script plugins is *not recommended* (they are meant for internal use only).
 To publish them, you should first convert the precompiled script plugin into a binary plugin.
 
-== Example of a Precompiled Script Plugin in the `Project` Scope
+[[example_precompiled_script_plugin]]
+== Example of a Precompiled Script Plugin
 
 Let’s walk through creating a simple convention plugin using a precompiled script plugin in `buildSrc`.
 
