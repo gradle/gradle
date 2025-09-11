@@ -86,6 +86,7 @@ import java.io.File
 import java.net.URI
 import java.util.EnumSet
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicReference
 
 
 @Suppress("LargeClass")
@@ -186,6 +187,10 @@ class ConfigurationCacheFingerprintWriter(
     private
     val propertyTracking: PropertyTracking
 
+    // set to null, once the snapshot has been written, if ever
+    private
+    val startParameterProjectProperties: AtomicReference<Map<String, Any?>?>
+
     init {
         propertyTracking = when {
             host.isFineGrainedPropertyTracking -> FineGrainedPropertyTracking()
@@ -199,12 +204,19 @@ class ConfigurationCacheFingerprintWriter(
             ConfigurationCacheFingerprint.GradleEnvironment(
                 host.gradleUserHomeDir,
                 jvmFingerprint(),
-                if (host.isFineGrainedPropertyTracking) null else host.startParameterProperties,
                 host.ignoreInputsDuringConfigurationCacheStore,
                 host.instrumentationAgentUsed,
                 host.ignoredFileSystemCheckInputs
             )
         )
+
+        // defensive copy, since the original state is mutable
+        val startParameterPropertiesSnapshot = host.startParameterProperties.toMap()
+        startParameterProjectProperties = AtomicReference(if (host.isFineGrainedPropertyTracking) startParameterPropertiesSnapshot else null)
+
+        if (!host.isFineGrainedPropertyTracking) {
+            addStartParameterProjectPropertiesToFingerprint(startParameterPropertiesSnapshot)
+        }
     }
 
     private
@@ -274,6 +286,11 @@ class ConfigurationCacheFingerprintWriter(
                 buildScopedSink.write(ConfigurationCacheFingerprint.MissingBuildSrcDir(candidateBuildSrc))
             }
         }
+    }
+
+    private
+    fun addStartParameterProjectPropertiesToFingerprint(startParameterPropertiesSnapshot: Map<String, Any?>) {
+        buildScopedSink.write(ConfigurationCacheFingerprint.StartParameterProjectProperties(startParameterPropertiesSnapshot))
     }
 
     override fun scriptSourceObserved(scriptSource: ScriptSource) {
