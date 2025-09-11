@@ -1,3 +1,4 @@
+// tag::main[]
 pluginManagement {
     repositories {
         mavenCentral()
@@ -9,5 +10,6 @@ pluginManagement {
 plugins {
     id("my-plugin")
 }
+// end::main[]
 
 rootProject.name = "precompiled-script-plugins-in-settings"

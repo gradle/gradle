@@ -237,6 +237,8 @@ Set up the build to support precompiled script plugins:
 include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/kotlin",files="settings-plugin/build.gradle.kts[]"]
 ====
 
+TIP: Notice that we used the practice described in <<sec:applying_external_plugins>>.
+
 Write the precompiled script plugin itself:
 
 ====
@@ -248,7 +250,7 @@ The plugin ID is `my-plugin`.
 You can use it as follows in a consumer project (root settings file of the consuming project):
 
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/kotlin",files="settings.gradle.kts[tags=main]"]
 ====
 
-TIP: Because the plugin was precompiled as a Settings plugin (the `.settings.gradle(.kts)` suffix), you apply it in the settings file’s `plugins {}` block, not in a project `build.gradle(.kts)` file.
+WARNING: Because the plugin was precompiled as a link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[`Settings`] plugin (the `.settings.gradle(.kts)` suffix), you apply it in the settings file’s `plugins {}` block, not in a project `build.gradle(.kts)` file.
