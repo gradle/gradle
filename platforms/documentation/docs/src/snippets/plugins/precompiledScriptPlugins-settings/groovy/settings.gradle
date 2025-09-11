@@ -4,12 +4,12 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
-    includeBuild("./settings-plugin")
+    includeBuild('./settings-plugin')
 }
 
 plugins {
-    id 'my-plugin'
+    id('my-plugin')
 }
 // end::main[]
 
-rootProject.name = "precompiled-script-plugins-in-settings"
+rootProject.name = 'precompiled-script-plugins-in-settings'

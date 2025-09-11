@@ -8,5 +8,5 @@ repositories {
 }
 
 dependencies {
-    implementation("com.gradle:develocity-gradle-plugin:4.1")
+    implementation('com.gradle:develocity-gradle-plugin:4.1')
 }
