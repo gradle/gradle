@@ -61,6 +61,14 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
         !kotlinModel.templateClassNames.isEmpty()
         loadClassesFrom(kotlinModel.scriptTemplatesClassPath, kotlinModel.templateClassNames)
 
+        def legacyScriptTemplateAndResolverClassNames = Arrays.asList(
+                "org.gradle.kotlin.dsl.KotlinInitScript",
+                "org.gradle.kotlin.dsl.KotlinSettingsScript",
+                "org.gradle.kotlin.dsl.KotlinBuildScript",
+                "org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver"
+        )
+        loadClassesFrom(kotlinModel.scriptTemplatesClassPath, legacyScriptTemplateAndResolverClassNames)
+
         and: "Kotlin DSL script compile classpath"
         !kotlinModel.compileClassPath.isEmpty()
         kotlinModel.compileClassPath.find { it.name.contains("gradle-api-") && it.name.endsWith(".jar") }
