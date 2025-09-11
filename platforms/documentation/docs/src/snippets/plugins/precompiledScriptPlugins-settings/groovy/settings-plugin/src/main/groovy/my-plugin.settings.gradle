@@ -1,5 +1,3 @@
 plugins {
     id('com.gradle.develocity')
 }
-
-println('Settings script is running!')
