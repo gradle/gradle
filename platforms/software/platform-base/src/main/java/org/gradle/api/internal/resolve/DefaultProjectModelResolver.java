@@ -30,7 +30,7 @@ public class DefaultProjectModelResolver implements ProjectModelResolver {
 
     @Override
     public ModelRegistry resolveProjectModel(String path) {
-        ProjectInternal projectInternal = delegate.getProject(path);
+        ProjectInternal projectInternal = delegate.getProjectInternal(path);
         if (projectInternal == null) {
             throw new UnknownProjectException("Project with path '" + path + "' not found.");
         }

@@ -48,7 +48,7 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
             throw new IllegalArgumentException("Project path must be absolute");
         }
 
-        return projectRegistry.getProject(path.asString());
+        return projectRegistry.getProjectInternal(path.asString());
     }
 
     @Override
