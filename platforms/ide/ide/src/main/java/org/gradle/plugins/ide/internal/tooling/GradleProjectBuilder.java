@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
+import com.google.common.collect.Streams;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -58,7 +59,7 @@ public class GradleProjectBuilder implements GradleProjectBuilderInternal {
      * When {@code realizeTasks} is false, the project's task graph will not be realized, and the task list in the model will be empty
      */
     private static DefaultGradleProject buildHierarchy(ProjectState project, boolean realizeTasks) {
-        List<DefaultGradleProject> children = project.getChildProjects().stream()
+        List<DefaultGradleProject> children = Streams.stream(project.getChildProjects())
             .map(it -> buildHierarchy(it, realizeTasks))
             .collect(toList());
 

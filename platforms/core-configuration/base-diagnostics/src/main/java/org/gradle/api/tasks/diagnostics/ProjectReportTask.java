@@ -15,11 +15,13 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
+import com.google.common.collect.Streams;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectOrderingUtil;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.initialization.BuildClientMetaData;
@@ -138,7 +140,8 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     }
 
     private List<ProjectReportModel> calculateChildrenProjectsFor(Project project) {
-        return ((ProjectInternal) project).getOwner().getChildProjects().stream()
+        ProjectState owner = ((ProjectInternal) project).getOwner();
+        return Streams.stream(owner.getChildProjects())
             .sorted(ProjectOrderingUtil::compare)
             .map(state -> calculateReportModelFor(state.getMutableModel()))
             .collect(Collectors.toList());
