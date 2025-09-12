@@ -179,6 +179,7 @@ import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactory
 import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
 import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.composite.BuildIncludeListener;
 import org.gradle.internal.composite.DefaultBuildIncluder;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
@@ -598,7 +599,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         Instantiator instantiator,
         GradleProperties gradleProperties,
         BuildOperationRunner buildOperationRunner,
-        TextFileResourceLoader textFileResourceLoader
+        TextFileResourceLoader textFileResourceLoader,
+        BuildIncludeListener buildIncludeListener
     ) {
         return new BuildOperationSettingsProcessor(
             new RootBuildCacheControllerSettingsProcessor(
@@ -611,7 +613,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
                             scriptHandlerFactory
                         ),
                         gradleProperties,
-                        textFileResourceLoader
+                        textFileResourceLoader,
+                        buildIncludeListener
                     )
                 )
             ),
@@ -799,4 +802,5 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     protected BuildInitSpecRegistry createInitProjectSpecRegistry() {
         return new BuildInitSpecRegistry();
     }
+
 }
