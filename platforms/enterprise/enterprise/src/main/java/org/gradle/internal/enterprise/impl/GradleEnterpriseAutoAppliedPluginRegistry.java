@@ -19,12 +19,12 @@ package org.gradle.internal.enterprise.impl;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
@@ -62,7 +62,7 @@ public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPlu
 
     private static PluginRequestInternal createDevelocityPluginRequest() {
         ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(AutoAppliedDevelocityPlugin.GROUP, AutoAppliedDevelocityPlugin.NAME);
-        ModuleVersionSelector artifact = DefaultModuleVersionSelector.newSelector(moduleIdentifier, AutoAppliedDevelocityPlugin.VERSION);
+        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(moduleIdentifier, AutoAppliedDevelocityPlugin.VERSION);
         return new DefaultPluginRequest(
             AutoAppliedDevelocityPlugin.ID,
             true,
@@ -70,7 +70,7 @@ public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPlu
             getScriptDisplayName(),
             null,
             AutoAppliedDevelocityPlugin.VERSION,
-            artifact,
+            selector,
             null,
             gradleEnterprisePluginCoordinates()
         );
@@ -78,8 +78,8 @@ public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPlu
 
     private static PluginCoordinates gradleEnterprisePluginCoordinates() {
         ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(AutoAppliedDevelocityPlugin.GROUP, AutoAppliedDevelocityPlugin.GRADLE_ENTERPRISE_PLUGIN_ARTIFACT_NAME);
-        ModuleVersionSelector artifact = DefaultModuleVersionSelector.newSelector(moduleIdentifier, AutoAppliedDevelocityPlugin.VERSION);
-        return new PluginCoordinates(AutoAppliedDevelocityPlugin.GRADLE_ENTERPRISE_PLUGIN_ID, artifact);
+        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(moduleIdentifier, AutoAppliedDevelocityPlugin.VERSION);
+        return new PluginCoordinates(AutoAppliedDevelocityPlugin.GRADLE_ENTERPRISE_PLUGIN_ID, selector);
     }
 
     private static String getScriptDisplayName() {

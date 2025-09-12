@@ -19,11 +19,12 @@ package org.gradle.api.internal.artifacts.dsl;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
@@ -37,46 +38,44 @@ import org.gradle.internal.typeconversion.TypedNotationConverter;
 
 import java.util.Set;
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector;
+public class ModuleComponentSelectorParsers {
 
-public class ModuleVersionSelectorParsers {
-
-    public static NotationParser<Object, Set<ModuleVersionSelector>> multiParser(String dslContext) {
+    public static NotationParser<Object, Set<ModuleComponentSelector>> multiParser(String dslContext) {
         return builder(dslContext).toFlatteningComposite();
     }
 
-    public static NotationParser<Object, ModuleVersionSelector> parser(String dslContext) {
+    public static NotationParser<Object, ModuleComponentSelector> parser(String dslContext) {
         return builder(dslContext).toComposite();
     }
 
-    private static NotationParserBuilder<Object, ModuleVersionSelector> builder(String dslContext) {
+    private static NotationParserBuilder<Object, ModuleComponentSelector> builder(String dslContext) {
         return NotationParserBuilder
-            .toType(ModuleVersionSelector.class)
+            .toType(ModuleComponentSelector.class)
             .fromCharSequence(new StringConverter())
             .converter(new MapConverter())
             .converter(new ProviderConverter(dslContext))
             .converter(new ProviderConvertibleConverter(dslContext));
     }
 
-    static class MapConverter extends MapNotationConverter<ModuleVersionSelector> {
+    static class MapConverter extends MapNotationConverter<ModuleComponentSelector> {
         @Override
         public void describe(DiagnosticsVisitor visitor) {
             visitor.candidate("Maps").example("[group: 'org.gradle', name:'gradle-core', version: '1.0']");
         }
 
-        protected ModuleVersionSelector parseMap(@MapKey("group") String group, @MapKey("name") String name, @MapKey("version") String version) {
-            return newSelector(DefaultModuleIdentifier.newId(group, name), version);
+        protected ModuleComponentSelector parseMap(@MapKey("group") String group, @MapKey("name") String name, @MapKey("version") String version) {
+            return DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, name), version);
         }
     }
 
-    static class StringConverter implements NotationConverter<String, ModuleVersionSelector> {
+    static class StringConverter implements NotationConverter<String, ModuleComponentSelector> {
         @Override
         public void describe(DiagnosticsVisitor visitor) {
             visitor.candidate("String or CharSequence values").example("'org.gradle:gradle-core:1.0'");
         }
 
         @Override
-        public void convert(String notation, NotationConvertResult<? super ModuleVersionSelector> result) throws TypeConversionException {
+        public void convert(String notation, NotationConvertResult<? super ModuleComponentSelector> result) throws TypeConversionException {
             ParsedModuleStringNotation parsed;
             try {
                 parsed = new ParsedModuleStringNotation(notation, null);
@@ -91,11 +90,11 @@ public class ModuleVersionSelectorParsers {
                         "Invalid format: '" + notation + "'. Group, name and version cannot be empty. Correct example: "
                                 + "'org.gradle:gradle-core:1.0'");
             }
-            result.converted(newSelector(DefaultModuleIdentifier.newId(parsed.getGroup(), parsed.getName()), parsed.getVersion()));
+            result.converted(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(parsed.getGroup(), parsed.getName()), parsed.getVersion()));
         }
     }
 
-    static class ProviderConvertibleConverter extends TypedNotationConverter<ProviderConvertible<?>, ModuleVersionSelector> {
+    static class ProviderConvertibleConverter extends TypedNotationConverter<ProviderConvertible<?>, ModuleComponentSelector> {
 
         private final ProviderConverter providerConverter;
 
@@ -110,13 +109,13 @@ public class ModuleVersionSelectorParsers {
         }
 
         @Override
-        protected ModuleVersionSelector parseType(ProviderConvertible<?> notation) {
+        protected ModuleComponentSelector parseType(ProviderConvertible<?> notation) {
             return providerConverter.parseType(notation.asProvider());
         }
 
     }
 
-    static class ProviderConverter extends TypedNotationConverter<Provider<?>, ModuleVersionSelector> {
+    static class ProviderConverter extends TypedNotationConverter<Provider<?>, ModuleComponentSelector> {
 
         private final String caller;
 
@@ -131,7 +130,7 @@ public class ModuleVersionSelectorParsers {
         }
 
         @Override
-        protected ModuleVersionSelector parseType(Provider<?> notation) {
+        protected ModuleComponentSelector parseType(Provider<?> notation) {
             Class<?> providerTargetClass = getProviderTargetClass(notation);
             if (!MinimalExternalModuleDependency.class.isAssignableFrom(providerTargetClass)) {
                 String notationAsString = notation.getOrNull() == null ? null : notation.get().toString();
@@ -144,7 +143,7 @@ public class ModuleVersionSelectorParsers {
             } else if (dependency.getVersionConstraint().getRequiredVersion().isEmpty()) {
                 throw new InvalidUserDataException("Cannot convert a version catalog entry: '" + notation.get() + "' to an object of type ModuleVersionSelector. Version cannot be empty for '" + caller + "'.");
             } else {
-                return newSelector(dependency.getModule(), dependency.getVersionConstraint().getRequiredVersion());
+                return DefaultModuleComponentSelector.newSelector(dependency.getModule(), dependency.getVersionConstraint().getRequiredVersion());
             }
         }
 

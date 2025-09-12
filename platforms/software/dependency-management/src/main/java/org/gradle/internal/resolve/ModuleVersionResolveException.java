@@ -17,7 +17,6 @@ package org.gradle.internal.resolve;
 
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
@@ -59,10 +58,6 @@ public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoS
         initCauses(causes);
     }
 
-    public ModuleVersionResolveException(ModuleVersionSelector selector, Factory<String> message) {
-        this(DefaultModuleComponentSelector.newSelector(selector), message);
-    }
-
     public ModuleVersionResolveException(ModuleVersionIdentifier id, Factory<String> message) {
         this(DefaultModuleComponentSelector.newSelector(id.getModule(), DefaultImmutableVersionConstraint.of(id.getVersion())), message);
     }
@@ -81,14 +76,6 @@ public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoS
 
     public ModuleVersionResolveException(ModuleComponentIdentifier id, Iterable<? extends Throwable> causes) {
         this(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(id.getGroup(), id.getModule()), DefaultImmutableVersionConstraint.of(id.getVersion())), causes);
-    }
-
-    public ModuleVersionResolveException(ModuleVersionSelector selector, Throwable cause) {
-        this(DefaultModuleComponentSelector.newSelector(selector), cause);
-    }
-
-    public ModuleVersionResolveException(ModuleVersionSelector selector, Iterable<? extends Throwable> causes) {
-        this(DefaultModuleComponentSelector.newSelector(selector), causes);
     }
 
     /**

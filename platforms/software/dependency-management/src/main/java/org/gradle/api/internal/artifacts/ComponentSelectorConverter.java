@@ -15,19 +15,27 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * Adapts the new `ComponentSelector` types to legacy types.
- * Note that for `ProjectComponentSelector` this requires looking up the target project in order
- * to determine the project coordinates.
+ * Resolves the module coordinates of the given component selector.
+ * <p>
+ * This service should be generally avoided. We should not assume all components are module components.
  */
 @ServiceScope(Scope.Project.class)
 public interface ComponentSelectorConverter {
-    ModuleIdentifier getModule(ComponentSelector selector);
-    ModuleVersionSelector getSelector(ComponentSelector selector);
+
+    /**
+     * Resolves the given component selector and returns the module coordinates of the selected component.
+     * <p>
+     * Returns instantly for {@link org.gradle.api.artifacts.component.ModuleComponentSelector}s.
+     * Resolves the target project for {@link org.gradle.api.artifacts.component.ProjectComponentSelector}s.
+     *
+     * @throws IllegalArgumentException if an unknown selector type is provided.
+     */
+    ModuleVersionIdentifier getModuleVersionId(ComponentSelector selector);
+
 }

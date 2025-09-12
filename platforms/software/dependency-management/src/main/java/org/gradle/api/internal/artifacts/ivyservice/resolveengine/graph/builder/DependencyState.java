@@ -29,6 +29,7 @@ import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -61,7 +62,7 @@ class DependencyState {
     private final ComponentSelectorConverter componentSelectorConverter;
     private final int hashCode;
 
-    private ModuleIdentifier moduleIdentifier;
+    private @Nullable ModuleIdentifier moduleIdentifier;
     public ModuleVersionResolveException failure;
     private boolean reasonsAlreadyAdded;
     private Map<DependencySubstitutionApplicator.SubstitutionResult, DependencyState> substitutionResultMap;
@@ -94,7 +95,12 @@ class DependencyState {
 
     public ModuleIdentifier getModuleIdentifier() {
         if (moduleIdentifier == null) {
-            moduleIdentifier = componentSelectorConverter.getModule(dependency.getSelector());
+            ComponentSelector componentSelector = dependency.getSelector();
+            if (componentSelector instanceof ModuleComponentSelector) {
+                moduleIdentifier = ((ModuleComponentSelector) componentSelector).getModuleIdentifier();
+            } else {
+                moduleIdentifier = componentSelectorConverter.getModuleVersionId(componentSelector).getModule();
+            }
         }
         return moduleIdentifier;
     }
