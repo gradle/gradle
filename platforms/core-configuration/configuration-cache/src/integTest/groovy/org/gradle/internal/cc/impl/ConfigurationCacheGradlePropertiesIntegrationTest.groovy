@@ -418,9 +418,10 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
 //        configurationCache.assertStateLoaded()
 
         where:
-        description                        | accessExpr
-        "ext.properties"                   | "ext.properties.bar"
-        "startParameter.projectProperties" | "gradle.startParameter.projectProperties['bar']"
+        description                                 | accessExpr
+        "ext.properties"                            | "ext.properties.bar"
+        "startParameter.projectProperties property" | "gradle.startParameter.projectProperties['bar']"
+        "startParameter.projectProperties"          | "gradle.startParameter.projectProperties"
     }
 
     def "reuses cache when project property, accessed via ext, changes on command-line, but was shadowed via build logic assignment"() {
@@ -592,6 +593,117 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         source << ['command-line', 'gradle.properties']
     }
 
-    // TODO: add test - execution time access behavior?
-    // TODO: add test - composite build behavior?
+    def "reuses cache when start parameter project property used at execution time changes"() {
+        given:
+        buildFile """
+            abstract class FooTask extends DefaultTask {
+                @Inject
+                abstract StartParameter getStartParameter()
+
+                @TaskAction
+                void foo() {
+                    println("Bar: \${startParameter.projectProperties['bar']}")
+                }
+            }
+
+            tasks.register("foo", FooTask)
+        """
+
+        when:
+        configurationCacheRun "foo", "-Pbar=one"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Bar: one")
+
+        when:
+        configurationCacheRun "foo", "-Pbar=two"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("Bar: two")
+    }
+
+    def "invalidates cache when project property changes on command-line, if used at configuration time in composite #included build"() {
+        if (included != "buildSrc") {
+            settingsFile """
+                includeBuild('$included')
+            """
+        }
+        buildFile("$included/build.gradle", """
+            def access = gradle.startParameter.projectProperties["foo"]
+            println("Access: '\${access}'")
+        """)
+
+        when:
+        configurationCacheRun "help", "-Pfoo=one"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Access: 'null'")
+
+        when:
+        configurationCacheRun "help", "-Pfoo=two"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Access: 'null'")
+
+        where:
+        included << ["buildSrc", "included"]
+    }
+
+    def "invalidates cache when project property changes on command-line, if used only at execution time via start parameter"() {
+        given:
+        buildFile """
+            tasks.register("foo") {
+                def projectProps = gradle.startParameter.projectProperties
+                doLast {
+                    println("Bar: \${projectProps['bar']}")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "foo", "-Pbar=one"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains "Bar: one"
+
+        when:
+        configurationCacheRun "foo", "-Pbar=two"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains "Bar: two"
+    }
+
+    @ToBeImplemented
+    def "invalidates cache when project property changes on command-line, if used only at execution time via captured start parameter"() {
+        given:
+        buildFile """
+            tasks.register("foo") {
+                def captured = gradle.startParameter
+                doLast {
+                    println("Bar: \${captured.projectProperties['bar']}")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "foo", "-Pbar=one"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains "Bar: one"
+
+        when:
+        configurationCacheRun "foo", "-Pbar=two"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains "Bar: one"
+        // Must be cache miss
+    }
 }

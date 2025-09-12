@@ -21,7 +21,7 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
 import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
-import org.gradle.internal.classpath.Instrumented;
+import org.gradle.internal.configuration.inputs.InstrumentedInputs;
 import org.gradle.internal.deprecation.StartParameterDeprecations;
 import org.gradle.internal.watch.registry.WatchMode;
 import org.jspecify.annotations.Nullable;
@@ -100,8 +100,10 @@ public class StartParameterInternal extends StartParameter {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public Map<String, String> getProjectProperties() {
-        Instrumented.startParameterProjectPropertiesObserved();
+        // We can't use Instrumented.startParameterProjectPropertiesObserved() directly because it bloats up Shaded TAPI Jar
+        InstrumentedInputs.listener().startParameterProjectPropertiesObserved();
         return super.getProjectProperties();
     }
 
