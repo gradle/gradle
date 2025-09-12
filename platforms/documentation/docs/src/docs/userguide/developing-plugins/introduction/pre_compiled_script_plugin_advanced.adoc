@@ -153,9 +153,10 @@ There is no need to explicitly implement the link:{javadocPath}/org/gradle/api/P
 
 You can publish a precompiled script plugin to a repository, either a public one such as the https://plugins.gradle.org/[Gradle Plugin Portal], or a private artifact repository like Maven, Artifactory, or Nexus.
 
-However, publishing precompiled script plugins is not typical or recommended (they are meant for internal use only).
+However, publishing precompiled script plugins is *not recommended* (they are meant for internal use only).
 To publish them, you should first convert the precompiled script plugin into a binary plugin.
 
+[[example_precompiled_script_plugin]]
 == Example of a Precompiled Script Plugin
 
 Let’s walk through creating a simple convention plugin using a precompiled script plugin in `buildSrc`.
