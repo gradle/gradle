@@ -72,7 +72,6 @@ import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
@@ -518,7 +517,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
 
             @Override
-            public Object newInstance(ServiceLookup services, InstanceGenerator nested) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+            public Object newInstance(ServiceLookup services, InstanceGenerator nested) throws Throwable {
                 return strategy.newInstance(services, nested, null, NO_PARAMS);
             }
         }
@@ -533,7 +532,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
 
             @Override
-            public Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+            public Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws Throwable {
                 return strategy.newInstance(services, nested, displayName, params);
             }
 
@@ -1490,7 +1489,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     protected interface InstantiationStrategy {
-        Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException;
+        Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws Throwable;
     }
 
     protected interface ClassGenerationVisitor {

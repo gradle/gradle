@@ -123,6 +123,7 @@ import static sun.reflect.ReflectionFactory.getReflectionFactory;
 public class AsmBackedClassGenerator extends AbstractClassGenerator {
     private static final ThreadLocal<ObjectCreationDetails> SERVICES_FOR_NEXT_OBJECT = new ThreadLocal<>();
     private static final AtomicReference<Cache<Class<?>, GeneratedClassImpl>> GENERATED_CLASSES_CACHES = new AtomicReference<>();
+    private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
     private final boolean decorate;
     private final String suffix;
     private final int factoryId;
@@ -2073,22 +2074,32 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     }
 
     private static class InvokeConstructorStrategy implements InstantiationStrategy {
-        private final Constructor<?> constructor;
+        private final MethodHandle constructorHandle;
         private final PropertyRoleAnnotationHandler roleHandler;
 
         public InvokeConstructorStrategy(Constructor<?> constructor, PropertyRoleAnnotationHandler roleHandler) {
-            this.constructor = constructor;
+            this.constructorHandle = asHandleWithParams(constructor);
             this.roleHandler = roleHandler;
         }
 
         @Override
-        public Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+        public Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws Throwable {
             ObjectCreationDetails previous = SERVICES_FOR_NEXT_OBJECT.get();
             SERVICES_FOR_NEXT_OBJECT.set(new ObjectCreationDetails(nested, services, displayName, roleHandler));
             try {
-                return constructor.newInstance(params);
+                return constructorHandle.invokeExact(params);
             } finally {
                 SERVICES_FOR_NEXT_OBJECT.set(previous);
+            }
+        }
+
+        private static MethodHandle asHandleWithParams(Constructor<?> constructor) {
+            try {
+                return LOOKUP.unreflectConstructor(constructor)
+                    .asType(MethodType.methodType(Object.class, constructor.getParameterTypes()))
+                    .asSpreader(Object[].class, constructor.getParameterCount());
+            } catch (IllegalAccessException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
     }
@@ -2096,24 +2107,33 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     private static class InvokeSerializationConstructorAndInitializeFieldsStrategy implements InstantiationStrategy {
         private final PropertyRoleAnnotationHandler roleHandler;
         private final Constructor<?> constructor;
-        private final Method initMethod;
+        private final MethodHandle initMethodHandle;
 
         public InvokeSerializationConstructorAndInitializeFieldsStrategy(Constructor<?> constructor, Method initMethod, PropertyRoleAnnotationHandler roleHandler) {
             this.constructor = constructor;
-            this.initMethod = initMethod;
+            this.initMethodHandle = asInitMethodHandle(initMethod);
             this.roleHandler = roleHandler;
         }
 
         @Override
-        public Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+        public Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws Throwable {
             ObjectCreationDetails previous = SERVICES_FOR_NEXT_OBJECT.get();
             SERVICES_FOR_NEXT_OBJECT.set(new ObjectCreationDetails(nested, services, displayName, roleHandler));
             try {
                 Object instance = constructor.newInstance();
-                initMethod.invoke(instance);
+                initMethodHandle.invokeExact(instance);
                 return instance;
             } finally {
                 SERVICES_FOR_NEXT_OBJECT.set(previous);
+            }
+        }
+
+        private static MethodHandle asInitMethodHandle(Method method) {
+            try {
+                return LOOKUP.unreflect(method)
+                    .asType(MethodType.methodType(void.class, Object.class));
+            } catch (IllegalAccessException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
     }

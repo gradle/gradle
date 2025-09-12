@@ -48,6 +48,7 @@ import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.extensibility.ConventionAwareHelper;
 import org.gradle.internal.extensibility.DefaultExtensionContainer;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
@@ -77,7 +78,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.GenericArrayType;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -146,7 +146,11 @@ public class AsmBackedClassGeneratorTest {
                     }
                 }
                 if (i == args.length) {
-                    return (T) constructor.newInstance(services, null, null, args);
+                    try {
+                        return (T) constructor.newInstance(services, null, null, args);
+                    } catch (Throwable e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
                 }
             }
         }
@@ -459,8 +463,8 @@ public class AsmBackedClassGeneratorTest {
         try {
             newInstance(UnconstructibleBean.class);
             fail();
-        } catch (InvocationTargetException e) {
-            assertThat(e.getCause(), sameInstance(UnconstructibleBean.failure));
+        } catch (UnsupportedOperationException e) {
+            assertThat(e, sameInstance(UnconstructibleBean.failure));
         }
     }
 
