@@ -23,6 +23,7 @@ import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor;
 import org.gradle.internal.buildtree.BuildTreeModelTarget;
 import org.gradle.internal.work.WorkerThreadRegistry;
+import org.gradle.tooling.ResilientResult;
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
@@ -33,6 +34,7 @@ import org.gradle.tooling.internal.protocol.InternalStreamedValueRelay;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
+import org.gradle.tooling.internal.provider.connection.ProviderResilientResult;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.serialization.StreamedValue;
@@ -92,8 +94,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
      * This is used by consumers 4.4 and later
      */
     @Override
-    public BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, Object parameter)
-        throws BuildExceptionVersion1, InternalUnsupportedModelException {
+    public BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, Object parameter) throws BuildExceptionVersion1, InternalUnsupportedModelException {
         assertCanQuery();
         if (cancellationToken.isCancellationRequested()) {
             throw new BuildCancelledException(String.format("Could not build '%s' model. Build cancelled.", modelIdentifier.getName()));
@@ -103,6 +104,23 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         try {
             Object model = controller.getModel(scopedTarget, modelIdentifier.getName(), parameter);
             return new ProviderBuildResult<>(model);
+        } catch (UnknownModelException e) {
+            throw (InternalUnsupportedModelException) new InternalUnsupportedModelException().initCause(e);
+        }
+    }
+
+    @Override
+    public BuildResult<ResilientResult<?>> getResilientModel(Object target, ModelIdentifier modelIdentifier, Object parameter) throws BuildExceptionVersion1, InternalUnsupportedModelException {
+        assertCanQuery();
+        if (cancellationToken.isCancellationRequested()) {
+            throw new BuildCancelledException(String.format("Could not build '%s' model. Build cancelled.", modelIdentifier.getName()));
+        }
+
+        BuildTreeModelTarget scopedTarget = resolveTarget(target);
+        try {
+            Object model = controller.getModel(scopedTarget, modelIdentifier.getName(), parameter);
+            //ResilientResult<?> modelResult = controller.getResilientModel(scopedTarget, modelIdentifier.getName(), parameter); // TODO: would be ideal...
+            return new ProviderBuildResult<>(new ProviderResilientResult<>(model));
         } catch (UnknownModelException e) {
             throw (InternalUnsupportedModelException) new InternalUnsupportedModelException().initCause(e);
         }
@@ -146,5 +164,4 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
         BuildEventConsumer buildEventConsumer = this.buildEventConsumer;
         sideEffectExecutor.runIsolatableSideEffect(() -> buildEventConsumer.dispatch(streamedValue));
     }
-
 }

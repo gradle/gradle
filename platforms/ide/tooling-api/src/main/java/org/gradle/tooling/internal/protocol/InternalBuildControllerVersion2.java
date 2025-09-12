@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.protocol;
 
+import org.gradle.tooling.ResilientResult;
+
 /**
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
@@ -41,5 +43,8 @@ public interface InternalBuildControllerVersion2 {
      * @since 4.4
      */
     BuildResult<?> getModel(Object target, ModelIdentifier modelIdentifier, Object parameter) throws BuildExceptionVersion1,
+        InternalUnsupportedModelException;
+
+    BuildResult<ResilientResult<?>> getResilientModel(Object target, ModelIdentifier modelIdentifier, Object parameter) throws BuildExceptionVersion1,
         InternalUnsupportedModelException;
 }

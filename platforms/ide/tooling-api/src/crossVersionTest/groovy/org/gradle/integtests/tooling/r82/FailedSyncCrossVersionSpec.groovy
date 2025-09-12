@@ -22,7 +22,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildController
-import org.gradle.tooling.model.ProjectIdentifier
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
@@ -31,12 +30,31 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
-@ToolingApiVersion('>=8.2') // Since our action uses `buildTreePath`
+@ToolingApiVersion('>=8.2')
+// Since our action uses `buildTreePath`
 @TargetGradleVersion('>=8.2')
 class FailedSyncCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
         settingsFile.delete() // This is automatically created by `ToolingApiSpecification`
+    }
+
+    def "basic project - nothing broken"() {
+        given:
+        settingsKotlinFile << """
+            rootProject.name = "root"
+        """
+        buildKotlinFile << """"""
+
+        when:
+        MyCustomModel model = succeeds {
+            action(new CustomModelAction())
+                    .withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
+                    .run()
+        }
+
+        then:
+        model.projectPaths == [":"]
     }
 
     def "broken settings file - strict mode - build action"() {
@@ -69,12 +87,12 @@ class FailedSyncCrossVersionSpec extends ToolingApiSpecification {
         when:
         MyCustomModel model = succeeds {
             action(new CustomModelAction())
-                .withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
-                .run()
+                    .withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
+                    .run()
         }
 
         then:
-        model.paths == [":"]
+        model.projectPaths == [":"]
     }
 
     def "basic project w/ included build - broken included build build file - build action"() {
@@ -95,12 +113,12 @@ class FailedSyncCrossVersionSpec extends ToolingApiSpecification {
         when:
         MyCustomModel model = succeeds {
             action(new CustomModelAction())
-                .withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
-                .run()
+                    .withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
+                    .run()
         }
 
         then:
-        model.paths == [":", ":included"]
+        model.projectPaths == [":", ":included"]
     }
 
     def "basic project w/ included build - broken included build settings file and build script - strict mode - build action"() {
@@ -133,17 +151,11 @@ class FailedSyncCrossVersionSpec extends ToolingApiSpecification {
     static class MyCustomModel implements Serializable {
 
         Map<File, KotlinDslScriptModel> scriptModels
-        List<ProjectIdentifier> projectIdentifiers
-        List<String> paths
+        List<String> projectPaths
 
-        MyCustomModel(
-            Map<File, KotlinDslScriptModel> scriptModels,
-            List<ProjectIdentifier> projectIdentifiers,
-            List<String> paths
-        ) {
+        MyCustomModel(List<String> projectPaths, Map<File, KotlinDslScriptModel> scriptModels) {
             this.scriptModels = scriptModels
-            this.projectIdentifiers = projectIdentifiers
-            this.paths = paths
+            this.projectPaths = projectPaths
         }
 
     }
@@ -153,23 +165,22 @@ class FailedSyncCrossVersionSpec extends ToolingApiSpecification {
         @Override
         MyCustomModel execute(BuildController controller) {
             GradleBuild build = controller.getModel(GradleBuild.class)
-            KotlinDslScriptsModel buildScriptModel = controller.getModel(KotlinDslScriptsModel.class)
 
-            def paths = Stream.concat(Stream.of(build), build.includedBuilds.stream())
-                .flatMap(b -> b.projects.stream())
-                .map(p -> p.buildTreePath)
-                .collect(Collectors.toList())
+            /*def legacyModel = controller.getModel(KotlinDslScriptsModel.class)
+            def legacyData = legacyModel.scriptModels
+            println "legacyData.size() = $legacyData.size()"*/
 
-            def identifier = build.projects.collect { project ->
-                project.projectIdentifier
-            }
+            def resilientResult = controller.getResilientModel(KotlinDslScriptsModel.class)
+            KotlinDslScriptsModel buildScriptsModel = resilientResult.model
+            def data = buildScriptsModel.scriptModels
 
-            // Build your custom model
-            return new MyCustomModel(
-                buildScriptModel.scriptModels,
-                identifier,
-                paths
-            )
+            def projectPaths = Stream.concat(Stream.of(build), build.includedBuilds.stream())
+                    .flatMap(b -> b.projects.stream())
+                    .map(p -> p.buildTreePath)
+                    .collect(Collectors.toList())
+
+
+            return new MyCustomModel(projectPaths, data)
         }
 
     }

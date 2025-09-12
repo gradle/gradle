@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.tooling.ResilientResult;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
@@ -38,5 +39,10 @@ class ParameterAwareBuildControllerAdapter extends UnparameterizedBuildControlle
     @Override
     protected BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) throws InternalUnsupportedModelException {
         return buildController.getModel(target, modelIdentifier, parameter);
+    }
+
+    @Override
+    protected BuildResult<ResilientResult<?>> getResilientModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) throws InternalUnsupportedModelException {
+        return buildController.getResilientModel(target, modelIdentifier, parameter);
     }
 }

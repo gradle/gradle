@@ -20,8 +20,10 @@ import org.gradle.api.Action;
 import org.gradle.internal.operations.MultipleBuildOperationFailures;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
+import org.gradle.tooling.ResilientResult;
 import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.UnsupportedVersionException;
+import org.gradle.tooling.events.problems.Problem;
 import org.gradle.tooling.internal.adapter.ObjectGraphAdapter;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.ViewBuilder;
@@ -37,6 +39,7 @@ import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.jspecify.annotations.Nullable;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
@@ -65,6 +68,11 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
     }
 
     @Override
+    public <T> ResilientResult<T> getResilientModel(Class<T> modelType) throws UnknownModelException {
+        return getResilientModel(null, modelType);
+    }
+
+    @Override
     public <T> T findModel(Class<T> modelType) {
         return findModel(null, modelType);
     }
@@ -80,6 +88,11 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
     }
 
     @Override
+    public <T> ResilientResult<T> getResilientModel(Model target, Class<T> modelType) throws UnknownModelException {
+        return getResilientModel(target, modelType, null, null);
+    }
+
+    @Override
     public <T> T findModel(Model target, Class<T> modelType) {
         return findModel(target, modelType, null, null);
     }
@@ -87,6 +100,11 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
     @Override
     public <T, P> T getModel(Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException {
         return getModel(null, modelType, parameterType, parameterInitializer);
+    }
+
+    @Override
+    public <T, P> ResilientResult<T> getResilientModel(Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnknownModelException {
+        return getResilientModel(null, modelType, parameterType, parameterInitializer);
     }
 
     @Override
@@ -106,21 +124,74 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
 
     @Override
     public <T, P> T getModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException, UnknownModelException {
-        ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(modelType);
-        Object originalTarget = target == null ? null : adapter.unpack(target);
-
-        P parameter = initializeParameter(parameterType, parameterInitializer);
-
         BuildResult<?> result;
         try {
-            result = getModel(originalTarget, modelIdentifier, parameter);
+            result = getModel(
+                getOriginalTarget(target),
+                getModelIdentifier(modelType),
+                initializeParameter(parameterType, parameterInitializer)
+            );
         } catch (InternalUnsupportedModelException e) {
             throw Exceptions.unknownModel(modelType, e);
         }
 
+        return buildView(target, modelType, result.getModel());
+    }
+
+    @Override
+    public <T, P> ResilientResult<T> getResilientModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException, UnknownModelException {
+        BuildResult<ResilientResult<?>> result;
+        try {
+            result = getResilientModel(
+                getOriginalTarget(target),
+                getModelIdentifier(modelType),
+                initializeParameter(parameterType, parameterInitializer)
+            );
+        } catch (InternalUnsupportedModelException e) {
+            throw Exceptions.unknownModel(modelType, e);
+        }
+
+        return buildResilientView(target, modelType, result.getModel());
+    }
+
+    private <T> @javax.annotation.Nullable ResilientResult<T> buildResilientView(Model target, Class<T> modelType, Object model) {
+        TypelessResilientResult resilientResultView = resultAdapter.builder(TypelessResilientResult.class).build(model);
+
+        Object obj = buildView(target, modelType, resilientResultView.getModel());
+        @SuppressWarnings({"unchecked"}) T modelView = (T) obj;
+
+        ResilientResult<T> resilientResult = new ResilientResult<T>() {
+            @Override
+            public boolean hasFailures() {
+                return resilientResultView.hasFailures();
+            }
+
+            @Override
+            public T getModel() {
+                return modelView;
+            }
+
+            @Override
+            public List<Problem> getProblems() {
+                return resilientResultView.getProblems();
+            }
+        };
+        return resilientResult; // TODO: this whole method is a bit of a hack...
+    }
+
+    private <T> @javax.annotation.Nullable T buildView(Model target, Class<T> modelType, Object model) {
         ViewBuilder<T> viewBuilder = resultAdapter.builder(modelType);
         applyCompatibilityMapping(viewBuilder, new DefaultProjectIdentifier(rootDir, getProjectPath(target)));
-        return viewBuilder.build(result.getModel());
+        return viewBuilder.build(model);
+    }
+
+    private <T> ModelIdentifier getModelIdentifier(Class<T> modelType) {
+        return modelMapping.getModelIdentifierFromModelType(modelType);
+    }
+
+    @Nonnull
+    private Object getOriginalTarget(Model target) {
+        return target == null ? null : adapter.unpack(target);
     }
 
     private <P> P initializeParameter(Class<P> parameterType, Action<? super P> parameterInitializer) {
@@ -155,6 +226,8 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
 
     protected abstract BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) throws InternalUnsupportedModelException;
 
+    protected abstract BuildResult<ResilientResult<?>> getResilientModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) throws InternalUnsupportedModelException;
+
     @Override
     public boolean getCanQueryProjectModelInParallel(Class<?> modelType) {
         return false;
@@ -181,5 +254,15 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
     @Override
     public void send(Object value) {
         throw new UnsupportedVersionException(String.format("Gradle version %s does not support streaming values to the client.", gradleVersion.getVersion()));
+    }
+
+    public interface TypelessResilientResult {
+
+        boolean hasFailures();
+
+        Object getModel();
+
+        List<Problem> getProblems();
+
     }
 }
