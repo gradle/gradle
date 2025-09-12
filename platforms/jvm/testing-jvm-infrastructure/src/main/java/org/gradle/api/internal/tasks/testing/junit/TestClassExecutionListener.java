@@ -18,8 +18,12 @@ package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.tasks.testing.TestFailure;
 
+import java.util.List;
+
 public interface TestClassExecutionListener {
     void testClassStarted(String testClassName);
+    void testSuiteStarted(String suiteName, List<String> testClassNames);
 
     void testClassFinished(TestFailure failure);
+    void testSuiteFinished(TestFailure failure);
 }

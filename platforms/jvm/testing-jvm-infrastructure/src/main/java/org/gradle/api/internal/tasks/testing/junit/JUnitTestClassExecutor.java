@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestExecutor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -42,7 +43,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-public class JUnitTestClassExecutor implements Action<String> {
+public class JUnitTestClassExecutor implements TestExecutor {
     private final ClassLoader applicationClassLoader;
     private final JUnitSpec spec;
     private final TestClassExecutionListener executionListener;
@@ -71,7 +72,8 @@ public class JUnitTestClassExecutor implements Action<String> {
     }
 
     @Override
-    public void execute(String testClassName) {
+    public void execute(TestClassRunInfo testClassInfo) {
+        String testClassName = testClassInfo.getTestClassName();
         boolean started = false;
         try {
             Request request = shouldRunTestClass(testClassName);
@@ -79,14 +81,14 @@ public class JUnitTestClassExecutor implements Action<String> {
                 return;
             }
 
-            executionListener.testClassStarted(testClassName);
+            notifyListenerOfStart(testClassInfo);
             started = true;
             runRequest(request);
             started = false;
-            executionListener.testClassFinished(null);
+            notifyListenerOfFinish(testClassInfo, null);
         } catch (Throwable throwable) {
             if (started) {
-                executionListener.testClassFinished(TestFailure.fromTestFrameworkFailure(throwable));
+                notifyListenerOfFinish(testClassInfo, TestFailure.fromTestFrameworkFailure(throwable));
             } else {
                 // If we haven't even started to run the request, this is a Gradle problem, so propagate it
                 throw new GradleException("Failed to execute test class: '" + testClassName + "'.", throwable);
@@ -99,7 +101,7 @@ public class JUnitTestClassExecutor implements Action<String> {
         }
     }
 
-    @Nullable 
+    @Nullable
     private Request shouldRunTestClass(String testClassName) throws ClassNotFoundException {
         final Class<?> testClass = Class.forName(testClassName, false, applicationClassLoader);
         if (isNestedClassInsideEnclosedRunner(testClass)) {
@@ -174,6 +176,22 @@ public class JUnitTestClassExecutor implements Action<String> {
         JUnitCore junit = new JUnitCore();
         junit.addListener(listener);
         junit.run(request);
+    }
+
+    private void notifyListenerOfStart(TestClassRunInfo testClassInfo) {
+        if (testClassInfo.getSuiteClassNames().isEmpty()) {
+            executionListener.testClassStarted(testClassInfo.getTestClassName());
+        } else {
+            executionListener.testSuiteStarted(testClassInfo.getTestClassName(), testClassInfo.getSuiteClassNames());
+        }
+    }
+
+    private void notifyListenerOfFinish(TestClassRunInfo testClassInfo, TestFailure failure) {
+        if (testClassInfo.getSuiteClassNames().isEmpty()) {
+            executionListener.testClassFinished(failure);
+        } else {
+            executionListener.testSuiteFinished(failure);
+        }
     }
 
     // https://github.com/gradle/gradle/issues/2319
