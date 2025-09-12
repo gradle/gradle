@@ -22,6 +22,7 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
+import org.gradle.initialization.StartParameterBuildOptions.IsolatedProjectsOption;
 import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.lazy.Lazy;
@@ -56,7 +57,7 @@ public class DefaultBuildFeatures implements BuildFeatures {
     }
 
     private static BuildFeature createIsolatedProjects(StartParameterInternal startParameter, BuildModelParameters buildModelParameters) {
-        Provider<Boolean> isRequested = getRequestedProvider(startParameter.getIsolatedProjects());
+        Provider<Boolean> isRequested = Providers.of(startParameter.getIsolatedProjects() == IsolatedProjectsOption.Mode.ENABLED);
         Provider<Boolean> isActive = Providers.of(buildModelParameters.isIsolatedProjects());
         return new DefaultBuildFeature(isRequested, isActive);
     }

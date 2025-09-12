@@ -34,7 +34,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsWarnOnlyFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -63,7 +63,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsWarnOnlyFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -93,7 +93,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsWarnOnlyFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -121,7 +121,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsWarnOnlyFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -141,7 +141,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsWarnOnlyFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -166,7 +166,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsWarnOnlyFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -193,7 +193,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsWarnOnlyFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -225,7 +225,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsWarnOnlyFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -256,7 +256,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsWarnOnlyFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -283,7 +283,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":a:help", ":b:help")
+        isolatedProjectsWarnOnlyFails(":a:help", ":b:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -313,7 +313,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":include:help")
+        isolatedProjectsWarnOnlyFails(":include:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -342,7 +342,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":a:help", ":b:help")
+        isolatedProjectsWarnOnlyFails(":a:help", ":b:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -370,7 +370,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
 
         when:
         // TODO:isolated expected behavior for incremental configuration
-//        isolatedProjectsFails(":a:help", ":b:help")
+//        isolatedProjectsWarnOnlyFails(":a:help", ":b:help")
         isolatedProjectsRun(":a:help", ":b:help")
 
         then:
@@ -434,7 +434,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":help", ":a:help")
+        isolatedProjectsWarnOnlyFails(":help", ":a:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -476,7 +476,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         if (shouldSucceed) {
             isolatedProjectsRun(*tasksToRun)
         } else {
-            isolatedProjectsFails(*tasksToRun)
+            isolatedProjectsWarnOnlyFails(*tasksToRun)
         }
 
         then:
@@ -518,7 +518,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":a:help")
+        isolatedProjectsWarnOnlyFails(":a:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -555,7 +555,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":sub:sub-a:help", ":sub:sub-b:help")
+        isolatedProjectsWarnOnlyFails(":sub:sub-a:help", ":sub:sub-b:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -587,7 +587,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":a:help")
+        isolatedProjectsWarnOnlyFails(":a:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -622,7 +622,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("help")
+        isolatedProjectsWarnOnlyFails("help")
 
         then:
         outputContains("My property: hello")
@@ -693,7 +693,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
 
         when:
         // TODO:isolated should succeed without problems
-        isolatedProjectsFails("something")
+        isolatedProjectsWarnOnlyFails("something")
 
         then:
         outputContains("project name = root")
@@ -755,7 +755,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":help")
+        isolatedProjectsWarnOnlyFails(":help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -796,7 +796,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":a:b:help")
+        isolatedProjectsWarnOnlyFails(":a:b:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -844,7 +844,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails 'help', WARN_PROBLEMS_CLI_OPT
+        isolatedProjectsWarnOnlyFails 'help', WARN_PROBLEMS_CLI_OPT
 
         then:
         failure.assertHasErrorOutput("Could not find method foo() for arguments [] on project ':a:sub' of type org.gradle.api.Project")
@@ -878,7 +878,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails 'help', WARN_PROBLEMS_CLI_OPT
+        isolatedProjectsWarnOnlyFails 'help', WARN_PROBLEMS_CLI_OPT
 
         then:
         failure.assertHasErrorOutput("Could not get unknown property 'myExtension' for project ':a:sub' of type org.gradle.api.Project")
@@ -918,7 +918,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails 'help'
+        isolatedProjectsWarnOnlyFails 'help'
 
         then:
         fixture.assertStateStoredAndDiscarded {

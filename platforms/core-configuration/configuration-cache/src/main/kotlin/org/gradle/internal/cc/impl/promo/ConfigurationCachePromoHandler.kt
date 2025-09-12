@@ -121,7 +121,7 @@ internal class ConfigurationCachePromoHandler(
         Logging.getLogger(ConfigurationCachePromoHandler::class.java).lifecycle("Consider enabling configuration cache to speed up this build: $docUrl")
     }
 
-    override fun onProblem(problem: PropertyProblem) {
+    override fun onProblem(problem: PropertyProblem, interrupting: Boolean) {
         problems.addIfNeeded(true)
     }
 

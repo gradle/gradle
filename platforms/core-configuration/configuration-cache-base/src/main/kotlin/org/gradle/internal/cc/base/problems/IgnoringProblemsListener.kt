@@ -29,7 +29,7 @@ import org.gradle.internal.service.scopes.ServiceScope
  */
 @ServiceScope(Scope.BuildTree::class)
 object IgnoringProblemsListener : ProblemsListener {
-    override fun onProblem(problem: PropertyProblem) = Unit
+    override fun onProblem(problem: PropertyProblem, interrupting: Boolean) = Unit
 
     override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) = Unit
 
