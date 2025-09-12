@@ -1,0 +1,52 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[implemention_convention_plugins]]
+= Convention Plugins
+:keywords: convention, plugin
+
+A *convention plugin* is a type of *pre-compiled script plugin*.
+
+A *convention plugin* is a plugin that normally configures existing core and community plugins with your own conventions (i.e. default values) such as setting the Java version by using `java.toolchain.languageVersion = JavaLanguageVersion.of(17)`.
+
+Convention plugins are also used to enforce project standards and help streamline the build process.
+They can apply and configure plugins, create new tasks and extensions, set dependencies, and much more.
+
+Convention plugins are preferred over `allprojects {}` / `subprojects {}` blocks or ad-hoc script plugins because they:
+
+- Provide centralized, reusable conventions that can be applied consistently across multiple projects.
+- Are compiled and type-checked, giving you IDE completion and early feedback.
+- Make the build more maintainable and explicit.
+- Can be versioned, published, and reused like any other plugin.
+
+== Creating a convention plugin
+
+Convention plugins are typically placed in either:
+
+* `buildSrc/` — simplest approach, automatically on the classpath of the build.
+* an included build (commonly named `build-logic/`) — more scalable, especially for multi-project builds or organizations.
+
+Any `.gradle.kts` (or `.gradle`) script file in `src/main/kotlin/` or `src/main/groovy/` of that plugin build becomes a precompiled script plugin, and its file name defines the plugin ID.
+
+== Example of a convention plugin
+
+[source,text]
+----
+build-logic/
+├── build.gradle.kts
+└── src/
+└── main/
+└── kotlin/
+└── java-conventions.gradle.kts
+----
