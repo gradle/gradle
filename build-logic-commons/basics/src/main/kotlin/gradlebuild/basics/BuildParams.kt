@@ -424,7 +424,6 @@ val Project.isPromotionBuild: Boolean
     get() {
         val taskNames = gradle.startParameter.taskNames
         return taskNames.contains("promotionBuild") ||
-            // :updateReleasedVersionsToLatestNightly and :updateReleasedVersions
             taskNames.any { it.contains("updateReleasedVersions") }
     }
 
