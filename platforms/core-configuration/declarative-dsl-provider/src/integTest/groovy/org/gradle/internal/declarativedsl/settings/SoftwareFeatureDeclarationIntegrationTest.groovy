@@ -16,46 +16,106 @@
 
 package org.gradle.internal.declarativedsl.settings
 
-import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.HasBuildModel
-import org.gradle.api.internal.plugins.software.RegistersSoftwareFeatures
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
+import org.gradle.integtests.fixtures.polyglot.SkipDsl
 import org.gradle.internal.declarativedsl.DeclarativeTestUtils
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.hamcrest.Matchers
+import org.junit.Rule
 
 @PolyglotDslTest
-class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture, PolyglotTestFixture {
+class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec implements SoftwareFeatureFixture, PolyglotTestFixture {
+
+    @Rule
+    MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
+
+    @Rule
+    MavenHttpPluginRepository mavenHttpRepo = new MavenHttpPluginRepository(mavenRepo)
 
     def setup() {
         file("gradle.properties") << "org.gradle.kotlin.dsl.dcl=true"
+
+        // We only need the test plugin portal for one test, but we need the actual plugin portal for
+        // other tests, so we stop it by default and start it only when needed.
+        pluginPortal.stop()
     }
 
     def 'can declare and configure a custom software feature from included build'() {
         given:
-        PluginBuilder pluginBuilder = withSoftwareTypePlugins()
-        pluginBuilder.addPluginId("com.example.test-software-feature-impl", "SoftwareFeatureImplPlugin")
-        pluginBuilder.file("src/main/java/org/gradle/test/SoftwareFeatureImplPlugin.java") << softwareFeaturePluginContents
-        pluginBuilder.file("src/main/java/org/gradle/test/FeatureDefinition.java") << softwareFeatureDslModelContents
-        pluginBuilder.file("src/main/java/org/gradle/test/FeatureModel.java") << softwareFeatureBuildModelContents
-        pluginBuilder.file("src/main/java/org/gradle/test/SoftwareTypeRegistrationPlugin.java").text = getSettingsPluginThatRegistersSoftwareType(["SoftwareTypeImplPlugin"], ["SoftwareFeatureImplPlugin"])
+        PluginBuilder pluginBuilder = withSoftwareFeaturePlugins()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
         pluginBuilder.prepareToExecute()
-        pluginBuilder.buildFile << "\n" + """
-            tasks.withType(JavaCompile).configureEach {
-                sourceCompatibility = "1.8"
-                targetCompatibility = "1.8"
-            }
-        """
 
         settingsFile() << pluginsFromIncludedBuild
 
         buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
-        run(":printTestSoftwareTypeExtensionConfiguration",":printTestSoftwareFeatureConfiguration")
+        run(":printTestSoftwareTypeExtensionConfiguration",":printFeatureDefinitionConfiguration")
+
+        then:
+        assertThatDeclaredValuesAreSetProperly()
+
+        and:
+        outputContains("Applying SoftwareTypeImplPlugin")
+        outputContains("Binding TestSoftwareTypeExtension")
+        outputContains("Binding FeatureDefinition")
+    }
+
+    def 'can declare and configure a custom software feature from published plugin'() {
+        given:
+        pluginPortal.start()
+        PluginBuilder pluginBuilder = withSoftwareFeaturePlugins()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.publishAs("com", "example", "1.0", pluginPortal, createExecuter()).allowAll()
+
+        settingsFile() << """
+            plugins {
+                id("com.example.test-software-ecosystem").version("1.0")
+            }
+        """
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        run(":printTestSoftwareTypeExtensionConfiguration",":printFeatureDefinitionConfiguration")
+
+        then:
+        assertThatDeclaredValuesAreSetProperly()
+
+        and:
+        outputContains("Applying SoftwareTypeImplPlugin")
+        outputContains("Binding TestSoftwareTypeExtension")
+        outputContains("Binding FeatureDefinition")
+    }
+
+    def 'can declare and configure a custom software feature from plugin published to a custom repository'() {
+        given:
+        PluginBuilder pluginBuilder = withSoftwareFeaturePlugins()
+        pluginBuilder.publishAs("com", "example", "1.0", mavenHttpRepo, createExecuter()).allowAll()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+
+        settingsFile() << """
+            pluginManagement {
+                repositories {
+                    maven { url = uri("$mavenHttpRepo.uri") }
+                }
+            }
+            plugins {
+                id("com.example.test-software-ecosystem").version("1.0")
+            }
+        """
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        run(":printTestSoftwareTypeExtensionConfiguration",":printFeatureDefinitionConfiguration")
 
         then:
         assertThatDeclaredValuesAreSetProperly()
@@ -68,31 +128,17 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
 
     @Requires(UnitTestPreconditions.Jdk23OrEarlier) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
     def "can declare and configure a custom software feature in Kotlin"() {
-        PluginBuilder pluginBuilder = withSoftwareTypePlugins()
-        pluginBuilder.buildFile << "\n" + """
-            tasks.withType(JavaCompile).configureEach {
-                sourceCompatibility = "1.8"
-                targetCompatibility = "1.8"
-            }
-        """
+        PluginBuilder pluginBuilder = withKotlinSoftwareFeaturePlugins()
+        pluginBuilder.applyBuildScriptPlugin("org.jetbrains.kotlin.jvm", "2.1.0")
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForKotlin
         pluginBuilder.prepareToExecute()
 
-        def kotlinPluginDir = file("kotlinPlugins").createDir()
-        kotlinPluginDir.file("settings.gradle.kts").createFile() << """
-            includeBuild("../plugins")
-        """
-        kotlinPluginDir.file("build.gradle.kts") << kotlinPluginBuildFile
-        kotlinPluginDir.file("src/main/kotlin/org/gradle/test/SoftwareFeatureRegistrationPlugin.kt") << kotlinSettingsPlugin
-        kotlinPluginDir.file("src/main/kotlin/org/gradle/test/SoftwareFeatureImplPlugin.kt") << kotlinSoftwareFeaturePluginContents
-        kotlinPluginDir.file("src/main/java/org/gradle/test/FeatureDefinition.java") << softwareFeatureDslModelContents
-        kotlinPluginDir.file("src/main/java/org/gradle/test/FeatureModel.java") << softwareFeatureBuildModelContents
-
-        settingsFile() << kotlinPluginsFromIncludedBuild
+        settingsFile() << pluginsFromIncludedBuild
 
         buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
-        run(":printTestSoftwareTypeExtensionConfiguration",":printTestSoftwareFeatureConfiguration")
+        run(":printTestSoftwareTypeExtensionConfiguration",":printFeatureDefinitionConfiguration")
 
         then:
         assertThatDeclaredValuesAreSetProperly()
@@ -103,189 +149,164 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
         outputContains("Binding FeatureDefinition")
     }
 
-    static String getSoftwareFeaturePluginContents() {
-        // language=Java
-        String content = """
-            package org.gradle.test;
+    def 'can apply multiple software features to a target receiver'() {
+        given:
+        PluginBuilder pluginBuilder = withMultipleSoftwareFeaturePlugins()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
 
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import org.gradle.api.internal.plugins.BindsSoftwareFeature;
-            import org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilder;
-            import static org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilder.bindingToTargetDefinition;
-            import org.gradle.api.internal.plugins.SoftwareFeatureBindingRegistration;
-            import org.gradle.test.TestSoftwareTypeExtension;
+        settingsFile() << pluginsFromIncludedBuild
 
-            @BindsSoftwareFeature(SoftwareFeatureImplPlugin.Binding.class)
-            public class SoftwareFeatureImplPlugin implements Plugin<Project> {
+        buildFile() << """
+            testSoftwareType {
+                id = "test"
 
-                static class Binding implements SoftwareFeatureBindingRegistration {
-                    @Override public void register(SoftwareFeatureBindingBuilder builder) {
-                        builder.bindSoftwareFeatureToDefinition(
-                            "feature",
-                            FeatureDefinition.class,
-                            TestSoftwareTypeExtension.class,
-                            (context, feature, model, parent) -> {
-                                System.out.println("Binding FeatureDefinition");
-                                model.getText().set(feature.getText());
-                                context.getProject().getTasks().register("printTestSoftwareFeatureConfiguration", task -> {
-                                    task.doLast(t -> System.out.println("feature text = " + model.getText().get()));
-                                });
-                            }
-                        );
-                    }
+                foo {
+                    bar = "baz"
                 }
 
-                @Override
-                public void apply(Project project) {
-
+                feature {
+                    text = "foo"
+                }
+                anotherFeature {
+                    text = "bar"
                 }
             }
-        """
-        return content
+        """ << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        run(":printTestSoftwareTypeExtensionConfiguration",":printFeatureDefinitionConfiguration",":printAnotherFeatureDefinitionConfiguration")
+
+        then:
+        assertThatDeclaredValuesAreSetProperly()
+        outputContains("anotherFeature text = bar")
+
+        and:
+        outputContains("Applying SoftwareTypeImplPlugin")
+        outputContains("Binding TestSoftwareTypeExtension")
+        outputContains("Binding FeatureDefinition")
+        outputContains("Binding AnotherFeatureDefinition")
     }
 
-    static String getKotlinSoftwareFeaturePluginContents() {
-        // language=kotlin
-        String content = """
-            package org.gradle.test
+    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy has no problem with finding non-public methods/types ...")
+    def 'can declare and configure a custom software feature with a definition that has public and implementation types'() {
+        given:
+        PluginBuilder pluginBuilder = withSoftwareFeatureDefinitionThatHasPublicAndImplementationTypes()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
 
-            import org.gradle.api.Plugin
-            import org.gradle.api.Project
-            import org.gradle.api.Task
-            import org.gradle.api.internal.plugins.BindsSoftwareFeature
-            import org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilder
-            import org.gradle.api.internal.plugins.SoftwareFeatureBindingRegistration
-            import org.gradle.api.internal.plugins.features.dsl.bindSoftwareFeatureToDefinition
-            import org.gradle.test.TestSoftwareTypeExtension
+        settingsFile() << pluginsFromIncludedBuild
 
-            @BindsSoftwareFeature(SoftwareFeatureImplPlugin.Binding::class)
-            class SoftwareFeatureImplPlugin : Plugin<Project> {
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
-                class Binding : SoftwareFeatureBindingRegistration {
-                    override fun register(builder: SoftwareFeatureBindingBuilder) {
-                        builder.bindSoftwareFeatureToDefinition("feature", FeatureDefinition::class, TestSoftwareTypeExtension::class) { feature, model, parent  ->
-                            println("Binding FeatureDefinition")
-                            model.getText().set(feature.getText())
-                            getProject().getTasks().register("printTestSoftwareFeatureConfiguration") { task: Task ->
-                                task.doLast { _: Task -> System.out.println("feature text = " + model.getText().get()) }
-                            }
-                        }
-                    }
-                }
+        when:
+        run(":printTestSoftwareTypeExtensionConfiguration",":printFeatureDefinitionConfiguration")
 
-                override fun apply(project: Project) {
-                }
-            }
-        """
-        return content
-    }
+        then:
+        assertThatDeclaredValuesAreSetProperly()
 
-    static String getKotlinSettingsPlugin() {
-        //language=kotlin
-        String content = """
-            package org.gradle.test
+        and:
+        outputContains("Applying SoftwareTypeImplPlugin")
+        outputContains("Binding TestSoftwareTypeExtension")
+        outputContains("Binding FeatureDefinition")
 
-            import org.gradle.api.Plugin
-            import org.gradle.api.initialization.Settings
-            import ${RegistersSoftwareFeatures.class.name}
-
-            @RegistersSoftwareFeatures(org.gradle.test.SoftwareFeatureImplPlugin::class)
-            class SoftwareFeatureRegistrationPlugin : Plugin<Settings> {
-                override fun apply(settings: Settings) {
+        when:
+        buildFile().text =  """
+            testSoftwareType {
+                feature {
+                    nonPublicProperty = "can be set"
                 }
             }
+        """ << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+        fails(":printFeatureDefinitionImplConfiguration")
 
-        """
-        return content
+        then:
+        if (GradleDsl.KOTLIN == currentDsl()) {
+            failure.assertThatDescription(Matchers.containsString("Unresolved reference 'nonPublicProperty'"))
+        } else if (GradleDsl.DECLARATIVE == currentDsl()) {
+            failure.assertThatCause(Matchers.containsString("Failed to interpret the declarative DSL file"))
+            failure.assertThatCause(Matchers.containsString("unresolved reference 'nonPublicProperty'"))
+        } else {
+            throw new RuntimeException("Test wasn't meant to be run with " + currentDsl().languageCodeName + " DSL")
+        }
     }
 
-    static String getSoftwareFeatureDslModelContents() {
-        // language=Java
-        String content = """
-            package org.gradle.test;
+    def 'sensible error when a software feature plugin is registered that does not expose a software feature'() {
+        given:
+        withSoftwareFeaturePluginThatDoesNotExposeSoftwareFeatures().prepareToExecute()
 
-            import ${HasBuildModel.class.name};
-            import org.gradle.api.provider.Property;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
+        settingsFile() << pluginsFromIncludedBuild
 
-            @Restricted
-            public interface FeatureDefinition extends HasBuildModel<FeatureModel> {
-                @Restricted
-                Property<String> getText();
-            }
-        """
-        return content
+        when:
+        fails(":help")
+
+        then:
+        failure.assertHasCause("Failed to apply plugin 'com.example.test-software-ecosystem'.")
+        failure.assertHasCause("A problem was found with the NotASoftwareFeaturePlugin plugin.")
+        failure.assertHasCause("Type 'org.gradle.test.NotASoftwareFeaturePlugin' is registered as a software feature plugin but does not expose a software feature.")
     }
 
-    static String getSoftwareFeatureBuildModelContents() {
-        // language=Java
-        String content = """
-            package org.gradle.test;
+    def 'can declare and configure a custom software feature that binds to a build model'() {
+        given:
+        PluginBuilder pluginBuilder = withSoftwareFeatureThatBindsToBuildModel()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
 
-            import ${BuildModel.class.name};
-            import org.gradle.api.provider.Property;
+        settingsFile() << pluginsFromIncludedBuild
 
-            public interface FeatureModel extends BuildModel {
-                Property<String> getText();
-            }
-        """
-        return content
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        run(":printTestSoftwareTypeExtensionConfiguration",":printFeatureDefinitionConfiguration")
+
+        then:
+        assertThatDeclaredValuesAreSetProperly()
+
+        and:
+        outputContains("Applying SoftwareTypeImplPlugin")
+        outputContains("Binding TestSoftwareTypeExtension")
+        outputContains("Binding FeatureDefinition")
     }
 
-    static String getPluginsFromIncludedBuild() {
+    def 'can declare and configure a custom software feature that has a build model with public and implementation class types'() {
+        given:
+        PluginBuilder pluginBuilder = withSoftwareFeatureBuildModelThatHasPublicAndImplementationTypes()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        run(":printTestSoftwareTypeExtensionConfiguration",":printFeatureDefinitionConfiguration")
+
+        then:
+        assertThatDeclaredValuesAreSetProperly()
+
+        and:
+        outputContains("Applying SoftwareTypeImplPlugin")
+        outputContains("Binding TestSoftwareTypeExtension")
+        outputContains("Binding FeatureDefinition")
+        outputContains("feature model class: FeatureDefinition\$FeatureModelImpl")
+    }
+
+    private String getPluginBuildScriptForJava() {
         return """
-            pluginManagement {
-                includeBuild("plugins")
-            }
-            plugins {
-                id("com.example.test-software-type")
+
+            tasks.withType(JavaCompile).configureEach {
+                sourceCompatibility = "1.8"
+                targetCompatibility = "1.8"
             }
         """
     }
 
-    static String getKotlinPluginsFromIncludedBuild() {
-        return """
-            pluginManagement {
-                includeBuild("kotlinPlugins")
-                includeBuild("plugins")
-            }
-            plugins {
-                id("com.example.test-software-type")
-                id("org.example.test-software-feature-ecosystem")
-            }
-        """
-    }
-
-    static String getKotlinPluginBuildFile() {
+    private String getPluginBuildScriptForKotlin() {
         return """
             import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-            plugins {
-                // Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins
-                `java-gradle-plugin`
-
-                // Apply the Kotlin JVM plugin to add support for Kotlin.
-                id("org.jetbrains.kotlin.jvm") version("2.1.0")
-            }
-
             repositories {
                 mavenCentral()
-            }
-
-            gradlePlugin {
-                val feature by plugins.creating {
-                    id = "org.example.test-software-feature"
-                    implementationClass = "org.gradle.test.SoftwareFeatureImplPlugin"
-                }
-                val ecosystem by plugins.creating {
-                    id = "org.example.test-software-feature-ecosystem"
-                    implementationClass = "org.gradle.test.SoftwareFeatureRegistrationPlugin"
-                }
-            }
-
-            dependencies {
-                implementation("org.gradle.test:plugins:1.0")
             }
 
             kotlin {
@@ -294,10 +315,7 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
 
-            tasks.compileJava {
-                targetCompatibility = "1.8"
-                sourceCompatibility = "1.8"
-            }
+            ${pluginBuildScriptForJava}
         """
     }
 

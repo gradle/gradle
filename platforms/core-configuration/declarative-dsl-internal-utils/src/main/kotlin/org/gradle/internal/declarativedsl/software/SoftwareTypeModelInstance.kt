@@ -27,21 +27,22 @@ import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 
-fun getSoftwareFeatureModelInstance(softwareType: SoftwareFeatureImplementation<*, *>, receiverObject: ExtensionAware): Any =
+@Suppress("UNCHECKED_CAST")
+fun <T: Any> getSoftwareFeatureDefinitionInstance(softwareType: SoftwareFeatureImplementation<T, *>, receiverObject: ExtensionAware): T =
     when (softwareType) {
-        is BoundSoftwareFeatureImplementation<*, *> -> getBoundSoftwareFeatureModelInstance(softwareType, receiverObject)
-        else -> getLegacySoftwareTypeModelInstance(
+        is BoundSoftwareFeatureImplementation<T, *> -> getBoundSoftwareFeatureDefinitionInstance(softwareType, receiverObject) as T
+        else -> getLegacySoftwareTypeDefinitionInstance(
             softwareType,
             receiverObject as? ProjectInternal
                 ?: throw GradleException(
                     "Expected the target of software type ${softwareType.featureName} to be a Project, " +
                         "got ${receiverObject::class.qualifiedName}"
                 )
-        )
+        ) as T
     }
 
 
-private fun getBoundSoftwareFeatureModelInstance(softwareFeatureImplementation: BoundSoftwareFeatureImplementation<*, *>, receiverObject: Any): Any =
+private fun getBoundSoftwareFeatureDefinitionInstance(softwareFeatureImplementation: BoundSoftwareFeatureImplementation<*, *>, receiverObject: Any): Any =
     if (receiverObject is ExtensionAware) {
         receiverObject.extensions.getByName(softwareFeatureImplementation.featureName)
     } else throw GradleException(
@@ -50,7 +51,7 @@ private fun getBoundSoftwareFeatureModelInstance(softwareFeatureImplementation: 
     )
 
 
-private fun getLegacySoftwareTypeModelInstance(softwareType: SoftwareFeatureImplementation<*, *>, receiverObject: ProjectInternal): Any {
+private fun getLegacySoftwareTypeDefinitionInstance(softwareType: SoftwareFeatureImplementation<*, *>, receiverObject: ProjectInternal): Any {
     fun Iterable<Annotation>.hasSoftwareTypeAnnotation() =
         any { annotation -> annotation is SoftwareType && annotation.name == softwareType.featureName }
 

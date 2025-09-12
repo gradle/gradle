@@ -45,6 +45,7 @@ import org.jspecify.annotations.NullMarked;
 
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
@@ -79,6 +80,15 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
     public <T, V> T applyFeatureTo(ExtensionAware target, SoftwareFeatureImplementation<T, V> softwareFeature) {
         AppliedFeature appliedFeature = new AppliedFeature(target, softwareFeature);
         if (!applied.contains(appliedFeature)) {
+            if (target instanceof Project) {
+                Optional<AppliedFeature> softwareTypeAlreadyApplied = applied.stream()
+                    .filter(it -> it.target instanceof Project && ((Project) it.target).getPath().equals(((Project) target).getPath()))
+                    .findFirst();
+                if (softwareTypeAlreadyApplied.isPresent()) {
+                    throw new IllegalStateException("The project has already applied the '" + softwareTypeAlreadyApplied.get().softwareFeature.getFeatureName() + "' software type and is also attempting to apply the '" + softwareFeature.getFeatureName() + "' software type.  Only one software type can be applied to a project.");
+                }
+            }
+
             if (!(softwareFeature instanceof LegacySoftwareTypeImplementation)) {
                 T dslObject = createDslObject(target, softwareFeature);
                 V buildModelObject = createBuildModelObject((ExtensionAware) dslObject, softwareFeature);
@@ -99,14 +109,14 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
         Class<? extends T> dslType = softwareFeature.getDefinitionImplementationType();
         if (Named.class.isAssignableFrom(dslType)) {
             if (Named.class.isAssignableFrom(target.getClass())) {
-                T result = target.getExtensions().create(softwareFeature.getFeatureName(), dslType, ((Named) target).getName());
+                T result = target.getExtensions().create(softwareFeature.getDefinitionPublicType(), softwareFeature.getFeatureName(), dslType, ((Named) target).getName());
                 initializeDefinitionDslObject(result);
                 return result;
             } else {
                 throw new IllegalArgumentException("Cannot infer a name for " + dslType.getSimpleName() + " because the parent object of type " + target.getClass().getSimpleName() + " does not implement Named.");
             }
         } else {
-            T result = target.getExtensions().create(softwareFeature.getFeatureName(), dslType);
+            T result = target.getExtensions().create(softwareFeature.getDefinitionPublicType(), softwareFeature.getFeatureName(), dslType);
             initializeDefinitionDslObject(result);
             return result;
         }
@@ -130,12 +140,12 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
         Class<? extends V> buildModelType = softwareFeature.getBuildModelImplementationType();
         if (Named.class.isAssignableFrom(buildModelType)) {
             if (Named.class.isAssignableFrom(target.getClass())) {
-                return target.getExtensions().create(SoftwareFeatureBinding.MODEL, buildModelType, ((Named) target).getName());
+                return target.getExtensions().create(softwareFeature.getBuildModelType(), SoftwareFeatureBinding.MODEL, buildModelType, ((Named) target).getName());
             } else {
                 throw new IllegalArgumentException("Cannot infer a name for " + buildModelType.getSimpleName() + " because the parent object of type " + target.getClass().getSimpleName() + " does not implement Named.");
             }
         } else {
-            return target.getExtensions().create(SoftwareFeatureBinding.MODEL, buildModelType);
+            return target.getExtensions().create(softwareFeature.getBuildModelType(), SoftwareFeatureBinding.MODEL, buildModelType);
         }
     }
 
