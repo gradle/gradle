@@ -67,8 +67,11 @@ public class DeprecationLogger {
 
     private static final LoggingDeprecatedFeatureHandler DEPRECATED_FEATURE_HANDLER = new LoggingDeprecatedFeatureHandler();
 
+    private static boolean initialized = false;
+
     public synchronized static void init(WarningMode warningMode, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter, Problems problemsService, ProblemStream problemStream) {
         DEPRECATED_FEATURE_HANDLER.init(warningMode, buildOperationProgressEventEmitter, problemsService, problemStream);
+        initialized = true;
     }
 
     public synchronized static void reset() {
@@ -222,6 +225,19 @@ public class DeprecationLogger {
 
     static void nagUserWith(DeprecationMessageBuilder<?> deprecationMessageBuilder, Class<?> calledFrom) {
         if (isEnabled()) {
+            // ideally, it should be checked outside of this condition, but that would fail a lot of unit tests that use suppressed deprecations
+            if (!initialized) {
+                throw new IllegalStateException(
+                    "DeprecationLogger has not been initialized. " +
+                        "Most probably, it's because you are trying to use it from the launcher/wrapper. " +
+                        "It's not available there. Move the deprecation logging to the daemon or use LOGGER.warn() instead. " +
+                        "Another reason could be that you are trying to use it from a unit test. " +
+                        "In that case, either fix the test to not use deprecated features, or mark it with @ExpectDeprecation. " +
+                        "If you hit this error as a user of Gradle, please report it as a bug. " +
+                        "The original deprecation message was: " +
+                        deprecationMessageBuilder.build().toDeprecatedFeatureUsage(calledFrom).formattedMessage()
+                );
+            }
             DeprecationMessage deprecationMessage = deprecationMessageBuilder.build();
             DeprecatedFeatureUsage featureUsage = deprecationMessage.toDeprecatedFeatureUsage(calledFrom);
             nagUserWith(featureUsage);

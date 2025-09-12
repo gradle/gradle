@@ -28,6 +28,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
+import org.intellij.lang.annotations.Language
 import org.junit.Assume
 
 import static org.hamcrest.Matchers.containsString
@@ -154,7 +155,31 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec imple
         assertTestStdout(not(containsString(SupportedJavaVersionsExpectations.expectedDaemonDeprecationWarning)))
     }
 
-    void withTest(String body) {
+    def "can call deprecation logger"() {
+        given:
+        withTest("""
+            when:
+            def project = ProjectBuilder.builder().build()
+            project.with {
+                //noinspection UnnecessaryQualifiedReference
+                org.gradle.internal.deprecation.DeprecationLogger
+                    .deprecate("test deprecation").willBecomeAnErrorInNextMajorGradleVersion().undocumented()
+                    .nagUser()
+            }
+
+            then:
+            noExceptionThrown()
+        """)
+
+        when:
+        succeeds('test')
+
+        then:
+        testPassed()
+        assertTestStdout(not(containsString("DeprecationLogger has not been initialized")))
+    }
+
+    void withTest(@Language("Groovy") String body) {
         file("src/test/groovy/Test.groovy") << """
             import spock.lang.Specification
             import org.gradle.testfixtures.ProjectBuilder

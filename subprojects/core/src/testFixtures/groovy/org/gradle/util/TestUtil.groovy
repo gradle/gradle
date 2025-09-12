@@ -46,6 +46,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.problems.Problem
 import org.gradle.api.problems.ProblemReporter
 import org.gradle.api.problems.internal.DefaultProblems
+import org.gradle.api.problems.internal.DeprecationData
 import org.gradle.api.problems.internal.ExceptionProblemRegistry
 import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.InternalProblemBuilder
@@ -454,6 +455,14 @@ class TestProblems implements InternalProblems {
         } else {
             assert expectedProblem instanceof Wildcard
         }
+    }
+
+    void assertHasDeprecation(String expectedMessage) {
+        def deprecationMessages = summarizer.emitted
+            .findAll { it.additionalData instanceof DeprecationData }
+            .collect { it.contextualLabel }
+        assert deprecationMessages.size() > 0
+        assert deprecationMessages.find { it.contains(expectedMessage) } != null
     }
 
     void recordEmittedProblems() {
