@@ -39,6 +39,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
+import org.gradle.api.model.ModelContainer;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
@@ -1577,6 +1578,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @since 7.6
      */
     DependencyFactory getDependencyFactory();
+
+    /**
+     * A container of all data models exposed by this project.
+     *
+     * @return The model container.
+     *
+     * @since 9.1.0
+     */
+    ModelContainer getModels();
 
     /**
      * Returns the build script handler for this project. You can use this handler to query details about the build

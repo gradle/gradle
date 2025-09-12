@@ -43,6 +43,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.LoggingManager
+import org.gradle.api.model.ModelContainer
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
@@ -280,6 +281,9 @@ abstract class ProjectDelegate : Project {
 
     override fun getDependencyFactory(): DependencyFactory =
         delegate.dependencyFactory
+
+    override fun getModels(): ModelContainer =
+        delegate.models
 
     override fun getResources(): ResourceHandler =
         delegate.resources

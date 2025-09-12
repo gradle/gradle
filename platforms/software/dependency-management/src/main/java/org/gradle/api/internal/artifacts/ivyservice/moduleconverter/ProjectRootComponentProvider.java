@@ -25,6 +25,8 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.model.internal.DataModel;
+import org.gradle.api.model.internal.DataModelProvider;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
@@ -102,7 +104,19 @@ public class ProjectRootComponentProvider implements RootComponentProvider {
             immutableSchema
         );
 
-        return localResolveStateFactory.stateFor(owner, metadata, configurationsProvider);
+        return localResolveStateFactory.stateFor(owner, metadata, configurationsProvider, new EmptyModelProvider());
+    }
+
+    /**
+     * Root components do not have any data models.
+     */
+    private static class EmptyModelProvider implements DataModelProvider {
+
+        @Override
+        public @Nullable DataModel findDataModel(String name) {
+            return null;
+        }
+
     }
 
 }

@@ -30,17 +30,21 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.AbstractComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
+import org.gradle.api.model.internal.DataModel;
 import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.InMemoryCacheFactory;
+import org.gradle.internal.model.InMemoryLoadingCache;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -51,21 +55,34 @@ import java.util.stream.Collectors;
  */
 public class DefaultLocalComponentGraphResolveState extends AbstractComponentGraphResolveState<LocalComponentGraphResolveMetadata> implements LocalComponentGraphResolveState {
 
+    /**
+     * True if this component should not be cached.
+     */
     private final boolean adHoc;
 
-    // The variants to use for variant selection during graph resolution
+    /**
+     * The variants to use for variant selection during graph resolution.
+     */
     private final CalculatedValue<LocalComponentGraphSelectionCandidates> graphSelectionCandidates;
 
-    // The public view of all selectable variants of this component
+    /**
+     * The public view of all selectable variants of this component.
+     */
     private final CalculatedValue<List<ResolvedVariantResult>> selectableVariantResults;
+
+    /**
+     * All data models of this component, mapped by their name.
+     */
+    private final InMemoryLoadingCache<String, Optional<DataModel>> dataModels;
 
     public DefaultLocalComponentGraphResolveState(
         long instanceId,
         LocalComponentGraphResolveMetadata metadata,
         AttributeDesugaring attributeDesugaring,
         boolean adHoc,
-        LocalVariantGraphResolveStateFactory variantFactory,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
+        LocalComponentStateDataSource variantFactory,
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        InMemoryCacheFactory cacheFactory
     ) {
         super(instanceId, metadata, attributeDesugaring);
         this.adHoc = adHoc;
@@ -75,6 +92,9 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         );
         this.selectableVariantResults = calculatedValueContainerFactory.create(Describables.of("public variants of", getMetadata()), context ->
             computeSelectableVariantResults(this)
+        );
+        this.dataModels = cacheFactory.createCalculatedValueCache(Describables.of("data models of", getMetadata()), name ->
+            Optional.ofNullable(variantFactory.findDataModel(name))
         );
     }
 
@@ -94,13 +114,18 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     @Override
+    public @Nullable DataModel findDataModel(String name) {
+        return dataModels.get(name).orElse(null);
+    }
+
+    @Override
     public LocalComponentGraphSelectionCandidates getCandidatesForGraphVariantSelection() {
         graphSelectionCandidates.finalizeIfNotAlready();
         return graphSelectionCandidates.get();
     }
 
     private static LocalComponentGraphSelectionCandidates computeGraphSelectionCandidates(
-        LocalVariantGraphResolveStateFactory variantFactory
+        LocalComponentStateDataSource variantFactory
     ) {
         ImmutableList.Builder<LocalVariantGraphResolveState> variantsWithAttributes = new ImmutableList.Builder<>();
         ImmutableMap.Builder<String, LocalVariantGraphResolveState> variantsByConfigurationName = ImmutableMap.builder();

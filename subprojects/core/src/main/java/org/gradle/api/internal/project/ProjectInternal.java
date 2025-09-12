@@ -35,6 +35,7 @@ import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.model.internal.ModelContainerInternal;
 import org.gradle.api.provider.Property;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -194,6 +195,9 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
 
     @Override
     InputNormalizationHandlerInternal getNormalization();
+
+    @Override
+    ModelContainerInternal getModels();
 
     @Override
     ScriptHandlerInternal getBuildscript();
