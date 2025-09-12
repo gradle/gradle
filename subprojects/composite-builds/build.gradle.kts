@@ -49,8 +49,11 @@ dependencies {
     integTestImplementation(projects.buildOption)
     integTestImplementation(projects.launcher)
 
-    integTestDistributionRuntimeOnly(projects.distributionsJvm) {
-        because("Requires test-kit: 'java-gradle-plugin' is used in some integration tests which always adds the test-kit dependency.  The 'java-platform' plugin from the JVM platform is used in some tests.")
+    integTestDistributionRuntimeOnly(projects.distributionsFull) {
+        because("""
+          1. Requires test-kit: 'java-gradle-plugin' is used in some integration tests which always adds the test-kit dependency. The 'java-platform' plugin from the JVM platform is used in some tests.
+          2. Has tests with the enterprise plugin
+        """)
     }
 }
 
