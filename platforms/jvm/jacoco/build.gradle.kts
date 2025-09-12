@@ -56,7 +56,9 @@ dependencies {
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(projects.distributionsJvm)
+    integTestDistributionRuntimeOnly(projects.distributionsFull) {
+        because("Includes tests for builds with TestKit involved")
+    }
 }
 
 strictCompile {
