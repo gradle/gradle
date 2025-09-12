@@ -61,17 +61,17 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
 
     @Override
     public ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
-        return this;
+        throw new UnsupportedOperationException("Applying component metadata rules to lenient platform dependencies is not supported.");
     }
 
     @Override
     public ModuleDependencyMetadata withReason(String reason) {
-        return this;
+        throw new UnsupportedOperationException("Applying component metadata rules to lenient platform dependencies is not supported.");
     }
 
     @Override
     public ModuleDependencyMetadata withEndorseStrictVersions(boolean endorse) {
-        return this;
+        throw new UnsupportedOperationException("Applying component metadata rules to lenient platform dependencies is not supported.");
     }
 
     @Override
@@ -102,11 +102,15 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
 
     @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
+        // TODO: This gets called when performing substitutions.
+        //       We probably shouldn't ignore this.
         return this;
     }
 
     @Override
     public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
+        // TODO: This gets called when performing substitutions.
+        //       We probably shouldn't ignore this.
         return this;
     }
 
@@ -137,7 +141,7 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
 
     @Override
     public String toString() {
-        return "virtual metadata for " + componentId;
+        return componentId.getDisplayName();
     }
 
     @Override
