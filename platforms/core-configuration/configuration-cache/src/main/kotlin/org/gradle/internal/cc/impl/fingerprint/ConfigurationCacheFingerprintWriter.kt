@@ -192,8 +192,9 @@ class ConfigurationCacheFingerprintWriter(
     val startParameterProjectProperties: AtomicReference<Map<String, Any?>?>
 
     init {
+        val isFineGrainedPropertyTracking = host.isFineGrainedPropertyTracking
         propertyTracking = when {
-            host.isFineGrainedPropertyTracking -> FineGrainedPropertyTracking()
+            isFineGrainedPropertyTracking -> FineGrainedPropertyTracking()
             else -> {
                 logger.info("Configuration Cache fine-grained property tracking is disabled.")
                 NoPropertyTracking
@@ -212,9 +213,9 @@ class ConfigurationCacheFingerprintWriter(
 
         // defensive copy, since the original state is mutable
         val startParameterPropertiesSnapshot = host.startParameterProperties.toMap()
-        startParameterProjectProperties = AtomicReference(if (host.isFineGrainedPropertyTracking) startParameterPropertiesSnapshot else null)
+        startParameterProjectProperties = AtomicReference(if (isFineGrainedPropertyTracking) startParameterPropertiesSnapshot else null)
 
-        if (!host.isFineGrainedPropertyTracking) {
+        if (!isFineGrainedPropertyTracking) {
             addStartParameterProjectPropertiesToFingerprint(startParameterPropertiesSnapshot)
         }
     }
