@@ -59,7 +59,6 @@ class JacocoTestKitKotlinScriptFingerprintingIntegrationTest extends AbstractInt
             
             dependencies {
                 testImplementation("org.junit.jupiter:junit-jupiter:5.13.4")
-                testRuntimeOnly(files(layout.buildDirectory.dir("testkit")))
                 testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.4")
             
                 jacocoRuntime("org.jacoco:org.jacoco.agent:\${JacocoPlugin.DEFAULT_JACOCO_VERSION}:runtime")
