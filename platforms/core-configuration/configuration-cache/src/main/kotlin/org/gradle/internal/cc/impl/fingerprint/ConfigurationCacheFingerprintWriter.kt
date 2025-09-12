@@ -213,10 +213,11 @@ class ConfigurationCacheFingerprintWriter(
 
         // defensive copy, since the original state is mutable
         val startParameterPropertiesSnapshot = host.startParameterProperties.toMap()
-        startParameterProjectProperties = AtomicReference(if (isFineGrainedPropertyTracking) startParameterPropertiesSnapshot else null)
-
-        if (!isFineGrainedPropertyTracking) {
+        startParameterProjectProperties = if (isFineGrainedPropertyTracking) {
+            AtomicReference(startParameterPropertiesSnapshot)
+        } else {
             addStartParameterProjectPropertiesToFingerprint(startParameterPropertiesSnapshot)
+            AtomicReference(null)
         }
     }
 
