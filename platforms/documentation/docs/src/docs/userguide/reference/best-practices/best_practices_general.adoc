@@ -350,3 +350,164 @@ include::sample[dir="snippets/bestPractices/nameYourRootProject-do/tests",files=
 === Tags
 
 <<tags_reference.adoc#tag:settings,`#settings`>>
+
+[[do_not_use_gradle_properties_in_subprojects]]
+== Do not use `gradle.properties` in subprojects
+
+Do not place a `gradle.properties` file inside subprojects to configure your build.
+
+=== Explanation
+
+Gradle allows `gradle.properties` files in both the root project and subprojects, but support for subproject properties is inconsistent.
+Gradle itself and many popular plugins (such as the Android Gradle Plugin and Kotlin Gradle Plugin) do not reliably handle this pattern.
+
+Using subproject `gradle.properties` files also makes it harder to understand and debug your build.
+Property values may be scattered across multiple locations, overridden in unexpected ways, or difficult to trace back to their source.
+
+If you need to set properties for a *single subproject*, define them directly in that subproject’s `build.gradle(.kts)`.
+If you need to apply properties across *multiple subprojects*, extract the configuration into a <<plugins.adoc#sec:convention_plugins,convention plugin>>.
+
+=== Example
+
+==== Don't Do This
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+├── app
+│   ├── ⋮
+│   ├── build.gradle.kts
+│   └── gradle.properties
+├── utilities
+│   ├── ⋮
+│   ├── build.gradle.kts
+│   └── gradle.properties
+└── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+├── app
+│   ├── ⋮
+│   ├── build.gradle
+│   └── gradle.properties
+├── utilities
+│   ├── ⋮
+│   ├── build.gradle
+│   └── gradle.properties
+└── settings.gradle
+----
+=====
+
+====
+include::sample[dir="snippets/bestPractices/avoidGradlePropertiesInSubProjects-avoid/kotlin/app",files="gradle.properties[]"]
+====
+
+====
+include::sample[dir="snippets/bestPractices/avoidGradlePropertiesInSubProjects-avoid/kotlin/app",files="build.gradle.kts[]"]
+include::sample[dir="snippets/bestPractices/avoidGradlePropertiesInSubProjects-avoid/groovy/app",files="build.gradle[]"]
+====
+
+====
+include::sample[dir="snippets/bestPractices/avoidGradlePropertiesInSubProjects-avoid/kotlin/util",files="gradle.properties[]"]
+====
+
+====
+include::sample[dir="snippets/bestPractices/avoidGradlePropertiesInSubProjects-avoid/kotlin/util",files="build.gradle.kts[]"]
+include::sample[dir="snippets/bestPractices/avoidGradlePropertiesInSubProjects-avoid/groovy/util",files="build.gradle[]"]
+====
+
+<1> Register a task that uses the value of properties in each subproject.
+<2> The task reads properties, which are supplied by the project-local `app/gradle.properties` file.  `propertyA` does *not* vary between subprojects.
+<3> 'util`'s print task reads the properties which are supplied by `util/gradle.properties`.  `propertyB` *varies* between subprojects.
+
+This structure requires duplicating properties that are shared between subprojects and is not guaranteed to remain supported.
+
+==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidGradlePropertiesInSubProjects-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidGradlePropertiesInSubProjects-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+├── buildSrc
+│   └──  ⋮
+├── app
+│   ├── ⋮
+│   └── build.gradle.kts
+├── utilities
+│   ├── ⋮
+│   └── build.gradle.kts
+├── settings.gradle.kts
+└── gradle.properties
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+├── buildSrc
+│   └──  ⋮
+├── app
+│   ├── ⋮
+│   └──  build.gradle
+├── utilities
+│   ├── ⋮
+│   └── build.gradle
+├── settings.gradle
+└── gradle.properties
+----
+=====
+
+====
+include::sample[dir="snippets/bestPractices/avoidGradlePropertiesInSubProjects-do/kotlin",files="gradle.properties[]"]
+====
+
+====
+include::sample[dir="snippets/bestPractices/avoidGradlePropertiesInSubProjects-do/kotlin/buildSrc/src/main/kotlin",files="ProjectProperties.kt[]"]
+include::sample[dir="snippets/bestPractices/avoidGradlePropertiesInSubProjects-do/groovy/buildSrc/src/main/groovy",files="ProjectProperties.groovy[]"]
+====
+
+====
+include::sample[dir="snippets/bestPractices/avoidGradlePropertiesInSubProjects-do/kotlin/buildSrc/src/main/kotlin",files="project-properties.gradle.kts[]"]
+include::sample[dir="snippets/bestPractices/avoidGradlePropertiesInSubProjects-do/groovy/buildSrc/src/main/groovy",files="project-properties.gradle[]"]
+====
+
+====
+include::sample[dir="snippets/bestPractices/avoidGradlePropertiesInSubProjects-do/kotlin/app",files="build.gradle.kts[]"]
+include::sample[dir="snippets/bestPractices/avoidGradlePropertiesInSubProjects-do/groovy/app",files="build.gradle[]"]
+====
+
+====
+include::sample[dir="snippets/bestPractices/avoidGradlePropertiesInSubProjects-do/kotlin/util",files="build.gradle.kts[]"]
+include::sample[dir="snippets/bestPractices/avoidGradlePropertiesInSubProjects-do/groovy/util",files="build.gradle[]"]
+====
+
+<1> Define a simple extension type in `buildSrc` to hold property values.
+<2> Register that property in a convention plugin.
+<3> Register tasks using property values in the convention plugin.
+<4> Apply the convention plugin in each subproject.
+<5> Set the extension's property values in each subproject's build script.  This uses the values defined in the root `gradle.properties` file.  The task reads values from the extension, not directly from the project properties.
+<6> When values need to vary between subprojects, they can be set directly on the extension.
+
+This structure uses an extension type to hold values, allowing properties to be strongly typed, and for property values and operations on properties to be defined in a single location.  Overriding values per subproject remains straightforward.
+
+=== References
+
+- <<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>>
+
+=== Tags
+
+<<tags_reference.adoc#tag:properties,`#properties`>>
