@@ -15,11 +15,16 @@
  */
 package org.gradle.internal.scripts;
 
-import org.jspecify.annotations.Nullable;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 
+import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static org.gradle.internal.FileUtils.hasExtension;
@@ -40,14 +45,50 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
     }
 
     @Override
+    @Nullable
     public File resolveScriptFile(File dir, String basename) {
+        File selectedCandidate = null;
+        List<File> ignoredCandidates = new ArrayList<>();
+
         for (String extension : EXTENSIONS) {
             File candidate = new File(dir, basename + extension);
             if (isCandidateFile(candidate)) {
-                return candidate;
+                if (selectedCandidate == null) {
+                    selectedCandidate = candidate;
+                } else {
+                    ignoredCandidates.add(candidate);
+                }
             }
         }
-        return null;
+
+        if (!ignoredCandidates.isEmpty()) {
+            reportMultipleCandidates(dir, selectedCandidate, ignoredCandidates);
+        }
+
+        return selectedCandidate;
+    }
+
+    private static void reportMultipleCandidates(File dir, File selectedCandidate, List<File> ignoredCandidates) {
+        // Unfortunately, we have to use the emitter holder here
+        // Reason is that this class is used in a utility fashion rather as a service, and makes injection virtually impossible.
+        // See the StartParameter for an example.
+        ProblemsProgressEventEmitterHolder.get().getReporter().report(
+            ProblemId.create("multiple-candidates", "Multiple script candidates", GradleCoreProblemGroup.script()),
+            spec -> {
+                spec.severity(Severity.WARNING);
+                spec.contextualLabel(
+                    String.format("Multiple script candidates were found in directory '%s'", dir.getAbsolutePath())
+                );
+                spec.fileLocation(dir.getAbsolutePath());
+                spec.details(
+                    " - Selected candidate: '" + selectedCandidate.getAbsolutePath() + "'" + System.lineSeparator() +
+                        ignoredCandidates.stream()
+                            .map(f -> " - Ignored candidate: '" + f.getAbsolutePath() + "'")
+                            .collect(Collectors.joining(System.lineSeparator()))
+                );
+                spec.solution("Remove the ignored script files or rename them");
+            }
+        );
     }
 
     private boolean isCandidateFile(File candidate) {
