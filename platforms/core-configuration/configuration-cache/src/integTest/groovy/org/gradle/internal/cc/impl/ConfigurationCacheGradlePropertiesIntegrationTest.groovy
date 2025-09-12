@@ -395,7 +395,7 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
     }
 
     @ToBeImplemented
-    def "reuses cache when unused project property changes on command-line, if another property is accessed via #description"() {
+    def "reuses cache when unused project property changes on command-line, if accessing #description"() {
         buildFile """
             // access another property that is not changing
             ${accessExpr}
@@ -419,7 +419,7 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
 
         where:
         description                                 | accessExpr
-        "ext.properties"                            | "ext.properties.bar"
+        "ext.properties property"                   | "ext.properties.bar"
         "startParameter.projectProperties property" | "gradle.startParameter.projectProperties['bar']"
         "startParameter.projectProperties"          | "gradle.startParameter.projectProperties"
     }
