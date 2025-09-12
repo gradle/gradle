@@ -46,7 +46,6 @@ import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.execution.plan.MissingTaskDependencyDetector;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
@@ -92,6 +91,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS;
 
@@ -274,13 +274,13 @@ public class TaskExecution implements MutableUnitOfWork {
                         if (failures.size() > 1) {
                             throw new MultipleTaskActionFailures("Multiple task action failures occurred:", failures);
                         } else {
-                            throw UncheckedException.throwAsUncheckedException(failures.get(0));
+                            throw throwAsUncheckedException(failures.get(0));
                         }
                     }
 
                     if (actionFailure != null) {
                         context.failed(actionFailure);
-                        throw UncheckedException.throwAsUncheckedException(actionFailure);
+                        throw throwAsUncheckedException(actionFailure);
                     }
                 } finally {
                     context.setResult(ExecuteTaskActionBuildOperationType.RESULT_INSTANCE);
@@ -367,27 +367,27 @@ public class TaskExecution implements MutableUnitOfWork {
     }
 
     private RuntimeException decorateSnapshottingException(String propertyType, String propertyName, Throwable cause) {
-        if (!(cause instanceof UncheckedIOException)) {
-            return UncheckedException.throwAsUncheckedException(cause);
+        return cause instanceof UncheckedIOException ?
+            populateDocumentedFailureBuilder(
+                DocumentedFailure.builder(),
+                propertyType,
+                propertyName).withUserManual("incremental_build", "sec:disable-state-tracking").build() :
+            throwAsUncheckedException(cause);
+    }
+
+    private DocumentedFailure.Builder populateDocumentedFailureBuilder(DocumentedFailure.Builder builder, String propertyType, String propertyName) {
+        if (propertyName.equals("destinationDir") && (task instanceof Copy || task instanceof Sync)) {
+            return builder.withSummary("Cannot access a file in the destination directory.")
+                .withContext((task instanceof Copy
+                    ? "Copying"
+                    : "Syncing") + " to a directory which contains unreadable content is not supported.")
+                .withAdvice(task instanceof Copy
+                    ? "Declare the task as untracked by using Task.doNotTrackState()."
+                    : "Use a Copy task with Task.doNotTrackState() instead.");
         }
-        boolean isDestinationDir = propertyName.equals("destinationDir");
-        DocumentedFailure.Builder builder = DocumentedFailure.builder();
-        if (isDestinationDir && task instanceof Copy) {
-            builder.withSummary("Cannot access a file in the destination directory.")
-                .withContext("Copying to a directory which contains unreadable content is not supported.")
-                .withAdvice("Declare the task as untracked by using Task.doNotTrackState().");
-        } else if (isDestinationDir && task instanceof Sync) {
-            builder.withSummary("Cannot access a file in the destination directory.")
-                .withContext("Syncing to a directory which contains unreadable content is not supported.")
-                .withAdvice("Use a Copy task with Task.doNotTrackState() instead.");
-        } else {
-            builder.withSummary(String.format("Cannot access %s property '%s' of %s.",
-                    propertyType, propertyName, getDisplayName()))
-                .withContext("Accessing unreadable inputs or outputs is not supported.")
-                .withAdvice("Declare the task as untracked by using Task.doNotTrackState().");
-        }
-        return builder.withUserManual("incremental_build", "sec:disable-state-tracking")
-            .build(cause);
+        return builder.withSummary(String.format("Cannot access %s property '%s' of %s.", propertyType, propertyName, getDisplayName()))
+            .withContext("Accessing unreadable inputs or outputs is not supported.")
+            .withAdvice("Declare the task as untracked by using Task.doNotTrackState().");
     }
 
     @Override
