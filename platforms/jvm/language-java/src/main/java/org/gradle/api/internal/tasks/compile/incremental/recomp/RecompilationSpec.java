@@ -79,6 +79,10 @@ public class RecompilationSpec {
         sourcePaths.addAll(sourcePath);
     }
 
+    public void addSourcePaths(Collection<String> sourcePath) {
+        sourcePaths.addAll(sourcePath);
+    }
+
     public Collection<String> getSourcePaths() {
         return Collections.unmodifiableCollection(sourcePaths);
     }
