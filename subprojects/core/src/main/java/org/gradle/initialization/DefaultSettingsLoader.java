@@ -178,14 +178,16 @@ public class DefaultSettingsLoader implements SettingsLoader {
                 String suffix = buildPath == Path.ROOT ? "" : " (in build " + buildPath + ")";
                 throw new GradleException("'" + SettingsInternal.BUILD_SRC + "' cannot be used as a project name as it is a reserved name" + suffix);
             }
-            if (!project.getProjectDir().exists() || !project.getProjectDir().isDirectory() || !project.getProjectDir().canWrite()) {
+            boolean isNotVirtualProject = !project.isVirtual();
+            boolean projectDirDoesNotExist = !project.getProjectDir().exists() || !project.getProjectDir().isDirectory() || !project.getProjectDir().canWrite();
+            if (isNotVirtualProject && projectDirDoesNotExist) {
                 failOnMissingProjectDirectory(project.getPath(), project.getProjectDir().toString());
             }
         });
     }
 
     private void failOnMissingProjectDirectory(String projectPath, String projectDir) {
-        String template = "Configuring project '%s' without an existing directory is not allowed. The configured projectDirectory '%s' does not exist, can't be written to or is not a directory.";
+        String template = "Configuring project '%s' without an existing directory is not allowed. If this was intended, you can use includeVirtual instead. The configured projectDirectory '%s' does not exist, can't be written to or is not a directory.";
         throw problems.getInternalReporter().throwing(
             new GradleException(String.format(template, projectPath, projectDir)),
             ProblemId.create("confituring-project-with-invalid-directory", "Configuring project with invalid directory", GradleCoreProblemGroup.configurationUsage()),

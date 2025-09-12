@@ -69,6 +69,23 @@ publishing {
 }
 ```
 
+### Virtual projects
+
+Gradle 8 deprecated the use of `include 'X'` where `X` refers to a non-existent project folder. In Gradle 9
+this is now an error. This helps users find spelling errors in their `Settings.gradle` so that it fails
+when a non-existent project folder is given to `include`.
+
+There is now a `includeVirtual` that allows users to include projects with non-existent project folders. This
+might be convenient when doing code generation where you want to generate code into a bunch of different
+projects.
+
+Use it in `settings.gradle` like this:
+
+```groovy
+rootProject.name = "root-project-name"
+includeVirtual "does-not-exist-1", "does-not-exist-2"
+```
+
 #### New provider-based methods for publishing configurations
 
 Two new methods have been added to [`AdhocComponentWithVariants`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html) which accept providers of consumable configurations:
