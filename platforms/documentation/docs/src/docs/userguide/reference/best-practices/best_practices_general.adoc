@@ -365,7 +365,7 @@ Using subproject `gradle.properties` files also makes it harder to understand an
 Property values may be scattered across multiple locations, overridden in unexpected ways, or difficult to trace back to their source.
 
 If you need to set properties for a *single subproject*, define them directly in that subproject’s `build.gradle(.kts)`.
-If you need to apply properties across *multiple subprojects*, extract the configuration into a <<custom_plugins.adoc#sec:convention_plugins,convention plugin>>.
+If you need to apply properties across *multiple subprojects*, extract the configuration into a <<plugins.adoc#sec:convention_plugins,convention plugin>>.
 
 === Example
 
