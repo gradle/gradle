@@ -432,11 +432,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
         return Cast.uncheckedCast(delegate.getSubprojects(referrer));
     }
 
-    @Override
-    public Map<String, Project> getChildProjectsUnchecked() {
-        return delegate.getChildProjectsUnchecked();
-    }
-
     @Nullable
     @Override
     public ProjectInternal findProject(ProjectInternal referrer, String path) {
