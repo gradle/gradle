@@ -102,7 +102,7 @@ public class StartParameterInternal extends StartParameter {
     @Override
     @SuppressWarnings("deprecation")
     public Map<String, String> getProjectProperties() {
-        // We can't use Instrumented.startParameterProjectPropertiesObserved() directly because it bloats up Shaded TAPI Jar
+        // We avoid using the more usual `Instrumented` directly because a class dependency on it bloats up the Shaded TAPI Jar
         InstrumentedInputs.listener().startParameterProjectPropertiesObserved();
         return super.getProjectProperties();
     }
