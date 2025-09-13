@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.impl;
 
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.cache.Cache;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
@@ -31,9 +31,9 @@ import org.jspecify.annotations.Nullable;
 
 public class DefaultExecutionEngine implements ExecutionEngine {
     private final DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> pipeline;
-    private final InternalProblems problems;
+    private final ProblemsInternal problems;
 
-    public DefaultExecutionEngine(DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> pipeline, InternalProblems problems) {
+    public DefaultExecutionEngine(DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> pipeline, ProblemsInternal problems) {
         this.pipeline = pipeline;
         this.problems = problems;
     }

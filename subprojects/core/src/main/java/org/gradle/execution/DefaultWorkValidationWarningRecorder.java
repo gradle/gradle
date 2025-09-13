@@ -16,7 +16,7 @@
 
 package org.gradle.execution;
 
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.steps.ValidateStep;
@@ -40,7 +40,7 @@ public class DefaultWorkValidationWarningRecorder implements ValidateStep.Valida
     private final Set<Identity> workWithWarnings = ConcurrentHashMap.newKeySet();
 
     @Override
-    public void recordValidationWarnings(Identity identity, UnitOfWork work, Collection<? extends InternalProblem> warnings) {
+    public void recordValidationWarnings(Identity identity, UnitOfWork work, Collection<? extends ProblemInternal> warnings) {
         workWithWarnings.add(identity);
         String uniqueWarnings = warnings.stream()
             .map(warning -> convertToSingleLine(renderMinimalInformationAbout(warning, true, false)))

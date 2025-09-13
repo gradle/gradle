@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.resolution.failure.ReportableAsProblem;
@@ -59,7 +59,7 @@ public interface ResolutionHost {
      *
      * @return the problems service
      */
-    InternalProblems getProblems();
+    ProblemsInternal getProblems();
 
     /**
      * Rethrows the provided failures, doing nothing if the list of failures is empty.

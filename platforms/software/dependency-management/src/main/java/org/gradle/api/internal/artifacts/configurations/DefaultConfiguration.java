@@ -82,7 +82,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -1632,7 +1632,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return roleAtCreation;
     }
 
-    public InternalProblems getProblems() {
+    public ProblemsInternal getProblems() {
         return configurationServices.getProblems();
     }
 
@@ -1759,13 +1759,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         private final Path buildTreePath;
         private final DisplayName displayName;
-        private final InternalProblems problems;
+        private final ProblemsInternal problems;
         private final ResolveExceptionMapper exceptionMapper;
 
         public DefaultResolutionHost(
             Path buildTreePath,
             DisplayName displayName,
-            InternalProblems problems,
+            ProblemsInternal problems,
             ResolveExceptionMapper exceptionMapper
         ) {
             this.buildTreePath = buildTreePath;
@@ -1775,7 +1775,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
 
         @Override
-        public InternalProblems getProblems() {
+        public ProblemsInternal getProblems() {
             return problems;
         }
 
