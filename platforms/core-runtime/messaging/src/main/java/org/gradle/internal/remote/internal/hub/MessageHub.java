@@ -215,8 +215,8 @@ public class MessageHub implements AsyncStoppable {
      */
     @Override
     public void stop() {
+        lock.lock();
         try {
-            lock.lock();
             try {
                 requestStop();
             } finally {
