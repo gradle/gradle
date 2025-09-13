@@ -32,7 +32,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
@@ -60,13 +60,13 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
     private final SoftwareFeatureRegistry softwareFeatureRegistry;
     private final ModelDefaultsApplicator modelDefaultsApplicator;
     private final InspectionScheme inspectionScheme;
-    private final InternalProblems problems;
+    private final ProblemsInternal problems;
     private final PluginManagerInternal pluginManager;
     private final Set<AppliedFeature> applied = new HashSet<>();
     private final ClassLoaderScope classLoaderScope;
     private final ObjectFactory objectFactory;
 
-    public DefaultSoftwareFeatureApplicator(SoftwareFeatureRegistry softwareFeatureRegistry, ModelDefaultsApplicator modelDefaultsApplicator, InspectionScheme inspectionScheme, InternalProblems problems, PluginManagerInternal pluginManager, ClassLoaderScope classLoaderScope, ObjectFactory objectFactory) {
+    public DefaultSoftwareFeatureApplicator(SoftwareFeatureRegistry softwareFeatureRegistry, ModelDefaultsApplicator modelDefaultsApplicator, InspectionScheme inspectionScheme, ProblemsInternal problems, PluginManagerInternal pluginManager, ClassLoaderScope classLoaderScope, ObjectFactory objectFactory) {
         this.softwareFeatureRegistry = softwareFeatureRegistry;
         this.modelDefaultsApplicator = modelDefaultsApplicator;
         this.inspectionScheme = inspectionScheme;
