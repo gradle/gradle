@@ -201,13 +201,16 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
     private static class DefaultCrossBuildInMemoryCache<K, V> extends AbstractCrossBuildInMemoryCache<K, V> {
 
-        private final Set<V> valuesForPreviousSession;
+        /**
+         * This is used only to retain weak references to the values.
+         * Use weak references, in case Java needs to GC the values.
+         */
+        private final Set<V> valuesForPreviousSession = newSetFromMap(new WeakHashMap<>());
         private final Map<K, WeakReference<V>> allValues;
 
         public DefaultCrossBuildInMemoryCache(
             KeyRetentionPolicy retentionPolicy
         ) {
-            this.valuesForPreviousSession = newSetFromMap(new WeakHashMap<>());
             this.allValues = mapFor(retentionPolicy);
         }
 
