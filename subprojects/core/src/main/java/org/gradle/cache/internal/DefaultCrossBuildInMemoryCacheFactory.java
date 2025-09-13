@@ -25,7 +25,7 @@ import org.gradle.internal.session.BuildSessionLifecycleListener;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -37,6 +37,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import static java.util.Collections.newSetFromMap;
 import static java.util.Collections.synchronizedMap;
 
 /**
@@ -90,8 +91,6 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
     @Override
     public <V> CrossBuildInMemoryCache<Class<?>, V> newClassCache() {
-        // TODO: Should use some variation of DefaultClassMap below to associate values with classes, as currently we retain a strong reference to each value for one session after the ClassLoader
-        //       for the entry's key is discarded, which is unnecessary because we won't attempt to locate the entry again once the ClassLoader has been discarded
         DefaultCrossBuildInMemoryCache<Class<?>, V> cache = new DefaultCrossBuildInMemoryCache<>(KeyRetentionPolicy.WEAK);
         listenerManager.addListener(cache);
         return cache;
@@ -192,22 +191,27 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         }
     }
 
+    /**
+     * Specify the retention of keys in {@link DefaultCrossBuildInMemoryCache}.
+     */
     private enum KeyRetentionPolicy {
         WEAK,
-        STRONG
+        STRONG,
     }
 
     private static class DefaultCrossBuildInMemoryCache<K, V> extends AbstractCrossBuildInMemoryCache<K, V> {
 
-        // This is used only to retain strong references to the values
-        private final Set<V> valuesForPreviousSession = new HashSet<>();
-        private final Map<K, SoftReference<V>> allValues;
+        private final Set<V> valuesForPreviousSession;
+        private final Map<K, WeakReference<V>> allValues;
 
-        public DefaultCrossBuildInMemoryCache(KeyRetentionPolicy retentionPolicy) {
+        public DefaultCrossBuildInMemoryCache(
+            KeyRetentionPolicy retentionPolicy
+        ) {
+            this.valuesForPreviousSession = newSetFromMap(new WeakHashMap<>());
             this.allValues = mapFor(retentionPolicy);
         }
 
-        private Map<K, SoftReference<V>> mapFor(KeyRetentionPolicy retentionPolicy) {
+        private Map<K, WeakReference<V>> mapFor(KeyRetentionPolicy retentionPolicy) {
             switch (retentionPolicy) {
                 case WEAK:
                     return synchronizedMap(new WeakHashMap<>());
@@ -236,13 +240,13 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
         @Override
         protected void retainValue(K key, V v) {
-            allValues.put(key, new SoftReference<>(v));
+            allValues.put(key, new WeakReference<>(v));
         }
 
         @Nullable
         @Override
         protected V maybeGetRetainedValue(K key) {
-            SoftReference<V> reference = allValues.get(key);
+            final WeakReference<V> reference = allValues.get(key);
             if (reference != null) {
                 return reference.get();
             }
