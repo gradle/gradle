@@ -68,7 +68,7 @@ public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionAction
             BuildInvocationScopeId buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate());
             BuildTreeState buildTree = new BuildTreeState(buildInvocationScopeId, buildSession.getServices(), modelServices);
             try {
-                result = buildTree.run(context -> context.execute(action));
+                result = buildTree.getServices().get(RootBuildLifecycleBuildActionExecutor.class).execute(action);
             } finally {
                 buildTree.close();
             }

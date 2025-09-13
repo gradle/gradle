@@ -16,32 +16,94 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.StartParameter;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildActionRunner;
-import org.gradle.internal.buildtree.BuildTreeActionExecutor;
-import org.gradle.internal.buildtree.BuildTreeContext;
+import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.buildtree.BuildTreeLifecycleListener;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.SupportedJavaVersions;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.work.ProjectParallelExecutionController;
+import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.VersionNumber;
 
-public class RootBuildLifecycleBuildActionExecutor implements BuildTreeActionExecutor {
+/**
+ * Prepares the build-tree services and runs the build action on behalf of the root build.
+ */
+@ServiceScope(Scope.BuildTree.class)
+public class RootBuildLifecycleBuildActionExecutor {
 
+    private final BuildModelParameters buildModelParameters;
+    private final ProjectParallelExecutionController projectParallelExecutionController;
+    private final BuildTreeLifecycleListener lifecycleListener;
+    private final InternalProblems problemsService;
+    private final BuildOperationProgressEventEmitter eventEmitter;
+    private final StartParameter startParameter;
+    private final ProblemStream problemsStream;
     private final BuildActionRunner buildActionRunner;
     private final BuildStateRegistry buildStateRegistry;
 
-    public RootBuildLifecycleBuildActionExecutor(BuildStateRegistry buildStateRegistry,
-                                                 BuildActionRunner buildActionRunner) {
+    public RootBuildLifecycleBuildActionExecutor(
+        BuildModelParameters buildModelParameters,
+        ProjectParallelExecutionController projectParallelExecutionController,
+        BuildTreeLifecycleListener lifecycleListener,
+        InternalProblems problemsService,
+        BuildOperationProgressEventEmitter eventEmitter,
+        StartParameter startParameter,
+        ProblemStream problemsStream,
+        BuildStateRegistry buildStateRegistry,
+        BuildActionRunner buildActionRunner
+    ) {
+        this.buildModelParameters = buildModelParameters;
+        this.projectParallelExecutionController = projectParallelExecutionController;
+        this.lifecycleListener = lifecycleListener;
+        this.problemsService = problemsService;
+        this.eventEmitter = eventEmitter;
+        this.startParameter = startParameter;
+        this.problemsStream = problemsStream;
         this.buildActionRunner = buildActionRunner;
         this.buildStateRegistry = buildStateRegistry;
     }
 
-    @Override
-    public BuildActionRunner.Result execute(BuildAction action, BuildTreeContext buildTreeContext) {
+    /**
+     * Creates the root build state and executes the given action against it.
+     * <p>
+     * When this method returns, all user code will have been completed, including 'build finished' hooks.
+     */
+    public BuildActionRunner.Result execute(BuildAction action) {
+        projectParallelExecutionController.startProjectExecution(buildModelParameters.isParallelProjectExecution());
+        lifecycleListener.afterStart();
+        try {
+            ProblemsProgressEventEmitterHolder.init(problemsService);
+            initDeprecationLogging();
+            maybeNagOnDeprecatedJavaRuntimeVersion();
+            RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null));
+            return rootBuild.run(buildController -> buildActionRunner.run(action, buildController));
+        } finally {
+            lifecycleListener.beforeStop();
+            projectParallelExecutionController.finishProjectExecution();
+        }
+    }
+
+    private void initDeprecationLogging() {
+        ShowStacktrace showStacktrace = startParameter.getShowStacktrace();
+        LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(showStacktrace.equals(ShowStacktrace.ALWAYS) || showStacktrace.equals(ShowStacktrace.ALWAYS_FULL));
+        DeprecationLogger.init(startParameter.getWarningMode(), eventEmitter, problemsService, problemsStream);
+    }
+
+    private static void maybeNagOnDeprecatedJavaRuntimeVersion() {
         int currentMajor = Integer.parseInt(JavaVersion.current().getMajorVersion());
         if (currentMajor < SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION) {
             int currentMajorGradleVersion = VersionNumber.parse(GradleVersion.current().getVersion()).getMajor();
@@ -51,8 +113,5 @@ public class RootBuildLifecycleBuildActionExecutor implements BuildTreeActionExe
                 .withUpgradeGuideSection(currentMajorGradleVersion, "minimum_daemon_jvm_version")
                 .nagUser();
         }
-
-        RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null));
-        return rootBuild.run(buildController -> buildActionRunner.run(action, buildController));
     }
 }
