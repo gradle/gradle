@@ -23,8 +23,8 @@ import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -52,13 +52,13 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
 
     private final Context context;
     private final Factory<ContextAwareJavaCompiler> compilerFactory;
-    private final InternalProblems problemsService;
+    private final ProblemsInternal problemsService;
     private final DiagnosticToProblemListener diagnosticToProblemListener;
 
     @Inject
     public JdkJavaCompiler(
         Factory<ContextAwareJavaCompiler> compilerFactory,
-        InternalProblems problemsService
+        ProblemsInternal problemsService
     ) {
         this.context = new Context();
         this.compilerFactory = compilerFactory;
@@ -86,7 +86,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
             System.err.println(diagnosticCounts);
         }
         if (!success) {
-            CompilationFailedException exception = new CompilationFailedException(result, diagnosticToProblemListener.getReportedProblems().stream().map(InternalProblem.class::cast).collect(toList()), diagnosticCounts);
+            CompilationFailedException exception = new CompilationFailedException(result, diagnosticToProblemListener.getReportedProblems().stream().map(ProblemInternal.class::cast).collect(toList()), diagnosticCounts);
             throw problemsService.getInternalReporter().throwing(exception, diagnosticToProblemListener.getReportedProblems());
         } else {
             problemsService.getInternalReporter().report(diagnosticToProblemListener.getReportedProblems());

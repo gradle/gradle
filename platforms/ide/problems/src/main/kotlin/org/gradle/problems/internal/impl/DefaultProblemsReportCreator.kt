@@ -24,7 +24,7 @@ import org.gradle.api.problems.FileLocation
 import org.gradle.api.problems.LineInFileLocation
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
-import org.gradle.api.problems.internal.InternalProblem
+import org.gradle.api.problems.internal.ProblemInternal
 import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.api.problems.internal.ProblemReportCreator
 import org.gradle.api.problems.internal.ProblemSummaryData
@@ -91,7 +91,7 @@ class DefaultProblemsReportCreator(
         }
     }
 
-    override fun addProblem(problem: InternalProblem) {
+    override fun addProblem(problem: ProblemInternal) {
         problemCount.incrementAndGet()
         report.onProblem(JsonProblemWriter(problem, failureDecorator, failureFactory))
     }
@@ -108,7 +108,7 @@ fun JsonWriter.problemId(id: ProblemId) {
     }
 }
 
-class JsonProblemWriter(private val problem: InternalProblem, private val failureDecorator: FailureDecorator, private val failureFactory: FailureFactory) : JsonSource {
+class JsonProblemWriter(private val problem: ProblemInternal, private val failureDecorator: FailureDecorator, private val failureFactory: FailureFactory) : JsonSource {
     override fun writeToJson(jsonWriter: JsonWriter) {
         with(jsonWriter) {
             jsonObject {

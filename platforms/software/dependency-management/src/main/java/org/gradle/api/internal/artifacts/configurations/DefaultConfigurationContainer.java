@@ -38,7 +38,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
@@ -61,7 +61,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private final DomainObjectContext owner;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
     private final ResolutionStrategyFactory resolutionStrategyFactory;
-    private final InternalProblems problemsService;
+    private final ProblemsInternal problemsService;
 
     private final ConfigurationResolver resolver;
 
@@ -74,7 +74,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         DomainObjectContext owner,
         DefaultConfigurationFactory defaultConfigurationFactory,
         ResolutionStrategyFactory resolutionStrategyFactory,
-        InternalProblems problemsService,
+        ProblemsInternal problemsService,
         ConfigurationResolver.Factory resolverFactory,
         AttributesSchemaInternal schema
     ) {

@@ -27,7 +27,7 @@ import org.gradle.api.problems.Severity;
 import org.gradle.problems.ProblemDiagnostics;
 import org.jspecify.annotations.Nullable;
 
-public interface InternalProblemSpec extends ProblemSpec {
+public interface ProblemSpecInternal extends ProblemSpec {
 
     /**
      * Attaches additional data describing the problem.
@@ -41,10 +41,10 @@ public interface InternalProblemSpec extends ProblemSpec {
      * @return this
      * @param <U> The type of the configurator object that will be applied to the additional data
      */
-    <U extends org.gradle.api.problems.internal.AdditionalDataSpec> InternalProblemSpec additionalDataInternal(Class<? extends U> specType, Action<? super U> config);
+    <U extends org.gradle.api.problems.internal.AdditionalDataSpec> ProblemSpecInternal additionalDataInternal(Class<? extends U> specType, Action<? super U> config);
 
     @Override
-    <T extends AdditionalData> InternalProblemSpec additionalData(Class<T> type, Action<? super T> config);
+    <T extends AdditionalData> ProblemSpecInternal additionalData(Class<T> type, Action<? super T> config);
 
     /**
      * Declares that this problem was emitted by a task with the given path.
@@ -52,14 +52,14 @@ public interface InternalProblemSpec extends ProblemSpec {
      * @param buildTreePath the absolute path of the task within the build tree
      * @return this
      */
-    InternalProblemSpec taskLocation(String buildTreePath);
+    ProblemSpecInternal taskLocation(String buildTreePath);
 
     /**
      * Declares the documentation for this problem.
      *
      * @return this
      */
-    InternalProblemSpec documentedAt(@Nullable DocLink doc);
+    ProblemSpecInternal documentedAt(@Nullable DocLink doc);
 
     /**
      * Defines the context-independent identifier for this problem.
@@ -70,7 +70,7 @@ public interface InternalProblemSpec extends ProblemSpec {
      * @param problemId the problem id
      * @return this
      */
-    InternalProblemSpec id(ProblemId problemId);
+    ProblemSpecInternal id(ProblemId problemId);
 
     /**
      * Defines simple identification for this problem.
@@ -83,48 +83,48 @@ public interface InternalProblemSpec extends ProblemSpec {
      * @return this
      * @since 8.8
      */
-    InternalProblemSpec id(String name, String displayName, ProblemGroup parent);
+    ProblemSpecInternal id(String name, String displayName, ProblemGroup parent);
 
     @Override
-    InternalProblemSpec contextualLabel(String contextualLabel);
+    ProblemSpecInternal contextualLabel(String contextualLabel);
 
     @Override
-    InternalProblemSpec documentedAt(String url);
+    ProblemSpecInternal documentedAt(String url);
 
     @Override
-    InternalProblemSpec fileLocation(String path);
+    ProblemSpecInternal fileLocation(String path);
 
     @Override
-    InternalProblemSpec lineInFileLocation(String path, int line);
+    ProblemSpecInternal lineInFileLocation(String path, int line);
 
     @Override
-    InternalProblemSpec lineInFileLocation(String path, int line, int column);
+    ProblemSpecInternal lineInFileLocation(String path, int line, int column);
 
     @Override
-    InternalProblemSpec lineInFileLocation(String path, int line, int column, int length);
+    ProblemSpecInternal lineInFileLocation(String path, int line, int column, int length);
 
     @Override
-    InternalProblemSpec offsetInFileLocation(String path, int offset, int length);
+    ProblemSpecInternal offsetInFileLocation(String path, int offset, int length);
 
     @Override
-    InternalProblemSpec stackLocation();
+    ProblemSpecInternal stackLocation();
 
     @Override
-    InternalProblemSpec details(String details);
+    ProblemSpecInternal details(String details);
 
     @Override
-    InternalProblemSpec solution(String solution);
+    ProblemSpecInternal solution(String solution);
 
     @Override
-    InternalProblemSpec withException(Throwable t);
+    ProblemSpecInternal withException(Throwable t);
 
     @Override
-    InternalProblemSpec severity(Severity severity);
+    ProblemSpecInternal severity(Severity severity);
 
     /**
      * The diagnostics to determine the stacktrace and the location of the problem.
      * <p>
      * We pass this in when we already have a diagnostics object, for example for deprecation warnings.
      */
-    InternalProblemSpec diagnostics(ProblemDiagnostics diagnostics);
+    ProblemSpecInternal diagnostics(ProblemDiagnostics diagnostics);
 }

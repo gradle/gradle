@@ -29,9 +29,9 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblemSpec;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemSpecInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.UncheckedException;
@@ -70,7 +70,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     private static final int MAX_ENTRIES = 30000;
     public static final String ERROR_HEADER = "Cannot generate dependency accessors";
     private final DefaultVersionCatalog config;
-    private final InternalProblems problemsService;
+    private final ProblemsInternal problemsService;
 
     private final Map<String, Integer> classNameCounter = new HashMap<>();
     private final Map<ClassNode, String> classNameCache = new HashMap<>();
@@ -82,7 +82,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     ) {
         super(writer);
         this.config = config;
-        this.problemsService = (InternalProblems) problemsService;
+        this.problemsService = (ProblemsInternal) problemsService;
     }
 
     public static void generateSource(
@@ -510,11 +510,11 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         }
     }
 
-    private RuntimeException throwVersionCatalogProblemException(InternalProblem problem) {
+    private RuntimeException throwVersionCatalogProblemException(ProblemInternal problem) {
         throw throwError(problemsService, ERROR_HEADER, ImmutableList.of(problem));
     }
 
-    private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec spec, String message, VersionCatalogProblemId catalogProblemId) {
+    private static ProblemSpecInternal configureVersionCatalogError(ProblemSpecInternal spec, String message, VersionCatalogProblemId catalogProblemId) {
         return spec
             .id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), message, GradleCoreProblemGroup.versionCatalog()) // TODO is message stable?
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)))
@@ -522,7 +522,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private void assertUnique(List<String> names, String prefix, String suffix) {
-        List<InternalProblem> errors = names.stream()
+        List<ProblemInternal> errors = names.stream()
             .collect(groupingBy(AbstractSourceGenerator::toJavaName))
             .entrySet()
             .stream()

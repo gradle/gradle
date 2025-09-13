@@ -22,13 +22,29 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.SingleProblemEvent
+import org.gradle.util.GradleVersion
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 
 @ToolingApiVersion('>=8.13')
 @TargetGradleVersion('>=8.13')
 class WorkerProblemCrossVersionTest extends ToolingApiSpecification {
+    String problemsInternalClassName
+    String problemInternalClassName
+    String problemSpecInternalClassName
+
+    static String prePostFixInternal(GradleVersion targetVersion, String className) {
+        if (targetVersion >= GradleVersion.version("9.2.0")) {
+            return "${className}Internal"
+        }
+        return "Internal${className}"
+
+    }
 
     def setup() {
+        problemsInternalClassName = prePostFixInternal(targetVersion, "Problems")
+        problemInternalClassName = prePostFixInternal(targetVersion, "Problem")
+        problemSpecInternalClassName = prePostFixInternal(targetVersion, "ProblemSpec")
+
         settingsFile << """
             rootProject.name = 'root'
         """
@@ -76,9 +92,9 @@ class WorkerProblemCrossVersionTest extends ToolingApiSpecification {
             import java.net.URL;
             import java.io.FileWriter;import java.util.stream.Stream;
             import org.gradle.api.problems.AdditionalData;
-            import org.gradle.api.problems.internal.InternalProblems;
-            import org.gradle.api.problems.internal.InternalProblem;
-            import org.gradle.api.problems.internal.InternalProblemSpec;
+            import org.gradle.api.problems.internal.$problemsInternalClassName;
+            import org.gradle.api.problems.internal.$problemInternalClassName;
+            import org.gradle.api.problems.internal.$problemSpecInternalClassName;
             import org.gradle.api.problems.ProblemId;
             import org.gradle.api.problems.ProblemGroup;
             import org.gradle.api.model.ObjectFactory;
@@ -93,18 +109,16 @@ class WorkerProblemCrossVersionTest extends ToolingApiSpecification {
             public abstract class ProblemWorkerTask implements WorkAction<ProblemsWorkerTaskParameter> {
 
                 @Inject
-                public abstract InternalProblems getProblems();
+                public abstract $problemsInternalClassName getProblems();
 
                 @Override
                 public void execute() {
                     ProblemId problemId = ProblemId.create("name", "Display name", ProblemGroup.create("generic", "Generic"));
-                    InternalProblem p = getProblems().getInternalReporter().internalCreate(problem -> {
-                        InternalProblemSpec spec = problem.contextualLabel("Tooling API client should receive this problem")
+                    $problemInternalClassName p = getProblems().getInternalReporter().internalCreate(problem -> {
+                        $problemSpecInternalClassName spec = problem.contextualLabel("Tooling API client should receive this problem")
                         .id(problemId);
                          spec.additionalData(SomeData.class, data -> data.setName("someData"));
-
-}
-                    );
+                        });
                     getProblems().getReporter().report(p);
 
                 }
@@ -139,7 +153,7 @@ class WorkerProblemCrossVersionTest extends ToolingApiSpecification {
         }
 
         then:
-        def event = problemProgressListener.problemEvents.find {it.problem.definition.id.name == 'name' }
+        def event = problemProgressListener.problemEvents.find { it.problem.definition.id.name == 'name' }
         event.problem.definition.id.displayName == 'Display name'
         event.problem.contextualLabel.contextualLabel == 'Tooling API client should receive this problem'
         event.problem.getAdditionalData().get(SomeData).getName() == 'someData'

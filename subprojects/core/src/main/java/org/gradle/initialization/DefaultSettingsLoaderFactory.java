@@ -20,7 +20,7 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.initialization.CacheConfigurationsHandlingSettingsLoader;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.properties.GradlePropertiesController;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.build.BuildIncluder;
@@ -41,7 +41,7 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final InitScriptHandler initScriptHandler;
     private final List<BuiltInCommand> builtInCommands;
     private final CacheConfigurationsInternal cacheConfigurations;
-    private final InternalProblems problems;
+    private final ProblemsInternal problems;
     private final JvmToolchainsConfigurationValidator jvmToolchainsConfigurationValidator;
 
     public DefaultSettingsLoaderFactory(
@@ -54,7 +54,7 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
         InitScriptHandler initScriptHandler,
         List<BuiltInCommand> builtInCommands,
         CacheConfigurationsInternal cacheConfigurations,
-        InternalProblems problems,
+        ProblemsInternal problems,
         JvmToolchainsConfigurationValidator jvmToolchainsConfigurationValidator
     ) {
         this.settingsProcessor = settingsProcessor;

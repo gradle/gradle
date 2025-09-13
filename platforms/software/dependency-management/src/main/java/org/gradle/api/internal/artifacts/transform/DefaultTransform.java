@@ -38,8 +38,8 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.internal.Describables;
@@ -163,7 +163,7 @@ public class DefaultTransform implements Transform {
             new IsolateTransformParameters(
                 parameterObject, implementationClass, cacheable, owner, parameterPropertyWalker,
                 isolatableFactory, buildOperationRunner, classLoaderHierarchyHasher, fileCollectionFactory,
-                (InternalProblems) internalServices.get(InternalProblems.class),
+                (ProblemsInternal) internalServices.get(ProblemsInternal.class),
                 (DocumentationRegistry) internalServices.get(DocumentationRegistry.class)));
     }
 
@@ -305,7 +305,7 @@ public class DefaultTransform implements Transform {
         Hasher hasher,
         Object parameterObject,
         boolean cacheable,
-        InternalProblems problems
+        ProblemsInternal problems
     ) {
         DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable, problems);
         InputFingerprinter.Result result = inputFingerprinter.fingerprintInputProperties(
@@ -385,7 +385,7 @@ public class DefaultTransform implements Transform {
             FileCollectionStructureVisitor.NO_OP
         );
 
-        ImmutableList<InternalProblem> validationMessages = validationContext.getProblems();
+        ImmutableList<ProblemInternal> validationMessages = validationContext.getProblems();
         if (!validationMessages.isEmpty()) {
             throw new DefaultMultiCauseException(
                 String.format(validationMessages.size() == 1
@@ -578,7 +578,7 @@ public class DefaultTransform implements Transform {
         private final FileCollectionFactory fileCollectionFactory;
         private final boolean cacheable;
         private final Class<?> implementationClass;
-        private final InternalProblems problems;
+        private final ProblemsInternal problems;
         private final DocumentationRegistry documentationRegistry;
 
         public IsolateTransformParameters(
@@ -591,7 +591,7 @@ public class DefaultTransform implements Transform {
             BuildOperationRunner buildOperationRunner,
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
             FileCollectionFactory fileCollectionFactory,
-            InternalProblems problems,
+            ProblemsInternal problems,
             DocumentationRegistry documentationRegistry
         ) {
             this.parameterObject = parameterObject;

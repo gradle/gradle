@@ -19,7 +19,7 @@ package org.gradle.internal.deprecation;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.problems.DocLink;
-import org.gradle.api.problems.internal.InternalDocLink;
+import org.gradle.api.problems.internal.DocLinkInternal;
 import org.gradle.internal.exceptions.Contextual;
 import org.jspecify.annotations.Nullable;
 
@@ -73,7 +73,7 @@ public class DocumentedFailure {
             StringBuilder outputBuilder = new StringBuilder(summary);
             append(outputBuilder, contextualAdvice);
             append(outputBuilder, advice);
-            append(outputBuilder, ((InternalDocLink) documentation).getConsultDocumentationMessage());
+            append(outputBuilder, ((DocLinkInternal) documentation).getConsultDocumentationMessage());
             return cause == null
                 ? new GradleException(outputBuilder.toString())
                 : new DocumentedExceptionWithCause(outputBuilder.toString(), cause);
