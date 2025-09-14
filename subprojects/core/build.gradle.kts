@@ -53,7 +53,6 @@ errorprone {
         "StreamResourceLeak", // 6 occurrences
         "TypeParameterShadowing", // 1 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences
-        "UndefinedEquals", // 1 occurrences
     )
 }
 
