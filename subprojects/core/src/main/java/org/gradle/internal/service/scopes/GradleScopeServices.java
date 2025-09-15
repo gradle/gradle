@@ -26,8 +26,6 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginTargetType;
-import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
-import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.internal.DefaultFileContentCacheFactory;
@@ -35,38 +33,19 @@ import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.SplitFileContentCacheFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
-import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
-import org.gradle.configuration.project.BuiltInCommand;
-import org.gradle.execution.BuildOperationFiringBuildWorkerExecutor;
-import org.gradle.execution.BuildTaskScheduler;
-import org.gradle.execution.BuildWorkExecutor;
-import org.gradle.execution.DefaultTasksBuildTaskScheduler;
-import org.gradle.execution.DryRunBuildExecutionAction;
-import org.gradle.execution.ProjectConfigurer;
-import org.gradle.execution.SelectedTaskExecutionAction;
-import org.gradle.execution.TaskNameResolvingBuildTaskScheduler;
-import org.gradle.execution.commandline.CommandLineTaskConfigurer;
-import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.execution.plan.LocalTaskNodeExecutor;
 import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.plan.WorkNodeExecutor;
-import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener;
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
-import org.gradle.initialization.DefaultTaskExecutionPreparer;
-import org.gradle.initialization.TaskExecutionPreparer;
-import org.gradle.internal.build.BuildState;
-import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.TaskGraphBuildExecutionAction;
 import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.Provides;
@@ -74,52 +53,11 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
 
-import java.util.List;
-
 /**
  * Contains the services for a given {@link GradleInternal} instance.
  */
 @SuppressWarnings("deprecation")
 public class GradleScopeServices implements ServiceRegistrationProvider {
-
-    @Provides
-    OptionReader createOptionReader() {
-        return new OptionReader();
-    }
-
-    @Provides
-    CommandLineTaskParser createCommandLineTaskParser(OptionReader optionReader, BuildTaskSelector taskSelector, BuildState build) {
-        return new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader), taskSelector, build);
-    }
-
-    @Provides
-    BuildWorkExecutor createBuildExecuter(
-        GradleInternal gradle,
-        StyledTextOutputFactory textOutputFactory,
-        BuildOperationRunner buildOperationRunner,
-        ConfigurationTimeBarrier configurationTimeBarrier
-    ) {
-        BuildWorkExecutor delegate = new SelectedTaskExecutionAction();
-        BuildWorkExecutor executor;
-        if (gradle.getStartParameter().isDryRun()) {
-            executor = new DryRunBuildExecutionAction(delegate, textOutputFactory, configurationTimeBarrier);
-        } else if (gradle.getStartParameter().isTaskGraph()) {
-            executor = new TaskGraphBuildExecutionAction(delegate, textOutputFactory, configurationTimeBarrier);
-        } else {
-            executor = delegate;
-        }
-        return new BuildOperationFiringBuildWorkerExecutor(executor, buildOperationRunner);
-    }
-
-    @Provides
-    BuildTaskScheduler createBuildTaskScheduler(CommandLineTaskParser commandLineTaskParser, ProjectConfigurer projectConfigurer, BuildTaskSelector.BuildSpecificSelector selector, List<BuiltInCommand> builtInCommands, InternalProblems problemsService) {
-        return new DefaultTasksBuildTaskScheduler(projectConfigurer, builtInCommands, new TaskNameResolvingBuildTaskScheduler(commandLineTaskParser, selector, builtInCommands, problemsService));
-    }
-
-    @Provides
-    TaskExecutionPreparer createTaskExecutionPreparer(BuildTaskScheduler buildTaskScheduler, BuildOperationRunner buildOperationRunner, BuildModelParameters buildModelParameters) {
-        return new DefaultTaskExecutionPreparer(buildTaskScheduler, buildOperationRunner, buildModelParameters);
-    }
 
     @Provides
     NodeExecutor createLocalTaskNodeExecutor() {
@@ -225,10 +163,5 @@ public class GradleScopeServices implements ServiceRegistrationProvider {
             localCacheFactory,
             globalCacheLocations
         );
-    }
-
-    @Provides
-    ConfigurationTargetIdentifier createConfigurationTargetIdentifier(GradleInternal gradle) {
-        return ConfigurationTargetIdentifier.of(gradle);
     }
 }
