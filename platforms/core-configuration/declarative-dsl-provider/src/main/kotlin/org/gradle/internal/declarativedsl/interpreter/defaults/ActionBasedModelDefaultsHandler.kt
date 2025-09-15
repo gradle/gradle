@@ -23,7 +23,7 @@ import org.gradle.api.initialization.internal.SharedModelDefaultsInternal
 import org.gradle.api.internal.initialization.ActionBasedDefault
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.Cast
-import org.gradle.internal.declarativedsl.software.getSoftwareFeatureModelInstance
+import org.gradle.internal.declarativedsl.software.getSoftwareFeatureDefinitionInstance
 import org.gradle.plugin.software.internal.ModelDefault
 import org.gradle.plugin.software.internal.ModelDefaultsApplicator.ClassLoaderContext
 import org.gradle.plugin.software.internal.ModelDefaultsHandler
@@ -40,7 +40,7 @@ class ActionBasedModelDefaultsHandler(
         val softwareFeatureImplementation: SoftwareFeatureImplementation<*, *> = softwareFeatureRegistry.getSoftwareFeatureImplementations()[softwareFeatureName]!!
 
         if (target is ExtensionAware) {
-            val modelInstance = getSoftwareFeatureModelInstance(softwareFeatureImplementation, target)
+            val modelInstance = getSoftwareFeatureDefinitionInstance(softwareFeatureImplementation, target)
             sharedModelDefaults.setProjectLayout(projectLayout)
             try {
                 softwareFeatureImplementation.visitModelDefaults(

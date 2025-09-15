@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.settings
 
+import groovy.transform.SelfType
 import org.gradle.api.internal.plugins.BindsSoftwareType
 import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.HasBuildModel
@@ -23,381 +24,264 @@ import org.gradle.api.internal.plugins.SoftwareTypeBindingBuilder
 import org.gradle.api.internal.plugins.SoftwareTypeBindingRegistration
 import org.gradle.api.internal.plugins.software.RegistersSoftwareFeatures
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
-import org.gradle.api.internal.plugins.software.SoftwareType
+import org.gradle.api.internal.plugins.software.SoftwareType // codenarc-disable-line UnusedImport
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
+@SelfType(AbstractIntegrationSpec)
 trait SoftwareTypeFixture {
-    PluginBuilder withSoftwareTypePlugins(String extensionClassContents, String softwareTypeImplPluginContents, String softwareTypeRegistrationPluginContents) {
+    PluginBuilder withSoftwareTypePlugins(SoftwareTypeDefinitionClassBuilder definitionBuilder, SoftwareTypePluginClassBuilder softwareTypeBuilder, SettingsPluginClassBuilder settingsBuilder) {
         def pluginBuilder = new PluginBuilder(file("plugins"))
-        pluginBuilder.addPluginId("com.example.test-software-type-impl", "SoftwareTypeImplPlugin")
-        pluginBuilder.addPluginId("com.example.test-software-type", "SoftwareTypeRegistrationPlugin")
+        pluginBuilder.addPluginId("com.example.test-software-type-impl", softwareTypeBuilder.softwareTypePluginClassName)
+        pluginBuilder.addPluginId("com.example.test-software-ecosystem", settingsBuilder.pluginClassName)
 
-        pluginBuilder.file("src/main/java/org/gradle/test/TestSoftwareTypeExtension.java") << extensionClassContents
-        pluginBuilder.file("src/main/java/org/gradle/test/SoftwareTypeImplPlugin.java") << softwareTypeImplPluginContents
-        pluginBuilder.file("src/main/java/org/gradle/test/SoftwareTypeRegistrationPlugin.java") << softwareTypeRegistrationPluginContents
+        definitionBuilder.build(pluginBuilder)
+        softwareTypeBuilder.build(pluginBuilder)
+        settingsBuilder.build(pluginBuilder)
 
         return pluginBuilder
     }
 
     PluginBuilder withSoftwareTypePlugins() {
+        def definition = new SoftwareTypeDefinitionClassBuilder()
+        def softwareType = new SoftwareTypePluginClassBuilder()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersSoftwareType(softwareType.softwareTypePluginClassName)
+
         return withSoftwareTypePlugins(
-            softwareTypeExtension,
-            projectPluginThatProvidesSoftwareType,
-            settingsPluginThatRegistersSoftwareType
+            definition,
+            softwareType,
+            settingsBuilder
         )
     }
 
     PluginBuilder withSoftwareTypePluginWithNdoc() {
+        def definition = new SoftwareTypeDefinitionWithNdocClassBuilder()
+        def softwareType = new SoftwareTypePluginClassBuilder()
+            .withoutConventions()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersSoftwareType(softwareType.softwareTypePluginClassName)
+
         return withSoftwareTypePlugins(
-            softwareTypeExtensionWithNdoc,
-            getProjectPluginThatProvidesLegacySoftwareType("TestSoftwareTypeExtension", null, "SoftwareTypeImplPlugin", "testSoftwareType", ""),
-            settingsPluginThatRegistersSoftwareType
+            definition,
+            softwareType,
+            settingsBuilder
         )
-    }
-
-    PluginBuilder withSoftwareTypePluginWithMismatchedModelTypes() {
-        def pluginBuilder = withSoftwareTypePlugins(
-            softwareTypeExtension,
-            getProjectPluginThatProvidesLegacySoftwareType("TestSoftwareTypeExtension", "AnotherSoftwareTypeExtension"),
-            settingsPluginThatRegistersSoftwareType
-        )
-
-        pluginBuilder.file("src/main/java/org/gradle/test/AnotherSoftwareTypeExtension.java") << anotherSoftwareTypeExtension
-
-        return pluginBuilder
     }
 
     PluginBuilder withSoftwareTypePluginThatDoesNotExposeSoftwareTypes() {
+        def definition = new SoftwareTypeDefinitionWithNdocClassBuilder()
+        def softwareType = new ProjectPluginThatDoesNotExposeSoftwareTypesBuilder()
+            .softwareTypePluginClassName("NotASoftwareTypePlugin")
+            .withoutConventions()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersSoftwareType(softwareType.softwareTypePluginClassName)
+
         return withSoftwareTypePlugins(
-            softwareTypeExtension,
-            projectPluginThatDoesNotProvideSoftwareType,
-            settingsPluginThatRegistersSoftwareType
+            definition,
+            softwareType,
+            settingsBuilder
         )
     }
 
     PluginBuilder withSettingsPluginThatExposesMultipleSoftwareTypes() {
+        def mainDefinition = new SoftwareTypeDefinitionClassBuilder()
+        def anotherDefinition = new AnotherSoftwareTypeDefinitionClassBuilder()
+        def mainSoftwareType = new SoftwareTypePluginClassBuilder()
+        def anotherSoftwareType = new SoftwareTypePluginClassBuilder()
+            .definitionImplementationTypeClassName("AnotherSoftwareTypeExtension")
+            .definitionPublicTypeClassName("AnotherSoftwareTypeExtension")
+            .softwareTypePluginClassName("AnotherSoftwareTypeImplPlugin")
+            .withoutConventions()
+            .name("anotherSoftwareType")
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersSoftwareType(mainSoftwareType.softwareTypePluginClassName)
+            .registersSoftwareType(anotherSoftwareType.softwareTypePluginClassName)
+
         PluginBuilder pluginBuilder = withSoftwareTypePlugins(
-            softwareTypeExtension,
-            projectPluginThatProvidesSoftwareType,
-            getSettingsPluginThatRegistersSoftwareType(["SoftwareTypeImplPlugin", "AnotherSoftwareTypeImplPlugin"])
+            mainDefinition,
+            mainSoftwareType,
+            settingsBuilder
         )
 
-        pluginBuilder.addPluginId("com.example.another-software-type-impl", "AnotherSoftwareTypeImplPlugin")
-        pluginBuilder.file("src/main/java/org/gradle/test/AnotherSoftwareTypeExtension.java") << anotherSoftwareTypeExtension
-        pluginBuilder.file("src/main/java/org/gradle/test/AnotherSoftwareTypeImplPlugin.java") << getProjectPluginThatProvidesLegacySoftwareType(
-            "AnotherSoftwareTypeExtension",
-            "AnotherSoftwareTypeExtension",
-            "AnotherSoftwareTypeImplPlugin",
-            "anotherSoftwareType",
-            anotherSoftwareTypeExtensionConventions
-        )
+        pluginBuilder.addPluginId("com.example.another-software-type-impl", anotherSoftwareType.softwareTypePluginClassName)
+        anotherSoftwareType.build(pluginBuilder)
+        anotherDefinition.build(pluginBuilder)
 
         return pluginBuilder
     }
 
     PluginBuilder withSoftwareTypePluginThatHasDifferentPublicAndImplementationModelTypes() {
-        PluginBuilder pluginBuilder = withSoftwareTypePlugins(
-            publicModelType,
-            getProjectPluginThatProvidesLegacySoftwareType("TestSoftwareTypeExtensionImpl", "TestSoftwareTypeExtension"),
-            settingsPluginThatRegistersSoftwareType
-        )
+        def definition = new SoftwareTypeDefinitionWithPublicTypeClassBuilder()
+        def softwareType = new SoftwareTypePluginClassBuilder()
+            .definitionPublicTypeClassName(definition.publicTypeClassName)
+            .definitionImplementationTypeClassName(definition.implementationTypeClassName)
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersSoftwareType(softwareType.softwareTypePluginClassName)
 
-        pluginBuilder.file("src/main/java/org/gradle/test/TestSoftwareTypeExtensionImpl.java") << getSoftwareTypeExtensionWithPublicType()
+        PluginBuilder pluginBuilder = withSoftwareTypePlugins(
+            definition,
+            softwareType,
+            settingsBuilder
+        )
 
         return pluginBuilder
-    }
-
-    PluginBuilder withSoftwareTypePluginThatExposesSoftwareTypeFromParentClass() {
-        PluginBuilder pluginBuilder = withSoftwareTypePlugins(
-            softwareTypeExtension,
-            projectPluginThatProvidesSoftwareTypeFromParentClass,
-            settingsPluginThatRegistersSoftwareType
-        )
-
-        pluginBuilder.file("src/main/java/org/gradle/test/ExposesSoftwareType.java") << getExposesSoftwareType()
-
-        return pluginBuilder
-    }
-
-    PluginBuilder withSoftwareTypePluginThatHasUnannotatedMethods() {
-        return withSoftwareTypePlugins(
-            softwareTypeExtension,
-            projectPluginThatProvidesSoftwareTypeThatHasUnannotatedMethods,
-            settingsPluginThatRegistersSoftwareType
-        )
     }
 
     PluginBuilder withSoftwareTypePluginThatExposesMultipleSoftwareTypes() {
+        def definition = new SoftwareTypeDefinitionClassBuilder()
+        def anotherSoftwareTypeDefinition = new AnotherSoftwareTypeDefinitionClassBuilder()
+        def softwareType = new ProjectPluginThatProvidesMultipleSoftwareTypesBuilder()
+            .anotherDefinitionImplementationTypeClassName(anotherSoftwareTypeDefinition.implementationTypeClassName)
+            .definitionImplementationTypeClassName(definition.implementationTypeClassName)
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersSoftwareType(softwareType.softwareTypePluginClassName)
+
         PluginBuilder pluginBuilder = withSoftwareTypePlugins(
-            softwareTypeExtension,
-            projectPluginThatProvidesMultipleSoftwareTypes,
-            settingsPluginThatRegistersSoftwareType
+            definition,
+            softwareType,
+            settingsBuilder
         )
 
-        pluginBuilder.file("src/main/java/org/gradle/test/AnotherSoftwareTypeExtension.java") << anotherSoftwareTypeExtension
+        anotherSoftwareTypeDefinition.build(pluginBuilder)
 
         return pluginBuilder
-    }
-
-    PluginBuilder withSoftwareTypePluginThatExposesPrivateSoftwareType() {
-        return withSoftwareTypePlugins(
-            softwareTypeExtension,
-            projectPluginThatProvidesPrivateSoftwareType,
-            settingsPluginThatRegistersSoftwareType
-        )
-    }
-
-    PluginBuilder withSettingsPluginThatConfiguresModelDefaults() {
-        return withSoftwareTypePlugins(
-            softwareTypeExtension,
-            projectPluginThatProvidesSoftwareType,
-            settingsPluginThatConfiguresSoftwareTypeConventions
-        )
     }
 
     PluginBuilder withSoftwareTypePluginThatExposesExtensionWithDependencies() {
-        PluginBuilder pluginBuilder = withSoftwareTypePlugins(
-            softwareTypeExtension,
-            getProjectPluginThatProvidesLegacySoftwareType("TestSoftwareTypeExtensionWithDependencies", "TestSoftwareTypeExtensionWithDependencies"),
-            settingsPluginThatRegistersSoftwareType
-        )
+        def definitionWithClasses = new SoftwareTypeDefinitionWithDependenciesClassBuilder()
+        def softwareType = new SoftwareTypePluginClassBuilder()
+            .definitionImplementationTypeClassName(definitionWithClasses.implementationTypeClassName)
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersSoftwareType(softwareType.softwareTypePluginClassName)
 
-        pluginBuilder.file("src/main/java/org/gradle/test/TestSoftwareTypeExtensionWithDependencies.java") << softwareTypeExtensionWithAddersAndDependencies
-        pluginBuilder.file("src/main/java/org/gradle/test/LibraryDependencies.java") << libraryDependencies
+        PluginBuilder pluginBuilder = withSoftwareTypePlugins(
+            definitionWithClasses,
+            softwareType,
+            settingsBuilder
+        )
 
         return pluginBuilder
     }
 
-    PluginBuilder withSoftwareTypePluginThatRegistersItsOwnExtension() {
+    PluginBuilder withSettingsPluginThatConfiguresModelDefaults() {
+        def definition = new SoftwareTypeDefinitionClassBuilder()
+        def softwareType = new SoftwareTypePluginClassBuilder()
+        def settingsBuilder = new SettingsPluginThatConfiguresSoftwareTypeConventionsBuilder()
+            .definitionImplementationTypeClassName(definition.implementationTypeClassName)
+            .registersSoftwareType(softwareType.softwareTypePluginClassName)
+
         return withSoftwareTypePlugins(
-            softwareTypeExtension,
-            projectPluginThatRegistersItsOwnExtension,
-            settingsPluginThatRegistersSoftwareType
+            definition,
+            softwareType,
+            settingsBuilder
         )
     }
 
-    PluginBuilder withSoftwareTypePluginThatFailsToRegistersItsOwnExtension() {
-        return withSoftwareTypePlugins(
-            softwareTypeExtension,
-            getProjectPluginThatRegistersItsOwnExtension(false),
-            settingsPluginThatRegistersSoftwareType
-        )
-    }
-
-    PluginBuilder withSoftwareTypePluginThatRegistersTheWrongExtension() {
-        return withSoftwareTypePlugins(
-            softwareTypeExtension,
-            getProjectPluginThatRegistersItsOwnExtension(true, "new String()"),
-            settingsPluginThatRegistersSoftwareType
-        )
-    }
-
-    static String getSoftwareTypeExtension() {
-        return """
-            package org.gradle.test;
-
-            import org.gradle.declarative.dsl.model.annotations.Configuring;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
-
-            import org.gradle.api.Action;
-            import org.gradle.api.model.ObjectFactory;
-            import org.gradle.api.provider.ListProperty;
-            import org.gradle.api.provider.Property;
-            import ${HasBuildModel.class.name};
-            import ${BuildModel.class.name};
-
-            import javax.inject.Inject;
-
-            @Restricted
-            public abstract class TestSoftwareTypeExtension implements HasBuildModel<TestSoftwareTypeExtension.ModelType> {
-                private final Foo foo;
-                private boolean isFooConfigured = false;
-
-                @Inject
-                public TestSoftwareTypeExtension(ObjectFactory objects) {
-                    this.foo = objects.newInstance(Foo.class);
-                }
-
-                @Restricted
-                public abstract Property<String> getId();
-
-
-                public Foo getFoo() {
-                    return foo;
-                }
-
-                @Configuring
-                public void foo(Action<? super Foo> action) {
-                    isFooConfigured = true;
-                    action.execute(foo);
-                }
-
-                public abstract static class Foo {
-                    public Foo() { }
-
-                    @Restricted
-                    public abstract Property<String> getBar();
-                }
-
-                @Override
-                public String toString() {
-                    return "id = " + getId().get() + "\\nbar = " + getFoo().getBar().get() + (isFooConfigured ? "\\n(foo is configured)" : "");
-                }
-
-                public interface ModelType extends BuildModel {
-                    Property<String> getId();
-                }
-            }
+    static class SoftwareTypePluginClassBuilder {
+        String definitionImplementationTypeClassName = "TestSoftwareTypeExtension"
+        String definitionPublicTypeClassName = null
+        String softwareTypePluginClassName = "SoftwareTypeImplPlugin"
+        String name = "testSoftwareType"
+        String conventions = """
+            definition.getId().convention("<no id>");
+            definition.getFoo().getBar().convention("bar");
         """
-    }
 
-    static String getSoftwareTypeExtensionWithNdoc() {
-        return """
-            package org.gradle.test;
+        SoftwareTypePluginClassBuilder definitionImplementationTypeClassName(String implementationTypeClassName) {
+            this.definitionImplementationTypeClassName = implementationTypeClassName
+            return this
+        }
 
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
+        SoftwareTypePluginClassBuilder definitionPublicTypeClassName(String publicTypeClassName) {
+            this.definitionPublicTypeClassName = publicTypeClassName
+            return this
+        }
 
-            import org.gradle.api.Named;
-            import org.gradle.api.NamedDomainObjectContainer;
-            import org.gradle.api.provider.Property;
+        SoftwareTypePluginClassBuilder softwareTypePluginClassName(String softwareTypePluginClassName) {
+            this.softwareTypePluginClassName = softwareTypePluginClassName
+            return this
+        }
 
-            import java.util.stream.Collectors;
+        SoftwareTypePluginClassBuilder name(String name) {
+            this.name = name
+            return this
+        }
 
-            public abstract class TestSoftwareTypeExtension {
-                public abstract NamedDomainObjectContainer<Foo> getFoos();
+        SoftwareTypePluginClassBuilder conventions(String conventions) {
+            this.conventions = conventions
+            return this
+        }
 
-                public abstract static class Foo implements Named {
-                    private String name;
+        SoftwareTypePluginClassBuilder withoutConventions() {
+            this.conventions = null
+            return this
+        }
 
-                    public Foo(String name) {
-                        this.name = name;
+        void build(PluginBuilder pluginBuilder) {
+            pluginBuilder.file("src/main/java/org/gradle/test/${softwareTypePluginClassName}.java") << getClassContent()
+        }
+
+        protected String getClassContent() {
+            def dslTypeClassName = definitionPublicTypeClassName ?: definitionImplementationTypeClassName
+            return """
+                package org.gradle.test;
+
+                import org.gradle.api.DefaultTask;
+                import org.gradle.api.Plugin;
+                import org.gradle.api.Project;
+                import org.gradle.api.provider.ListProperty;
+                import org.gradle.api.provider.Property;
+                import org.gradle.api.tasks.Nested;
+                import ${SoftwareType.class.name};
+                import ${SoftwareTypeBindingRegistration.class.name};
+                import ${BindsSoftwareType.class.name};
+                import ${SoftwareTypeBindingBuilder.class.name};
+                import javax.inject.Inject;
+
+                @BindsSoftwareType(${softwareTypePluginClassName}.Binding.class)
+                abstract public class ${softwareTypePluginClassName} implements Plugin<Project> {
+
+                    static class Binding implements SoftwareTypeBindingRegistration {
+                        public void register(SoftwareTypeBindingBuilder builder) {
+                            builder.bindSoftwareType("${name}", ${dslTypeClassName}.class, ${dslTypeClassName}.ModelType.class, (context, definition, model) -> {
+                                System.out.println("Binding " + ${dslTypeClassName}.class.getSimpleName());
+                                ${conventions == null ? "" : conventions}
+                                String projectName = context.getProject().getName();
+                                context.getProject().getTasks().register("print${definitionImplementationTypeClassName}Configuration", DefaultTask.class, task -> {
+                                    task.doLast("print restricted extension content", t -> {
+                                        System.out.println(projectName + ": " + definition);
+                                    });
+                                });
+                            })
+                            ${maybeDeclareDefinitionImplementationType()};
+                        }
                     }
 
                     @Override
-                    public String getName() {
-                        return name;
-                    }
-
-                    @Restricted
-                    public abstract Property<Integer> getX();
-
-                    @Restricted
-                    public abstract Property<Integer> getY();
-
-                    @Override
-                    public String toString() {
-                        return "Foo(name = " + name + ", x = " + getX().get() + ", y = " + getY().get() + ")";
+                    public void apply(Project target) {
+                        System.out.println("Applying " + getClass().getSimpleName());
                     }
                 }
+            """
+        }
 
-                @Override
-                public String toString() {
-                    return getFoos().stream().map(Foo::toString).collect(Collectors.joining(", "));
-                }
-            }
-
-        """
+        String maybeDeclareDefinitionImplementationType() {
+            return (definitionPublicTypeClassName && definitionPublicTypeClassName != definitionImplementationTypeClassName) ? ".withDefinitionImplementationType(${definitionImplementationTypeClassName}.class);" : ""
+        }
     }
 
+    static class ProjectPluginThatProvidesMultipleSoftwareTypesBuilder extends SoftwareTypePluginClassBuilder {
+        private String anotherDefinitionImplementationTypeClassName = "AnotherSoftwareTypeExtension"
 
-    static String getPublicModelType() {
-        return """
-            package org.gradle.test;
+        ProjectPluginThatProvidesMultipleSoftwareTypesBuilder anotherDefinitionImplementationTypeClassName(String anotherDefinitionImplementationTypeClassName) {
+            this.anotherDefinitionImplementationTypeClassName = anotherDefinitionImplementationTypeClassName
+            return this
+        }
 
-            import org.gradle.declarative.dsl.model.annotations.Configuring;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
-
-            import org.gradle.api.provider.Property;
-            import org.gradle.api.Action;
-
-            @Restricted
-            public interface TestSoftwareTypeExtension {
-                @Restricted
-                Property<String> getId();
-
-
-                Foo getFoo();
-
-                @Configuring
-                default void foo(Action<? super Foo> action) {
-                    action.execute(getFoo());
-                }
-
-                public abstract static class Foo {
-                    public Foo() { }
-
-                    @Restricted
-                    public abstract Property<String> getBar();
-                }
-            }
-        """
-    }
-
-    static String getSoftwareTypeExtensionWithPublicType() {
-        return """
-            package org.gradle.test;
-
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
-            import org.gradle.api.Action;
-            import org.gradle.api.model.ObjectFactory;
-            import org.gradle.api.provider.ListProperty;
-            import org.gradle.api.provider.Property;
-
-            import javax.inject.Inject;
-
-            @Restricted
-            public abstract class TestSoftwareTypeExtensionImpl implements TestSoftwareTypeExtension {
-                private final Foo foo;
-
-                @Inject
-                public TestSoftwareTypeExtensionImpl(ObjectFactory objects) {
-                    this.foo = objects.newInstance(Foo.class);
-                }
-
-                @Override
-                public Foo getFoo() {
-                    return foo;
-                }
-
-                @Restricted
-                public abstract Property<String> getNonPublic();
-
-                @Override
-                public String toString() {
-                    return "id = " + getId().get() + "\\nbar = " + getFoo().getBar().get();
-                }
-            }
-        """
-    }
-
-    static String getSettingsPluginThatRegistersSoftwareType(List<String> softwareTypePluginClasses = ["SoftwareTypeImplPlugin"], List<String> softwareFeaturePluginClasses = []) {
-        return """
-            package org.gradle.test;
-
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.Plugin;
-            import org.gradle.api.initialization.Settings;
-            import org.gradle.api.internal.SettingsInternal;
-            import ${RegistersSoftwareTypes.class.name};
-            import ${RegistersSoftwareFeatures.class.name};
-
-            @RegistersSoftwareTypes({ ${softwareTypePluginClasses.collect { it + ".class" }.join(", ")} })
-            @RegistersSoftwareFeatures({ ${softwareFeaturePluginClasses.collect { it + ".class" }.join(", ")} })
-            abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
-                @Override
-                public void apply(Settings target) { }
-            }
-        """
-    }
-
-    static String getProjectPluginThatProvidesLegacySoftwareType(
-        String implementationTypeClassName = "TestSoftwareTypeExtension",
-        String publicTypeClassName = null,
-        String softwareTypePluginClassName = "SoftwareTypeImplPlugin",
-        String softwareType = "testSoftwareType",
-        String conventions = testSoftwareTypeExtensionConventions
-    ) {
-        return """
+        @Override
+        protected String getClassContent() {
+            return """
             package org.gradle.test;
 
             import org.gradle.api.DefaultTask;
@@ -406,65 +290,34 @@ trait SoftwareTypeFixture {
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
             import org.gradle.api.tasks.Nested;
-            import ${SoftwareType.class.name};
-            import ${SoftwareTypeBindingRegistration.class.name};
-            import ${SoftwareTypeBindingBuilder.class.name};
-            import javax.inject.Inject;
-
-            abstract public class ${softwareTypePluginClassName} implements Plugin<Project> {
-
-                @SoftwareType(${SoftwareTypeArgumentBuilder.name(softwareType)
-            .modelPublicType(publicTypeClassName)
-            .build()})
-                abstract public ${implementationTypeClassName} getTestSoftwareTypeExtension();
-
-                @Override
-                public void apply(Project target) {
-                    System.out.println("Applying " + getClass().getSimpleName());
-                    ${implementationTypeClassName} extension = getTestSoftwareTypeExtension();
-
-                    ${conventions == null ? "" : conventions}
-                    target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
-                        task.doLast("print restricted extension content", t -> {
-                            System.out.println(extension);
-                        });
-                    });
-                }
-            }
-        """
-    }
-
-
-    static String getProjectPluginThatProvidesSoftwareType(
-        String implementationTypeClassName = "TestSoftwareTypeExtension",
-        String publicTypeClassName = null,
-        String softwareTypePluginClassName = "SoftwareTypeImplPlugin",
-        String softwareType = "testSoftwareType",
-        String conventions = testSoftwareTypeExtensionConventions
-    ) {
-        def dslTypeClassName = publicTypeClassName ?: implementationTypeClassName
-        return """
-            package org.gradle.test;
-
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import org.gradle.api.provider.ListProperty;
-            import org.gradle.api.provider.Property;
-            import org.gradle.api.tasks.Nested;
-            import ${SoftwareType.class.name};
-            import ${SoftwareTypeBindingRegistration.class.name};
             import ${BindsSoftwareType.class.name};
-            import ${SoftwareTypeBindingBuilder.class.name};
             import javax.inject.Inject;
 
             @BindsSoftwareType(${softwareTypePluginClassName}.Binding.class)
             abstract public class ${softwareTypePluginClassName} implements Plugin<Project> {
-
-                static class Binding implements SoftwareTypeBindingRegistration {
-                    public void register(SoftwareTypeBindingBuilder builder) {
-                        builder.bindSoftwareType("${softwareType}", ${dslTypeClassName}.class, ${dslTypeClassName}.ModelType.class, (context, definition, model) -> {
-                            System.out.println("Binding " + ${dslTypeClassName}.class.getSimpleName());
+                static class Binding implements ${SoftwareTypeBindingRegistration.class.name} {
+                    public void register(${SoftwareTypeBindingBuilder.class.name} builder) {
+                        builder.bindSoftwareType("testSoftwareType", ${definitionImplementationTypeClassName}.class, (context, definition, model) -> {
+                            System.out.println("Binding " + ${definitionImplementationTypeClassName}.class.getSimpleName());
+                            definition.getId().convention("<no id>");
+                            definition.getFoo().getBar().convention("bar");
+                            String projectName = context.getProject().getName();
+                            context.getProject().getTasks().register("printTestSoftwareTypeExtensionConfiguration", DefaultTask.class, task -> {
+                                task.doLast("print restricted extension content", t -> {
+                                    System.out.println(projectName + ": " + definition);
+                                });
+                            });
+                        });
+                        builder.bindSoftwareType("anotherSoftwareType", ${anotherDefinitionImplementationTypeClassName}.class, (context, definition, model) -> {
+                            System.out.println("Binding " + ${anotherDefinitionImplementationTypeClassName}.class.getSimpleName());
+                            definition.getFoo().convention("foo");
+                            definition.getBar().getBaz().convention("baz");
+                            String projectName = context.getProject().getName();
+                            context.getProject().getTasks().register("printAnotherSoftwareTypeExtensionConfiguration", DefaultTask.class, task -> {
+                                task.doLast("print restricted extension content", t -> {
+                                    System.out.println(projectName + ": " + definition);
+                                });
+                            });
                         });
                     }
                 }
@@ -472,362 +325,147 @@ trait SoftwareTypeFixture {
                 @Override
                 public void apply(Project target) {
                     System.out.println("Applying " + getClass().getSimpleName());
-                    ${implementationTypeClassName} extension = target.getExtensions().getByType(${implementationTypeClassName}.class);
-
-                    ${conventions == null ? "" : conventions}
-                    target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
-                        task.doLast("print restricted extension content", t -> {
-                            System.out.println(extension);
-                        });
-                    });
                 }
             }
         """
+        }
     }
 
-    static String getProjectPluginThatRegistersItsOwnExtension(
-        boolean shouldRegisterExtension = true,
-        String extension = "extension",
-        String conventions = testSoftwareTypeExtensionConventions
-    ) {
+    static class ProjectPluginThatDoesNotExposeSoftwareTypesBuilder extends SoftwareTypePluginClassBuilder {
+        @Override
+        protected String getClassContent() {
+            return """
+            package org.gradle.test;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+
+            abstract public class ${softwareTypePluginClassName} implements Plugin<Project> {
+                @Override
+                public void apply(Project target) {
+
+                }
+            }
+        """
+        }
+    }
+
+    static class SettingsPluginClassBuilder {
+        String pluginClassName = "SoftwareTypeRegistrationPlugin"
+        List<String> softwareTypePluginClasses = []
+        List<String> softwareFeaturePluginClasses = []
+
+        SettingsPluginClassBuilder registersSoftwareType(String softwareTypePluginClass) {
+            this.softwareTypePluginClasses.add(softwareTypePluginClass)
+            return this
+        }
+
+        SettingsPluginClassBuilder registersSoftwareFeature(String softwareFeaturePluginClass) {
+            this.softwareFeaturePluginClasses.add(softwareFeaturePluginClass)
+            return this
+        }
+
+        void build(PluginBuilder pluginBuilder) {
+            pluginBuilder.file("src/main/java/org/gradle/test/${pluginClassName}.java") << """
+                package org.gradle.test;
+
+                import org.gradle.api.DefaultTask;
+                import org.gradle.api.Plugin;
+                import org.gradle.api.initialization.Settings;
+                import org.gradle.api.internal.SettingsInternal;
+                import ${RegistersSoftwareTypes.class.name};
+                import ${RegistersSoftwareFeatures.class.name};
+
+                @RegistersSoftwareTypes({ ${softwareTypePluginClasses.collect { it + ".class" }.join(", ")} })
+                @RegistersSoftwareFeatures({ ${softwareFeaturePluginClasses.collect { it + ".class" }.join(", ")} })
+                abstract public class ${pluginClassName} implements Plugin<Settings> {
+                    @Override
+                    public void apply(Settings target) { }
+                }
+            """
+        }
+    }
+
+    static class SettingsPluginThatConfiguresSoftwareTypeConventionsBuilder extends SettingsPluginClassBuilder {
+        private String definitionImplementationTypeClassName = "TestSoftwareTypeExtension"
+
+        SettingsPluginThatConfiguresSoftwareTypeConventionsBuilder definitionImplementationTypeClassName(String definitionImplementationTypeClassName) {
+            this.definitionImplementationTypeClassName = definitionImplementationTypeClassName
+            return this
+        }
+
+        @Override
+        void build(PluginBuilder pluginBuilder) {
+            pluginBuilder.file("src/main/java/org/gradle/test/${pluginClassName}.java") << """
+                package org.gradle.test;
+
+                import org.gradle.api.DefaultTask;
+                import org.gradle.api.Plugin;
+                import org.gradle.api.initialization.Settings;
+                import org.gradle.api.internal.SettingsInternal;
+                import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+                import ${RegistersSoftwareTypes.class.name};
+
+                @RegistersSoftwareTypes({ ${softwareFeaturePluginClasses.collect { it + ".class" }.join(", ")} })
+                @RegistersSoftwareFeatures({ ${softwareFeaturePluginClasses.collect { it + ".class" }.join(", ")} })
+                abstract public class ${pluginClassName} implements Plugin<Settings> {
+                    @Override
+                    public void apply(Settings target) {
+                        ${definitionImplementationTypeClassName} convention = (${definitionImplementationTypeClassName}) target.getExtensions().getByName("testSoftwareType");
+                        convention.getId().convention("plugin");
+                        convention.getFoo().getBar().convention("plugin");
+                    }
+                }
+            """
+        }
+    }
+
+    static class SoftwareTypeDefinitionClassBuilder {
         String implementationTypeClassName = "TestSoftwareTypeExtension"
-        String softwareTypePluginClassName = "SoftwareTypeImplPlugin"
-        String softwareType = "testSoftwareType"
-        String extensionRegistration = shouldRegisterExtension ? """target.getExtensions().add("${softwareType}", ${extension});""" : ""
-        return """
-            package org.gradle.test;
+        String publicTypeClassName = null
 
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import org.gradle.api.provider.ListProperty;
-            import org.gradle.api.provider.Property;
-            import org.gradle.api.tasks.Nested;
-            import ${SoftwareType.class.name};
-            import javax.inject.Inject;
-
-            abstract public class ${softwareTypePluginClassName} implements Plugin<Project> {
-
-                @SoftwareType(${SoftwareTypeArgumentBuilder.name(softwareType)
-                                    .disableModelManagement(true)
-                                    .build()})
-                abstract public ${implementationTypeClassName} getTestSoftwareTypeExtension();
-
-                @Override
-                public void apply(Project target) {
-                    System.out.println("Applying " + getClass().getSimpleName());
-                    ${implementationTypeClassName} extension = getTestSoftwareTypeExtension();
-                    ${extensionRegistration}
-
-                    ${conventions == null ? "" : conventions}
-                    String projectName = target.getName();
-                    target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
-                        task.doLast("print restricted extension content", t -> {
-                            System.out.println(projectName + ": " + extension);
-                        });
-                    });
-                }
-            }
-        """
-    }
-
-    private static class SoftwareTypeArgumentBuilder {
-        String name
-        String modelPublicType
-        boolean disableModelManagement
-
-        static SoftwareTypeArgumentBuilder name(String name) {
-            SoftwareTypeArgumentBuilder builder = new SoftwareTypeArgumentBuilder()
-            builder.name = name
-            return builder
-        }
-
-        SoftwareTypeArgumentBuilder modelPublicType(String modelPublicType) {
-            this.modelPublicType = modelPublicType
+        SoftwareTypeDefinitionClassBuilder implementationTypeClassName(String implementationTypeClassName) {
+            this.implementationTypeClassName = implementationTypeClassName
             return this
         }
 
-        SoftwareTypeArgumentBuilder disableModelManagement(boolean disableModelManagement) {
-            this.disableModelManagement = disableModelManagement
+        SoftwareTypeDefinitionClassBuilder publicTypeClassName(String publicTypeClassName) {
+            this.publicTypeClassName = publicTypeClassName
             return this
         }
 
-        String build() {
-            return "name=\"${name}\"" +
-                (modelPublicType ? ", modelPublicType=${modelPublicType}.class" : "") +
-                (disableModelManagement ? ", disableModelManagement=true" : "")
+        String getBuildModelClassName() {
+            return implementationTypeClassName + ".ModelType"
         }
-    }
 
-    static String getTestSoftwareTypeExtensionConventions() {
-        return """
-            extension.getId().convention("<no id>");
-            extension.getFoo().getBar().convention("bar");
-        """
-    }
+        void build(PluginBuilder pluginBuilder) {
+            pluginBuilder.file("src/main/java/org/gradle/test/${implementationTypeClassName}.java") << getClassContent()
+        }
 
-    static String getAnotherSoftwareTypeExtensionConventions(String variableName = "extension") {
-        return """
-            ${variableName}.getFoo().convention("foo");
-            ${variableName}.getBar().getBaz().convention("baz");
-        """
-    }
+        String getClassContent() {
+            return """
+                package org.gradle.test;
 
-    static String getProjectPluginThatDoesNotProvideSoftwareType(String implementationTypeClassName = "TestSoftwareTypeExtension", String softwareTypePluginClassName = "SoftwareTypeImplPlugin") {
-        return """
-            package org.gradle.test;
+                import org.gradle.declarative.dsl.model.annotations.Configuring;
+                import org.gradle.declarative.dsl.model.annotations.Restricted;
 
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import org.gradle.api.provider.ListProperty;
-            import org.gradle.api.provider.Property;
-            import org.gradle.api.tasks.Nested;
-            import javax.inject.Inject;
+                import org.gradle.api.Action;
+                import org.gradle.api.model.ObjectFactory;
+                import org.gradle.api.provider.ListProperty;
+                import org.gradle.api.provider.Property;
+                import ${HasBuildModel.class.name};
+                import ${BuildModel.class.name};
 
-            abstract public class ${softwareTypePluginClassName} implements Plugin<Project> {
-
-                abstract public ${implementationTypeClassName} getTestSoftwareTypeExtension();
-
-                @Override
-                public void apply(Project target) {
-                    ${implementationTypeClassName} extension = getTestSoftwareTypeExtension();
-                    target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
-                        task.doLast("print restricted extension content", t -> {
-                            System.out.println(extension);
-                        });
-                    });
-                }
-            }
-        """
-    }
-
-    static String getAnotherSoftwareTypeExtension() {
-        return """
-            package org.gradle.test;
-
-            import org.gradle.declarative.dsl.model.annotations.Adding;
-            import org.gradle.declarative.dsl.model.annotations.Configuring;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
-
-            import org.gradle.api.Action;
-            import org.gradle.api.model.ObjectFactory;
-            import org.gradle.api.provider.ListProperty;
-            import org.gradle.api.provider.Property;
-            import org.gradle.api.tasks.Nested;
-
-            import javax.inject.Inject;
-
-            @Restricted
-            public abstract class AnotherSoftwareTypeExtension {
-                @Inject
-                public AnotherSoftwareTypeExtension() { }
+                import javax.inject.Inject;
 
                 @Restricted
-                public abstract Property<String> getFoo();
-
-                @Nested
-                public abstract Bar getBar();
-
-                @Configuring
-                public void bar(Action<? super Bar> action) {
-                    action.execute(getBar());
-                }
-
-                public abstract static class Bar {
-                    public Bar() { }
-
-                    @Restricted
-                    public abstract Property<String> getBaz();
-                }
-
-                public String toString() {
-                    return "foo = " + getFoo().get() + "\\nbaz = " + getBar().getBaz().get();
-                }
-            }
-        """
-    }
-
-    static String getProjectPluginThatProvidesSoftwareTypeFromParentClass(
-        String implementationTypeClassName = "TestSoftwareTypeExtension",
-        String softwareTypePluginClassName = "SoftwareTypeImplPlugin"
-    ) {
-        return """
-            package org.gradle.test;
-
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.provider.ListProperty;
-            import org.gradle.api.provider.Property;
-            import org.gradle.api.Project;
-            import org.gradle.api.tasks.Nested;
-            import ${SoftwareType.class.name};
-            import javax.inject.Inject;
-
-            abstract public class ${softwareTypePluginClassName} implements ExposesSoftwareType {
-
-                @Override
-                public void apply(Project target) {
-                    ${implementationTypeClassName} extension = getTestSoftwareTypeExtension();
-                    extension.getFoo().getBar().convention("bar");
-                    extension.getId().convention("<no id>");
-                    target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
-                        task.doLast("print restricted extension content", t -> {
-                            System.out.println(extension);
-                        });
-                    });
-                }
-            }
-        """
-    }
-
-    static String getExposesSoftwareType(String softwareType = "testSoftwareType", implementationTypeClassName = "TestSoftwareTypeExtension", publicTypeClassName = "TestSoftwareTypeExtension") {
-        return """
-            package org.gradle.test;
-
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import ${SoftwareType.class.name};
-
-            public interface ExposesSoftwareType extends Plugin<Project> {
-                @SoftwareType(name="${softwareType}", modelPublicType=${publicTypeClassName}.class)
-                abstract public ${implementationTypeClassName} getTestSoftwareTypeExtension();
-            }
-        """
-    }
-
-    static String getProjectPluginThatProvidesSoftwareTypeThatHasUnannotatedMethods(
-        String implementationTypeClassName = "TestSoftwareTypeExtension",
-        String publicTypeClassName = "TestSoftwareTypeExtension",
-        String softwareTypePluginClassName = "SoftwareTypeImplPlugin",
-        String softwareType = "testSoftwareType"
-    ) {
-        return """
-            package org.gradle.test;
-
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import org.gradle.api.provider.ListProperty;
-            import org.gradle.api.provider.Property;
-            import org.gradle.api.tasks.Nested;
-            import ${SoftwareType.class.name};
-            import javax.inject.Inject;
-
-            abstract public class ${softwareTypePluginClassName} implements Plugin<Project> {
-
-                @SoftwareType(name="${softwareType}", modelPublicType=${publicTypeClassName}.class)
-                abstract public ${implementationTypeClassName} getTestSoftwareTypeExtension();
-
-                String getFoo() {
-                    return "foo";
-                }
-
-                @Override
-                public void apply(Project target) {
-                    ${implementationTypeClassName} extension = getTestSoftwareTypeExtension();
-                    target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
-                        task.doLast("print restricted extension content", t -> {
-                            System.out.println(extension);
-                        });
-                    });
-                    System.out.println(getFoo());
-                }
-            }
-        """
-    }
-
-    static String getProjectPluginThatProvidesMultipleSoftwareTypes(
-        String softwareTypePluginClassName = "SoftwareTypeImplPlugin"
-    ) {
-        return """
-            package org.gradle.test;
-
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import org.gradle.api.provider.ListProperty;
-            import org.gradle.api.provider.Property;
-            import org.gradle.api.tasks.Nested;
-            import ${SoftwareType.class.name};
-            import javax.inject.Inject;
-
-            abstract public class ${softwareTypePluginClassName} implements Plugin<Project> {
-
-                @SoftwareType(name="testSoftwareType", modelPublicType=TestSoftwareTypeExtension.class)
-                abstract public TestSoftwareTypeExtension getTestSoftwareTypeExtension();
-
-                @SoftwareType(name="anotherSoftwareType", modelPublicType=AnotherSoftwareTypeExtension.class)
-                abstract public AnotherSoftwareTypeExtension getAnotherSoftwareTypeExtension();
-
-                @Override
-                public void apply(Project target) {
-                    System.out.println("Applying " + getClass().getSimpleName());
-                    TestSoftwareTypeExtension extension = getTestSoftwareTypeExtension();
-                    ${testSoftwareTypeExtensionConventions}
-                    target.getTasks().register("printTestSoftwareTypeExtensionConfiguration", DefaultTask.class, task -> {
-                        task.doLast("print restricted extension content", t -> {
-                            System.out.println(extension);
-                        });
-                    });
-                    AnotherSoftwareTypeExtension another = getAnotherSoftwareTypeExtension();
-                    ${getAnotherSoftwareTypeExtensionConventions("another")}
-                    target.getTasks().register("printAnotherSoftwareTypeExtensionConfiguration", DefaultTask.class, task -> {
-                        task.doLast("print restricted extension content", t -> {
-                            System.out.println(another);
-                        });
-                    });
-                }
-            }
-        """
-    }
-
-    static String getProjectPluginThatProvidesPrivateSoftwareType(
-        String softwareTypePluginClassName = "SoftwareTypeImplPlugin"
-    ) {
-        return """
-            package org.gradle.test;
-
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import org.gradle.api.provider.ListProperty;
-            import org.gradle.api.provider.Property;
-            import org.gradle.api.tasks.Nested;
-            import ${SoftwareType.class.name};
-            import org.gradle.declarative.dsl.model.annotations.Adding;
-            import org.gradle.declarative.dsl.model.annotations.Configuring;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
-            import org.gradle.api.Action;
-            import org.gradle.api.model.ObjectFactory;
-
-            import javax.inject.Inject;
-
-            abstract public class ${softwareTypePluginClassName} implements Plugin<Project> {
-
-                @SoftwareType(name="testSoftwareType", modelPublicType=AnotherSoftwareTypeExtension.class)
-                abstract public AnotherSoftwareTypeExtension getTestSoftwareTypeExtension();
-
-                @Override
-                public void apply(Project target) {
-                    System.out.println("Applying " + getClass().getSimpleName());
-                    AnotherSoftwareTypeExtension extension = getTestSoftwareTypeExtension();
-                    target.getTasks().register("printTestSoftwareTypeExtensionConfiguration", DefaultTask.class, task -> {
-                        task.doLast("print restricted extension content", t -> {
-                            System.out.println(extension);
-                        });
-                    });
-                }
-
-                @Restricted
-                private static abstract class AnotherSoftwareTypeExtension {
+                public abstract class ${implementationTypeClassName} implements HasBuildModel<${implementationTypeClassName}.ModelType> ${maybeImplementsPublicType()} {
                     private final Foo foo;
+                    private boolean isFooConfigured = false;
 
                     @Inject
-                    public AnotherSoftwareTypeExtension(ObjectFactory objects) {
+                    public ${implementationTypeClassName}(ObjectFactory objects) {
                         this.foo = objects.newInstance(Foo.class);
-                        this.foo.getBar().set("bar");
-
-                        getId().convention("<no id>");
                     }
 
                     @Restricted
@@ -839,146 +477,374 @@ trait SoftwareTypeFixture {
 
                     @Configuring
                     public void foo(Action<? super Foo> action) {
+                        isFooConfigured = true;
                         action.execute(foo);
                     }
 
-                    public static abstract class Foo {
+                    public abstract static class Foo {
                         public Foo() { }
 
                         @Restricted
                         public abstract Property<String> getBar();
                     }
+
+                    @Override
+                    public String toString() {
+                        return "id = " + getId().get() + "\\nbar = " + getFoo().getBar().get() + (isFooConfigured ? "\\n(foo is configured)" : "");
+                    }
+
+                    public interface ModelType extends BuildModel {
+                        Property<String> getId();
+                    }
                 }
-            }
-        """
+            """
+        }
+
+        String maybeImplementsPublicType() {
+            return publicTypeClassName ? "implements ${publicTypeClassName}" : ""
+        }
     }
 
-    static String getSettingsPluginThatConfiguresSoftwareTypeConventions(List<String> softwareTypeImplPluginClassName = ["SoftwareTypeImplPlugin"]) {
-        return """
-            package org.gradle.test;
+    static class SoftwareTypeDefinitionWithNdocClassBuilder extends SoftwareTypeDefinitionClassBuilder {
+        @Override
+        String getClassContent() {
+            return """
+                package org.gradle.test;
 
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.Plugin;
-            import org.gradle.api.initialization.Settings;
-            import org.gradle.api.internal.SettingsInternal;
-            import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
-            import ${RegistersSoftwareTypes.class.name};
+                import org.gradle.declarative.dsl.model.annotations.Restricted;
 
-            @RegistersSoftwareTypes({ ${softwareTypeImplPluginClassName.collect { it + ".class" }.join(", ")} })
-            abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
-                @Override
-                public void apply(Settings target) {
-                    TestSoftwareTypeExtension convention = (TestSoftwareTypeExtension) target.getExtensions().getByName("testSoftwareType");
-                    convention.getId().convention("plugin");
-                    convention.getFoo().getBar().convention("plugin");
-                }
-            }
-        """
-    }
+                import org.gradle.api.Named;
+                import org.gradle.api.NamedDomainObjectContainer;
+                import org.gradle.api.provider.Property;
+                import ${HasBuildModel.class.name};
+                import ${BuildModel.class.name};
 
-    static String getLibraryDependencies() {
-        return """
-            package org.gradle.test;
+                import java.util.stream.Collectors;
 
-            import org.gradle.api.artifacts.dsl.Dependencies;
-            import org.gradle.api.artifacts.dsl.DependencyCollector;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
+                public abstract class ${implementationTypeClassName} implements HasBuildModel<TestSoftwareTypeExtension.ModelType> ${maybeImplementsPublicType()} {
+                    public abstract NamedDomainObjectContainer<Foo> getFoos();
 
+                    public abstract static class Foo implements Named {
+                        private String name;
 
-            @Restricted
-            public interface LibraryDependencies extends Dependencies {
+                        public Foo(String name) {
+                            this.name = name;
+                        }
 
-                DependencyCollector getApi();
+                        @Override
+                        public String getName() {
+                            return name;
+                        }
 
-                DependencyCollector getImplementation();
+                        @Restricted
+                        public abstract Property<Integer> getX();
 
-                DependencyCollector getRuntimeOnly();
+                        @Restricted
+                        public abstract Property<Integer> getY();
 
-                DependencyCollector getCompileOnly();
+                        @Override
+                        public String toString() {
+                            return "Foo(name = " + name + ", x = " + getX().get() + ", y = " + getY().get() + ")";
+                        }
+                    }
 
-                // CompileOnlyApi is not included here, since both Android and KMP do not support it.
-                // Does that mean we should also reconsider if we should support it? Or, should we
-                // talk to Android and KMP about adding support
-            }
-        """
-    }
+                    @Override
+                    public String toString() {
+                        return getFoos().stream().map(Foo::toString).collect(Collectors.joining(", "));
+                    }
 
-    static String getSoftwareTypeExtensionWithAddersAndDependencies() {
-        return """
-            package org.gradle.test;
-
-            import org.gradle.api.Action;
-            import org.gradle.api.model.ObjectFactory;
-            import org.gradle.api.provider.Property;
-            import org.gradle.api.provider.ListProperty;
-            import org.gradle.api.artifacts.dsl.DependencyCollector;
-            import org.gradle.declarative.dsl.model.annotations.Configuring;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
-            import org.gradle.declarative.dsl.model.annotations.Adding;
-            import org.gradle.api.tasks.Nested;
-
-            import java.util.List;
-            import javax.inject.Inject;
-
-            @Restricted
-            public abstract class TestSoftwareTypeExtensionWithDependencies extends TestSoftwareTypeExtension {
-                @Inject
-                public TestSoftwareTypeExtensionWithDependencies(ObjectFactory objects) {
-                    super(objects);
-                }
-
-                @Nested
-                abstract public LibraryDependencies getDependencies();
-
-                @Configuring
-                public void dependencies(Action<? super LibraryDependencies> action) {
-                    action.execute(getDependencies());
-                }
-
-
-                public abstract ListProperty<String> getList();
-
-                @Adding
-                public void addToList(String value) {
-                    getList().add(value);
-                }
-
-                @Nested
-                public abstract Bar getBar();
-
-                @Configuring
-                public void bar(Action<? super Bar> action) {
-                    action.execute(getBar());
-                }
-
-                public abstract static class Bar {
-
-                    public abstract ListProperty<String> getBaz();
-
-                    @Adding
-                    public void addToBaz(String value) {
-                        getBaz().add(value);
+                    public interface ModelType extends BuildModel {
+                        Property<String> getId();
                     }
                 }
 
-                @Override
-                public String toString() {
-                    return super.toString() +
-                        "\\nlist = " + printList(getList().get()) +
-                        "\\nbaz = " + printList(getBar().getBaz().get()) +
-                        "\\napi = " + printDependencies(getDependencies().getApi()) +
-                        "\\nimplementation = " + printDependencies(getDependencies().getImplementation()) +
-                        "\\nruntimeOnly = " + printDependencies(getDependencies().getRuntimeOnly()) +
-                        "\\ncompileOnly = " + printDependencies(getDependencies().getCompileOnly());
-                }
+            """
+        }
+    }
 
-                private String printDependencies(DependencyCollector collector) {
-                    return collector.getDependencies().get().stream().map(Object::toString).collect(java.util.stream.Collectors.joining(", "));
-                }
+    static class SoftwareTypeDefinitionWithPublicTypeClassBuilder extends SoftwareTypeDefinitionClassBuilder {
+        SoftwareTypeDefinitionWithPublicTypeClassBuilder() {
+            this.implementationTypeClassName = "TestSoftwareTypeExtensionImpl"
+            this.publicTypeClassName = "TestSoftwareTypeExtension"
+        }
 
-                private String printList(List<?> list) {
-                    return list.stream().map(Object::toString).collect(java.util.stream.Collectors.joining(", "));
+        @Override
+        String getClassContent() {
+            return """
+                package org.gradle.test;
+
+                import org.gradle.declarative.dsl.model.annotations.Restricted;
+                import org.gradle.api.Action;
+                import org.gradle.api.model.ObjectFactory;
+                import org.gradle.api.provider.ListProperty;
+                import org.gradle.api.provider.Property;
+
+                import javax.inject.Inject;
+
+                @Restricted
+                public abstract class ${implementationTypeClassName} ${maybeImplementsPublicType()} {
+                    private final Foo foo;
+
+                    @Inject
+                    public ${implementationTypeClassName}(ObjectFactory objects) {
+                        this.foo = objects.newInstance(Foo.class);
+                    }
+
+                    @Override
+                    public Foo getFoo() {
+                        return foo;
+                    }
+
+                    @Restricted
+                    public abstract Property<String> getNonPublic();
+
+                    @Override
+                    public String toString() {
+                        return "id = " + getId().get() + "\\nbar = " + getFoo().getBar().get();
+                    }
                 }
+            """
+        }
+
+        String getPublicClassContent() {
+            return """
+                package org.gradle.test;
+
+                import org.gradle.declarative.dsl.model.annotations.Configuring;
+                import org.gradle.declarative.dsl.model.annotations.Restricted;
+
+                import org.gradle.api.provider.Property;
+                import org.gradle.api.Action;
+                import ${HasBuildModel.class.name};
+                import ${BuildModel.class.name};
+
+                @Restricted
+                public interface ${publicTypeClassName} extends HasBuildModel<TestSoftwareTypeExtension.ModelType> {
+                    @Restricted
+                    Property<String> getId();
+
+                    Foo getFoo();
+
+                    @Configuring
+                    default void foo(Action<? super Foo> action) {
+                        action.execute(getFoo());
+                    }
+
+                    public abstract static class Foo {
+                        public Foo() { }
+
+                        @Restricted
+                        public abstract Property<String> getBar();
+                    }
+
+                    public interface ModelType extends BuildModel {
+                        Property<String> getId();
+                    }
+                }
+            """
+        }
+
+        @Override
+        void build(PluginBuilder pluginBuilder) {
+            super.build(pluginBuilder)
+            pluginBuilder.file("src/main/java/org/gradle/test/${publicTypeClassName}.java") << getPublicClassContent()
+        }
+    }
+
+    static class AnotherSoftwareTypeDefinitionClassBuilder extends SoftwareTypeDefinitionClassBuilder {
+        AnotherSoftwareTypeDefinitionClassBuilder() {
+            implementationTypeClassName = "AnotherSoftwareTypeExtension"
+        }
+
+        @Override
+        String getClassContent() {
+            return """
+                package org.gradle.test;
+
+                import org.gradle.declarative.dsl.model.annotations.Adding;
+                import org.gradle.declarative.dsl.model.annotations.Configuring;
+                import org.gradle.declarative.dsl.model.annotations.Restricted;
+
+                import org.gradle.api.Action;
+                import org.gradle.api.model.ObjectFactory;
+                import org.gradle.api.provider.ListProperty;
+                import org.gradle.api.provider.Property;
+                import org.gradle.api.tasks.Nested;
+                import ${HasBuildModel.class.name};
+                import ${BuildModel.class.name};
+
+                import javax.inject.Inject;
+
+                @Restricted
+                public abstract class ${implementationTypeClassName} implements HasBuildModel<AnotherSoftwareTypeExtension.ModelType> ${maybeImplementsPublicType()} {
+                    @Inject
+                    public AnotherSoftwareTypeExtension() { }
+
+                    @Restricted
+                    public abstract Property<String> getFoo();
+
+                    @Nested
+                    public abstract Bar getBar();
+
+                    @Configuring
+                    public void bar(Action<? super Bar> action) {
+                        action.execute(getBar());
+                    }
+
+                    public abstract static class Bar {
+                        public Bar() { }
+
+                        @Restricted
+                        public abstract Property<String> getBaz();
+                    }
+
+                    public String toString() {
+                        return "foo = " + getFoo().get() + "\\nbaz = " + getBar().getBaz().get();
+                    }
+
+                    public interface ModelType extends BuildModel {
+                        Property<String> getId();
+                    }
+                }
+            """
+        }
+    }
+
+    static class SoftwareTypeDefinitionWithDependenciesClassBuilder extends SoftwareTypeDefinitionClassBuilder {
+        private String parentClassName = "TestSoftwareTypeExtension"
+
+        SoftwareTypeDefinitionWithDependenciesClassBuilder() {
+            this.implementationTypeClassName = "TestSoftwareTypeExtensionWithDependencies"
+        }
+
+        SoftwareTypeDefinitionWithDependenciesClassBuilder parentClassName(String parentClassName) {
+            this.parentClassName = parentClassName
+            return this
+        }
+
+        @Override
+        String getClassContent() {
+            return """
+                package org.gradle.test;
+
+                import org.gradle.api.Action;
+                import org.gradle.api.model.ObjectFactory;
+                import org.gradle.api.provider.Property;
+                import org.gradle.api.provider.ListProperty;
+                import org.gradle.api.artifacts.dsl.DependencyCollector;
+                import org.gradle.declarative.dsl.model.annotations.Configuring;
+                import org.gradle.declarative.dsl.model.annotations.Restricted;
+                import org.gradle.declarative.dsl.model.annotations.Adding;
+                import org.gradle.api.tasks.Nested;
+
+                import java.util.List;
+                import javax.inject.Inject;
+
+                @Restricted
+                public abstract class ${implementationTypeClassName} extends ${parentClassName} {
+                    @Inject
+                    public ${implementationTypeClassName}(ObjectFactory objects) {
+                        super(objects);
+                    }
+
+                    @Nested
+                    abstract public LibraryDependencies getDependencies();
+
+                    @Configuring
+                    public void dependencies(Action<? super LibraryDependencies> action) {
+                        action.execute(getDependencies());
+                    }
+
+
+                    public abstract ListProperty<String> getList();
+
+                    @Adding
+                    public void addToList(String value) {
+                        getList().add(value);
+                    }
+
+                    @Nested
+                    public abstract Bar getBar();
+
+                    @Configuring
+                    public void bar(Action<? super Bar> action) {
+                        action.execute(getBar());
+                    }
+
+                    public abstract static class Bar {
+
+                        public abstract ListProperty<String> getBaz();
+
+                        @Adding
+                        public void addToBaz(String value) {
+                            getBaz().add(value);
+                        }
+                    }
+
+                    @Override
+                    public String toString() {
+                        return super.toString() +
+                            "\\nlist = " + printList(getList().get()) +
+                            "\\nbaz = " + printList(getBar().getBaz().get()) +
+                            "\\napi = " + printDependencies(getDependencies().getApi()) +
+                            "\\nimplementation = " + printDependencies(getDependencies().getImplementation()) +
+                            "\\nruntimeOnly = " + printDependencies(getDependencies().getRuntimeOnly()) +
+                            "\\ncompileOnly = " + printDependencies(getDependencies().getCompileOnly());
+                    }
+
+                    private String printDependencies(DependencyCollector collector) {
+                        return collector.getDependencies().get().stream().map(Object::toString).collect(java.util.stream.Collectors.joining(", "));
+                    }
+
+                    private String printList(List<?> list) {
+                        return list.stream().map(Object::toString).collect(java.util.stream.Collectors.joining(", "));
+                    }
+                }
+            """
+        }
+
+        static String getLibraryDependencies() {
+            return """
+                package org.gradle.test;
+
+                import org.gradle.api.artifacts.dsl.Dependencies;
+                import org.gradle.api.artifacts.dsl.DependencyCollector;
+                import org.gradle.declarative.dsl.model.annotations.Restricted;
+
+
+                @Restricted
+                public interface LibraryDependencies extends Dependencies {
+
+                    DependencyCollector getApi();
+
+                    DependencyCollector getImplementation();
+
+                    DependencyCollector getRuntimeOnly();
+
+                    DependencyCollector getCompileOnly();
+
+                    // CompileOnlyApi is not included here, since both Android and KMP do not support it.
+                    // Does that mean we should also reconsider if we should support it? Or, should we
+                    // talk to Android and KMP about adding support
+                }
+            """
+        }
+
+        @Override
+        void build(PluginBuilder pluginBuilder) {
+            super.build(pluginBuilder)
+            pluginBuilder.file("src/main/java/org/gradle/test/LibraryDependencies.java") << libraryDependencies
+            new SoftwareTypeDefinitionClassBuilder().build(pluginBuilder)
+        }
+    }
+
+    static String getPluginsFromIncludedBuild() {
+        return """
+            pluginManagement {
+                includeBuild("plugins")
+            }
+            plugins {
+                id("com.example.test-software-ecosystem")
             }
         """
     }
