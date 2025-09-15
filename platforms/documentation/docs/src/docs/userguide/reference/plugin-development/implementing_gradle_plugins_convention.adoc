@@ -41,12 +41,54 @@ Any `.gradle.kts` (or `.gradle`) script file in `src/main/kotlin/` or `src/main/
 
 == Example of a convention plugin
 
-[source,text]
+Convention plugins really shine when you want to capture *organization-wide defaults* once, and apply them consistently across many subprojects.
+
+Imagine you want every module that publishes artifacts to use the same Maven configuration.
+Instead of copy–pasting `publishing { … }` blocks into every `build.gradle(.kts)`, you can extract them into a convention plugin.
+
+The project layout is as follows:
+
+
+[.multi-language-sample]
+=====
+[source,kotlin]
 ----
-build-logic/
+buildSrc/
 ├── build.gradle.kts
 └── src/
-└── main/
-└── kotlin/
-└── java-conventions.gradle.kts
+    └── main/
+        └── kotlin/
+            └── java-conventions.gradle.kts
 ----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+buildSrc/
+├── build.gradle
+└── src/
+    └── main/
+        └── groovy/
+            └── java-conventions.gradle
+----
+=====
+
+Here’s a precompiled script plugin that standardizes publishing.
+Notice how it sets the `group` and `version` from the root project and configures a local Maven repository in `build/repo`:
+
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignmentWithPlatform/kotlin",files="buildSrc/src/main/kotlin/myproject.publishing-conventions.gradle.kts[]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignmentWithPlatform/groovy",files="buildSrc/src/main/groovy/myproject.publishing-conventions.gradle[]"]
+====
+
+With this in place, any subproject can opt in simply by applying `id("myproject.publishing-conventions")`.
+
+Our `platform` subproject applies the convention plugin alongside the `java-platform` plugin.
+It declares dependency constraints and sets up a publication for the BOM:
+
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignmentWithPlatform/kotlin",files="platform/build.gradle.kts[tags=convention]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignmentWithPlatform/groovy",files="platform/build.gradle[tags=convention]"]
+====
+
