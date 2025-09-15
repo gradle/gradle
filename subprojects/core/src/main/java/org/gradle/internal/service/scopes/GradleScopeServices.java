@@ -33,7 +33,6 @@ import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
 import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
-import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -58,11 +57,6 @@ public class GradleScopeServices implements ServiceRegistrationProvider {
     @Provides
     org.gradle.api.execution.TaskExecutionListener createTaskExecutionListener(ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> broadcast) {
         return broadcast.getSource();
-    }
-
-    @Provides
-    TaskListenerInternal createTaskListenerInternal(ListenerManager listenerManager) {
-        return listenerManager.getBroadcaster(TaskListenerInternal.class);
     }
 
     @Provides

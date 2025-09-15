@@ -112,7 +112,6 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
         TaskExecutionGraphInternal taskExecutionGraph,
         org.gradle.api.execution.TaskExecutionListener taskExecutionListener,
         TaskExecutionModeResolver repository,
-        TaskListenerInternal taskListenerInternal,
         ExecutionEngine executionEngine,
         InputFingerprinter inputFingerprinter,
         MissingTaskDependencyDetector missingTaskDependencyDetector
@@ -140,7 +139,7 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
         executer = new SkipTaskWithNoActionsExecuter(taskExecutionGraph, executer);
         executer = new SkipOnlyIfTaskExecuter(executer);
         executer = new CatchExceptionTaskExecuter(executer);
-        executer = new EventFiringTaskExecuter(buildOperationRunner, taskExecutionListener, taskListenerInternal, executer);
+        executer = new EventFiringTaskExecuter(buildOperationRunner, taskExecutionListener, listenerManager.getBroadcaster(TaskListenerInternal.class), executer);
         return executer;
     }
 
