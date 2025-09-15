@@ -41,7 +41,6 @@ jobs:
       - name: Run gradlew command
         run: |
           cd /tmp/gradle-ci-health
-          git checkout bz/cleanup
           ./gradlew :run --args "/tmp/test-class-data.json ${GITHUB_WORKSPACE}"
       - name: Run mvn command
         run: |
