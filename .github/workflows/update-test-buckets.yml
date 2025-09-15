@@ -61,7 +61,7 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           commit-message: Update test buckets
-          branch: bot-update-test-buckets
+          branch: devprod/update-test-buckets
           branch-suffix: timestamp
           delete-branch: true
           title: 'Update test buckets'
