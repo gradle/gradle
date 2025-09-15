@@ -26,8 +26,8 @@ import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.plan.ScheduledWork
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemsListener
@@ -214,6 +214,8 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
         delegate.collectScheduledWork()
 
     override fun size(): Int = delegate.size()
+
+    override fun getLegacyTaskListenerBroadcast() = delegate.legacyTaskListenerBroadcast
 
     @Deprecated("Deprecated in Java")
     override fun addTaskExecutionListener(@Suppress("DEPRECATION") listener: org.gradle.api.execution.TaskExecutionListener) {

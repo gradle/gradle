@@ -29,7 +29,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-@ServiceScope(Scope.Gradle.class)
+@ServiceScope(Scope.Build.class)
 public class CommandLineTaskParser {
     private final CommandLineTaskConfigurer taskConfigurer;
     private final BuildTaskSelector taskSelector;
