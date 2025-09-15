@@ -8,13 +8,13 @@
 ##
 
 # Build infrastructure
-.teamcity/                                  @gradle/bt-developer-productivity
-.github/                                    @gradle/bt-developer-productivity @gradle/bt-product-operations # This might need to be more finegrained in the future
+/.teamcity/                                 @gradle/bt-developer-productivity
+/.github/                                   @gradle/bt-developer-productivity @gradle/bt-product-operations # This might need to be more finegrained in the future
 /build-logic/                               @gradle/bt-developer-productivity
 /build-logic-commons/                       @gradle/bt-developer-productivity
 /build-logic-settings/                      @gradle/bt-developer-productivity
-/build.gradle*                              @gradle/bt-developer-productivity
-/settings.gradle*                           @gradle/bt-developer-productivity
+build.gradle*                               @gradle/bt-developer-productivity
+settings.gradle*                            @gradle/bt-developer-productivity
 gradle/shared-with-buildSrc/                @gradle/bt-developer-productivity
 packaging/internal-build-reports/           @gradle/bt-developer-productivity
 testing/distributions-basics/               @gradle/bt-developer-productivity
@@ -36,30 +36,30 @@ testing/soak/                           @gradle/bt-developer-productivity
 testing/distributions-integ-tests       @gradle/bt-developer-productivity
 testing/public-api-tests                @gradle/bt-developer-productivity
 testing/integ-test/
-version.txt
-released-versions.json
+/version.txt
+/released-versions.json
 
 # Dev setup
-.idea                                   @gradle/bt-developer-productivity
-.editorconfig                           @gradle/bt-developer-productivity
-.gitignore                              @gradle/bt-developer-productivity
-.gitattributes                          @gradle/bt-developer-productivity
-gradle/                                 @gradle/bt-developer-productivity
-gradle/wrapper                          # @gradle/bt-developer-productivity no need for coderewiews for wrapper
-gradlew                                 @gradle/bt-developer-productivity
-gradlew.bat                             @gradle/bt-developer-productivity
-gradle.properties                       @gradle/bt-developer-productivity
-gradle/detekt.yml                       @gradle/bt-developer-productivity
-.mailmap
-images/
-.github/ISSUE_TEMPLATE                  @gradle/bt-product-operations
+/.idea                                   @gradle/bt-developer-productivity
+/.editorconfig                           @gradle/bt-developer-productivity
+/.gitignore                              @gradle/bt-developer-productivity
+/.gitattributes                          @gradle/bt-developer-productivity
+/gradle/                                 @gradle/bt-developer-productivity
+/gradle/wrapper                          # @gradle/bt-developer-productivity no need for coderewiews for wrapper
+/gradlew                                 @gradle/bt-developer-productivity
+/gradlew.bat                             @gradle/bt-developer-productivity
+/gradle.properties                       @gradle/bt-developer-productivity
+/gradle/detekt.yml                       @gradle/bt-developer-productivity
+/.mailmap
+/images/
+/.github/ISSUE_TEMPLATE                 @gradle/bt-product-operations
 LICENSE                                 @gradle/bt-product-operations
 *.md                                    @gradle/bt-product-operations @gradle/bt-docs-reviewers
 contributing/                           @gradle/bt-product-operations @gradle/bt-docs-reviewers
 
 # Cross-cutting architecture checks and decisions
-.github/CODEOWNERS                          @gradle/bt-architecture-council
-architecture/                               @gradle/bt-architecture-council
+/.github/CODEOWNERS                         @gradle/bt-architecture-council
+/architecture/                              @gradle/bt-architecture-council
 testing/architecture-test                   @gradle/bt-architecture-council
 
 # These files change frequently, and changes to them don't need to automatically alert the architecture council
