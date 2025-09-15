@@ -327,16 +327,12 @@ class LockCommunicationSoakTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Gradle build daemon has been stopped: Unable to coordinate lock ownership with other builds.")
     }
 
-    private void poison(int ownerPort) {
-        try {
-            def addressFactory = new InetAddressFactory()
-            def socket = new DatagramSocket(0, addressFactory.wildcardBindingAddress)
-            def message = FileLockPacketPayload.encode(12345L, FileLockPacketType.UNKNOWN)
-            message[0] = 0 // bad protocol version
-            socket.send(new DatagramPacket(message, message.length, addressFactory.localBindingAddress, ownerPort))
-            socket.close()
-        } catch (Exception e) {
-            // don't care
-        }
+    private static void poison(int ownerPort) {
+        def addressFactory = new InetAddressFactory()
+        def socket = new DatagramSocket(0, addressFactory.wildcardBindingAddress)
+        def message = FileLockPacketPayload.encode(12345L, FileLockPacketType.UNKNOWN)
+        message[0] = 0 // bad protocol version
+        socket.send(new DatagramPacket(message, message.length, addressFactory.localBindingAddress, ownerPort))
+        socket.close()
     }
 }
