@@ -447,7 +447,7 @@ Always excludes transitive dependencies as narrowly as possible:
 
 Exclusions have a negative impact on the performance of dependency resolution.
 Applying exclusions as narrowly as possible minimizes this impact.
-It also reduces the risk of inadvertently and silently excluding dependencies that are needed by other parts of your build.
+It also reduces the risk of inadvertently and silently excluding dependencies that are needed by other parts of your build, and of accidental runtime dependency clashes.
 
 === Example
 
