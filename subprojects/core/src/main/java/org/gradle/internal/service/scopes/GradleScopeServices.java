@@ -15,8 +15,6 @@
  */
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.execution.TaskExecutionGraphListener;
-import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -27,14 +25,7 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginTargetType;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
-import org.gradle.execution.plan.DefaultNodeExecutor;
-import org.gradle.execution.plan.PlanExecutor;
-import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
-import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener;
-import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.code.UserCodeApplicationContext;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
@@ -45,31 +36,7 @@ import org.gradle.internal.service.ServiceRegistry;
 /**
  * Contains the services for a given {@link GradleInternal} instance.
  */
-@SuppressWarnings("deprecation")
 public class GradleScopeServices implements ServiceRegistrationProvider {
-
-    @Provides
-    TaskExecutionGraphInternal createTaskExecutionGraph(
-        PlanExecutor planExecutor,
-        BuildOperationRunner buildOperationRunner,
-        ListenerBuildOperationDecorator listenerBuildOperationDecorator,
-        GradleInternal gradleInternal,
-        ListenerManager listenerManager,
-        ServiceRegistry gradleScopedServices
-    ) {
-        return new DefaultTaskExecutionGraph(
-            planExecutor,
-            new DefaultNodeExecutor(),
-            buildOperationRunner,
-            listenerBuildOperationDecorator,
-            gradleInternal,
-            listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class),
-            listenerManager.createAnonymousBroadcaster(TaskExecutionGraphExecutionListener.class),
-            listenerManager.createAnonymousBroadcaster(org.gradle.api.execution.TaskExecutionListener.class),
-            listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class),
-            gradleScopedServices
-        );
-    }
 
     @Provides
     PluginRegistry createPluginRegistry(PluginRegistry parentRegistry, GradleInternal gradleInternal) {

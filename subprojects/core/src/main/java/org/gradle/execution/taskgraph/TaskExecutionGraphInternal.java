@@ -26,7 +26,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
-@ServiceScope(Scope.Gradle.class)
+@ServiceScope(Scope.Build.class)
 public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
     /**
      * Adds the internal listener for task execution graph events.

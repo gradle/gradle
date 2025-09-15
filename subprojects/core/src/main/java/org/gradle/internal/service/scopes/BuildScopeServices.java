@@ -17,11 +17,13 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
+import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.flow.FlowScope;
 import org.gradle.api.initialization.SharedModelDefaults;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
@@ -114,6 +116,7 @@ import org.gradle.configuration.ImportsReader;
 import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.ScriptPluginFactorySelector;
+import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.configuration.project.DefaultCompileOperationFactory;
 import org.gradle.configuration.project.PluginsProjectConfigureActions;
@@ -127,17 +130,22 @@ import org.gradle.execution.SelectedTaskExecutionAction;
 import org.gradle.execution.TaskNameResolvingBuildTaskScheduler;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
+import org.gradle.execution.plan.DefaultNodeExecutor;
 import org.gradle.execution.plan.DefaultNodeValidator;
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.ExecutionPlanFactory;
 import org.gradle.execution.plan.NodeValidator;
 import org.gradle.execution.plan.OrdinalGroupFactory;
+import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.execution.plan.TaskNodeDependencyResolver;
 import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.execution.plan.ToPlannedNodeConverterRegistry;
 import org.gradle.execution.plan.WorkNodeDependencyResolver;
 import org.gradle.execution.selection.BuildTaskSelector;
+import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
+import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener;
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.internal.BuildOperationBackedScriptCompilationHandler;
@@ -889,5 +897,29 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     @Provides
     ConfigurationTargetIdentifier createConfigurationTargetIdentifier(GradleInternal gradle) {
         return ConfigurationTargetIdentifier.of(gradle);
+    }
+
+    @SuppressWarnings("deprecation")
+    @Provides
+    TaskExecutionGraphInternal createTaskExecutionGraph(
+        PlanExecutor planExecutor,
+        BuildOperationRunner buildOperationRunner,
+        ListenerBuildOperationDecorator listenerBuildOperationDecorator,
+        GradleInternal gradleInternal,
+        ListenerManager listenerManager,
+        ServiceRegistry gradleScopedServices
+    ) {
+        return new DefaultTaskExecutionGraph(
+            planExecutor,
+            new DefaultNodeExecutor(),
+            buildOperationRunner,
+            listenerBuildOperationDecorator,
+            gradleInternal,
+            listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class),
+            listenerManager.createAnonymousBroadcaster(TaskExecutionGraphExecutionListener.class),
+            listenerManager.createAnonymousBroadcaster(org.gradle.api.execution.TaskExecutionListener.class),
+            listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class),
+            gradleScopedServices
+        );
     }
 }
