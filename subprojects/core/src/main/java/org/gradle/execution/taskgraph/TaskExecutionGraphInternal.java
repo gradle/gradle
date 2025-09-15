@@ -86,4 +86,7 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
      * Resets the lifecycle for this graph.
      */
     void resetState();
+
+    @SuppressWarnings("deprecation")
+    org.gradle.api.execution.TaskExecutionListener getLegacyTaskListenerBroadcast();
 }

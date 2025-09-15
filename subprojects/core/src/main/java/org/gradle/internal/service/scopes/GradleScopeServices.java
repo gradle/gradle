@@ -34,7 +34,6 @@ import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
 import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.code.UserCodeApplicationContext;
-import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -50,22 +49,11 @@ import org.gradle.internal.service.ServiceRegistry;
 public class GradleScopeServices implements ServiceRegistrationProvider {
 
     @Provides
-    ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> createTaskExecutionListenerBroadcast(ListenerManager listenerManager) {
-        return listenerManager.createAnonymousBroadcaster(org.gradle.api.execution.TaskExecutionListener.class);
-    }
-
-    @Provides
-    org.gradle.api.execution.TaskExecutionListener createTaskExecutionListener(ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> broadcast) {
-        return broadcast.getSource();
-    }
-
-    @Provides
     TaskExecutionGraphInternal createTaskExecutionGraph(
         PlanExecutor planExecutor,
         BuildOperationRunner buildOperationRunner,
         ListenerBuildOperationDecorator listenerBuildOperationDecorator,
         GradleInternal gradleInternal,
-        ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> taskListeners,
         ListenerManager listenerManager,
         ServiceRegistry gradleScopedServices
     ) {
@@ -77,7 +65,7 @@ public class GradleScopeServices implements ServiceRegistrationProvider {
             gradleInternal,
             listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class),
             listenerManager.createAnonymousBroadcaster(TaskExecutionGraphExecutionListener.class),
-            taskListeners,
+            listenerManager.createAnonymousBroadcaster(org.gradle.api.execution.TaskExecutionListener.class),
             listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class),
             gradleScopedServices
         );

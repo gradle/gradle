@@ -372,6 +372,11 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         return executionPlan.getContents().getFilteredTasks();
     }
 
+    @Override
+    public org.gradle.api.execution.TaskExecutionListener getLegacyTaskListenerBroadcast() {
+        return taskListeners.getSource();
+    }
+
     private void fireWhenReady() {
         // We know that we're running single-threaded here, so we can use coarse grained project locks
         gradleInternal.getOwner().getProjects().withMutableStateOfAllProjects(
