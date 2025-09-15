@@ -60,24 +60,12 @@ public class GradleScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    ListenerBroadcast<TaskExecutionGraphListener> createTaskExecutionGraphListenerBroadcast(ListenerManager listenerManager) {
-        return listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class);
-    }
-
-    @Provides
-    ListenerBroadcast<TaskExecutionGraphExecutionListener> createTaskExecutionGraphListenerInternalBroadcast(ListenerManager listenerManager) {
-        return listenerManager.createAnonymousBroadcaster(TaskExecutionGraphExecutionListener.class);
-    }
-
-    @Provides
     TaskExecutionGraphInternal createTaskExecutionGraph(
         PlanExecutor planExecutor,
         BuildOperationRunner buildOperationRunner,
         ListenerBuildOperationDecorator listenerBuildOperationDecorator,
         GradleInternal gradleInternal,
         ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> taskListeners,
-        ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
-        ListenerBroadcast<TaskExecutionGraphExecutionListener> internalGraphListeners,
         ListenerManager listenerManager,
         ServiceRegistry gradleScopedServices
     ) {
@@ -87,8 +75,8 @@ public class GradleScopeServices implements ServiceRegistrationProvider {
             buildOperationRunner,
             listenerBuildOperationDecorator,
             gradleInternal,
-            graphListeners,
-            internalGraphListeners,
+            listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class),
+            listenerManager.createAnonymousBroadcaster(TaskExecutionGraphExecutionListener.class),
             taskListeners,
             listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class),
             gradleScopedServices
