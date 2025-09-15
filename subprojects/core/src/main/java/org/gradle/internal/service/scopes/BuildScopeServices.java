@@ -93,8 +93,13 @@ import org.gradle.api.services.internal.BuildServiceProviderNagger;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.services.internal.DefaultBuildServicesRegistry;
 import org.gradle.buildinit.specs.internal.BuildInitSpecRegistry;
+import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.BuildScopeCacheDir;
+import org.gradle.cache.internal.DefaultFileContentCacheFactory;
+import org.gradle.cache.internal.FileContentCacheFactory;
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
+import org.gradle.cache.internal.SplitFileContentCacheFactory;
 import org.gradle.cache.internal.scopes.DefaultBuildScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.caching.internal.BuildCacheServices;
@@ -235,6 +240,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.CaseSensitivity;
+import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.PluginHandler;
 import org.gradle.plugin.software.internal.SoftwareFeatureRegistry;
@@ -856,6 +862,28 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     @Provides
     TaskExecutionPreparer createTaskExecutionPreparer(BuildTaskScheduler buildTaskScheduler, BuildOperationRunner buildOperationRunner, BuildModelParameters buildModelParameters) {
         return new DefaultTaskExecutionPreparer(buildTaskScheduler, buildOperationRunner, buildModelParameters);
+    }
+
+    @Provides
+    FileContentCacheFactory createFileContentCacheFactory(
+        GlobalCacheLocations globalCacheLocations,
+        BuildScopedCacheBuilderFactory cacheBuilderFactory,
+        FileContentCacheFactory globalCacheFactory,
+        InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
+        ListenerManager listenerManager,
+        FileSystemAccess fileSystemAccess
+    ) {
+        DefaultFileContentCacheFactory localCacheFactory = new DefaultFileContentCacheFactory(
+            listenerManager,
+            fileSystemAccess,
+            cacheBuilderFactory,
+            inMemoryCacheDecoratorFactory
+        );
+        return new SplitFileContentCacheFactory(
+            globalCacheFactory,
+            localCacheFactory,
+            globalCacheLocations
+        );
     }
 
     @Provides
