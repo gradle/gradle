@@ -34,10 +34,8 @@ import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.SplitFileContentCacheFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
-import org.gradle.execution.plan.LocalTaskNodeExecutor;
-import org.gradle.execution.plan.NodeExecutor;
+import org.gradle.execution.plan.DefaultNodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
-import org.gradle.execution.plan.WorkNodeExecutor;
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
 import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
@@ -58,16 +56,6 @@ import org.gradle.internal.vfs.FileSystemAccess;
  */
 @SuppressWarnings("deprecation")
 public class GradleScopeServices implements ServiceRegistrationProvider {
-
-    @Provides
-    NodeExecutor createLocalTaskNodeExecutor() {
-        return new LocalTaskNodeExecutor();
-    }
-
-    @Provides
-    NodeExecutor createWorkNodeExecutor() {
-        return new WorkNodeExecutor();
-    }
 
     @Provides
     ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> createTaskExecutionListenerBroadcast(ListenerManager listenerManager) {
@@ -97,7 +85,6 @@ public class GradleScopeServices implements ServiceRegistrationProvider {
     @Provides
     TaskExecutionGraphInternal createTaskExecutionGraph(
         PlanExecutor planExecutor,
-        List<NodeExecutor> nodeExecutors,
         BuildOperationRunner buildOperationRunner,
         ListenerBuildOperationDecorator listenerBuildOperationDecorator,
         GradleInternal gradleInternal,
@@ -109,7 +96,7 @@ public class GradleScopeServices implements ServiceRegistrationProvider {
     ) {
         return new DefaultTaskExecutionGraph(
             planExecutor,
-            nodeExecutors,
+            new DefaultNodeExecutor(),
             buildOperationRunner,
             listenerBuildOperationDecorator,
             gradleInternal,
