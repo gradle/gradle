@@ -13,14 +13,14 @@
 // limitations under the License.
 
 [[implementing_binary_plugins]]
-= Implementing Binary Plugins
+= Binary Plugins
 :keywords: binary, plugin
 
 *Binary plugins* refer to plugins that are compiled and distributed as JAR files.
 These plugins are usually written in Java or Kotlin and provide custom functionality or tasks to a Gradle build.
 
 [[plugin_anatomy]]
-== Anatomy of a Gradle Plugin
+== Anatomy of a binary plugin
 
 A typical Gradle plugin is composed of three cooperating parts:
 
@@ -43,6 +43,7 @@ A typical Gradle plugin is composed of three cooperating parts:
 
 image::plugin_anatomy.png[]
 
+== Example of a binary plugin
 
 Here's a detailed look at the project structure for a simple `Greeting` plugin:
 
