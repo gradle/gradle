@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[implemention_binary_plugins]]
+[[implementing_binary_plugins]]
 = Implementing Binary Plugins
 :keywords: binary, plugin
 
