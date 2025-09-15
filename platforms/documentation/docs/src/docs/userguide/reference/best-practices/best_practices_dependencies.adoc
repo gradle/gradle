@@ -437,17 +437,17 @@ When excluding transitive dependencies, apply exclusions as narrowly as possible
 === Explanation
 
 Sometimes you may need to <<how_to_exclude_transitive_dependencies.adoc#how_to_exclude_transitive_dependencies,exclude transitive dependencies>> that cause conflicts or issues in your project.
-Gradle offers several ways to exclude transitive dependencies.
 
+Exclusions can negatively affect dependency resolution performance.
+Applying exclusions as narrowly as possible minimizes this impact.
+It also reduces the risks of inadvertently and silently excluding dependencies that are required elsewhere in your build, and of accidental runtime dependency clashes.
+
+Gradle offers several ways to exclude transitive dependencies.
 When excluding transitive dependencies, keep the scope as narrow as possible:
 
  - Attach exclusions to *specific dependencies* rather than applying them to an entire configuration.
  - Exclude a single `module` from a `group`, instead of excluding the entire `group`.
  - *Avoid* global exclusions using `configurations.all { ... }` or `configurations.configureEach { ... }`.
-
-Exclusions have a negative impact on the performance of dependency resolution.
-Applying exclusions as narrowly as possible minimizes this impact.
-It also reduces the risk of inadvertently and silently excluding dependencies that are needed by other parts of your build, and of accidental runtime dependency clashes.
 
 === Example
 
@@ -487,7 +487,7 @@ include::sample[dir="snippets/bestPractices/applyExclusionsNarrowly-do/groovy",f
 <2> All exclusions apply to a particular `module` instead of every module from a particular `group`.
 <3> `javaassist:javassist` is only excluded from the `hibernate-core` dependency - the only dependency that transitively includes it.
 
-Though it may seem repetitive to exclude the same transitive dependencies from multiple dependencies, this approach is safer, more performant, less likely to cause accidental runtime crashes, and makes it clearer which dependencies are intended to be affected by each exclusion.
+Though it may seem repetitive to exclude the same transitive dependencies from multiple dependencies, this approach is safer, more performant, less likely to cause accidental runtime crashes, and makes it clearer which dependencies are affected by each exclusion.
 
 === References
 
