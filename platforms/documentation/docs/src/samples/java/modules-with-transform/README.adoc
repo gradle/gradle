@@ -4,6 +4,8 @@ This sample shows how link:{userManualPath}/artifact_transforms.html[artifact tr
 For that, a plugin called `extra-java-module-info` is defined in the `buildSrc` folder.
 This plugin can be copied into another project and adjusted as needed to solve use cases where it is desired to treat every dependency as a Java Module.
 
+NOTE: A further evolved version of the plugin shown in this example is published by the GradleX project and can be used directly: https://plugins.gradle.org/plugin/org.gradlex.extra-java-module-info[org.gradlex.extra-java-module-info]
+
 The example defines an application that relies on libraries from Maven central where some of them are not available as modules.
 It uses `commons-cli` (not a module) to parse the command line arguments, which can contain a JSON String, and `gson` (a proper module) to parse the JSON string.
 It also utilises `commons-lang3` (an automatic module) and `commons-beanutils` (not a module) which brings in some additional dependencies that are also not modules.
