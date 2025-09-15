@@ -38,7 +38,7 @@ jobs:
       - name: Clone gradle/ci-health repository
         run: |
           git clone https://${{ env.BOT_GRADLE_GITHUB_TOKEN }}@github.com/gradle/ci-health.git /tmp/gradle-ci-health
-      - name: Run gradlew command
+      - name: Generate test class runtime JSON
         run: |
           cd /tmp/gradle-ci-health
           ./gradlew :run --args "/tmp/test-class-data.json ${GITHUB_WORKSPACE}"
