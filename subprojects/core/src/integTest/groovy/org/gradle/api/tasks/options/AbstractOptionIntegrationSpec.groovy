@@ -229,4 +229,48 @@ abstract class AbstractOptionIntegrationSpec extends AbstractIntegrationSpec {
             }
         """
     }
+
+    String taskWithCustomOppositeDescription() {
+        """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.TaskAction;
+            import org.gradle.api.tasks.options.Option;
+
+            public class SampleTask extends DefaultTask {
+                private Boolean myProp;
+
+                @Option(option = "myProp", description = "Enables the feature.", oppositeDescription = "Disables the awesome feature.")
+                public void setMyProp(Boolean myProp) {
+                    this.myProp = myProp;
+                }
+
+                @TaskAction
+                public void renderOptionValue() {
+                    System.out.println("Value of myProp: " + myProp);
+                }
+            }
+        """
+    }
+
+    String taskWithNoPrefixedCustomOpposite() {
+        """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.TaskAction;
+            import org.gradle.api.tasks.options.Option;
+
+            public class SampleTask extends DefaultTask {
+                private Boolean debug;
+
+                @Option(option = "no-debug", description = "Disables debug mode.", oppositeDescription = "Enables full debug mode.")
+                public void setDebug(Boolean debug) {
+                    this.debug = debug;
+                }
+
+                @TaskAction
+                public void renderOptionValue() {
+                    System.out.println("Value of debug: " + debug);
+                }
+            }
+        """
+    }
 }

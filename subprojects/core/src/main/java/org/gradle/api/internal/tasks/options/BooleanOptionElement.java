@@ -39,24 +39,44 @@ public class BooleanOptionElement extends AbstractOptionElement {
     private static final String DISABLE_NAME_PREFIX = "no-";
     private final PropertySetter setter;
     private final boolean newOptionValue;
+    private final Option option;
 
     public BooleanOptionElement(String optionName, Option option, PropertySetter setter) {
         super(optionName, option, Void.TYPE, setter.getDeclaringClass());
         this.setter = setter;
         this.newOptionValue = true;
+        this.option = option;
     }
 
     private BooleanOptionElement(String optionName, String optionDescription, PropertySetter setter, boolean newOptionValue) {
         super(optionDescription, optionName, Void.TYPE);
         this.setter = setter;
         this.newOptionValue = newOptionValue;
+        this.option = null;
+    }
+
+    public Option getOption() {
+        return option;
     }
 
     public static BooleanOptionElement oppositeOf(BooleanOptionElement optionElement) {
         String optionName = optionElement.getOptionName();
-        return optionElement.isDisableOption()
-            ? new BooleanOptionElement(removeDisablePrefix(optionName), OPPOSITE_DESC_PREFIX + optionName + ".", optionElement.setter, false)
-            : new BooleanOptionElement(DISABLE_NAME_PREFIX + optionName, DISABLE_DESC_PREFIX + optionName + ".", optionElement.setter, false);
+        Option originalOption = optionElement.getOption();
+        String customOppositeDescription = originalOption != null && !originalOption.oppositeDescription().isEmpty() 
+            ? originalOption.oppositeDescription() 
+            : null;
+        
+        if (optionElement.isDisableOption()) {
+            String description = customOppositeDescription != null 
+                ? customOppositeDescription 
+                : OPPOSITE_DESC_PREFIX + optionName + ".";
+            return new BooleanOptionElement(removeDisablePrefix(optionName), description, optionElement.setter, false);
+        } else {
+            String description = customOppositeDescription != null 
+                ? customOppositeDescription 
+                : DISABLE_DESC_PREFIX + optionName + ".";
+            return new BooleanOptionElement(DISABLE_NAME_PREFIX + optionName, description, optionElement.setter, false);
+        }
     }
 
     /**

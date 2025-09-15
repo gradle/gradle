@@ -207,6 +207,38 @@ Options
      --prop3     Configures command line option 'prop3'.""")
     }
 
+    def "can render custom opposite option description for Java task"() {
+        given:
+        file('buildSrc/src/main/java/SampleTask.java') << taskWithCustomOppositeDescription()
+        buildFile << sampleTask()
+
+        when:
+        succeeds('help', '--task', 'sample')
+
+        then:
+        outputContains("""
+Options
+     --myProp     Enables the feature.
+
+     --no-myProp     Disables the awesome feature.""")
+    }
+
+    def "can render custom opposite option description for no-prefixed option"() {
+        given:
+        file('buildSrc/src/main/java/SampleTask.java') << taskWithNoPrefixedCustomOpposite()
+        buildFile << sampleTask()
+
+        when:
+        succeeds('help', '--task', 'sample')
+
+        then:
+        outputContains("""
+Options
+     --debug     Enables full debug mode.
+
+     --no-debug     Disables debug mode.""")
+    }
+
     @UnsupportedWithConfigurationCache(because = "Cross-task configuration at execution time")
     def "can override option with configure task"() {
         given:
