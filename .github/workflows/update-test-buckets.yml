@@ -42,7 +42,7 @@ jobs:
         run: |
           cd /tmp/gradle-ci-health
           ./gradlew :run --args "/tmp/test-class-data.json ${GITHUB_WORKSPACE}"
-      - name: Run mvn command
+      - name: Update test bucket split
         run: |
           cd ${GITHUB_WORKSPACE}/.teamcity
           ./mvnw compile exec:java@update-test-buckets -DinputTestClassDataJson=/tmp/test-class-data.json
