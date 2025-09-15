@@ -106,6 +106,7 @@ public class RootBuildLifecycleBuildActionExecutor {
     private static void maybeNagOnDeprecatedJavaRuntimeVersion() {
         int currentMajor = Integer.parseInt(JavaVersion.current().getMajorVersion());
         if (currentMajor < SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION) {
+            // Note: this deprecation is unreachable while the future version is the same as MINIMUM_DAEMON_JAVA_VERSION, we keep it for ease of future upgrades
             int currentMajorGradleVersion = VersionNumber.parse(GradleVersion.current().getVersion()).getMajor();
             DeprecationLogger.deprecateAction(String.format("Executing Gradle on JVM versions %d and lower", SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION - 1))
                 .withContext(String.format("Use JVM %d or greater to execute Gradle. Projects can continue to use older JVM versions via toolchains.", SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION))
