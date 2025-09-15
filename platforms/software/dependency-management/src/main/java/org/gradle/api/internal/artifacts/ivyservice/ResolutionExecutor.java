@@ -17,11 +17,13 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
@@ -56,6 +58,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Visit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyGraphVisitor;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
@@ -86,6 +89,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.cache.internal.BinaryStore;
 import org.gradle.cache.internal.Store;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
@@ -235,14 +239,15 @@ public class ResolutionExecutor {
         InMemoryResolutionResultBuilder resolutionResultBuilder = new InMemoryResolutionResultBuilder(params.getIncludeAllSelectableVariantResults());
         DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
 
+        ComponentGraphVisitor componentGraphVisitor = new ComponentGraphVisitor();
         ComponentResolvers resolvers = getResolvers(params, legacyParams, Collections.emptyList());
         DependencyGraphVisitor artifactsGraphVisitor = artifactVisitorFor(artifactsBuilder, params.getArtifactTypeRegistry());
 
-        ImmutableList<DependencyGraphVisitor> visitors = ImmutableList.of(failureCollector, resolutionResultBuilder, artifactsGraphVisitor);
+        ImmutableList<DependencyGraphVisitor> visitors = ImmutableList.of(failureCollector, resolutionResultBuilder, componentGraphVisitor, artifactsGraphVisitor);
         doResolve(params, legacyParams, ImmutableList.of(), resolvers, IS_LOCAL_EDGE, visitors);
 
         Set<UnresolvedDependency> unresolvedDependencies = failureCollector.complete(Collections.emptySet());
-        VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResultBuilder.getResolutionResult(), unresolvedDependencies);
+        VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResultBuilder.getResolutionResult(), unresolvedDependencies, componentGraphVisitor.getComponents());
         VisitedArtifactResults artifactsResults = artifactsBuilder.complete();
 
         TransformUpstreamDependenciesResolver.Factory dependenciesResolverFactory = visitedArtifacts -> new DefaultTransformUpstreamDependenciesResolver(
@@ -294,10 +299,12 @@ public class ResolutionExecutor {
 
         DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
         ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter, domainObjectContext);
+        ComponentGraphVisitor componentGraphVisitor = new ComponentGraphVisitor();
 
         ImmutableList.Builder<DependencyGraphVisitor> graphVisitors = ImmutableList.builder();
         graphVisitors.add(newModelBuilder);
         graphVisitors.add(failureCollector);
+        graphVisitors.add(componentGraphVisitor);
 
         DependencyLockingGraphVisitor lockingVisitor = null;
         if (params.isDependencyLockingEnabled()) {
@@ -324,7 +331,7 @@ public class ResolutionExecutor {
 
         Set<UnresolvedDependency> resolutionFailures = failureCollector.complete(lockingFailures);
         MinimalResolutionResult resolutionResult = newModelBuilder.getResolutionResult(lockingFailures);
-        VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResult, resolutionFailures);
+        VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResult, resolutionFailures, componentGraphVisitor.getComponents());
 
         // Only write dependency locks if resolution completed without failure.
         if (lockingVisitor != null && !graphResults.hasAnyFailure()) {
@@ -528,6 +535,24 @@ public class ResolutionExecutor {
             selector, null, Collections.emptyList(), Collections.emptyList(),
             false, false, false, true, false, true, lock.getReason()
         );
+    }
+
+    /**
+     * A graph visitor that collects all components in the graph.
+     */
+    private static class ComponentGraphVisitor implements DependencyGraphVisitor {
+
+        private final ImmutableMap.Builder<ComponentIdentifier, ComponentGraphResolveState> components = ImmutableMap.builder();
+
+        @Override
+        public void visitNode(DependencyGraphNode node) {
+            components.put(node.getOwner().getComponentId(), node.getOwner().getResolveState());
+        }
+
+        public ImmutableMap<ComponentIdentifier, ComponentGraphResolveState> getComponents() {
+            return components.buildKeepingLast();
+        }
+
     }
 
 }

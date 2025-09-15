@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl.metadata
 
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultFileCollectionDependency
@@ -159,7 +160,12 @@ class ProjectMetadataController(
     suspend fun ReadContext.readComponent(): LocalComponentGraphResolveState {
         val metadata = readComponentMetadata()
         val variants = readVariants(ownerService())
-        return resolveStateFactory.realizedStateFor(metadata, variants)
+        return resolveStateFactory.realizedStateFor(
+            metadata,
+            variants,
+            // TODO: Serialize the data models
+            ImmutableMap.of()
+        )
     }
 
     private

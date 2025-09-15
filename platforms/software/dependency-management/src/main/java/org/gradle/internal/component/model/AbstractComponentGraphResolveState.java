@@ -21,12 +21,9 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
-import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
-import org.gradle.internal.resolve.resolver.ArtifactResolver;
-import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -79,11 +76,6 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
     @Override
     public ComponentArtifactResolveState prepareForArtifactResolution() {
         return this;
-    }
-
-    @Override
-    public void resolveArtifactsWithType(ArtifactResolver artifactResolver, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-        artifactResolver.resolveArtifactsWithType(getArtifactMetadata(), artifactType, result);
     }
 
     @Override
