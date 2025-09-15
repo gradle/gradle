@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 trait LegacySoftwareTypeFixture extends SoftwareTypeFixture {
     PluginBuilder withLegacySoftwareTypePlugins() {
         def definition = new SoftwareTypeDefinitionClassBuilder()
-        def softwareType = new SoftwareTypePluginClassBuilder()
+        def softwareType = new LegacySoftwareTypePluginClassBuilder()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersSoftwareType(softwareType.softwareTypePluginClassName)
 

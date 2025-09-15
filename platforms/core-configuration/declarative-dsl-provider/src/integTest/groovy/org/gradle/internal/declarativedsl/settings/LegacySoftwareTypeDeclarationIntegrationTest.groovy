@@ -60,7 +60,7 @@ class LegacySoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSp
 
     def 'can declare and configure a custom software type from published plugin'() {
         given:
-        def pluginBuilder = withSoftwareTypePlugins()
+        def pluginBuilder = withLegacySoftwareTypePlugins()
         pluginBuilder.publishAs("com", "example", "1.0", pluginPortal, createExecuter()).allowAll()
 
         settingsFile() << """
