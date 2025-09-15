@@ -22,7 +22,7 @@ dependencies {
 
     implementation(projects.core)
     implementation(projects.fileTemp)
-    implementation(projects.io)
+    api(libs.guava)
     implementation(projects.logging)
     implementation(projects.wrapperShared)
     implementation(projects.buildProcessServices)

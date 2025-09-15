@@ -1,13 +1,10 @@
 
-import com.google.gson.Gson
 import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.buildutils.model.ReleasedVersion
 import gradlebuild.buildutils.tasks.FixProjectHealthTask
 import gradlebuild.buildutils.tasks.UpdateAgpVersions
 import gradlebuild.buildutils.tasks.UpdateKotlinVersions
 import gradlebuild.buildutils.tasks.UpdateReleasedVersions
-import java.net.URI
-
 
 tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
     languageVersion = JavaLanguageVersion.of(17)
@@ -23,15 +20,6 @@ tasks.register<UpdateReleasedVersions>("updateReleasedVersions") {
         project.findProperty("currentReleasedVersion").toString(),
         project.findProperty("currentReleasedVersionBuildTimestamp").toString()
     )
-}
-
-tasks.register<UpdateReleasedVersions>("updateReleasedVersionsToLatestNightly") {
-    currentReleasedVersion = project.provider {
-        val jsonText = URI("https://services.gradle.org/versions/nightly").toURL().readText()
-        println(jsonText)
-        val versionInfo = Gson().fromJson(jsonText, VersionBuildTimeInfo::class.java)
-        ReleasedVersion(versionInfo.version, versionInfo.buildTime)
-    }
 }
 
 tasks.register<UpdateAgpVersions>("updateAgpVersions") {

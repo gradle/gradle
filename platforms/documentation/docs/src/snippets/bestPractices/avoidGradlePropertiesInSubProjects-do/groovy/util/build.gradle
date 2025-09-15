@@ -1,0 +1,9 @@
+// This file is located in /util
+plugins {
+    id "project-properties"
+}
+
+myProperties {
+    propertyA = project.properties.get("propertyA")
+    propertyB = "otherValue" // <6>
+}
