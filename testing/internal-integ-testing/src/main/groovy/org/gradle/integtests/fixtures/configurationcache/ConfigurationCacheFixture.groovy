@@ -342,22 +342,25 @@ class ConfigurationCacheFixture {
         invalidationDetails.changedFiles.each { file ->
             reasons.add("file '${file.replace('/', File.separator)}'")
         }
+        if (invalidationDetails.changedStartParameterProjectProperties != null) {
+            reasons.add("the set of Gradle properties has changed: $invalidationDetails.changedStartParameterProjectProperties")
+        }
         if (invalidationDetails.changedGradleProperty != null) {
-            reasons.add("Gradle property '$invalidationDetails.changedGradleProperty'")
+            reasons.add("Gradle property '$invalidationDetails.changedGradleProperty' has changed")
         }
         if (invalidationDetails.changedSystemProperty != null) {
-            reasons.add("system property '$invalidationDetails.changedSystemProperty'")
+            reasons.add("system property '$invalidationDetails.changedSystemProperty' has changed")
         }
         if (invalidationDetails.changedTask != null) {
-            reasons.add("an input to task '${invalidationDetails.changedTask}'")
+            reasons.add("an input to task '${invalidationDetails.changedTask}' has changed")
         }
 
         assert details.createsModels || details.runsTasks
         def messages = reasons.collect { reason ->
             if (details.createsModels) {
-                "Creating tooling model as configuration cache cannot be reused because $reason has changed"
+                "Creating tooling model as configuration cache cannot be reused because $reason"
             } else if (details.runsTasks) {
-                "Calculating task graph as configuration cache cannot be reused because $reason has changed"
+                "Calculating task graph as configuration cache cannot be reused because $reason"
             } else {
                 throw new IllegalStateException("Expected creating models and/or running tasks")
             }
@@ -457,6 +460,7 @@ class ConfigurationCacheFixture {
 
     trait HasInvalidationReason {
         List<String> changedFiles = []
+        String changedStartParameterProjectProperties
         String changedGradleProperty
         String changedSystemProperty
         String changedTask
@@ -467,6 +471,10 @@ class ConfigurationCacheFixture {
 
         void taskInputChanged(String name) {
             changedTask = name
+        }
+
+        void startParameterProjectPropertiesChanged(String message) {
+            changedStartParameterProjectProperties = message
         }
 
         void gradlePropertyChanged(String name) {

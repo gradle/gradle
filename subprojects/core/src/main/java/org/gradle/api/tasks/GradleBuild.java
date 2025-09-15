@@ -151,7 +151,7 @@ public abstract class GradleBuild extends ConventionTask {
     void build() {
         // TODO: Allow us to inject plugins into nested builds too.
         StartParameterInternal startParameter = (StartParameterInternal) getStartParameter();
-        nagForNonStringProjectProperties(startParameter.getProjectProperties());
+        nagForNonStringProjectProperties(startParameter.getProjectPropertiesUntracked());
         runNestedRootBuild(buildName, startParameter, getServices());
     }
 

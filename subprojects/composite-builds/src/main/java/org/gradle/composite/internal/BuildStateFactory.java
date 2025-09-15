@@ -16,7 +16,6 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildCancellationToken;
@@ -97,10 +96,10 @@ public class BuildStateFactory {
         return buildDefinition;
     }
 
-    private static StartParameterInternal buildSrcStartParameterFor(File buildSrcDir, StartParameter containingBuildParameters) {
-        final StartParameterInternal buildSrcStartParameter = (StartParameterInternal) containingBuildParameters.newBuild();
+    private static StartParameterInternal buildSrcStartParameterFor(File buildSrcDir, StartParameterInternal containingBuildParameters) {
+        final StartParameterInternal buildSrcStartParameter = containingBuildParameters.newBuild();
         buildSrcStartParameter.setCurrentDir(buildSrcDir);
-        buildSrcStartParameter.setProjectProperties(containingBuildParameters.getProjectProperties());
+        buildSrcStartParameter.setProjectProperties(containingBuildParameters.getProjectPropertiesUntracked());
         buildSrcStartParameter.doNotSearchUpwards();
         buildSrcStartParameter.setInitScripts(containingBuildParameters.getInitScripts());
         return buildSrcStartParameter;
