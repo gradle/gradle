@@ -16,6 +16,7 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenVariantAttributesFactory;
@@ -25,6 +26,7 @@ import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 
 import javax.inject.Inject;
 
+@NonExtensible
 public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDerivationStrategy {
 
     private final MavenVariantAttributesFactory mavenAttributesFactory;

@@ -666,19 +666,20 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 ResolverResults results;
                 try {
                     results = resolver.resolveGraph(DefaultConfiguration.this);
+                    // Make the new state visible in case a dependency resolution listener queries the result, which requires the new state
+                    currentResolveState.set(Optional.of(results));
+
+                    dependencyResolutionListeners.getSource().afterResolve(getIncoming());
+
                 } catch (Exception e) {
                     throw exceptionMapper.mapFailure(e, "dependencies", displayName.getDisplayName());
-                }
 
-                // Make the new state visible in case a dependency resolution listener queries the result, which requires the new state
-                currentResolveState.set(Optional.of(results));
-
-                dependencyResolutionListeners.getSource().afterResolve(getIncoming());
-
-                // Discard State
-                dependencyResolutionListeners.removeAll();
-                if (resolutionStrategy != null) {
-                    resolutionStrategy.maybeDiscardStateRequiredForGraphResolution();
+                } finally {
+                    // Discard State
+                    dependencyResolutionListeners.removeAll();
+                    if (resolutionStrategy != null) {
+                        resolutionStrategy.maybeDiscardStateRequiredForGraphResolution();
+                    }
                 }
 
                 captureBuildOperationResult(context, results);
