@@ -13,11 +13,172 @@
 // limitations under the License.
 
 [[implementing_binary_plugins]]
-= Implementing Binary Plugins
+= Binary Plugins
 :keywords: binary, plugin
 
 *Binary plugins* refer to plugins that are compiled and distributed as JAR files.
 These plugins are usually written in Java or Kotlin and provide custom functionality or tasks to a Gradle build.
+
+[[plugin_anatomy]]
+== Anatomy of a binary plugin
+
+A typical Gradle plugin is composed of three cooperating parts:
+
+[cols="1,2,2", options="header"]
+|===
+| Part | Purpose | Notes
+
+| Plugin class
+| Applies behavior to a target (`Project/Settings`), registers tasks, and wires defaults.
+| Implements `Plugin<Project>` (or `Plugin<Settings>`). Keeps configuration lazy; avoid doing work in apply.
+
+| Extension
+| Holds user configuration exposed as a DSL block.
+| Use `Property<T>`, `RegularFileProperty`, `DirectoryProperty`, and `ListProperty<T>` for laziness, validation, and Configuration Cache compatibility.
+
+| Task type
+| Implements the actual work when executed.
+| Model inputs/outputs with `@Input`, `@InputFile`, `@OutputFile`, etc., to enable incremental builds and caching.
+|===
+
+image::plugin_anatomy.png[]
+
+== Example of a binary plugin
+
+Here's a detailed look at the project structure for a simple `Greeting` plugin:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugin/     // <1>
+├── build.gradle.kts    // <2>
+└── src/
+    └── main/
+        └── kotlin/
+            └── org/
+                └── example/    // <3>
+                    ├── GreetingPlugin.kt
+                    ├── GreetingPluginExtension.kt
+                    └── GreetingTask.kt
+----
+<1> *`plugin/`*: This is the root directory for the Gradle plugin project.
+<2> *`build.gradle.kts`*: The build script for the plugin itself. It specifies dependencies like the Gradle API and Kotlin, and it's where you apply the `kotlin-dsl` or `java-gradle-plugin` to make your code a runnable Gradle plugin.
+<3> *`src/main/kotlin/org/example/`*: This is the standard source directory for Kotlin code, organized by package name.
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugin/     // <1>
+├── build.gradle    // <2>
+└── src/
+    └── main/
+        └── groovy/
+            └── org/
+                └── example/    // <3>
+                    ├── GreetingPlugin.groovy
+                    ├── GreetingPluginExtension.groovy
+                    └── GreetingTask.groovy
+----
+<1> *`plugin/`*: This is the root directory for the Gradle plugin project.
+<2> *`build.gradle`*: The build script for the plugin itself. It specifies dependencies like the Gradle API and Groovy, and it's where you apply the `groovy-gradle-plugin` or `java-gradle-plugin` to make your code a runnable Gradle plugin.
+<3> *`src/main/groovy/org/example/`*: This is the standard source directory for Groovy code, organized by package name.
+
+=====
+====
+
+=== The plugin class (`GreetingPlugin.kt`)
+
+The core of the plugin is the `GreetingPlugin` class.
+It implements the `Plugin<Project>` interface and overrides the `apply` method, which is the entry point for your plugin's logic:
+
+====
+include::sample[dir="snippets/plugins/plugin-binary/kotlin",files="plugin/src/main/kotlin/org/example/GreetingPlugin.kt[]"]
+include::sample[dir="snippets/plugins/plugin-binary/groovy",files="plugin/src/main/groovy/org/example/GreetingPlugin.groovy[]"]
+====
+<1> `project.extensions.create()`: This creates an extension named greeting. This is how users of your plugin can configure its behavior in their build.gradle file. The apply block sets convention values, which are default values that the user can override.
+<2> `project.tasks.register()`: This registers a task of type GreetTask named greet. This is the action that your plugin provides.
+
+*Lazy Wiring*: The `message.set(ext.message)` and `outputFile.set(ext.outputFile)` lines are examples of lazy wiring.
+The task's inputs are not read immediately.
+Instead, they are connected to the extension's properties, and the values are only resolved when the task actually runs.
+This is crucial for performance and correctness in Gradle builds.
+
+=== The extension (`GreetingExtension.kt`)
+
+The extension defines the properties that a user can configure.
+It uses `Property` and `RegularFileProperty` types, which are designed for lazy evaluation:
+
+====
+include::sample[dir="snippets/plugins/plugin-binary/kotlin",files="plugin/src/main/kotlin/org/example/GreetingExtension.kt[]"]
+include::sample[dir="snippets/plugins/plugin-binary/groovy",files="plugin/src/main/groovy/org/example/GreetingExtension.groovy[]"]
+====
+<1> `Property<T>`: This is a container for a value of type T. The actual value is not read until it's needed, which enables lazy configuration.
+<2> `RegularFileProperty`: A specific type of property for file paths. Gradle uses this to track file inputs and outputs for up-to-date checks and the build cache.
+
+=== The custom task (`GreetTask.kt`)
+
+This is the class for the custom task.
+It defines the inputs and outputs, and the action to perform:
+
+====
+include::sample[dir="snippets/plugins/plugin-binary/kotlin",files="plugin/src/main/kotlin/org/example/GreetTask.kt[]"]
+include::sample[dir="snippets/plugins/plugin-binary/groovy",files="plugin/src/main/groovy/org/example/GreetTask.groovy[]"]
+====
+<1> `@Input`: This annotation marks a property as a task input. When a task has an input, Gradle will automatically track its value. If the value changes between builds, Gradle knows the task is out-of-date and needs to be re-run.
+<2> `@OutputFile`: This annotation marks a property as a task output. Gradle tracks the location of this file. If the file is missing or its contents are older than the inputs, Gradle considers the task out-of-date.
+<3> `@TaskAction`: This annotation marks the method that contains the work to be done. This method is executed when the task runs.
+
+*Up-to-Date Checks*: By properly annotating inputs and outputs, Gradle can perform up-to-date checks.
+If the task's inputs and outputs haven't changed since the last build, Gradle can skip the task entirely, which dramatically speeds up the build process.
+
+=== Applying the plugin
+
+To use this `Greeting` plugin, you need to apply the plugin in your `build.gradle(.kts)` file.
+This makes the plugin's tasks and extensions available to your project:
+
+[source,text]
+----
+plugins {
+    id("org.example.greeting")
+}
+----
+
+=== Configuring the plugin
+
+Once the plugin is applied, you can configure it using the extension you defined, which is named `greeting`.
+This allows you to override the default values set in the `GreetingPlugin`.
+Using the `greeting` extension block:
+
+[source,text]
+----
+greeting {
+    // Override the default message
+    message = "Hola from my custom build"
+    // Set a custom output file path
+    outputFile = layout.buildDirectory.file("custom-greeting.txt")
+}
+----
+
+=== Running the task
+
+The plugin registers a task named `greet`.
+After applying and configuring the plugin, you can execute this task from the command line.
+
+[source,bash]
+----
+$ ./gradlew greet
+----
+
+Running the `greet` task will:
+
+- Use the `message` and `outputFile` properties, either with their default values or your custom configured values.
+- Write the specified message to the output file (e.g., `build/custom-greeting.txt`).
+- Print a log message to the console confirming the file has been written.
 
 [[plugin-development-plugin]]
 == Using the Plugin Development plugin
@@ -201,6 +362,7 @@ You can find out more about implementing project extensions in <<properties_prov
 
 [[modeling_dsl_like_apis]]
 == Modeling DSL-like APIs
+
 DSLs exposed by plugins should be readable and easy to understand.
 
 For example, let's consider the following extension provided by a plugin.
