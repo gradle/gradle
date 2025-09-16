@@ -20,12 +20,11 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
-import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 
 /**
  * A plugin for projects wishing to build native binary components from Assembly language sources.
  *
- * <p>Automatically includes the {@link AssemblerLangPlugin} for core Assembler support and the {@link NativeComponentPlugin} for native component support.</p>
+ * <p>Automatically includes the {@link AssemblerLangPlugin} for core Assembler support and the {@link NativeComponentModelPlugin} for native component support.</p>
  *
  * <ul>
  * <li>Creates a {@link org.gradle.language.assembler.tasks.Assemble} task for each {@link org.gradle.language.assembler.AssemblerSourceSet} to assemble the sources.</li>
