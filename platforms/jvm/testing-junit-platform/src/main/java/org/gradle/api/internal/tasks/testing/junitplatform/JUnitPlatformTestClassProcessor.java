@@ -99,9 +99,14 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     }
 
     @Override
+    public void startProcessing(TestResultProcessor resultProcessor) {
+        super.startProcessing(resultProcessor);
+        testClassExecutor.processAllTestClasses();
+    }
+
+    @Override
     public void stop() {
         if (startedProcessing) {
-            testClassExecutor.processAllTestClasses();
             launcherSession.close();
             super.stop();
         }
