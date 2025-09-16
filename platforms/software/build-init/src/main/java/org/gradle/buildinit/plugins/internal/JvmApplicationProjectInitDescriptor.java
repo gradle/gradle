@@ -86,11 +86,11 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
             case "app":
                 return ImmutableList.of("multi/app/App", "multi/app/MessageUtils");
             case "list":
-                return Collections.singletonList("multi/list/LinkedList");
+                return ImmutableList.of("multi/list/LinkedList");
             case "utilities":
                 return ImmutableList.of("multi/utilities/JoinUtils", "multi/utilities/SplitUtils", "multi/utilities/StringUtils");
             default:
-                return Collections.emptyList();
+                return ImmutableList.of();
         }
     }
 
@@ -102,11 +102,11 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
 
         switch (subproject) {
             case "app":
-                return Collections.singletonList("multi/app/junit5/MessageUtilsTest");
+                return ImmutableList.of("multi/app/junit5/MessageUtilsTest");
             case "list":
-                return Collections.singletonList("multi/list/junit5/LinkedListTest");
+                return ImmutableList.of("multi/list/junit5/LinkedListTest");
             default:
-                return Collections.emptyList();
+                return ImmutableList.of();
         }
     }
 
