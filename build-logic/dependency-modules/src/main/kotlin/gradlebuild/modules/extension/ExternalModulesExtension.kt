@@ -22,7 +22,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
 
     val groovyVersion = when (bundleGroovyMajor) {
         4 -> "4.0.28"
-        // This is expected to contain Groovy 5 soon, once it's released or we need to test it.
+        5 -> "5.0.1"
         else -> error("Unsupported Groovy major version: $bundleGroovyMajor")
     }
 
