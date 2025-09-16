@@ -57,9 +57,9 @@ Manual Testing :: While manual testing is straightforward, it is error-prone and
 
 Automated Testing :: Automated testing includes unit, integration, and functional testing.
 
-image::testing-pyramid.png[]
-
 The testing pyramid introduced by Mike Cohen in his book link:https://www.mountaingoatsoftware.com/books/succeeding-with-agile-software-development-using-scrum[Succeeding with Agile: Software Development Using Scrum] describes three types of automated tests:
+
+image::testing-pyramid.png[]
 
 1. *Unit Testing:* Verifies the smallest units of code, typically methods, in isolation. It uses Stubs or Mocks to isolate code from external dependencies.
 2. *Integration Testing:* Validates that multiple units or components work together, often with external systems like file I/O or HTTP.
