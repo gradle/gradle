@@ -28,4 +28,5 @@ public interface BuildOperationsParameters {
      */
     boolean emitLockingOperations();
 
+    boolean emitCollectionCallbackOperations();
 }

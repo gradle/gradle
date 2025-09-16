@@ -24,15 +24,18 @@ import org.gradle.internal.code.UserCodeApplicationId;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.BuildOperationsParameters;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.jspecify.annotations.Nullable;
 
 public class DefaultCollectionCallbackActionDecorator implements CollectionCallbackActionDecorator {
     private final BuildOperationRunner buildOperationRunner;
+    private final boolean emitBuildOperation;
     private final UserCodeApplicationContext userCodeApplicationContext;
 
-    public DefaultCollectionCallbackActionDecorator(BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
+    public DefaultCollectionCallbackActionDecorator(BuildOperationRunner buildOperationRunner, BuildOperationsParameters buildOperationsParameters, UserCodeApplicationContext userCodeApplicationContext) {
         this.buildOperationRunner = buildOperationRunner;
+        this.emitBuildOperation = buildOperationsParameters.emitCollectionCallbackOperations();
         this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
@@ -43,7 +46,7 @@ public class DefaultCollectionCallbackActionDecorator implements CollectionCallb
         }
 
         UserCodeApplicationContext.Application application = userCodeApplicationContext.current();
-        if (application == null) {
+        if (application == null || !emitBuildOperation) {
             return action;
         }
         return new BuildOperationEmittingAction<>(application.getId(), application.reapplyLater(action));

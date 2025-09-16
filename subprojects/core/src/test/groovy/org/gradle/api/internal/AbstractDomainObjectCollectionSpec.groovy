@@ -28,6 +28,7 @@ import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.code.UserCodeApplicationId
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.metaobject.ConfigureDelegate
+import org.gradle.internal.operations.BuildOperationsParameters
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.ConfigureUtil
@@ -44,7 +45,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
     TestBuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
     UserCodeApplicationContext userCodeApplicationContext = new DefaultUserCodeApplicationContext()
-    CollectionCallbackActionDecorator callbackActionDecorator = new DefaultCollectionCallbackActionDecorator(buildOperationRunner, userCodeApplicationContext)
+    CollectionCallbackActionDecorator callbackActionDecorator = new DefaultCollectionCallbackActionDecorator(buildOperationRunner, Mock(BuildOperationsParameters), userCodeApplicationContext)
 
     abstract boolean isSupportsBuildOperations()
 
