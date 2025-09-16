@@ -230,9 +230,7 @@ NOTE: The Wrapper shell script and batch file reside in the root directory of a 
 
 Projects typically want to keep up with the times and upgrade their Gradle version to benefit from new features and improvements.
 
-One way to upgrade the Gradle version is by manually changing the `distributionUrl` property in the Wrapper's `gradle-wrapper.properties` file.
-
-The better and recommended option is to run the `wrapper` task and provide the target Gradle version as described in <<#sec:adding_wrapper,Adding the Gradle Wrapper>>.
+The recommended option is to run the `wrapper` task and provide the target Gradle version as described in <<#sec:adding_wrapper,Adding the Gradle Wrapper>>.
 Using the `wrapper` task ensures that any optimizations made to the Wrapper shell script or batch file with that specific Gradle version are applied to the project.
 
 As usual, you should commit the changes to the Wrapper files to version control.
@@ -276,7 +274,13 @@ include::{snippetsPath}/wrapper/simple/tests/wrapperGradleVersionUpgrade.out[]
 
 Once you have upgraded the wrapper, you can check that it's the version you expected by executing `./gradlew --version`.
 
-Don't forget to run the `wrapper` task again to download the Gradle distribution binaries (if needed) and update the `gradlew` and `gradlew.bat` files.
+TIP: Don't forget to run the `wrapper` task again to download the Gradle distribution binaries (if needed) and update the `gradlew` and `gradlew.bat` files.
+
+Another way to upgrade the Gradle version is by manually changing the `distributionUrl` property in the Wrapper's `gradle-wrapper.properties` file.
+The tip above also applies in this case.
+
+NOTE: Since Gradle 9.0.0, the version _always_ uses the `X.Y.Z` format.
+Using only the major or minor version is not supported in `gradle-wrapper.properties`.
 
 [[customizing_wrapper]]
 == Customizing the Gradle Wrapper
