@@ -2,19 +2,21 @@ abstract class AnimalSearchTask extends DefaultTask {
     @Input
     abstract Property<String> getFind()
 
+    // tag::do-this[]
     @InputFile
     @PathSensitive(PathSensitivity.NONE) // <1>
     abstract RegularFileProperty getCandidatesFile()
+    // end::do-this[]
 
     @OutputFile
     abstract RegularFileProperty getResultsFile()
 
     @TaskAction
     void check() {
-        if (getCandidatesFile().get().getAsFile().readLines().contains(getFind().get())) {
-            def msg = "Found a " + getFind().get() + "!"
+        if (candidatesFile.get().getAsFile().readLines().contains(find.get())) {
+            def msg = "Found a " + find.get() + "!"
             getLogger().lifecycle(msg)
-            getResultsFile().get().asFile.text = msg
+            resultsFile.get().asFile.text = msg
         }
     }
 }
@@ -25,7 +27,7 @@ def alternateInputsDir = layout.buildDirectory.dir("alternateInputs")
 tasks.register("search", AnimalSearchTask) {
     find = "cat"
     if (project.hasProperty("useAlternateInput")) {
-        candidatesFile = alternateInputsDir.flatMap {project.provider(() -> it.file("candidates.txt")) }
+        candidatesFile = alternateInputsDir.flatMap { project.provider(() -> it.file("candidates.txt")) }
     } else {
         candidatesFile = originalCandidatesFile
     }
