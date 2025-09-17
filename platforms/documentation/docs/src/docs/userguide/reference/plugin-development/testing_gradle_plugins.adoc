@@ -344,7 +344,7 @@ You will need to execute the `assemble` task to initially generate the plugin cl
 
 == Example of a unit test
 
-The following is an example of a unit test of the `Greeting` plugin from <<implementing_binary_plugins.adoc#implementing_binary_plugins, Binary Plugins>>:
+The following is an example of a unit test of the `Greeting` plugin from <<implementing_gradle_plugins_binary.adoc#implementing_binary_plugins, Binary Plugins>>:
 
 ++++
 <div style="text-align: right;">
@@ -361,7 +361,7 @@ include::sample[dir="snippets/plugins/plugin-binary/groovy",files="plugin/src/te
 
 == Example of a functional test
 
-The following is an example of a functional test of the `Greeting` plugin from <<implementing_binary_plugins.adoc#implementing_binary_plugins, Binary Plugins>>:
+The following is an example of a functional test of the `Greeting` plugin from <<implementing_gradle_plugins_binary.adoc#implementing_binary_plugins, Binary Plugins>>:
 
 ++++
 <div style="text-align: right;">
