@@ -14,32 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.jacoco.plugins
+package org.gradle.kotlin.dsl.integration
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import spock.lang.Issue
+import org.gradle.testing.jacoco.plugins.JacocoPlugin
+import org.junit.Test
 
-class JacocoTestKitKotlinScriptFingerprintingIntegrationTest extends AbstractIntegrationSpec {
+class JacocoTestKitKotlinScriptFingerprintingIntegrationTest : AbstractKotlinIntegrationTest() {
 
-    @Issue("https://github.com/gradle/gradle/issues/34942")
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Testing build using a TestKit")
-    def "running a test with TestKit that applies Jacoco won't brake KTS script fingerprinting"() {
-        when:
-
-        settingsFile.delete()
-        settingsKotlinFile << """
+    @Test
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
+    @LeaksFileHandles("Kotlin Compiler Daemon working directory")
+    fun `running a test with TestKit that applies Jacoco won't brake KTS script fingerprinting`() {
+        withSettings("""
             rootProject.name = "reproducer"
-
+            
             dependencyResolutionManagement { 
-                ${mavenCentralRepository(GradleDsl.KOTLIN)} 
+                ${mavenCentralRepository(GradleDsl.KOTLIN)}
             }
-        """
+        """.trimIndent())
 
-        buildFile.delete()
-        buildKotlinFile << """
+        withBuildScript("""
             plugins {
                 `kotlin-dsl`
                 jacoco
@@ -49,10 +49,11 @@ class JacocoTestKitKotlinScriptFingerprintingIntegrationTest extends AbstractInt
             val jacocoRuntime by configurations.creating
             
             dependencies {
-                testImplementation("org.junit.jupiter:junit-jupiter:5.13.4")
-                testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.4")
+                testImplementation("junit:junit:4.13")
+                testImplementation("org.hamcrest:hamcrest-library:1.3")
+                testImplementation(gradleTestKit())
             
-                jacocoRuntime("org.jacoco:org.jacoco.agent:\${JacocoPlugin.DEFAULT_JACOCO_VERSION}:runtime")
+                jacocoRuntime("org.jacoco:org.jacoco.agent:${JacocoPlugin.DEFAULT_JACOCO_VERSION}:runtime")
             }
             
             gradlePlugin {
@@ -64,19 +65,13 @@ class JacocoTestKitKotlinScriptFingerprintingIntegrationTest extends AbstractInt
                 }
             }
             
-            tasks {
-                test {
-                    useJUnitPlatform()
-                }
-            }
-            
             tasks.withType<Test> {
                 val jacoco = the<JacocoTaskExtension>()
                 systemProperty("jacocoAgentJar", configurations.getByName("jacocoRuntime").singleFile.absolutePath)
             }
-        """
+        """.trimIndent())
 
-        file("src/main/kotlin/com/reproducer/MyPlugin.kt") << """
+        withFile("src/main/kotlin/com/reproducer/MyPlugin.kt", $$"""
             package com.reproducer
 
             import org.gradle.api.Plugin
@@ -85,37 +80,44 @@ class JacocoTestKitKotlinScriptFingerprintingIntegrationTest extends AbstractInt
             class MyPlugin : Plugin<Settings> {
             
                 override fun apply(settings: Settings) {
-                    println("\${MyPlugin::class.java.name} applied!")
+                    println("${MyPlugin::class.java.name} applied!")
                 }
             }
-        """
+        """.trimIndent())
 
-        file("src/test/kotlin/com/reproducer/PluginTest.kt") << """
+        withFile("src/test/kotlin/com/reproducer/PluginTest.kt", $$"""
             package com.reproducer
+            
+            import java.io.File
 
             import org.gradle.testkit.runner.GradleRunner
-            import org.junit.jupiter.api.Assertions.assertTrue
-            import org.junit.jupiter.api.Test
-            import org.junit.jupiter.api.io.TempDir
-            import java.io.File
+            
+            import org.junit.Rule
+            import org.junit.Test
+            import org.junit.rules.TemporaryFolder
 
             class PluginTest {
 
-                @TempDir
-                lateinit var projectDir: File
+                @JvmField @Rule val temporaryFolder = TemporaryFolder()
+
+                val projectDir by lazy {
+                    File(temporaryFolder.root, "test").apply { mkdirs() }
+                }
 
                 @Test
                 fun test() {
                     projectDir.resolve("settings.gradle.kts").writeText(
-                        "plugins { id(\\"my-plugin\\") }\\nrootProject.name = \\"test\\""
+                        "plugins { id(\"my-plugin\") }\nrootProject.name = \"test\""
                     )
                     projectDir.resolve("gradle.properties").writeText(
-                        "org.gradle.jvmargs=\\"-javaagent:\${System.getProperty("jacocoAgentJar")}"
+                        "org.gradle.jvmargs=\"-javaagent:${System.getProperty("jacocoAgentJar")}"
                     )
                     projectDir.resolve("build.gradle.kts").writeText("")
 
                     val runner =
                         GradleRunner.create()
+                            .withGradleInstallation(File("$${distribution.gradleHomeDir.normalisedPath}"))
+                            .withTestKitDir(File("$${executer.gradleUserHomeDir.normalisedPath}"))
                             .withPluginClasspath()
                             .withArguments("help", "--stacktrace")
                             .forwardOutput()
@@ -123,14 +125,12 @@ class JacocoTestKitKotlinScriptFingerprintingIntegrationTest extends AbstractInt
 
                     val result = runner.build()
 
-                    assertTrue(result.output.contains("BUILD SUCCESSFUL"))
-
+                    require("BUILD SUCCESSFUL" in result.output)
                 }
             }
-        """
+        """.trimIndent())
 
-        then:
-        succeeds("test")
+        build("test")
     }
 
 }
