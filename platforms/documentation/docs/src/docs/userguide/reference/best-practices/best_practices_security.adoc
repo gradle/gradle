@@ -44,3 +44,27 @@ The official SHA-256 checksums can be found on the link:https://gradle.org/relea
 
 `<<tags_reference.adoc#tag:properties,#properties>>`, `<<tags_reference.adoc#tag:wrapper,#wrapper>>`
 
+[[build-published-artifacts-securely]]
+== Build Published Artifacts Securely
+
+Ensure that published artifacts are built in a trusted way.
+
+=== Explanation
+
+The published artifacts should be generated from a *complete, fresh build* using an empty machine
+that contains minimal infrastructure, such as only the JDK.
+
+==== Don't Do This
+
+Using remote build cache or other caching mechanisms for these builds may include old
+outputs,temporary files, or cached artifacts.
+Local or incremental builds create a security risk and can produce *non-reproducible artifacts* due to leftover
+or outdated outputs.
+
+==== Do This Instead
+
+Use *Ephemeral CI* for publishing builds.
+
+=== Tags
+
+<<tags_reference.adoc:structuring-builds,#structuring-builds>>
