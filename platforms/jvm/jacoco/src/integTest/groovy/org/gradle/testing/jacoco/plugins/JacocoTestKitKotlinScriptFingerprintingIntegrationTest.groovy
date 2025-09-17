@@ -20,23 +20,14 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
-import spock.lang.TempDir
 
 class JacocoTestKitKotlinScriptFingerprintingIntegrationTest extends AbstractIntegrationSpec {
-
-    @TempDir
-    File jacocoDestinationDir
 
     @Issue("https://github.com/gradle/gradle/issues/34942")
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Testing build using a TestKit")
     def "running a test with TestKit that applies Jacoco won't brake KTS script fingerprinting"() {
         when:
-
-        // Setting Jacoco destination dir to non-ascii location causes some problems,
-        // so let's write to a temporary directory without non-ascii characters
-        def jacocoDestinationFile = TextUtil.normaliseFileSeparators("${jacocoDestinationDir.absolutePath}/jacoco.exec")
 
         settingsFile.delete()
         settingsKotlinFile << """
@@ -81,10 +72,7 @@ class JacocoTestKitKotlinScriptFingerprintingIntegrationTest extends AbstractInt
             
             tasks.withType<Test> {
                 val jacoco = the<JacocoTaskExtension>()
-                jacoco.setDestinationFile(File("$jacocoDestinationFile"))
-            
                 systemProperty("jacocoAgentJar", configurations.getByName("jacocoRuntime").singleFile.absolutePath)
-                systemProperty("jacocoDestFile", jacoco.destinationFile!!.absolutePath)
             }
         """
 
@@ -122,7 +110,7 @@ class JacocoTestKitKotlinScriptFingerprintingIntegrationTest extends AbstractInt
                         "plugins { id(\\"my-plugin\\") }\\nrootProject.name = \\"test\\""
                     )
                     projectDir.resolve("gradle.properties").writeText(
-                        "org.gradle.jvmargs=\\"-javaagent:\${System.getProperty("jacocoAgentJar")}=destfile=\${System.getProperty("jacocoDestFile")}\\""
+                        "org.gradle.jvmargs=\\"-javaagent:\${System.getProperty("jacocoAgentJar")}"
                     )
                     projectDir.resolve("build.gradle.kts").writeText("")
 
