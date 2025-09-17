@@ -44,12 +44,10 @@ val testInterceptorsImplementation: Configuration by configurations.getting {
 
 errorprone {
     disabledChecks.addAll(
-        "DefaultCharset", // 4 occurrences
         "ModifyCollectionInEnhancedForLoop", // 1 occurrences
         "NonApiType", // 1 occurrences
         "NonCanonicalType", // 16 occurrences
         "ReferenceEquality", // 2 occurrences
-        "ReturnValueIgnored", // 1 occurrences
         "StreamResourceLeak", // 6 occurrences
         "TypeParameterShadowing", // 1 occurrences
         "TypeParameterUnusedInFormals", // 2 occurrences

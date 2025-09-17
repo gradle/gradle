@@ -15,6 +15,8 @@
  */
 package org.gradle.internal;
 
+import org.jspecify.annotations.Nullable;
+
 import java.lang.ref.SoftReference;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -24,10 +26,10 @@ public final class Factories {
         /* no-op */
     }
 
-    public static <T> Factory<T> toFactory(final Runnable runnable) {
-        return new Factory<T>() {
+    public static <T> Factory<@Nullable T> toFactory(final Runnable runnable) {
+        return new Factory<@Nullable T>() {
             @Override
-            public T create() {
+            public @Nullable T create() {
                 runnable.run();
                 return null;
             }
@@ -47,7 +49,7 @@ public final class Factories {
         return new CachingSoftReferenceFactory<T>(factory);
     }
 
-    private static class CachingSoftReferenceFactory<T> implements Factory<T> {
+    private static class CachingSoftReferenceFactory<T extends @Nullable Object> implements Factory<T> {
         private final Factory<T> factory;
         private final AtomicReference<SoftReference<T>> cachedReference = new AtomicReference<SoftReference<T>>();
 
