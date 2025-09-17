@@ -31,6 +31,8 @@ public class DefaultConnectionParameters implements ConnectionParameters {
     private final File daemonBaseDir;
     private final boolean verboseLogging;
     private final File distributionBaseDir;
+    private final Integer connectionTimeoutValue;
+    private final TimeUnit connectionTimeoutUnits;
 
     public static Builder builder() {
         return new Builder();
@@ -46,6 +48,8 @@ public class DefaultConnectionParameters implements ConnectionParameters {
         private File daemonBaseDir;
         private Boolean searchUpwards;
         private File distributionBaseDir;
+        private Integer connectionTimeoutValue;
+        private TimeUnit connectionTimeoutUnits;
 
         protected Builder() {
         }
@@ -95,13 +99,19 @@ public class DefaultConnectionParameters implements ConnectionParameters {
         }
 
         public DefaultConnectionParameters build() {
-            return new DefaultConnectionParameters(projectDir, gradleUserHomeDir, embedded, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits, daemonBaseDir, verboseLogging, searchUpwards, distributionBaseDir);
+            return new DefaultConnectionParameters(projectDir, gradleUserHomeDir, embedded, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits, daemonBaseDir, verboseLogging, searchUpwards, distributionBaseDir, connectionTimeoutValue, connectionTimeoutUnits);
+        }
+
+        public void setConnectionTimeout(int amount, TimeUnit unit) {
+            this.connectionTimeoutValue = amount;
+            this.connectionTimeoutUnits = unit;
         }
     }
 
     private DefaultConnectionParameters(File projectDir, File gradleUserHomeDir, Boolean embedded,
                                         Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits, File daemonBaseDir,
-                                        boolean verboseLogging, Boolean searchUpwards, File distributionBaseDir) {
+                                        boolean verboseLogging, Boolean searchUpwards, File distributionBaseDir,
+                                        Integer connectionTimeoutValue, TimeUnit connectionTimeoutUnits) {
         this.projectDir = projectDir;
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.embedded = embedded;
@@ -111,6 +121,8 @@ public class DefaultConnectionParameters implements ConnectionParameters {
         this.verboseLogging = verboseLogging;
         this.searchUpwards = searchUpwards;
         this.distributionBaseDir = distributionBaseDir;
+        this.connectionTimeoutValue = connectionTimeoutValue;
+        this.connectionTimeoutUnits = connectionTimeoutUnits;
     }
 
     @Override
@@ -162,4 +174,15 @@ public class DefaultConnectionParameters implements ConnectionParameters {
     public File getDistributionBaseDir() {
         return distributionBaseDir;
     }
+
+    @Override
+    public Integer getConnectionTimeoutValue() {
+        return connectionTimeoutValue;
+    }
+
+    @Override
+    public TimeUnit getConnectionTimeoutUnit() {
+        return connectionTimeoutUnits;
+    }
+
 }

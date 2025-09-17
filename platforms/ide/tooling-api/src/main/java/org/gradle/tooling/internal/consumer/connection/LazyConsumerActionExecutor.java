@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer.connection;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
+import org.gradle.tooling.GradleConnectionException;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource;
@@ -29,10 +30,13 @@ import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -146,7 +150,7 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
         }
     }
 
-    private ConsumerConnection onStartAction(BuildCancellationToken cancellationToken, InternalBuildProgressListener buildProgressListener) {
+    private ConsumerConnection onStartAction(BuildCancellationToken cancellationToken, final InternalBuildProgressListener buildProgressListener) {
         lock.lock();
         try {
             if (stopped) {
@@ -156,8 +160,31 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
             if (connection == null) {
                 // Hold the lock while creating the connection. Not generally good form.
                 // In this instance, blocks other threads from creating the connection at the same time
-                ProgressLoggerFactory progressLoggerFactory = loggingProvider.getProgressLoggerFactory();
-                connection = implementationLoader.create(distribution, progressLoggerFactory, buildProgressListener, connectionParameters, cancellationToken);
+                final ProgressLoggerFactory progressLoggerFactory = loggingProvider.getProgressLoggerFactory();
+
+                Callable<ConsumerConnection> connectionCallable = () -> implementationLoader.create(distribution, progressLoggerFactory, buildProgressListener, connectionParameters, cancellationToken);
+
+                ExecutorService executor = Executors.newSingleThreadExecutor();
+                try {
+                    Future<ConsumerConnection> future = executor.submit(connectionCallable);
+                    Integer timeoutValue = connectionParameters.getConnectionTimeoutValue();
+                    TimeUnit timeoutUnit = connectionParameters.getConnectionTimeoutUnit();
+                    if (timeoutValue == null || timeoutUnit == null) {
+                        connection = future.get();
+                    } else {
+                        try {
+                            connection = future.get(timeoutValue, timeoutUnit);
+                        } catch (TimeoutException e) {
+                            throw new GradleConnectionException("Timeout waiting to connect to the Gradle daemon.\n" + "It is reasonable to set a longer timeout on the Gradle connection.", e);
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                } catch (Exception e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                } finally {
+                    executor.shutdown();
+                }
             }
             return connection;
         } finally {

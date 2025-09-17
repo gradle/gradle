@@ -25,6 +25,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.internal.time.CountdownTimer
 import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
@@ -33,6 +34,7 @@ import spock.lang.Issue
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.TimeUnit
 
 import static org.gradle.integtests.tooling.fixture.ToolingApiTestCommon.LOG_LEVEL_TEST_SCRIPT
 import static org.gradle.integtests.tooling.fixture.ToolingApiTestCommon.runLogScript
@@ -361,5 +363,28 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec implements Other
 
         where:
         withColor << [true, false]
+    }
+
+    def "throws GradleConnectionException when connection times out"() {
+        when:
+        toolingApi.withConnector {
+            it.withConnectionTimeout(1, TimeUnit.NANOSECONDS)
+        }
+        toolingApi.withConnection { it.getModel(GradleProject.class) }
+
+        then:
+        def e = thrown(GradleConnectionException)
+        e.message.contains("Timeout waiting to connect to the Gradle daemon.")
+    }
+
+    def "can connect with a reasonable timeout"() {
+        when:
+        toolingApi.withConnector {
+            it.withConnectionTimeout(10, TimeUnit.SECONDS)
+        }
+        GradleProject model = toolingApi.withConnection { it.getModel(GradleProject.class) }
+
+        then:
+        model != null
     }
 }

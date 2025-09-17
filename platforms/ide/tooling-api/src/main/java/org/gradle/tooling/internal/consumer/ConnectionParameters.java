@@ -48,4 +48,8 @@ public interface ConnectionParameters extends org.gradle.tooling.internal.protoc
     boolean getVerboseLogging();
 
     File getDistributionBaseDir();
+
+    Integer getConnectionTimeoutValue();
+
+    TimeUnit getConnectionTimeoutUnit();
 }

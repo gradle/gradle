@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
@@ -155,6 +156,13 @@ public class DefaultGradleConnector extends GradleConnector implements ProjectCo
      */
     public DefaultGradleConnector setVerboseLogging(boolean verboseLogging) {
         connectionParamsBuilder.setVerboseLogging(verboseLogging);
+        return this;
+    }
+
+    @Override
+    @Incubating
+    public GradleConnector withConnectionTimeout(int amount, TimeUnit unit) {
+        connectionParamsBuilder.setConnectionTimeout(amount, unit);
         return this;
     }
 
