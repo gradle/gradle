@@ -74,7 +74,6 @@ abstract class AbstractSmokeTest extends Specification {
         static gretty = [
             [version: SMOKE_TESTED_PLUGINS.get("org.gretty"), servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
         ]
-        static grgit = SMOKE_TESTED_PLUGINS.get("org.ajoberstar.grgit")
         static gradleVersions = SMOKE_TESTED_PLUGINS.get("com.github.ben-manes.versions")
         static playframework = SMOKE_TESTED_PLUGINS.get("org.gradle.playframework")
         static errorProne = SMOKE_TESTED_PLUGINS.get("net.ltgt.errorprone")
