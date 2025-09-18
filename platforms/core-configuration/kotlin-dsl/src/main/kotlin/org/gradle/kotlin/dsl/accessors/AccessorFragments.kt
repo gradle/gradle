@@ -1162,12 +1162,23 @@ val TypeOf<*>.kmType: KmType
     get() = when {
         isParameterized -> genericTypeOf(
             classOf(parameterizedTypeDefinition.concreteClass),
-            actualTypeArguments.map { it.kmType }
+            actualTypeArguments.map { it.kmTypeProjection }
         )
 
         isWildcard -> (upperBound ?: lowerBound)?.kmType ?: KotlinType.any
         else -> classOf(concreteClass)
     }
+
+private
+val TypeOf<*>.kmTypeProjection: KmTypeProjection
+    get() = KmTypeProjection(
+        variance = when {
+            upperBound != null -> KmVariance.OUT
+            lowerBound != null -> KmVariance.IN
+            else -> KmVariance.INVARIANT
+        },
+        type = kmType
+    )
 
 
 internal
