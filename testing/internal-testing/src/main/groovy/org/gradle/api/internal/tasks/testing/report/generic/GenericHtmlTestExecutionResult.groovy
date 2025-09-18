@@ -18,9 +18,9 @@ package org.gradle.api.internal.tasks.testing.report.generic
 import com.google.common.base.Strings
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.ImmutableMultiset
-import com.google.common.collect.Iterables
 import com.google.common.collect.Multimap
 import com.google.common.collect.Multisets
+import com.google.common.collect.Streams
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.lazy.Lazy
 import org.gradle.util.Path
@@ -87,11 +87,15 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
     @Override
     GenericTestExecutionResult assertTestPathsExecuted(String... testPaths) {
         // We always will detect ancestors of the executed test paths as well, so add them to the set
-        Set<Path> extendedTestPaths = testPaths.collect {
-            Path.path(it)
-        }.collect {
-            Iterables.concat([it], it.ancestors())
-        }.flatten() as Set<Path>
+        Set<Path> extendedTestPaths = Stream.of(testPaths)
+            .map { Path.path(it) }
+            .flatMap {
+                Stream.concat(
+                    Stream.of(it),
+                    Streams.stream(it.ancestors()),
+                )
+            }
+            .collect(Collectors.toSet())
         assertThat(executedTestPaths, equalTo(extendedTestPaths))
         return this
     }
