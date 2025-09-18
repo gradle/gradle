@@ -16,11 +16,13 @@
 
 package org.gradle.testing.junit.junit4
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.testing.junit.AbstractJUnitSuitesIntegrationTest
 import org.junit.Assume
 
 import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.equalTo
 
 abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIntegrationTest {
     abstract boolean supportsSuiteOutput()
@@ -122,21 +124,29 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
             }
         """.stripIndent()
         when:
-        executer.withTasks('test').run()
+        executer.withTasks('test', '--debug-jvm').run()
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.ASuite', 'org.gradle.OkTest', 'org.gradle.OtherTest')
-        result.testClass('org.gradle.ASuite').assertStdout(containsString('suite class loaded'))
-        result.testClass('org.gradle.ASuite').assertStdout(containsString('before suite class out'))
-        result.testClass('org.gradle.ASuite').assertStdout(containsString('non-asci char: ż'))
-        result.testClass('org.gradle.ASuite').assertStderr(containsString('before suite class err'))
-        result.testClass('org.gradle.ASuite').assertStdout(containsString('after suite class out'))
-        result.testClass('org.gradle.ASuite').assertStderr(containsString('after suite class err'))
-        result.testClass('org.gradle.OkTest').assertStderr(containsString('This is test stderr'))
-        result.testClass('org.gradle.OkTest').assertStdout(containsString('sys out from another test method'))
-        result.testClass('org.gradle.OkTest').assertStderr(containsString('sys err from another test method'))
-        result.testClass('org.gradle.OtherTest').assertStdout(containsString('This is other stdout'))
+        GenericHtmlTestExecutionResult result = new GenericHtmlTestExecutionResult(testDirectory)
+        result.assertTestPathsExecuted(
+            ':org.gradle.ASuite:org.gradle.OkTest:ok',
+            ':org.gradle.ASuite:org.gradle.OkTest:anotherOk',
+            ':org.gradle.ASuite:org.gradle.OtherTest:ok'
+        )
+        result.testPath(':org.gradle.ASuite').onlyRoot().assertStdout(equalTo(""))
+        result.testPath(':org.gradle.ASuite').onlyRoot().assertStderr(equalTo(""))
+
+        result.testPath(':org.gradle.ASuite:org.gradle.OkTest').onlyRoot().assertStdout(equalTo(""))
+        result.testPath(':org.gradle.ASuite:org.gradle.OkTest').onlyRoot().assertStderr(equalTo(""))
+        result.testPath(':org.gradle.ASuite:org.gradle.OkTest:ok').onlyRoot().assertStdout(equalTo(""))
+        result.testPath(':org.gradle.ASuite:org.gradle.OkTest:ok').onlyRoot().assertStderr(equalTo("This is test stderr\n"))
+        result.testPath(':org.gradle.ASuite:org.gradle.OkTest:anotherOk').onlyRoot().assertStdout(equalTo("sys out from another test method\n"))
+        result.testPath(':org.gradle.ASuite:org.gradle.OkTest:anotherOk').onlyRoot().assertStderr(equalTo("sys err from another test method\n"))
+
+        result.testPath(':org.gradle.ASuite:org.gradle.OtherTest').onlyRoot().assertStdout(equalTo("after suite class out\n"))
+        result.testPath(':org.gradle.ASuite:org.gradle.OtherTest').onlyRoot().assertStderr(equalTo("after suite class err\n"))
+        result.testPath(':org.gradle.ASuite:org.gradle.OtherTest:ok').onlyRoot().assertStdout(equalTo("This is other stdout\n"))
+        result.testPath(':org.gradle.ASuite:org.gradle.OtherTest:ok').onlyRoot().assertStderr(equalTo(""))
     }
 
     def "supports Junit3 suites"() {

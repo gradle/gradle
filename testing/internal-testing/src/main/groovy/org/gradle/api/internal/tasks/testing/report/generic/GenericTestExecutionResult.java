@@ -31,6 +31,15 @@ public interface GenericTestExecutionResult {
     GenericTestExecutionResult assertTestPathsExecuted(String... testPaths);
 
     /**
+     * Asserts that the given test paths were executed. Others may also have been executed.
+     *
+     * <p>
+     * These are paths in the style of {@link org.gradle.util.Path}, e.g. `:TestClass:testMethod:subTest`.
+     * </p>
+     */
+    GenericTestExecutionResult assertAtLeastTestPathsExecuted(String... testPaths);
+
+    /**
      * Asserts that the given test paths (and only the given test paths) were <strong>NOT</strong> executed.
      *
      * <p>

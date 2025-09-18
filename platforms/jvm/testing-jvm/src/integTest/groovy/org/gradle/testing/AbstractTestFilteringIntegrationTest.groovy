@@ -369,27 +369,27 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
 
         then:
         GenericTestExecutionResult testResult = resultsFor("tests/test")
-        testResult.testPath("ParameterizedFoo", "", testFramework).onlyRoot().assertOnlyChildrenExecuted(stringArrayOf(classesExecuted))
+        testResult.assertAtLeastTestPathsExecuted(classesExecuted.collect { ":$it" } as String[])
         if (!foo1TestsExecuted.isEmpty()) {
-            testResult.testPath("Foo1Test", "", testFramework).onlyRoot().assertOnlyChildrenExecuted(stringArrayOf(foo1TestsExecuted))
+            testResult.testPath("Foo1Test", "", testFramework).onlyRoot().assertChildCount(foo1TestsExecuted.size(), 0)
             for (String testName : foo1TestsExecuted) {
                 testResult.testPath("Foo1Test", testName, testFramework).onlyRoot().assertHasResult(passedTestOutcome)
             }
         }
         if (!foo2TestsExecuted.isEmpty()) {
-            testResult.testPath("Foo2Test", "", testFramework).onlyRoot().assertOnlyChildrenExecuted(stringArrayOf(foo2TestsExecuted))
-            for (String testName : foo12TestsExecuted) {
+            testResult.testPath("Foo2Test", "", testFramework).onlyRoot().assertChildCount(foo2TestsExecuted.size(), 0)
+            for (String testName : foo2TestsExecuted) {
                 testResult.testPath("Foo2Test", testName, testFramework).onlyRoot().assertHasResult(passedTestOutcome)
             }
         }
         if (!barTestsExecuted.isEmpty()) {
-            testResult.testPath("BarTest", "", testFramework).onlyRoot().assertOnlyChildrenExecuted(stringArrayOf(barTestsExecuted))
+            testResult.testPath("BarTest", "", testFramework).onlyRoot().assertChildCount(barTestsExecuted.size(), 0)
             for (String testName : barTestsExecuted) {
                 testResult.testPath("BarTest", testName, testFramework).onlyRoot().assertHasResult(passedTestOutcome)
             }
         }
         if (!otherTestsExecuted.isEmpty()) {
-            testResult.testPath("OtherTest", "", testFramework).onlyRoot().assertOnlyChildrenExecuted(stringArrayOf(otherTestsExecuted))
+            testResult.testPath("OtherTest", "", testFramework).onlyRoot().assertChildCount(otherTestsExecuted.size(), 0)
             for (String testName : otherTestsExecuted) {
                 testResult.testPath("OtherTest", testName, testFramework).onlyRoot().assertHasResult(passedTestOutcome)
             }

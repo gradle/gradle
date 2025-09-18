@@ -54,7 +54,7 @@ class JUnitTestClassProcessorTest extends Specification {
     void process(Iterable<String> classNames) {
         classProcessor.startProcessing(processor)
         for (String c : classNames) {
-            classProcessor.processTestClass(new DefaultTestClassRunInfo(c))
+            classProcessor.processTestClass(new DefaultTestClassRunInfo(c, []))
         }
         classProcessor.stop()
     }
@@ -160,10 +160,14 @@ class JUnitTestClassProcessorTest extends Specification {
 
         then:
         1 * processor.started({ it.id == 1 }, { it.parentId == null })
-        1 * processor.started({ it.id == 2 && it.name == "testOk" && it.className == AJunit3TestClass.name }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 2 && it.name == AJunit3TestClass.name }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 3 && it.name == "testOk" && it.className == AJunit3TestClass.name }, { it.parentId == 2 })
         1 * processor.completed(2, { it.resultType == null })
-        1 * processor.started({ it.id == 3 && it.name == "testOk" && it.className == BJunit3TestClass.name }, { it.parentId == 1 })
         1 * processor.completed(3, { it.resultType == null })
+        1 * processor.started({ it.id == 4 && it.name == BJunit3TestClass.name }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 5 && it.name == "testOk" && it.className == BJunit3TestClass.name }, { it.parentId == 4 })
+        1 * processor.completed(5, { it.resultType == null })
+        1 * processor.completed(4, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })
         0 * processor._
     }
@@ -204,7 +208,19 @@ class JUnitTestClassProcessorTest extends Specification {
         ATestClassWithBrokenConstructor       |'test'
         ATestClassWithBrokenBeforeMethod      |'test'
         ATestClassWithBrokenSuiteMethod       |'initializationError'
-        ATestSetUpWithBrokenSetUp             |AJunit3TestClass.name
+    }
+
+    def "broken set-up reports failure"() {
+        when:
+        process(ATestSetUpWithBrokenSetUp)
+
+        then:
+        1 * processor.started({ it.id == 1 }, { it.parentId == null })
+        1 * processor.started({ it.id == 2 && it.name == AJunit3TestClass.name && it.className == ATestSetUpWithBrokenSetUp.name }, { it.parentId == 1 })
+        1 * processor.failure(2, { assertRuntimExceptionWith(it, "broken") })
+        1 * processor.completed(2, { it.resultType == null })
+        1 * processor.completed(1, { it.resultType == null })
+        0 * processor._
     }
 
     def "executes a test class with runner that breaks after running some tests"() {
@@ -349,10 +365,14 @@ class JUnitTestClassProcessorTest extends Specification {
 
         then:
         1 * processor.started({ it.id == 1 && it.className == ATestClassWithSuiteMethod.name }, { it.parentId == null })
-        1 * processor.started({ it.id == 2 && it.name == "testOk" && it.className == AJunit3TestClass.name }, { it.parentId == 1 })
-        1 * processor.completed(2, { it.resultType == null })
-        1 * processor.started({ it.id == 3 && it.name == "testOk" && it.className == BJunit3TestClass.name }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 2 && it.className == AJunit3TestClass.name }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 3 && it.name == "testOk" && it.className == AJunit3TestClass.name }, { it.parentId == 2 })
         1 * processor.completed(3, { it.resultType == null })
+        1 * processor.completed(2, { it.resultType == null })
+        1 * processor.started({ it.id == 4 && it.className == BJunit3TestClass.name }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 5 && it.name == "testOk" && it.className == BJunit3TestClass.name }, { it.parentId == 4 })
+        1 * processor.completed(5, { it.resultType == null })
+        1 * processor.completed(4, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })
         0 * processor._
     }
@@ -367,13 +387,17 @@ class JUnitTestClassProcessorTest extends Specification {
 
         then:
         1 * processor.started({ it.id == 1 && it.className == ATestSuite.name }, { it.parentId == null })
-        1 * processor.completed(1, { it.resultType == null })
-        1 * processor.started({ it.id == 2 && it.name == "ok" && it.className == ATestClass.name }, { it.parentId == 1 })
-        1 * processor.completed(2, { it.resultType == null })
-        1 * processor.started({ it.id == 3 && it.name == "coolName" && it.className == BTestClass.name }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 2 && it.className == ATestClass.name }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 3 && it.name == "ok" && it.className == ATestClass.name }, { it.parentId == 2 })
         1 * processor.completed(3, { it.resultType == null })
-        1 * processor.started({ it.id == 4 && it.name == "ok" && it.className == BTestClass.name }, { it.parentId == 1 })
+        1 * processor.completed(2, { it.resultType == null })
+        1 * processor.started({ it.id == 4 && it.className == BTestClass.name }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 5 && it.name == "coolName" && it.className == BTestClass.name }, { it.parentId == 4 })
+        1 * processor.completed(5, { it.resultType == null })
+        1 * processor.started({ it.id == 6 && it.name == "ok" && it.className == BTestClass.name }, { it.parentId == 4 })
+        1 * processor.completed(6, { it.resultType == null })
         1 * processor.completed(4, { it.resultType == null })
+        1 * processor.completed(1, { it.resultType == null })
         0 * processor._
     }
 
@@ -387,13 +411,17 @@ class JUnitTestClassProcessorTest extends Specification {
 
         then:
         1 * processor.started({ it.id == 1 && it.className == ACustomSuite.name }, { it.parentId == null })
-        1 * processor.completed(1, { it.resultType == null })
-        1 * processor.started({ it.id == 2 && it.name == "ok" && it.className == ATestClass.name }, { it.parentId == 1 })
-        1 * processor.completed(2, { it.resultType == null })
-        1 * processor.started({ it.id == 3 && it.name == "coolName" && it.className == BTestClass.name }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 2 && it.className == ATestClass.name }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 3 && it.name == "ok" && it.className == ATestClass.name }, { it.parentId == 2 })
         1 * processor.completed(3, { it.resultType == null })
-        1 * processor.started({ it.id == 4 && it.name == "ok" && it.className == BTestClass.name }, { it.parentId == 1 })
+        1 * processor.completed(2, { it.resultType == null })
+        1 * processor.started({ it.id == 4 && it.className == BTestClass.name }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 5 && it.name == "coolName" && it.className == BTestClass.name }, { it.parentId == 4 })
+        1 * processor.completed(5, { it.resultType == null })
+        1 * processor.started({ it.id == 6 && it.name == "ok" && it.className == BTestClass.name }, { it.parentId == 4 })
+        1 * processor.completed(6, { it.resultType == null })
         1 * processor.completed(4, { it.resultType == null })
+        1 * processor.completed(1, { it.resultType == null })
         0 * processor._
     }
 
@@ -432,13 +460,17 @@ class JUnitTestClassProcessorTest extends Specification {
 
         then:
         1 * processor.started({ it.id == 1 && it.className == AParameterizedTest.name }, { it.parentId == null })
-        1 * processor.started({ it.id == 2 && it.className == AParameterizedTest.name && it.name == "helpfulTest[0]" }, { it.parentId == 1 })
-        1 * processor.completed(2, { it.resultType == null })
-        1 * processor.started({ it.id == 3 && it.className == AParameterizedTest.name && it.name == "unhelpfulTest[0]" }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 2 && it.className == '[0]' }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 3 && it.className == AParameterizedTest.name  && it.name == "helpfulTest[0]" }, { it.parentId == 2 })
         1 * processor.completed(3, { it.resultType == null })
-        1 * processor.started({ it.id == 4 && it.className == AParameterizedTest.name && it.name == "helpfulTest[1]" }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 4 && it.className == AParameterizedTest.name  && it.name == "unhelpfulTest[0]" }, { it.parentId == 2 })
         1 * processor.completed(4, { it.resultType == null })
-        1 * processor.started({ it.id == 5 && it.className == AParameterizedTest.name && it.name == "unhelpfulTest[1]" }, { it.parentId == 1 })
+        1 * processor.completed(2, { it.resultType == null })
+        1 * processor.started({ it.id == 5 && it.className == '[1]' }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 6 && it.className == AParameterizedTest.name  && it.name == "helpfulTest[1]" }, { it.parentId == 5 })
+        1 * processor.completed(6, { it.resultType == null })
+        1 * processor.started({ it.id == 7 && it.className == AParameterizedTest.name  && it.name == "unhelpfulTest[1]" }, { it.parentId == 5 })
+        1 * processor.completed(7, { it.resultType == null })
         1 * processor.completed(5, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })
         0 * processor._
@@ -454,10 +486,14 @@ class JUnitTestClassProcessorTest extends Specification {
 
         then:
         1 * processor.started({ it.id == 1 && it.className == AParameterizedTest.name }, { it.parentId == null })
-        1 * processor.started({ it.id == 2 && it.className == AParameterizedTest.name && it.name == "helpfulTest[0]" }, { it.parentId == 1 })
-        1 * processor.completed(2, { it.resultType == null })
-        1 * processor.started({ it.id == 3 && it.className == AParameterizedTest.name && it.name == "helpfulTest[1]" }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 2 && it.className == '[0]' }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 3 && it.className == AParameterizedTest.name  && it.name == "helpfulTest[0]" }, { it.parentId == 2 })
         1 * processor.completed(3, { it.resultType == null })
+        1 * processor.completed(2, { it.resultType == null })
+        1 * processor.started({ it.id == 4 && it.className == '[1]' }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 5 && it.className == AParameterizedTest.name  && it.name == "helpfulTest[1]" }, { it.parentId == 4 })
+        1 * processor.completed(5, { it.resultType == null })
+        1 * processor.completed(4, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })
         0 * processor._
     }
@@ -472,10 +508,12 @@ class JUnitTestClassProcessorTest extends Specification {
 
         then:
         1 * processor.started({ it.id == 1 && it.className == AParameterizedTest.name }, { it.parentId == null })
-        1 * processor.started({ it.id == 2 && it.className == AParameterizedTest.name && it.name == "helpfulTest[1]" }, { it.parentId == 1 })
-        1 * processor.completed(2, { it.resultType == null })
-        1 * processor.started({ it.id == 3 && it.className == AParameterizedTest.name && it.name == "unhelpfulTest[1]" }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 2 && it.className == '[1]' }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 3 && it.className == AParameterizedTest.name  && it.name == "helpfulTest[1]" }, { it.parentId == 2 })
         1 * processor.completed(3, { it.resultType == null })
+        1 * processor.started({ it.id == 4 && it.className == AParameterizedTest.name  && it.name == "unhelpfulTest[1]" }, { it.parentId == 2 })
+        1 * processor.completed(4, { it.resultType == null })
+        1 * processor.completed(2, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })
         0 * processor._
     }
@@ -490,7 +528,9 @@ class JUnitTestClassProcessorTest extends Specification {
 
         then:
         1 * processor.started({ it.id == 1 && it.className == AParameterizedTest.name }, { it.parentId == null })
-        1 * processor.started({ it.id == 2 && it.className == AParameterizedTest.name && it.name == "helpfulTest[1]" }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 2 && it.className == '[1]' }, { it.parentId == 1 })
+        1 * processor.started({ it.id == 3 && it.className == AParameterizedTest.name  && it.name == "helpfulTest[1]" }, { it.parentId == 2 })
+        1 * processor.completed(3, { it.resultType == null })
         1 * processor.completed(2, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })
         0 * processor._
@@ -513,7 +553,7 @@ class JUnitTestClassProcessorTest extends Specification {
         classProcessor.stopNow()
 
         then:
-        UnsupportedOperationException uoe = thrown()
+        thrown(UnsupportedOperationException)
     }
 
     void assertRuntimExceptionWith(TestFailure testFailure, String message) {
