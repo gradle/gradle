@@ -32,6 +32,7 @@ val smokeIdeTestDistributionRuntimeOnly: Configuration by configurations
 val ideStarter by configurations.creating {
     isCanBeConsumed = false
 }
+val ideStarterDir = layout.buildDirectory.dir("ideStarter")
 
 plugins.withType<IdeaPlugin> {
     with(model) {
@@ -45,7 +46,7 @@ plugins.withType<IdeaPlugin> {
 tasks {
     val unzipIdeStarter by registering(Sync::class) {
         from(zipTree(ideStarter.elements.map { it.single() }))
-        into(layout.buildDirectory.dir("ideStarter"))
+        into(ideStarterDir)
     }
 
     val fetchGradle by registering(RemoteProject::class) {
@@ -81,6 +82,7 @@ tasks {
         group = "Verification"
         maxParallelForks = 1
         systemProperties["org.gradle.integtest.executer"] = "forking"
+        systemProperties["ide.starter.path"] = ideStarterDir.map { it.asFile.absolutePath }.get()
         testClassesDirs = smokeIdeTestSourceSet.output.classesDirs
         classpath = smokeIdeTestSourceSet.runtimeClasspath
     }
