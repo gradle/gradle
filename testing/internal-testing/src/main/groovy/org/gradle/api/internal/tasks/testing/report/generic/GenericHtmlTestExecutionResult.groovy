@@ -18,9 +18,10 @@ package org.gradle.api.internal.tasks.testing.report.generic
 import com.google.common.base.Strings
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.ImmutableMultiset
-import com.google.common.collect.Iterables
 import com.google.common.collect.Multimap
 import com.google.common.collect.Multisets
+import com.google.common.collect.Sets
+import com.google.common.collect.Streams
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.lazy.Lazy
 import org.gradle.util.Path
@@ -40,6 +41,7 @@ import static org.hamcrest.CoreMatchers.hasItem
 import static org.hamcrest.CoreMatchers.hasItems
 import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.MatcherAssert.assertThat
+import static org.junit.jupiter.api.Assertions.fail
 
 class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
 
@@ -71,7 +73,9 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
     private File htmlReportDirectory
 
     GenericHtmlTestExecutionResult(File projectDirectory, String testReportDirectory = "build/reports/tests/test") {
-        this.htmlReportDirectory = new File(projectDirectory, testReportDirectory);
+        this.htmlReportDirectory = new File(projectDirectory, testReportDirectory)
+        // For debugging purposes, always log the location of the report
+        println "HTML test report directory: ${htmlReportDirectory}"
     }
 
     /**
@@ -87,12 +91,46 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
     @Override
     GenericTestExecutionResult assertTestPathsExecuted(String... testPaths) {
         // We always will detect ancestors of the executed test paths as well, so add them to the set
-        Set<Path> extendedTestPaths = testPaths.collect {
-            Path.path(it)
-        }.collect {
-            Iterables.concat([it], it.ancestors())
-        }.flatten() as Set<Path>
-        assertThat(executedTestPaths, equalTo(extendedTestPaths))
+        Set<Path> extendedTestPaths = Stream.of(testPaths)
+            .map { Path.path(it) }
+            .flatMap {
+                Stream.concat(
+                    Stream.of(it),
+                    Streams.stream(it.ancestors()),
+                )
+            }
+            .collect(Collectors.toSet())
+        def missingPaths = Sets.difference(extendedTestPaths, executedTestPaths)
+        def unexpectedPaths = Sets.difference(executedTestPaths, extendedTestPaths)
+        if (!missingPaths.isEmpty() && !unexpectedPaths.isEmpty()) {
+            fail("""Expected paths (${extendedTestPaths.size()}) do not match actual executed paths (${executedTestPaths.size()}).
+Missing paths: ${missingPaths}
+Unexpected paths: ${unexpectedPaths}""")
+        } else if (!missingPaths.isEmpty()) {
+            fail("""Expected paths (${extendedTestPaths.size()}) do not match actual executed paths (${executedTestPaths.size()}).
+Missing paths: ${missingPaths}""")
+        } else if (!unexpectedPaths.isEmpty()) {
+            fail("""Expected paths (${extendedTestPaths.size()}) do not match actual executed paths (${executedTestPaths.size()}).
+Unexpected paths: ${unexpectedPaths}""")
+        }
+        return this
+    }
+
+    // Differs from `assertTestPathsExecuted` in that it only checks that at least the given paths were executed, not that they were the only ones.
+    @Override
+    GenericTestExecutionResult assertAtLeastTestPathsExecuted(String... testPaths) {
+        // We always will detect ancestors of the executed test paths as well, so add them to the set
+        Path[] extendedTestPaths = Stream.of(testPaths)
+            .map { Path.path(it) }
+            .flatMap {
+                Stream.concat(
+                    Stream.of(it),
+                    Streams.stream(it.ancestors()),
+                )
+            }
+            .distinct()
+            .toArray(Path[]::new)
+        assertThat("at least the expected paths must exist", executedTestPaths, hasItems(extendedTestPaths))
         return this
     }
 
@@ -109,6 +147,7 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
 
     @Override
     TestPathExecutionResult testPath(String rootTestPath) {
+        assertAtLeastTestPathsExecuted(rootTestPath)
         return new HtmlTestPathExecutionResult(diskPathForTestPath(rootTestPath).toFile())
     }
 
@@ -120,12 +159,12 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
             case TestFramework.SPOCK:
             case TestFramework.JUNIT4:
             case TestFramework.SCALA_TEST:
-                frameworkPathToTest = testClassName + ":" + testMethodName
+                frameworkPathToTest = ":" + testClassName + ":" + testMethodName
                 break
             case TestFramework.JUNIT_JUPITER:
             case TestFramework.KOTLIN_TEST:
                 def suffix = Strings.isNullOrEmpty(testMethodName) ? "" : "()"
-                frameworkPathToTest = testClassName + ":" + testMethodName + suffix
+                frameworkPathToTest = ":" + testClassName + ":" + testMethodName + suffix
                 break
             case TestFramework.TEST_NG:
                 frameworkPathToTest = ":Gradle-suite:Gradle-test:" + testClassName + ":" + testMethodName
@@ -134,7 +173,7 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
                 throw new IllegalArgumentException("Unknown test framework: " + testFramework)
         }
 
-        return new HtmlTestPathExecutionResult(diskPathForTestPath(frameworkPathToTest).toFile())
+        return testPath(frameworkPathToTest)
     }
 
     @Override
@@ -235,10 +274,14 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
             return html.select('tr > th').size() == 7
         }
 
+        private getDisplayName() {
+            html.selectFirst("h1").text()
+        }
+
         @Override
         TestPathRootExecutionResult assertOnlyChildrenExecuted(String... testNames) {
             def executedAndNotSkipped = Multisets.difference(testsExecuted.keys(), testsSkipped.keys())
-            assertThat(executedAndNotSkipped, equalTo(ImmutableMultiset.copyOf(testNames)))
+            assertThat("in " + getDisplayName(), executedAndNotSkipped, equalTo(ImmutableMultiset.copyOf(testNames)))
             return this
         }
 
@@ -246,15 +289,15 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         TestPathRootExecutionResult assertChildrenExecuted(String... testNames) {
             def executedAndNotSkipped = Multisets.difference(testsExecuted.keys(), testsSkipped.keys())
             testNames.each {
-                assertThat(executedAndNotSkipped, hasItem(it))
+                assertThat("in " + getDisplayName(), executedAndNotSkipped, hasItem(it))
             }
             return this
         }
 
         @Override
         TestPathRootExecutionResult assertChildCount(int tests, int failures) {
-            assert tests == testsExecuted.size()
-            assert failures == testsFailures.size()
+            assertThat("in " + getDisplayName(), testsExecuted.size(), equalTo(tests))
+            assertThat("in " + getDisplayName(), testsFailures.size(), equalTo(failures))
             return this
         }
 
@@ -265,7 +308,7 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
 
         @Override
         TestPathRootExecutionResult assertChildrenSkipped(String... testNames) {
-            assertThat(testsSkipped.keys(), equalTo(ImmutableMultiset.copyOf(testNames)))
+            assertThat("in " + getDisplayName(), testsSkipped.keys(), equalTo(ImmutableMultiset.copyOf(testNames)))
             return null
         }
 
@@ -276,7 +319,7 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
 
         @Override
         TestPathRootExecutionResult assertChildrenFailed(String... testNames) {
-            assertThat(testsFailures.keys(), equalTo(ImmutableMultiset.copyOf(testNames)))
+            assertThat("in " + getDisplayName(), testsFailures.keys(), equalTo(ImmutableMultiset.copyOf(testNames)))
             return null
         }
 
@@ -298,7 +341,12 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         private TestPathRootExecutionResult assertOutput(heading, Matcher<? super String> matcher) {
             def tabs = html.select("div.tab")
             def tab = tabs.find { it.select("h2").text() == heading }
-            assert matcher.matches(tab ? TextUtil.normaliseLineSeparators(tab.select("span > pre").first().textNodes().first().wholeText) : "")
+            assertThat(
+                "in " + getDisplayName(),
+                tab ? TextUtil.normaliseLineSeparators(tab.select("span > pre").first().textNodes().first().wholeText)
+                    : "",
+                matcher,
+            )
             return this
         }
 
@@ -323,13 +371,13 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
 
         @Override
         TestPathRootExecutionResult assertDisplayName(Matcher<? super String> matcher) {
-            assertThat(html.selectFirst("h1").text(), matcher)
+            assertThat(getDisplayName(), matcher)
             return this
         }
 
         @Override
         TestPathRootExecutionResult assertFailureMessages(Matcher<? super String> matcher) {
-            assertThat(getFailureMessages(), matcher)
+            assertThat("in " + getDisplayName(), getFailureMessages(), matcher)
             return this
         }
 
@@ -341,7 +389,7 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         @Override
         TestPathRootExecutionResult assertMetadata(List<String> expectedKeys) {
             def metadataKeys = html.select('.metadata td.key').collect() { it.text() }
-            assertThat(metadataKeys, equalTo(expectedKeys))
+            assertThat("in " + getDisplayName(), metadataKeys, equalTo(expectedKeys))
             return this
         }
 
@@ -350,7 +398,7 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
             def metadataKeys = html.select('.metadata td.key').collect() { it.text() }
             def metadataRenderedValues = html.select('.metadata td.value').collect { it.html()}
             def metadata = [metadataKeys, metadataRenderedValues].transpose().collectEntries { key, value -> [key, value] }
-            assertThat(metadata, equalTo(expectedMetadata))
+            assertThat("in " + getDisplayName(), metadata, equalTo(expectedMetadata))
             return this
         }
     }
