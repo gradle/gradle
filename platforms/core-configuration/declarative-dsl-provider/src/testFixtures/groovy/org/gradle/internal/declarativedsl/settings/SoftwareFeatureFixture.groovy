@@ -125,6 +125,31 @@ trait SoftwareFeatureFixture extends SoftwareTypeFixture {
         return withSoftwareFeaturePlugins(softwareTypeDefinition, softwareType, softwareFeatureDefinition, softwareFeature, settingsBuilder)
     }
 
+    PluginBuilder withSoftwareTypeAndFeatureThatBindsToNestedDefinition() {
+        def softwareTypeDefinition = new SoftwareTypeDefinitionClassBuilder()
+        def softwareType = new SoftwareTypePluginClassBuilder().applyActionExtraStatements(
+            """
+            context.registerBuildModel(definition.getFoo())
+                .getBarProcessed().set(definition.getFoo().getBar().map(it -> it.toUpperCase()));
+            """
+        )
+
+        def softwareFeatureDefinition = new SoftwareFeatureDefinitionWithPublicBuildModelTypeClassBuilder()
+        def softwareFeature = new SoftwareFeaturePluginClassBuilder()
+            .bindingTypeClassName("org.gradle.test." + softwareTypeDefinition.implementationTypeClassName + ".Foo")
+            .buildModelPublicTypeClassName(softwareFeatureDefinition.buildModelFullClassName)
+            .buildModelImplementationTypeClassName(softwareFeatureDefinition.buildModelFullImplementationClassName)
+            .applyActionExtraStatements("""
+                model.getText().set(context.getProject().provider(() -> feature.getText().get() + " " + context.getBuildModel(parent).getBarProcessed().get()));
+            """.stripIndent())
+
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersSoftwareType(softwareType.softwareTypePluginClassName)
+            .registersSoftwareFeature(softwareFeature.softwareFeaturePluginClassName)
+        return withSoftwareFeaturePlugins(softwareTypeDefinition, softwareType, softwareFeatureDefinition, softwareFeature, settingsBuilder)
+    }
+
+
     PluginBuilder withKotlinSoftwareFeaturePlugins() {
         def softwareTypeDefinition = new SoftwareTypeDefinitionClassBuilder()
         def softwareType = new SoftwareTypePluginClassBuilder()
@@ -143,6 +168,7 @@ trait SoftwareFeatureFixture extends SoftwareTypeFixture {
         String buildModelPublicTypeClassName = null
         String softwareFeaturePluginClassName = "SoftwareFeatureImplPlugin"
         String bindingTypeClassName = "TestSoftwareTypeExtension"
+        String applyActionExtraStatements = ""
         String bindingMethodName = "bindSoftwareFeatureToDefinition"
         String name = "feature"
 
@@ -191,6 +217,11 @@ trait SoftwareFeatureFixture extends SoftwareTypeFixture {
             return this
         }
 
+        SoftwareFeaturePluginClassBuilder applyActionExtraStatements(String statements) {
+            this.applyActionExtraStatements = statements
+            return this
+        }
+
         void build(PluginBuilder pluginBuilder) {
             pluginBuilder.file("src/main/java/org/gradle/test/${softwareFeaturePluginClassName}.java") << getClassContent()
         }
@@ -220,9 +251,12 @@ trait SoftwareFeatureFixture extends SoftwareTypeFixture {
                                     System.out.println("Binding ${dslTypeClassName}");
                                     System.out.println("${name} model class: " + model.getClass().getSimpleName());
                                     model.getText().set(feature.getText());
+
                                     context.getProject().getTasks().register("print${dslTypeClassName}Configuration", task -> {
                                         task.doLast(t -> System.out.println("${name} text = " + model.getText().get()));
                                     });
+
+                                    ${applyActionExtraStatements}
                                 }
                             )
                             ${maybeDeclareDefinitionImplementationType()}

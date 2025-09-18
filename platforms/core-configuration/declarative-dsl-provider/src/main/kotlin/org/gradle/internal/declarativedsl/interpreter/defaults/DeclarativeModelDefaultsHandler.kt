@@ -65,7 +65,7 @@ abstract class DeclarativeModelDefaultsHandler @Inject constructor(
     private
     val modelDefaultsRepository = softwareFeatureRegistryBasedModelDefaultsRepository(softwareFeatureRegistry)
 
-    override fun <T : Any> apply(target: T, classLoaderContext: ClassLoaderContext, softwareFeatureName: String, plugin: Plugin<*>) {
+    override fun apply(target: Any, definition: Any, classLoaderContext: ClassLoaderContext, softwareFeatureName: String, plugin: Plugin<*>) {
         val analysisStepRunner = ApplyDefaultsOnlyAnalysisStepRunner()
         val analysisStepContext = AnalysisStepContext(
             emptySet(),

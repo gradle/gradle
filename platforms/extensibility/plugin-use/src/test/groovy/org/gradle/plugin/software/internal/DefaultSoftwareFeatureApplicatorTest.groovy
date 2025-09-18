@@ -17,24 +17,47 @@
 package org.gradle.plugin.software.internal
 
 import org.gradle.api.Plugin
+import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.plugins.HasBuildModel
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.plugins.software.SoftwareType
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.internal.exceptions.DefaultMultiCauseException
+import org.gradle.internal.extensibility.ExtensibleDynamicObject
+import org.gradle.internal.metaobject.DynamicInvokeResult
 import org.gradle.internal.properties.PropertyValue
 import org.gradle.internal.properties.bean.PropertyWalker
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultSoftwareFeatureApplicatorTest extends Specification {
-    def target = Mock(ProjectInternal)
+    def targetChildrenDefinitions = new LinkedHashMap()
+    def targetFeatureDefinitionContext = Mock(SoftwareFeatureSupportInternal.ProjectFeatureDefinitionContext) {
+        it.childrenDefinitions() >> targetChildrenDefinitions
+        _ * it.getOrAddChildDefinition(_, _) >> { args ->
+            if (targetChildrenDefinitions.containsKey(args[0])) {
+                return new SoftwareFeatureSupportInternal.ProjectFeatureDefinitionContext.ChildDefinitionAdditionResult(false, targetChildrenDefinitions.get(args[0]))
+            } else {
+                def definition = args[1].get()
+                targetChildrenDefinitions.put(args[0], definition)
+                return new SoftwareFeatureSupportInternal.ProjectFeatureDefinitionContext.ChildDefinitionAdditionResult(true, definition)
+            }
+        }
+    }
+    def targetDynamicObject = Mock(ExtensibleDynamicObject) {
+        tryInvokeMethod(SoftwareFeaturesDynamicObject.CONTEXT_METHOD_NAME, _ as Object[]) >>
+            DynamicInvokeResult.found(targetFeatureDefinitionContext)
+    }
+    def target = Mock(DefinitionWithExtensions) {
+        _ * it.asDynamicObject >> targetDynamicObject
+    }
+
     def modelDefaultsApplicator = Mock(ModelDefaultsApplicator)
     def inspectionScheme = Mock(InspectionScheme)
     def problems = TestUtil.problemsService()
@@ -52,24 +75,28 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
     def softwareType = Mock(SoftwareType)
     def extensions = Mock(ExtensionContainerInternal)
     def softwareTypeImplementation = Mock(LegacySoftwareTypeImplementation)
-    def foo = new Foo()
+    def foo = Mock(Foo) {
+        _ * it.asDynamicObject >> Mock(ExtensibleDynamicObject)
+    }
 
     def "adds software types as extensions when software type plugin is applied"() {
         when:
-        def returned = applicator.applyFeatureTo(target, softwareTypeImplementation)
+        def returned = applicator.applyFeatureTo(target as DynamicObjectAware, softwareTypeImplementation)
 
         then:
         _ * softwareTypeImplementation.pluginClass >> plugin.class
-        1 * pluginManager.pluginContainer >> plugins
-        1 * plugins.getPlugin(plugin.class) >> plugin
-        1 * inspectionScheme.getPropertyWalker() >> propertyWalker
-        1 * propertyWalker.visitProperties(plugin, _, _) >> { args -> args[2].visitSoftwareTypeProperty("foo", propertyValue, Foo.class, softwareType) }
-        _ * target.getExtensions() >> extensions
+        _ * pluginManager.pluginContainer >> plugins
+        _ * plugins.getPlugin(plugin.class) >> plugin
+        _ * inspectionScheme.getPropertyWalker() >> propertyWalker
+        1 * propertyWalker.visitProperties(plugin, _, _) >> { args ->
+            args[2].visitSoftwareTypeProperty("foo", propertyValue, Foo.class, softwareType)
+        }
+        _ * target.extensions >> extensions
         1 * softwareType.modelPublicType() >> Foo.class
         1 * softwareType.name() >> "foo"
         1 * propertyValue.call() >> foo
         1 * extensions.add(Foo.class, "foo", foo)
-        1 * modelDefaultsApplicator.applyDefaultsTo(target, _, plugin, softwareTypeImplementation)
+        1 * modelDefaultsApplicator.applyDefaultsTo(target, _, _, plugin, softwareTypeImplementation)
         _ * softwareTypeImplementation.featureName >> "foo"
         1 * extensions.getByName("foo") >> foo
 
@@ -79,12 +106,12 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
 
     def "only adds software types as extensions once when software type plugin is applied multiple times"() {
         when:
-        def first = applicator.applyFeatureTo(target, softwareTypeImplementation)
+        def first = applicator.applyFeatureTo(target as DynamicObjectAware, softwareTypeImplementation)
 
         then:
         _ * softwareTypeImplementation.pluginClass >> plugin.class
-        1 * pluginManager.pluginContainer >> plugins
-        1 * plugins.getPlugin(plugin.class) >> plugin
+        _ * pluginManager.pluginContainer >> plugins
+        _ * plugins.getPlugin(plugin.class) >> plugin
         1 * inspectionScheme.getPropertyWalker() >> propertyWalker
         1 * propertyWalker.visitProperties(plugin, _, _) >> { args -> args[2].visitSoftwareTypeProperty("foo", propertyValue, Foo.class, softwareType) }
         _ * target.getExtensions() >> extensions
@@ -92,7 +119,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         1 * softwareType.name() >> "foo"
         1 * propertyValue.call() >> foo
         1 * extensions.add(Foo.class, "foo", foo)
-        1 * modelDefaultsApplicator.applyDefaultsTo(target, _, plugin, softwareTypeImplementation)
+        1 * modelDefaultsApplicator.applyDefaultsTo(target, _, _, plugin, softwareTypeImplementation)
         _ * softwareTypeImplementation.featureName >> "foo"
         1 * extensions.getByName("foo") >> foo
 
@@ -100,12 +127,16 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         first == foo
 
         when:
-        def second = applicator.applyFeatureTo(target, softwareTypeImplementation)
+        def second = applicator.applyFeatureTo(target as DynamicObjectAware, softwareTypeImplementation)
 
         then:
-        _ * target.getExtensions() >> extensions
         _ * softwareTypeImplementation.featureName >> "foo"
-        1 * extensions.getByName("foo") >> foo
+        1 * target.asDynamicObject >> targetDynamicObject
+        1 * targetDynamicObject.tryInvokeMethod(SoftwareFeaturesDynamicObject.CONTEXT_METHOD_NAME, _) >> DynamicInvokeResult.found(targetFeatureDefinitionContext)
+        1 * targetFeatureDefinitionContext.getOrAddChildDefinition(softwareTypeImplementation, _) >>
+            new SoftwareFeatureSupportInternal.ProjectFeatureDefinitionContext.ChildDefinitionAdditionResult(false, foo)
+        _ * pluginManager.pluginContainer >> plugins
+        _ * plugins.getPlugin(plugin.class) >> plugin
         0 * _
 
         and:
@@ -117,7 +148,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         def plugin = Mock(Plugin)
 
         when:
-        def returned = applicator.applyFeatureTo(target, softwareTypeImplementation)
+        def returned = applicator.applyFeatureTo(target as DynamicObjectAware, softwareTypeImplementation)
 
         then:
         1 * softwareType.disableModelManagement() >> true
@@ -125,15 +156,15 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
 
         and:
         _ * softwareTypeImplementation.pluginClass >> plugin.class
-        1 * pluginManager.pluginContainer >> plugins
-        1 * plugins.getPlugin(plugin.class) >> plugin
+        _ * pluginManager.pluginContainer >> plugins
+        _ * plugins.getPlugin(plugin.class) >> plugin
         1 * inspectionScheme.getPropertyWalker() >> propertyWalker
         1 * propertyWalker.visitProperties(plugin, _, _) >> { args -> args[2].visitSoftwareTypeProperty("foo", propertyValue, Foo.class, softwareType) }
         1 * propertyValue.call() >> foo
         _ * target.getExtensions() >> extensions
         _ * softwareType.name() >> "foo"
         0 * extensions.add(_, _, _)
-        1 * modelDefaultsApplicator.applyDefaultsTo(target, _ , plugin, softwareTypeImplementation)
+        1 * modelDefaultsApplicator.applyDefaultsTo(target, _, _, plugin, softwareTypeImplementation)
         _ * softwareTypeImplementation.featureName >> "foo"
         1 * extensions.getByName("foo") >> foo
 
@@ -145,7 +176,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         def plugin = Mock(Plugin)
 
         when:
-        applicator.applyFeatureTo(target, softwareTypeImplementation)
+        applicator.applyFeatureTo(target as DynamicObjectAware, softwareTypeImplementation)
 
         then:
         1 * softwareType.disableModelManagement() >> true
@@ -172,11 +203,11 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         def plugin = Mock(Plugin)
 
         when:
-        applicator.applyFeatureTo(target, softwareTypeImplementation)
+        applicator.applyFeatureTo(target as DynamicObjectAware, softwareTypeImplementation)
 
         then:
         1 * softwareType.disableModelManagement() >> true
-        1 * extensions.findByName("foo") >> new Foo()
+        1 * extensions.findByName("foo") >> Mock(Foo) { it.asDynamicObject >> Mock(ExtensibleDynamicObject) }
 
         and:
         _ * softwareTypeImplementation.pluginClass >> plugin.class
@@ -195,6 +226,8 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         e.causes.find { it.message.contains("property 'foo' has @SoftwareType annotation with 'disableModelManagement' set to true, but the extension with name 'foo' does not match the value of the property")}
     }
 
-    private static class Foo implements HasBuildModel<Bar> {}
+    private interface DefinitionWithExtensions extends DynamicObjectAware, ExtensionAware {}
+
+    private interface Foo extends HasBuildModel<Bar>, DynamicObjectAware {}
     private static class Bar implements BuildModel {}
 }

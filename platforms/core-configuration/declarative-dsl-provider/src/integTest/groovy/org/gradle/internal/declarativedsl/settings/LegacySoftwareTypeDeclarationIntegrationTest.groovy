@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
 
+import static org.gradle.internal.declarativedsl.DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 import static org.gradle.util.Matchers.containsText
 
 @PolyglotDslTest
@@ -45,7 +46,7 @@ class LegacySoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSp
 
         settingsFile() << pluginsFromIncludedBuild
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType << nonDeclarativeSuffixForKotlinDsl
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration")
@@ -69,7 +70,7 @@ class LegacySoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSp
             }
         """
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType << nonDeclarativeSuffixForKotlinDsl
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration")
@@ -88,7 +89,7 @@ class LegacySoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSp
 
         settingsFile() << pluginsFromIncludedBuild
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType << nonDeclarativeSuffixForKotlinDsl
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration")
@@ -103,7 +104,7 @@ class LegacySoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSp
 
         settingsFile() << pluginsFromIncludedBuild
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType << nonDeclarativeSuffixForKotlinDsl
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration")
@@ -118,7 +119,7 @@ class LegacySoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSp
 
         settingsFile() << pluginsFromIncludedBuild
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType << nonDeclarativeSuffixForKotlinDsl
 
         when:
         fails(":printTestSoftwareTypeExtensionConfiguration")
@@ -129,13 +130,14 @@ class LegacySoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSp
         failure.assertThatCause(containsText("Type 'org.gradle.test.SoftwareTypeImplPlugin' property 'testSoftwareTypeExtension' has @SoftwareType annotation with public type 'AnotherSoftwareTypeExtension' used on property of type 'TestSoftwareTypeExtension'."))
     }
 
+    @SkipDsl(dsl = GradleDsl.KOTLIN, because = "inaccessible type exposed in the DSL")
     def 'sensible error when a software type plugin exposes a private software type'() {
         given:
         withLegacySoftwareTypePluginThatExposesPrivateSoftwareType().prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType << nonDeclarativeSuffixForKotlinDsl
 
         when:
         fails(":printTestSoftwareTypeExtensionConfiguration")
@@ -152,7 +154,7 @@ class LegacySoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSp
 
         settingsFile() << pluginsFromIncludedBuild
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType << nonDeclarativeSuffixForKotlinDsl
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration")
@@ -165,13 +167,14 @@ class LegacySoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSp
         outputDoesNotContain("Applying AnotherSoftwareTypeImplPlugin")
     }
 
+    @SkipDsl(dsl = GradleDsl.KOTLIN, because = "inaccessible type exposed in the DSL")
     def 'sensible error when software type plugin declares that it registers its own extension but does not'() {
         given:
         withLegacySoftwareTypePluginThatFailsToRegistersItsOwnExtension().prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType << nonDeclarativeSuffixForKotlinDsl
 
         when:
         fails(":printTestSoftwareTypeExtensionConfiguration")
@@ -181,13 +184,14 @@ class LegacySoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSp
         failure.assertHasCause("Type 'org.gradle.test.SoftwareTypeImplPlugin' property 'testSoftwareTypeExtension' has @SoftwareType annotation with 'disableModelManagement' set to true, but no extension with name 'testSoftwareType' was registered.")
     }
 
+    @SkipDsl(dsl = GradleDsl.KOTLIN, because = "inaccessible type exposed in the DSL")
     def 'sensible error when software type plugin declares that it registers its own extension but registers the wrong object'() {
         given:
         withLegacySoftwareTypePluginThatRegistersTheWrongExtension().prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType << nonDeclarativeSuffixForKotlinDsl
 
         when:
         fails(":printTestSoftwareTypeExtensionConfiguration")

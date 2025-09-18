@@ -58,7 +58,7 @@ class GroovySoftwareTypePlugin : Plugin<Project> {
 
                     val processResourcesTask = registerResourcesProcessing(source)
 
-                    model.classes.add(getOrCreateModel(source, GroovyClasses.DefaultGroovyClasses::class.java).apply {
+                    model.classes.add(registerBuildModel(source, GroovyClasses.DefaultGroovyClasses::class.java).apply {
                         name = source.name
                         inputSources.source(source.sourceDirectories)
                         byteCodeDir.set(compileTask.map { it.destinationDirectory.get() })

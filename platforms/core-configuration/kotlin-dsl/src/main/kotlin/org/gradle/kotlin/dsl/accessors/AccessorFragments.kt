@@ -17,7 +17,7 @@ package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.Action
 import org.gradle.api.Incubating
-import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.deprecation.ConfigurationDeprecationType
 import org.gradle.internal.hash.Hashing.hashString
@@ -106,10 +106,10 @@ private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragme
                 }) {
                     maybeWithDeprecation(deprecation)
                     ALOAD(0)
-                    CHECKCAST(ExtensionAware::class.internalName)
+                    CHECKCAST(DynamicObjectAware::class.internalName)
                     LDC(functionName)
                     ALOAD(1)
-                    invokeRuntime("applySoftwareFeature", "(L${ExtensionAware::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V")
+                    invokeRuntime("applySoftwareFeature", "(L${DynamicObjectAware::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V")
                     RETURN()
                 }
             },
