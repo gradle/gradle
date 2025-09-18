@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("DEPRECATION")
+
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Action
@@ -53,7 +55,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
 @Deprecated("Will be removed in Gradle 10")
 abstract class KotlinSettingsScript(
     private val host: KotlinScriptHost<Settings>
-) : @Suppress("deprecation") SettingsScriptApi(host.target) /* TODO:kotlin-dsl configure implicit receiver */ {
+) : SettingsScriptApi(host.target) /* TODO:kotlin-dsl configure implicit receiver */ {
 
     /**
      * The [ScriptHandler] for this script.
