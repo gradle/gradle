@@ -35,6 +35,7 @@ import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.executer.ResultAssertion
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestDistributionDirectoryProvider
@@ -238,9 +239,16 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     def <T> T loadToolingModel(Class<T> modelClass, @DelegatesTo(ModelBuilder<T>) Closure cl = {}) {
+        return loadToolingModel(modelClass, null, cl)
+    }
+
+    def <T> T loadToolingModel(Class<T> modelClass, Jvm jvm, @DelegatesTo(ModelBuilder<T>) Closure cl = {}) {
         runSuccessfully {
             withConnection {
                 def builder = it.model(modelClass)
+                if (jvm) {
+                    builder.javaHome = jvm.javaHome
+                }
                 builder.tap(cl)
                 builder.get()
             }
