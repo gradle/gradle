@@ -102,7 +102,17 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
 
         @Override
         public <T> List<T> runQueryModelActions(List<Supplier<T>> actions) {
-            return actionRunner.run(actions);
+            return buildOperationRunner.call(new CallableBuildOperation<List<T>>() {
+                @Override
+                public List<T> call(BuildOperationContext context) {
+                    return actionRunner.run(actions);
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    return BuildOperationDescriptor.displayName(String.format("Run nested tooling build actions (%d)", actions.size()));
+                }
+            });
         }
 
         private ToolingModelScope locateBuilderForTarget(BuildTreeModelTarget target, String modelName, boolean parameter) {
