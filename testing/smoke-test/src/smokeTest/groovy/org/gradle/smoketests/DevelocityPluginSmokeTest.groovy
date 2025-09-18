@@ -35,11 +35,6 @@ import java.util.concurrent.ConcurrentHashMap
 class DevelocityPluginSmokeTest extends AbstractSmokeTest {
 
     enum CI {
-        // https://github.com/etiennestuder/teamcity-build-scan-plugin/releases
-        TEAM_CITY(
-            "v0.36",
-            "https://raw.githubusercontent.com/etiennestuder/teamcity-build-scan-plugin/%s/agent/src/main/resources/init-scripts/develocity-injection.init.gradle"
-        ),
         // https://github.com/jenkinsci/gradle-plugin/releases
         JENKINS(
             "gradle-2.15",
@@ -448,8 +443,6 @@ public class MyFlakyTest {
                 "- The deprecated \"gradleEnterprise.buildScan.uploadInBackground\" API has been replaced by \"develocity.buildScan.uploadInBackground\"")
             .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
                 "- The deprecated \"gradleEnterprise.buildScan.value\" API has been replaced by \"develocity.buildScan.value\"")
-            .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber && ci == CI.TEAM_CITY,
-                "- The deprecated \"gradleEnterprise.buildScan.buildScanPublished\" API has been replaced by \"develocity.buildScan.buildScanPublished\"")
             .maybeExpectLegacyDeprecationWarning(
                 "Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated. " +
                     "This is scheduled to be removed in Gradle 10. " +
