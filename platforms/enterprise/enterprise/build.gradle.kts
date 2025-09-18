@@ -59,11 +59,3 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }
-
-jvmCompile {
-    compilations {
-        named("main") {
-            targetJvmVersion = 17
-        }
-    }
-}
