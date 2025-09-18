@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
+// TODO: remove the test: proguard is built-in in AGP 8+
 class ProguardSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
     @Override
     Map<String, Versions> getPluginsToValidate() {
@@ -42,7 +43,7 @@ class ProguardSmokeTest extends AbstractPluginValidatingSmokeTest implements Val
             }
 
             dependencies {
-                implementation 'com.guardsquare:proguard-gradle:${TestedVersions.proguardGradle}'
+                implementation 'com.guardsquare:proguard-gradle:7.7.0'
             }
 
             // Configure the validation task here, since there is no ProGuard plugin

@@ -35,16 +35,19 @@ import java.util.concurrent.ConcurrentHashMap
 class DevelocityPluginSmokeTest extends AbstractSmokeTest {
 
     enum CI {
+        // https://github.com/etiennestuder/teamcity-build-scan-plugin/releases
         TEAM_CITY(
-            AbstractSmokeTest.TestedVersions.teamCityGradlePluginRef,
+            "v0.36",
             "https://raw.githubusercontent.com/etiennestuder/teamcity-build-scan-plugin/%s/agent/src/main/resources/init-scripts/develocity-injection.init.gradle"
         ),
+        // https://github.com/jenkinsci/gradle-plugin/releases
         JENKINS(
-            AbstractSmokeTest.TestedVersions.jenkinsGradlePluginRef,
+            "gradle-2.15",
             "https://raw.githubusercontent.com/jenkinsci/gradle-plugin/%s/src/main/resources/hudson/plugins/gradle/injection/init-script.gradle"
         ),
+        // https://github.com/gradle/develocity-bamboo-plugin/releases
         BAMBOO(
-            AbstractSmokeTest.TestedVersions.bambooGradlePluginRef,
+            "develocity-bamboo-plugin-3.0.1",
             "https://raw.githubusercontent.com/gradle/develocity-bamboo-plugin/refs/tags/%s/src/main/resources/develocity/gradle/develocity-init-script.gradle"
         );
 
