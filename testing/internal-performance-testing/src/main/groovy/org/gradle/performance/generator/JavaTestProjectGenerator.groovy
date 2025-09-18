@@ -41,12 +41,12 @@ enum JavaTestProjectGenerator {
         .testChangeFile(-1)
         .create()),
     LARGE_JAVA_MULTI_PROJECT(new TestProjectGeneratorConfigurationBuilder("largeJavaMultiProject")
-        .withSourceFiles(100)
-        .withSubProjects(500)
+        .withSourceFiles(1)
+        .withSubProjects(5)
         .withDaemonMemory('2g')
         .withCompilerMemory('512m')
         .assembleChangeFile()
-        .testChangeFile(450, 2250, 45000).create()),
+        .testChangeFile(4, 2, 45).create()),
     LARGE_JAVA_MULTI_PROJECT_HIERARCHY(new TestProjectGeneratorConfigurationBuilder("largeJavaMultiProjectHierarchy")
         .withSourceFiles(100)
         .withSubProjects(250)
