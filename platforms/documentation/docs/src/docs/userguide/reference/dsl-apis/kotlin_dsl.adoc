@@ -294,7 +294,7 @@ Type-safe accessors are unavailable for model elements contributed by the follow
  * Script plugins, via `apply(from = "script-plugin.gradle.kts")`.
  * Plugins applied via <<sec:kotlin_cross_project_configuration,cross-project configuration>>.
 
-You cannot use type-safe accessors in <<implementing_gradle_plugins_binary.adoc#implemention_binary_plugins,binary Gradle plugins>> implemented in Kotlin.
+You cannot use type-safe accessors in <<implementing_gradle_plugins_binary.adoc#implementing_binary_plugins,binary Gradle plugins>> implemented in Kotlin.
 
 If you can't find a type-safe accessor, _fall back to using the normal API_ for the corresponding types.
 To do so, you need to know the names and/or types of the configured model elements.

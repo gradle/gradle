@@ -370,24 +370,28 @@ public class TaskExecution implements MutableUnitOfWork {
         if (!(cause instanceof UncheckedIOException)) {
             return UncheckedException.throwAsUncheckedException(cause);
         }
-        boolean isDestinationDir = propertyName.equals("destinationDir");
-        DocumentedFailure.Builder builder = DocumentedFailure.builder();
+        return decorateExceptionBuilder(
+                DocumentedFailure.builder().withUserManual("incremental_build", "sec:disable-state-tracking"),
+                propertyType,
+                propertyName,
+                propertyName.equals("destinationDir"))
+            .build(cause);
+    }
+
+    private DocumentedFailure.Builder decorateExceptionBuilder(DocumentedFailure.Builder builder, String propertyType, String propertyName, boolean isDestinationDir) {
         if (isDestinationDir && task instanceof Copy) {
-            builder.withSummary("Cannot access a file in the destination directory.")
+           return builder.withSummary("Cannot access a file in the destination directory.")
                 .withContext("Copying to a directory which contains unreadable content is not supported.")
                 .withAdvice("Declare the task as untracked by using Task.doNotTrackState().");
         } else if (isDestinationDir && task instanceof Sync) {
-            builder.withSummary("Cannot access a file in the destination directory.")
+           return builder.withSummary("Cannot access a file in the destination directory.")
                 .withContext("Syncing to a directory which contains unreadable content is not supported.")
                 .withAdvice("Use a Copy task with Task.doNotTrackState() instead.");
         } else {
-            builder.withSummary(String.format("Cannot access %s property '%s' of %s.",
-                    propertyType, propertyName, getDisplayName()))
+           return builder.withSummary(String.format("Cannot access %s property '%s' of %s.", propertyType, propertyName, getDisplayName()))
                 .withContext("Accessing unreadable inputs or outputs is not supported.")
                 .withAdvice("Declare the task as untracked by using Task.doNotTrackState().");
         }
-        return builder.withUserManual("incremental_build", "sec:disable-state-tracking")
-            .build(cause);
     }
 
     @Override

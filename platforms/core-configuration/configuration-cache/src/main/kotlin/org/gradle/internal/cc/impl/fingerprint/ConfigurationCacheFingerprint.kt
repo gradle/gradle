@@ -33,7 +33,6 @@ sealed class ConfigurationCacheFingerprint : ValueObject {
     data class GradleEnvironment(
         val gradleUserHomeDir: File,
         val jvm: String,
-        val startParameterProperties: Map<String, Any?>?,
         /**
          * Whether to exclude from input tracking the undeclared inputs accessed
          * while resolving and storing work graph or while building the model result of the build action.
@@ -56,6 +55,10 @@ sealed class ConfigurationCacheFingerprint : ValueObject {
 
     data class InitScripts(
         val fingerprints: List<InputFile>
+    ) : ConfigurationCacheFingerprint()
+
+    data class StartParameterProjectProperties(
+        val snapshot: Map<String, Any?>
     ) : ConfigurationCacheFingerprint()
 
     data class MissingBuildSrcDir(

@@ -12,16 +12,46 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[implemention_precompiled_plugins]]
-= Implementing Pre-compiled Script Plugins
-:keywords: precompiled, plugin
+[[implementing_precompiled_plugins]]
+= Pre-compiled Script Plugins
+:keywords: precompiled, plugin, pre-compiled
 
-A *precompiled script plugin* is typically a Kotlin script that has been compiled and distributed as Java class files packaged in a library.
-These scripts are intended to be consumed as binary Gradle plugins and are recommended for use as convention plugins.
+A *precompiled script plugin* is a `.gradle.kts` (Kotlin DSL) or `.gradle` (Groovy DSL) script stored in a plugin source set (e.g. `buildSrc` or an included build like `build-logic`).
+Gradle automatically compiles it into a proper plugin class, packages it like a normal plugin, and assigns the plugin ID based on the file name.
 
-A *convention plugin* is a plugin that normally configures existing core and community plugins with your own conventions (i.e. default values) such as setting the Java version by using `java.toolchain.languageVersion = JavaLanguageVersion.of(17)`.
-Convention plugins are also used to enforce project standards and help streamline the build process.
-They can apply and configure plugins, create new tasks and extensions, set dependencies, and much more.
+For example, you place a script in `build-logic/src/main/kotlin/java-library-conventions.gradle.kts`:
+
+[source,text]
+----
+some-project/
+├─ settings.gradle.kts
+├─ build-logic/
+│  ├─ build.gradle.kts
+│  └─ src/
+│     └─ main/
+│        └─ kotlin/
+│           └─ java-library-conventions.gradle.kts  // <1>
+└─ app/
+   ├─ build.gradle.kts                              // <2>
+   └─ src/
+----
+<1> Pre-compiled script plugin
+<2> Build file applies the plugin
+
+Gradle automatically compiles that script into a plugin.
+The plugin ID is derived from the file name: `java-library-conventions.gradle.kts`.
+
+You can now apply it in any build like a regular plugin.
+In the build file of the `app` project:
+
+[source,kotlin]
+.app/build.gradle.kts
+----
+plugins {
+    // Apply by ID derived from the file name:
+    id("java-library-conventions")
+}
+----
 
 [[sec:the_plugin_id]]
 == Setting the plugin ID
@@ -104,6 +134,14 @@ You can provide configuration for your plugin by adding an extension object to t
 
 Let's update our `greetings` example:
 
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/greeting">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/plugins/greeting/kotlin", files="buildSrc/src/main/kotlin/greetings.gradle.kts[tags=create-extension]"]
 include::sample[dir="snippets/plugins/greeting/groovy", files="buildSrc/src/main/groovy/greetings.gradle[tags=create-extension]"]
@@ -133,6 +171,14 @@ In plugins, you can define default values, also known as *conventions*, using th
 
 Convention properties are properties that are initialized with default values but can be overridden:
 
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/greeting">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/plugins/greeting/kotlin", files="buildSrc/src/main/kotlin/greetings.gradle.kts[tags=convention]"]
 include::sample[dir="snippets/plugins/greeting/groovy", files="buildSrc/src/main/groovy/greetings.gradle[tags=convention]"]
@@ -149,6 +195,14 @@ If the `message` property is not explicitly set, its value will be automatically
 Using an extension and mapping it to a custom task's input/output properties is common in plugins.
 
 In this example, the message property of the `GreetingPluginExtension` is mapped to the message property of the `GreetingTask` as an input:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/greeting">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/plugins/greeting/kotlin", files="buildSrc/src/main/kotlin/greetings.gradle.kts[tags=task]"]
@@ -169,15 +223,79 @@ You can find out more about types that you can use in task implementations and e
 
 In order to apply an external plugin in a precompiled script plugin, it has to be added to the plugin project's implementation classpath in the plugin's build file:
 
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/precompiledScriptPlugins-externalPlugins">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/kotlin",files="buildSrc/build.gradle.kts[]"]
 include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/groovy",files="buildSrc/build.gradle[]"]
 ====
 
 It can then be applied in the precompiled script plugin:
+
 ====
 include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/kotlin",files="buildSrc/src/main/kotlin/my-plugin.gradle.kts[]"]
 include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/groovy",files="buildSrc/src/main/groovy/my-plugin.gradle[]"]
 ====
 
 The plugin version in this case is defined in the dependency declaration.
+
+[[project_pre_compiled_plugins]]
+== Example of a precompiled script plugin in the `Project` scope
+
+You can see an example <<pre_compiled_script_plugin_advanced.adoc#example_precompiled_script_plugin,here>>.
+
+[[settings_pre_compiled_plugins]]
+== Example of a precompiled script plugin in the `Settings` scope
+
+Precompiled script plugins can also target the
+link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[`Settings`] scope.
+The following example defines a simple plugin in a separate build called `settings-plugin`.
+
+Configure plugin management for the plugin build:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/precompiledScriptPlugins-settings">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/kotlin",files="settings-plugin/settings.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/groovy",files="settings-plugin/settings.gradle[]"]
+
+====
+
+Set up the build to support precompiled script plugins:
+
+====
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/kotlin",files="settings-plugin/build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/groovy",files="settings-plugin/build.gradle[]"]
+====
+
+TIP: Notice that we used the practice described in <<sec:applying_external_plugins>>.
+
+Write the precompiled script plugin itself:
+
+====
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/kotlin",files="settings-plugin/src/main/kotlin/my-plugin.settings.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/groovy",files="settings-plugin/src/main/groovy/my-plugin.settings.gradle[]"]
+====
+
+Because the file name ends with `.settings.gradle.kts`, Gradle compiles it into a plugin with a `Settings` scope.
+The plugin ID is `my-plugin`.
+You can use it as follows in a consumer project (root settings file of the consuming project):
+
+====
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/kotlin",files="settings.gradle.kts[tags=main]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/groovy",files="settings.gradle[tags=main]"]
+====
+
+WARNING: Because the plugin was precompiled as a link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[`Settings`] plugin (the `.settings.gradle(.kts)` suffix), you apply it in the settings file’s `plugins {}` block, not in a project `build.gradle(.kts)` file.

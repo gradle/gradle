@@ -24,14 +24,18 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.io.Closeable;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.newOutputStream;
 
 @ServiceScope(Scope.Build.class)
 public class TaskStatistics implements Closeable {
@@ -49,11 +53,11 @@ public class TaskStatistics implements Closeable {
 
     public TaskStatistics() {
         String taskStatistics = System.getProperty(TASK_STATISTICS_PROPERTY);
-        if (taskStatistics!=null) {
+        if (taskStatistics != null) {
             collectStatistics = true;
             if (!taskStatistics.isEmpty()) {
                 try {
-                    lazyTaskLog = new PrintWriter(new FileWriter(taskStatistics));
+                    lazyTaskLog = new PrintWriter(new OutputStreamWriter(newOutputStream(Paths.get(taskStatistics)), UTF_8));
                 } catch (IOException e) {
                     // don't care
                 }

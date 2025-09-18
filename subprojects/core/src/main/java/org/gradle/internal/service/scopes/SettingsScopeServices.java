@@ -122,11 +122,6 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected GradleInternal createGradleInternal() {
-        return settings.getGradle();
-    }
-
-    @Provides
     protected CacheConfigurationsInternal createCacheConfigurations(ObjectFactory objectFactory, CacheConfigurationsInternal persistentCacheConfigurations, GradleInternal gradleInternal) {
         CacheConfigurationsInternal cacheConfigurations = objectFactory.newInstance(DefaultCacheConfigurations.class);
         if (gradleInternal.isRootBuild()) {

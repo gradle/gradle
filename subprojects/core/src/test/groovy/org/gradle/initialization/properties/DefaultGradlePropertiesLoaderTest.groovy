@@ -31,7 +31,7 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
     private Map<String, String> projectPropertiesArgs = [:]
 
     private final StartParameterInternal startParameter = Mock(StartParameterInternal) {
-        getProjectProperties() >> { projectPropertiesArgs }
+        getProjectPropertiesUntracked() >> { projectPropertiesArgs }
     }
 
     private final Environment environment = Mock(Environment) {

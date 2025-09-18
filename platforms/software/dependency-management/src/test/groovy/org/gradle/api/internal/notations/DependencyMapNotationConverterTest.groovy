@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.internal.typeconversion.NotationParserBuilder
+import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -27,6 +28,7 @@ class DependencyMapNotationConverterTest extends Specification {
 
     def parser = NotationParserBuilder.toType(ExternalModuleDependency).converter(new DependencyMapNotationConverter<DefaultExternalModuleDependency>(TestUtil.instantiatorFactory().decorateLenient(), DefaultExternalModuleDependency.class)).toComposite()
 
+    @ExpectDeprecation("Declaring dependencies using multi-string notation has been deprecated")
     def "with artifact"() {
         when:
         def d = parser.parseNotation([group: 'org.gradle', name: 'gradle-core', version: '4.4-beta2', ext: 'mytype'])
@@ -48,6 +50,7 @@ class DependencyMapNotationConverterTest extends Specification {
         d.artifacts.find { it.name == 'gradle-core' && it.classifier == null && it.type == 'mytype' }
     }
 
+    @ExpectDeprecation("Declaring dependencies using multi-string notation has been deprecated")
     def "with classified artifact"() {
         when:
         def d = parser.parseNotation([group: 'org.gradle', name: 'gradle-core', version: '10', ext: 'zip', classifier: 'jdk-1.4'])
@@ -69,6 +72,7 @@ class DependencyMapNotationConverterTest extends Specification {
         d.artifacts.find { it.name == 'gradle-core' && it.classifier == 'jdk-1.4' && it.type == 'zip' }
     }
 
+    @ExpectDeprecation("Declaring dependencies using multi-string notation has been deprecated")
     def "with classifier"() {
         when:
         def d = parser.parseNotation([group: 'org.gradle', name:'gradle-core', version:'10', classifier:'jdk-1.4']);
@@ -91,6 +95,7 @@ class DependencyMapNotationConverterTest extends Specification {
                 it.type == DependencyArtifact.DEFAULT_TYPE && it.extension == DependencyArtifact.DEFAULT_TYPE }
     }
 
+    @ExpectDeprecation("Declaring dependencies using multi-string notation has been deprecated")
     def "with 3-element map"() {
         when:
         def d = parser.parseNotation([group: 'org.gradle', name:'gradle-core', version:'1.0']);
@@ -109,6 +114,7 @@ class DependencyMapNotationConverterTest extends Specification {
         !d.changing
     }
 
+    @ExpectDeprecation("Declaring dependencies using multi-string notation has been deprecated")
     def "with 3-element map and configuration"() {
         when:
         def d = parser.parseNotation([group: 'org.gradle', name:'gradle-core', version:'1.0', configuration:'compile']);
@@ -128,6 +134,7 @@ class DependencyMapNotationConverterTest extends Specification {
         !d.changing
     }
 
+    @ExpectDeprecation("Declaring dependencies using multi-string notation has been deprecated")
     def "with default configuration"() {
         when:
         def d = parser.parseNotation([group: 'org.gradle', name:'gradle-core', version:'1.0', configuration:'default']);
@@ -147,6 +154,7 @@ class DependencyMapNotationConverterTest extends Specification {
         !d.changing
     }
 
+    @ExpectDeprecation("Declaring dependencies using multi-string notation has been deprecated")
     def "without default configuration"() {
         when:
         def d = parser.parseNotation([group: 'org.gradle', name:'gradle-core', version:'1.0']);
@@ -166,6 +174,7 @@ class DependencyMapNotationConverterTest extends Specification {
         !d.changing
     }
 
+    @ExpectDeprecation("Declaring dependencies using multi-string notation has been deprecated")
     def "with 3-element map and property"() {
         when:
         def d = parser.parseNotation([group: 'org.gradle', name:'gradle-core', version:'1.0', transitive:false]);
@@ -185,6 +194,7 @@ class DependencyMapNotationConverterTest extends Specification {
         !d.changing
     }
 
+    @ExpectDeprecation("Declaring dependencies using multi-string notation has been deprecated")
     def "with no group and no version"() {
         when:
         def d = parser.parseNotation([name:'foo'])

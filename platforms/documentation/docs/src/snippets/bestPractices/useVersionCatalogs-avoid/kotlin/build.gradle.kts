@@ -18,9 +18,7 @@ dependencies {
     api("org.codehaus.groovy:groovy-nio:$groovyVersion")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
-}
 
-dependencies {
     implementation("org.apache.commons:commons-lang3") {
         version {
             strictly("[3.8, 4.0[")

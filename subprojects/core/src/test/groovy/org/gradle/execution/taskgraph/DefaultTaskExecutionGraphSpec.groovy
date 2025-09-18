@@ -93,7 +93,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     def executionPlan = newExecutionPlan()
     def taskGraph = new DefaultTaskExecutionGraph(
         new DefaultPlanExecutor(workerLimits, executorFactory, workerLeases, cancellationToken, coordinator, new DefaultInternalOptions([:])),
-        [nodeExecutor],
+        nodeExecutor,
         buildOperationRunner,
         listenerBuildOperationDecorator,
         thisBuild,
@@ -377,7 +377,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         def planExecutor = Mock(PlanExecutor)
         def taskGraph = new DefaultTaskExecutionGraph(
             planExecutor,
-            [nodeExecutor],
+            nodeExecutor,
             buildOperationRunner,
             listenerBuildOperationDecorator,
             thisBuild,
@@ -413,7 +413,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         def planExecutor = Mock(PlanExecutor)
         def taskGraph = new DefaultTaskExecutionGraph(
             planExecutor,
-            [nodeExecutor],
+            nodeExecutor,
             buildOperationRunner,
             listenerBuildOperationDecorator,
             thisBuild,

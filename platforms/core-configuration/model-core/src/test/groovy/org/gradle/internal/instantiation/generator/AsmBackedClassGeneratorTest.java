@@ -62,10 +62,12 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.state.ModelObject;
 import org.gradle.internal.state.OwnerAware;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
+import org.gradle.test.fixtures.ExpectDeprecationExtension;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestUtil;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.function.ThrowingRunnable;
 import spock.lang.Issue;
 
 import javax.inject.Inject;
@@ -908,48 +910,52 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
-    public void mixesInSetValueMethodForSingleValuedProperty() throws Exception {
-        BeanWithVariousGettersAndSetters bean = newInstance(BeanWithVariousGettersAndSetters.class);
+    public void mixesInSetValueMethodForSingleValuedProperty() throws Throwable {
+        withDeprecationLoggerSuppressed(() -> {
+            BeanWithVariousGettersAndSetters bean = newInstance(BeanWithVariousGettersAndSetters.class);
 
-        call("{ it.prop 'value'}", bean);
-        assertThat(bean.getProp(), equalTo("value"));
+            call("{ it.prop 'value'}", bean);
+            assertThat(bean.getProp(), equalTo("value"));
 
-        call("{ it.finalGetter 'another'}", bean);
-        assertThat(bean.getFinalGetter(), equalTo("another"));
+            call("{ it.finalGetter 'another'}", bean);
+            assertThat(bean.getFinalGetter(), equalTo("another"));
 
-        call("{ it.writeOnly 12}", bean);
-        assertThat(bean.writeOnly, equalTo(12));
+            call("{ it.writeOnly 12}", bean);
+            assertThat(bean.writeOnly, equalTo(12));
 
-        call("{ it.primitive 12}", bean);
-        assertThat(bean.getPrimitive(), equalTo(12));
+            call("{ it.primitive 12}", bean);
+            assertThat(bean.getPrimitive(), equalTo(12));
 
-        call("{ it.bool true}", bean);
-        assertThat(bean.isBool(), equalTo(true));
+            call("{ it.bool true}", bean);
+            assertThat(bean.isBool(), equalTo(true));
 
-        call("{ it.overloaded 'value'}", bean);
-        assertThat(bean.getOverloaded(), equalTo("chars = value"));
+            call("{ it.overloaded 'value'}", bean);
+            assertThat(bean.getOverloaded(), equalTo("chars = value"));
 
-        call("{ it.overloaded 12}", bean);
-        assertThat(bean.getOverloaded(), equalTo("number = 12"));
+            call("{ it.overloaded 12}", bean);
+            assertThat(bean.getOverloaded(), equalTo("number = 12"));
 
-        call("{ it.overloaded true}", bean);
-        assertThat(bean.getOverloaded(), equalTo("object = true"));
+            call("{ it.overloaded true}", bean);
+            assertThat(bean.getOverloaded(), equalTo("object = true"));
+        });
     }
 
     @Test
-    public void doesNotUseConventionValueOnceSetValueMethodHasBeenCalled() throws Exception {
-        Bean bean = newInstance(Bean.class);
-        IConventionAware conventionAware = (IConventionAware) bean;
-        conventionAware.getConventionMapping().map("prop", new Callable<Object>() {
-            public Object call() throws Exception {
-                return "[default]";
-            }
+    public void doesNotUseConventionValueOnceSetValueMethodHasBeenCalled() throws Throwable {
+        withDeprecationLoggerSuppressed(() -> {
+            Bean bean = newInstance(Bean.class);
+            IConventionAware conventionAware = (IConventionAware) bean;
+            conventionAware.getConventionMapping().map("prop", new Callable<Object>() {
+                public Object call() throws Exception {
+                    return "[default]";
+                }
+            });
+
+            assertThat(bean.getProp(), equalTo("[default]"));
+
+            call("{ it.prop 'value'}", bean);
+            assertThat(bean.getProp(), equalTo("value"));
         });
-
-        assertThat(bean.getProp(), equalTo("[default]"));
-
-        call("{ it.prop 'value'}", bean);
-        assertThat(bean.getProp(), equalTo("value"));
     }
 
     @Test
@@ -1010,11 +1016,13 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
-    public void addsInsteadOfOverridesSetValueMethodIfOnlyMultiArgMethods() throws Exception {
-        BeanWithMultiArgDslMethods bean = newInstance(BeanWithMultiArgDslMethods.class);
-        // this method should have been added to the class
-        call("{ it.prop 'value'}", bean);
-        assertThat(bean.getProp(), equalTo("value"));
+    public void addsInsteadOfOverridesSetValueMethodIfOnlyMultiArgMethods() throws Throwable {
+        withDeprecationLoggerSuppressed(() -> {
+            BeanWithMultiArgDslMethods bean = newInstance(BeanWithMultiArgDslMethods.class);
+            // this method should have been added to the class
+            call("{ it.prop 'value'}", bean);
+            assertThat(bean.getProp(), equalTo("value"));
+        });
     }
 
     @Test
@@ -2128,5 +2136,13 @@ public class AsmBackedClassGeneratorTest {
 
         @Nested
         abstract InterfaceFilePropertyBean getBean();
+    }
+
+    // Note: @ExpectDeprecation is not used here because it's a groovy extension
+    private static void withDeprecationLoggerSuppressed(ThrowingRunnable testBody) throws Throwable {
+        ExpectDeprecationExtension.intercept(
+            "Properties should be assigned using the 'propName = value' syntax.",
+            testBody
+        );
     }
 }

@@ -32,6 +32,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
@@ -177,11 +178,13 @@ public class ConsumerProvidedVariantFinder {
                 // Construct new states for processing at the next depth in case we can't find any solutions at this depth.
                 for (int i = 0; i < candidates.size(); i++) {
                     TransformRegistration candidate = candidates.get(i);
-                    nextDepth.add(new ChainState(
-                        new ChainNode(state.chain, candidate),
-                        attributesFactory.concat(state.requested, candidate.getFrom()),
-                        state.transforms.withoutIndexFrom(i, candidates)
-                    ));
+                    if (!Collections.disjoint(state.requested.keySet(), candidate.getTo().keySet())) {
+                        nextDepth.add(new ChainState(
+                            new ChainNode(state.chain, candidate),
+                            attributesFactory.concat(state.requested, candidate.getFrom()),
+                            state.transforms.withoutIndexFrom(i, candidates)
+                        ));
+                    }
                 }
             }
 

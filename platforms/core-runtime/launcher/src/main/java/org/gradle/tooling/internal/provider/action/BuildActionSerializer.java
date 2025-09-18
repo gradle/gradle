@@ -119,7 +119,7 @@ public class BuildActionSerializer {
             fileListSerializer.write(encoder, startParameter.getIncludedBuilds());
 
             // Other stuff
-            NO_NULL_STRING_MAP_SERIALIZER.write(encoder, startParameter.getProjectProperties());
+            NO_NULL_STRING_MAP_SERIALIZER.write(encoder, startParameter.getProjectPropertiesUntracked());
             NO_NULL_STRING_MAP_SERIALIZER.write(encoder, startParameter.getSystemPropertiesArgs());
             fileListSerializer.write(encoder, startParameter.getInitScripts());
             stringListSerializer.write(encoder, startParameter.getLockedDependenciesToUpdate());

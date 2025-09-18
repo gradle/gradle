@@ -60,7 +60,7 @@ public class NotifyingBuildLoader implements BuildLoader {
             @Override
             public Void call(BuildOperationContext context) {
                 buildLoader.load(settings, gradle);
-                BuildStructureOperationProject rootProject = BuildStructureOperationProject.from(gradle);
+                BuildStructureOperationProject rootProject = BuildStructureOperationProject.from(gradle.getOwner());
                 emitter.emitNowForCurrent(new DefaultProjectsIdentifiedProgressDetails(rootProject, buildPath));
                 context.setResult(new BuildStructureOperationResult(rootProject, buildPath));
                 return null;

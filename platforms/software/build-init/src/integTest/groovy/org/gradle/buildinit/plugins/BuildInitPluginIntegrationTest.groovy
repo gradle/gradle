@@ -15,6 +15,7 @@
  */
 package org.gradle.buildinit.plugins
 
+import org.gradle.api.JavaVersion
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilder
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
@@ -58,6 +59,15 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
             ["init", "--type", "java-application"],
             ["help", "--task", "init"]
         ]
+    }
+
+    @SuppressWarnings('GroovyAssignabilityCheck')
+    def "init can be run with arguments #args and built afterwards"() {
+        when:
+        succeeds("init", "--type", "java-library", "--project-name", "example", "--split-project", "--package", "org.example.gradleinit", "--dsl", "kotlin", "--java-version", JavaVersion.current().majorVersion)
+
+        then:
+        succeeds 'build'
     }
 
     def "init shows up on tasks overview "() {

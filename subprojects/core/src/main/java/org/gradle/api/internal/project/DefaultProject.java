@@ -541,15 +541,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public Map<String, Project> getChildProjectsUnchecked() {
-        Map<String, Project> childProjects = new TreeMap<>();
-        for (ProjectState project : owner.getChildProjects()) {
-            childProjects.put(project.getName(), project.getMutableModel());
-        }
-        return childProjects;
-    }
-
-    @Override
     public Map<String, Project> getChildProjects() {
         return getChildProjects(this);
     }
@@ -732,7 +723,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ProjectInternal project(ProjectInternal referrer, String path) throws UnknownProjectException {
-        ProjectInternal project = getCrossProjectModelAccess().findProject(referrer, this, path);
+        ProjectInternal project = findProject(referrer, path);
         if (project == null) {
             throw new UnknownProjectException(String.format("Project with path '%s' could not be found in %s.", path, this));
         }
@@ -747,7 +738,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Nullable
     @Override
     public ProjectInternal findProject(ProjectInternal referrer, String path) {
-        return getCrossProjectModelAccess().findProject(referrer, this, path);
+        Path targetPath = getProjectIdentity().getProjectPath().absolutePath(Path.path(path));
+        return getCrossProjectModelAccess().findProject(referrer, targetPath);
     }
 
     @Override

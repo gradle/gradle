@@ -190,7 +190,7 @@ public class KillLeakingJavaProcesses {
 
     private static String[] determinePsCommand() {
         if (isWindows()) {
-            return new String[]{"wmic", "process", "get", "processid,commandline"};
+            return new String[]{"powershell", "-Command", "\"Get-CimInstance Win32_Process | ForEach-Object { \\\"$($_.CommandLine) $($_.ProcessId)\\\" }\""};
         } else if (isMacOS()) {
             return new String[]{"ps", "x", "-o", "pid,command"};
         } else if (isAlpine()) {

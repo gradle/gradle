@@ -25,7 +25,6 @@ import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildTreeState
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.util.Path
 import spock.lang.Specification
@@ -53,7 +52,7 @@ class DefaultIncludedBuildTest extends Specification {
         services.add(Stub(BuildTreeWorkGraphController))
         _ * buildTree.services >> services
 
-        build = new DefaultIncludedBuild(Path.path(":a:b:c"), buildDefinition, false, owningBuild, buildTree, Mock(Instantiator))
+        build = new DefaultIncludedBuild(Path.path(":a:b:c"), buildDefinition, false, owningBuild, buildTree)
     }
 
     def "can run action against build state"() {

@@ -26,7 +26,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
-@ServiceScope(Scope.Gradle.class)
+@ServiceScope(Scope.Build.class)
 public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
     /**
      * Adds the internal listener for task execution graph events.
@@ -86,4 +86,7 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
      * Resets the lifecycle for this graph.
      */
     void resetState();
+
+    @SuppressWarnings("deprecation")
+    org.gradle.api.execution.TaskExecutionListener getLegacyTaskListenerBroadcast();
 }

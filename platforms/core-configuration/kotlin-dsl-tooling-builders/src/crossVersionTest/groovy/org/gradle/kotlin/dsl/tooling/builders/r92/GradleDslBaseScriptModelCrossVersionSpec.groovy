@@ -58,19 +58,16 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
         groovyModel.implicitImports.find {it.equals("java.io.*")}
 
         and: "Kotlin DSL script templates classpath"
-        loadClassesFrom(
-                kotlinModel.scriptTemplatesClassPath,
-            // Script templates for IDE support
-            "org.gradle.kotlin.dsl.KotlinGradleScriptTemplate",
-            "org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate",
-            "org.gradle.kotlin.dsl.KotlinProjectScriptTemplate",
-            // Legacy script templates for IDE support
-            "org.gradle.kotlin.dsl.KotlinInitScript",
-            "org.gradle.kotlin.dsl.KotlinSettingsScript",
-            "org.gradle.kotlin.dsl.KotlinBuildScript",
-            // Legacy script dependencies resolver for IDE support
-            "org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver"
+        !kotlinModel.templateClassNames.isEmpty()
+        loadClassesFrom(kotlinModel.scriptTemplatesClassPath, kotlinModel.templateClassNames)
+
+        def legacyScriptTemplateAndResolverClassNames = Arrays.asList(
+                "org.gradle.kotlin.dsl.KotlinInitScript",
+                "org.gradle.kotlin.dsl.KotlinSettingsScript",
+                "org.gradle.kotlin.dsl.KotlinBuildScript",
+                "org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver"
         )
+        loadClassesFrom(kotlinModel.scriptTemplatesClassPath, legacyScriptTemplateAndResolverClassNames)
 
         and: "Kotlin DSL script compile classpath"
         !kotlinModel.compileClassPath.isEmpty()
@@ -90,7 +87,7 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
         listener.hasSeenSomeEvents && listener.configPhaseStartEvents.isEmpty()
     }
 
-    private static void loadClassesFrom(List<File> classPath, String... classNames) {
+    private static void loadClassesFrom(List<File> classPath, List<String> classNames) {
         classLoaderFor(classPath).withCloseable { loader ->
             classNames.each {
                 assert loader.loadClass(it) != null

@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.software.internal
 
+import org.gradle.api.internal.plugins.TargetTypeInformation
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.util.TestUtil
@@ -25,7 +26,9 @@ class SoftwareFeaturesDynamicObjectTest extends Specification {
     def softwareTypeRegistry = Mock(SoftwareFeatureRegistry)
     def softwareFeatureApplicator = Mock(SoftwareFeatureApplicator)
     def extensionAware = Mock(ExtensionAware)
-    def softwareTypeImplementation = Mock(SoftwareFeatureImplementation)
+    def softwareTypeImplementation = Mock(SoftwareFeatureImplementation) {
+        it.getTargetDefinitionType() >> new TargetTypeInformation.DefinitionTargetTypeInformation(Object.class)
+    }
     def softwareFeaturesDynamicObject
 
     def setup() {

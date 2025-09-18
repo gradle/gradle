@@ -18,6 +18,7 @@ package org.gradle.api.plugins.antlr.internal
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.antlr.AntlrTask
+import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -120,6 +121,7 @@ class AntlrSpecFactoryTest extends Specification {
         spec.outputDirectory == new File("/path/to/output/com/example")
     }
 
+    @ExpectDeprecation("Setting the \'-package\' argument directly on AntlrTask has been deprecated.")
     def "cannot add package argument when packageName is set"() {
         when:
         AntlrTask task = Mock()
@@ -133,7 +135,6 @@ class AntlrSpecFactoryTest extends Specification {
         def e = thrown(IllegalStateException)
         e.message == "The package has been set both in the arguments (i.e. '-package') and via the 'packageName' property.  Please set the package only using the 'packageName' property."
     }
-
 
 
     private void sourceSetDirectoriesAreEmptySet() {

@@ -95,7 +95,7 @@ class ConfigurationCacheStartParameter internal constructor(
         get() = startParameter.isConfigurationCacheFineGrainedPropertyTracking
 
     val gradleProperties: Map<String, Any?>
-        get() = startParameter.projectProperties
+        get() = startParameter.projectPropertiesUntracked
             .filterKeys { !Workarounds.isIgnoredStartParameterProperty(it) }
 
     val configurationCacheLogLevel: LogLevel

@@ -66,7 +66,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskExecutionGraph.class);
 
     private final PlanExecutor planExecutor;
-    private final List<NodeExecutor> nodeExecutors;
+    private final NodeExecutor nodeExecutor;
     private final GradleInternal gradleInternal;
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<TaskExecutionGraphExecutionListener> internalGraphListeners;
@@ -81,7 +81,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     public DefaultTaskExecutionGraph(
         PlanExecutor planExecutor,
-        List<NodeExecutor> nodeExecutors,
+        NodeExecutor nodeExecutor,
         BuildOperationRunner buildOperationRunner,
         ListenerBuildOperationDecorator listenerBuildOperationDecorator,
         GradleInternal gradleInternal,
@@ -92,7 +92,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         ServiceRegistry globalServices
     ) {
         this.planExecutor = planExecutor;
-        this.nodeExecutors = nodeExecutors;
+        this.nodeExecutor = nodeExecutor;
         this.buildOperationRunner = buildOperationRunner;
         this.listenerBuildOperationDecorator = listenerBuildOperationDecorator;
         this.gradleInternal = gradleInternal;
@@ -147,7 +147,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             executionPlan.asWorkSource(),
             new BuildOperationAwareExecutionAction(
                 buildOperationRunner.getCurrentOperation(),
-                new InvokeNodeExecutorsAction(nodeExecutors, projectExecutionServices)
+                new InvokeNodeExecutorsAction(nodeExecutor, projectExecutionServices)
             )
         );
     }
@@ -341,21 +341,19 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     private static class InvokeNodeExecutorsAction implements Action<Node> {
-        private final List<NodeExecutor> nodeExecutors;
+        private final NodeExecutor nodeExecutor;
         private final ProjectExecutionServiceRegistry projectExecutionServices;
 
-        public InvokeNodeExecutorsAction(List<NodeExecutor> nodeExecutors, ProjectExecutionServiceRegistry projectExecutionServices) {
-            this.nodeExecutors = nodeExecutors;
+        public InvokeNodeExecutorsAction(NodeExecutor nodeExecutor, ProjectExecutionServiceRegistry projectExecutionServices) {
+            this.nodeExecutor = nodeExecutor;
             this.projectExecutionServices = projectExecutionServices;
         }
 
         @Override
         public void execute(Node node) {
             NodeExecutionContext context = projectExecutionServices.forProject(node.getOwningProject());
-            for (NodeExecutor nodeExecutor : nodeExecutors) {
-                if (nodeExecutor.execute(node, context)) {
-                    return;
-                }
+            if (nodeExecutor.execute(node, context)) {
+                return;
             }
             throw new IllegalStateException("Unknown type of node: " + node);
         }
@@ -372,6 +370,11 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             was necessary, therefore the minimal change solution was implemented.
          */
         return executionPlan.getContents().getFilteredTasks();
+    }
+
+    @Override
+    public org.gradle.api.execution.TaskExecutionListener getLegacyTaskListenerBroadcast() {
+        return taskListeners.getSource();
     }
 
     private void fireWhenReady() {
