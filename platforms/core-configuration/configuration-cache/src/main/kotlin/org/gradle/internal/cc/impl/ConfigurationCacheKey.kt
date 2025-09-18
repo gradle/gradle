@@ -69,6 +69,7 @@ class ConfigurationCacheKey(
 
         putBoolean(startParameter.isOffline)
         putBoolean(startParameter.isIsolatedProjects)
+        putBoolean(startParameter.isIsolatedProjectsProblemDetection)
         putBuildScan()
         putBoolean(encryptionConfiguration.isEncrypting)
         putHash(encryptionConfiguration.encryptionKeyHashCode)
