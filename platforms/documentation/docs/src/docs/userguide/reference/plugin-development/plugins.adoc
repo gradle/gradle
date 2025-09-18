@@ -88,6 +88,14 @@ They often evolve into proper plugins placed in `buildSrc` or published as stand
 
 The simplest plugin is a class that implements link:{javadocPath}/org/gradle/api/Plugin.html[`Plugin<Project>`] and configures the project when applied:
 
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/customPlugins/customPlugin">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/customPlugins/customPlugin/kotlin",files="build.gradle.kts[tag=no-script-plugin]"]
 include::sample[dir="snippets/customPlugins/customPlugin/groovy",files="build.gradle[tag=no-script-plugin]"]
@@ -145,6 +153,14 @@ When the plugin is applied to a project, Gradle creates an instance of the plugi
 Let's rewrite the `GreetingPlugin` script plugin as a precompiled script plugin.
 The script plugin is moved to its own file in `buildSrc`:
 
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/greetingPlugin">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
 ====
 include::sample[dir="snippets/plugins/greetingPlugin/kotlin",files="buildSrc/src/main/kotlin/GreetingPlugin.gradle.kts[]"]
 include::sample[dir="snippets/plugins/greetingPlugin/groovy",files="buildSrc/src/main/groovy/GreetingPlugin.gradle[]"]
@@ -196,6 +212,14 @@ The project has the following structure:
 ----
 
 The build file of the `database-logic` subproject is as follows:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/pluginProject">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/plugins/pluginProject/kotlin",files="database-logic/build.gradle.kts[]"]
@@ -274,6 +298,14 @@ The easiest way to package and publish a plugin to a repository is to use the <<
 This plugin provides the necessary tasks and configurations (including the plugin metadata) to compile your script into a plugin that can be applied in other builds.
 
 Here is a simple build script for the `greeting-plugin` project using the Gradle Plugin Development Plugin:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/customPlugin">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/plugins/customPlugin/kotlin/java-gradle-plugin",files="build.gradle.kts[tags=use-and-configure-plugin]"]
