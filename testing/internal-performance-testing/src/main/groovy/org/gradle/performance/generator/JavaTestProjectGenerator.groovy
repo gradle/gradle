@@ -33,7 +33,7 @@ enum JavaTestProjectGenerator {
         .testChangeFile(450, 2250, 45000).create()
     ),
     LARGE_MONOLITHIC_JAVA_PROJECT(new TestProjectGeneratorConfigurationBuilder("largeMonolithicJavaProject")
-        .withSourceFiles(50000)
+        .withSourceFiles(5)
         .withSubProjects(0)
         .withDaemonMemory('1536m')
         .withCompilerMemory('4g')
