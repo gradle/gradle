@@ -76,11 +76,6 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     }
 
     @Override
-    protected TestResultProcessor createResultProcessorChain(TestResultProcessor resultProcessor) {
-        return resultProcessor;
-    }
-
-    @Override
     public void assertTestFrameworkAvailable() {
         try {
             Class.forName("org.junit.platform.launcher.core.LauncherFactory");
