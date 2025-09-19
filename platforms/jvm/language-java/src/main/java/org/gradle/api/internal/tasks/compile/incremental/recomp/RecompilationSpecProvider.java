@@ -20,6 +20,8 @@ import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.transaction.CompileTransaction;
 import org.gradle.api.tasks.WorkResult;
 
+import java.util.Set;
+
 /**
  * In a typical incremental recompilation, there're three steps:
  * First, examine the incremental change files to get the classes to be recompiled: {@link #provideRecompilationSpec(JavaCompileSpec, CurrentCompilation, PreviousCompilation)}
@@ -31,6 +33,8 @@ public interface RecompilationSpecProvider {
     boolean isIncremental();
 
     RecompilationSpec provideRecompilationSpec(JavaCompileSpec spec, CurrentCompilation current, PreviousCompilation previous);
+
+    RecompilationSpec provideAbiDependentRecompilationSpec(JavaCompileSpec spec, CurrentCompilation current, PreviousCompilation previous, Set<String> alreadyCompiledClasses);
 
     CompileTransaction initCompilationSpecAndTransaction(JavaCompileSpec spec, RecompilationSpec recompilationSpec);
 

@@ -20,7 +20,10 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.initialization.transform.utils.ClassAnalysisUtils;
+import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAbi;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassAnalysis;
+import org.gradle.api.internal.tasks.compile.incremental.deps.FieldAbi;
+import org.gradle.api.internal.tasks.compile.incremental.deps.MethodAbi;
 import org.gradle.model.internal.asm.AsmConstants;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -37,7 +40,11 @@ import org.objectweb.asm.signature.SignatureVisitor;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -75,12 +82,21 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     private String moduleName;
     private final RetentionPolicyVisitor retentionPolicyVisitor;
 
+    private int access;
+    private String signature;
+    private String superName;
+    private String[] interfaces;
+    private final Map<String, FieldAbi> fieldAbis;
+    private final Map<String, MethodAbi> methodAbis;
+
     private ClassDependenciesVisitor(Predicate<String> typeFilter, ClassReader reader, StringInterner interner) {
         super(API);
         this.constants = new IntOpenHashSet(2);
         this.privateTypes = new HashSet<>();
         this.accessibleTypes = new HashSet<>();
         this.retentionPolicyVisitor = new RetentionPolicyVisitor();
+        this.fieldAbis = new HashMap<>();
+        this.methodAbis = new HashMap<>();
         this.typeFilter = typeFilter;
         this.interner = interner;
         collectRemainingClassDependencies(reader);
@@ -93,7 +109,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         // Remove the "API accessible" types from the "privately used types"
         visitor.privateTypes.removeAll(visitor.accessibleTypes);
         String name = visitor.moduleName != null ? visitor.moduleName : className;
-        return new ClassAnalysis(interner.intern(name), visitor.getPrivateClassDependencies(), visitor.getAccessibleClassDependencies(), visitor.getDependencyToAllReason(), visitor.getConstants());
+        return new ClassAnalysis(interner.intern(name), visitor.getPrivateClassDependencies(), visitor.getAccessibleClassDependencies(), visitor.getDependencyToAllReason(), visitor.getConstants(), visitor.getClassAbi());
     }
 
     @Override
@@ -111,6 +127,11 @@ public class ClassDependenciesVisitor extends ClassVisitor {
             Type interfaceType = Type.getObjectType(s);
             maybeAddDependentType(types, interfaceType);
         }
+
+        this.access = access;
+        this.signature = signature;
+        this.superName = superName;
+        this.interfaces = interfaces;
     }
 
     @Override
@@ -167,13 +188,18 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         return constants;
     }
 
+    public ClassAbi getClassAbi() {
+        return new ClassAbi(access, signature, superName, interfaces == null ? Collections.emptyList() : Arrays.asList(interfaces), fieldAbis, methodAbis);
+    }
+
     private boolean isAnnotationType(String[] interfaces) {
         return interfaces.length == 1 && interfaces[0].equals("java/lang/annotation/Annotation");
     }
 
     @Override
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
-        Set<String> types = isAccessible(access) ? accessibleTypes : privateTypes;
+        boolean isAccessible = isAccessible(access);
+        Set<String> types = isAccessible ? accessibleTypes : privateTypes;
         maybeAddClassTypesFromSignature(signature, types);
         maybeAddDependentType(types, Type.getType(desc));
         if (isAccessibleConstant(access, value)) {
@@ -182,14 +208,21 @@ public class ClassDependenciesVisitor extends ClassVisitor {
             // two values are switched
             constants.add((name + '|' + value).hashCode()); //non-private const
         }
+        if (isAccessible) {
+            fieldAbis.put(name, new FieldAbi(access, desc, signature, value));
+        }
         return new FieldVisitor(types);
     }
 
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        Set<String> types = isAccessible(access) ? accessibleTypes : privateTypes;
+        boolean isAccessible = isAccessible(access);
+        Set<String> types = isAccessible ? accessibleTypes : privateTypes;
         maybeAddClassTypesFromSignature(signature, types);
         addTypesFromMethodDescriptor(types, desc);
+        if (isAccessible) {
+            methodAbis.put(name, new MethodAbi(access, desc, signature, exceptions == null ? Collections.emptyList() : Arrays.asList(exceptions)));
+        }
         return new MethodVisitor(types);
     }
 
