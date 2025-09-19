@@ -25,7 +25,6 @@ import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
 import org.gradle.test.fixtures.IntegrationTest;
-import org.gradle.test.fixtures.dsl.GradleDsl;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.test.fixtures.ivy.IvyFileRepository;
@@ -164,10 +163,6 @@ public abstract class AbstractIntegrationTest implements HasGradleExecutor {
     }
 
     public static String mavenCentralRepository() {
-        return mavenCentralRepository(GradleDsl.GROOVY);
-    }
-
-    public static String mavenCentralRepository(GradleDsl dsl) {
-        return RepoScriptBlockUtil.mavenCentralRepository(dsl);
+        return RepoScriptBlockUtil.mavenCentralRepository();
     }
 }

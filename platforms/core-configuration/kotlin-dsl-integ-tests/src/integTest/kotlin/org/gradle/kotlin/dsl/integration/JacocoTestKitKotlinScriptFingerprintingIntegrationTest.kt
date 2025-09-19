@@ -18,24 +18,33 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
-import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testing.jacoco.plugins.JacocoPlugin
+import org.gradle.util.internal.TextUtil
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
+import java.io.File
 
+@LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class JacocoTestKitKotlinScriptFingerprintingIntegrationTest : AbstractKotlinIntegrationTest() {
+
+    @JvmField @Rule
+    val temporaryFolder = TemporaryFolder()
 
     @Test
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
-    @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     fun `running a test with TestKit that applies Jacoco won't brake KTS script fingerprinting`() {
+        val jacocoDestinationDir = File(temporaryFolder.root, "jacoco").apply { mkdirs() }
+        val jacocoDestinationFile = TextUtil.normaliseFileSeparators("${jacocoDestinationDir.absolutePath}/jacoco.exec")
+
         withSettings("""
             rootProject.name = "reproducer"
             
             dependencyResolutionManagement { 
-                ${mavenCentralRepository(GradleDsl.KOTLIN)}
+                $repositoriesBlock
             }
         """.trimIndent())
 
@@ -67,7 +76,9 @@ class JacocoTestKitKotlinScriptFingerprintingIntegrationTest : AbstractKotlinInt
             
             tasks.withType<Test> {
                 val jacoco = the<JacocoTaskExtension>()
+                jacoco.destinationFile = File("$jacocoDestinationFile")
                 systemProperty("jacocoAgentJar", configurations.getByName("jacocoRuntime").singleFile.absolutePath)
+                systemProperty("jacocoDestFile", jacoco.destinationFile!!.absolutePath)
             }
         """.trimIndent())
 
@@ -110,7 +121,7 @@ class JacocoTestKitKotlinScriptFingerprintingIntegrationTest : AbstractKotlinInt
                         "plugins { id(\"my-plugin\") }\nrootProject.name = \"test\""
                     )
                     projectDir.resolve("gradle.properties").writeText(
-                        "org.gradle.jvmargs=\"-javaagent:${System.getProperty("jacocoAgentJar")}"
+                        "org.gradle.jvmargs=\"-javaagent:${System.getProperty("jacocoAgentJar")}=destfile=${System.getProperty("jacocoDestFile")}\""
                     )
                     projectDir.resolve("build.gradle.kts").writeText("")
 
