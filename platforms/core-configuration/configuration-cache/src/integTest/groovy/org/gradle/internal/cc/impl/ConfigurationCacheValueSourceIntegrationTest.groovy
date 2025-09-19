@@ -514,7 +514,7 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
         outputContains("execution value = someValue")
     }
 
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/23689")
+    @Issue("https://github.com/gradle/gradle/issues/23689")
     def "value source can read mutated system property at configuration time with Java API"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
