@@ -291,6 +291,24 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
         outputContains("feature model class: FeatureDefinition\$FeatureModelImpl")
     }
 
+    def 'can declare and configure a custom feature that targets a nested definition of a software type'() {
+        given:
+        PluginBuilder pluginBuilder = withSoftwareTypeAndFeatureThatBindsToNestedDefinition()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatAppliesFeatureToNestedBlock << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        run(":printFeatureDefinitionConfiguration")
+
+        then:
+        outputContains("feature text = foo BAR")
+    }
+
+
     private String getPluginBuildScriptForJava() {
         return """
 
@@ -334,6 +352,21 @@ class SoftwareFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec 
             }
         """
     }
+
+    static String getDeclarativeScriptThatAppliesFeatureToNestedBlock() {
+        return """
+            testSoftwareType {
+                id = "test"
+                foo {
+                    bar = "bar"
+                    feature {
+                        text = "foo"
+                    }
+                }
+            }
+        """
+    }
+
 
     void assertThatDeclaredValuesAreSetProperly() {
         outputContains("""id = test\nbar = baz""")

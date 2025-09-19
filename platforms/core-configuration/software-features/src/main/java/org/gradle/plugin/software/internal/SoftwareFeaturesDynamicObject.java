@@ -17,7 +17,7 @@
 package org.gradle.plugin.software.internal;
 
 import groovy.lang.Closure;
-import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.util.internal.ConfigureUtil;
@@ -31,11 +31,13 @@ import javax.inject.Inject;
  * to the target object and the configuration block applied to its public model object.
  */
 abstract public class SoftwareFeaturesDynamicObject extends AbstractDynamicObject {
-    private final ExtensionAware target;
+    private final DynamicObjectAware target;
+    private final SoftwareFeatureSupportInternal.ProjectFeatureDefinitionContext context;
 
     @Inject
-    public SoftwareFeaturesDynamicObject(ExtensionAware target) {
+    public SoftwareFeaturesDynamicObject(DynamicObjectAware target, SoftwareFeatureSupportInternal.ProjectFeatureDefinitionContext context) {
         this.target = target;
+        this.context = context;
     }
 
     @Override
@@ -63,6 +65,9 @@ abstract public class SoftwareFeaturesDynamicObject extends AbstractDynamicObjec
 
     @Override
     public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... arguments) {
+        if (name.equals(CONTEXT_METHOD_NAME) && arguments.length == 0) {
+            return DynamicInvokeResult.found(context);
+        }
         if (isSoftwareFeatureConfigureMethod(name, arguments)) {
             Object softwareFeatureConfigurationModel = getSoftwareFeatureApplicator().applyFeatureTo(target, getSoftwareTypeRegistry().getSoftwareFeatureImplementations().get(name));
             return DynamicInvokeResult.found(ConfigureUtil.configure((Closure) arguments[0], softwareFeatureConfigurationModel));
@@ -75,4 +80,6 @@ abstract public class SoftwareFeaturesDynamicObject extends AbstractDynamicObjec
 
     @Inject
     abstract protected SoftwareFeatureApplicator getSoftwareFeatureApplicator();
+
+    public static final String CONTEXT_METHOD_NAME = "$.softwareFeatureContext";
 }

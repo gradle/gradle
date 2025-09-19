@@ -60,7 +60,7 @@ class JavaSoftwareTypePlugin : Plugin<Project> {
                     val processResourcesTask = registerResourcesProcessing(source)
 
                     // Creates an extension on javaSources containing its classes object
-                    model.classes.add(getOrCreateModel(source, DefaultJavaClasses::class.java).apply {
+                    model.classes.add(registerBuildModel(source, DefaultJavaClasses::class.java).apply {
                         name = source.name
                         inputSources.source(source.sourceDirectories)
                         byteCodeDir.set(compileTask.map { it.destinationDirectory.get() })

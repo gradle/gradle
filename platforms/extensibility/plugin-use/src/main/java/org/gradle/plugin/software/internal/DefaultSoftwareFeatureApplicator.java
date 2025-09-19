@@ -22,10 +22,11 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.plugins.HasBuildModel;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.SoftwareFeatureApplicationContext;
-import org.gradle.api.internal.plugins.SoftwareFeatureBinding;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.model.ObjectFactory;
@@ -35,18 +36,15 @@ import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.plugin.software.internal.SoftwareFeatureSupportInternal.ProjectFeatureDefinitionContext;
 import org.jspecify.annotations.NullMarked;
 
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
@@ -62,7 +60,6 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
     private final InspectionScheme inspectionScheme;
     private final InternalProblems problems;
     private final PluginManagerInternal pluginManager;
-    private final Set<AppliedFeature> applied = new HashSet<>();
     private final ClassLoaderScope classLoaderScope;
     private final ObjectFactory objectFactory;
 
@@ -77,81 +74,81 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
     }
 
     @Override
-    public <T, V> T applyFeatureTo(ExtensionAware target, SoftwareFeatureImplementation<T, V> softwareFeature) {
-        AppliedFeature appliedFeature = new AppliedFeature(target, softwareFeature);
-        if (!applied.contains(appliedFeature)) {
-            if (target instanceof Project) {
-                Optional<AppliedFeature> softwareTypeAlreadyApplied = applied.stream()
-                    .filter(it -> it.target instanceof Project && ((Project) it.target).getPath().equals(((Project) target).getPath()))
-                    .findFirst();
-                if (softwareTypeAlreadyApplied.isPresent()) {
-                    throw new IllegalStateException("The project has already applied the '" + softwareTypeAlreadyApplied.get().softwareFeature.getFeatureName() + "' software type and is also attempting to apply the '" + softwareFeature.getFeatureName() + "' software type.  Only one software type can be applied to a project.");
-                }
-            }
+    public <T, V> T applyFeatureTo(DynamicObjectAware parentDefinition, SoftwareFeatureImplementation<T, V> softwareFeature) {
+        ProjectFeatureDefinitionContext parentDefinitionContext = SoftwareFeatureSupportInternal.getContext(parentDefinition);
 
-            if (!(softwareFeature instanceof LegacySoftwareTypeImplementation)) {
-                T dslObject = createDslObject(target, softwareFeature);
-                V buildModelObject = createBuildModelObject((ExtensionAware) dslObject, softwareFeature);
-                SoftwareFeatureApplicationContext context = objectFactory.newInstance(SoftwareFeatureApplicationContext.class);
-                softwareFeature.getBindingTransform().transform(context, dslObject, Cast.uncheckedCast(buildModelObject), Cast.uncheckedCast(target));
+        ProjectFeatureDefinitionContext.ChildDefinitionAdditionResult result = parentDefinitionContext.getOrAddChildDefinition(softwareFeature, () -> {
+            if (parentDefinition instanceof Project) {
+                checkSingleProjectTypeApplication(parentDefinitionContext, softwareFeature);
             }
 
             pluginManager.apply(softwareFeature.getPluginClass());
             Plugin<Project> plugin = pluginManager.getPluginContainer().getPlugin(softwareFeature.getPluginClass());
-            applyAndMaybeRegisterExtension(target, softwareFeature, plugin);
-            applied.add(appliedFeature);
-            modelDefaultsApplicator.applyDefaultsTo(target, new ClassLoaderContextFromScope(classLoaderScope), plugin, softwareFeature);
+
+            Object definition = (softwareFeature instanceof BoundSoftwareFeatureImplementation) ?
+                instantiateBoundFeatureObjectsAndApply(parentDefinition, Cast.uncheckedCast(softwareFeature)) :
+                instantiateLegacySoftwareTypeDefinition(parentDefinition, softwareFeature, plugin);
+
+            return Cast.uncheckedNonnullCast(definition);
+        });
+
+        if (result.isNew) {
+            Plugin<Project> plugin = pluginManager.getPluginContainer().getPlugin(softwareFeature.getPluginClass());
+            modelDefaultsApplicator.applyDefaultsTo(parentDefinition, result.definition, new ClassLoaderContextFromScope(classLoaderScope), plugin, softwareFeature);
         }
-        return Cast.uncheckedCast(target.getExtensions().getByName(softwareFeature.getFeatureName()));
+
+        return Cast.uncheckedNonnullCast(result.definition);
     }
 
-    private <T, V> T createDslObject(ExtensionAware target, SoftwareFeatureImplementation<T, V> softwareFeature) {
+    private static <T, V> void checkSingleProjectTypeApplication(ProjectFeatureDefinitionContext context, SoftwareFeatureImplementation<T, V> softwareFeature) {
+        context.childrenDefinitions().keySet().stream().findFirst().ifPresent(softwareTypeAlreadyApplied -> {
+            throw new IllegalStateException(
+                "The project has already applied the '" +
+                    softwareTypeAlreadyApplied.getFeatureName() +
+                    "' software type and is also attempting to apply the '" +
+                    softwareFeature.getFeatureName() +
+                    "' software type.  Only one software type can be applied to a project."
+            );
+        });
+    }
+
+    private Object instantiateLegacySoftwareTypeDefinition(Object parentDefinition, SoftwareFeatureImplementation<?, ?> softwareFeature, Plugin<?> plugin) {
+        applyAndMaybeRegisterExtension(parentDefinition, softwareFeature, plugin);
+        return ((ExtensionAware) parentDefinition).getExtensions().getByName(softwareFeature.getFeatureName());
+    }
+
+    private <T extends HasBuildModel<V>, V extends BuildModel> T instantiateBoundFeatureObjectsAndApply(Object parentDefinition, BoundSoftwareFeatureImplementation<T, V> softwareFeature) {
+        T definition = createDefinitionObject(parentDefinition, softwareFeature);
+        V buildModelInstance = SoftwareFeatureSupportInternal.createBuildModelInstance(objectFactory, definition, softwareFeature);
+        SoftwareFeatureSupportInternal.attachDefinitionContext(definition, buildModelInstance, this, softwareFeatureRegistry, objectFactory);
+
+        SoftwareFeatureApplicationContext applyActionContext =
+            objectFactory.newInstance(SoftwareFeatureApplicationContextInternal.class);
+
+        softwareFeature.getBindingTransform().transform(applyActionContext, definition, buildModelInstance, Cast.uncheckedCast(parentDefinition));
+
+        return definition;
+    }
+
+    private <T, V> T createDefinitionObject(Object target, SoftwareFeatureImplementation<T, V> softwareFeature) {
         Class<? extends T> dslType = softwareFeature.getDefinitionImplementationType();
+
         if (Named.class.isAssignableFrom(dslType)) {
-            if (Named.class.isAssignableFrom(target.getClass())) {
-                T result = target.getExtensions().create(softwareFeature.getDefinitionPublicType(), softwareFeature.getFeatureName(), dslType, ((Named) target).getName());
-                initializeDefinitionDslObject(result);
-                return result;
+            if (target instanceof Named) {
+                return objectFactory.newInstance(softwareFeature.getDefinitionPublicType(), ((Named) target).getName());
             } else {
-                throw new IllegalArgumentException("Cannot infer a name for " + dslType.getSimpleName() + " because the parent object of type " + target.getClass().getSimpleName() + " does not implement Named.");
+                throw new IllegalArgumentException("Cannot infer a name for definition " + dslType.getSimpleName() +
+                    " because the parent definition of type " + target.getClass().getSimpleName() + " does not implement Named.");
             }
         } else {
-            T result = target.getExtensions().create(softwareFeature.getDefinitionPublicType(), softwareFeature.getFeatureName(), dslType);
-            initializeDefinitionDslObject(result);
-            return result;
+            return objectFactory.newInstance(dslType);
         }
     }
 
-    private void initializeDefinitionDslObject(Object dslObjectToInitialize) {
-        ExtensionAware dslObject = (ExtensionAware) dslObjectToInitialize;
-
-        SoftwareFeatureSupportInternal.registerContextIfAbsent(dslObject, this, softwareFeatureRegistry);
-        addSoftwafeFeatureDynamicObjectToDefinition((DynamicObjectAware) dslObjectToInitialize);
-    }
-
-    private void addSoftwafeFeatureDynamicObjectToDefinition(DynamicObjectAware dslObjectToInitialize) {
-        ((ExtensibleDynamicObject) dslObjectToInitialize.getAsDynamicObject()).addObject(
-            objectFactory.newInstance(SoftwareFeaturesDynamicObject.class, dslObjectToInitialize),
-            ExtensibleDynamicObject.Location.BeforeConvention
-        );
-    }
-
-    private static <V> V createBuildModelObject(ExtensionAware target, SoftwareFeatureImplementation<?, V> softwareFeature) {
-        Class<? extends V> buildModelType = softwareFeature.getBuildModelImplementationType();
-        if (Named.class.isAssignableFrom(buildModelType)) {
-            if (Named.class.isAssignableFrom(target.getClass())) {
-                return target.getExtensions().create(softwareFeature.getBuildModelType(), SoftwareFeatureBinding.MODEL, buildModelType, ((Named) target).getName());
-            } else {
-                throw new IllegalArgumentException("Cannot infer a name for " + buildModelType.getSimpleName() + " because the parent object of type " + target.getClass().getSimpleName() + " does not implement Named.");
-            }
-        } else {
-            return target.getExtensions().create(softwareFeature.getBuildModelType(), SoftwareFeatureBinding.MODEL, buildModelType);
-        }
-    }
-
-    private <T, V> void applyAndMaybeRegisterExtension(ExtensionAware target, SoftwareFeatureImplementation<T, V> softwareFeature, Plugin<?> plugin) {
+    private <T, V> void applyAndMaybeRegisterExtension(Object target, SoftwareFeatureImplementation<T, V> softwareFeature, Plugin<?> plugin) {
         DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(softwareFeature.getPluginClass(), false, problems);
-        ExtensionAddingVisitor<T> extensionAddingVisitor = new ExtensionAddingVisitor<>(target, typeValidationContext, softwareFeatureRegistry, this);
+
+        ExtensionAddingVisitor<T> extensionAddingVisitor = new ExtensionAddingVisitor<>((ExtensionAware) target, typeValidationContext, softwareFeatureRegistry, this, objectFactory);
         inspectionScheme.getPropertyWalker().visitProperties(
             plugin,
             typeValidationContext,
@@ -183,17 +180,20 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
         private final DefaultTypeValidationContext validationContext;
         private final SoftwareFeatureApplicator applicator;
         private final SoftwareFeatureRegistry softwareFeatureRegistry;
+        private final ObjectFactory objectFactory;
 
         public ExtensionAddingVisitor(
             ExtensionAware target,
             DefaultTypeValidationContext validationContext,
             SoftwareFeatureRegistry softwareFeatureRegistry,
-            SoftwareFeatureApplicator applicator
+            SoftwareFeatureApplicator applicator,
+            ObjectFactory objectFactory
         ) {
             this.target = target;
             this.validationContext = validationContext;
             this.softwareFeatureRegistry = softwareFeatureRegistry;
             this.applicator = applicator;
+            this.objectFactory = objectFactory;
         }
 
         /**
@@ -205,9 +205,7 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
         public void visitSoftwareTypeProperty(String propertyName, PropertyValue value, Class<?> declaredPropertyType, SoftwareType softwareType) {
             T publicModelObject = Cast.uncheckedNonnullCast(Objects.requireNonNull(value.call()));
 
-            if (publicModelObject instanceof ExtensionAware) {
-                SoftwareFeatureSupportInternal.registerContextIfAbsent((ExtensionAware) publicModelObject, applicator, softwareFeatureRegistry);
-            }
+            SoftwareFeatureSupportInternal.attachLegacyDefinitionContext(publicModelObject, applicator, softwareFeatureRegistry, objectFactory);
 
             if (softwareType.disableModelManagement()) {
                 Object extension = target.getExtensions().findByName(softwareType.name());
@@ -244,40 +242,6 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
 
         private Class<? super T> publicTypeFrom(Class<?> fromAnnotation, Class<?> declaredPropertyType) {
             return Cast.uncheckedCast(fromAnnotation == Void.class ? declaredPropertyType : fromAnnotation);
-        }
-    }
-
-    private static class AppliedFeature {
-        private final Object target;
-        private final SoftwareFeatureImplementation<?, ?> softwareFeature;
-
-        public AppliedFeature(Object target, SoftwareFeatureImplementation<?, ?> softwareFeature) {
-            this.target = target;
-            this.softwareFeature = softwareFeature;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            AppliedFeature that = (AppliedFeature) o;
-            // We use identity comparison here because we want to ensure that the software feature is applied to
-            // each target object, even if two different target objects have equality.
-            return target == that.target && Objects.equals(softwareFeature, that.softwareFeature);
-        }
-
-        @Override
-        public int hashCode() {
-            // We use identity hashes here because we want to ensure that the software feature is applied to
-            // each target object, even if two different target objects hash equally.
-            int result = System.identityHashCode(target);
-            result = 31 * result + softwareFeature.hashCode();
-            return result;
         }
     }
 

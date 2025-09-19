@@ -35,6 +35,7 @@ dependencies {
     implementation(projects.concurrent)
     implementation(projects.declarativeDslInternalUtils)
     implementation(projects.baseServices)
+    implementation(projects.modelCore)
     implementation(projects.messaging)
     implementation(projects.resources)
     implementation(projects.serviceLookup)

@@ -187,6 +187,7 @@ trait SoftwareTypeFixture {
             definition.getId().convention("<no id>");
             definition.getFoo().getBar().convention("bar");
         """
+        String applyActionExtraStatements = ""
 
         SoftwareTypePluginClassBuilder definitionImplementationTypeClassName(String implementationTypeClassName) {
             this.definitionImplementationTypeClassName = implementationTypeClassName
@@ -215,6 +216,11 @@ trait SoftwareTypeFixture {
 
         SoftwareTypePluginClassBuilder withoutConventions() {
             this.conventions = null
+            return this
+        }
+
+        SoftwareTypePluginClassBuilder applyActionExtraStatements(String statements) {
+            this.applyActionExtraStatements = statements
             return this
         }
 
@@ -248,6 +254,9 @@ trait SoftwareTypeFixture {
                                 System.out.println("Binding " + ${dslTypeClassName}.class.getSimpleName());
                                 ${conventions == null ? "" : conventions}
                                 String projectName = context.getProject().getName();
+
+                                $applyActionExtraStatements
+
                                 context.getProject().getTasks().register("print${definitionImplementationTypeClassName}Configuration", DefaultTask.class, task -> {
                                     task.doLast("print restricted extension content", t -> {
                                         System.out.println(projectName + ": " + definition);
@@ -481,11 +490,15 @@ trait SoftwareTypeFixture {
                         action.execute(foo);
                     }
 
-                    public abstract static class Foo {
+                    public abstract static class Foo implements HasBuildModel<FooBuildModel> {
                         public Foo() { }
 
                         @Restricted
                         public abstract Property<String> getBar();
+                    }
+
+                    public interface FooBuildModel extends BuildModel {
+                        Property<String> getBarProcessed();
                     }
 
                     @Override
