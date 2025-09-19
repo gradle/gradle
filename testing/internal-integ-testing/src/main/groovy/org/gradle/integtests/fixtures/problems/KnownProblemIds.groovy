@@ -63,6 +63,7 @@ class KnownProblemIds {
         'validation:property-validation': 'Property validation problems',
         'validation:type-validation': 'Gradle type validation',
         'validation:configuration-cache': 'Configuration cache',
+        'scripts': 'Scripts',
 
         // dependency resolution failures
         'dependency-variant-resolution': 'Dependency variant resolution',
@@ -162,6 +163,9 @@ class KnownProblemIds {
         'dependency-variant-resolution:incompatible-multiple-nodes': ['Incompatible nodes of a single component were selected'],
 
         'dependency-variant-resolution:unknown-resolution-failure': ['Unknown resolution failure'],
+
+        // scripts (build, setting, etc.) problems
+        'scripts:multiple-candidates': ['Multiple script candidates'],
 
         // integration test problems
         'deprecation:some-indirect-deprecation': ['Some indirect deprecation has been deprecated.'],
