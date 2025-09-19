@@ -1,0 +1,64 @@
+{
+  "settings": {
+    "title": "Gradle",
+    "project": "/gradle/gradle",
+    "description": "Gradle is a highly scalable build automation tool designed for various languages and development tasks, offering seamless integration with IDEs and CI systems.",
+    "docsRepoUrl": "https://github.com/gradle/gradle",
+    "folders": [
+      "/platforms/documentation/*",
+      "architecture/*",
+      "contributing/*"
+    ],
+    "excludeFolders": [
+      "archive",
+      "archived",
+      "old",
+      "docs/old",
+      "deprecated",
+      "legacy",
+      "previous",
+      "outdated",
+      "superseded",
+    ],
+    "branch": "master",
+    "stars": 17552,
+    "trustScore": 8.4,
+    "excludeFiles": [
+      "CHANGELOG.md",
+      "changelog.md",
+      "CHANGELOG.mdx",
+      "changelog.mdx",
+      "LICENSE.md",
+      "license.md",
+      "CODE_OF_CONDUCT.md",
+      "code_of_conduct.md"
+    ],
+    "type": "repo"
+  },
+  "tags": {
+    "v8.14.3": {
+      "state": "finalized",
+      "lastRunState": "finalized",
+      "lastRunDate": "2025-07-28T12:44:05.869Z",
+      "sha": "e5ee1df3d88b8ca3a8074787a94f373e3090e1db",
+      "averageTokens": 238.79008214177063,
+      "parseDuration": 1976193,
+      "runtimeVersion": 1,
+      "issues": {},
+      "tag": "v8.14.3",
+      "tagTitle": "v8.14.3",
+      "parseFailures": 0,
+      "lastUpdateDate": "2025-07-28T12:44:05.869Z"
+    },
+    "v9_0_0": {
+      "state": "initial",
+      "lastRunState": "initial",
+      "lastRunDate": "2025-08-13T09:56:30.249Z",
+      "sha": "328772c6bae126949610a8beb59cb227ee580241",
+      "runtimeVersion": 1,
+      "issues": {},
+      "tag": "v9_0_0",
+      "tagTitle": "v9.0.0"
+    }
+  }
+}
