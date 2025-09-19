@@ -29,6 +29,7 @@ import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.FileComparisonFailureDetails;
+import org.gradle.api.internal.tasks.testing.ResourceBasedTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestFailureSerializationException;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
@@ -45,6 +46,7 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.jspecify.annotations.NullMarked;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +56,7 @@ public class TestEventSerializer {
         BaseSerializerFactory factory = new BaseSerializerFactory();
         DefaultSerializerRegistry registry = new DefaultSerializerRegistry();
         registry.register(DefaultTestClassRunInfo.class, new DefaultTestClassRunInfoSerializer());
+        registry.register(ResourceBasedTestClassRunInfo.class, new ResourceBasedTestClassRunInfoSerializer());
         registry.register(CompositeIdGenerator.CompositeId.class, new IdSerializer());
         registry.register(DefaultNestedTestSuiteDescriptor.class, new DefaultNestedTestSuiteDescriptorSerializer());
         registry.register(DefaultParameterizedTestDescriptor.class, new DefaultParameterizedTestDescriptorSerializer());
@@ -117,6 +120,18 @@ public class TestEventSerializer {
         @Override
         public void write(Encoder encoder, DefaultTestClassRunInfo value) throws Exception {
             encoder.writeString(value.getTestClassName());
+        }
+    }
+
+    private static class ResourceBasedTestClassRunInfoSerializer implements Serializer<ResourceBasedTestClassRunInfo> {
+        @Override
+        public ResourceBasedTestClassRunInfo read(Decoder decoder) throws Exception {
+            return new ResourceBasedTestClassRunInfo(new File(decoder.readString()));
+        }
+
+        @Override
+        public void write(Encoder encoder, ResourceBasedTestClassRunInfo value) throws Exception {
+            encoder.writeString(value.getTestResourceFile().getAbsolutePath()); // TODO: Absolute path won't work, need a relative path from the build dir? resource path from root of the test classpath? something that will work remotely
         }
     }
 

@@ -57,8 +57,15 @@ public abstract class AbstractJUnitTestClassProcessor implements RequiresTestFra
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
         if (startedProcessing) {
-            LOGGER.debug("Executing test class {}", testClass.getTestClassName());
-            executor.executeClass(testClass.getTestClassName());
+            if (null != testClass.getTestClassName()) {
+                LOGGER.debug("Executing test class {}", testClass.getTestClassName());
+                executor.executeClass(testClass.getTestClassName());
+            } else {
+                LOGGER.debug("Executing test definition {}", testClass.getTestResourceFile().getAbsolutePath());
+                executor.executeResource(testClass.getTestResourceFile().getAbsoluteFile());
+            }
+        } else {
+            throw new IllegalStateException("Cannot process test class before startProcessing() has been called.");
         }
     }
 
@@ -73,4 +80,5 @@ public abstract class AbstractJUnitTestClassProcessor implements RequiresTestFra
     public void stopNow() {
         throw new UnsupportedOperationException("stopNow() should not be invoked on remote worker TestClassProcessor");
     }
+
 }

@@ -38,6 +38,7 @@ public class PatternMatchTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
+        // TODO: Needs resource handling (or a separate method?)
         if (testClassSelectionMatcher.mayIncludeClass(testClass.getTestClassName())) {
             delegate.processTestClass(testClass);
         }

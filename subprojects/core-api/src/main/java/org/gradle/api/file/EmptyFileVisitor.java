@@ -20,7 +20,6 @@ package org.gradle.api.file;
  * (dir or file). This is just to limit the amount of code clutter when not both visit methods need to be implemented.
  */
 public class EmptyFileVisitor implements FileVisitor {
-
     @Override
     public void visitDir(FileVisitDetails dirDetails) { }
 

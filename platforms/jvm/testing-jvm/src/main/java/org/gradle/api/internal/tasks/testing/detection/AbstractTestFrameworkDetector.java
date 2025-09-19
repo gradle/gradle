@@ -20,6 +20,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.ResourceBasedTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
@@ -131,6 +132,14 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         } finally {
             IoActions.closeQuietly(classStream);
         }
+    }
+
+    @Override
+    public boolean processTestResource(RelativeFile testResourceFile) {
+        testClassProcessor.processTestClass(new ResourceBasedTestClassRunInfo(testResourceFile.getFile()));
+
+        // TODO: Check if the resource is a Test Definition file, return true iff it is processed
+        return true;
     }
 
     @Override

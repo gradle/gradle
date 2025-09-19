@@ -41,7 +41,6 @@ import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
-import java.io.File;
 import java.util.ArrayList;
 
 /**
@@ -103,16 +102,17 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
                     new MaxNParallelTestClassProcessor(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory)));
 
         final FileTree testClassFiles = testExecutionSpec.getCandidateClassFiles();
+        final FileTree testResourceFiles = testExecutionSpec.getCandidateResourceFiles();
 
         // TODO: this logic is incorrect - need to handle the ONLY test resources case properly
         TestDetector detector;
         if (testExecutionSpec.isScanForTestClasses() && testFramework.getDetector() != null) {
             TestFrameworkDetector testFrameworkDetector = testFramework.getDetector();
-            testFrameworkDetector.setTestClasses(new ArrayList<File>(testExecutionSpec.getTestClassesDirs().getFiles()));
+            testFrameworkDetector.setTestClasses(new ArrayList<>(testExecutionSpec.getTestClassesDirs().getFiles()));
             testFrameworkDetector.setTestClasspath(classpath.getApplicationClasspath());
-            detector = new DefaultTestClassScanner(testClassFiles, testFrameworkDetector, processor);
+            detector = new DefaultTestClassScanner(testClassFiles, testExecutionSpec.isScanForTestResources() ? testResourceFiles : null, testFrameworkDetector, processor);
         } else {
-            detector = new DefaultTestClassScanner(testClassFiles, null, processor);
+            detector = new DefaultTestClassScanner(testClassFiles, testExecutionSpec.isScanForTestResources() ? testResourceFiles : null, null, processor);
         }
 
         // What is this?

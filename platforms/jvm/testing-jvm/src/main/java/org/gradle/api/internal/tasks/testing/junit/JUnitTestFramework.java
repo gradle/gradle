@@ -26,6 +26,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
@@ -119,5 +120,11 @@ public abstract class JUnitTestFramework implements TestFramework {
                     "Please either include or exclude the categories but not both.");
             }
         }
+    }
+
+    @Override
+    @Internal
+    public String getDisplayName() {
+        return "JUnit";
     }
 }

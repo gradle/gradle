@@ -19,6 +19,9 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.testing.detection.AbstractTestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 
+import java.io.File;
+import java.util.Set;
+
 public class JUnitDetector extends AbstractTestFrameworkDetector<JUnitTestClassDetector> {
     private static final String TEST_CASE = "junit/framework/TestCase";
     private static final String GROOVY_LEGACY_TEST_CASE = "groovy/util/GroovyTestCase";
@@ -41,5 +44,10 @@ public class JUnitDetector extends AbstractTestFrameworkDetector<JUnitTestClassD
     @Override
     protected boolean isKnownTestCaseClassName(String testCaseClassName) {
         return KNOWN_TEST_CASE_CLASS_NAMES.contains(testCaseClassName);
+    }
+
+    @Override
+    public void setTestResources(Set<File> resourceFiles) {
+        // JUnit doesn't use resource based testing
     }
 }

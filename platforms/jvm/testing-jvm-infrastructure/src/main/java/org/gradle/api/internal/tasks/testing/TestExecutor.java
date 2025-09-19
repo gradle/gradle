@@ -32,5 +32,16 @@ public interface TestExecutor {
      *
      * @param testClassName The FQN of the test class to execute
      */
-    void executeClass(String testClassName);
+    default void executeClass(String testClassName) {
+        throw new UnsupportedOperationException("Class-Based Testing is not supported by this TestExecutor.");
+    }
+    
+    /**
+     * Executes the tests in the given resource.
+     *
+     * @param resourceFile The test resource file to execute.
+     */
+    default void executeResource(File resourceFile) {
+        throw new UnsupportedOperationException("Resource-Based Testing is not supported by this TestExecutor.");
+    }
 }

@@ -22,6 +22,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.ReproducibleFileVisitor;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.ResourceBasedTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 
@@ -34,12 +35,16 @@ import java.util.regex.Pattern;
 public class DefaultTestClassScanner implements TestDetector {
     private static final Pattern ANONYMOUS_CLASS_NAME = Pattern.compile(".*\\$\\d+");
     private final FileTree candidateClassFiles;
+    private final FileTree candidateResourceFiles;
     private final TestFrameworkDetector testFrameworkDetector;
     private final TestClassProcessor testClassProcessor;
 
-    public DefaultTestClassScanner(FileTree candidateClassFiles, TestFrameworkDetector testFrameworkDetector,
+    public DefaultTestClassScanner(FileTree candidateClassFiles,
+                                   FileTree candidateResourceFiles,
+                                   TestFrameworkDetector testFrameworkDetector,
                                    TestClassProcessor testClassProcessor) {
         this.candidateClassFiles = candidateClassFiles;
+        this.candidateResourceFiles = candidateResourceFiles;
         this.testFrameworkDetector = testFrameworkDetector;
         this.testClassProcessor = testClassProcessor;
     }
@@ -55,25 +60,38 @@ public class DefaultTestClassScanner implements TestDetector {
 
     private void detectionScan() {
         testFrameworkDetector.startDetection(testClassProcessor);
-        candidateClassFiles.visit(new ClassFileVisitor() {
+        candidateClassFiles.visit(new TestClassVisitor() {
             @Override
             public void visitClassFile(FileVisitDetails fileDetails) {
                 testFrameworkDetector.processTestClass(new RelativeFile(fileDetails.getFile(), fileDetails.getRelativePath()));
             }
         });
+        candidateResourceFiles.visit(new TestResourceVisitor() {
+            @Override
+            public void visitResourceFile(FileVisitDetails fileDetails) {
+                testFrameworkDetector.processTestResource(new RelativeFile(fileDetails.getFile(), fileDetails.getRelativePath()));
+            }
+        });
     }
 
     private void filenameScan() {
-        candidateClassFiles.visit(new ClassFileVisitor() {
+        candidateClassFiles.visit(new TestClassVisitor() {
             @Override
             public void visitClassFile(FileVisitDetails fileDetails) {
                 TestClassRunInfo testClass = new DefaultTestClassRunInfo(getClassName(fileDetails));
                 testClassProcessor.processTestClass(testClass);
             }
         });
+        candidateResourceFiles.visit(new TestResourceVisitor() {
+            @Override
+            public void visitResourceFile(FileVisitDetails fileDetails) {
+                TestClassRunInfo testResource = new ResourceBasedTestClassRunInfo(fileDetails.getFile());
+                testClassProcessor.processTestClass(testResource);
+            }
+        });
     }
 
-    private abstract class ClassFileVisitor extends EmptyFileVisitor implements ReproducibleFileVisitor {
+    private abstract class TestClassVisitor extends EmptyFileVisitor implements ReproducibleFileVisitor {
         @Override
         public void visitFile(FileVisitDetails fileDetails) {
             if (isClass(fileDetails) && !isAnonymousClass(fileDetails)) {
@@ -91,6 +109,20 @@ public class DefaultTestClassScanner implements TestDetector {
             String fileName = fileVisitDetails.getFile().getName();
             return fileName.endsWith(".class") && !"module-info.class".equals(fileName);
         }
+
+        @Override
+        public boolean isReproducibleFileOrder() {
+            return true;
+        }
+    }
+
+    private static abstract class TestResourceVisitor extends EmptyFileVisitor implements ReproducibleFileVisitor {
+        @Override
+        public void visitFile(FileVisitDetails fileDetails) {
+            visitResourceFile(fileDetails);
+        }
+
+        abstract void visitResourceFile(FileVisitDetails fileDetails);
 
         @Override
         public boolean isReproducibleFileOrder() {
