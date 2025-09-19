@@ -17,6 +17,7 @@ package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.Action
 import org.gradle.api.Incubating
+import org.gradle.api.Project
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.deprecation.ConfigurationDeprecationType
@@ -85,14 +86,20 @@ private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragme
     val deprecation = highestDeprecationByLevel(accessor.spec.modelType.deprecation(), accessor.spec.targetType.deprecation())
     val annotations = "${maybeDeprecationAnnotations(deprecation)}${maybeOptInAnnotationSource(accessor.spec.modelType, accessor.spec.targetType)}"
 
+    val targetTypeKotlinString = spec.targetType.type.kotlinString
+    val featureKind = when (accessor.spec.targetType.type.value.concreteClass) {
+        Project::class.java -> "project type"
+        else -> "project feature"
+    }
+
     className to sequenceOf(
         AccessorFragment(
             source = """
             |        /**
-            |         * Applies the "$functionName" software type to the project and configures the model with the [configure] action.
+            |         * Applies the "$functionName" $featureKind to the target and configures the definition with the [configure] action.
             |         */
             |        @Incubating
-            |        ${annotations}fun ${spec.targetType.type.kotlinString}.`${functionName}`(configure: Action<in ${spec.modelType.type.kotlinString}>) {
+            |        ${annotations}fun $targetTypeKotlinString.`${functionName}`(configure: Action<in ${spec.modelType.type.kotlinString}>) {
             |            applySoftwareType(this, "$functionName", configure)
             |        }
             """.trimMargin(),
