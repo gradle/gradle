@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,35 +15,21 @@
  */
 
 plugins {
-    id("gradlebuild.distribution.implementation-kotlin")
-    id("gradlebuild.kotlin-dsl-sam-with-receiver")
+    id("gradlebuild.distribution.api-java")
 }
 
-description = "Gradle Flow API implementation"
+description = "Public API of Flow Actions"
 
 dependencies {
     api(projects.baseServices)
     api(projects.coreApi)
-    api(projects.coreFlowServicesApi)
     api(projects.stdlibJavaExtensions)
-    api(projects.modelCore)
-    api(projects.serviceProvider)
 
-    api(libs.kotlinStdlib)
-
-    implementation(projects.core)
-    implementation(projects.messaging)
-    implementation(projects.modelReflect)
-    implementation(projects.problemsApi)
-    implementation(projects.serviceLookup)
-    implementation(projects.serviceRegistryBuilder)
-    implementation(projects.stdlibKotlinExtensions)
-
-    implementation(libs.guava)
-    implementation(libs.inject)
+    compileOnly(libs.jspecify)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+
+// The samples test is the only one in the project, so we need to have it or the `generateSubprojectsInfo` will not rebuild the json properly.
+// TODO(bt-dev-prod) can the json generator figure that out automatically?
+integTest.generateDefaultAutoTestedSamplesTest = false
