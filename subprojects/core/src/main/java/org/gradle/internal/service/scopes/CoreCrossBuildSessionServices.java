@@ -106,8 +106,12 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
     }
 
     @Provides
-    CollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext) {
-        return new DefaultCollectionCallbackActionDecorator(buildOperationRunner, userCodeApplicationContext);
+    CollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(
+        BuildOperationRunner buildOperationRunner,
+        BuildOperationsParameters buildOperationsParameters,
+        UserCodeApplicationContext userCodeApplicationContext
+    ) {
+        return new DefaultCollectionCallbackActionDecorator(buildOperationRunner, buildOperationsParameters, userCodeApplicationContext);
     }
 
     @Provides
