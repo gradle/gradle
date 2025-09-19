@@ -237,6 +237,19 @@ val packageParsingAbortIdentifiers = setOf("import", "buildscript", "plugins", "
 
 
 private
+val tokensToStopAt = setOf(
+    KtTokens.IMPORT_KEYWORD,
+    KtTokens.LBRACE,
+    KtTokens.VAL_KEYWORD,
+    KtTokens.VAR_KEYWORD,
+    KtTokens.WHILE_KEYWORD,
+    KtTokens.FOR_KEYWORD,
+    KtTokens.DO_KEYWORD,
+    KtTokens.TYPE_ALIAS_KEYWORD,
+)
+
+
+private
 fun KotlinLexer.tooLateForPackageStatement(): Boolean {
     // based on https://kotlinlang.org/docs/reference/grammar.html#script
 
@@ -244,19 +257,7 @@ fun KotlinLexer.tooLateForPackageStatement(): Boolean {
         return true
     }
 
-    return tokenType in setOf(
-        KtTokens.IMPORT_KEYWORD,
-        KtTokens.CLASS_KEYWORD,
-        KtTokens.INTERFACE_KEYWORD,
-        KtTokens.OBJECT_KEYWORD,
-        KtTokens.FUN_KEYWORD,
-        KtTokens.VAL_KEYWORD,
-        KtTokens.VAR_KEYWORD,
-        KtTokens.WHILE_KEYWORD,
-        KtTokens.FOR_KEYWORD,
-        KtTokens.DO_KEYWORD,
-        KtTokens.TYPE_ALIAS_KEYWORD,
-    )
+    return tokenType in tokensToStopAt
 }
 
 
