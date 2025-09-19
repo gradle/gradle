@@ -15,10 +15,12 @@
  */
 package org.gradle.tooling;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.internal.consumer.ConnectorServices;
 
 import java.io.File;
 import java.net.URI;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>A {@code GradleConnector} is the main entry point to the Gradle tooling API. You use this API as follows:</p>
@@ -152,6 +154,17 @@ public abstract class GradleConnector {
      * @since 1.0-milestone-3
      */
     public abstract GradleConnector useGradleUserHomeDir(File gradleUserHomeDir);
+
+    /**
+     * Specifies the timeout for the connection.
+     *
+     * @param amount The timeout amount.
+     * @param unit The timeout unit.
+     * @return this
+     * @since 9.2.0
+     */
+    @Incubating
+    public abstract GradleConnector withConnectionTimeout(int amount, TimeUnit unit);
 
     /**
      * Creates a connection to the project in the specified project directory. You should call {@link org.gradle.tooling.ProjectConnection#close()} when you are finished with the connection.
