@@ -27,6 +27,7 @@ import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
 import org.gradle.testing.AbstractTestFrameworkIntegrationTest
+import org.junit.Assume
 
 import static org.gradle.test.preconditions.UnitTestPreconditions.HasXCTest
 
@@ -35,7 +36,15 @@ import static org.gradle.test.preconditions.UnitTestPreconditions.HasXCTest
 @DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
 class XCTestTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
     def setup() {
-        def toolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC)
+        def toolChain
+        if (OperatingSystem.current().isLinux()) {
+            // We only have Swift 5 on Linux
+            toolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
+        } else {
+            toolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC)
+        }
+
+        Assume.assumeNotNull(toolChain)
 
         File initScript = file("init.gradle") << """
 allprojects { p ->
