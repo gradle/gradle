@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
-import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.testing.TestExecutor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -90,7 +90,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     }
 
     @Override
-    protected Action<String> createTestExecutor(Actor resultProcessorActor) {
+    protected TestExecutor createTestExecutor(Actor resultProcessorActor) {
         TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
         launcherSession = BackwardsCompatibleLauncherSession.open();
         junitClassLoader = Thread.currentThread().getContextClassLoader();
@@ -99,15 +99,20 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     }
 
     @Override
+    public void startProcessing(TestResultProcessor resultProcessor) {
+        super.startProcessing(resultProcessor);
+        testClassExecutor.processAllTestClasses();
+    }
+
+    @Override
     public void stop() {
         if (startedProcessing) {
-            testClassExecutor.processAllTestClasses();
             launcherSession.close();
             super.stop();
         }
     }
 
-    private class CollectAllTestClassesExecutor implements Action<String> {
+    private class CollectAllTestClassesExecutor implements TestExecutor {
         private final List<Class<?>> testClasses = new ArrayList<>();
         private final TestResultProcessor resultProcessor;
 
