@@ -62,6 +62,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 import static org.gradle.internal.FileUtils.hasExtension;
 
 public class ApiGroovyCompiler implements org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec>, Serializable {
@@ -372,13 +374,9 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
     // This is necessary because:
     // 1. serialization/deserialization of the compile spec doesn't preserve Boolean.TRUE/Boolean.FALSE but creates new instances
     // 1. org.codehaus.groovy.classgen.asm.WriterController makes identity comparisons
-    @SuppressWarnings("ModifyCollectionInEnhancedForLoop")
-    private void canonicalizeValues(Map<String, Boolean> options) {
-        for (String key : options.keySet()) {
-            // unboxing and boxing does the trick
-            boolean value = options.get(key);
-            options.put(key, value);
-        }
+    private static void canonicalizeValues(Map<String, Boolean> options) {
+        // unboxing and boxing does the trick
+        options.replaceAll((k, v) -> v ? TRUE : FALSE);
     }
 
     private ClassLoader getExtClassLoader() {
