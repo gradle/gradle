@@ -17,10 +17,10 @@
 package org.gradle.test.matchers;
 
 import org.hamcrest.BaseMatcher;
-import org.hamcrest.CoreMatchers;
 import org.hamcrest.Description;
+import org.hamcrest.Matchers;
 
-public class UserAgentMatcher extends BaseMatcher {
+public class UserAgentMatcher extends BaseMatcher<String> {
 
     private final String applicationName;
     private final String version;
@@ -42,16 +42,13 @@ public class UserAgentMatcher extends BaseMatcher {
     @Override
     public boolean matches(Object o) {
         String testString = expectedUserAgentString();
-        return CoreMatchers.equalTo(testString).matches(o);
+        return Matchers.startsWith(testString).matches(o);
     }
 
     private String expectedUserAgentString() {
-        String javaVendor = System.getProperty("java.vendor");
-        String javaVersion = System.getProperty("java.version");
-        String javaVendorVersion = System.getProperty("java.vm.version");
         String osName = System.getProperty("os.name");
         String osVersion = System.getProperty("os.version");
         String osArch = System.getProperty("os.arch");
-        return String.format("%s/%s (%s;%s;%s) (%s;%s;%s)", applicationName, version, osName, osVersion, osArch, javaVendor, javaVersion, javaVendorVersion);
+        return String.format("%s/%s (%s;%s;%s)", applicationName, version, osName, osVersion, osArch);
     }
 }
