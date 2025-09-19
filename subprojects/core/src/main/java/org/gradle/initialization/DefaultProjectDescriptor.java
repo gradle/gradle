@@ -50,12 +50,13 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
     private ProjectDescriptorRegistry projectDescriptorRegistry;
     private Path path;
     private String buildFileName;
+    private boolean virtual;
 
     public DefaultProjectDescriptor(
         @Nullable ProjectDescriptorInternal parent, String name, File dir,
         ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver
     ) {
-        this(parent, name, dir, projectDescriptorRegistry, fileResolver, null);
+        this(parent, name, dir, projectDescriptorRegistry, fileResolver, null, false);
     }
 
     public DefaultProjectDescriptor(
@@ -63,12 +64,21 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
         ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver,
         @Nullable ScriptFileResolver scriptFileResolver
     ) {
+        this(parent, name, dir, projectDescriptorRegistry, fileResolver, scriptFileResolver, false);
+    }
+
+    public DefaultProjectDescriptor(
+        @Nullable ProjectDescriptorInternal parent, String name, File dir,
+        ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver,
+        @Nullable ScriptFileResolver scriptFileResolver, boolean virtual
+    ) {
         this.parent = parent;
         this.name = name;
         this.fileResolver = fileResolver;
         this.dir = dir;
         this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.path = path(name);
+        this.virtual = virtual;
         this.scriptFileResolver = scriptFileResolver != null
             ? scriptFileResolver
             : new DefaultScriptFileResolver();
@@ -216,5 +226,10 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
     @Override
     public Path path() {
         return path;
+    }
+
+    @Override
+    public boolean isVirtual() {
+        return virtual;
     }
 }

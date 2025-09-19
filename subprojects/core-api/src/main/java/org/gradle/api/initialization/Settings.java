@@ -162,6 +162,28 @@ public interface Settings extends PluginAware, ExtensionAware {
     void include(Iterable<String> projectPaths);
 
     /**
+     * <p>Does exact same thing as {@link #include(String...)} but will allow non-existent project directory.</p>
+     *
+     * @param projectNames the projects to add.
+     *
+     * @since 9.2.0
+     */
+    @Incubating
+    void includeVirtual(Iterable<String> projectNames);
+
+    /**
+     * <p>Does exact same thing as {@link #include(String...)} but will allow non-existent project directory.</p>
+     *
+     * @param projectNames the projects to add.
+     *
+     * @since 9.2.0
+     */
+    @Incubating
+    default void includeVirtual(String... projectNames) {
+        includeVirtual(Arrays.asList(projectNames));
+    }
+
+    /**
      * <p>Adds the given projects to the build. Each name in the supplied list is treated as the name of a project to
      * add to the build.</p>
      *
