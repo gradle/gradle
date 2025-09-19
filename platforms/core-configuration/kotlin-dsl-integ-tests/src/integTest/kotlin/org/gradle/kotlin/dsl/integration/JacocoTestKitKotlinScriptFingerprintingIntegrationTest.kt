@@ -49,7 +49,7 @@ class JacocoTestKitKotlinScriptFingerprintingIntegrationTest : AbstractKotlinInt
             }
         """.trimIndent())
 
-        withBuildScript("""
+        withBuildScript($$"""
             plugins {
                 `kotlin-dsl`
                 jacoco
@@ -63,7 +63,7 @@ class JacocoTestKitKotlinScriptFingerprintingIntegrationTest : AbstractKotlinInt
                 testImplementation("org.hamcrest:hamcrest-library:1.3")
                 testImplementation(gradleTestKit())
             
-                jacocoRuntime("org.jacoco:org.jacoco.agent:${JacocoPlugin.DEFAULT_JACOCO_VERSION}:runtime")
+                jacocoRuntime("org.jacoco:org.jacoco.agent:$${JacocoPlugin.DEFAULT_JACOCO_VERSION}:runtime")
             }
             
             gradlePlugin {
@@ -77,9 +77,13 @@ class JacocoTestKitKotlinScriptFingerprintingIntegrationTest : AbstractKotlinInt
             
             tasks.withType<Test> {
                 val jacoco = the<JacocoTaskExtension>()
-                jacoco.destinationFile = File("$jacocoDestinationFile")
-                systemProperty("jacocoAgentJar", configurations.getByName("jacocoRuntime").singleFile.absolutePath)
-                systemProperty("jacocoDestFile", jacoco.destinationFile!!.absolutePath)
+                jacoco.destinationFile = File("$$jacocoDestinationFile")
+                val agentJar = configurations.getByName("jacocoRuntime").singleFile.absolutePath
+                println("------------> agentJar: $agentJar") // TODO: remove
+                systemProperty("jacocoAgentJar", agentJar)
+                val destFile = jacoco.destinationFile!!.absolutePath
+                println("--------> destFile: $destFile") // TODO: remove
+                systemProperty("jacocoDestFile", destFile)
             }
         """.trimIndent())
 
