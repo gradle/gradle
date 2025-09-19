@@ -255,8 +255,6 @@ trait SoftwareTypeFixture {
                                 ${conventions == null ? "" : conventions}
                                 String projectName = context.getProject().getName();
 
-                                context.registerBuildModel(definition.getFoo());
-
                                 $applyActionExtraStatements
 
                                 context.getProject().getTasks().register("print${definitionImplementationTypeClassName}Configuration", DefaultTask.class, task -> {

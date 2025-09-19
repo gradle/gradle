@@ -129,7 +129,7 @@ trait SoftwareFeatureFixture extends SoftwareTypeFixture {
         def softwareTypeDefinition = new SoftwareTypeDefinitionClassBuilder()
         def softwareType = new SoftwareTypePluginClassBuilder().applyActionExtraStatements(
             """
-            context.getBuildModel(definition.getFoo())
+            context.registerBuildModel(definition.getFoo())
                 .getBarProcessed().set(definition.getFoo().getBar().map(it -> it.toUpperCase()));
             """
         )
