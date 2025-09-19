@@ -16,9 +16,8 @@
 
 package org.gradle.testing
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.getLATEST_JUPITER_VERSION

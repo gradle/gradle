@@ -123,6 +123,7 @@ public class TestEventSerializer {
         }
     }
 
+    @NullMarked
     private static class ResourceBasedTestClassRunInfoSerializer implements Serializer<ResourceBasedTestClassRunInfo> {
         @Override
         public ResourceBasedTestClassRunInfo read(Decoder decoder) throws Exception {

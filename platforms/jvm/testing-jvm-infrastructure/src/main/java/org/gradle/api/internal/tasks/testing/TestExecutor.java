@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.jspecify.annotations.NullMarked;
 
+import java.io.File;
+
 /**
  * A type that executes tests.
  * <p>
@@ -35,7 +37,7 @@ public interface TestExecutor {
     default void executeClass(String testClassName) {
         throw new UnsupportedOperationException("Class-Based Testing is not supported by this TestExecutor.");
     }
-    
+
     /**
      * Executes the tests in the given resource.
      *
