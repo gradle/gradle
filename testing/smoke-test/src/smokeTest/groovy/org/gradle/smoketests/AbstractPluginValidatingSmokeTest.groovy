@@ -38,8 +38,12 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
     private List<List<String>> iterations() {
         List<List<String>> result = []
         pluginsToValidate.each { id, versions ->
-            versions.each { v ->
-                result << [id, v]
+            if (versions instanceof Versions) {
+                versions.each { v ->
+                    result << [id, v]
+                }
+            } else {
+                result << [id, versions as String]
             }
         }
         result

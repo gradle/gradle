@@ -35,16 +35,14 @@ import java.util.concurrent.ConcurrentHashMap
 class DevelocityPluginSmokeTest extends AbstractSmokeTest {
 
     enum CI {
-        TEAM_CITY(
-            AbstractSmokeTest.TestedVersions.teamCityGradlePluginRef,
-            "https://raw.githubusercontent.com/etiennestuder/teamcity-build-scan-plugin/%s/agent/src/main/resources/init-scripts/develocity-injection.init.gradle"
-        ),
+        // https://github.com/jenkinsci/gradle-plugin/releases
         JENKINS(
-            AbstractSmokeTest.TestedVersions.jenkinsGradlePluginRef,
-            "https://raw.githubusercontent.com/jenkinsci/gradle-plugin/%s/src/main/resources/hudson/plugins/gradle/injection/init-script.gradle"
+            "2.16.1149.v711b_998b_0532",
+            "https://raw.githubusercontent.com/jenkinsci/gradle-plugin/refs/tags/%s/plugin/src/main/resources/hudson/plugins/gradle/injection/init-script.gradle"
         ),
+        // https://github.com/gradle/develocity-bamboo-plugin/releases
         BAMBOO(
-            AbstractSmokeTest.TestedVersions.bambooGradlePluginRef,
+            "develocity-bamboo-plugin-3.0.2",
             "https://raw.githubusercontent.com/gradle/develocity-bamboo-plugin/refs/tags/%s/src/main/resources/develocity/gradle/develocity-init-script.gradle"
         );
 
@@ -445,8 +443,6 @@ public class MyFlakyTest {
                 "- The deprecated \"gradleEnterprise.buildScan.uploadInBackground\" API has been replaced by \"develocity.buildScan.uploadInBackground\"")
             .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
                 "- The deprecated \"gradleEnterprise.buildScan.value\" API has been replaced by \"develocity.buildScan.value\"")
-            .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber && ci == CI.TEAM_CITY,
-                "- The deprecated \"gradleEnterprise.buildScan.buildScanPublished\" API has been replaced by \"develocity.buildScan.buildScanPublished\"")
             .maybeExpectLegacyDeprecationWarning(
                 "Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated. " +
                     "This is scheduled to be removed in Gradle 10. " +
