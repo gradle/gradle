@@ -63,6 +63,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new WatchFileSystemOption(),
         new VfsVerboseLoggingOption(),
         new BuildScanOption(),
+        new DevelocityUrlOption(),
         new DependencyLockingWriteOption(),
         new DependencyVerificationWriteOption(),
         new DependencyVerificationModeOption(),
@@ -357,6 +358,21 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
             } else {
                 settings.setNoBuildScan(true);
             }
+        }
+    }
+
+    public static class DevelocityUrlOption extends StringBuildOption<StartParameterInternal> {
+       public static final String LONG_OPTION = "develocity-url";
+        public static final String GRADLE_PROPERTY = "org.gradle.develocity.url";
+
+        public DevelocityUrlOption() {
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION,
+                "Specify the URL of the Develocity server to use for Build Scans."));
+        }
+
+        @Override
+        public void applyTo(String value, StartParameterInternal settings, Origin origin) {
+            settings.setDevelocityUrl(value);
         }
     }
 
