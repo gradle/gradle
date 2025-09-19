@@ -32,7 +32,7 @@ val smokeIdeTestDistributionRuntimeOnly: Configuration by configurations
 val ideStarter by configurations.creating {
     isCanBeConsumed = false
 }
-val ideStarterDir = layout.buildDirectory.dir("ideStarter")
+val ideStarterBuildDir = layout.buildDirectory.dir("ideStarter")
 
 plugins.withType<IdeaPlugin> {
     with(model) {
@@ -43,10 +43,19 @@ plugins.withType<IdeaPlugin> {
     }
 }
 
+abstract class IdeStarterPathProvider : CommandLineArgumentProvider {
+    @get: InputDirectory
+    @get: PathSensitive(PathSensitivity.RELATIVE)
+    abstract val ideStarterDir : DirectoryProperty
+
+    override fun asArguments(): Iterable<String> =
+        listOf("-Dide.starter.path=${ideStarterDir.get().asFile.absolutePath}")
+}
+
 tasks {
     val unzipIdeStarter by registering(Sync::class) {
         from(zipTree(ideStarter.elements.map { it.single() }))
-        into(ideStarterDir)
+        into(ideStarterBuildDir)
     }
 
     val fetchGradle by registering(RemoteProject::class) {
@@ -82,9 +91,13 @@ tasks {
         group = "Verification"
         maxParallelForks = 1
         systemProperties["org.gradle.integtest.executer"] = "forking"
-        systemProperties["ide.starter.path"] = ideStarterDir.map { it.asFile.absolutePath }.get()
         testClassesDirs = smokeIdeTestSourceSet.output.classesDirs
         classpath = smokeIdeTestSourceSet.runtimeClasspath
+        jvmArgumentProviders.add(
+            objects.newInstance<IdeStarterPathProvider>().apply {
+                ideStarterDir = ideStarterBuildDir
+            }
+        )
     }
 }
 
