@@ -186,7 +186,8 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
             ExtensionAware target,
             DefaultTypeValidationContext validationContext,
             SoftwareFeatureRegistry softwareFeatureRegistry,
-            SoftwareFeatureApplicator applicator, ObjectFactory objectFactory
+            SoftwareFeatureApplicator applicator,
+            ObjectFactory objectFactory
         ) {
             this.target = target;
             this.validationContext = validationContext;
