@@ -65,6 +65,7 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
 
     private final BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar;
 
+    @Nullable
     private transient GradleEnterprisePluginService pluginService;
 
     public DefaultGradleEnterprisePluginAdapter(
@@ -112,6 +113,11 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
     }
 
     private void createPluginService() {
+        String injectedDevelocityUrl = config.getDevelocityUrl();
+        if (injectedDevelocityUrl != null) {
+            // We might want to stop setting this system property if the Develocity plugin is new enough to read the URL from the configuration directly.
+            System.setProperty("com.gradle.scan.server", injectedDevelocityUrl);
+        }
         pluginService = pluginServiceFactory.create(config, requiredServices, buildState);
         pluginServiceRef.set(pluginService);
         buildOperationNotificationListenerRegistrar.register(pluginService.getBuildOperationNotificationListener());

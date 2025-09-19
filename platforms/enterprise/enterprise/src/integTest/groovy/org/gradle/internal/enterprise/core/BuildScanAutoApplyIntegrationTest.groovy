@@ -371,6 +371,27 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         pluginNotApplied()
     }
 
+    def "does auto-apply plugin when develocity URL is configured via gradle.properties"() {
+        given:
+        file('gradle.properties') << """
+            com.gradle.develocity.url=https://develocity.example.com
+        """.stripIndent()
+
+        when:
+        runBuildWithoutScanRequest()
+
+        then:
+        pluginAppliedOnce()
+    }
+
+    def "does auto-apply plugin when develocity URL is configured via CLI"() {
+        when:
+        runBuildWithoutScanRequest("--develocity-url", "https://develocity.example.com")
+
+        then:
+        pluginAppliedOnce()
+    }
+
     private void runBuildWithScanRequest(String... additionalArgs) {
         List<String> allArgs = ["--${BuildScanOption.LONG_OPTION}", "-s"]
 
@@ -382,7 +403,11 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         runBuildWithoutScanRequest()
     }
 
-    private void runBuildWithoutScanRequest() {
+    private void runBuildWithoutScanRequest(String... additionalArgs) {
+        if (additionalArgs) {
+            args(additionalArgs)
+        }
+
         succeeds("dummy")
     }
 
