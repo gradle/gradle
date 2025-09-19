@@ -44,7 +44,7 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
     }
 
     def "precompiled Groovy plugin built with current version can be used with Gradle 7.0+"() {
-        Assume.assumeTrue(previous.version >= GradleVersion.version('7.0'))
+        Assume.assumeTrue(previous.version >= GradleVersion.version('7.3')) // 7.3 is the first to support running on Java 17
 
         given:
         precompiledGroovyPluginBuiltWith(version(getCurrent()))
@@ -69,25 +69,6 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         then:
         result.output.contains("$PLUGIN_ID applied")
         result.output.contains("$PLUGIN_TASK executed")
-    }
-
-    def "can not use a precompiled script plugin with Gradle earlier than 7.0"() {
-        Assume.assumeTrue(getCurrent().version >= GradleVersion.version('7.3')) // FIXME: does this test still make sense with Gradle 9.0.0 requiring Java 17?
-        Assume.assumeTrue(previous.version >= GradleVersion.version('3.5')) // because 3.4 does not yet support pluginManagement {} block
-        Assume.assumeTrue(previous.version < GradleVersion.version('7.0'))
-
-        given:
-        precompiledGroovyPluginBuiltWith(version(getCurrent()))
-
-        when:
-        def result = pluginTaskExecutedWith(version(getPrevious())).runWithFailure()
-
-        then:
-        result.assertHasDescription("An exception occurred applying plugin request [id: '$PLUGIN_ID', version: '1.0']")
-        result.assertHasCause("Failed to apply plugin [id '$PLUGIN_ID']")
-        result.assertHasCause("Precompiled Groovy script plugins built by ${getCurrent().version} require Gradle 7.0 or higher")
-        result.assertNotOutput("$PLUGIN_ID applied")
-        result.assertNotOutput("$PLUGIN_TASK executed")
     }
 
     private static GradleExecuter pluginTaskExecutedWith(GradleExecuter executer) {
