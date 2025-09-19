@@ -38,6 +38,7 @@ class JacocoTestKitKotlinScriptFingerprintingIntegrationTest : AbstractKotlinInt
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
     fun `running a test with TestKit that applies Jacoco won't brake KTS script fingerprinting`() {
         val jacocoDestinationDir = File(temporaryFolder.root, "jacoco").apply { mkdirs() }
+        val projectDir = File(temporaryFolder.root, "project").apply { mkdirs() }
         val jacocoDestinationFile = TextUtil.normaliseFileSeparators("${jacocoDestinationDir.absolutePath}/jacoco.exec")
 
         withSettings("""
@@ -105,15 +106,10 @@ class JacocoTestKitKotlinScriptFingerprintingIntegrationTest : AbstractKotlinInt
             
             import org.junit.Rule
             import org.junit.Test
-            import org.junit.rules.TemporaryFolder
 
             class PluginTest {
 
-                @JvmField @Rule val temporaryFolder = TemporaryFolder()
-
-                val projectDir by lazy {
-                    File(temporaryFolder.root, "test").apply { mkdirs() }
-                }
+                val projectDir = File("$${TextUtil.normaliseFileSeparators(projectDir.absolutePath)}")
 
                 @Test
                 fun test() {
