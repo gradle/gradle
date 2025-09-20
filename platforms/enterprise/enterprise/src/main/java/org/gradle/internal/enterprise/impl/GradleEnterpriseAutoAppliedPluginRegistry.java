@@ -16,7 +16,7 @@
 
 package org.gradle.internal.enterprise.impl;
 
-import org.gradle.StartParameter;
+import com.google.common.base.Strings;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
@@ -56,8 +56,8 @@ public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPlu
 
     private static boolean shouldApplyDevelocityPlugin(Settings settings) {
         Gradle gradle = settings.getGradle();
-        StartParameter startParameter = gradle.getStartParameter();
-        return startParameter.isBuildScan() && gradle.getParent() == null;
+        StartParameterInternal startParameter = (StartParameterInternal) gradle.getStartParameter();
+        return (startParameter.isBuildScan() || !Strings.isNullOrEmpty(startParameter.getDevelocityUrl())) && gradle.getParent() == null;
     }
 
     private static PluginRequestInternal createDevelocityPluginRequest() {
