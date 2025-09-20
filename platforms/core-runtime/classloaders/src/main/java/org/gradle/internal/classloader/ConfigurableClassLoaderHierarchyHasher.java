@@ -58,7 +58,7 @@ public class ConfigurableClassLoaderHierarchyHasher implements ClassLoaderHierar
             }
         }
 
-        public HashCode getHash() {
+        public @Nullable HashCode getHash() {
             return foundUnknown ? null : hasher.hash();
         }
 

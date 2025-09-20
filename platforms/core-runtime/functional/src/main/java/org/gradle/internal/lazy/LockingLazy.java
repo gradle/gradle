@@ -24,25 +24,28 @@ import java.util.function.Supplier;
  * This is basically the same thing as Guava's NonSerializableMemoizingSupplier
  */
 @ThreadSafe
-class LockingLazy<T> implements Lazy<T> {
-    @Nullable
-    private volatile Supplier<T> supplier;
+class LockingLazy<T extends @Nullable Object> implements Lazy<T> {
+    private volatile @Nullable Supplier<T> supplier;
     private volatile boolean initialized;
     // "value" does not need to be volatile;
     // visibility piggybacks on volatile read of "initialized".
-    private T value;
+    private @Nullable T value;
 
     public LockingLazy(Supplier<T> supplier) {
         this.supplier = supplier;
     }
 
+    // NullAway cannot infer the invariants here:
+    // !initialized => (supplier != null && value == null)
+    // initialized => (supplier == null && value != null)
+    @SuppressWarnings({"NullAway", "DataFlowIssue"})
     @Override
     public T get() {
-        // A 2-field variant of Double Checked Locking.
+        // A 2-field variant of Double-Checked Locking.
         if (!initialized) {
             synchronized (this) {
                 if (!initialized) {
-                    //noinspection DataFlowIssue `supplier` cannot be null here
+                    // `supplier` cannot be null here
                     T t = supplier.get();
                     value = t;
                     initialized = true;
@@ -52,6 +55,7 @@ class LockingLazy<T> implements Lazy<T> {
                 }
             }
         }
+        // `value` cannot be null here.
         return value;
     }
 }

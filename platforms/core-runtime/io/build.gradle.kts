@@ -32,3 +32,7 @@ dependencies {
 
     implementation(projects.stdlibJavaExtensions)
 }
+
+errorprone {
+    nullawayEnabled = true
+}
