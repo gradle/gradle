@@ -132,6 +132,8 @@ The following table lists the officially supported platforms for Gradle:
 
 | Ubuntu 22 | `amd64`
 | Windows 10 | `amd64`
+| Windows 11 | `amd64`
+| | `aarch64`
 | macOS 12 | `amd64`
 |  | `aarch64`
 | Ubuntu 16 | `amd64`
