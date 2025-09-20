@@ -30,9 +30,9 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblemReporter;
-import org.gradle.api.problems.internal.InternalProblemSpec;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemReporterInternal;
+import org.gradle.api.problems.internal.ProblemSpecInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -146,21 +146,21 @@ public class TomlCatalogFileParser {
         }
     }
 
-    private InternalProblemReporter getInternalReporter() {
+    private ProblemReporterInternal getInternalReporter() {
         return getInternalProblems().getInternalReporter();
     }
 
     @NullMarked
-    private static ProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String message, VersionCatalogProblemId catalogProblemId) {
+    private static ProblemSpec configureVersionCatalogError(ProblemSpecInternal builder, String message, VersionCatalogProblemId catalogProblemId) {
         return configureVersionCatalogError(builder, message, catalogProblemId, input -> input);
     }
 
-    private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String label, VersionCatalogProblemId catalogProblemId, Function<InternalProblemSpec, InternalProblemSpec> locationDefiner) {
-        InternalProblemSpec definingLocation = builder
+    private static ProblemSpecInternal configureVersionCatalogError(ProblemSpecInternal builder, String label, VersionCatalogProblemId catalogProblemId, Function<ProblemSpecInternal, ProblemSpecInternal> locationDefiner) {
+        ProblemSpecInternal definingLocation = builder
             .id(screamingSnakeToKebabCase(catalogProblemId.name()), "Dependency version catalog problem", GradleCoreProblemGroup.versionCatalog())
             .contextualLabel(label)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)));
-        InternalProblemSpec definingCategory = locationDefiner.apply(definingLocation);
+        ProblemSpecInternal definingCategory = locationDefiner.apply(definingLocation);
         return definingCategory
             .severity(ERROR);
     }
@@ -180,7 +180,7 @@ public class TomlCatalogFileParser {
     }
 
     private void reportErrors(List<TomlParseError> errors) {
-        InternalProblemReporter internalReporter = getInternalReporter();
+        ProblemReporterInternal internalReporter = getInternalReporter();
         errors.stream().map(error -> internalReporter.internalCreate(builder ->
             configureVersionCatalogError(builder, error.getMessage(), TOML_SYNTAX_ERROR, definingLocation -> {
                 definingLocation.lineInFileLocation(catalogFilePath.toAbsolutePath().toString(), error.position().line(), error.position().column());
@@ -210,8 +210,8 @@ public class TomlCatalogFileParser {
             .collect(joining("\n"));
     }
 
-    private InternalProblems getInternalProblems() {
-        return (InternalProblems) problemsServiceSupplier.get();
+    private ProblemsInternal getInternalProblems() {
+        return (ProblemsInternal) problemsServiceSupplier.get();
     }
 
     private void verifyMetadata(@Nullable TomlTable metadataTable) {
@@ -596,7 +596,7 @@ public class TomlCatalogFileParser {
         builder.version(alias, v -> configureVersion(require, strictly, prefer, rejectedVersions, rejectAll, v));
     }
 
-    private RuntimeException throwVersionCatalogProblemException(Action<InternalProblemSpec> action) {
+    private RuntimeException throwVersionCatalogProblemException(Action<ProblemSpecInternal> action) {
         throw throwError(getInternalProblems(), INVALID_TOML_CATALOG_DEFINITION, ImmutableList.of(getInternalReporter().internalCreate(action)));
     }
 }

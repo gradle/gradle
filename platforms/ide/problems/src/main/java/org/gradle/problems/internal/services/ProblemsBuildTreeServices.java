@@ -21,7 +21,7 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.problems.internal.IsolatableToBytesSerializer;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.api.problems.internal.ProblemReportCreator;
@@ -55,7 +55,7 @@ import java.util.Collection;
 @ServiceScope(Scope.BuildTree.class)
 public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
     @Provides
-    InternalProblems createProblemsService(
+    ProblemsInternal createProblemsService(
         ProblemSummarizer problemSummarizer,
         ProblemStream problemStream,
         ExceptionProblemRegistry exceptionProblemRegistry,
