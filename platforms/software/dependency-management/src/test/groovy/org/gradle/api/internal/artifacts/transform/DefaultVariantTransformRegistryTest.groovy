@@ -31,7 +31,7 @@ import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.TestHashCodes
@@ -71,7 +71,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def calculatedValueContainerFactory = TestUtil.calculatedValueContainerFactory()
     def attributesFactory = AttributeTestUtil.attributesFactory()
     def serviceLookup = Stub(ServiceLookup) {
-        get(InternalProblems) >> Mock(InternalProblems)
+        get(ProblemsInternal) >> Mock(ProblemsInternal)
         get(DocumentationRegistry) >> new DocumentationRegistry()
     }
     def registryFactory = new DefaultTransformRegistrationFactory(
