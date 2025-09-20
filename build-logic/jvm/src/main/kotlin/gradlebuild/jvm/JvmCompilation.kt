@@ -24,6 +24,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.kotlin.dsl.*
@@ -82,7 +83,13 @@ abstract class JvmCompilation {
         javaCompile.configure {
             // Set the release flag if requested.
             // Otherwise, we set the source and target compatibility in the afterEvaluate below.
-            options.release = useRelease().zip(targetJvmVersion) { doUseRelease, target -> if (doUseRelease) { target } else { null } }
+            options.release = useRelease().zip(targetJvmVersion) { doUseRelease, target ->
+                if (doUseRelease) {
+                    target
+                } else {
+                    null
+                }
+            }
         }
 
         // Need to use afterEvaluate since source/target compatibility are not lazy
@@ -99,13 +106,15 @@ abstract class JvmCompilation {
 
     @JvmName("associateGroovy")
     fun Project.associate(groovyCompile: TaskProvider<GroovyCompile>) {
-        groovyCompile.configure {
-            val javaToolchains = project.the<JavaToolchainService>()
-            // Groovy does not support the release flag. We must compile with the same
-            // JDK we are targeting in order to see the correct standard lib classes
-            // during compilation
-            javaLauncher = javaToolchains.launcherFor {
-                languageVersion = targetJvmVersion.map { JavaLanguageVersion.of(it) }
+        if(!(OperatingSystem.current().isWindows && System.getProperty("os.arch") == "aarch64")) {
+            groovyCompile.configure {
+                val javaToolchains = project.the<JavaToolchainService>()
+                // Groovy does not support the release flag. We must compile with the same
+                // JDK we are targeting in order to see the correct standard lib classes
+                // during compilation
+                javaLauncher = javaToolchains.launcherFor {
+                    languageVersion = targetJvmVersion.map { JavaLanguageVersion.of(it) }
+                }
             }
         }
 
