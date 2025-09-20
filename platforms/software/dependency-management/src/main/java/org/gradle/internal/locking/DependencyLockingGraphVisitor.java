@@ -149,16 +149,16 @@ public class DependencyLockingGraphVisitor implements DependencyGraphVisitor {
     private static Set<UnresolvedDependency> createLockingFailures(Map<ModuleIdentifier, ModuleComponentIdentifier> modulesToBeLocked, Set<ModuleComponentIdentifier> extraModules, Map<ModuleComponentIdentifier, String> forcedModules) {
         Set<UnresolvedDependency> completedFailures = Sets.newHashSetWithExpectedSize(modulesToBeLocked.values().size() + extraModules.size());
         for (ModuleComponentIdentifier presentInLock : modulesToBeLocked.values()) {
-            completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(presentInLock.getModuleIdentifier(), presentInLock.getVersion()),
+            completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(presentInLock),
                                   new LockOutOfDateException("Did not resolve '" + presentInLock.getDisplayName() + "' which is part of the dependency lock state")));
         }
         for (ModuleComponentIdentifier extraModule : extraModules) {
-            completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(extraModule.getModuleIdentifier(), extraModule.getVersion()),
+            completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(extraModule),
                 new LockOutOfDateException("Resolved '" + extraModule.getDisplayName() + "' which is not part of the dependency lock state")));
         }
         for (Map.Entry<ModuleComponentIdentifier, String> entry : forcedModules.entrySet()) {
             ModuleComponentIdentifier forcedModule = entry.getKey();
-            completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(forcedModule.getModuleIdentifier(), forcedModule.getVersion()),
+            completedFailures.add(new DefaultUnresolvedDependency(DefaultModuleVersionSelector.newSelector(forcedModule),
                 new LockOutOfDateException("Did not resolve '" + forcedModule.getDisplayName() + "' which has been forced / substituted to a different version: '" + entry.getValue() + "'")));
         }
         return completedFailures;
