@@ -11,6 +11,8 @@ description = "The collector project for the entirety of the Gradle distribution
 dependencies {
     coreRuntimeOnly(platform(projects.corePlatform))
 
+    publicApiOnly(projects.publicApi)
+
     agentsRuntimeOnly(projects.instrumentationAgent)
 
     pluginsRuntimeOnly(platform(projects.distributionsPublishing))
