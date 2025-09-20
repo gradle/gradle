@@ -104,6 +104,24 @@ class PrecompiledScriptPluginTest : TestWithTempFiles() {
             equalTo("my-script")
         )
     }
+    @Test
+    fun `package name detection works when there is a class keyword in the file annotation`() {
+
+        assertThat(
+            scriptPlugin(
+                "my-script.gradle.kts",
+                """
+                    @file:OptIn(NeedsOptIn::class)
+
+                    package test
+
+                    class SomeClass {
+                    }
+                """
+            ).id,
+            equalTo("test.my-script")
+        )
+    }
 
     @Test
     fun `implementationClass is a valid Java identifier`() {
