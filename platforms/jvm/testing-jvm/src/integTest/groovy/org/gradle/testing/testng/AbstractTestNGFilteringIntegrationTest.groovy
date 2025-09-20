@@ -17,11 +17,16 @@
 
 package org.gradle.testing.testng
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import spock.lang.Issue
 
 abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest implements TestNGMultiVersionTest {
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.TEST_NG
+    }
 
     void theUsualFiles() {
         buildFile << """
@@ -76,9 +81,9 @@ abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilter
         def result = new DefaultTestExecutionResult(testDirectory)
 
         result.assertTestClassesExecuted('FooTest', 'BarTest')
-        result.testClass('FooTest').assertTestCount(1, 0, 0)
+        result.testClass('FooTest').assertTestCount(1, 0)
         result.testClass('FooTest').assertTestOutcomes(passedTestOutcome, 'pass')
-        result.testClass('BarTest').assertTestCount(1, 0, 0)
+        result.testClass('BarTest').assertTestCount(1, 0)
         result.testClass('BarTest').assertTestOutcomes(passedTestOutcome, 'pass')
     }
 
@@ -102,9 +107,9 @@ abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilter
         def result = new DefaultTestExecutionResult(testDirectory)
 
         result.assertTestClassesExecuted('FooTest', 'BarTest')
-        result.testClass('FooTest').assertTestCount(1, 0, 0)
+        result.testClass('FooTest').assertTestCount(1, 0)
         result.testClass('FooTest').assertTestOutcomes(passedTestOutcome, 'pass')
-        result.testClass('BarTest').assertTestCount(1, 0, 0)
+        result.testClass('BarTest').assertTestCount(1, 0)
         result.testClass('BarTest').assertTestOutcomes(passedTestOutcome, 'pass')
     }
 }

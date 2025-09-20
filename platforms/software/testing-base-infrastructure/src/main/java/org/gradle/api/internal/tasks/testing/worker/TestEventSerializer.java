@@ -111,12 +111,22 @@ public class TestEventSerializer {
     private static class DefaultTestClassRunInfoSerializer implements Serializer<DefaultTestClassRunInfo> {
         @Override
         public DefaultTestClassRunInfo read(Decoder decoder) throws Exception {
-            return new DefaultTestClassRunInfo(decoder.readString());
+            String className = decoder.readString();
+            int suiteClassCount = decoder.readSmallInt();
+            List<String> suiteClassNames = new ArrayList<String>(suiteClassCount);
+            for (int i = 0; i < suiteClassCount; i++) {
+                suiteClassNames.add(decoder.readString());
+            }
+            return new DefaultTestClassRunInfo(className, suiteClassNames);
         }
 
         @Override
         public void write(Encoder encoder, DefaultTestClassRunInfo value) throws Exception {
             encoder.writeString(value.getTestClassName());
+            encoder.writeSmallInt(value.getSuiteClassNames().size());
+            for (String suiteClassName : value.getSuiteClassNames()) {
+                encoder.writeString(suiteClassName);
+            }
         }
     }
 
