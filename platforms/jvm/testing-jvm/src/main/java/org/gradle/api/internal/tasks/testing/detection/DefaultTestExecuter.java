@@ -41,7 +41,6 @@ import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
-import java.io.File;
 import java.util.ArrayList;
 
 /**
@@ -79,9 +78,10 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         final TestFramework testFramework = testExecutionSpec.getTestFramework();
         final WorkerTestClassProcessorFactory testInstanceFactory = testFramework.getProcessorFactory();
 
-        ForkedTestClasspath classpath = testClasspathFactory.create(
+        ForkedTestClasspath classpath = new ForkedTestClasspath(
             testExecutionSpec.getClasspath(),
-            testExecutionSpec.getModulePath()
+            testExecutionSpec.getModulePath(),
+            testClasspathFactory.create()
         );
 
         final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
@@ -107,8 +107,8 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         Runnable detector;
         if (testExecutionSpec.isScanForTestClasses() && testFramework.getDetector() != null) {
             TestFrameworkDetector testFrameworkDetector = testFramework.getDetector();
-            testFrameworkDetector.setTestClasses(new ArrayList<File>(testExecutionSpec.getTestClassesDirs().getFiles()));
-            testFrameworkDetector.setTestClasspath(classpath.getApplicationClasspath());
+            testFrameworkDetector.setTestClasses(new ArrayList<>(testExecutionSpec.getTestClassesDirs().getFiles()));
+            testFrameworkDetector.setTestClasspath(classpath.getApplicationClasspath().getAsFiles());
             detector = new DefaultTestClassScanner(testClassFiles, testFrameworkDetector, processor);
         } else {
             detector = new DefaultTestClassScanner(testClassFiles, null, processor);

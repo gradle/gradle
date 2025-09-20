@@ -33,9 +33,6 @@ dependencies {
     pluginsRuntimeOnly(projects.configurationCache) {
         because("We always need a BuildLogicTransformStrategy service implementation.")
     }
-    pluginsRuntimeOnly(projects.testingJunitPlatform) {
-        because("All test workers have JUnit platform on their classpath (see ForkingTestClassProcessor.getTestWorkerImplementationClasspath).")
-    }
     pluginsRuntimeOnly(projects.kotlinDslProviderPlugins) {
         because("We need a KotlinScriptBasePluginsApplicator service implementation to use Kotlin DSL scripts.")
     }
