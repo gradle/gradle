@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
-import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.testing.TestExecutor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -46,6 +46,7 @@ import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 
 import javax.annotation.WillCloseWhenClosed;
+import java.io.File;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
@@ -90,7 +91,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     }
 
     @Override
-    protected Action<String> createTestExecutor(Actor resultProcessorActor) {
+    protected TestExecutor createTestExecutor(Actor resultProcessorActor) {
         TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
         launcherSession = BackwardsCompatibleLauncherSession.open();
         junitClassLoader = Thread.currentThread().getContextClassLoader();
@@ -107,8 +108,9 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
     }
 
-    private class CollectAllTestClassesExecutor implements Action<String> {
+    private class CollectAllTestClassesExecutor implements TestExecutor {
         private final List<Class<?>> testClasses = new ArrayList<>();
+        private final List<File> testResources = new ArrayList<>();
         private final TestResultProcessor resultProcessor;
 
         CollectAllTestClassesExecutor(TestResultProcessor resultProcessor) {
@@ -116,7 +118,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
 
         @Override
-        public void execute(@NonNull String testClassName) {
+        public void executeClass(@NonNull String testClassName) {
             Class<?> klass = loadClass(testClassName);
             if (isInnerClass(klass) || (supportsVintageTests() && isNestedClassInsideEnclosedRunner(klass))) {
                 return;
@@ -124,8 +126,13 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
             testClasses.add(klass);
         }
 
+        @Override
+        public void executeResource(File resourceFile) {
+            testResources.add(resourceFile);
+        }
+
         private void processAllTestClasses() {
-            LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest(testClasses);
+            LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest(testClasses, testResources);
             TestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator);
             Launcher launcher = launcherSession.getLauncher();
             if (spec.isDryRun()) {
@@ -187,12 +194,17 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
     }
 
-    private LauncherDiscoveryRequest createLauncherDiscoveryRequest(List<Class<?>> testClasses) {
+    private LauncherDiscoveryRequest createLauncherDiscoveryRequest(List<Class<?>> testClasses, List<File> testResources) {
         List<DiscoverySelector> classSelectors = testClasses.stream()
             .map(DiscoverySelectors::selectClass)
             .collect(Collectors.toList());
+        List<DiscoverySelector> resourceSelectors = testResources.stream()
+            .map(DiscoverySelectors::selectFile)
+            .collect(Collectors.toList());
 
-        LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request().selectors(classSelectors);
+        LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request()
+            .selectors(classSelectors)
+            .selectors(resourceSelectors);
 
         addTestNameFilters(requestBuilder);
         addEnginesFilter(requestBuilder);

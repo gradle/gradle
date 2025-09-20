@@ -20,6 +20,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.ResourceBasedTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
@@ -134,6 +135,14 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     }
 
     @Override
+    public boolean processTestResource(RelativeFile testResourceFile) {
+        testClassProcessor.processTestClass(new ResourceBasedTestClassRunInfo(testResourceFile.getFile()));
+
+        // TODO: Check if the resource is a Test Definition file, return true iff it is processed
+        return true;
+    }
+
+    @Override
     public boolean processTestClass(final RelativeFile testClassFile) {
         return processTestClass(testClassFile.getFile(), false, new Factory<String>() {
             @Override
@@ -173,7 +182,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
             }
         }
 
-        publishTestClass(isTest, testClass, superClass);
+        maybePublishTestClass(isTest, testClass, superClass);
 
         return isTest;
     }
@@ -200,7 +209,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
      * In none super class mode a test class is published when the class is a test and it is not abstract. In super class mode it must not publish the class otherwise it will get published multiple
      * times (for each extending class).
      */
-    private void publishTestClass(boolean isTest, TestClass testClass, boolean superClass) {
+    private void maybePublishTestClass(boolean isTest, TestClass testClass, boolean superClass) {
         if (isTest && !testClass.isAbstract() && !superClass) {
             String className = Type.getObjectType(testClass.getClassName()).getClassName();
             testClassProcessor.processTestClass(new DefaultTestClassRunInfo(className));
