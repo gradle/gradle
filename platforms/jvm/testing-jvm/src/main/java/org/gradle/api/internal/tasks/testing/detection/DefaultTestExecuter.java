@@ -104,7 +104,8 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
 
         final FileTree testClassFiles = testExecutionSpec.getCandidateClassFiles();
 
-        Runnable detector;
+        // TODO: this logic is incorrect - need to handle the ONLY test resources case properly
+        TestDetector detector;
         if (testExecutionSpec.isScanForTestClasses() && testFramework.getDetector() != null) {
             TestFrameworkDetector testFrameworkDetector = testFramework.getDetector();
             testFrameworkDetector.setTestClasses(new ArrayList<File>(testExecutionSpec.getTestClassesDirs().getFiles()));
