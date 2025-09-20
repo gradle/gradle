@@ -77,7 +77,7 @@ private val performanceRegressionTestCoverages =
             PerformanceTestType.PER_COMMIT,
             Os.WINDOWS,
             numberOfBuckets = 10,
-            failsStage = false,
+            failsStage = true,
         ),
         PerformanceTestCoverage(
             7,
@@ -85,7 +85,7 @@ private val performanceRegressionTestCoverages =
             Os.MACOS,
             Arch.AARCH64,
             numberOfBuckets = 5,
-            failsStage = false,
+            failsStage = true,
         ),
     )
 
