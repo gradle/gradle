@@ -159,7 +159,7 @@ If you enable and configure the Configuration Cache in your `gradle.properties` 
 No additional setup is required.
 
 Because `gradle.properties` is typically checked into source control,
-<<userguide/best-practices/best_practices_general.adoc#use_the_gradle_properties_file,enabling the Configuration Cache this way will apply to your entire team>>.
+<<best_practices_general.adoc#use_the_gradle_properties_file,enabling the Configuration Cache this way will apply to your entire team>>.
 If you prefer to enable it only for your local environment, you can configure it directly in your IDE instead.
 
 NOTE: Syncing a project in an IDE does not benefit from the Configuration Cache. Only running tasks through the IDE will leverage the cache.
