@@ -143,10 +143,13 @@ project.plugins.withType<JavaBasePlugin> {
 }
 
 tasks.withType<JavaCompile>().configureEach {
-    options.errorprone {
-        disableWarningsInGeneratedCode = true
-        allErrorsAsWarnings = true
-    }
+    options.errorprone.allErrorsAsWarnings.set(true)
+    options.errorprone.disableWarningsInGeneratedCode.set(true)
+    options.errorprone.errorproneArgs.addAll(
+        "-XepPatchChecks:MissingOverride",
+        // "-XepPatchChecks:UnusedMethod", // why not working?
+        "-XepPatchLocation:IN_PLACE"
+    )
 }
 
 val codeQuality = tasks.register("codeQuality") {
