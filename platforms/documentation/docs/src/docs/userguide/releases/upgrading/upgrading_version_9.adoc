@@ -92,6 +92,13 @@ configurations.named("name").configure {
 }
 ----
 
+==== Plugin Development
+
+The dependency on `gradleApi()` added by the `java-gradle-plugin` has been changed from an `api` dependency to a `compileOnly` dependency.
+The default `file` dependency is not included in the POM for downstream dependency resolution, but when the change to allow targeting different API versions is introduced, it will be, which is not intended.
+Changing this to `compileOnly` aligns the behavior to the current dependency resolution behavior.
+In most cases, this is a non-breaking change because the Gradle API is expected to be provided by Gradle during the plugin's runtime anyway. There is an edge case which may break though: if a multi-project build contains a plugin project and a non-plugin project which depends on that plugin project. In this case, the non-plugin project will no longer transitively have the Gradle API on the compile classpath. If the non-plugin project needs to compile against the Gradle API, it will need `compileOnly(gradleApi())` added to its dependencies.
+
 === Deprecations
 
 [[project_container_methods]]
