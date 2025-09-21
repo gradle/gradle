@@ -39,7 +39,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def setup() {
         spec.tempDir = tempDir.file("tmp")
-        spec.compileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
+        spec.compileOptions = TestUtil.newInstance(CompileOptions)
     }
 
     def "generates options for an unconfigured spec"() {

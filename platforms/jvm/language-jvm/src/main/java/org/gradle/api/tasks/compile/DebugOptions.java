@@ -16,20 +16,28 @@
 
 package org.gradle.api.tasks.compile;
 
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
 
+import javax.inject.Inject;
 import java.io.Serializable;
 
 /**
  * Debug options for Java compilation.
  */
-public class DebugOptions implements Serializable {
+public abstract class DebugOptions implements Serializable {
     private static final long serialVersionUID = 0;
 
-    private String debugLevel;
+    private final Property<String> debugLevel;
+
+    @Inject
+    public DebugOptions(ObjectFactory objectFactory) {
+        this.debugLevel = objectFactory.property(String.class);
+    }
 
     /**
      * Get a comma-separated list of debug information to be generated during compilation.
@@ -53,7 +61,7 @@ public class DebugOptions implements Serializable {
     @Input
     @ToBeReplacedByLazyProperty
     public String getDebugLevel() {
-        return debugLevel;
+        return debugLevel.getOrNull();
     }
 
     /**
@@ -77,6 +85,6 @@ public class DebugOptions implements Serializable {
      * generating line and source debug information.</p>
      */
     public void setDebugLevel(@Nullable String debugLevel) {
-        this.debugLevel = debugLevel;
+        this.debugLevel.set(debugLevel);
     }
 }

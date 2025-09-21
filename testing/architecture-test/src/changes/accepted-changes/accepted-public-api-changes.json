@@ -1,6 +1,84 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Constructor org.gradle.api.tasks.compile.CompileOptions()",
+            "acceptation": "Replaced with abstract getter",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getDebugOptions()",
+            "acceptation": "Replaced with abstract getter",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getForkOptions()",
+            "acceptation": "Replaced with abstract getter",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getGeneratedSourceOutputDirectory()",
+            "acceptation": "Replaced with abstract getter",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getHeaderOutputDirectory()",
+            "acceptation": "Replaced with abstract getter",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getJavaModuleMainClass()",
+            "acceptation": "Replaced with abstract getter",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getJavaModuleVersion()",
+            "acceptation": "Replaced with abstract getter",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getRelease()",
+            "acceptation": "Replaced with abstract getter",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.DebugOptions",
+            "member": "Class org.gradle.api.tasks.compile.DebugOptions",
+            "acceptation": "Replaced with abstract getter",
+            "changes": [
+                "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.DebugOptions",
+            "member": "Constructor org.gradle.api.tasks.compile.DebugOptions()",
+            "acceptation": "Replaced with abstract getter",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.compile.GroovyCompile",
             "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getAstTransformationClasspath()",
             "acceptation": "Replaced with abstract getter",
@@ -107,14 +185,6 @@
         {
             "type": "org.gradle.testing.jacoco.tasks.JacocoReportBase",
             "member": "Method org.gradle.testing.jacoco.tasks.JacocoReportBase.getClassDirectories()",
-            "acceptation": "Replaced with abstract getter",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.testing.jacoco.tasks.JacocoReportBase",
-            "member": "Method org.gradle.testing.jacoco.tasks.JacocoReportBase.getExecutionData()",
             "acceptation": "Replaced with abstract getter",
             "changes": [
                 "Method is now abstract"
