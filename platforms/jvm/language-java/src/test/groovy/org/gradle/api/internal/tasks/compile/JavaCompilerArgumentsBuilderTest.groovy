@@ -181,7 +181,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     }
 
     def "generates -bootclasspath option"() {
-        def compileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
+        def compileOptions = TestUtil.newInstance(CompileOptions)
         compileOptions.bootstrapClasspath = TestFiles.fixed(new File("lib1.jar"), new File("lib2.jar"))
         spec.compileOptions = compileOptions
 

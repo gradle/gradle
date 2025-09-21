@@ -25,7 +25,7 @@ class DefaultJavaCompileSpecTest extends Specification {
 
     def "parses module-path from compileArgs with #description"() {
         given:
-        CompileOptions options = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
+        CompileOptions options = TestUtil.newInstance(CompileOptions)
         options.compilerArgs.addAll(modulePathParameters)
         DefaultJavaCompileSpec compileSpec = new DefaultJavaCompileSpec()
         compileSpec.setCompileOptions(options)
