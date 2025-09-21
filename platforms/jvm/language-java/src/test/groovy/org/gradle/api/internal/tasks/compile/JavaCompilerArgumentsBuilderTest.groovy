@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.GUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 import static org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder.USE_UNSHARED_COMPILER_TABLE_OPTION
@@ -377,6 +378,22 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         expect:
         builder.build() == expected
         builder.noEmptySourcePath().build() == expected
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/34989")
+    def "can set module-version"() {
+        when:
+        spec.compileOptions.javaModuleVersion = "1.0.0"
+        spec.modulePath = [new File('/src/other')]
+
+        then:
+        builder.build() == ["-g", "-sourcepath", "", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", "", "--module-version", "1.0.0",  "--module-path", "/src/other"]
+
+        when:
+        spec.modulePath = []
+
+        then:
+        builder.build() == ["-g", "-sourcepath", "", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", "", "--module-version", "1.0.0"]
     }
 
     String defaultEmptySourcePathRefFolder() {
