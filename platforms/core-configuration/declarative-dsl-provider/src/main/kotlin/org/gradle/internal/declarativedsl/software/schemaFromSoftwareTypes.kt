@@ -17,11 +17,11 @@
 package org.gradle.internal.declarativedsl.software
 
 import org.gradle.api.Project
+import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.plugins.HasBuildModel
 import org.gradle.api.internal.plugins.TargetTypeInformation.BuildModelTargetTypeInformation
 import org.gradle.api.internal.plugins.TargetTypeInformation.DefinitionTargetTypeInformation
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.plugins.ExtensionAware
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
@@ -248,7 +248,7 @@ private class RuntimeModelTypeAccessors(
     }
 
     private fun applySoftwareFeaturePlugin(receiverObject: Any, softwareFeature: SoftwareFeatureImplementation<*, *>, softwareFeatureApplicator: SoftwareFeatureApplicator): Any {
-        require(receiverObject is ExtensionAware) { "unexpected receiver, expected a ExtensionAware instance, got $receiverObject" }
+        require(receiverObject is DynamicObjectAware) { "unexpected receiver, expected a DynamicObjectAware instance, got $receiverObject" }
         require(TargetTypeInformationChecks.isValidBindingType(softwareFeature.targetDefinitionType, receiverObject::class.java)) {
             "unexpected receiver; software feature ${softwareFeature.featureName} binds to '${softwareFeature.targetDefinitionType}', got '$receiverObject' definition"
         }

@@ -24,6 +24,7 @@ description = "Gradle Flow API implementation"
 dependencies {
     api(projects.baseServices)
     api(projects.coreApi)
+    api(projects.coreFlowServicesApi)
     api(projects.stdlibJavaExtensions)
     api(projects.modelCore)
     api(projects.serviceProvider)

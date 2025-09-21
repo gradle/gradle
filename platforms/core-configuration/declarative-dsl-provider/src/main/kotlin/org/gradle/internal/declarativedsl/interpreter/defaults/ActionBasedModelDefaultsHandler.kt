@@ -20,10 +20,9 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.initialization.internal.SharedModelDefaultsInternal
+import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.initialization.ActionBasedDefault
-import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.Cast
-import org.gradle.internal.declarativedsl.software.getSoftwareFeatureDefinitionInstance
 import org.gradle.plugin.software.internal.ModelDefault
 import org.gradle.plugin.software.internal.ModelDefaultsApplicator.ClassLoaderContext
 import org.gradle.plugin.software.internal.ModelDefaultsHandler
@@ -36,16 +35,15 @@ class ActionBasedModelDefaultsHandler(
     private val softwareFeatureRegistry: SoftwareFeatureRegistry,
 ) : ModelDefaultsHandler {
 
-    override fun <T : Any> apply(target: T, classLoaderContext: ClassLoaderContext, softwareFeatureName: String, plugin: Plugin<*>) {
+    override fun apply(target: Any, definition: Any, classLoaderContext: ClassLoaderContext, softwareFeatureName: String, plugin: Plugin<*>) {
         val softwareFeatureImplementation: SoftwareFeatureImplementation<*, *> = softwareFeatureRegistry.getSoftwareFeatureImplementations()[softwareFeatureName]!!
 
-        if (target is ExtensionAware) {
-            val modelInstance = getSoftwareFeatureDefinitionInstance(softwareFeatureImplementation, target)
+        if (target is DynamicObjectAware) {
             sharedModelDefaults.setProjectLayout(projectLayout)
             try {
                 softwareFeatureImplementation.visitModelDefaults(
                     Cast.uncheckedNonnullCast(ActionBasedDefault::class.java),
-                    executeActionVisitor(softwareFeatureImplementation, modelInstance)
+                    executeActionVisitor(softwareFeatureImplementation, definition)
                 )
                 executeActionVisitor(softwareFeatureImplementation, target)
             } finally {

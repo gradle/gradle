@@ -41,3 +41,4 @@ val primitiveTypeStrings =
 
 
 val primitiveKotlinTypeNames = primitiveTypeStrings.values.toHashSet()
+val typeProjectionStrings = hashSetOf("in", "out", "*")

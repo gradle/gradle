@@ -123,7 +123,9 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
-import org.gradle.plugin.software.internal.SoftwareFeaturesDynamicObject;
+import org.gradle.plugin.software.internal.SoftwareFeatureApplicator;
+import org.gradle.plugin.software.internal.SoftwareFeatureRegistry;
+import org.gradle.plugin.software.internal.SoftwareFeatureSupportInternal;
 import org.gradle.util.Configurable;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -261,8 +263,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         }
         extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
 
-        DynamicObject softwareFeaturesDynamicObject = getObjects().newInstance(SoftwareFeaturesDynamicObject.class, this);
-        extensibleDynamicObject.addObject(softwareFeaturesDynamicObject, ExtensibleDynamicObject.Location.BeforeConvention);
+        SoftwareFeatureSupportInternal.attachLegacyDefinitionContext(this, services.get(SoftwareFeatureApplicator.class), services.get(SoftwareFeatureRegistry.class), getObjects());
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 

@@ -49,7 +49,7 @@ class CheckstyleSoftwareFeaturePlugin : Plugin<Project> {
                 val checkstyleTask = project.tasks.register("check" + StringUtils.capitalize(target.name) + "Checkstyle", Checkstyle::class.java) { task ->
                     task.group = LifecycleBasePlugin.VERIFICATION_GROUP
                     task.description = "Runs Checkstyle on the ${target.name} source set."
-                    task.source(getOrCreateModel(target).inputSources)
+                    task.source(getBuildModel(target).inputSources)
                     task.configFile = definition.configFile.asFile.get()
                 }
 
