@@ -70,6 +70,8 @@ public abstract class CompileOptions implements Serializable {
 
     private boolean debug = true;
 
+    private final DebugOptions debugOptions = new DebugOptions();
+
     private boolean fork;
 
     private FileCollection bootstrapClasspath;
@@ -207,7 +209,9 @@ public abstract class CompileOptions implements Serializable {
      * Returns options for generating debugging information.
      */
     @Nested
-    public abstract DebugOptions getDebugOptions();
+    public DebugOptions getDebugOptions() {
+        return debugOptions;
+    }
 
     /**
      * Execute the given action against {@link #getDebugOptions()}.
@@ -215,7 +219,7 @@ public abstract class CompileOptions implements Serializable {
      * @since 8.11
      */
     public void debugOptions(Action<? super DebugOptions> action) {
-        action.execute(getDebugOptions());
+        action.execute(debugOptions);
     }
 
     /**
