@@ -32,6 +32,7 @@ Method <org.gradle.api.Project.getIsolated()> does not have raw return type (org
 Method <org.gradle.api.Project.getLayout()> does not have raw return type (org.gradle.api.file.ProjectLayout) assignable to any of [Provider] in (Project.java:0)
 Method <org.gradle.api.Project.getLogger()> does not have raw return type (org.gradle.api.logging.Logger) assignable to any of [Provider] in (Project.java:0)
 Method <org.gradle.api.Project.getLogging()> does not have raw return type (org.gradle.api.logging.LoggingManager) assignable to any of [Provider] in (Project.java:0)
+Method <org.gradle.api.Project.getModels()> does not have raw return type (org.gradle.api.model.ModelContainer) assignable to any of [Provider] in (Project.java:0)
 Method <org.gradle.api.Project.getName()> does not have raw return type (java.lang.String) assignable to any of [Provider] in (Project.java:0)
 Method <org.gradle.api.Project.getNormalization()> does not have raw return type (org.gradle.normalization.InputNormalizationHandler) assignable to any of [Provider] in (Project.java:0)
 Method <org.gradle.api.Project.getObjects()> does not have raw return type (org.gradle.api.model.ObjectFactory) assignable to any of [Provider] in (Project.java:0)
