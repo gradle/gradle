@@ -28,7 +28,7 @@ final class FreezableAttributeContainerTest extends BaseAttributeContainerTest {
     @Override
     protected FreezableAttributeContainer createContainer(Map<Attribute<?>, ?> attributes = [:], Map<Attribute<?>, ?> moreAttributes = [:]) {
         def mutableContainer = AttributeTestUtil.attributesFactory().mutable()
-        FreezableAttributeContainer container = new FreezableAttributeContainer(mutableContainer, { "owner" } as Describable, TestUtil.objectFactory());
+        FreezableAttributeContainer container = new FreezableAttributeContainer(mutableContainer, { "owner" } as Describable);
         attributes.forEach { key, value ->
             container.attribute(key, value)
         }
