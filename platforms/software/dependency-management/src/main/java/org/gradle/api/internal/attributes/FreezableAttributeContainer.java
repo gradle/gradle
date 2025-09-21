@@ -18,6 +18,7 @@ package org.gradle.api.internal.attributes;
 import org.gradle.api.Describable;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.jspecify.annotations.Nullable;
 
@@ -114,6 +115,11 @@ public final class FreezableAttributeContainer extends AbstractAttributeContaine
         if (delegate instanceof ImmutableAttributes) {
             throw new IllegalStateException(String.format("Cannot change attributes of %s after it has been locked for mutation", owner.getDisplayName()));
         }
+    }
+
+    @Override
+    public ObjectFactory getObjectFactory() {
+        return delegate.getObjectFactory();
     }
 
     @Override

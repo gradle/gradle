@@ -20,7 +20,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Comparator;
@@ -38,11 +40,13 @@ import java.util.TreeMap;
     private final AttributesFactory attributesFactory;
     private final AttributeContainerInternal fallback;
     private final AttributeContainerInternal primary;
+    private final ObjectFactory objectFactory;
 
-    HierarchicalMutableAttributeContainer(AttributesFactory attributesFactory, AttributeContainerInternal fallback, AttributeContainerInternal primary) {
+    HierarchicalMutableAttributeContainer(AttributesFactory attributesFactory, AttributeContainerInternal fallback, AttributeContainerInternal primary, ObjectFactory objectFactory) {
         this.attributesFactory = attributesFactory;
         this.fallback = fallback;
         this.primary = primary;
+        this.objectFactory = objectFactory;
     }
 
     @Override
@@ -101,6 +105,12 @@ import java.util.TreeMap;
             return primary.asImmutable();
         }
         return attributesFactory.concat(fallback.asImmutable(), primary.asImmutable());
+    }
+
+    @NonNull
+    @Override
+    public ObjectFactory getObjectFactory() {
+        return objectFactory;
     }
 
     @Override
