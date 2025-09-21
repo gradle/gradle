@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.ShadowJavaPlugin.Companion.shadowRuntimeElements
+import com.gradle.scan.agent.serialization.scan.serializer.kryo.it
 import gradlebuild.basics.PublicKotlinDslApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 
@@ -23,6 +24,7 @@ dependencies {
     api(projects.hashing)
     api(projects.kotlinDslToolingModels)
     api(projects.loggingApi)
+    api(projects.modelCore)
     api(projects.persistentCache)
     api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
@@ -39,7 +41,6 @@ dependencies {
     implementation(projects.buildOption)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.declarativeDslEvaluator)
-    implementation(projects.declarativeDslInternalUtils)
     implementation(projects.declarativeDslProvider)
     implementation(projects.enterpriseLogging)
     implementation(projects.enterpriseOperations)
@@ -51,7 +52,6 @@ dependencies {
     implementation(projects.io)
     implementation(projects.logging)
     implementation(projects.messaging)
-    implementation(projects.modelCore)
     implementation(projects.resources)
     implementation(projects.scopedPersistentCache)
     implementation(projects.serialization)

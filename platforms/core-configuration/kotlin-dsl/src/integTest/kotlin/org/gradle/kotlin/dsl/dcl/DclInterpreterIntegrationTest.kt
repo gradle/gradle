@@ -16,6 +16,14 @@
 
 package org.gradle.kotlin.dsl.dcl
 
+import org.gradle.api.internal.plugins.BindsSoftwareFeature
+import org.gradle.api.internal.plugins.BindsSoftwareType
+import org.gradle.api.internal.plugins.BuildModel
+import org.gradle.api.internal.plugins.HasBuildModel
+import org.gradle.api.internal.plugins.SoftwareFeatureBindingBuilder
+import org.gradle.api.internal.plugins.SoftwareFeatureBindingRegistration
+import org.gradle.api.internal.plugins.SoftwareTypeBindingBuilder
+import org.gradle.api.internal.plugins.SoftwareTypeBindingRegistration
 import org.gradle.kotlin.dsl.accessors.DCL_ENABLED_PROPERTY_NAME
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.junit.Test
@@ -55,6 +63,51 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
         }
     }
 
+    @Test
+    fun `has usable accessors for features targeting nested blocks`() {
+        withCustomSoftwarePluginWithContainer()
+        enableDclInGradleProperties()
+
+        withBuildScript(
+            """
+            mySoftwareType {
+                myFeature {
+                    myNestedFeature {
+                        myNestedFeature { }
+                    }
+                }
+            }
+
+            println("not declarative anymore!")
+            """.trimIndent()
+        )
+
+        with(build(":kotlinDslAccessorsReport")) {
+            assertOutputContains("not declarative anymore!")
+            assertOutputContains("apply myNestedFeature to MyFeatureDefinition_Decorated")
+            assertOutputContains("apply myNestedFeature to MyNestedFeatureDefinition_Decorated")
+
+            assertOutputContains(
+                """
+                |    @Incubating
+                |    fun com.example.MyExtension.`myFeature`(configure: Action<in com.example.MyFeatureDefinition>) {
+                |        applySoftwareType(this, "myFeature", configure)
+                |    }
+                """.trimMargin()
+            )
+
+            assertOutputContains(
+                """
+                |    @Incubating
+                |    fun org.gradle.api.internal.plugins.HasBuildModel<out com.example.MyFeatureBuildModel>.`myNestedFeature`(configure: Action<in com.example.MyNestedFeatureDefinition>) {
+                |        applySoftwareType(this, "myNestedFeature", configure)
+                |    }
+                """.trimMargin()
+            )
+        }
+    }
+
+
     private fun withCustomSoftwarePluginWithContainer() {
         withEcosystemAndPluginBuildInBuildLogic()
 
@@ -70,24 +123,67 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
                 import org.gradle.api.NamedDomainObjectContainer
                 import org.gradle.api.internal.plugins.software.SoftwareType
                 import javax.inject.Inject
+                import ${BindsSoftwareType::class.qualifiedName}
+                import ${BindsSoftwareFeature::class.qualifiedName}
+                import ${HasBuildModel::class.qualifiedName}
+                import ${BuildModel::class.qualifiedName}
+                import ${SoftwareTypeBindingRegistration::class.qualifiedName}
+                import ${SoftwareTypeBindingBuilder::class.qualifiedName}
+                import ${SoftwareFeatureBindingRegistration::class.qualifiedName}
+                import ${SoftwareFeatureBindingBuilder::class.qualifiedName}
+                import org.gradle.api.internal.plugins.features.dsl.bindSoftwareType
+                import org.gradle.api.internal.plugins.features.dsl.bindSoftwareFeatureToDefinition
+                import org.gradle.api.internal.plugins.features.dsl.bindSoftwareFeatureToBuildModel
 
-                abstract class MyPlugin @Inject constructor(private val project: Project) : Plugin<Project> {
-                    @get:SoftwareType(name = "mySoftwareType")
-                    abstract val mySoftwareType: MyExtension
+                @${BindsSoftwareType::class.simpleName}(MyPlugin.Binding::class)
+                @${BindsSoftwareFeature::class.simpleName}(MyPlugin.FeatureBinding::class)
+                abstract class MyPlugin : Plugin<Project> {
 
-                    override fun apply(project: Project) {
-                        project.tasks.register("printNames") {
-                            val names = mySoftwareType.myElements.names
-                            doFirst {
-                                println(names)
+                    override fun apply(project: Project) = Unit
+
+                    class Binding : ${SoftwareTypeBindingRegistration::class.simpleName} {
+                        override fun register(builder: SoftwareTypeBindingBuilder) {
+                            builder.bindSoftwareType("mySoftwareType") { definition: MyExtension, model ->
+                                project.tasks.register("printNames") {
+                                    val names = definition.myElements.names
+                                    doFirst {
+                                        println(names)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    class FeatureBinding : ${SoftwareFeatureBindingRegistration::class.simpleName} {
+                        override fun register(builder: SoftwareFeatureBindingBuilder) {
+                            builder.bindSoftwareFeatureToDefinition(
+                                "myFeature",
+                                MyFeatureDefinition::class,
+                                MyExtension::class
+                            ) { definition, buildModel, target ->
+                                println("apply myFeature")
+                            }
+
+                            builder.bindSoftwareFeatureToBuildModel(
+                                "myNestedFeature",
+                                MyNestedFeatureDefinition::class,
+                                MyFeatureBuildModel::class
+                            ) { definition, buildModel, target ->
+                                println("apply myNestedFeature to ${'$'}{target::class.simpleName}")
                             }
                         }
                     }
                 }
 
-                abstract class MyExtension {
+                interface MyExtensionBuildModel : BuildModel
+                abstract class MyExtension : HasBuildModel<MyExtensionBuildModel> {
                     abstract val myElements: NamedDomainObjectContainer<MyElement>
                 }
+
+                interface MyFeatureBuildModel : BuildModel
+
+                abstract class MyFeatureDefinition : HasBuildModel<MyFeatureBuildModel>
+
+                abstract class MyNestedFeatureDefinition : MyFeatureDefinition()
 
                 abstract class MyElement(val elementName: String) : Named {
                     override fun getName() = elementName

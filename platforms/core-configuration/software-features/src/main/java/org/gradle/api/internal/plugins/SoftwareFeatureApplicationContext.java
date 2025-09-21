@@ -19,10 +19,9 @@ package org.gradle.api.internal.plugins;
 import org.gradle.api.Project;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.internal.Cast;
 import org.gradle.internal.inspection.DefaultTypeParameterInspection;
 import org.gradle.internal.inspection.TypeParameterInspection;
+import org.gradle.plugin.software.internal.SoftwareFeatureSupportInternal.ProjectFeatureDefinitionContext;
 
 import javax.inject.Inject;
 
@@ -57,30 +56,43 @@ public interface SoftwareFeatureApplicationContext {
      * for nested definition objects and expose them as binding points for other
      * software features.
      */
-    default <T extends HasBuildModel<? extends V>, V extends BuildModel> V getOrCreateModel(T definition) {
-        if (definition instanceof ExtensionAware) {
-            Object existingModel = ((ExtensionAware) definition).getExtensions().findByName(SoftwareFeatureBinding.MODEL);
-            if (existingModel != null) {
-                return Cast.uncheckedCast(existingModel);
-            }
-        }
+    <T extends HasBuildModel<V>, V extends BuildModel> V getBuildModel(T definition);
 
+    /**
+     * Creates, registers, and returns a new build model instance for the given {@code definition} instance.
+     * The build model implementation is created as a managed object of the definition's public build model type.
+     * <p>
+     * This method must only be used on nested definition objects, such as container elements, and not on a feature's primary definition object, which has its
+     * build model registered automatically.
+     * <p>
+     * A build model must be registered for a definition before {@link ProjectFeatureDefinitionContext#getBuildModel()} is used on it.
+     *
+     * @see SoftwareFeatureApplicationContext#registerBuildModel(HasBuildModel, Class) the other overload to create a build model of a specific implementation type.
+     *
+     * @throws IllegalStateException if there is already a build model instance registered for the definition.
+     */
+    default <T extends HasBuildModel<V>, V extends BuildModel> V registerBuildModel(T definition) {
         @SuppressWarnings("rawtypes")
         TypeParameterInspection<HasBuildModel, BuildModel> inspection = new DefaultTypeParameterInspection<>(HasBuildModel.class, BuildModel.class, BuildModel.NONE.class);
         Class<V> modelType = inspection.parameterTypeFor(definition.getClass());
         if (modelType == null) {
             throw new IllegalArgumentException("Cannot determine build model type for " + definition.getClass());
         }
-        return getOrCreateModel(definition, modelType);
+
+        return registerBuildModel(definition, modelType);
     }
 
     /**
-     * Allows a transform to create or access the build model object of a given
-     * definition object with a given implementation type.  This can be used to
-     * register build model objects for nested definition objects and expose them
-     * as
+     * Creates, registers, and returns a new build model of the specific implementation type {@code implementationType} for the given {@code definition} instance.
+     * <p>
+     * This method must only be used on nested definition objects, such as container elements, and not on a feature's primary definition object, which has its
+     * build model registered automatically.
+     * <p>
+     * A build model must be registered for a definition before {@link ProjectFeatureDefinitionContext#getBuildModel()} is used on it.
+     *
+     * @see SoftwareFeatureApplicationContext#registerBuildModel(HasBuildModel, Class) the other overload to create a build model of a specific implementation type.
+     *
+     * @throws IllegalStateException if there is already a build model instance registered for the definition.
      */
-     default <T extends HasBuildModel<? extends V>, V extends BuildModel> V getOrCreateModel(T definition, Class<? extends V> implementationType) {
-        return ((ExtensionAware) definition).getExtensions().create(SoftwareFeatureBinding.MODEL, implementationType);
-    }
+    <T extends HasBuildModel<V>, V extends BuildModel> V registerBuildModel(T definition, Class<? extends V> implementationType);
 }

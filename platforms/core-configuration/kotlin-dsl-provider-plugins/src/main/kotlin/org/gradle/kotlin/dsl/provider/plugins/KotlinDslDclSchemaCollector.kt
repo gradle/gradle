@@ -39,6 +39,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
+import java.lang.reflect.WildcardType
 
 data class KotlinDslDclSchema(
     val containerElementFactories: List<ContainerElementFactoryEntry<TypeOf<*>>>,
@@ -132,7 +133,7 @@ internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector 
         }
 
         return if (typeArgs.isNotEmpty()) {
-            parameterizedTypeOfRawGenericClass(typeArgs, loadedClass)
+            parameterizedTypeOfRawGenericClass(typeArgs.map(::TypeProjection), loadedClass)
         } else{
             TypeOf.typeOf(loadedClass)
         }
@@ -142,7 +143,8 @@ internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector 
         softwareFeatureRegistry.softwareFeatureImplementations.entries.map { (name, implementation) ->
             val targetType = when (val target = implementation.targetDefinitionType) {
                 is TargetTypeInformation.DefinitionTargetTypeInformation ->  TypeOf.typeOf(target.definitionType)
-                is TargetTypeInformation.BuildModelTargetTypeInformation<*> -> parameterizedTypeOfRawGenericClass(listOf(target.buildModelType), HasBuildModel::class.java)
+                is TargetTypeInformation.BuildModelTargetTypeInformation<*> ->
+                    parameterizedTypeOfRawGenericClass(listOf(TypeProjection(target.buildModelType, TypeProjectionKind.OUT)), HasBuildModel::class.java)
                 else -> error("Unexpected target type $target")
             }
             SoftwareFeatureEntry(name, TypeOf.typeOf(implementation.definitionPublicType), targetType)
@@ -153,13 +155,31 @@ internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector 
      * Passing the raw [Class] obtained from the class loader to [TypeOf.parameterizedTypeOf] would not work.
      * We need to provide a [ParameterizedType] instance.
      */
-    private fun parameterizedTypeOfRawGenericClass(typeArgs: List<Class<*>>, loadedClass: Class<*>): TypeOf<Any> =
+    private fun parameterizedTypeOfRawGenericClass(typeArgs: List<TypeProjection>, loadedClass: Class<*>): TypeOf<Any> =
         TypeOf.typeOf(object : ParameterizedType {
-            override fun getActualTypeArguments(): Array<Type> = typeArgs.toTypedArray<Type>()
+            override fun getActualTypeArguments(): Array<Type> = typeArgs.map { (clazz, projection) ->
+                when (projection) {
+                    TypeProjectionKind.NONE -> clazz
+                    TypeProjectionKind.OUT -> object : WildcardType {
+                        override fun getUpperBounds(): Array<out Type> = arrayOf(clazz)
+                        override fun getLowerBounds() = emptyArray<Type>()
+                    }
+                    TypeProjectionKind.IN -> object : WildcardType {
+                        override fun getUpperBounds(): Array<out Type> = emptyArray()
+                        override fun getLowerBounds() = arrayOf(clazz)
+                    }
+                }
+            }.toTypedArray<Type>()
             override fun getRawType(): Type = loadedClass
 
             /** [Class.getNestHost] is @since 11, cannot use it; but we are fine with no owner type here. */
             /** [Class.getNestHost] is @since 11, cannot use it; but we are fine with no owner type here. */
             override fun getOwnerType() = null
         })
+
+    private data class TypeProjection(val clazz: Class<*>, val projection: TypeProjectionKind = TypeProjectionKind.NONE)
+
+    private enum class TypeProjectionKind {
+        NONE, OUT, IN
+    }
 }

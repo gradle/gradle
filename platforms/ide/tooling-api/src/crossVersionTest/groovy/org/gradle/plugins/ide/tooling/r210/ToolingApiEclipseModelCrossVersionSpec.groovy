@@ -17,14 +17,18 @@
 package org.gradle.plugins.ide.tooling.r210
 
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.model.eclipse.EclipseProject
+import org.junit.Assume
 
 import static org.gradle.plugins.ide.tooling.r210.ConventionsExtensionsCrossVersionFixture.javaSourceCompatibility
 
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
-    def setup(){
+    def setup() {
         settingsFile << "rootProject.name = 'root'"
     }
 
@@ -36,15 +40,21 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         rootProject.javaSourceSettings == null
     }
 
+    @Requires(value = [IntegTestPreconditions.Java17HomeAvailable, IntegTestPreconditions.Java21HomeAvailable, IntegTestPreconditions.NotEmbeddedExecutor])
     def "Java project returns default source compatibility"() {
+        Assume.assumeTrue("Target Gradle version supports running with Java " + jvm.javaVersionMajor, targetDist.daemonWorksWith(jvm.javaVersionMajor))
+
         given:
         buildFile << "apply plugin: 'java'"
 
         when:
-        EclipseProject rootProject = loadToolingModel(EclipseProject)
+        EclipseProject rootProject = loadToolingModel(EclipseProject, jvm)
 
         then:
-        rootProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.current()
+        rootProject.javaSourceSettings.sourceLanguageLevel == JavaVersion.toVersion(jvm.javaVersion.majorVersion)
+
+        where:
+        jvm << [AvailableJavaHomes.jdk17, AvailableJavaHomes.jdk21]
     }
 
     def "source language level is explicitly defined"() {
