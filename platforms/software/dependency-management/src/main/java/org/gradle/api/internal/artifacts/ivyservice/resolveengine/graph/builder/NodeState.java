@@ -142,6 +142,13 @@ public class NodeState implements DependencyGraphNode {
      */
     private @Nullable StrictVersionConstraints ownStrictVersions;
 
+    /**
+     * Cached copy of all endorsed strict versions. Must be invalidated whenever
+     * an outgoing endorsing edge is added or removed, or if the target endorsed
+     * node's own strict versions change.
+     */
+    private @Nullable StrictVersionConstraints cachedEndorsedStrictVersions;
+
     private boolean removingOutgoingEdges;
     private boolean findingExternalVariants;
 
@@ -663,7 +670,9 @@ public class NodeState implements DependencyGraphNode {
      */
     private void requeueChildrenOfEndorsingParent(EdgeState incomingEdge) {
         if (incomingEdge.getDependencyMetadata().isEndorsingStrictVersions()) {
-            for (EdgeState edge : incomingEdge.getFrom().getOutgoingEdges()) {
+            NodeState sourceNode = incomingEdge.getFrom();
+            sourceNode.cachedEndorsedStrictVersions = null;
+            for (EdgeState edge : sourceNode.getOutgoingEdges()) {
                 for (NodeState node : edge.getTargetNodes()) {
                     if (node != this) {
                         resolveState.onMoreSelected(node);
@@ -857,11 +866,21 @@ public class NodeState implements DependencyGraphNode {
     }
 
     private void storeOwnStrictVersions(@Nullable Set<ModuleIdentifier> constraintsSet) {
-        if (constraintsSet == null) {
-            ownStrictVersions = StrictVersionConstraints.EMPTY;
-        } else {
-            ownStrictVersions = StrictVersionConstraints.of(ImmutableSet.copyOf(constraintsSet));
+        StrictVersionConstraints newStrictVersions = constraintsSet == null
+            ? StrictVersionConstraints.EMPTY
+            : StrictVersionConstraints.of(ImmutableSet.copyOf(constraintsSet));
+
+        if (ownStrictVersions != null && !ownStrictVersions.equals(newStrictVersions)) {
+            // Our strict versions were already computed, and they just changed.
+            // Invalidate any nodes that computed their endorsed strict versions based on our previous value.
+            for (EdgeState incomingEdge : incomingEdges) {
+                if (incomingEdge.getDependencyMetadata().isEndorsingStrictVersions()) {
+                    incomingEdge.getFrom().cachedEndorsedStrictVersions = null;
+                }
+            }
         }
+
+        this.ownStrictVersions = newStrictVersions;
     }
 
     /**
@@ -902,9 +921,8 @@ public class NodeState implements DependencyGraphNode {
      */
     private StrictVersionConstraints getStrictVersionsForEdge(EdgeState dependencyEdge) {
         NodeState from = dependencyEdge.getFrom();
-
-        StrictVersionConstraints parentStrongStrictVersions = getStrongStrictVersions(from);
-        StrictVersionConstraints parentEndorsedStrictVersions = computeEndorsedStrictVersionsFor(from);
+        StrictVersionConstraints parentStrongStrictVersions = from.getStrongStrictVersions();
+        StrictVersionConstraints parentEndorsedStrictVersions = from.getEndorsedStrictVersions();
 
         // If the source node endorses us, then we might be the source of a strict version that it
         // endorses. For this reason, we inherit a parent's endorsed strict versions only if we may
@@ -920,25 +938,31 @@ public class NodeState implements DependencyGraphNode {
     }
 
     /**
-     * Get the strong strict versions of a node -- the strict versions that are sourced from higher up
+     * Get the strong strict versions of this node -- the strict versions that are sourced from higher up
      * in the graph. These strong strict versions take precedence over endorsed strict versions.
      */
-    private static StrictVersionConstraints getStrongStrictVersions(NodeState from) {
+    private StrictVersionConstraints getStrongStrictVersions() {
         // This method assumes that ownStrictVersions and previousAncestorsStrictVersions
         // have already been computed for the source node. If these values ever change, we must
         // ensure this node is re-processed.
-        assert from.ownStrictVersions != null;
-        assert from.previousAncestorsStrictVersions != null;
-        return from.ownStrictVersions.union(from.previousAncestorsStrictVersions);
+        assert ownStrictVersions != null;
+        assert previousAncestorsStrictVersions != null;
+        return ownStrictVersions.union(previousAncestorsStrictVersions);
+    }
+
+    private StrictVersionConstraints getEndorsedStrictVersions() {
+        if (cachedEndorsedStrictVersions == null) {
+            this.cachedEndorsedStrictVersions = computeEndorsedStrictVersions();
+        }
+        return this.cachedEndorsedStrictVersions;
     }
 
     /**
-     * Determine all strict versions endorsed by a node.
+     * Determine all strict versions endorsed by this node.
      */
-    private static StrictVersionConstraints computeEndorsedStrictVersionsFor(NodeState from) {
-        // TODO: This function is purely a function of the `from`. We can potentially cache the result.
+    private StrictVersionConstraints computeEndorsedStrictVersions() {
         StrictVersionConstraints endorsedStrictVersions = StrictVersionConstraints.EMPTY;
-        for (EdgeState edgeState : from.outgoingEdges) {
+        for (EdgeState edgeState : outgoingEdges) {
             if (edgeState.getDependencyState().getDependency().isEndorsingStrictVersions()) {
                 for (NodeState endorsedNode : edgeState.getTargetNodes()) {
                     if (endorsedNode.ownStrictVersions == null) {
