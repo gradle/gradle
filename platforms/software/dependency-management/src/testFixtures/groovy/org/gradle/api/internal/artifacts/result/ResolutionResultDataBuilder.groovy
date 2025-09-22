@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.NamedVariantIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -62,7 +63,8 @@ class ResolutionResultDataBuilder {
         def ownerId = DefaultModuleComponentIdentifier.newId(
             newId(ownerGroup, ownerModule, ownerVersion)
         )
-        return new DefaultResolvedVariantResult(ownerId, Describables.of(name), mutableAttributes, ImmutableCapabilities.EMPTY, null)
+        def variantId = new NamedVariantIdentifier(ownerId, name)
+        return new DefaultResolvedVariantResult(variantId, Describables.of(name), mutableAttributes, ImmutableCapabilities.EMPTY, null)
     }
 
     static ModuleComponentSelector newSelector(String group, String module, String version) {
