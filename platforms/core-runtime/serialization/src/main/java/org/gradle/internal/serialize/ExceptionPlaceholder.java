@@ -18,7 +18,6 @@ package org.gradle.internal.serialize;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.Cast;
-import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -42,6 +41,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 class ExceptionPlaceholder implements Serializable {
     @SuppressWarnings("DoubleBraceInitialization")
@@ -66,7 +66,7 @@ class ExceptionPlaceholder implements Serializable {
     private Throwable toStringRuntimeExec;
     private Throwable getMessageExec;
 
-    public ExceptionPlaceholder(Throwable original, InternalTransformer<ExceptionReplacingObjectOutputStream, OutputStream> objectOutputStreamCreator, Set<Throwable> dejaVu) {
+    public ExceptionPlaceholder(Throwable original, Function<OutputStream, ExceptionReplacingObjectOutputStream> objectOutputStreamCreator, Set<Throwable> dejaVu) {
         boolean hasCycle = !dejaVu.add(original);
         Throwable throwable = original;
         type = throwable.getClass().getName();
@@ -108,12 +108,12 @@ class ExceptionPlaceholder implements Serializable {
         }
 
         StreamByteBuffer buffer = new StreamByteBuffer();
-        ExceptionReplacingObjectOutputStream oos = objectOutputStreamCreator.transform(buffer.getOutputStream());
-        oos.setObjectTransformer(new InternalTransformer<Object, Object>() {
+        ExceptionReplacingObjectOutputStream oos = objectOutputStreamCreator.apply(buffer.getOutputStream());
+        oos.setObjectTransformer(new Function<Object, Object>() {
             boolean seenFirst;
 
             @Override
-            public Object transform(Object obj) {
+            public Object apply(Object obj) {
                 if (!seenFirst) {
                     seenFirst = true;
                     return obj;
@@ -171,7 +171,7 @@ class ExceptionPlaceholder implements Serializable {
 
     @SuppressWarnings("MixedMutabilityReturnType")
     // TODO Use only immutable collections
-    private static List<ExceptionPlaceholder> convertToExceptionPlaceholderList(List<? extends Throwable> throwables, InternalTransformer<ExceptionReplacingObjectOutputStream, OutputStream> objectOutputStreamCreator, Set<Throwable> dejaVu) {
+    private static List<ExceptionPlaceholder> convertToExceptionPlaceholderList(List<? extends Throwable> throwables, Function<OutputStream, ExceptionReplacingObjectOutputStream> objectOutputStreamCreator, Set<Throwable> dejaVu) {
         if (throwables.isEmpty()) {
             return Collections.emptyList();
         } else if (throwables.size() == 1) {
@@ -193,28 +193,25 @@ class ExceptionPlaceholder implements Serializable {
         return JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14);
     }
 
-    public Throwable read(InternalTransformer<Class<?>, String> classNameTransformer, InternalTransformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
+    public Throwable read(Function<String, Class<?>> classNameTransformer, Function<InputStream, ExceptionReplacingObjectInputStream> objectInputStreamCreator) throws IOException {
         final List<Throwable> causes = recreateExceptions(this.causes, classNameTransformer, objectInputStreamCreator);
         final List<Throwable> suppressed = recreateExceptions(this.suppressed, classNameTransformer, objectInputStreamCreator);
 
         if (serializedException != null) {
             // try to deserialize the original exception
-            final ExceptionReplacingObjectInputStream ois = objectInputStreamCreator.transform(new ByteArrayInputStream(serializedException));
-            ois.setObjectTransformer(new InternalTransformer<Object, Object>() {
-                @Override
-                public Object transform(Object obj) {
-                    if (obj instanceof NestedExceptionPlaceholder) {
-                        NestedExceptionPlaceholder placeholder = (NestedExceptionPlaceholder) obj;
-                        int index = placeholder.getIndex();
-                        switch (placeholder.getKind()) {
-                            case cause:
-                                return causes.get(index);
-                            case suppressed:
-                                return suppressed.get(index);
-                        }
+            final ExceptionReplacingObjectInputStream ois = objectInputStreamCreator.apply(new ByteArrayInputStream(serializedException));
+            ois.setObjectTransformer(obj -> {
+                if (obj instanceof NestedExceptionPlaceholder) {
+                    NestedExceptionPlaceholder placeholder = (NestedExceptionPlaceholder) obj;
+                    int index = placeholder.getIndex();
+                    switch (placeholder.getKind()) {
+                        case cause:
+                            return causes.get(index);
+                        case suppressed:
+                            return suppressed.get(index);
                     }
-                    return obj;
                 }
+                return obj;
             });
 
             try {
@@ -228,7 +225,7 @@ class ExceptionPlaceholder implements Serializable {
 
         try {
             // try to reconstruct the exception
-            Class<?> clazz = classNameTransformer.transform(type);
+            Class<?> clazz = classNameTransformer.apply(type);
             if (clazz != null && causes.size() <= 1) {
                 Constructor<?> constructor = clazz.getConstructor(String.class);
                 Throwable reconstructed = (Throwable) constructor.newInstance(message);
@@ -345,7 +342,7 @@ class ExceptionPlaceholder implements Serializable {
 
     @SuppressWarnings("MixedMutabilityReturnType")
     // TODO Use only immutable collections
-    private static List<Throwable> recreateExceptions(List<ExceptionPlaceholder> exceptions, InternalTransformer<Class<?>, String> classNameTransformer, InternalTransformer<ExceptionReplacingObjectInputStream, InputStream> objectInputStreamCreator) throws IOException {
+    private static List<Throwable> recreateExceptions(List<ExceptionPlaceholder> exceptions, Function<String, Class<?>> classNameTransformer, Function<InputStream, ExceptionReplacingObjectInputStream> objectInputStreamCreator) throws IOException {
         if (exceptions.isEmpty()) {
             return Collections.emptyList();
         } else if (exceptions.size() == 1) {

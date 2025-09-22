@@ -21,6 +21,8 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Set;
@@ -28,9 +30,10 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
-    private final ProjectRegistry<ProjectInternal> projectRegistry;
 
-    public DefaultCrossProjectModelAccess(ProjectRegistry<ProjectInternal> projectRegistry) {
+    private final ProjectRegistry projectRegistry;
+
+    public DefaultCrossProjectModelAccess(ProjectRegistry projectRegistry) {
         this.projectRegistry = projectRegistry;
     }
 
@@ -40,28 +43,32 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     }
 
     @Override
-    public ProjectInternal findProject(ProjectInternal referrer, ProjectInternal relativeTo, String path) {
-        return projectRegistry.getProject(relativeTo.absoluteProjectPath(path));
+    public @Nullable ProjectInternal findProject(ProjectInternal referrer, Path path) {
+        if (!path.isAbsolute()) {
+            throw new IllegalArgumentException("Project path must be absolute");
+        }
+
+        return projectRegistry.getProjectInternal(path.asString());
     }
 
     @Override
-    public Map<String, Project> getChildProjects(ProjectInternal referrer, ProjectInternal relativeTo) {
-        return relativeTo.getChildProjectsUnchecked().entrySet().stream().collect(
+    public Map<String, Project> getChildProjects(ProjectInternal referrer, ProjectInternal target) {
+        return target.getOwner().getChildProjects().stream().collect(
             Collectors.toMap(
-                Map.Entry::getKey,
-                entry -> access(referrer, (ProjectInternal) entry.getValue())
+                ProjectState::getName,
+                projectState -> access(referrer, projectState.getMutableModel())
             )
         );
     }
 
     @Override
-    public Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal relativeTo) {
-        return new TreeSet<>(projectRegistry.getSubProjects(relativeTo.getPath()));
+    public Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal target) {
+        return new TreeSet<>(projectRegistry.getSubProjects(target.getPath()));
     }
 
     @Override
-    public Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal relativeTo) {
-        return new TreeSet<>(projectRegistry.getAllProjects(relativeTo.getPath()));
+    public Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal target) {
+        return new TreeSet<>(projectRegistry.getAllProjects(target.getPath()));
     }
 
     @Override
@@ -84,4 +91,5 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
         ProjectInternal parent = referrerProject.getParent();
         return parent != null ? parent.getInheritedScope() : null;
     }
+
 }

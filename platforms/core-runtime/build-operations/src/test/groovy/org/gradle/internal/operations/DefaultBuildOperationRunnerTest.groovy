@@ -49,7 +49,9 @@ class DefaultBuildOperationRunnerTest extends ConcurrentSpec {
         BuildOperationState operationStateUnderTest
 
         when:
-        operationRunner.execute(buildOperation, worker, defaultParent)
+        CurrentBuildOperationRef.instance().with(defaultParent, () -> {
+            operationRunner.execute(buildOperation, worker)
+        })
 
         then:
         1 * buildOperation.description() >> operationDetailsBuilder
@@ -144,7 +146,7 @@ class DefaultBuildOperationRunnerTest extends ConcurrentSpec {
 
         when:
         try {
-            operationRunner.execute(buildOperation, worker, null)
+            operationRunner.execute(buildOperation, worker)
             assert expectedException == null
         } catch (Exception ex) {
             assert ex == expectedException

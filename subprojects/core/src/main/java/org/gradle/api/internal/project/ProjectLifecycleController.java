@@ -17,7 +17,7 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.initialization.DefaultProjectDescriptor;
+import org.gradle.initialization.ProjectDescriptorInternal;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.logging.LoggingManagerFactory;
@@ -60,7 +60,7 @@ public class ProjectLifecycleController implements Closeable {
     }
 
     public void createMutableModel(
-        DefaultProjectDescriptor descriptor,
+        ProjectDescriptorInternal descriptor,
         BuildState build,
         ProjectState owner,
         ClassLoaderScope selfClassLoaderScope,

@@ -26,7 +26,6 @@ import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.MutationGuard
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
 import org.gradle.api.internal.file.DefaultProjectLayout
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -55,7 +54,7 @@ import org.gradle.invocation.GradleLifecycleActionExecutor
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.plugin.software.internal.SoftwareFeatureApplicator
 import org.gradle.plugin.software.internal.SoftwareFeaturesDynamicObject
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry
+import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -266,7 +265,7 @@ class DefaultProjectSpec extends Specification {
         serviceRegistry.add(FileResolver, Stub(FileResolver))
         serviceRegistry.add(FileCollectionFactory, Stub(FileCollectionFactory))
         serviceRegistry.add(GradleLifecycleActionExecutor, Stub(GradleLifecycleActionExecutor))
-        serviceRegistry.add(SoftwareTypeRegistry, Stub(SoftwareTypeRegistry))
+        serviceRegistry.add(SoftwareFeatureRegistry, Stub(SoftwareFeatureRegistry))
         serviceRegistry.add(SoftwareFeatureApplicator, Stub(SoftwareFeatureApplicator))
 
         def antBuilder = Mock(AntBuilder)
@@ -298,19 +297,20 @@ class DefaultProjectSpec extends Specification {
         build.services >> serviceRegistry
 
         def projectPath = parent == null ? Path.ROOT : parent.projectPath.child(name)
-        def buildIdentifier
-        if (build.identityPath.getPath().isEmpty()) {
+        def buildPath
+        if (build.identityPath.asString().isEmpty()) {
             // No identity path was configured
-            buildIdentifier = DefaultBuildIdentifier.ROOT
+            buildPath = Path.ROOT
         } else {
-            buildIdentifier = new DefaultBuildIdentifier(build.identityPath)
+            buildPath = build.identityPath
         }
-        def identity = new ProjectIdentity(
-            buildIdentifier,
-            Path.path(buildIdentifier.buildPath).append(projectPath),
-            projectPath,
-            name
-        )
+
+        ProjectIdentity identity
+        if (projectPath == Path.ROOT) {
+            identity = ProjectIdentity.forRootProject(buildPath, name)
+        } else {
+            identity = ProjectIdentity.forSubproject(buildPath, projectPath)
+        }
 
         def container = Mock(ProjectState)
         _ * container.projectPath >> identity.projectPath

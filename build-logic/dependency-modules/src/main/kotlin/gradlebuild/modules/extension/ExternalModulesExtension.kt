@@ -26,9 +26,9 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
         else -> error("Unsupported Groovy major version: $bundleGroovyMajor")
     }
 
-    val configurationCacheReportVersion = "1.26"
-    val gradleIdeStarterVersion = "0.6"
-    val kotlinVersion = "2.2.0"
+    val configurationCacheReportVersion = "1.27"
+    val gradleIdeStarterVersion = "0.8.1"
+    val kotlinVersion = "2.2.20"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
@@ -70,6 +70,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val googleOauthClient = "com.google.oauth-client:google-oauth-client"
     val gradleFileEvents = "org.gradle.fileevents:gradle-fileevents"
     val gradleIdeStarter = "org.gradle.buildtool.internal:gradle-ide-starter:$gradleIdeStarterVersion"
+    val gradleIdeStarterScenarios = "org.gradle.buildtool.internal:gradle-ide-starter-scenarios:$gradleIdeStarterVersion"
     val gradleProfiler = "org.gradle.profiler:gradle-profiler"
     val groovy = "org.apache.groovy:groovy"
     val groovyAnt = "org.apache.groovy:groovy-ant"
@@ -199,7 +200,6 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val kotlinCoroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm"
     val kotlinCoroutinesDebug = "org.jetbrains.kotlinx:kotlinx-coroutines-debug"
     val littleproxy = "xyz.rogfam:littleproxy"
-    val mina = "org.apache.mina:mina-core"
     val mockitoCore = "org.mockito:mockito-core"
     val mockitoKotlin = "org.mockito.kotlin:mockito-kotlin"
     val mockwebserver = "com.squareup.okhttp3:mockwebserver"
@@ -219,7 +219,6 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val sshdSftp = "org.apache.sshd:sshd-sftp"
     val testcontainers = "org.testcontainers:testcontainers"
     val testcontainersSpock = "org.testcontainers:spock"
-    val typesafeConfig = "com.typesafe:config"
     val xerces = "xerces:xercesImpl"
     val xmlunit = "xmlunit:xmlunit"
 

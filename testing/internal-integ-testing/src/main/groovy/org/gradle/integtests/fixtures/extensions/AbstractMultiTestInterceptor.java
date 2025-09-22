@@ -171,6 +171,23 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
             return spec.getAnnotation(type);
         }
 
+        public <A extends Annotation> List<A> getAnnotations(Class<A> type) {
+            List<A> annotations = new ArrayList<>(2);
+            A methodAnnotation = featureMethod.getAnnotation(type);
+            if (methodAnnotation != null) {
+                annotations.add(methodAnnotation);
+            }
+            SpecInfo currentSpec = spec;
+            do {
+                A specAnnotation = currentSpec.getAnnotation(type);
+                if (specAnnotation != null) {
+                    annotations.add(specAnnotation);
+                }
+                currentSpec = currentSpec.getSuperSpec();
+            } while (currentSpec != null);
+            return annotations;
+        }
+
         public Annotation[] getAnnotations() {
             return featureMethod.getAnnotations();
         }

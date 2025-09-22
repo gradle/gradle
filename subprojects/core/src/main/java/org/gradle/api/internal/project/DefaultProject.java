@@ -87,6 +87,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.extensibility.NoConventionMapping;
@@ -122,7 +123,9 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
-import org.gradle.plugin.software.internal.SoftwareFeaturesDynamicObject;
+import org.gradle.plugin.software.internal.SoftwareFeatureApplicator;
+import org.gradle.plugin.software.internal.SoftwareFeatureRegistry;
+import org.gradle.plugin.software.internal.SoftwareFeatureSupportInternal;
 import org.gradle.util.Configurable;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -260,8 +263,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         }
         extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
 
-        DynamicObject softwareFeaturesDynamicObject = getObjects().newInstance(SoftwareFeaturesDynamicObject.class, this);
-        extensibleDynamicObject.addObject(softwareFeaturesDynamicObject, ExtensibleDynamicObject.Location.BeforeConvention);
+        SoftwareFeatureSupportInternal.attachLegacyDefinitionContext(this, services.get(SoftwareFeatureApplicator.class), services.get(SoftwareFeatureRegistry.class), getObjects());
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
@@ -540,15 +542,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public Map<String, Project> getChildProjectsUnchecked() {
-        Map<String, Project> childProjects = new TreeMap<>();
-        for (ProjectState project : owner.getChildProjects()) {
-            childProjects.put(project.getName(), project.getMutableModel());
-        }
-        return childProjects;
-    }
-
-    @Override
     public Map<String, Project> getChildProjects() {
         return getChildProjects(this);
     }
@@ -621,7 +614,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public String getBuildTreePath() {
-        return getIdentityPath().getPath();
+        return getIdentityPath().asString();
     }
 
     @Override
@@ -731,7 +724,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ProjectInternal project(ProjectInternal referrer, String path) throws UnknownProjectException {
-        ProjectInternal project = getCrossProjectModelAccess().findProject(referrer, this, path);
+        ProjectInternal project = findProject(referrer, path);
         if (project == null) {
             throw new UnknownProjectException(String.format("Project with path '%s' could not be found in %s.", path, this));
         }
@@ -746,7 +739,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Nullable
     @Override
     public ProjectInternal findProject(ProjectInternal referrer, String path) {
-        return getCrossProjectModelAccess().findProject(referrer, this, path);
+        Path targetPath = getProjectIdentity().getProjectPath().absolutePath(Path.path(path));
+        return getCrossProjectModelAccess().findProject(referrer, targetPath);
     }
 
     @Override
@@ -1466,17 +1460,38 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
+    @Deprecated
     public <T> NamedDomainObjectContainer<T> container(Class<T> type) {
+// KGP uses this method to create a container for the Kotlin DSL
+//        DeprecationLogger.deprecateMethod(Project.class, "container(Class)").
+//            replaceWith("objects.domainObjectContainer(Class)").
+//            willBeRemovedInGradle10().
+//            withUpgradeGuideSection(9, "project_container_methods").
+//            nagUser();
         return getServices().get(DomainObjectCollectionFactory.class).newNamedDomainObjectContainerUndecorated(type);
     }
 
     @Override
+    @Deprecated
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory) {
+// KGP uses this method to create a container for the Kotlin DSL
+// https://youtrack.jetbrains.com/issue/KT-80186
+//        DeprecationLogger.deprecateMethod(Project.class, "container(Class, NamedDomainObjectFactory)").
+//            replaceWith("objects.domainObjectContainer(Class, NamedDomainObjectFactory)").
+//            willBeRemovedInGradle10().
+//            withUpgradeGuideSection(9, "project_container_methods").
+//            nagUser();
         return getServices().get(DomainObjectCollectionFactory.class).newNamedDomainObjectContainer(type, factory);
     }
 
     @Override
+    @Deprecated
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure) {
+        DeprecationLogger.deprecateMethod(Project.class, "container(Class, Closure)").
+            replaceWith("objects.domainObjectContainer(Class, NamedDomainObjectFactory)").
+            willBeRemovedInGradle10().
+            withUpgradeGuideSection(9, "project_container_methods").
+            nagUser();
         return getServices().get(DomainObjectCollectionFactory.class).newNamedDomainObjectContainer(type, factoryClosure);
     }
 

@@ -17,8 +17,8 @@
 import gradlebuild.basics.capitalize
 import gradlebuild.basics.testing.TestType
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
-import gradlebuild.integrationtests.configureIde
 import gradlebuild.integrationtests.createTestTask
+import gradlebuild.integrationtests.configureIde
 import gradlebuild.integrationtests.setSystemPropertiesOfTestJVM
 
 plugins {

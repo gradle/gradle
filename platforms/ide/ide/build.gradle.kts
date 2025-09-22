@@ -24,6 +24,8 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.baseServicesGroovy)
+    implementation(projects.buildProcessServices)
+    implementation(projects.classloaders)
     implementation(projects.ear)
     implementation(projects.languageJava)
     implementation(projects.loggingApi)
@@ -68,7 +70,6 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
-    crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
 strictCompile {

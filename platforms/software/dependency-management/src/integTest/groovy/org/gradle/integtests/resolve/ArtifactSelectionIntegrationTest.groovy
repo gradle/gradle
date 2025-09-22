@@ -912,7 +912,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
 
         expect:
         succeeds "resolve"
-        result.assertTasksExecuted(":lib:classes", ":app:resolve")
+        result.assertTasksScheduled(":lib:classes", ":app:resolve")
     }
 
     def "fails when multiple variants match"() {
@@ -1042,7 +1042,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
 
         expect:
         succeeds "resolveView"
-        result.assertTasksExecuted(":app:resolveView")
+        result.assertTasksScheduled(":app:resolveView")
     }
 
     @ToBeFixedForConfigurationCache(because = "broken file collection")

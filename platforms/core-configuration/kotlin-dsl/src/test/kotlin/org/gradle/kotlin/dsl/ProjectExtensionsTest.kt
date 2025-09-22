@@ -109,11 +109,16 @@ class ProjectExtensionsTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun container() {
 
         val project = mock<Project> {
-            on { container(any<Class<String>>()) } doReturn mock<NamedDomainObjectContainer<String>>()
-            on { container(any<Class<String>>(), any<NamedDomainObjectFactory<String>>()) } doReturn mock<NamedDomainObjectContainer<String>>()
+            on {
+                container(any<Class<String>>())
+            } doReturn mock<NamedDomainObjectContainer<String>>()
+            on {
+                container(any<Class<String>>(), any<NamedDomainObjectFactory<String>>())
+            } doReturn mock<NamedDomainObjectContainer<String>>()
         }
 
         project.container<String>()

@@ -59,7 +59,7 @@ class PrintAccessorsTest {
                 modelDefaults = listOf(
                     entry<SharedModelDefaults, TestSoftwareType>("softwareType")
                 ),
-                softwareTypeEntries = emptyList(),
+                softwareFeatureEntries = emptyList(),
                 containerElementFactories = listOf()
             ),
             ::accessible
@@ -83,7 +83,7 @@ class PrintAccessorsTest {
                     ),
                     containerElements = listOf(),
                     modelDefaults = listOf(),
-                    softwareTypeEntries = emptyList(),
+                    softwareFeatureEntries = emptyList(),
                     containerElementFactories = listOf()
                 ),
                 ::accessible

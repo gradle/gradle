@@ -109,7 +109,9 @@ public interface ComponentMetadataHandler {
      *
      * @param ruleSource the rule source object to be added
      * @return this
+     * @deprecated Use {@link #all(Action)} or {@link #all(Class)} instead.
      */
+    @Deprecated
     ComponentMetadataHandler all(Object ruleSource);
 
     /**
@@ -162,7 +164,9 @@ public interface ComponentMetadataHandler {
      * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
      * @param ruleSource the rule source object to be added
      * @return this
+     * @deprecated Use {@link #withModule(Object, Action)} or {@link #withModule(Object, Class)} instead.
      */
+    @Deprecated
     ComponentMetadataHandler withModule(Object id, Object ruleSource);
 
     /**

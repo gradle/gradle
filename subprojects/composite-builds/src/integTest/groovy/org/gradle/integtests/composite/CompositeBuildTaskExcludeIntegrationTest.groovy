@@ -95,13 +95,13 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         expect:
         2.times {
             succeeds("build", "-x", ":included:sub:test")
-            result.assertTasksExecuted(":test", ":build", ":sub:test", ":sub:build", ":included:test", ":included:build", ":included:sub:build")
-            result.assertTaskNotExecuted(":included:sub:test")
+            result.assertTasksScheduled(":test", ":build", ":sub:test", ":sub:build", ":included:test", ":included:build", ":included:sub:build")
+            result.assertTasksNotScheduled(":included:sub:test")
         }
         2.times {
             succeeds("build", "-x", "included:sub:test")
-            result.assertTasksExecuted(":test", ":build", ":sub:test", ":sub:build", ":included:test", ":included:build", ":included:sub:build")
-            result.assertTaskNotExecuted(":included:sub:test")
+            result.assertTasksScheduled(":test", ":build", ":sub:test", ":sub:build", ":included:test", ":included:build", ":included:sub:build")
+            result.assertTasksNotScheduled(":included:sub:test")
         }
     }
 
@@ -109,13 +109,13 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         expect:
         2.times {
             succeeds("build", "-x", ":included:sub:te")
-            result.assertTasksExecuted(":test", ":build", ":sub:test", ":sub:build", ":included:test", ":included:build", ":included:sub:build")
-            result.assertTaskNotExecuted(":included:sub:test")
+            result.assertTasksScheduled(":test", ":build", ":sub:test", ":sub:build", ":included:test", ":included:build", ":included:sub:build")
+            result.assertTasksNotScheduled(":included:sub:test")
         }
         2.times {
             succeeds("build", "-x", "i:s:te")
-            result.assertTasksExecuted(":test", ":build", ":sub:test", ":sub:build", ":included:test", ":included:build", ":included:sub:build")
-            result.assertTaskNotExecuted(":included:sub:test")
+            result.assertTasksScheduled(":test", ":build", ":sub:test", ":sub:build", ":included:test", ":included:build", ":included:sub:build")
+            result.assertTasksNotScheduled(":included:sub:test")
         }
     }
 
@@ -124,8 +124,8 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         succeeds("build", "-x", ":sub:test")
 
         then:
-        result.assertTasksExecuted(":test", ":build", ":sub:build", ":included:test", ":included:build", ":included:sub:test", ":included:sub:build")
-        result.assertTaskNotExecuted(":sub:test")
+        result.assertTasksScheduled(":test", ":build", ":sub:build", ":included:test", ":included:build", ":included:sub:test", ":included:sub:build")
+        result.assertTasksNotScheduled(":sub:test")
     }
 
     def "cannot use unqualified task paths to exclude tasks from included build roots"() {
@@ -133,9 +133,9 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         run("build", "-x", "test")
 
         then:
-        result.assertTasksExecuted(":build", ":sub:build", ":included:build", ":included:sub:build", ":included:test", ":included:sub:test")
-        result.assertTaskNotExecuted(":test")
-        result.assertTaskNotExecuted(":sub:test")
+        result.assertTasksScheduled(":build", ":sub:build", ":included:build", ":included:sub:build", ":included:test", ":included:sub:test")
+        result.assertTasksNotScheduled(":test")
+        result.assertTasksNotScheduled(":sub:test")
     }
 
     def "cannot use unqualified task paths to exclude tasks from included build subproject"() {
@@ -143,8 +143,8 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         run("build", "-x", "sub:test")
 
         then:
-        result.assertTasksExecuted(":test", ":build", ":sub:build", ":included:test", ":included:build", ":included:sub:test", ":included:sub:build")
-        result.assertTaskNotExecuted(":sub:test")
+        result.assertTasksScheduled(":test", ":build", ":sub:build", ":included:test", ":included:build", ":included:sub:test", ":included:sub:build")
+        result.assertTasksNotScheduled(":sub:test")
     }
 
     def "can exclude task from main build when root build uses project plugin from included build"() {
@@ -162,7 +162,7 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         expect:
         2.times {
             succeeds("assemble", "-x", "jar")
-            result.assertTaskNotExecuted(":jar")
+            result.assertTasksNotScheduled(":jar")
         }
     }
 
@@ -187,7 +187,7 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         expect:
         2.times {
             succeeds("assemble", "-x", "jar")
-            result.assertTaskNotExecuted(":jar")
+            result.assertTasksNotScheduled(":jar")
         }
     }
 
@@ -207,7 +207,7 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         succeeds("greeting", ":build-logic:classes")
         2.times {
             succeeds("greeting", "-x", ":build-logic:classes")
-            result.assertTaskNotExecuted(":build-logic:classes")
+            result.assertTasksNotScheduled(":build-logic:classes")
         }
     }
 
@@ -230,8 +230,8 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         succeeds("greeting", ":build-logic:classes")
         2.times {
             succeeds("greeting", "-x", ":build-logic:jar")
-            result.assertTaskNotExecuted(":build-logic:jar")
-            result.assertTaskNotExecuted(":build-logic:compileJava")
+            result.assertTasksNotScheduled(":build-logic:jar")
+            result.assertTasksNotScheduled(":build-logic:compileJava")
         }
     }
 
@@ -254,7 +254,7 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         expect:
         2.times {
             succeeds(":app:assemble", "-x", ":app:processResources")
-            result.assertTaskNotExecuted(":app:processResources")
+            result.assertTasksNotScheduled(":app:processResources")
         }
     }
 
@@ -283,8 +283,8 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         expect:
         2.times {
             succeeds("build", "-x", "test")
-            result.assertTaskNotExecuted(":test")
-            result.assertTaskNotExecuted(":sub:test")
+            result.assertTasksNotScheduled(":test")
+            result.assertTasksNotScheduled(":sub:test")
         }
     }
 }

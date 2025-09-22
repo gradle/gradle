@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
@@ -172,15 +171,14 @@ class DefaultIvyPublicationTest extends Specification {
     def "maps project dependency to ivy dependency"() {
         given:
         def publication = createPublication()
-        def buildTreePath = Mock(Path)
-        def projectIdentity = new ProjectIdentity(DefaultBuildIdentifier.ROOT, buildTreePath, buildTreePath, "foo")
+        def projectIdentity = ProjectIdentity.forSubproject(Path.path(":build"), Path.path(":subproject"))
         def projectDependency = Mock(ProjectDependencyInternal) {
             getTargetProjectIdentity() >> projectIdentity
         }
         def exclude = Mock(ExcludeRule)
 
         and:
-        projectDependencyResolver.resolveComponent(ModuleVersionIdentifier, buildTreePath) >> DefaultModuleVersionIdentifier.newId("pub-org", "pub-module", "pub-revision")
+        projectDependencyResolver.resolveComponent(ModuleVersionIdentifier, projectIdentity.getBuildTreePath()) >> DefaultModuleVersionIdentifier.newId("pub-org", "pub-module", "pub-revision")
         projectDependency.targetConfiguration >> "dep-configuration"
         projectDependency.artifacts >> []
         projectDependency.excludeRules >> [exclude]

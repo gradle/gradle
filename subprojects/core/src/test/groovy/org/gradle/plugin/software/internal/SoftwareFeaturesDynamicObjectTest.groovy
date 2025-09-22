@@ -16,24 +16,28 @@
 
 package org.gradle.plugin.software.internal
 
+import org.gradle.api.internal.DynamicObjectAware
+import org.gradle.api.internal.plugins.TargetTypeInformation
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.plugins.ExtensionAware
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class SoftwareFeaturesDynamicObjectTest extends Specification {
-    def softwareTypeRegistry = Mock(SoftwareTypeRegistry)
+    def softwareTypeRegistry = Mock(SoftwareFeatureRegistry)
     def softwareFeatureApplicator = Mock(SoftwareFeatureApplicator)
-    def extensionAware = Mock(ExtensionAware)
-    def softwareTypeImplementation = Mock(SoftwareTypeImplementation)
+    def dynamicObjectAware = Mock(DynamicObjectAware)
+    def softwareTypeImplementation = Mock(SoftwareFeatureImplementation) {
+        it.getTargetDefinitionType() >> new TargetTypeInformation.DefinitionTargetTypeInformation(Object.class)
+    }
+    def context = Mock(SoftwareFeatureSupportInternal.ProjectFeatureDefinitionContext)
     def softwareFeaturesDynamicObject
 
     def setup() {
         def services = TestUtil.createTestServices {
-            it.add(SoftwareTypeRegistry, softwareTypeRegistry)
+            it.add(SoftwareFeatureRegistry, softwareTypeRegistry)
             it.add(SoftwareFeatureApplicator, softwareFeatureApplicator)
         }
-        softwareFeaturesDynamicObject = services.get(ObjectFactory.class).newInstance(SoftwareFeaturesDynamicObject, extensionAware)
+        softwareFeaturesDynamicObject = services.get(ObjectFactory.class).newInstance(SoftwareFeaturesDynamicObject, dynamicObjectAware, context)
     }
 
     def "applies software feature when configured"() {
@@ -43,8 +47,8 @@ class SoftwareFeaturesDynamicObjectTest extends Specification {
         softwareFeaturesDynamicObject.invokeMethod("foo", closureArg { bar = 'baz' })
 
         then:
-        _ * softwareTypeRegistry.getSoftwareTypeImplementations() >> ["foo": softwareTypeImplementation]
-        1 * softwareFeatureApplicator.applyFeatureTo(extensionAware, softwareTypeImplementation) >> foo
+        _ * softwareTypeRegistry.getSoftwareFeatureImplementations() >> ["foo": softwareTypeImplementation]
+        1 * softwareFeatureApplicator.applyFeatureTo(dynamicObjectAware, softwareTypeImplementation) >> foo
 
         and:
         foo.bar == 'baz'
@@ -55,7 +59,7 @@ class SoftwareFeaturesDynamicObjectTest extends Specification {
         softwareFeaturesDynamicObject.foo
 
         then:
-        0 * softwareTypeRegistry.getSoftwareTypeImplementations()
+        0 * softwareTypeRegistry.getSoftwareFeatureImplementations()
         0 * softwareFeatureApplicator.applyFeatureTo(_, _)
 
         and:
@@ -67,7 +71,7 @@ class SoftwareFeaturesDynamicObjectTest extends Specification {
         softwareFeaturesDynamicObject.invokeMethod("foo", ["bar"] as Object[])
 
         then:
-        0 * softwareTypeRegistry.getSoftwareTypeImplementations()
+        0 * softwareTypeRegistry.getSoftwareFeatureImplementations()
         0 * softwareFeatureApplicator.applyFeatureTo(_, _)
 
         and:
@@ -79,7 +83,7 @@ class SoftwareFeaturesDynamicObjectTest extends Specification {
         softwareFeaturesDynamicObject.invokeMethod("fizz", closureArg { bar = 'baz' })
 
         then:
-        _ * softwareTypeRegistry.getSoftwareTypeImplementations() >> ["foo": softwareTypeImplementation]
+        _ * softwareTypeRegistry.getSoftwareFeatureImplementations() >> ["foo": softwareTypeImplementation]
         0 * softwareFeatureApplicator.applyFeatureTo(_, _)
 
         and:
@@ -91,7 +95,7 @@ class SoftwareFeaturesDynamicObjectTest extends Specification {
         assert softwareFeaturesDynamicObject.hasMethod("foo", closureArg {})
 
         then:
-        _ * softwareTypeRegistry.getSoftwareTypeImplementations() >> ["foo": softwareTypeImplementation]
+        _ * softwareTypeRegistry.getSoftwareFeatureImplementations() >> ["foo": softwareTypeImplementation]
         0 * softwareFeatureApplicator.applyFeatureTo(_, _)
     }
 

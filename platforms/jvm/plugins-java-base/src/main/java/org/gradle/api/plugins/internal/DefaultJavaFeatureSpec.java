@@ -30,6 +30,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultJavaFeatureSpec implements FeatureSpec {
+
     private final String name;
     private final Set<Capability> capabilities = new LinkedHashSet<>(1);
     private final ProjectInternal project;
@@ -92,16 +93,21 @@ public class DefaultJavaFeatureSpec implements FeatureSpec {
 
         JvmFeatureInternal feature = new DefaultJvmFeature(name, sourceSet, capabilities, project, SourceSet.isMain(sourceSet));
         feature.withApi();
-
-        if (withJavadocJar) {
-            feature.withJavadocJar();
-        }
-
-        if (withSourcesJar) {
-            feature.withSourcesJar();
-        }
-
         return feature;
+    }
+
+    /**
+     * Return true if {@link #withJavadocJar} was called.
+     */
+    public boolean hasJavadocJar() {
+        return withJavadocJar;
+    }
+
+    /**
+     * Return true if {@link #withSourcesJar} was called.
+     */
+    public boolean hasSourcesJar() {
+        return withSourcesJar;
     }
 
 }

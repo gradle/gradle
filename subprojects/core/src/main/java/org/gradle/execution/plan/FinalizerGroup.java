@@ -353,9 +353,9 @@ public class FinalizerGroup extends HasFinalizers {
     }
 
     private static class WaitForNodesToComplete implements MemberSuccessors {
-        private final Set<Node> nodes;
+        private final Iterable<Node> nodes;
 
-        public WaitForNodesToComplete(Set<Node> nodes) {
+        public WaitForNodesToComplete(Iterable<Node> nodes) {
             this.nodes = nodes;
         }
 
@@ -377,9 +377,9 @@ public class FinalizerGroup extends HasFinalizers {
     }
 
     private static class WaitForFinalizedNodesToBecomeActive implements MemberSuccessors {
-        private final Set<Node> nodes;
+        private final Iterable<Node> nodes;
 
-        public WaitForFinalizedNodesToBecomeActive(Set<Node> nodes) {
+        public WaitForFinalizedNodesToBecomeActive(Iterable<Node> nodes) {
             this.nodes = nodes;
         }
 

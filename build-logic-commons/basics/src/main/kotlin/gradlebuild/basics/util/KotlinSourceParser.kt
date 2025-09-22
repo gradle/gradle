@@ -78,7 +78,6 @@ class KotlinSourceParser {
         val configuration = CompilerConfiguration().apply {
 
             put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
-            put(JVMConfigurationKeys.RETAIN_OUTPUT_IN_MEMORY, false)
             put(JVMConfigurationKeys.DISABLE_OPTIMIZATION, true)
             put(CommonConfigurationKeys.MODULE_NAME, "parser")
 

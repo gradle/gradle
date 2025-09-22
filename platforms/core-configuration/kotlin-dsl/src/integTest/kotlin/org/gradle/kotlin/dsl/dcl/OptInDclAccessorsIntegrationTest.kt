@@ -67,7 +67,7 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
             assertOutputContains(
                 """
                 |    @com.example.SomeExperimentalApi
-                |    fun Project.`mySoftwareType`(configure: Action<in com.example.MyExtension>) {
+                |    fun org.gradle.api.Project.`mySoftwareType`(configure: Action<in com.example.MyExtension>) {
                 """.trimMargin()
             )
         }

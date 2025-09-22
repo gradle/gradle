@@ -36,10 +36,10 @@ import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.UnresolvedDependency
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.ConfigurationServicesBundle
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
@@ -75,6 +75,7 @@ import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.TestBuildOperationRunner
+import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
@@ -618,6 +619,34 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     void "deprecations are passed to copies when corresponding role is #baseRole"() {
+        expect:
+        deprecationsArePassedToCopies(baseRole)
+
+        where:
+        baseRole << [
+            ConfigurationRoles.ALL,
+            ConfigurationRoles.RESOLVABLE,
+            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
+        ] + ConfigurationRolesForMigration.ALL - ConfigurationRolesForMigration.CONSUMABLE_TO_RETIRED - deprecatedRoles
+    }
+
+    @ExpectDeprecation("The conf configuration has been deprecated for dependency declaration")
+    void "deprecations are passed to copies when corresponding role is #baseRole (deprecated)"() {
+        expect:
+        deprecationsArePassedToCopies(baseRole)
+
+        where:
+        baseRole << deprecatedRoles
+    }
+
+    private static deprecatedRoles = [
+        ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
+        ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE,
+        ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE
+    ]
+
+    private void deprecationsArePassedToCopies(ConfigurationRole baseRole) {
+        // given:
         ConfigurationRole role = new DefaultConfigurationRole("test", baseRole.consumable, baseRole.resolvable, baseRole.declarable, baseRole.consumptionDeprecated, baseRole.resolutionDeprecated, baseRole.declarationAgainstDeprecated)
         def configuration = prepareConfigurationForCopyTest(conf("conf", ":", ":", role))
         def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
@@ -625,28 +654,21 @@ class DefaultConfigurationSpec extends Specification {
         configuration.addDeclarationAlternatives("declaration")
         configuration.addResolutionAlternatives("resolution")
 
-        when:
+        // when:
         def copy = configuration.copy()
 
-        then:
+        // then:
         // This is not desired behavior. Ideally the copy method should copy the role of the original.
         // Instead, the role of copies are currently always set to RESOLVABLE_DEPENDENCY_SCOPE, as
         // currently copies are detached configurations, and this is the role of all detached configurations.
-        copy.canBeDeclared
-        copy.canBeResolved
-        !copy.canBeConsumed
-        copy.declarationAlternatives == ["declaration"]
-        copy.resolutionAlternatives == ["resolution"]
-        !copy.deprecatedForConsumption
-        !copy.deprecatedForResolution
-        !copy.deprecatedForDeclarationAgainst
-
-        where:
-        baseRole << [
-            ConfigurationRoles.ALL,
-            ConfigurationRoles.RESOLVABLE,
-            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
-        ] + ConfigurationRolesForMigration.ALL - ConfigurationRolesForMigration.CONSUMABLE_TO_RETIRED
+        assert copy.canBeDeclared
+        assert copy.canBeResolved
+        assert !copy.canBeConsumed
+        assert copy.declarationAlternatives == ["declaration"]
+        assert copy.resolutionAlternatives == ["resolution"]
+        assert !copy.deprecatedForConsumption
+        assert !copy.deprecatedForResolution
+        assert !copy.deprecatedForDeclarationAgainst
     }
 
     void "fails to copy non-resolvable configuration (#role)"() {
@@ -1618,46 +1640,47 @@ This method is only meant to be called on configurations which allow the (non-de
     }
 
     private DefaultConfigurationFactory confFactory(String projectPath, String buildPath) {
-        def domainObjectContext = Stub(DomainObjectContext)
         def build = Path.path(buildPath)
         def project = Path.path(projectPath)
         def buildTreePath = build.append(Path.path(projectPath))
+        def identity = project.name != null ? ProjectIdentity.forSubproject(build, project) : ProjectIdentity.forRootProject(build, "foo")
+
+        def domainObjectContext = Stub(DomainObjectContext)
         _ * domainObjectContext.identityPath(_) >> { String p -> buildTreePath.child(p) }
         _ * domainObjectContext.projectPath(_) >> { String p -> project.child(p) }
         _ * domainObjectContext.buildPath >> build
-        _ * domainObjectContext.projectIdentity >> new ProjectIdentity(
-            new DefaultBuildIdentifier(build),
-            buildTreePath,
-            project,
-            project.name ?: "foo"
-        )
+        _ * domainObjectContext.projectIdentity >> identity
         _ * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
         _ * domainObjectContext.equals(_) >> true // In these tests, we assume we're in the same context
 
-        def publishArtifactNotationParser = new PublishArtifactNotationParserFactory(
+        def publishArtifactNotationParserFactory = new PublishArtifactNotationParserFactory(
             TestUtil.objectFactory(),
             metaDataProvider,
             TestFiles.resolver(),
             TestFiles.taskDependencyFactory(),
         )
-        new DefaultConfigurationFactory(
+
+        ConfigurationServicesBundle configurationServices = new DefaultConfigurationServicesBundle(
+            new TestBuildOperationRunner(),
+            projectStateRegistry,
+            calculatedValueContainerFactory,
             TestUtil.objectFactory(),
+            TestFiles.fileCollectionFactory(),
+            TestFiles.taskDependencyFactory(),
+            attributesFactory,
+            TestUtil.domainObjectCollectionFactory(),
+            CollectionCallbackActionDecorator.NOOP,
+            TestUtil.problemsService(),
+            new AttributeDesugaring(attributesFactory),
+            new ResolveExceptionMapper(domainObjectContext, new DocumentationRegistry())
+        )
+
+        new DefaultConfigurationFactory(
+            configurationServices,
             listenerManager,
             domainObjectContext,
-            TestFiles.fileCollectionFactory(),
-            new TestBuildOperationRunner(),
-            publishArtifactNotationParser,
-            attributesFactory,
-            new ResolveExceptionMapper(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
-            new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
-            userCodeApplicationContext,
-            CollectionCallbackActionDecorator.NOOP,
-            projectStateRegistry,
-            TestUtil.domainObjectCollectionFactory(),
-            calculatedValueContainerFactory,
-            TestFiles.taskDependencyFactory(),
-            TestUtil.problemsService(),
-            new DocumentationRegistry()
+            publishArtifactNotationParserFactory,
+            userCodeApplicationContext
         )
     }
 

@@ -18,7 +18,6 @@ package org.gradle.language.cpp.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -150,7 +149,6 @@ public abstract class CppLibraryPlugin implements Plugin<Project> {
                     });
 
             // TODO - deal with more than one header dir, e.g. generated public headers
-            final Configuration apiElements = library.getApiElements();
             Provider<File> publicHeaders = providers.provider(() -> {
                 Set<File> files = library.getPublicHeaderDirs().getFiles();
                 if (files.size() != 1) {
@@ -158,7 +156,9 @@ public abstract class CppLibraryPlugin implements Plugin<Project> {
                 }
                 return files.iterator().next();
             });
-            apiElements.getOutgoing().artifact(publicHeaders, it -> it.builtBy(library.getPublicHeaderDirs()));
+            library.getApiElements().configure(conf -> {
+                conf.getOutgoing().artifact(publicHeaders, it -> it.builtBy(library.getPublicHeaderDirs()));
+            });
 
             project.getPluginManager().withPlugin("maven-publish", appliedPlugin -> {
                 final TaskProvider<Zip> headersZip = tasks.register("cppHeaders", Zip.class, task -> {

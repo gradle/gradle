@@ -156,10 +156,10 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         succeeds(':application:testAggregateTestReport')
 
         then:
-        result.assertTaskExecuted(":application:test")
-        result.assertTaskExecuted(":direct:test")
-        result.assertTaskExecuted(":transitive:test")
-        result.assertTaskExecuted(":application:testAggregateTestReport")
+        result.assertTaskScheduled(":application:test")
+        result.assertTaskScheduled(":direct:test")
+        result.assertTaskScheduled(":transitive:test")
+        result.assertTaskScheduled(":application:testAggregateTestReport")
 
         def transitiveTestResults = new HtmlTestExecutionResult(testDirectory.file('transitive'))
         transitiveTestResults.assertTestClassesExecuted('transitive.PowerizeTest')
@@ -250,13 +250,13 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         succeeds(":application:testAggregateTestReport", ":application:integTestAggregateTestReport")
 
         then:
-        result.assertTaskExecuted(":transitive:test")
-        result.assertTaskExecuted(":direct:test")
-        result.assertTaskExecuted(":application:test")
-        result.assertTaskExecuted(":transitive:integTest")
-        result.assertTaskExecuted(":application:integTest")
-        result.assertTaskExecuted(":application:testAggregateTestReport")
-        result.assertTaskExecuted(":application:integTestAggregateTestReport")
+        result.assertTaskScheduled(":transitive:test")
+        result.assertTaskScheduled(":direct:test")
+        result.assertTaskScheduled(":application:test")
+        result.assertTaskScheduled(":transitive:integTest")
+        result.assertTaskScheduled(":application:integTest")
+        result.assertTaskScheduled(":application:testAggregateTestReport")
+        result.assertTaskScheduled(":application:integTestAggregateTestReport")
 
         def transitiveTestResults = new HtmlTestExecutionResult(testDirectory.file('transitive'))
         transitiveTestResults.assertTestClassesExecuted('transitive.PowerizeTest')
@@ -369,7 +369,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         then:
         failure.assertHasDescription("Execution failed for task ':direct:test'.")
                .assertThatCause(startsWith("There were failing tests"))
-        result.assertTaskNotExecuted(':application:testAggregateTestReport')
+        result.assertTasksNotScheduled(':application:testAggregateTestReport')
 
         file("application/build/reports/tests/test/aggregated-results").assertDoesNotExist()
     }
@@ -396,10 +396,10 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         fails(":application:testAggregateTestReport", "--continue")
 
         then:
-        result.assertTaskExecuted(":application:test")
-        result.assertTaskExecuted(":direct:test")
-        result.assertTaskExecuted(":transitive:test")
-        result.assertTaskExecuted(":application:testAggregateTestReport")
+        result.assertTaskScheduled(":application:test")
+        result.assertTaskScheduled(":direct:test")
+        result.assertTaskScheduled(":transitive:test")
+        result.assertTaskScheduled(":application:testAggregateTestReport")
 
         def transitiveTestResults = new HtmlTestExecutionResult(testDirectory.file('transitive'))
         transitiveTestResults.assertTestClassesExecuted('transitive.PowerizeTest')
@@ -435,7 +435,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         succeeds(":application:testAggregateTestReport", "--continue")
 
         then:
-        result.assertTaskExecuted(":application:testAggregateTestReport")
+        result.assertTaskScheduled(":application:testAggregateTestReport")
 
         def aggregatedResults = new HtmlTestExecutionResult(testDirectory, "application/build/non-default-location/test/aggregated-results")
         aggregatedResults.assertTestClassesExecuted("application.AdderTest", "direct.MultiplierTest", "transitive.PowerizeTest")
@@ -466,10 +466,10 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
 
         then:
         // despite --continue flag, :application:testAggregateTestReport will not execute due to catastrophic failure in :direct:test
-        result.assertTaskExecuted(":application:test")
-        result.assertTaskExecuted(":direct:test")
-        result.assertTaskExecuted(":transitive:test")
-        result.assertTaskNotExecuted(":application:testAggregateTestReport")
+        result.assertTaskScheduled(":application:test")
+        result.assertTaskScheduled(":direct:test")
+        result.assertTaskScheduled(":transitive:test")
+        result.assertTasksNotScheduled(":application:testAggregateTestReport")
 
         file("application/build/reports/tests/test/aggregated-results").assertDoesNotExist()
 
@@ -501,10 +501,10 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
 
         then:
         // despite --continue flag, :application:testAggregateTestReport will not execute due to catastrophic failures
-        result.assertTaskNotExecuted(":application:test")
-        result.assertTaskNotExecuted(":direct:test")
-        result.assertTaskNotExecuted(":transitive:test")
-        result.assertTaskNotExecuted(":application:testAggregateTestReport")
+        result.assertTasksNotScheduled(":application:test")
+        result.assertTasksNotScheduled(":direct:test")
+        result.assertTasksNotScheduled(":transitive:test")
+        result.assertTasksNotScheduled(":application:testAggregateTestReport")
 
         file("application/build/reports/tests/test/aggregated-results").assertDoesNotExist()
     }

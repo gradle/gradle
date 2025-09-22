@@ -43,7 +43,7 @@ abstract class AbstractNativeUnitTestComponentDependenciesIntegrationTest extend
         run(":test")
 
         then:
-        result.assertTasksExecuted(libDebugTasks, runTestTasks, ":test")
+        result.assertTasksScheduled(libDebugTasks, runTestTasks, ":test")
     }
 
     protected abstract void makeTestSuiteAndComponentWithLibrary()

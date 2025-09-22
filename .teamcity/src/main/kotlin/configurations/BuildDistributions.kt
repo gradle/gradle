@@ -23,6 +23,7 @@ class BuildDistributions(
                     stage.getBuildScanCustomValueParam(),
                     buildScanTagParam("BuildDistributions"),
                     "-PtestJavaVersion=${LINUX.buildJavaVersion.major}",
+                    "-Dorg.gradle.java.installations.auto-download=false",
                     "-Porg.gradle.java.installations.auto-download=false",
                 ).joinToString(" "),
         )

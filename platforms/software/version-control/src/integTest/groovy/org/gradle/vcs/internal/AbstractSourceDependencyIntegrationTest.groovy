@@ -104,7 +104,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
         run("help")
 
         then:
-        result.assertTasksExecuted(":dep:compileJava", ":dep:processResources", ":dep:classes", ":dep:jar", ":help")
+        result.assertTasksScheduled(":dep:compileJava", ":dep:processResources", ":dep:classes", ":dep:jar", ":help")
         assertRepoCheckedOut()
     }
 

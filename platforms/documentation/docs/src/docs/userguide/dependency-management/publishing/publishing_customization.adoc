@@ -54,16 +54,7 @@ include::sample[dir="snippets/maven-publish/javaProject/groovy",files="build.gra
 In the <<sec:adding-variants-to-existing-components, previous example>>, we have demonstrated how to extend or modify an existing component, like the components provided by the Java plugins.
 But Gradle also allows you to build a custom component (not a Java Library, not a Java Platform, not something supported natively by Gradle).
 
-To create a custom component, you first need to create an empty _adhoc_ component.
-At the moment, this is only possible via a plugin because you need to get a handle on the link:{javadocPath}/org/gradle/api/component/SoftwareComponentFactory.html[SoftwareComponentFactory] :
-
-.Injecting the software component factory
-====
-include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme",files="InstrumentedJarsPlugin.kt[tags=inject_software_component_factory]"]
-include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced-published/groovy/buildSrc/src/main/groovy/com/acme",files="InstrumentedJarsPlugin.groovy[tags=inject_software_component_factory]"]
-====
-
-Declaring _what_ a custom component publishes is still done via the link:{javadocPath}/org/gradle/api/component/AdhocComponentWithVariants.html[AdhocComponentWithVariants] API.
+Declaring _what_ a custom component publishes is also done via the link:{javadocPath}/org/gradle/api/component/AdhocComponentWithVariants.html[AdhocComponentWithVariants] API.
 For a custom component, the first step is to create custom outgoing variants, following the instructions in <<variant_aware_resolution.adoc#sec:understanding-variant-selection, this chapter>>.
 At this stage, what you should have is variants which can be used in cross-project dependencies, but that we are now going to publish to external repositories.
 

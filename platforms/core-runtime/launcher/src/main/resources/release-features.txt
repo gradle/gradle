@@ -1,3 +1,0 @@
- - Full Java 25 support
- - Native task graph visualization
- - Enhanced console output

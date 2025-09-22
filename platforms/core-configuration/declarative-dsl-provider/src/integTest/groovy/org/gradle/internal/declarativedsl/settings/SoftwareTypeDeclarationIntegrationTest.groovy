@@ -25,8 +25,6 @@ import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.hamcrest.Matchers
 import org.junit.Rule
 
-import static org.gradle.util.Matchers.containsText
-
 @PolyglotDslTest
 class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture, PolyglotTestFixture {
     @Rule
@@ -38,6 +36,10 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
     def setup() {
         // enable DCL support to have KTS accessors generated
         propertiesFile << "org.gradle.kotlin.dsl.dcl=true"
+
+        // We only need the test plugin portal for one test, but we need the actual plugin portal for
+        // other tests, so we stop it by default and start it only when needed.
+        pluginPortal.stop()
     }
 
     def 'can declare and configure a custom software type from included build'() {
@@ -61,12 +63,13 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
 
     def 'can declare and configure a custom software type from published plugin'() {
         given:
+        pluginPortal.start()
         def pluginBuilder = withSoftwareTypePlugins()
         pluginBuilder.publishAs("com", "example", "1.0", pluginPortal, createExecuter()).allowAll()
 
         settingsFile() << """
             plugins {
-                id("com.example.test-software-type").version("1.0")
+                id("com.example.test-software-ecosystem").version("1.0")
             }
         """
 
@@ -98,7 +101,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
                 }
             }
             plugins {
-                id("com.example.test-software-type").version("1.0")
+                id("com.example.test-software-ecosystem").version("1.0")
             }
         """
 
@@ -121,7 +124,17 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
 
         settingsFile() << pluginsFromIncludedBuild
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType + """
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
+
+        when:
+        run(":printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        outputContains("Applying SoftwareTypeImplPlugin")
+        assertThatDeclaredValuesAreSetProperly()
+
+        when:
+        buildFile().text = """
             anotherSoftwareType {
                 foo = "test2"
 
@@ -130,17 +143,11 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
                 }
             }
         """
-
-        when:
-        run(":printTestSoftwareTypeExtensionConfiguration", ":printAnotherSoftwareTypeExtensionConfiguration")
+        run(":printAnotherSoftwareTypeExtensionConfiguration")
 
         then:
-        assertThatDeclaredValuesAreSetProperly()
-        outputContains("""foo = test2\nbaz = fizz""")
-
-        and:
-        outputContains("Applying SoftwareTypeImplPlugin")
         outputContains("Applying AnotherSoftwareTypeImplPlugin")
+        outputContains("""foo = test2\nbaz = fizz""")
     }
 
     def 'can declare multiple custom software types from a single settings plugin but apply only one'() {
@@ -196,53 +203,6 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         }
     }
 
-    def 'can declare and configure a custom software type from a parent class'() {
-        given:
-        withSoftwareTypePluginThatExposesSoftwareTypeFromParentClass().prepareToExecute()
-
-        settingsFile() << pluginsFromIncludedBuild
-
-        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
-
-        when:
-        run(":printTestSoftwareTypeExtensionConfiguration")
-
-        then:
-        assertThatDeclaredValuesAreSetProperly()
-    }
-
-    def 'can declare and configure a custom software type from a plugin with unannotated methods'() {
-        given:
-        withSoftwareTypePluginThatHasUnannotatedMethods().prepareToExecute()
-
-        settingsFile() << pluginsFromIncludedBuild
-
-        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
-
-        when:
-        run(":printTestSoftwareTypeExtensionConfiguration")
-
-        then:
-        assertThatDeclaredValuesAreSetProperly()
-    }
-
-    def 'sensible error when model types do not match in software type declaration'() {
-        given:
-        withSoftwareTypePluginWithMismatchedModelTypes().prepareToExecute()
-
-        settingsFile() << pluginsFromIncludedBuild
-
-        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
-
-        when:
-        fails(":printTestSoftwareTypeExtensionConfiguration")
-
-        then:
-        failure.assertHasCause("Failed to apply plugin 'com.example.test-software-type'.")
-        failure.assertHasCause("A problem was found with the SoftwareTypeImplPlugin plugin.")
-        failure.assertThatCause(containsText("Type 'org.gradle.test.SoftwareTypeImplPlugin' property 'testSoftwareTypeExtension' has @SoftwareType annotation with public type 'AnotherSoftwareTypeExtension' used on property of type 'TestSoftwareTypeExtension'."))
-    }
-
     def 'sensible error when a software type plugin is registered that does not expose a software type'() {
         given:
         withSoftwareTypePluginThatDoesNotExposeSoftwareTypes().prepareToExecute()
@@ -253,12 +213,41 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         fails(":help")
 
         then:
-        failure.assertHasCause("Failed to apply plugin 'com.example.test-software-type'.")
-        failure.assertHasCause("A problem was found with the SoftwareTypeImplPlugin plugin.")
-        failure.assertHasCause("Type 'org.gradle.test.SoftwareTypeImplPlugin' is registered as a software type plugin but does not expose a software type.")
+        failure.assertHasCause("Failed to apply plugin 'com.example.test-software-ecosystem'.")
+        failure.assertHasCause("A problem was found with the NotASoftwareTypePlugin plugin.")
+        failure.assertHasCause("Type 'org.gradle.test.NotASoftwareTypePlugin' is registered as a software feature plugin but does not expose a software feature.")
     }
 
-    def 'sensible error when a software type plugin is registered that exposes multiple software types'() {
+    def 'a software type plugin can declare multiple software types'() {
+        given:
+        withSoftwareTypePluginThatExposesMultipleSoftwareTypes().prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
+
+        when:
+        succeeds(":printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        assertThatDeclaredValuesAreSetProperly()
+
+        when:
+        buildFile().text = """
+            anotherSoftwareType {
+                foo = "test"
+                bar {
+                    baz = "fizz"
+                }
+            }
+        """
+        succeeds(":printAnotherSoftwareTypeExtensionConfiguration")
+
+        then:
+        outputContains("""foo = test\nbaz = fizz""")
+    }
+
+    def 'sensible error when a script applies multiple software types'() {
         given:
         withSoftwareTypePluginThatExposesMultipleSoftwareTypes().prepareToExecute()
 
@@ -266,10 +255,8 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
 
         buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType + """
             anotherSoftwareType {
-                id = "test2"
-
-                foo {
-                    bar = "fizz"
+                bar {
+                    baz = "fizz"
                 }
             }
         """
@@ -278,84 +265,14 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         fails(":printTestSoftwareTypeExtensionConfiguration")
 
         then:
-        failure.assertHasCause("Failed to apply plugin 'com.example.test-software-type'.")
-        failure.assertHasCause("A problem was found with the SoftwareTypeImplPlugin plugin.")
-        failure.assertHasCause("Type 'org.gradle.test.SoftwareTypeImplPlugin' is registered as a software type plugin, but it exposes multiple software types.")
-    }
-
-    def 'sensible error when a software type plugin exposes a private software type'() {
-        given:
-        withSoftwareTypePluginThatExposesPrivateSoftwareType().prepareToExecute()
-
-        settingsFile() << pluginsFromIncludedBuild
-
-        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
-
-        when:
-        fails(":printTestSoftwareTypeExtensionConfiguration")
-
-        then:
-        failure.assertHasCause("Failed to apply plugin class 'org.gradle.test.SoftwareTypeImplPlugin'.")
-        failure.assertHasCause("Could not create an instance of type org.gradle.test.SoftwareTypeImplPlugin\$AnotherSoftwareTypeExtension.")
-        failure.assertHasCause("Class SoftwareTypeImplPlugin.AnotherSoftwareTypeExtension is private.")
-    }
-
-    def 'can declare a software type plugin that registers its own extension'() {
-        given:
-        withSoftwareTypePluginThatRegistersItsOwnExtension().prepareToExecute()
-
-        settingsFile() << pluginsFromIncludedBuild
-
-        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
-
-        when:
-        run(":printTestSoftwareTypeExtensionConfiguration")
-
-        then:
-        assertThatDeclaredValuesAreSetProperly()
-
-        and:
-        outputContains("Applying SoftwareTypeImplPlugin")
-        outputDoesNotContain("Applying AnotherSoftwareTypeImplPlugin")
-    }
-
-    def 'sensible error when software type plugin declares that it registers its own extension but does not'() {
-        given:
-        withSoftwareTypePluginThatFailsToRegistersItsOwnExtension().prepareToExecute()
-
-        settingsFile() << pluginsFromIncludedBuild
-
-        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
-
-        when:
-        fails(":printTestSoftwareTypeExtensionConfiguration")
-
-        then:
-        failure.assertHasCause("A problem was found with the SoftwareTypeImplPlugin plugin.")
-        failure.assertHasCause("Type 'org.gradle.test.SoftwareTypeImplPlugin' property 'testSoftwareTypeExtension' has @SoftwareType annotation with 'disableModelManagement' set to true, but no extension with name 'testSoftwareType' was registered.")
-    }
-
-    def 'sensible error when software type plugin declares that it registers its own extension but registers the wrong object'() {
-        given:
-        withSoftwareTypePluginThatRegistersTheWrongExtension().prepareToExecute()
-
-        settingsFile() << pluginsFromIncludedBuild
-
-        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
-
-        when:
-        fails(":printTestSoftwareTypeExtensionConfiguration")
-
-        then:
-        failure.assertHasCause("A problem was found with the SoftwareTypeImplPlugin plugin.")
-        failure.assertHasCause("Type 'org.gradle.test.SoftwareTypeImplPlugin' property 'testSoftwareTypeExtension' has @SoftwareType annotation with 'disableModelManagement' set to true, but the extension with name 'testSoftwareType' does not match the value of the property.")
+        failure.assertHasCause("The project has already applied the 'testSoftwareType' software type and is also attempting to apply the 'anotherSoftwareType' software type.  Only one software type can be applied to a project.")
     }
 
     @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy can use a property value on the assignment RHS")
     @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Kotlin can use a property value on the assignment RHS")
     def 'sensible error when declarative script uses a property as value for another property'() {
         given:
-        withSoftwareTypePluginThatRegistersItsOwnExtension().prepareToExecute()
+        withSoftwareTypePlugins().prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
@@ -376,17 +293,6 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         errorOutput.contains(
             "6:27: property cannot be used as a value: 'id'"
         )
-    }
-
-    static String getPluginsFromIncludedBuild() {
-        return """
-            pluginManagement {
-                includeBuild("plugins")
-            }
-            plugins {
-                id("com.example.test-software-type")
-            }
-        """
     }
 
     static String getDeclarativeScriptThatConfiguresOnlyTestSoftwareType() {

@@ -75,7 +75,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         ExecutionResult result = succeeds('verifyTestKitJars', 'compileTestJava')
 
         then:
-        result.assertTaskNotSkipped(':compileTestJava')
+        result.assertTaskExecuted(':compileTestJava')
     }
 
     def "gradleApi dependency API does not include test-kit JAR"() {
@@ -109,7 +109,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         ExecutionResult result = fails('compileTestJava')
 
         then:
-        result.assertTaskNotSkipped(':compileTestJava')
+        result.assertTaskExecuted(':compileTestJava')
         result.assertHasErrorOutput('package org.gradle.testkit.runner does not exist')
     }
 

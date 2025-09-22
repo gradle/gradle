@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.transform.TransformStepNode
 import org.gradle.api.internal.artifacts.transform.TransformStepNodeFactory
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.AttributesFactory
+import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileFactory
 import org.gradle.api.internal.file.FileLookup
@@ -40,9 +41,10 @@ import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.tasks.util.internal.PatternSetFactory
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationRunner
@@ -111,6 +113,7 @@ import org.gradle.internal.serialize.codecs.dm.ArtifactCollectionCodec
 import org.gradle.internal.serialize.codecs.dm.AttributeContainerCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultResolvableArtifactCodec
 import org.gradle.internal.serialize.codecs.dm.ImmutableAttributesCodec
+import org.gradle.internal.serialize.codecs.dm.ImmutableAttributesSchemaCodec
 import org.gradle.internal.serialize.codecs.dm.LocalFileDependencyBackedArtifactSetCodec
 import org.gradle.internal.serialize.codecs.dm.PublishArtifactLocalArtifactMetadataCodec
 import org.gradle.internal.serialize.codecs.dm.ResolveArtifactNodeCodec
@@ -160,7 +163,7 @@ interface ConfigurationCacheCodecs {
 @Suppress("LongParameterList")
 internal
 class DefaultConfigurationCacheCodecs(
-    configurationCacheStartParameter: ConfigurationCacheStartParameter,
+    modelParameters: BuildModelParameters,
     directoryFileTreeFactory: DirectoryFileTreeFactory,
     fileCollectionFactory: FileCollectionFactory,
     artifactSetConverter: ArtifactSetToFileCollectionFactory,
@@ -169,6 +172,7 @@ class DefaultConfigurationCacheCodecs(
     filePropertyFactory: FilePropertyFactory,
     fileResolver: FileResolver,
     instantiator: Instantiator,
+    instantiatorFactory: InstantiatorFactory,
     fileSystemOperations: FileSystemOperations,
     inputFingerprinter: InputFingerprinter,
     buildOperationRunner: BuildOperationRunner,
@@ -179,6 +183,7 @@ class DefaultConfigurationCacheCodecs(
     actionScheme: TransformActionScheme,
     attributesFactory: AttributesFactory,
     attributeDesugaring: AttributeDesugaring,
+    attributeSchemaFactory: ImmutableAttributesSchemaFactory,
     calculatedValueContainerFactory: CalculatedValueContainerFactory,
     patternSetFactory: PatternSetFactory,
     fileOperations: FileOperations,
@@ -193,10 +198,10 @@ class DefaultConfigurationCacheCodecs(
 ) : ConfigurationCacheCodecs {
 
     private
-    val parallelStore: Boolean = configurationCacheStartParameter.isParallelStore
+    val parallelStore: Boolean = modelParameters.isConfigurationCacheParallelStore
 
     private
-    val parallelLoad: Boolean = configurationCacheStartParameter.isParallelLoad
+    val parallelLoad: Boolean = modelParameters.isConfigurationCacheParallelLoad
 
     private
     val userTypesBindings: Bindings
@@ -230,6 +235,7 @@ class DefaultConfigurationCacheCodecs(
             bind(ArtifactCollectionCodec(calculatedValueContainerFactory, artifactSetConverter, attributeDesugaring, taskDependencyFactory))
             bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
             bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
+            bind(ImmutableAttributesSchemaCodec(instantiatorFactory, attributeSchemaFactory))
             bind(ComponentVariantIdentifierCodec)
             bind(InitialTransformStepNodeCodec(transformStepNodeFactory, buildOperationRunner, calculatedValueContainerFactory))
             bind(ChainedTransformStepNodeCodec(transformStepNodeFactory, buildOperationRunner, calculatedValueContainerFactory))

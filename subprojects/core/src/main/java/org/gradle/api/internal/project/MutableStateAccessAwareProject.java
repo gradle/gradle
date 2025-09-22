@@ -432,11 +432,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
         return Cast.uncheckedCast(delegate.getSubprojects(referrer));
     }
 
-    @Override
-    public Map<String, Project> getChildProjectsUnchecked() {
-        return delegate.getChildProjectsUnchecked();
-    }
-
     @Nullable
     @Override
     public ProjectInternal findProject(ProjectInternal referrer, String path) {
@@ -862,16 +857,19 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
+    @Deprecated
     public <T> NamedDomainObjectContainer<T> container(Class<T> type) {
         return delegate.container(type);
     }
 
     @Override
+    @Deprecated
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory) {
         return delegate.container(type, factory);
     }
 
     @Override
+    @Deprecated
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure) {
         return delegate.container(type, factoryClosure);
     }

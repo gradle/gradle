@@ -24,6 +24,7 @@ import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.ConfigurationCacheDegradation;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.internal.BuildDashboardGenerator;
 import org.gradle.api.reporting.internal.DefaultBuildDashboardReports;
 import org.gradle.api.tasks.Input;
@@ -37,6 +38,7 @@ import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.work.DisableCachingByDefault;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.Serializable;
 import java.util.Arrays;
@@ -55,7 +57,7 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
 
     public GenerateBuildDashboard() {
         ConfigurationCacheDegradation.requireDegradation(this, "Task is not compatible with the Configuration Cache");
-        reports = getProject().getObjects().newInstance(DefaultBuildDashboardReports.class, Describables.quoted("Task", getIdentityPath()));
+        reports = getObjectFactory().newInstance(DefaultBuildDashboardReports.class, Describables.quoted("Task", getIdentityPath()));
         reports.getHtml().getRequired().set(true);
     }
 
@@ -187,6 +189,9 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
             setDidWork(false);
         }
     }
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
 
     private static class ReportState implements Serializable {
         private final String name;

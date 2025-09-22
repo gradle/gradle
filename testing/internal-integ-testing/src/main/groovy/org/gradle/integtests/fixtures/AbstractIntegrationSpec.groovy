@@ -196,6 +196,10 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
         getBuildFile(KOTLIN)
     }
 
+    TestFile buildKotlinFile(@Language(value = "kotlin") String script) {
+        buildKotlinFile << script
+    }
+
     TestFile getBuildFile(GradleDsl dsl, Object... path) {
         testDirectory.file(*path, dsl.fileNameFor("build"))
     }
@@ -493,7 +497,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     protected void executedAndNotSkipped(String... tasks) {
         assertHasResult()
         tasks.each {
-            result.assertTaskNotSkipped(it)
+            result.assertTaskExecuted(it)
         }
     }
 
@@ -504,7 +508,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
 
     protected void allSkipped() {
         assertHasResult()
-        result.assertTasksNotSkipped()
+        result.assertAllTasksSkipped()
     }
 
     protected void skipped(String... tasks) {
@@ -517,14 +521,14 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     protected void notExecuted(String... tasks) {
         assertHasResult()
         tasks.each {
-            result.assertTaskNotExecuted(it)
+            result.assertTasksNotScheduled(it)
         }
     }
 
     protected void executed(String... tasks) {
         assertHasResult()
         tasks.each {
-            result.assertTaskExecuted(it)
+            result.assertTaskScheduled(it)
         }
     }
 

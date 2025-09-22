@@ -18,6 +18,7 @@ package org.gradle.api.internal.properties;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.component.BuildIdentifier;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.initialization.properties.DefaultGradleProperties;
 import org.gradle.initialization.properties.GradlePropertiesLoader;
@@ -93,7 +94,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
     @Override
     public void loadGradleProperties(ProjectIdentity projectId, File projectDir) {
-        LoadedBuildScopedState loadedBuildProperties = getOrCreateGradleProperties(projectId.getBuildIdentifier())
+        LoadedBuildScopedState loadedBuildProperties = getOrCreateGradleProperties(new DefaultBuildIdentifier(projectId.getBuildPath()))
             .checkLoaded();
         getOrCreateGradleProperties(projectId).loadProperties(loadedBuildProperties, projectDir);
     }

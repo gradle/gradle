@@ -39,7 +39,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     public String getPath() {
-        return getTargetProjectIdentity().getProjectPath().getPath();
+        return getTargetProjectIdentity().getProjectPath().asString();
     }
 
     @Override

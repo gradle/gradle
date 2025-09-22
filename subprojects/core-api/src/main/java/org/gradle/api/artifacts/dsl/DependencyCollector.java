@@ -51,7 +51,6 @@ import java.util.Set;
  * @since 8.6
  *
  * @see ManagedType Create an instance of this as a managed property (preferred).
- * @see org.gradle.api.model.ObjectFactory#dependencyCollector() Create an instance of this manually.
  */
 @ManagedType
 @NonExtensible

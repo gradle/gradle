@@ -240,7 +240,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         run(testTaskName, "--tests", "${testSuite('SomeTest')}.${removeParentheses(passingTestCaseName)}")
 
         then:
-        result.assertTaskNotSkipped(":$testTaskName")
+        result.assertTaskExecuted(":$testTaskName")
         testResult.testClass("SomeTest").assertTestsExecuted(passingTestCaseName)
     }
 

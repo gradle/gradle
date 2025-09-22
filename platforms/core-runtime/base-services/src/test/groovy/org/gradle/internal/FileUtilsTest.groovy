@@ -29,17 +29,23 @@ class FileUtilsTest extends Specification {
 
     private static final String SEP = File.separator
 
-    def "toSafeFileName encodes unsupported characters"() {
+    def "toSafeFileName preserves Unicode and replaces problematic characters"() {
         expect:
         toSafeFileName(input) == output
         where:
-        input         | output
-        'Test_$1-2.3' | 'Test_$1-2.3'
-        'with space'  | 'with#20space'
-        'with #'      | 'with#20#23'
-        'with /'      | 'with#20#2f'
-        'with \\'     | 'with#20#5c'
-        'with / \\ #' | 'with#20#2f#20#5c#20#23'
+        input           | output
+        'Test_$1-2.3'   | 'Test_$1-2.3'
+        'with space'    | 'with-space'
+        'with #'        | 'with-#'
+        'with /'        | 'with--'
+        'with \\'       | 'with--'
+        'with / \\ #'   | 'with-----#'
+        'with\tspace'   | 'with-space'
+        'with\nline'    | 'with-line'
+        'with\rreturn'  | 'with-return'
+        '한글테스트'     | '한글테스트'
+        'Test 中文'      | 'Test-中文'
+        'Gradle Test Executor 1' | 'Gradle-Test-Executor-1'
     }
 
     def "assertInWindowsPathLengthLimitation throws exception when path limit exceeded"() {
@@ -114,5 +120,30 @@ class FileUtilsTest extends Specification {
         "file"              | "-1"       | "file-1"
         "file"              | ""         | "file"
         "file."             | "-2"       | "file-2."
+    }
+
+    def "toSafeFileName handles edge cases"() {
+        expect:
+        toSafeFileName(input) == output
+        where:
+        input           | output
+        ''              | ''
+        '   '           | '---'
+        'normal'        | 'normal'
+        '...'           | '...'
+        'file:name'     | 'file-name'
+        'file<>name'    | 'file--name'
+        'file|name'     | 'file-name'
+        'file"name'     | 'file-name'
+        'file*name'     | 'file-name'
+        'file?name'     | 'file-name'
+    }
+
+    def "toSafeFileName handles null input"() {
+        when:
+        toSafeFileName(null)
+
+        then:
+        thrown(NullPointerException)
     }
 }

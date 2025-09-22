@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.dependencies
 
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.project.ProjectIdentity
@@ -70,7 +69,7 @@ class DefaultProjectDependencyConstraintTest extends Specification {
 
     private DefaultProjectDependencyConstraint createProjectDependencyConstraint() {
         def projectState = Stub(ProjectState) {
-            getIdentity() >> new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "test-project")
+            getIdentity() >> ProjectIdentity.forRootProject(Path.ROOT, "foo")
         }
         def project = Mock(ProjectInternal) {
             getGroup() >> "org.example"

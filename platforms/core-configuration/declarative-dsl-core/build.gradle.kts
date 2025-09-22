@@ -14,13 +14,14 @@ dependencies {
     api(libs.kotlinStdlib)
     api(libs.kotlinCompilerEmbeddable)
 
-    implementation(projects.declarativeDslApi)
+    implementation(libs.jetbrainsAnnotations)
     implementation(libs.kotlinReflect)
     implementation(libs.kotlinxSerializationCore)
     implementation(libs.kotlinxSerializationJson)
+    implementation(projects.declarativeDslApi)
 
+    testImplementation(libs.jetbrainsAnnotations)
     testImplementation(projects.coreApi)
-    testImplementation("org.jetbrains:annotations:24.0.1")
 
     testFixturesImplementation(libs.kotlinReflect)
 

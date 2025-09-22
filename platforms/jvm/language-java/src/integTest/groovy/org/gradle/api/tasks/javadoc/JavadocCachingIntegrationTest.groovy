@@ -91,6 +91,6 @@ class JavadocCachingIntegrationTest extends AbstractIntegrationSpec implements D
     }
 
     void taskIsNotCached() {
-        result.assertTaskNotSkipped(":javadoc")
+        result.assertTaskExecuted(":javadoc")
     }
 }

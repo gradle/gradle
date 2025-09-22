@@ -1,0 +1,25 @@
+
+> Task :dependencies
+
+------------------------------------------------------------
+Root project 'apply-exclusions-narrowly-avoid'
+------------------------------------------------------------
+
+runtimeClasspath - Runtime classpath of source set 'main'.
++--- org.apache.commons:commons-pool2:2.12.1
+\--- org.hibernate:hibernate-core:3.6.10.Final
+     +--- antlr:antlr:2.7.6
+     +--- commons-collections:commons-collections:3.1
+     +--- dom4j:dom4j:1.6.1
+     +--- org.hibernate:hibernate-commons-annotations:3.2.0.Final
+     |    \--- org.slf4j:slf4j-api:1.5.8 -> 1.6.1
+     +--- org.hibernate.javax.persistence:hibernate-jpa-2.0-api:1.0.1.Final
+     +--- javax.transaction:jta:1.1
+     \--- org.slf4j:slf4j-api:1.6.1
+
+(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
+
+A web-based, searchable dependency report is available by adding the --scan option.
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed

@@ -33,3 +33,7 @@ dependencies {
 
     implementation(libs.jsr305)
 }
+
+errorprone {
+    nullawayEnabled = true
+}

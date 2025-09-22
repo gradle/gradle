@@ -26,6 +26,7 @@ class SanityCheck(
                 listOf(
                     stage.getBuildScanCustomValueParam(),
                     buildScanTagParam("SanityCheck"),
+                    "-Dorg.gradle.java.installations.auto-download=false",
                     "-Porg.gradle.java.installations.auto-download=false",
                 ).joinToString(" "),
         )

@@ -40,8 +40,8 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         run()
 
         then:
-        result.assertTaskExecuted(":included:jar")
-        result.assertTaskExecuted(":buildSrc:jar")
+        result.assertTaskScheduled(":included:jar")
+        result.assertTaskScheduled(":buildSrc:jar")
     }
 
     def "buildSrc can use a library contributed by a build included by the root build"() {
@@ -61,8 +61,8 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         run()
 
         then:
-        result.assertTaskExecuted(":included:jar")
-        result.assertTaskExecuted(":buildSrc:jar")
+        result.assertTaskScheduled(":included:jar")
+        result.assertTaskScheduled(":buildSrc:jar")
     }
 
     // buildSrc acts like an implicit pluginManagement { } included build
@@ -81,7 +81,7 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         fails("build")
 
         then:
-        failure.assertTaskExecuted(":buildSrc:jar")
+        failure.assertTaskScheduled(":buildSrc:jar")
         failure.assertHasCause("Cannot resolve external dependency test.lib:lib:1.0 because no repositories are defined.")
     }
 
@@ -104,7 +104,7 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         fails(":included:build")
 
         then:
-        failure.assertTaskExecuted(":buildSrc:jar")
+        failure.assertTaskScheduled(":buildSrc:jar")
         failure.assertHasCause("Cannot resolve external dependency test.lib:lib:1.0 because no repositories are defined.")
     }
 

@@ -336,7 +336,7 @@ If all versions have qualifiers, Gradle will consider the qualifier's order, pre
 <<component_capabilities.adoc#sec:selecting-between-candidates,Conflicts>> arise in the following scenarios:
 
 - **Incompatible variants**: When two modules attempt to select different, incompatible variants of a dependency.
-- **Same capability**: When multiple modules declare the same <<variant_attributes.adoc#variant-attributes,capability>>, creating an overlap in functionality.
+- **Same capability**: When multiple modules declare the same <<component_capabilities.adoc#capabilities,capability>>, creating an overlap in functionality.
 
 This type of conflict is resolved during <<sec:variant-selection, Variant Selection>> described below.
 

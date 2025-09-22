@@ -73,8 +73,8 @@ class GitVcsIntegrationTest extends AbstractIntegrationSpec implements SourceDep
         """
         expect:
         succeeds('assemble')
-        result.assertTaskExecuted(":dep:compileJava")
-        result.assertTaskExecuted(":compileJava")
+        result.assertTaskScheduled(":dep:compileJava")
+        result.assertTaskScheduled(":compileJava")
 
         // Git repo is cloned
         def gitCheckout = checkoutDir(repo.name, commit.id.name, repo.id)
@@ -98,8 +98,8 @@ class GitVcsIntegrationTest extends AbstractIntegrationSpec implements SourceDep
         """
         expect:
         succeeds('assemble')
-        result.assertTaskExecuted(":dep:compileJava")
-        result.assertTaskExecuted(":compileJava")
+        result.assertTaskScheduled(":dep:compileJava")
+        result.assertTaskScheduled(":compileJava")
     }
 
     def 'can define and use source repositories with submodules'() {
