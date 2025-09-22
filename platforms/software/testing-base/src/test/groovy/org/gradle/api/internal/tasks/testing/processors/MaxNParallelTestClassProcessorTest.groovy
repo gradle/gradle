@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.testing.processors
 
 import org.gradle.api.internal.tasks.testing.TestClassProcessor
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo
+import org.gradle.api.internal.tasks.testing.TestDefinition
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.internal.actor.Actor
 import org.gradle.internal.actor.ActorFactory
@@ -59,7 +59,7 @@ class MaxNParallelTestClassProcessorTest extends Specification {
     }
 
     def startsProcessorsOnDemandAndStopsAtEnd() {
-        TestClassRunInfo test = Mock()
+        TestDefinition<?> test = Mock()
         TestClassProcessor processor1 = Mock()
         TestClassProcessor asyncProcessor1 = Mock()
         Actor actor1 = Mock()
@@ -86,7 +86,7 @@ class MaxNParallelTestClassProcessorTest extends Specification {
     }
 
     def startsMultipleProcessorsOnDemandAndStopsAtEnd() {
-        TestClassRunInfo test = Mock()
+        TestDefinition<?> test = Mock()
         TestClassProcessor processor1 = Mock()
         TestClassProcessor processor2 = Mock()
         TestClassProcessor asyncProcessor1 = Mock()
@@ -125,7 +125,7 @@ class MaxNParallelTestClassProcessorTest extends Specification {
     }
 
     def roundRobinsTestClassesToProcessors() {
-        TestClassRunInfo test = Mock()
+        TestDefinition<?> test = Mock()
         TestClassProcessor processor1 = Mock()
         TestClassProcessor processor2 = Mock()
         TestClassProcessor asyncProcessor1 = Mock()
@@ -169,7 +169,7 @@ class MaxNParallelTestClassProcessorTest extends Specification {
     }
 
     def "stopNow propagates to factory created processors"() {
-        TestClassRunInfo test = Mock()
+        TestDefinition<?> test = Mock()
         TestClassProcessor processor1 = Mock()
         TestClassProcessor processor2 = Mock()
         TestClassProcessor asyncProcessor1 = Mock()

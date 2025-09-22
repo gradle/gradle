@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
 import org.gradle.api.internal.tasks.testing.RequiresTestFrameworkTestClassProcessor;
-import org.gradle.api.internal.tasks.testing.ResourceBasedTestClassRunInfo;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestExecutor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.internal.actor.Actor;
@@ -57,14 +57,15 @@ public abstract class AbstractJUnitTestClassProcessor implements RequiresTestFra
     protected abstract TestExecutor createTestExecutor(Actor resultProcessorActor);
 
     @Override
-    public void processTestDefinition(TestClassRunInfo testDefinition) {
+    public void processTestDefinition(TestDefinition<?> testDefinition) {
         if (startedProcessing) {
-            if (testDefinition instanceof DefaultTestClassRunInfo) {
-                LOGGER.debug("Executing {}", testDefinition.getDisplayName());
-                executor.executeClass(((DefaultTestClassRunInfo) testDefinition).getTestClassName());
-            } else if (testDefinition instanceof ResourceBasedTestClassRunInfo) {
-                LOGGER.debug("Executing {}", testDefinition.getDisplayName());
-                executor.executeResource(testDefinition);
+            LOGGER.debug("Executing {}", testDefinition.getDisplayName());
+            if (testDefinition instanceof ClassTestDefinition) {
+                executor.executeClass((ClassTestDefinition) testDefinition);
+            } else if (testDefinition instanceof DirectoryBasedTestDefinition) {
+                executor.executeDirectory((DirectoryBasedTestDefinition) testDefinition);
+            } else {
+                throw new IllegalStateException("Unexpected test definition type " + testDefinition.getClass().getName());
             }
         }
     }

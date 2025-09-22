@@ -35,7 +35,7 @@ public interface TestClassProcessor extends Stoppable {
      *
      * @param testDefinition The test definition.
      */
-    void processTestDefinition(TestClassRunInfo testDefinition);
+    void processTestDefinition(TestDefinition<?> testDefinition);
 
     /**
      * Completes any pending or asynchronous processing. Blocks until all processing is complete. The processor should

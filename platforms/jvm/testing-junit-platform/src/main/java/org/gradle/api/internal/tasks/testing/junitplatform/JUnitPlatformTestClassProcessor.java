@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
-import org.gradle.api.internal.tasks.testing.ResourceBasedTestClassRunInfo;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition.ClassTestDefinitionParams;
+import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestExecutor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
@@ -28,13 +30,11 @@ import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
-import org.jspecify.annotations.NonNull;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.FilterResult;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.TestSource;
-import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.Launcher;
@@ -53,7 +53,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.isNestedClassInsideEnclosedRunner;
 import static org.junit.platform.launcher.EngineFilter.excludeEngines;
@@ -109,31 +108,31 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
     }
 
-    private class CollectAllTestClassesExecutor implements TestExecutor {
-        private final List<Class<?>> testClasses = new ArrayList<>();
-        private final List<TestClassRunInfo> testResources = new ArrayList<>();
+    private final class CollectAllTestClassesExecutor implements TestExecutor {
+        private final List<DiscoverySelector> selectors = new ArrayList<>();
         private final TestResultProcessor resultProcessor;
+        private final ClassTestDefinitionParams classTestParams = new ClassTestDefinitionParams(junitClassLoader);
 
         CollectAllTestClassesExecutor(TestResultProcessor resultProcessor) {
             this.resultProcessor = resultProcessor;
         }
 
         @Override
-        public void executeClass(@NonNull String testClassName) {
-            Class<?> klass = loadClass(testClassName);
+        public void executeClass(ClassTestDefinition testDefinition) {
+            Class<?> klass = loadClass(testDefinition.getTestClassName());
             if (isInnerClass(klass) || (supportsVintageTests() && isNestedClassInsideEnclosedRunner(klass))) {
                 return;
             }
-            testClasses.add(klass);
+            selectors.add(testDefinition.getDiscoverySelector(classTestParams));
         }
 
         @Override
-        public void executeResource(TestClassRunInfo resourceFile) {
-            testResources.add(resourceFile);
+        public void executeDirectory(DirectoryBasedTestDefinition testDefinition) {
+            selectors.add(testDefinition.getDiscoverySelector(TestDefinition.SelectorCreationParameters.EMPTY));
         }
 
         private void processAllTestClasses() {
-            LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest(testClasses, testResources);
+            LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest();
             TestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator);
             Launcher launcher = launcherSession.getLauncher();
             if (spec.isDryRun()) {
@@ -142,6 +141,44 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
             } else {
                 launcher.execute(discoveryRequest, executionListener);
             }
+        }
+
+        private Class<?> loadClass(String className) {
+            try {
+                return Class.forName(className, false, junitClassLoader);
+            } catch (ClassNotFoundException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+
+        private boolean isInnerClass(Class<?> klass) {
+            return klass.getEnclosingClass() != null && !Modifier.isStatic(klass.getModifiers());
+        }
+
+        /**
+         * Test whether {@code org.junit.vintage:junit-vintage-engine} and {@code junit:junit} are
+         * available on the classpath. This allows us to enable or disable certain behavior
+         * which may attempt to load classes from these modules.
+         */
+        private boolean supportsVintageTests() {
+            try {
+                Class.forName("org.junit.vintage.engine.VintageTestEngine", false, junitClassLoader);
+                Class.forName("org.junit.runner.Request", false, junitClassLoader);
+                return true;
+            } catch (ClassNotFoundException e) {
+                return false;
+            }
+        }
+
+        private LauncherDiscoveryRequest createLauncherDiscoveryRequest() {
+            LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request()
+                .selectors(selectors);
+
+            addTestNameFilters(requestBuilder);
+            addEnginesFilter(requestBuilder);
+            addTagsFilter(requestBuilder);
+
+            return requestBuilder.build();
         }
     }
 
@@ -166,53 +203,6 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
             }
             listener.executionFinished(testIdentifier, TestExecutionResult.successful());
         }
-    }
-
-    /**
-     * Test whether {@code org.junit.vintage:junit-vintage-engine} and {@code junit:junit} are
-     * available on the classpath. This allows us to enable or disable certain behavior
-     * which may attempt to load classes from these modules.
-     */
-    private boolean supportsVintageTests() {
-        try {
-            Class.forName("org.junit.vintage.engine.VintageTestEngine", false, junitClassLoader);
-            Class.forName("org.junit.runner.Request", false, junitClassLoader);
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
-
-    private boolean isInnerClass(Class<?> klass) {
-        return klass.getEnclosingClass() != null && !Modifier.isStatic(klass.getModifiers());
-    }
-
-    private Class<?> loadClass(String className) {
-        try {
-            return Class.forName(className, false, junitClassLoader);
-        } catch (ClassNotFoundException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    private LauncherDiscoveryRequest createLauncherDiscoveryRequest(List<Class<?>> testClasses, List<TestClassRunInfo> testResources) {
-        List<DiscoverySelector> classSelectors = testClasses.stream()
-            .map(DiscoverySelectors::selectClass)
-            .collect(Collectors.toList());
-        List<DiscoverySelector> resourceSelectors = testResources.stream()
-            .map(ResourceBasedTestClassRunInfo.class::cast)
-            .map(ResourceBasedTestClassRunInfo::getDiscoverySelector)
-            .collect(Collectors.toList());
-
-        LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request()
-            .selectors(classSelectors)
-            .selectors(resourceSelectors);
-
-        addTestNameFilters(requestBuilder);
-        addEnginesFilter(requestBuilder);
-        addTagsFilter(requestBuilder);
-
-        return requestBuilder.build();
     }
 
     private void addEnginesFilter(LauncherDiscoveryRequestBuilder requestBuilder) {

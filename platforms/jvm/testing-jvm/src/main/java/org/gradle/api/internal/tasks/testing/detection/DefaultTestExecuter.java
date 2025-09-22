@@ -86,19 +86,8 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
             testExecutionSpec.getModulePath()
         );
 
-        final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
-            @Override
-            public TestClassProcessor create() {
-                return new ForkingTestClassProcessor(workerLeaseService, workerFactory, testInstanceFactory, testExecutionSpec.getJavaForkOptions(),
-                    classpath, testFramework.getWorkerConfigurationAction());
-            }
-        };
-        final Factory<TestClassProcessor> reforkingProcessorFactory = new Factory<TestClassProcessor>() {
-            @Override
-            public TestClassProcessor create() {
-                return new RestartEveryNTestClassProcessor(forkingProcessorFactory, testExecutionSpec.getForkEvery());
-            }
-        };
+        final Factory<TestClassProcessor> forkingProcessorFactory = () -> new ForkingTestClassProcessor(workerLeaseService, workerFactory, testInstanceFactory, testExecutionSpec.getJavaForkOptions(), classpath, testFramework.getWorkerConfigurationAction());
+        final Factory<TestClassProcessor> reforkingProcessorFactory = () -> new RestartEveryNTestClassProcessor(forkingProcessorFactory, testExecutionSpec.getForkEvery());
         processor =
             new PatternMatchTestClassProcessor(testFilter,
                 new RunPreviousFailedFirstTestClassProcessor(testExecutionSpec.getPreviousFailedTestClasses(), Collections.emptySet(),
@@ -114,9 +103,9 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
             TestFrameworkDetector testFrameworkDetector = testFramework.getDetector();
             testFrameworkDetector.setTestClasses(new ArrayList<>(testExecutionSpec.getTestClassesDirs().getFiles()));
             testFrameworkDetector.setTestClasspath(classpath.getApplicationClasspath());
-            detector = new DefaultTestClassScanner(testClassFiles, testExecutionSpec.isScanForTestResources() ? testResourceFiles : null, testFrameworkDetector, processor);
+            detector = new DefaultTestClassScanner(testClassFiles, testExecutionSpec.isScanForTestResources() ? testResourceFiles : Collections.emptySet(), testFrameworkDetector, processor);
         } else {
-            detector = new DefaultTestClassScanner(testClassFiles, testExecutionSpec.isScanForTestResources() ? testResourceFiles : null, null, processor);
+            detector = new DefaultTestClassScanner(testClassFiles, testExecutionSpec.isScanForTestResources() ? testResourceFiles : Collections.emptySet(), null, processor);
         }
 
         // What is this?

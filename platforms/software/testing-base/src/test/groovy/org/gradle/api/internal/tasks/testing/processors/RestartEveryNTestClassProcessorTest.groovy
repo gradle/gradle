@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.testing.processors
 
 import org.gradle.api.internal.tasks.testing.TestClassProcessor
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo
+import org.gradle.api.internal.tasks.testing.TestDefinition
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.internal.Factory
 import spock.lang.Specification
@@ -25,9 +25,9 @@ import spock.lang.Specification
 class RestartEveryNTestClassProcessorTest extends Specification {
     private final Factory<TestClassProcessor> factory = Mock();
     private final TestClassProcessor delegate = Mock();
-    private final TestClassRunInfo test1 = Mock();
-    private final TestClassRunInfo test2 = Mock();
-    private final TestClassRunInfo test3 = Mock();
+    private final TestDefinition<?> test1 = Mock();
+    private final TestDefinition<?> test2 = Mock();
+    private final TestDefinition<?> test3 = Mock();
     private final TestResultProcessor resultProcessor = Mock();
     private RestartEveryNTestClassProcessor processor = new RestartEveryNTestClassProcessor(factory, 2);
 

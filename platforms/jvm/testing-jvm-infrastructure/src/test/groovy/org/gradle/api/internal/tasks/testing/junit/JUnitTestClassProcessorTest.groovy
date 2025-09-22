@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.junit
 
-import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo
+
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec
 import org.gradle.api.tasks.testing.TestFailure
@@ -54,7 +55,7 @@ class JUnitTestClassProcessorTest extends Specification {
     void process(Iterable<String> classNames) {
         classProcessor.startProcessing(processor)
         for (String c : classNames) {
-            classProcessor.processTestDefinition(new DefaultTestClassRunInfo(c))
+            classProcessor.processTestDefinition(new ClassTestDefinition(c))
         }
         classProcessor.stop()
     }

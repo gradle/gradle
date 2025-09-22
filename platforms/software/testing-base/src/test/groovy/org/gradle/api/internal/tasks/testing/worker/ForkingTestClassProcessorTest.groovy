@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing.worker
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.Action
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo
+import org.gradle.api.internal.tasks.testing.TestDefinition
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.remote.ObjectConnection
@@ -50,8 +50,8 @@ class ForkingTestClassProcessorTest extends Specification {
 
     def "acquires worker lease and starts worker process on first test"() {
         given:
-        def test1 = Mock(TestClassRunInfo)
-        def test2 = Mock(TestClassRunInfo)
+        def test1 = Mock(TestDefinition)
+        def test2 = Mock(TestDefinition)
         def processor = newProcessor()
 
         when:
@@ -100,7 +100,7 @@ class ForkingTestClassProcessorTest extends Specification {
         def processor = newProcessor()
 
         when:
-        processor.processTestDefinition(Mock(TestClassRunInfo))
+        processor.processTestDefinition(Mock(TestDefinition))
         processor.stopNow()
 
         then:
@@ -111,7 +111,7 @@ class ForkingTestClassProcessorTest extends Specification {
         def processor = newProcessor()
 
         when:
-        processor.processTestDefinition(Mock(TestClassRunInfo))
+        processor.processTestDefinition(Mock(TestDefinition))
         processor.stopNow()
         processor.stop()
 
@@ -126,7 +126,7 @@ class ForkingTestClassProcessorTest extends Specification {
         def processor = newProcessor()
 
         when:
-        processor.processTestDefinition(Mock(TestClassRunInfo))
+        processor.processTestDefinition(Mock(TestDefinition))
 
         then:
         1 * workerProcess.getConnection() >> Stub(ObjectConnection) {
@@ -151,7 +151,7 @@ class ForkingTestClassProcessorTest extends Specification {
         def processor = newProcessor()
 
         when:
-        processor.processTestDefinition(Mock(TestClassRunInfo))
+        processor.processTestDefinition(Mock(TestDefinition))
 
         then:
         1 * workerProcess.getConnection() >> Stub(ObjectConnection) {

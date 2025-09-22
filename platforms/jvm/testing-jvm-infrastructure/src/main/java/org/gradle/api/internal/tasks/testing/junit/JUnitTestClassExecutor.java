@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestExecutor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
@@ -71,15 +72,15 @@ public class JUnitTestClassExecutor implements TestExecutor {
     }
 
     @Override
-    public void executeClass(String testClassName) {
+    public void executeClass(ClassTestDefinition testDefinition) {
         boolean started = false;
         try {
-            Request request = shouldRunTestClass(testClassName);
+            Request request = shouldRunTestClass(testDefinition.getTestClassName());
             if (request == null) {
                 return;
             }
 
-            executionListener.testClassStarted(testClassName);
+            executionListener.testClassStarted(testDefinition.getTestClassName());
             started = true;
             runRequest(request);
             started = false;
@@ -89,7 +90,7 @@ public class JUnitTestClassExecutor implements TestExecutor {
                 executionListener.testClassFinished(TestFailure.fromTestFrameworkFailure(throwable));
             } else {
                 // If we haven't even started to run the request, this is a Gradle problem, so propagate it
-                throw new GradleException("Failed to execute test class: '" + testClassName + "'.", throwable);
+                throw new GradleException("Failed to execute test class: '" + testDefinition.getTestClassName() + "'.", throwable);
             }
 
             // Don't ever swallow Errors, as they likely indicate JVM problems that should always propagate

@@ -19,15 +19,18 @@ package org.gradle.api.internal.tasks.testing;
 import org.jspecify.annotations.NullMarked;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
+import org.gradle.api.internal.tasks.testing.TestDefinition.SelectorCreationParameters;
 
 import java.io.File;
 
-// TODO: Obviously this name is terrible
+/**
+ * A test definition which denotes a directory containing non-class-based tests.
+ */
 @NullMarked
-public class ResourceBasedTestClassRunInfo implements TestClassRunInfo {
+public final class DirectoryBasedTestDefinition implements TestDefinition<SelectorCreationParameters> {
     private final File resourceFile;
 
-    public ResourceBasedTestClassRunInfo(File resourceFile) {
+    public DirectoryBasedTestDefinition(File resourceFile) {
         this.resourceFile = resourceFile;
     }
 
@@ -36,13 +39,46 @@ public class ResourceBasedTestClassRunInfo implements TestClassRunInfo {
     }
 
     @Override
-    public DiscoverySelector getDiscoverySelector() {
+    public DiscoverySelector getDiscoverySelector(SelectorCreationParameters params) {
         return DiscoverySelectors.selectDirectory(resourceFile);
+    }
+
+    /**
+     * {@inheritDoc}
+     * @implNote Returns the absolute path of the directory.
+     */
+    @Override
+    public String getId() {
+        return resourceFile.getAbsolutePath(); // TODO: Relative path here too
     }
 
     @Override
     public String getDisplayName() {
         // TODO: Use the relative path from the build's root - make field a RelativeFile?
         return "tests in directory '" + resourceFile.getAbsolutePath() + "'";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DirectoryBasedTestDefinition that = (DirectoryBasedTestDefinition) o;
+
+        return resourceFile.equals(that.resourceFile);
+    }
+
+    @Override
+    public int hashCode() {
+        return resourceFile.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "DirectoryBasedTestDefinition(" + getId() + ')';
     }
 }

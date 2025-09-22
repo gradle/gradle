@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.processors;
 
-import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
-import org.gradle.api.internal.tasks.testing.ResourceBasedTestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
+import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -39,18 +39,17 @@ public class PatternMatchTestClassProcessor implements TestClassProcessor {
     }
 
     @Override
-    public void processTestDefinition(TestClassRunInfo testClass) {
-        // TODO: Rework this - have the matcher work with TestClassRunInfo directly
-        if (testClass instanceof DefaultTestClassRunInfo) {
-            if (testClassSelectionMatcher.mayIncludeClass(((DefaultTestClassRunInfo) testClass).getTestClassName())) {
-                delegate.processTestDefinition(testClass);
+    public void processTestDefinition(TestDefinition<?> testDefinition) {
+        // TODO: Rework this - have the matcher work with TestDefinition directly
+        if (testDefinition instanceof ClassTestDefinition) {
+            if (testClassSelectionMatcher.mayIncludeClass(testDefinition.getId())) {
+                delegate.processTestDefinition(testDefinition);
             }
-        } else if (testClass instanceof ResourceBasedTestClassRunInfo) {
-            delegate.processTestDefinition(testClass);
+        } else if (testDefinition instanceof DirectoryBasedTestDefinition) {
+            delegate.processTestDefinition(testDefinition);
         } else {
-            throw new IllegalStateException("Unexpected test definition type " + testClass.getClass().getName());
+            throw new IllegalStateException("Unexpected test definition type " + testDefinition.getClass().getName());
         }
-
     }
 
     @Override

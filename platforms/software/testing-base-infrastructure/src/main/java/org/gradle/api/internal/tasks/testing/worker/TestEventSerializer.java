@@ -18,10 +18,10 @@ package org.gradle.api.internal.tasks.testing.worker;
 
 import org.gradle.api.internal.tasks.testing.AssertionFailureDetails;
 import org.gradle.api.internal.tasks.testing.AssumptionFailureDetails;
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
 import org.gradle.api.internal.tasks.testing.DefaultNestedTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultParameterizedTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
-import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
 import org.gradle.api.internal.tasks.testing.DefaultTestFailureDetails;
@@ -29,7 +29,7 @@ import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.FileComparisonFailureDetails;
-import org.gradle.api.internal.tasks.testing.ResourceBasedTestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestFailureSerializationException;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
@@ -55,8 +55,8 @@ public class TestEventSerializer {
     public static SerializerRegistry create() {
         BaseSerializerFactory factory = new BaseSerializerFactory();
         DefaultSerializerRegistry registry = new DefaultSerializerRegistry();
-        registry.register(DefaultTestClassRunInfo.class, new DefaultTestClassRunInfoSerializer());
-        registry.register(ResourceBasedTestClassRunInfo.class, new ResourceBasedTestClassRunInfoSerializer());
+        registry.register(ClassTestDefinition.class, new ClassBasedTestDefinitionSerializer());
+        registry.register(DirectoryBasedTestDefinition.class, new DirectoryBasedTestDefinitionSerializer());
         registry.register(CompositeIdGenerator.CompositeId.class, new IdSerializer());
         registry.register(DefaultNestedTestSuiteDescriptor.class, new DefaultNestedTestSuiteDescriptorSerializer());
         registry.register(DefaultParameterizedTestDescriptor.class, new DefaultParameterizedTestDescriptorSerializer());
@@ -111,27 +111,27 @@ public class TestEventSerializer {
         }
     }
 
-    private static class DefaultTestClassRunInfoSerializer implements Serializer<DefaultTestClassRunInfo> {
+    private static class ClassBasedTestDefinitionSerializer implements Serializer<ClassTestDefinition> {
         @Override
-        public DefaultTestClassRunInfo read(Decoder decoder) throws Exception {
-            return new DefaultTestClassRunInfo(decoder.readString());
+        public ClassTestDefinition read(Decoder decoder) throws Exception {
+            return new ClassTestDefinition(decoder.readString());
         }
 
         @Override
-        public void write(Encoder encoder, DefaultTestClassRunInfo value) throws Exception {
-            encoder.writeString(value.getTestClassName());
+        public void write(Encoder encoder, ClassTestDefinition value) throws Exception {
+            encoder.writeString(value.getId());
         }
     }
 
     @NullMarked
-    private static class ResourceBasedTestClassRunInfoSerializer implements Serializer<ResourceBasedTestClassRunInfo> {
+    private static class DirectoryBasedTestDefinitionSerializer implements Serializer<DirectoryBasedTestDefinition> {
         @Override
-        public ResourceBasedTestClassRunInfo read(Decoder decoder) throws Exception {
-            return new ResourceBasedTestClassRunInfo(new File(decoder.readString()));
+        public DirectoryBasedTestDefinition read(Decoder decoder) throws Exception {
+            return new DirectoryBasedTestDefinition(new File(decoder.readString()));
         }
 
         @Override
-        public void write(Encoder encoder, ResourceBasedTestClassRunInfo value) throws Exception {
+        public void write(Encoder encoder, DirectoryBasedTestDefinition value) throws Exception {
             encoder.writeString(value.getTestDefintionFile().getAbsolutePath()); // TODO: Absolute path won't work, need a relative path from the build dir? resource path from root of the test classpath? something that will work remotely
         }
     }

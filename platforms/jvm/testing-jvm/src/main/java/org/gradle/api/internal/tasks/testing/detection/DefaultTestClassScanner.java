@@ -22,10 +22,10 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.ReproducibleFileVisitor;
 import org.gradle.api.internal.file.RelativeFile;
-import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
-import org.gradle.api.internal.tasks.testing.ResourceBasedTestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
+import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -74,12 +74,12 @@ public class DefaultTestClassScanner implements TestDetector {
         candidateClassFiles.visit(new ClassFileVisitor() {
             @Override
             public void visitClassFile(FileVisitDetails fileDetails) {
-                TestClassRunInfo testDefinition = new DefaultTestClassRunInfo(getClassName(fileDetails));
+                TestDefinition<?> testDefinition = new ClassTestDefinition(getClassName(fileDetails));
                 testClassProcessor.processTestDefinition(testDefinition);
             }
         });
         candidateResourceFiles.forEach(dir -> {
-            TestClassRunInfo testDefinition = new ResourceBasedTestClassRunInfo(dir.getAsFile());
+            TestDefinition<?> testDefinition = new DirectoryBasedTestDefinition(dir.getAsFile());
             testClassProcessor.processTestDefinition(testDefinition);
         });
     }
