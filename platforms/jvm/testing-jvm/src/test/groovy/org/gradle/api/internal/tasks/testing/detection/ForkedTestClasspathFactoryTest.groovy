@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing.detection
 
-import org.gradle.api.internal.classpath.Module
-import org.gradle.api.internal.classpath.ModuleRegistry
-import org.gradle.internal.classpath.ClassPath
+import org.gradle.api.internal.classpath.DefaultModuleRegistry
+import org.gradle.internal.installation.CurrentGradleInstallation
+import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
 /**
@@ -26,67 +26,107 @@ import spock.lang.Specification
  */
 class ForkedTestClasspathFactoryTest extends Specification {
 
-    // The number of internal and external implementation jars loaded from the distribution regardless of framework.
-    private static final int NUM_INTERNAL_JARS = 30
-    private static final int NUM_EXTERNAL_JARS = 6
+    ForkedTestClasspathFactory underTest = new ForkedTestClasspathFactory(new DefaultModuleRegistry(
+        CurrentGradleInstallation.locate().get()
+    ))
 
-    ModuleRegistry moduleRegistry = Mock(ModuleRegistry) {
-        getModule(_) >> { module(it[0], false) }
-        getExternalModule(_) >> { module(it[0], true) }
-    }
+    def "contains expected jars"() {
+        given:
+        def gradleDependencies = [
+            "base-asm",
+            "base-services",
+            "build-operations",
+            "build-option",
+            "classloaders",
+            "cli",
+            "concurrent",
+            "enterprise-logging",
+            "enterprise-operations",
+            "enterprise-workers",
+            "file-temp",
+            "files",
+            "functional",
+            "hashing",
+            "internal-instrumentation-api",
+            "io",
+            "logging",
+            "logging-api",
+            "messaging",
+            "native",
+            "problems-api",
+            "process-memory-services",
+            "serialization",
+            "service-lookup",
+            "service-provider",
+            "service-registry-builder",
+            "service-registry-impl",
+            "snapshots",
+            "stdlib-java-extensions",
+            "testing-base-infrastructure",
+            "testing-jvm-infrastructure",
+            "time",
+            "worker-main",
+        ]
 
-    ForkedTestClasspathFactory underTest = new ForkedTestClasspathFactory(moduleRegistry)
+        def externalDependencies = [
+            "asm",
+            "asm-tree",
+            "commons-io",
+            "commons-lang3",
+            "error_prone_annotations",
+            "failureaccess",
+            "fastutil-8.5.2",
+            "gradle-fileevents",
+            "groovy",
+            "gson",
+            "guava-33.4.6",
+            "jansi",
+            "javax.inject",
+            "jcl-over-slf4j",
+            "jspecify-1.0.0-no-module",
+            "jsr305",
+            "jul-to-slf4j",
+            "kryo",
+            "log4j-over-slf4j",
+            "minlog",
+            "native-platform",
+            "native-platform-freebsd-amd64-libcpp",
+            "native-platform-linux-aarch64",
+            "native-platform-linux-aarch64-ncurses5",
+            "native-platform-linux-aarch64-ncurses6",
+            "native-platform-linux-amd64",
+            "native-platform-linux-amd64-ncurses5",
+            "native-platform-linux-amd64-ncurses6",
+            "native-platform-osx-aarch64",
+            "native-platform-osx-amd64",
+            "native-platform-windows-amd64",
+            "native-platform-windows-amd64-min",
+            "native-platform-windows-i386",
+            "native-platform-windows-i386-min",
+            "objenesis",
+            "slf4j-api",
+        ]
 
-    def "creates a limited implementation classpath"() {
         when:
-        def classpath = underTest.create([new File("cls.jar")], [new File("mod.jar")])
+        def classpath = underTest.create().getAsFiles()
 
         then:
-        classpath.applicationClasspath == [new File("cls.jar")]
-        classpath.applicationModulepath == [new File("mod.jar")]
-        classpath.implementationClasspath.size() == NUM_INTERNAL_JARS + NUM_EXTERNAL_JARS
-        classpath.implementationClasspath.findAll { it.toString().endsWith("-internal.jar") }.size() == NUM_INTERNAL_JARS
-        classpath.implementationClasspath.findAll { it.toString().endsWith("-external.jar") }.size() == NUM_EXTERNAL_JARS
-    }
-
-    def "input classpath classes are added to the application classpath"() {
-        when:
-        def classpath = underTest.create([
-            new File("app-cls-1.0.jar"), new File("app-mod-1.0.jar"), new File("impl-cls-1.0.jar"), new File("impl-mod-1.0.jar")
-        ], [])
-
-        then:
-        classpath.applicationClasspath == [new File("app-cls-1.0.jar"), new File("app-mod-1.0.jar"), new File("impl-cls-1.0.jar"), new File("impl-mod-1.0.jar")]
-        classpath.applicationModulepath.isEmpty()
-        classpath.implementationClasspath.size() == NUM_INTERNAL_JARS + NUM_EXTERNAL_JARS
-        classpath.implementationClasspath.findAll { it.toString().endsWith("-internal.jar") }.size() == NUM_INTERNAL_JARS
-        classpath.implementationClasspath.findAll { it.toString().endsWith("-external.jar") }.size() == NUM_EXTERNAL_JARS
-    }
-
-    def "input modulepath classes are added to the application modulepath"() {
-        when:
-        def classpath = underTest.create([], [
-            new File("app-cls-1.0.jar"), new File("app-mod-1.0.jar"), new File("impl-cls-1.0.jar"), new File("impl-mod-1.0.jar")
-        ])
-
-        then:
-        classpath.applicationClasspath.isEmpty()
-        classpath.applicationModulepath == [new File("app-cls-1.0.jar"), new File("app-mod-1.0.jar"), new File("impl-cls-1.0.jar"), new File("impl-mod-1.0.jar")]
-        classpath.implementationClasspath.size() == NUM_INTERNAL_JARS + NUM_EXTERNAL_JARS
-        classpath.implementationClasspath.findAll { it.toString().endsWith("-internal.jar") }.size() == NUM_INTERNAL_JARS
-        classpath.implementationClasspath.findAll { it.toString().endsWith("-external.jar") }.size() == NUM_EXTERNAL_JARS
-    }
-
-    def module(String module, boolean external) {
-        String extra = external ? "external" : "internal"
-        return Mock(Module) {
-            getImplementationClasspath() >> {
-                Mock(ClassPath) {
-                    getAsURLs() >> { [new URL("file://${module}-${extra}.jar")] }
-                    getAsFiles() >> { [new File("${module}-${extra}.jar")] }
-                }
-            }
+        def mutableClasspath = new ArrayList<File>(classpath)
+        for (String dep : gradleDependencies) {
+            List<File> matches = mutableClasspath.findAll { it.name.startsWith("gradle-${dep}-${GradleVersion.current().baseVersion.version}") }
+            assert matches.size() > 0 : "Expected to find at least one match for gradle dependency '${dep}', but found none"
+            def shortestMatch = matches.stream().min(Comparator.<File>comparingInt(x -> x.getName().length())).get()
+            mutableClasspath.remove(shortestMatch)
         }
+
+        for (String dep : externalDependencies) {
+            List<File> matches = mutableClasspath.findAll { it.name.startsWith(dep) }
+            assert matches.size() > 0 : "Expected to find at least one match for external dependency '${dep}', but found none"
+            def shortestMatch = matches.stream().min(Comparator.<File>comparingInt(x -> x.getName().length())).get()
+            mutableClasspath.remove(shortestMatch)
+        }
+
+        mutableClasspath.size() == 0
     }
 
 }
