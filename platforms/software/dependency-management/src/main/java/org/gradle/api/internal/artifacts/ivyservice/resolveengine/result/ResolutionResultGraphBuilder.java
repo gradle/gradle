@@ -88,15 +88,15 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
         builder.visitSelectedVariant(1L, rootVariant);
         builder.visitComponentVariants(Collections.emptyList());
         builder.endVisitComponent();
-        ResolvedComponentResultInternal root = builder.getRoot(0L);
+        ResolvedComponentResultInternal root = builder.getComponent(0L);
         return new MinimalResolutionResult(1L, () -> root, attributes);
     }
 
-    public ResolvedComponentResultInternal getRoot(long rootId) {
+    public ResolvedComponentResultInternal getComponent(long componentId) {
         for (DefaultResolvedComponentResult component : components.values()) {
             component.complete();
         }
-        return components.get(rootId);
+        return components.get(componentId);
     }
 
     @Override
@@ -135,9 +135,8 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
     }
 
     public void visitOutgoingEdges(long fromComponentId, Collection<? extends ResolvedGraphDependency> dependencies) {
-        ImmutableSet.Builder<DependencyResult> componentDependencies = ImmutableSet.builderWithExpectedSize(dependencies.size());
-        ImmutableSetMultimap.Builder<ResolvedVariantResult, DependencyResult> variantDependencies = ImmutableSetMultimap.builder();
         DefaultResolvedComponentResult fromComponent = components.get(fromComponentId);
+        ImmutableSetMultimap.Builder<ResolvedVariantResult, DependencyResult> variantDependencies = ImmutableSetMultimap.builderWithExpectedKeys(fromComponent.getVariants().size());
         for (ResolvedGraphDependency d : dependencies) {
             DependencyResult dependencyResult;
             ResolvedVariantResult fromVariant = fromComponent.getVariant(d.getFromVariant());
@@ -163,31 +162,35 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
                 dependencyResult = dependencyResultFactory.createResolvedDependency(d.getRequested(), fromComponent, selectedComponent, selectedVariant, d.isConstraint());
                 selectedComponent.addDependent((ResolvedDependencyResult) dependencyResult);
             }
-            componentDependencies.add(dependencyResult);
             variantDependencies.put(fromVariant, dependencyResult);
         }
-        fromComponent.addDependencies(componentDependencies.build());
         fromComponent.addVariantDependencies(variantDependencies.build());
     }
 
     // TODO: It is quite odd that we attach these extra failures as edges from the root variant.
     //       These extra failures are _not_ edges, but are modeled as such since a ResolutionResult
     //       has no way to model failures that are not attached to an edge.
-    public void addDependencyLockingFailures(long rootId, Set<UnresolvedDependency> extraFailures) {
+    public void addDependencyLockingFailures(long rootId, long rootVariantId, Set<UnresolvedDependency> extraFailures) {
         if (extraFailures.isEmpty()) {
             return;
         }
 
         ImmutableSet.Builder<DependencyResult> failuresAsDependencies = ImmutableSet.builderWithExpectedSize(extraFailures.size());
-        DefaultResolvedComponentResult root = components.get(rootId);
+        DefaultResolvedComponentResult rootComponent = components.get(rootId);
         for (UnresolvedDependency failure : extraFailures) {
             ModuleVersionSelector failureSelector = failure.getSelector();
             ModuleComponentSelector failureComponentSelector = DefaultModuleComponentSelector.newSelector(failureSelector.getModule(), failureSelector.getVersion());
-            UnresolvedDependencyResult unresolvedDependency = dependencyResultFactory.createUnresolvedDependency(failureComponentSelector, root, true,
+            UnresolvedDependencyResult unresolvedDependency = dependencyResultFactory.createUnresolvedDependency(failureComponentSelector, rootComponent, true,
                 ComponentSelectionReasons.of(DEPENDENCY_LOCKING),
                 new ModuleVersionResolveException(failureComponentSelector, () -> "Dependency lock state out of date", failure.getProblem()));
             failuresAsDependencies.add(unresolvedDependency);
         }
-        root.addDependencies(failuresAsDependencies.build());
+
+        ResolvedVariantResult rootVariant = rootComponent.getVariant(rootVariantId);
+        rootComponent.addVariantDependencies(
+            ImmutableSetMultimap.<ResolvedVariantResult, DependencyResult>builder()
+                .putAll(rootVariant, failuresAsDependencies.build())
+                .build()
+        );
     }
 }

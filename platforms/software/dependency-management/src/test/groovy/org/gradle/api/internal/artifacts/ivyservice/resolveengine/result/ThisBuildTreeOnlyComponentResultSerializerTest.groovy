@@ -120,6 +120,6 @@ class ThisBuildTreeOnlyComponentResultSerializerTest extends Specification {
     private ResolvedComponentResult deserialize(byte[] serialized) {
         def builder = new ResolutionResultGraphBuilder()
         serializer.readComponentResult(new KryoBackedDecoder(new ByteArrayInputStream(serialized)), builder)
-        return builder.getRoot(0)
+        return builder.getComponent(0)
     }
 }
