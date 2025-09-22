@@ -16,14 +16,14 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
-import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph;
 import org.gradle.cache.internal.BinaryStore;
 import org.gradle.cache.internal.Store;
 
 public interface StoreSet {
     BinaryStore nextBinaryStore();
 
-    Store<ResolvedComponentResultInternal> newModelCache();
+    Store<ResolvedDependencyGraph> newModelCache();
 
     Store<TransientConfigurationResults> oldModelCache();
 }

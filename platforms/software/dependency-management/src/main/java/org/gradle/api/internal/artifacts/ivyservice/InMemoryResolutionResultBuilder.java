@@ -24,9 +24,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultGraphBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
-import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import java.util.Collections;
 
@@ -39,9 +38,8 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
     private final ResolutionResultGraphBuilder resolutionResultBuilder = new ResolutionResultGraphBuilder();
     private final boolean includeAllSelectableVariantResults;
 
-    private long rootVariantId;
-    private long rootComponentId;
-    private ImmutableAttributes requestAttributes;
+    private long rootVariantId = -1;
+    private long rootComponentId = -1;
 
     public InMemoryResolutionResultBuilder(boolean includeAllSelectableVariantResults) {
         this.includeAllSelectableVariantResults = includeAllSelectableVariantResults;
@@ -51,7 +49,6 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
     public void start(RootGraphNode root) {
         this.rootVariantId = root.getNodeId();
         this.rootComponentId = root.getOwner().getResultId();
-        this.requestAttributes = root.getResolveState().getAttributes();
     }
 
     @Override
@@ -79,10 +76,11 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
     }
 
     public MinimalResolutionResult getResolutionResult() {
-        if (requestAttributes == null) {
+        if (rootVariantId == -1 || rootComponentId == -1) {
             throw new IllegalStateException("Resolution result not computed yet");
         }
-        ResolvedComponentResultInternal root = resolutionResultBuilder.getComponent(rootComponentId);
-        return new MinimalResolutionResult(rootVariantId, () -> root, requestAttributes);
+        ResolvedDependencyGraph graph = resolutionResultBuilder.getResolvedGraph(rootComponentId, rootVariantId);
+        return new MinimalResolutionResult(() -> graph);
     }
+
 }

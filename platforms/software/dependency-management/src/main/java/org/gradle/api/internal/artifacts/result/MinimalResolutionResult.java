@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.result;
 
-import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph;
 
 import java.util.function.Supplier;
 
@@ -25,35 +25,17 @@ import java.util.function.Supplier;
  */
 public class MinimalResolutionResult {
 
-    private final long rootVariantId;
-    private final Supplier<ResolvedComponentResultInternal> rootSource;
-    private final ImmutableAttributes requestedAttributes;
+    private final Supplier<ResolvedDependencyGraph> graphSource;
 
-    public MinimalResolutionResult(
-        long rootVariantId,
-        Supplier<ResolvedComponentResultInternal> rootSource,
-        ImmutableAttributes requestedAttributes
-    ) {
-        this.rootVariantId = rootVariantId;
-        this.rootSource = rootSource;
-        this.requestedAttributes = requestedAttributes;
-    }
-
-    public long getRootVariantId() {
-        return rootVariantId;
+    public MinimalResolutionResult(Supplier<ResolvedDependencyGraph> graphSource) {
+        this.graphSource = graphSource;
     }
 
     /**
-     * A function which provides root of the dependency graph.
+     * A function which provides the dependency graph.
      */
-    public Supplier<ResolvedComponentResultInternal> getRootSource() {
-        return rootSource;
+    public Supplier<ResolvedDependencyGraph> getGraphSource() {
+        return graphSource;
     }
 
-    /**
-     * The request attributes used to initially build the dependency graph.
-     */
-    public ImmutableAttributes getRequestedAttributes() {
-        return requestedAttributes;
-    }
 }
