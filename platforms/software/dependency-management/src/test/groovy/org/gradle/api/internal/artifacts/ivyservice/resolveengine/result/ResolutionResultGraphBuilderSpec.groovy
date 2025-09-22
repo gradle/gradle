@@ -16,22 +16,18 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
 import static org.gradle.util.internal.CollectionUtils.first
 
@@ -239,17 +235,14 @@ class ResolutionResultGraphBuilderSpec extends Specification {
     }
 
     private void node(String module, ComponentSelectionReason reason = ComponentSelectionReasons.requested()) {
-        DummyModuleVersionSelection moduleVersion = comp(module, reason)
-        builder.startVisitComponent(moduleVersion.resultId, moduleVersion.selectionReason, "repo")
-        builder.visitComponentDetails(moduleVersion.componentId, moduleVersion.moduleVersion)
-        builder.visitSelectedVariant(moduleVersion.resultId, Stub(ResolvedVariantResult))
+        def resultId = id(module)
+        def componentId = new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId("x", module), "1")
+        def moduleVersionId = DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId("x", module), "1")
+
+        builder.startVisitComponent(resultId, reason, "repo", componentId, moduleVersionId)
+        builder.visitSelectedVariant(resultId, Stub(ResolvedVariantResult))
         builder.visitComponentVariants([])
         builder.endVisitComponent()
-    }
-
-    private DummyModuleVersionSelection comp(String module, ComponentSelectionReason reason = ComponentSelectionReasons.requested()) {
-        def moduleVersion = new DummyModuleVersionSelection(resultId: id(module), moduleVersion: newId(DefaultModuleIdentifier.newId("x", module), "1"), selectionReason: reason, componentId: new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId("x", module), "1"))
-        moduleVersion
     }
 
     private void resolvedConf(String module, List<ResolvedGraphDependency> deps) {
@@ -272,17 +265,4 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         return module.hashCode()
     }
 
-    class DummyModuleVersionSelection implements ResolvedGraphComponent {
-        long resultId
-        ModuleVersionIdentifier moduleVersion
-        ComponentSelectionReason selectionReason
-        ComponentIdentifier componentId
-        List<ResolvedVariantResult> selectedVariants = []
-        String repositoryName
-
-        @Override
-        ComponentGraphResolveState getResolveState() {
-            throw new UnsupportedOperationException()
-        }
-    }
 }
