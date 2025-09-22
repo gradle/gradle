@@ -55,7 +55,7 @@ public class TestEventSerializer {
     public static SerializerRegistry create() {
         BaseSerializerFactory factory = new BaseSerializerFactory();
         DefaultSerializerRegistry registry = new DefaultSerializerRegistry();
-        registry.register(ClassTestDefinition.class, new ClassBasedTestDefinitionSerializer());
+        registry.register(ClassTestDefinition.class, new ClassTestDefinitionSerializer());
         registry.register(DirectoryBasedTestDefinition.class, new DirectoryBasedTestDefinitionSerializer());
         registry.register(CompositeIdGenerator.CompositeId.class, new IdSerializer());
         registry.register(DefaultNestedTestSuiteDescriptor.class, new DefaultNestedTestSuiteDescriptorSerializer());
@@ -111,7 +111,7 @@ public class TestEventSerializer {
         }
     }
 
-    private static class ClassBasedTestDefinitionSerializer implements Serializer<ClassTestDefinition> {
+    private static class ClassTestDefinitionSerializer implements Serializer<ClassTestDefinition> {
         @Override
         public ClassTestDefinition read(Decoder decoder) throws Exception {
             return new ClassTestDefinition(decoder.readString());
