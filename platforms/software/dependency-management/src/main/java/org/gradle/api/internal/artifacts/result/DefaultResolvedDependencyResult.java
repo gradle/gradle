@@ -21,18 +21,48 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 
-public class DefaultResolvedDependencyResult extends AbstractDependencyResult implements ResolvedDependencyResult {
+/**
+ * Default implementation of {@link ResolvedDependencyResult}.
+ */
+public class DefaultResolvedDependencyResult implements ResolvedDependencyResult {
+
+    private final ComponentSelector requested;
+    private final ResolvedComponentResult from;
+    private final boolean constraint;
     private final ResolvedComponentResult selectedComponent;
     private final ResolvedVariantResult selectedVariant;
 
-    public DefaultResolvedDependencyResult(ComponentSelector requested,
-                                           boolean constraint,
-                                           ResolvedComponentResult selectedComponent,
-                                           ResolvedVariantResult selectedVariant,
-                                           ResolvedComponentResult from) {
-        super(requested, from, constraint);
+    private final int hashCode;
+
+    public DefaultResolvedDependencyResult(
+        ComponentSelector requested,
+        ResolvedComponentResult from,
+        boolean constraint,
+        ResolvedComponentResult selectedComponent,
+        ResolvedVariantResult selectedVariant
+    ) {
+        this.requested = requested;
+        this.from = from;
+        this.constraint = constraint;
         this.selectedComponent = selectedComponent;
         this.selectedVariant = selectedVariant;
+
+        this.hashCode = computeHashCode(constraint, from, requested, selectedComponent, selectedVariant);
+    }
+
+    @Override
+    public ComponentSelector getRequested() {
+        return requested;
+    }
+
+    @Override
+    public ResolvedComponentResult getFrom() {
+        return from;
+    }
+
+    @Override
+    public boolean isConstraint() {
+        return constraint;
     }
 
     @Override
@@ -46,6 +76,40 @@ public class DefaultResolvedDependencyResult extends AbstractDependencyResult im
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultResolvedDependencyResult that = (DefaultResolvedDependencyResult) o;
+        return constraint == that.constraint &&
+            requested.equals(that.requested) &&
+            from.equals(that.from) &&
+            selectedComponent.equals(that.selectedComponent) &&
+            selectedVariant.equals(that.selectedVariant);
+    }
+
+    @Override
+    public int hashCode() {
+        return hashCode;
+    }
+
+    private static int computeHashCode(
+        boolean constraint,
+        ResolvedComponentResult from,
+        ComponentSelector requested,
+        ResolvedComponentResult selectedComponent,
+        ResolvedVariantResult selectedVariant
+    ) {
+        int result = requested.hashCode();
+        result = 31 * result + from.hashCode();
+        result = 31 * result + Boolean.hashCode(constraint);
+        result = 31 * result + selectedComponent.hashCode();
+        result = 31 * result + selectedVariant.hashCode();
+        return result;
+    }
+
+    @Override
     public String toString() {
         if (getRequested().matchesStrictly(getSelected().getId())) {
             return getRequested().toString();
@@ -53,4 +117,5 @@ public class DefaultResolvedDependencyResult extends AbstractDependencyResult im
             return getRequested() + " -> " + getSelected().getId();
         }
     }
+
 }

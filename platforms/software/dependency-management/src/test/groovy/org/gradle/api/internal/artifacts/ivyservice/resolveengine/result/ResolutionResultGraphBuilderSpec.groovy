@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
-import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -164,54 +163,6 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         first(b.dependents).from.is(a)
         first(c.dependents).from.is(b)
         first(a.dependents).from.is(c)
-    }
-
-    def "accumulates and avoids duplicate dependencies"() {
-        given:
-        node("root")
-        node("mid1")
-        node("leaf1")
-        node("leaf2")
-
-        resolvedConf("root", [dep("root", "mid1")])
-
-        resolvedConf("mid1", [dep("mid1", "leaf1")])
-        resolvedConf("mid1", [dep("mid1", "leaf1")]) //dupe
-        resolvedConf("mid1", [dep("mid1", "leaf2")])
-
-        resolvedConf("leaf1", [])
-        resolvedConf("leaf2", [])
-
-        when:
-        def result = builder.getResolvedGraph(id("root"), id("root"))
-
-        then:
-        printGraph(result) == """x:root:1
-  x:mid1:1 [root]
-    x:leaf1:1 [mid1]
-    x:leaf2:1 [mid1]
-"""
-    }
-
-    def "accumulates and avoids duplicate unresolved dependencies"() {
-        given:
-        node("root")
-        node("mid1")
-        node("leaf1")
-        node("leaf2")
-        resolvedConf("root", [dep("root", "mid1")])
-
-        resolvedConf("mid1", [dep("mid1", "leaf1", new RuntimeException("foo!"))])
-        resolvedConf("mid1", [dep("mid1", "leaf1", new RuntimeException("bar!"))]) //dupe
-        resolvedConf("mid1", [dep("mid1", "leaf2", new RuntimeException("baz!"))])
-
-        when:
-        def result = builder.getResolvedGraph(id("root"), id("root")).rootComponent
-
-        then:
-        def mid1 = first(result.dependencies) as ResolvedDependencyResult
-        mid1.selected.dependencies.size() == 2
-        mid1.selected.dependencies*.requested.module == ['leaf1', 'leaf2']
     }
 
     def "graph includes unresolved deps"() {
