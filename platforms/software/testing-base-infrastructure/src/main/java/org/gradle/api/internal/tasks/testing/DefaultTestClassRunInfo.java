@@ -19,7 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.platform.engine.DiscoverySelector;
 
 public class DefaultTestClassRunInfo implements TestClassRunInfo {
-    private String testClassName;
+    private final String testClassName;
 
     public DefaultTestClassRunInfo(String testClassName) {
         if (StringUtils.isEmpty(testClassName)) {
@@ -30,13 +30,17 @@ public class DefaultTestClassRunInfo implements TestClassRunInfo {
     }
 
     @Override
-    public String getTestClassName() {
-        return testClassName;
+    public DiscoverySelector getDiscoverySelector() {
+        return null;
     }
 
     @Override
-    public DiscoverySelector getDiscoverySelector() {
-        return null;
+    public String getDisplayName() {
+        return "test class '" + testClassName + "'";
+    }
+
+    public String getTestClassName() {
+        return testClassName;
     }
 
     @Override

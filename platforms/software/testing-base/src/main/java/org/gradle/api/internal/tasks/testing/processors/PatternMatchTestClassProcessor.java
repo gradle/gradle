@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.processors;
 
+import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.ResourceBasedTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -38,9 +40,17 @@ public class PatternMatchTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void processTestDefinition(TestClassRunInfo testClass) {
-        if (testClassSelectionMatcher.mayIncludeClass(testClass.getTestClassName())) {
+        // TODO: Rework this - have the matcher work with TestClassRunInfo directly
+        if (testClass instanceof DefaultTestClassRunInfo) {
+            if (testClassSelectionMatcher.mayIncludeClass(((DefaultTestClassRunInfo) testClass).getTestClassName())) {
+                delegate.processTestDefinition(testClass);
+            }
+        } else if (testClass instanceof ResourceBasedTestClassRunInfo) {
             delegate.processTestDefinition(testClass);
+        } else {
+            throw new IllegalStateException("Unexpected test definition type " + testClass.getClass().getName());
         }
+
     }
 
     @Override

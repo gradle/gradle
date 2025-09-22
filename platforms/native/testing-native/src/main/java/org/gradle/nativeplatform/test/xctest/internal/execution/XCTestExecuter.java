@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest.internal.execution;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
@@ -138,12 +139,19 @@ public abstract class XCTestExecuter implements TestExecuter<XCTestTestExecution
 
         @Override
         public void processTestDefinition(TestClassRunInfo testClass) {
+
             Deque<XCTestDescriptor> testDescriptors = new ArrayDeque<XCTestDescriptor>();
             TextStream stdOut = new XCTestScraper(TestOutputEvent.Destination.StdOut, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors);
             TextStream stdErr = new XCTestScraper(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors);
 
             String lineSeparator = SystemProperties.getInstance().getLineSeparator();
-            execHandle = executeTest(testClass.getTestClassName(), new LineBufferingOutputStream(stdOut, lineSeparator), new LineBufferingOutputStream(stdErr, lineSeparator));
+
+            if (testClass instanceof DefaultTestClassRunInfo) {
+                execHandle = executeTest(((DefaultTestClassRunInfo)testClass).getTestClassName(), new LineBufferingOutputStream(stdOut, lineSeparator), new LineBufferingOutputStream(stdErr, lineSeparator));
+            } else {
+                throw new GradleException("XC Test can only execute tests defined in classes");
+            }
+
             try {
                 execHandle.start();
                 ExecResult result = execHandle.waitForFinish();

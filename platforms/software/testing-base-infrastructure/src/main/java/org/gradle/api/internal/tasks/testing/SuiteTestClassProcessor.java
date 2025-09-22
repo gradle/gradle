@@ -53,7 +53,7 @@ public class SuiteTestClassProcessor implements TestClassProcessor {
         try {
             processor.processTestDefinition(testClass);
         } catch (Throwable t) {
-            Throwable rawFailure = new TestSuiteExecutionException(String.format("Could not execute test class '%s'.", testClass.getTestClassName()), t);
+            Throwable rawFailure = new TestSuiteExecutionException(String.format("Could not execute %s.", testClass.getDisplayName()), t);
             resultProcessor.failure(suiteDescriptor.getId(), TestFailure.fromTestFrameworkFailure(rawFailure));
         }
     }

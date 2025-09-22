@@ -16,10 +16,13 @@
 
 package org.gradle.api.internal.tasks.testing.processors;
 
+import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.ResourceBasedTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 
+import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -29,12 +32,14 @@ import java.util.Set;
  */
 public class RunPreviousFailedFirstTestClassProcessor implements TestClassProcessor {
     private final Set<String> previousFailedTestClasses;
+    private final Set<File> previousFailedTestDefinitionDirectories;
     private final TestClassProcessor delegate;
     private final LinkedHashSet<TestClassRunInfo> prioritizedTestClasses = new LinkedHashSet<TestClassRunInfo>();
     private final LinkedHashSet<TestClassRunInfo> otherTestClasses = new LinkedHashSet<TestClassRunInfo>();
 
-    public RunPreviousFailedFirstTestClassProcessor(Set<String> previousFailedTestClasses, TestClassProcessor delegate) {
+    public RunPreviousFailedFirstTestClassProcessor(Set<String> previousFailedTestClasses, Set<File> previousFailedTestDefinitionDirectories, TestClassProcessor delegate) {
         this.previousFailedTestClasses = previousFailedTestClasses;
+        this.previousFailedTestDefinitionDirectories = previousFailedTestDefinitionDirectories;
         this.delegate = delegate;
     }
 
@@ -45,7 +50,7 @@ public class RunPreviousFailedFirstTestClassProcessor implements TestClassProces
 
     @Override
     public void processTestDefinition(TestClassRunInfo testClass) {
-        if (previousFailedTestClasses.contains(testClass.getTestClassName())) {
+        if (wasPreviouslyRun(testClass)) {
             prioritizedTestClasses.add(testClass);
         } else {
             otherTestClasses.add(testClass);
@@ -66,5 +71,15 @@ public class RunPreviousFailedFirstTestClassProcessor implements TestClassProces
     @Override
     public void stopNow() {
         delegate.stopNow();
+    }
+
+    private boolean wasPreviouslyRun(TestClassRunInfo testDefinition) {
+        if (testDefinition instanceof DefaultTestClassRunInfo) {
+            return previousFailedTestClasses.contains(((DefaultTestClassRunInfo) testDefinition).getTestClassName());
+        } else if (testDefinition instanceof ResourceBasedTestClassRunInfo){
+            return previousFailedTestDefinitionDirectories.contains(((ResourceBasedTestClassRunInfo) testDefinition).getTestDefintionFile());
+        } else {
+            throw new IllegalStateException("Unexpected test definition type " + testDefinition.getClass().getName());
+        }
     }
 }

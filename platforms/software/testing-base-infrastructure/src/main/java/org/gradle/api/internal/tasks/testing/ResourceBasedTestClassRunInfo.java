@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 
@@ -32,12 +31,6 @@ public class ResourceBasedTestClassRunInfo implements TestClassRunInfo {
         this.resourceFile = resourceFile;
     }
 
-    @Override
-    @Nullable
-    public String getTestClassName() {
-        return null;
-    }
-
     public File getTestDefintionFile() {
         return resourceFile;
     }
@@ -45,5 +38,11 @@ public class ResourceBasedTestClassRunInfo implements TestClassRunInfo {
     @Override
     public DiscoverySelector getDiscoverySelector() {
         return DiscoverySelectors.selectDirectory(resourceFile);
+    }
+
+    @Override
+    public String getDisplayName() {
+        // TODO: Use the relative path from the build's root - make field a RelativeFile?
+        return "tests in directory '" + resourceFile.getAbsolutePath() + "'";
     }
 }

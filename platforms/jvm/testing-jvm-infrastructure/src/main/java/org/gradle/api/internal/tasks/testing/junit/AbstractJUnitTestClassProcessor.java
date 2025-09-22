@@ -57,14 +57,14 @@ public abstract class AbstractJUnitTestClassProcessor implements RequiresTestFra
     protected abstract TestExecutor createTestExecutor(Actor resultProcessorActor);
 
     @Override
-    public void processTestDefinition(TestClassRunInfo testClass) {
+    public void processTestDefinition(TestClassRunInfo testDefinition) {
         if (startedProcessing) {
-            if (testClass instanceof DefaultTestClassRunInfo) {
-                LOGGER.debug("Executing test class {}", testClass.getTestClassName());
-                executor.executeClass(testClass.getTestClassName());
-            } else if (testClass instanceof ResourceBasedTestClassRunInfo) {
-                LOGGER.debug("Executing test definition {}", ((ResourceBasedTestClassRunInfo) testClass).getTestDefintionFile().getAbsolutePath());
-                executor.executeResource(testClass);
+            if (testDefinition instanceof DefaultTestClassRunInfo) {
+                LOGGER.debug("Executing {}", testDefinition.getDisplayName());
+                executor.executeClass(((DefaultTestClassRunInfo) testDefinition).getTestClassName());
+            } else if (testDefinition instanceof ResourceBasedTestClassRunInfo) {
+                LOGGER.debug("Executing {}", testDefinition.getDisplayName());
+                executor.executeResource(testDefinition);
             }
         }
     }

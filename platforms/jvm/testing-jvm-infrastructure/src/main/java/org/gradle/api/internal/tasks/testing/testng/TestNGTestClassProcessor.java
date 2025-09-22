@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.RequiresTestFrameworkTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -80,9 +81,9 @@ public class TestNGTestClassProcessor implements RequiresTestFrameworkTestClassP
         if (startedProcessing) {
             // TODO - do this inside some 'testng' suite, so that failures and logging are attached to 'testng' rather than some 'test worker'
             try {
-                testClasses.add(applicationClassLoader.loadClass(testClass.getTestClassName()));
+                testClasses.add(applicationClassLoader.loadClass(((DefaultTestClassRunInfo) testClass).getTestClassName()));
             } catch (Throwable e) {
-                throw new GradleException(String.format("Could not load test class '%s'.", testClass.getTestClassName()), e);
+                throw new GradleException(String.format("Could not load %s.", testClass.getDisplayName()), e);
             }
         }
     }

@@ -100,7 +100,7 @@ class TestTaskFailOnNoTestIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds("test", "--debug-jvm", "-S", "--info")
+        succeeds("test", "-S", "--info")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/30315")
