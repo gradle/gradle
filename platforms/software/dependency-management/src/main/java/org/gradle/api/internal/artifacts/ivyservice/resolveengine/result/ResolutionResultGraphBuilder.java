@@ -74,8 +74,7 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
         AttributeDesugaring attributeDesugaring
     ) {
         ResolutionResultGraphBuilder builder = new ResolutionResultGraphBuilder();
-        builder.startVisitComponent(0L, ComponentSelectionReasons.root(), null);
-        builder.visitComponentDetails(componentIdentifier, id);
+        builder.startVisitComponent(0L, ComponentSelectionReasons.root(), null, componentIdentifier, id);
 
         ResolvedVariantResult rootVariant = new DefaultResolvedVariantResult(
             componentIdentifier,
@@ -100,16 +99,12 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
     }
 
     @Override
-    public void startVisitComponent(Long id, ComponentSelectionReason selectionReason, @Nullable String repoName) {
+    public void startVisitComponent(Long id, ComponentSelectionReason selectionReason, @Nullable String repoName, ComponentIdentifier componentId, ModuleVersionIdentifier moduleVersion) {
         this.id = id;
         this.selectionReason = selectionReason;
         this.selectedVariants.clear();
         this.allVariants = null;
         this.repoName = repoName;
-    }
-
-    @Override
-    public void visitComponentDetails(ComponentIdentifier componentId, ModuleVersionIdentifier moduleVersion) {
         this.componentId = componentId;
         this.moduleVersion = moduleVersion;
     }
