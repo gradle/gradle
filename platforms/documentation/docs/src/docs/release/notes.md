@@ -122,6 +122,14 @@ publishing {
 
 With this approach, the `myNewVariant` configuration will only be realized if the `myPublication` publication is actually published.
 
+<a name="add-windows-arm-support"></a>
+### Windows ARM support
+
+Gradle now provides support for Windows on ARM (ARM64) devices.
+That means running your builds on a Windows ARM device is now possible.
+
+A typical use case for this is running windows VMs on Apple Silicon using virtualization software.
+
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
 <!--
