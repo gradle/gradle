@@ -17,32 +17,34 @@
 package org.gradle.api.internal.artifacts.result;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
 
-public class DefaultResolvedVariantResult implements ResolvedVariantResult {
+public class DefaultResolvedVariantResult implements ResolvedVariantResultInternal {
 
-    private final ComponentIdentifier owner;
+    private final VariantIdentifier id;
     private final DisplayName displayName;
     private final AttributeContainer attributes;
     private final ImmutableCapabilities capabilities;
     private final ResolvedVariantResult externalVariant;
     private final int hashCode;
 
-    public DefaultResolvedVariantResult(ComponentIdentifier owner,
-                                        DisplayName displayName,
-                                        AttributeContainer attributes,
-                                        ImmutableCapabilities capabilities,
-                                        @Nullable ResolvedVariantResult externalVariant) {
-        this.owner = owner;
+    public DefaultResolvedVariantResult(
+        VariantIdentifier id,
+        DisplayName displayName,
+        AttributeContainer attributes,
+        ImmutableCapabilities capabilities,
+        @Nullable ResolvedVariantResult externalVariant
+    ) {
+        this.id = id;
         this.displayName = displayName;
         this.attributes = attributes;
         this.capabilities = capabilities;
@@ -51,8 +53,8 @@ public class DefaultResolvedVariantResult implements ResolvedVariantResult {
     }
 
     @Override
-    public ComponentIdentifier getOwner() {
-        return owner;
+    public VariantIdentifier getId() {
+        return id;
     }
 
     @Override
@@ -86,7 +88,7 @@ public class DefaultResolvedVariantResult implements ResolvedVariantResult {
 
         DefaultResolvedVariantResult that = (DefaultResolvedVariantResult) o;
 
-        if (!owner.equals(that.owner)) {
+        if (!id.equals(that.id)) {
             return false;
         }
         if (!displayName.equals(that.displayName)) {
@@ -107,7 +109,7 @@ public class DefaultResolvedVariantResult implements ResolvedVariantResult {
     }
 
     private int computeHashCode() {
-        int result = owner.hashCode();
+        int result = id.hashCode();
         result = 31 * result + displayName.hashCode();
         result = 31 * result + attributes.hashCode();
         result = 31 * result + capabilities.hashCode();
@@ -121,4 +123,5 @@ public class DefaultResolvedVariantResult implements ResolvedVariantResult {
     public String toString() {
         return displayName.toString();
     }
+
 }

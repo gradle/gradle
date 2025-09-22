@@ -18,6 +18,7 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.internal.artifacts.result.ResolvedVariantResultInternal;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.jspecify.annotations.Nullable;
 
@@ -66,7 +67,7 @@ public interface ComponentGraphResolveState {
      * Only valid for variants that are owned by this component.
      * Results are undefined if {@code variant} is not owned by this component.
      */
-    ResolvedVariantResult getPublicViewFor(VariantGraphResolveState variant, @Nullable ResolvedVariantResult externalVariant);
+    ResolvedVariantResultInternal getPublicViewFor(VariantGraphResolveState variant, @Nullable ResolvedVariantResult externalVariant);
 
     /**
      * Returns the candidates for variant selection during graph resolution.
