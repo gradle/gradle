@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
-import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
@@ -40,6 +39,8 @@ class JacocoTestKitKotlinScriptFingerprintingIntegrationTest : AbstractKotlinInt
         """.trimIndent())
 
         withBuildScript("""
+            import org.gradle.util.internal.TextUtil
+            
             plugins {
                 `kotlin-dsl`
                 jacoco
@@ -67,7 +68,7 @@ class JacocoTestKitKotlinScriptFingerprintingIntegrationTest : AbstractKotlinInt
             
             tasks.withType<Test> {
                 val jacoco = the<JacocoTaskExtension>()
-                systemProperty("jacocoAgentJar", configurations.getByName("jacocoRuntime").singleFile.absolutePath)
+                systemProperty("jacocoAgentJar", TextUtil.normaliseFileSeparators(configurations.getByName("jacocoRuntime").singleFile.absolutePath))
             }
         """.trimIndent())
 
