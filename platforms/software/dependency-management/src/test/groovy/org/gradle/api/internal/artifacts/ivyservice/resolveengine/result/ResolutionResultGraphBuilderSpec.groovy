@@ -60,7 +60,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         resolvedConf("leaf4", [])
 
         when:
-        def result = builder.getRoot(id("root"))
+        def result = builder.getComponent(id("root"))
 
         then:
         printGraph(result) == """x:root:1
@@ -87,7 +87,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         resolvedConf("b3", [])
 
         when:
-        def result = builder.getRoot(id("a"))
+        def result = builder.getComponent(id("a"))
 
         then:
         printGraph(result) == """x:a:1
@@ -110,7 +110,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         resolvedConf("c", [dep("c", "a")])
 
         when:
-        def result = builder.getRoot(id("a"))
+        def result = builder.getComponent(id("a"))
 
         then:
         printGraph(result) == """x:a:1
@@ -132,7 +132,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         resolvedConf("d", [])
 
         when:
-        def deps = builder.getRoot(id("a")).dependencies
+        def deps = builder.getComponent(id("a")).dependencies
 
         then:
         def b = deps.find { it.selected.id.module == 'b' }
@@ -152,7 +152,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         resolvedConf("c", [dep("c", "a")])
 
         when:
-        def a = builder.getRoot(id("a"))
+        def a = builder.getComponent(id("a"))
 
         then:
         def b  = first(a.dependencies).selected
@@ -187,7 +187,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         resolvedConf("leaf2", [])
 
         when:
-        def result = builder.getRoot(id("root"))
+        def result = builder.getComponent(id("root"))
 
         then:
         printGraph(result) == """x:root:1
@@ -210,7 +210,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         resolvedConf("mid1", [dep("mid1", "leaf2", new RuntimeException("baz!"))])
 
         when:
-        def result = builder.getRoot(id("root"))
+        def result = builder.getComponent(id("root"))
 
         then:
         def mid1 = first(result.dependencies) as ResolvedDependencyResult
@@ -228,7 +228,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         resolvedConf("c", [])
 
         when:
-        def result = builder.getRoot(id("a"))
+        def result = builder.getComponent(id("a"))
 
         then:
         printGraph(result) == """x:a:1

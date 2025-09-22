@@ -82,7 +82,7 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
         if (requestAttributes == null) {
             throw new IllegalStateException("Resolution result not computed yet");
         }
-        ResolvedComponentResultInternal root = resolutionResultBuilder.getRoot(rootComponentId);
+        ResolvedComponentResultInternal root = resolutionResultBuilder.getComponent(rootComponentId);
         return new MinimalResolutionResult(rootVariantId, () -> root, requestAttributes);
     }
 }

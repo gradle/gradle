@@ -118,6 +118,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     public void finish(final RootGraphNode root) {
         store.write(encoder -> {
             encoder.writeByte(ROOT);
+            encoder.writeSmallLong(rootVariantId);
             encoder.writeSmallLong(root.getOwner().getResultId());
         });
     }
@@ -216,11 +217,12 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                     switch (type) {
                         case ROOT:
                             // Last entry, complete the result
-                            long rootId = decoder.readSmallLong();
-                            builder.addDependencyLockingFailures(rootId, dependencyLockingFailures);
-                            ResolvedComponentResultInternal root = builder.getRoot(rootId);
+                            long rootVariantId = decoder.readSmallLong();
+                            long rootComponentId = decoder.readSmallLong();
+                            builder.addDependencyLockingFailures(rootComponentId, rootVariantId, dependencyLockingFailures);
+                            ResolvedComponentResultInternal rootComponent = builder.getComponent(rootComponentId);
                             LOG.debug("Loaded resolution results ({}) from {}", clock.getElapsed(), data);
-                            return root;
+                            return rootComponent;
                         case COMPONENT:
                             componentResultSerializer.readComponentResult(decoder, builder);
                             break;
