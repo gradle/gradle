@@ -14,6 +14,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.concurrent)
     api(projects.stdlibJavaExtensions)
+    api(libs.junitPlatformEngine)
     api(projects.messaging)
     api(projects.serialization)
     api(projects.time)

@@ -66,14 +66,14 @@ public class TestWorkerTest extends ConcurrentSpec {
         1 * connection.connect() >> {
             start {
                 worker.startProcessing()
-                worker.processTestClass(test)
+                worker.processTestDefinition(test)
                 thread.block()
                 instant.stopped
                 worker.stop()
             }
         }
         1 * processor.startProcessing(_)
-        1 * processor.processTestClass(test)
+        1 * processor.processTestDefinition(test)
         1 * processor.stop()
     }
 }

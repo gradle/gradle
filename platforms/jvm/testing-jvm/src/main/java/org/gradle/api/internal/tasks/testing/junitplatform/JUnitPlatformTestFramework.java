@@ -108,4 +108,9 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
             }
         }
     }
+
+    @Override
+    public boolean supportsResourceBasedTesting() {
+        return true;
+    }
 }

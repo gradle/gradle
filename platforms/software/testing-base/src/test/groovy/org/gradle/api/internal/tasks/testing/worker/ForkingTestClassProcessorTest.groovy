@@ -55,13 +55,13 @@ class ForkingTestClassProcessorTest extends Specification {
         def processor = newProcessor()
 
         when:
-        processor.processTestClass(test1)
-        processor.processTestClass(test2)
+        processor.processTestDefinition(test1)
+        processor.processTestDefinition(test2)
 
         then:
         1 * workerLeaseRegistry.startWorker()
-        1 * remoteProcessor.processTestClass(test1)
-        1 * remoteProcessor.processTestClass(test2)
+        1 * remoteProcessor.processTestDefinition(test1)
+        1 * remoteProcessor.processTestDefinition(test2)
         1 * remoteProcessor.startProcessing()
         0 * remoteProcessor._
     }
@@ -100,7 +100,7 @@ class ForkingTestClassProcessorTest extends Specification {
         def processor = newProcessor()
 
         when:
-        processor.processTestClass(Mock(TestClassRunInfo))
+        processor.processTestDefinition(Mock(TestClassRunInfo))
         processor.stopNow()
 
         then:
@@ -111,7 +111,7 @@ class ForkingTestClassProcessorTest extends Specification {
         def processor = newProcessor()
 
         when:
-        processor.processTestClass(Mock(TestClassRunInfo))
+        processor.processTestDefinition(Mock(TestClassRunInfo))
         processor.stopNow()
         processor.stop()
 
@@ -126,7 +126,7 @@ class ForkingTestClassProcessorTest extends Specification {
         def processor = newProcessor()
 
         when:
-        processor.processTestClass(Mock(TestClassRunInfo))
+        processor.processTestDefinition(Mock(TestClassRunInfo))
 
         then:
         1 * workerProcess.getConnection() >> Stub(ObjectConnection) {
@@ -151,7 +151,7 @@ class ForkingTestClassProcessorTest extends Specification {
         def processor = newProcessor()
 
         when:
-        processor.processTestClass(Mock(TestClassRunInfo))
+        processor.processTestDefinition(Mock(TestClassRunInfo))
 
         then:
         1 * workerProcess.getConnection() >> Stub(ObjectConnection) {

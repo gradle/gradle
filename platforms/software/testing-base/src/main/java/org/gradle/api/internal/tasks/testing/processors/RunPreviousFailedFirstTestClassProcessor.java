@@ -44,7 +44,7 @@ public class RunPreviousFailedFirstTestClassProcessor implements TestClassProces
     }
 
     @Override
-    public void processTestClass(TestClassRunInfo testClass) {
+    public void processTestDefinition(TestClassRunInfo testClass) {
         if (previousFailedTestClasses.contains(testClass.getTestClassName())) {
             prioritizedTestClasses.add(testClass);
         } else {
@@ -55,10 +55,10 @@ public class RunPreviousFailedFirstTestClassProcessor implements TestClassProces
     @Override
     public void stop() {
         for (TestClassRunInfo test : prioritizedTestClasses) {
-            delegate.processTestClass(test);
+            delegate.processTestDefinition(test);
         }
         for (TestClassRunInfo test : otherTestClasses) {
-            delegate.processTestClass(test);
+            delegate.processTestDefinition(test);
         }
         delegate.stop();
     }

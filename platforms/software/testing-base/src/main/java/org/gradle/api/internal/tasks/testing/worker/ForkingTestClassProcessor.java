@@ -77,7 +77,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     }
 
     @Override
-    public void processTestClass(TestClassRunInfo testClass) {
+    public void processTestDefinition(TestClassRunInfo testClass) {
         lock.lock();
         try {
             if (stoppedNow) {
@@ -95,7 +95,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
                 }
             }
 
-            remoteProcessor.processTestClass(testClass);
+            remoteProcessor.processTestDefinition(testClass);
         } finally {
             lock.unlock();
         }

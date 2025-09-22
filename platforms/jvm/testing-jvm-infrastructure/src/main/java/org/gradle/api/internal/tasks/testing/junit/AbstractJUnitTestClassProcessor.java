@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.RequiresTestFrameworkTestClassProcessor;
+import org.gradle.api.internal.tasks.testing.ResourceBasedTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestExecutor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -55,10 +57,15 @@ public abstract class AbstractJUnitTestClassProcessor implements RequiresTestFra
     protected abstract TestExecutor createTestExecutor(Actor resultProcessorActor);
 
     @Override
-    public void processTestClass(TestClassRunInfo testClass) {
+    public void processTestDefinition(TestClassRunInfo testClass) {
         if (startedProcessing) {
-            LOGGER.debug("Executing test class {}", testClass.getTestClassName());
-            executor.executeClass(testClass.getTestClassName());
+            if (testClass instanceof DefaultTestClassRunInfo) {
+                LOGGER.debug("Executing test class {}", testClass.getTestClassName());
+                executor.executeClass(testClass.getTestClassName());
+            } else if (testClass instanceof ResourceBasedTestClassRunInfo) {
+                LOGGER.debug("Executing test definition {}", ((ResourceBasedTestClassRunInfo) testClass).getTestDefintionFile().getAbsolutePath());
+                executor.executeResource(testClass);
+            }
         }
     }
 

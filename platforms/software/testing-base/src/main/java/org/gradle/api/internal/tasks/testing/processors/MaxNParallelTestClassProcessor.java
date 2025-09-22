@@ -59,7 +59,7 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
     }
 
     @Override
-    public void processTestClass(TestClassRunInfo testClass) {
+    public void processTestDefinition(TestClassRunInfo testClass) {
         if (stoppedNow) {
             return;
         }
@@ -77,7 +77,7 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
             processor = processors.get(pos);
             pos = (pos + 1) % processors.size();
         }
-        processor.processTestClass(testClass);
+        processor.processTestDefinition(testClass);
     }
 
     @Override

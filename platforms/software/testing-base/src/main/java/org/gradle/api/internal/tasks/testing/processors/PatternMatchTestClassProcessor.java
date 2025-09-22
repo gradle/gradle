@@ -37,9 +37,9 @@ public class PatternMatchTestClassProcessor implements TestClassProcessor {
     }
 
     @Override
-    public void processTestClass(TestClassRunInfo testClass) {
+    public void processTestDefinition(TestClassRunInfo testClass) {
         if (testClassSelectionMatcher.mayIncludeClass(testClass.getTestClassName())) {
-            delegate.processTestClass(testClass);
+            delegate.processTestDefinition(testClass);
         }
     }
 

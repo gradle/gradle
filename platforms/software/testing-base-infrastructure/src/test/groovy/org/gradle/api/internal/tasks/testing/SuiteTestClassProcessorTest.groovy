@@ -84,10 +84,10 @@ class SuiteTestClassProcessorTest extends Specification {
         processor.startProcessing(resultProcessor)
 
         when:
-        processor.processTestClass(testClass)
+        processor.processTestDefinition(testClass)
 
         then:
-        1 * targetProcessor.processTestClass(testClass) >> { throw failure }
+        1 * targetProcessor.processTestDefinition(testClass) >> { throw failure }
         1 * resultProcessor.failure('id', !null) >> { args ->
             def e = args[1]
             assert e instanceof DefaultTestFailure

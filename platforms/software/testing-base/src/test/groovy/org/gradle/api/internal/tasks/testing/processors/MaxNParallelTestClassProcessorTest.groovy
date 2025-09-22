@@ -67,14 +67,14 @@ class MaxNParallelTestClassProcessorTest extends Specification {
         startProcessor()
 
         when:
-        processor.processTestClass(test)
+        processor.processTestDefinition(test)
 
         then:
         1 * factory.create() >> processor1
         1 * actorFactory.createActor(processor1) >> actor1
         1 * actor1.getProxy(TestClassProcessor) >> asyncProcessor1
         1 * asyncProcessor1.startProcessing(asyncResultProcessor)
-        1 * asyncProcessor1.processTestClass(test)
+        1 * asyncProcessor1.processTestDefinition(test)
 
         when:
         processor.stop()
@@ -97,24 +97,24 @@ class MaxNParallelTestClassProcessorTest extends Specification {
         startProcessor()
 
         when:
-        processor.processTestClass(test)
+        processor.processTestDefinition(test)
 
         then:
         1 * factory.create() >> processor1
         1 * actorFactory.createActor(processor1) >> actor1
         1 * actor1.getProxy(TestClassProcessor) >> asyncProcessor1
         1 * asyncProcessor1.startProcessing(asyncResultProcessor)
-        1 * asyncProcessor1.processTestClass(test)
+        1 * asyncProcessor1.processTestDefinition(test)
 
         when:
-        processor.processTestClass(test)
+        processor.processTestDefinition(test)
 
         then:
         1 * factory.create() >> processor2
         1 * actorFactory.createActor(processor2) >> actor2
         1 * actor2.getProxy(TestClassProcessor) >> asyncProcessor2
         1 * asyncProcessor2.startProcessing(asyncResultProcessor)
-        1 * asyncProcessor2.processTestClass(test)
+        1 * asyncProcessor2.processTestDefinition(test)
 
         when:
         processor.stop()
@@ -136,36 +136,36 @@ class MaxNParallelTestClassProcessorTest extends Specification {
         startProcessor()
 
         when:
-        processor.processTestClass(test)
+        processor.processTestDefinition(test)
 
         then:
         1 * factory.create() >> processor1
         1 * actorFactory.createActor(processor1) >> actor1
         1 * actor1.getProxy(TestClassProcessor) >> asyncProcessor1
         1 * asyncProcessor1.startProcessing(asyncResultProcessor)
-        1 * asyncProcessor1.processTestClass(test)
+        1 * asyncProcessor1.processTestDefinition(test)
 
         when:
-        processor.processTestClass(test)
+        processor.processTestDefinition(test)
 
         then:
         1 * factory.create() >> processor2
         1 * actorFactory.createActor(processor2) >> actor2
         1 * actor2.getProxy(TestClassProcessor) >> asyncProcessor2
         1 * asyncProcessor2.startProcessing(asyncResultProcessor)
-        1 * asyncProcessor2.processTestClass(test)
+        1 * asyncProcessor2.processTestDefinition(test)
 
         when:
-        processor.processTestClass(test)
+        processor.processTestDefinition(test)
 
         then:
-        1 * asyncProcessor1.processTestClass(test)
+        1 * asyncProcessor1.processTestDefinition(test)
 
         when:
-        processor.processTestClass(test)
+        processor.processTestDefinition(test)
 
         then:
-        1 * asyncProcessor2.processTestClass(test)
+        1 * asyncProcessor2.processTestDefinition(test)
     }
 
     def "stopNow propagates to factory created processors"() {
@@ -180,7 +180,7 @@ class MaxNParallelTestClassProcessorTest extends Specification {
         startProcessor()
 
         when:
-        processor.processTestClass(test)
+        processor.processTestDefinition(test)
 
         then:
         1 * factory.create() >> processor1
@@ -188,7 +188,7 @@ class MaxNParallelTestClassProcessorTest extends Specification {
         1 * actor1.getProxy(TestClassProcessor) >> asyncProcessor1
 
         when:
-        processor.processTestClass(test)
+        processor.processTestDefinition(test)
 
         then:
         1 * factory.create() >> processor2

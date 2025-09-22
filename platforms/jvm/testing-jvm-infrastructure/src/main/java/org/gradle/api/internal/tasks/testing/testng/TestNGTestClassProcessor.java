@@ -76,7 +76,7 @@ public class TestNGTestClassProcessor implements RequiresTestFrameworkTestClassP
     }
 
     @Override
-    public void processTestClass(TestClassRunInfo testClass) {
+    public void processTestDefinition(TestClassRunInfo testClass) {
         if (startedProcessing) {
             // TODO - do this inside some 'testng' suite, so that failures and logging are attached to 'testng' rather than some 'test worker'
             try {

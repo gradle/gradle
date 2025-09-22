@@ -15,6 +15,10 @@
  */
 package org.gradle.api.internal.tasks.testing;
 
+import org.junit.platform.engine.DiscoverySelector;
+
 public interface TestClassRunInfo {
-    String getTestClassName();
+   String getTestClassName();
+
+    DiscoverySelector getDiscoverySelector();
 }

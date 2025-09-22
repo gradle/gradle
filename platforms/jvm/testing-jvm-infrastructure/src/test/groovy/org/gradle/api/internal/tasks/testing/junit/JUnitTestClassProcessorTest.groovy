@@ -54,7 +54,7 @@ class JUnitTestClassProcessorTest extends Specification {
     void process(Iterable<String> classNames) {
         classProcessor.startProcessing(processor)
         for (String c : classNames) {
-            classProcessor.processTestClass(new DefaultTestClassRunInfo(c))
+            classProcessor.processTestDefinition(new DefaultTestClassRunInfo(c))
         }
         classProcessor.stop()
     }

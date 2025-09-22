@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.apache.commons.lang3.StringUtils;
+import org.junit.platform.engine.DiscoverySelector;
 
 public class DefaultTestClassRunInfo implements TestClassRunInfo {
     private String testClassName;
@@ -31,6 +32,11 @@ public class DefaultTestClassRunInfo implements TestClassRunInfo {
     @Override
     public String getTestClassName() {
         return testClassName;
+    }
+
+    @Override
+    public DiscoverySelector getDiscoverySelector() {
+        return null;
     }
 
     @Override

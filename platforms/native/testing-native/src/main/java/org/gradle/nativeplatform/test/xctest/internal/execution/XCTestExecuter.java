@@ -108,7 +108,7 @@ public abstract class XCTestExecuter implements TestExecuter<XCTestTestExecution
         public void detect() {
             for (String includedTests : testSelection.getIncludedTests()) {
                 TestClassRunInfo testClass = new DefaultTestClassRunInfo(includedTests);
-                testClassProcessor.processTestClass(testClass);
+                testClassProcessor.processTestDefinition(testClass);
             }
         }
     }
@@ -137,7 +137,7 @@ public abstract class XCTestExecuter implements TestExecuter<XCTestTestExecution
         }
 
         @Override
-        public void processTestClass(TestClassRunInfo testClass) {
+        public void processTestDefinition(TestClassRunInfo testClass) {
             Deque<XCTestDescriptor> testDescriptors = new ArrayDeque<XCTestDescriptor>();
             TextStream stdOut = new XCTestScraper(TestOutputEvent.Destination.StdOut, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors);
             TextStream stdErr = new XCTestScraper(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors);

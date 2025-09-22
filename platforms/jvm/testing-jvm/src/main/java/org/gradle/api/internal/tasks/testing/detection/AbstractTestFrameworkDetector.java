@@ -203,7 +203,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     private void maybePublishTestClass(boolean isTest, TestClass testClass, boolean superClass) {
         if (isTest && !testClass.isAbstract() && !superClass) {
             String className = Type.getObjectType(testClass.getClassName()).getClassName();
-            testClassProcessor.processTestClass(new DefaultTestClassRunInfo(className));
+            testClassProcessor.processTestDefinition(new DefaultTestClassRunInfo(className));
         }
     }
 

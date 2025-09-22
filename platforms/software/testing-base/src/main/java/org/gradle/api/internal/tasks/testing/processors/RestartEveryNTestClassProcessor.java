@@ -40,7 +40,7 @@ public class RestartEveryNTestClassProcessor implements TestClassProcessor {
     }
 
     @Override
-    public void processTestClass(TestClassRunInfo testClass) {
+    public void processTestDefinition(TestClassRunInfo testClass) {
         if (stoppedNow) {
             return;
         }
@@ -49,7 +49,7 @@ public class RestartEveryNTestClassProcessor implements TestClassProcessor {
             processor = factory.create();
             processor.startProcessing(resultProcessor);
         }
-        processor.processTestClass(testClass);
+        processor.processTestDefinition(testClass);
         testCount++;
         if (testCount == restartEvery) {
             endBatch();

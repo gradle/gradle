@@ -30,7 +30,7 @@ public interface RemoteTestClassProcessor {
     /**
      * Does not block.
      */
-    void processTestClass(TestClassRunInfo testClass);
+    void processTestDefinition(TestClassRunInfo testDefinition);
 
     /**
      * Does not block.

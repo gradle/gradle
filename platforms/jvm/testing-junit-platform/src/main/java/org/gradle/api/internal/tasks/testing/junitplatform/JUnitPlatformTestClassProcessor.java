@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
+import org.gradle.api.internal.tasks.testing.ResourceBasedTestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestExecutor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
@@ -109,6 +111,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
 
     private class CollectAllTestClassesExecutor implements TestExecutor {
         private final List<Class<?>> testClasses = new ArrayList<>();
+        private final List<TestClassRunInfo> testResources = new ArrayList<>();
         private final TestResultProcessor resultProcessor;
 
         CollectAllTestClassesExecutor(TestResultProcessor resultProcessor) {
@@ -124,8 +127,13 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
             testClasses.add(klass);
         }
 
+        @Override
+        public void executeResource(TestClassRunInfo resourceFile) {
+            testResources.add(resourceFile);
+        }
+
         private void processAllTestClasses() {
-            LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest(testClasses);
+            LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest(testClasses, testResources);
             TestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator);
             Launcher launcher = launcherSession.getLauncher();
             if (spec.isDryRun()) {
@@ -187,12 +195,18 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
     }
 
-    private LauncherDiscoveryRequest createLauncherDiscoveryRequest(List<Class<?>> testClasses) {
+    private LauncherDiscoveryRequest createLauncherDiscoveryRequest(List<Class<?>> testClasses, List<TestClassRunInfo> testResources) {
         List<DiscoverySelector> classSelectors = testClasses.stream()
             .map(DiscoverySelectors::selectClass)
             .collect(Collectors.toList());
+        List<DiscoverySelector> resourceSelectors = testResources.stream()
+            .map(ResourceBasedTestClassRunInfo.class::cast)
+            .map(ResourceBasedTestClassRunInfo::getDiscoverySelector)
+            .collect(Collectors.toList());
 
-        LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request().selectors(classSelectors);
+        LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request()
+            .selectors(classSelectors)
+            .selectors(resourceSelectors);
 
         addTestNameFilters(requestBuilder);
         addEnginesFilter(requestBuilder);

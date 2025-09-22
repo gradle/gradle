@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.detection;
 
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
@@ -41,8 +42,8 @@ import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
-import java.io.File;
 import java.util.ArrayList;
+import java.util.Set;
 
 /**
  * The default test class scanner factory.
@@ -103,16 +104,18 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
                     new MaxNParallelTestClassProcessor(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory)));
 
         final FileTree testClassFiles = testExecutionSpec.getCandidateClassFiles();
+        final Set<Directory> testResourceFiles = testExecutionSpec.getCandidateResourceFiles();
 
         // TODO: this logic is incorrect - need to handle the ONLY test resources case properly
+        // TODO: can iterate test directories directly, don't need to go through DefaultTestClassScanner, which should simplify things
         TestDetector detector;
         if (testExecutionSpec.isScanForTestClasses() && testFramework.getDetector() != null) {
             TestFrameworkDetector testFrameworkDetector = testFramework.getDetector();
-            testFrameworkDetector.setTestClasses(new ArrayList<File>(testExecutionSpec.getTestClassesDirs().getFiles()));
+            testFrameworkDetector.setTestClasses(new ArrayList<>(testExecutionSpec.getTestClassesDirs().getFiles()));
             testFrameworkDetector.setTestClasspath(classpath.getApplicationClasspath());
-            detector = new DefaultTestClassScanner(testClassFiles, testFrameworkDetector, processor);
+            detector = new DefaultTestClassScanner(testClassFiles, testExecutionSpec.isScanForTestResources() ? testResourceFiles : null, testFrameworkDetector, processor);
         } else {
-            detector = new DefaultTestClassScanner(testClassFiles, null, processor);
+            detector = new DefaultTestClassScanner(testClassFiles, testExecutionSpec.isScanForTestResources() ? testResourceFiles : null, null, processor);
         }
 
         // What is this?
@@ -120,7 +123,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         // We attempt to capture assumption violations as failures for skipped tests.
         //
         // This would cause any test that had been skipped to be executed multiple times. This could sometimes cause real failures.
-        // To workaround this, we shield the test retry result processor from seeing test assumption failures.
+        // To work around this, we shield the test retry result processor from seeing test assumption failures.
         if (testResultProcessor != null) {
             // KMP calls this code with a delegating test result processor that does not return sensible Class objects
             String canonicalName = testResultProcessor.getClass().getCanonicalName();
