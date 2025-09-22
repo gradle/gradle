@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r82
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.internal.Pair
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildController
@@ -28,8 +29,11 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
+import java.util.regex.Pattern
 import java.util.stream.Collectors
 import java.util.stream.Stream
+
+import static java.util.Collections.emptyList
 
 @ToolingApiVersion('>=8.2') // Since our action uses `buildTreePath`
 @TargetGradleVersion('>=8.2')
@@ -39,7 +43,7 @@ class FailedSyncCrossVersionSpec extends ToolingApiSpecification {
         settingsFile.delete() // This is automatically created by `ToolingApiSpecification`
     }
 
-    def "broken settings file - strict mode - build action"() {
+    def "basic build - broken settings file"() {
         given:
         settingsKotlinFile << """
             blow up !!!
@@ -57,7 +61,7 @@ class FailedSyncCrossVersionSpec extends ToolingApiSpecification {
         failure.assertHasDescription("Script compilation error")
     }
 
-    def "basic project - broken root build file with build action"() {
+    def "basic build - broken build file"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -75,9 +79,13 @@ class FailedSyncCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         model.paths == [":"]
+        matchesScriptModels(model,
+                Pair.of("settings.gradle.kts", emptyList()),
+                Pair.of("build.gradle.kts", Collections.singletonList(".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
+        )
     }
 
-    def "basic project w/ included build - broken included build build file - build action"() {
+    def "basic build w/ included build - broken build file in included build"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -101,9 +109,14 @@ class FailedSyncCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         model.paths == [":", ":included"]
+        matchesScriptModels(model,
+                Pair.of("settings.gradle.kts", emptyList()),
+                // Pair.of("included/settings.gradle.kts", emptyList()), // TODO
+                // Pair.of("included/build.gradle.kts", Collections.singletonList(".*Build file.*build\\.gradle\\.kts.*Script compilation error.*")), // TODO
+        )
     }
 
-    def "basic project w/ included build - broken included build settings file and build script - strict mode - build action"() {
+    def "basic build w/ included build - broken settings and build file in included build"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -127,7 +140,28 @@ class FailedSyncCrossVersionSpec extends ToolingApiSpecification {
         def e = thrown(BuildActionFailureException)
         e.cause.message.contains(includedSettings.absolutePath)
 
-        failure.assertHasDescription("Script compilation error")
+        failure.assertHasDescription("Script compilation error") // TODO: info about the main build would be nice
+    }
+
+    void matchesScriptModels(MyCustomModel model, Pair<String, List<String>>... expected) {
+        def scriptModels = model.scriptModels
+        assert scriptModels.size() == expected.size()
+
+        for (Pair<String, List<String>> expectedElement : expected) {
+            def expectedFile = new File(projectDir, expectedElement.left)
+            def scriptModel = scriptModels.get(expectedFile)
+            assert scriptModel != null
+            matchScriptModelExceptions(scriptModel, expectedElement.right)
+        }
+    }
+
+    void matchScriptModelExceptions(KotlinDslScriptModel scriptModel, List<String> expected) {
+        def exceptions = scriptModel.exceptions
+        assert exceptions.size() == expected.size()
+
+        for (int i = 0; i < expected.size(); i++) {
+            assert Pattern.compile(expected.get(i), Pattern.DOTALL).matcher(exceptions.get(i)).matches()
+        }
     }
 
     static class MyCustomModel implements Serializable {
