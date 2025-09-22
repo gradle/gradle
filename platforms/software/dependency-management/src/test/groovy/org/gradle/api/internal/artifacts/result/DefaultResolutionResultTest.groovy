@@ -114,8 +114,13 @@ class DefaultResolutionResultTest extends Specification {
         def rootVariant = root.getVariant(1L)
         def dep1 = newDependency('b', 'b', '1')
         root.addVariantDependencies(ImmutableSetMultimap.of(rootVariant, dep1))
-
-        def dep2 = new DefaultResolvedDependencyResult(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('a', 'a'), '1'), false, root, ResolutionResultDataBuilder.newVariant(), dep1.selected)
+        def dep2 = new DefaultResolvedDependencyResult(
+            DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId('a', 'a'), '1'),
+            dep1.selected,
+            false,
+            root,
+            ResolutionResultDataBuilder.newVariant()
+        )
         def selected = dep1.selected as DefaultResolvedComponentResult
         def selectedVariant = selected.getVariant(1L)
         selected.addVariantDependencies(ImmutableSetMultimap.of(selectedVariant, dep2))
@@ -163,10 +168,10 @@ class DefaultResolutionResultTest extends Specification {
         org.gradle.internal.Factory<String> broken = { "too bad" }
         def dep = new DefaultUnresolvedDependencyResult(
             Stub(ComponentSelector),
-            false,
-            Stub(ComponentSelectionReason),
             new DefaultResolvedComponentResult(mid, Stub(ComponentSelectionReason), projectId, ImmutableMap.of(1L, Stub(ResolvedVariantResult)), ImmutableList.of(Stub(ResolvedVariantResult)), null),
-            new ModuleVersionNotFoundException(Stub(ModuleComponentSelector), broken, [])
+            false,
+            new ModuleVersionNotFoundException(Stub(ModuleComponentSelector), broken, []),
+            Stub(ComponentSelectionReason)
         )
         def edge = new UnresolvedDependencyEdge(dep)
 

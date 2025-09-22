@@ -130,7 +130,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         if (!selectedVariants.contains(variant)) {
             reportInvalidVariant(variant);
         }
-        return ImmutableList.copyOf(variantDependencies.get(variant));
+        return variantDependencies.get(variant).asList();
     }
 
     private void reportInvalidVariant(ResolvedVariantResult variant) {
