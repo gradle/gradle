@@ -21,12 +21,9 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
-import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
-import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveMetadata;
 import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
@@ -57,9 +54,6 @@ public class DefaultExternalModuleComponentGraphResolveState<G extends ExternalM
     // The variants to use for variant selection during graph resolution
     private final Lazy<List<? extends VariantGraphResolveState>> allVariantsForGraphResolution;
 
-    // The public view of all selectable variants of this component
-    private final List<ResolvedVariantResult> selectableVariantResults;
-
     public DefaultExternalModuleComponentGraphResolveState(long instanceId, G graphMetadata, A legacyMetadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
         super(instanceId, graphMetadata, attributeDesugaring);
         this.legacyMetadata = legacyMetadata;
@@ -70,17 +64,6 @@ public class DefaultExternalModuleComponentGraphResolveState<G extends ExternalM
                 .collect(Collectors.toList())
         );
         this.idGenerator = idGenerator;
-        this.selectableVariantResults = graphMetadata.getVariantsForGraphTraversal().stream()
-            .map(ConfigurationMetadata.class::cast)
-            .flatMap(variant -> variant.getArtifactVariants().stream())
-            .map(variant -> new DefaultResolvedVariantResult(
-                getId(),
-                Describables.of(variant.getName()),
-                attributeDesugaring.desugar(variant.getAttributes().asImmutable()),
-                capabilitiesFor(variant.getCapabilities()),
-                null
-            ))
-            .collect(Collectors.toList());
     }
 
     @Override
@@ -98,11 +81,6 @@ public class DefaultExternalModuleComponentGraphResolveState<G extends ExternalM
     public ComponentArtifactResolveMetadata getArtifactMetadata() {
         A legacyMetadata = getLegacyMetadata();
         return new ExternalArtifactResolveMetadata(legacyMetadata);
-    }
-
-    @Override
-    public List<ResolvedVariantResult> getAllSelectableVariantResults() {
-        return selectableVariantResults;
     }
 
     @Override
