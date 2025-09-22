@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -28,11 +27,13 @@ import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
+import org.gradle.api.internal.artifacts.result.ResolvedVariantResultInternal;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -55,6 +56,7 @@ public class CompleteComponentResultSerializer implements ComponentResultSeriali
     private final Serializer<ModuleVersionIdentifier> moduleVersionIdSerializer;
     private final Serializer<AttributeContainer> attributeContainerSerializer;
     private final Serializer<ComponentIdentifier> componentIdSerializer;
+    private final Serializer<VariantIdentifier> variantIdSerializer;
     private final Serializer<List<Capability>> capabilitySerializer;
 
     @Inject
@@ -68,6 +70,7 @@ public class CompleteComponentResultSerializer implements ComponentResultSeriali
         this.moduleVersionIdSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
         this.attributeContainerSerializer = new DesugaringAttributeContainerSerializer(attributesFactory, namedObjectInstantiator);
         this.componentIdSerializer = new ComponentIdentifierSerializer();
+        this.variantIdSerializer = new VariantIdentifierSerializer(componentIdSerializer);
         this.capabilitySerializer = new ListSerializer<>(new CapabilitySerializer());
     }
 
@@ -93,9 +96,9 @@ public class CompleteComponentResultSerializer implements ComponentResultSeriali
     private void writeVariantResult(ResolvedGraphVariant variant, ComponentGraphResolveState component, Encoder encoder) throws Exception {
         encoder.writeSmallLong(variant.getNodeId());
 
-        ResolvedVariantResult variantResult = component.getPublicViewFor(variant.getResolveState(), null);
+        ResolvedVariantResultInternal variantResult = component.getPublicViewFor(variant.getResolveState(), null);
 
-        componentIdSerializer.write(encoder, variantResult.getOwner());
+        variantIdSerializer.write(encoder, variantResult.getId());
         encoder.writeString(variantResult.getDisplayName());
         attributeContainerSerializer.write(encoder, variantResult.getAttributes());
         capabilitySerializer.write(encoder, variantResult.getCapabilities());
@@ -128,14 +131,14 @@ public class CompleteComponentResultSerializer implements ComponentResultSeriali
     private void readVariantResult(Decoder decoder, ResolvedComponentVisitor visitor) throws Exception {
         long nodeId = decoder.readSmallLong();
 
-        ComponentIdentifier ownerId = componentIdSerializer.read(decoder);
+        VariantIdentifier id = variantIdSerializer.read(decoder);
         String displayName = decoder.readString();
         AttributeContainer attributes = attributeContainerSerializer.read(decoder);
         List<Capability> capabilities = capabilitySerializer.read(decoder);
 
         // TODO: Read the external variant, like we do with the variant reference.
 
-        visitor.visitSelectedVariant(nodeId, new DefaultResolvedVariantResult(ownerId, Describables.of(displayName), attributes, ImmutableCapabilities.of(capabilities), null));
+        visitor.visitSelectedVariant(nodeId, new DefaultResolvedVariantResult(id, Describables.of(displayName), attributes, ImmutableCapabilities.of(capabilities), null));
     }
 
 }

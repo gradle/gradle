@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve
 import groovy.test.NotYetImplemented
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.NamedVariantIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultComponentSelectionDescriptor
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult
@@ -224,6 +225,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             import ${DefaultComponentSelectionDescriptor.name}
             import ${ComponentSelectionReasons.name}
             import ${DefaultLibraryComponentSelector.name}
+            import ${NamedVariantIdentifier.name}
 
             abstract class TaskWithInput extends DefaultTask {
 
@@ -271,7 +273,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         "Capability"                   | "new DefaultImmutableCapability('group', System.getProperty('n'), '1.0')"
         "ModuleComponentIdentifier"    | "new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')),'1.0')"
         "ComponentArtifactIdentifier"  | "new DefaultModuleComponentArtifactIdentifier(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')),'1.0'), System.getProperty('n') + '-1.0.jar', 'jar', null)"
-        "ResolvedVariantResult"        | "new DefaultResolvedVariantResult(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')), '1.0'), Describables.of('variantName'), services.get(AttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n')), ImmutableCapabilities.of(new DefaultImmutableCapability('group', System.getProperty('n'), '1.0')), null)"
+        "ResolvedVariantResult"        | "new DefaultResolvedVariantResult(new NamedVariantIdentifier(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')), '1.0'), 'name'), Describables.of('variantName'), services.get(AttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n')), ImmutableCapabilities.of(new DefaultImmutableCapability('group', System.getProperty('n'), '1.0')), null)"
         // For ResolvedComponentResult
         "ModuleVersionIdentifier"      | "DefaultModuleVersionIdentifier.newId('group', System.getProperty('n'), '1.0')"
 //        "ResolvedComponentResult"      | "null"

@@ -33,6 +33,7 @@ import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
+import org.gradle.api.internal.artifacts.NamedVariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
@@ -78,7 +79,7 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
         builder.visitComponentDetails(componentIdentifier, id);
 
         ResolvedVariantResult rootVariant = new DefaultResolvedVariantResult(
-            componentIdentifier,
+            new NamedVariantIdentifier(componentIdentifier, rootVariantName),
             Describables.of(rootVariantName),
             attributeDesugaring.desugar(attributes),
             capabilities,

@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.NamedVariantIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
@@ -206,7 +207,8 @@ class DependencyInsightReporterSpec extends Specification {
         def ownerId = DefaultModuleComponentIdentifier.newId(
             DefaultModuleVersionIdentifier.newId(ownerGroup, ownerModule, ownerVersion)
         )
-        new DefaultResolvedVariantResult(ownerId, Describables.of("default"), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, null)
+        def variantId = new NamedVariantIdentifier(ownerId, "default")
+        new DefaultResolvedVariantResult(variantId, Describables.of("default"), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, null)
     }
 
     private static DefaultResolvedDependencyResult path(String path) {

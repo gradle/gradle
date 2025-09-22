@@ -26,6 +26,7 @@ import org.gradle.api.component.Artifact;
 import org.gradle.api.component.Component;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.NamedVariantIdentifier;
 import org.gradle.api.internal.artifacts.RepositoriesSupplier;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyFactory;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
@@ -49,6 +50,7 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
@@ -210,12 +212,13 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         BuildableArtifactSetResolveResult artifactSetResolveResult = new DefaultBuildableArtifactSetResolveResult();
         ArtifactType artifactType = componentTypeRegistry.getComponentRegistration(componentType).getArtifactType(type);
         artifactResolver.resolveArtifactsWithType(component, artifactType, artifactSetResolveResult);
+        VariantIdentifier variantId = new NamedVariantIdentifier(component.getId(), artifactType.name());
 
         for (ComponentArtifactMetadata artifactMetaData : artifactSetResolveResult.getResult()) {
             BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
             artifactResolver.resolveArtifact(component, artifactMetaData, resolveResult);
             try {
-                artifacts.addArtifact(externalResolverFactory.verifiedArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, Describables.of(component.getId().getDisplayName()), type, resolveResult.getResult().getFile())));
+                artifacts.addArtifact(externalResolverFactory.verifiedArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), variantId, ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, Describables.of(component.getId().getDisplayName()), type, resolveResult.getResult().getFile())));
             } catch (Exception e) {
                 artifacts.addArtifact(new DefaultUnresolvedArtifactResult(artifactMetaData.getId(), type, e));
             }
