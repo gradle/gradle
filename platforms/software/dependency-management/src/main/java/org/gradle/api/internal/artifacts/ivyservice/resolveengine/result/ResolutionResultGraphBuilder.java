@@ -37,7 +37,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Resolved
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
-import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
@@ -88,15 +87,19 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
         builder.visitSelectedVariant(1L, rootVariant);
         builder.visitComponentVariants(Collections.emptyList());
         builder.endVisitComponent();
-        ResolvedComponentResultInternal root = builder.getComponent(0L);
-        return new MinimalResolutionResult(1L, () -> root, attributes);
+        ResolvedDependencyGraph graph = builder.getResolvedGraph(0L, 1L);
+        return new MinimalResolutionResult(() -> graph, attributes);
     }
 
-    public ResolvedComponentResultInternal getComponent(long componentId) {
+    public ResolvedDependencyGraph getResolvedGraph(long rootComponentId, long rootVariantId) {
         for (DefaultResolvedComponentResult component : components.values()) {
             component.complete();
         }
-        return components.get(componentId);
+        return new ResolvedDependencyGraph(
+            rootComponentId,
+            rootVariantId,
+            ImmutableMap.copyOf(components)
+        );
     }
 
     @Override

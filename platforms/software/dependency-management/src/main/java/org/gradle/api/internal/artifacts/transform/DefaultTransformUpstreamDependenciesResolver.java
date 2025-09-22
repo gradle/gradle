@@ -241,7 +241,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     }
 
     private static Set<ComponentIdentifier> computeDependencies(ComponentIdentifier componentId, VisitedGraphResults visitedGraph) {
-        ResolvedComponentResult root = visitedGraph.getResolutionResult().getRootSource().get();
+        ResolvedComponentResult root = visitedGraph.getResolutionResult().getGraphSource().get().getRootComponent();
         ResolvedComponentResult targetComponent = findComponent(root, componentId);
 
         if (targetComponent == null) {
