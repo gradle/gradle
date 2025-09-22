@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestExecutor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
@@ -72,15 +73,20 @@ public class JUnitTestClassExecutor implements TestExecutor {
     }
 
     @Override
-    public void executeClass(ClassTestDefinition testDefinition) {
+    public void execute(TestDefinition<?> testDefinition) {
+        if (!(testDefinition instanceof ClassTestDefinition)) {
+            throw new IllegalArgumentException("JUnitTestClassExecutor only supports ClassTestDefinition instances.");
+        }
+
+        String testClassName = ((ClassTestDefinition) testDefinition).getTestClassName();
         boolean started = false;
         try {
-            Request request = shouldRunTestClass(testDefinition.getTestClassName());
+            Request request = shouldRunTestClass(testClassName);
             if (request == null) {
                 return;
             }
 
-            executionListener.testClassStarted(testDefinition.getTestClassName());
+            executionListener.testClassStarted(testClassName);
             started = true;
             runRequest(request);
             started = false;
@@ -90,7 +96,7 @@ public class JUnitTestClassExecutor implements TestExecutor {
                 executionListener.testClassFinished(TestFailure.fromTestFrameworkFailure(throwable));
             } else {
                 // If we haven't even started to run the request, this is a Gradle problem, so propagate it
-                throw new GradleException("Failed to execute test class: '" + testDefinition.getTestClassName() + "'.", throwable);
+                throw new GradleException("Failed to execute test class: '" + testClassName + "'.", throwable);
             }
 
             // Don't ever swallow Errors, as they likely indicate JVM problems that should always propagate

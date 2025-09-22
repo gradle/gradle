@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
 import org.gradle.api.internal.tasks.testing.RequiresTestFrameworkTestClassProcessor;
-import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestExecutor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -60,13 +58,7 @@ public abstract class AbstractJUnitTestClassProcessor implements RequiresTestFra
     public void processTestDefinition(TestDefinition<?> testDefinition) {
         if (startedProcessing) {
             LOGGER.debug("Executing {}", testDefinition.getDisplayName());
-            if (testDefinition instanceof ClassTestDefinition) {
-                executor.executeClass((ClassTestDefinition) testDefinition);
-            } else if (testDefinition instanceof DirectoryBasedTestDefinition) {
-                executor.executeDirectory((DirectoryBasedTestDefinition) testDefinition);
-            } else {
-                throw new IllegalStateException("Unexpected test definition type " + testDefinition.getClass().getName());
-            }
+            executor.execute(testDefinition);
         }
     }
 

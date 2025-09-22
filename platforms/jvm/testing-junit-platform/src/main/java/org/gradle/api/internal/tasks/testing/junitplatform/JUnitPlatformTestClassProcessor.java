@@ -118,7 +118,17 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
 
         @Override
-        public void executeClass(ClassTestDefinition testDefinition) {
+        public void execute(TestDefinition<?> testDefinition) {
+            if (testDefinition instanceof ClassTestDefinition) {
+                executeClass((ClassTestDefinition) testDefinition);
+            } else if (testDefinition instanceof DirectoryBasedTestDefinition) {
+                executeDirectory((DirectoryBasedTestDefinition) testDefinition);
+            } else {
+                throw new IllegalStateException("Unexpected test definition type " + testDefinition.getClass().getName());
+            }
+        }
+
+        private void executeClass(ClassTestDefinition testDefinition) {
             Class<?> klass = loadClass(testDefinition.getTestClassName());
             if (isInnerClass(klass) || (supportsVintageTests() && isNestedClassInsideEnclosedRunner(klass))) {
                 return;
@@ -126,8 +136,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
             selectors.add(testDefinition.getDiscoverySelector(classTestParams));
         }
 
-        @Override
-        public void executeDirectory(DirectoryBasedTestDefinition testDefinition) {
+        private void executeDirectory(DirectoryBasedTestDefinition testDefinition) {
             selectors.add(testDefinition.getDiscoverySelector(TestDefinition.SelectorCreationParameters.EMPTY));
         }
 
