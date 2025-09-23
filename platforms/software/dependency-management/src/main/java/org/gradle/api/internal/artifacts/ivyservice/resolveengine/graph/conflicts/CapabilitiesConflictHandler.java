@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
+import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
@@ -23,7 +24,24 @@ import org.gradle.api.internal.capabilities.CapabilityInternal;
 
 import java.util.Collection;
 
-public interface CapabilitiesConflictHandler extends ConflictHandler<CapabilitiesConflictHandler.Candidate, ConflictResolutionResult> {
+public interface CapabilitiesConflictHandler {
+
+    /**
+     * Registers new module and returns information about any potential conflict
+     */
+    PotentialConflict registerCandidate(Candidate candidate);
+
+    /**
+     * Informs whether there is any conflict at present
+     */
+    boolean hasConflicts();
+
+    /**
+     * Resolves next conflict and trigger provided action after the resolution.
+     *
+     * Must be called only if {@link #hasConflicts()} returns true.
+     */
+    void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction);
 
     /**
      * Has the given capability been seen as a non-default capability on a node?
@@ -55,4 +73,5 @@ public interface CapabilitiesConflictHandler extends ConflictHandler<Capabilitie
     interface Resolver {
         void resolve(ResolutionDetails details);
     }
+
 }
