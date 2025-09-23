@@ -45,6 +45,11 @@ class ExceptionPlaceholderTest extends Specification {
         List<T> failures
     }
 
+    class RawFailuresException extends Exception {
+        @SuppressWarnings(["unused", "rawtypes"])
+        List failures
+    }
+
     class NotThrowableFailuresException extends Exception {
         @SuppressWarnings("unused")
         List<String> failures
@@ -72,6 +77,7 @@ class ExceptionPlaceholderTest extends Specification {
         MultipleWildcardFailuresException         | "getFailures"
         MultipleSpecificWildcardFailuresException | "getFailures"
         GenericThrowableFailuresException         | "getFailures"
+        RawFailuresException                      | "getFailures"
         NotThrowableFailuresException             | null
         GenericObjectFailuresException            | null
     }
