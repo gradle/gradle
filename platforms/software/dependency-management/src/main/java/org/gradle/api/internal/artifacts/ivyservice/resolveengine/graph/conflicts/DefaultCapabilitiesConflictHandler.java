@@ -47,8 +47,7 @@ import static java.util.Collections.emptySet;
 
 public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictHandler {
 
-    private final LastCandidateCapabilityResolver lastCandidateResolver;
-    private final UserConfiguredCapabilityResolver userConfiguredResolver;
+    private final CapabilityConflictResolver userConfiguredResolver;
     private final ResolveState resolveState;
 
     /**
@@ -58,9 +57,8 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
     private final Deque<String> conflicts = new ArrayDeque<>();
 
-    public DefaultCapabilitiesConflictHandler(ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> capabilityResolutionRules, ResolveState resolveState) {
-        this.lastCandidateResolver = new LastCandidateCapabilityResolver();
-        this.userConfiguredResolver = new UserConfiguredCapabilityResolver(capabilityResolutionRules);
+    public DefaultCapabilitiesConflictHandler(ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> rules, ResolveState resolveState) {
+        this.userConfiguredResolver = new CapabilityConflictResolver(rules);
         this.resolveState = resolveState;
     }
 
@@ -139,11 +137,18 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         // TODO: What if, after we filter, we only have nodes with the default capability?
         // We should treat this conflict as a version conflict.
 
+        doResolveConflict(conflict);
+    }
+
+    /**
+     * Perform conflict resolution, selecting one of the candidates or rejecting all of them if none can be selected.
+     */
+    private void doResolveConflict(CapabilityConflict conflict) {
         Details details = new Details(conflict);
 
         // Candidates that are no longer selected are filtered out before these resolvers are executed.
         // If there is only one candidate at the beginning of conflict resolution, select that candidate.
-        lastCandidateResolver.resolve(details);
+        resolveLastCandidate(details);
         if (details.hasResult()) {
             applyConflictResolution(details, conflict);
             return;
@@ -157,7 +162,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         }
 
         // If there is one candidate left after the user resolvers are executed, select that candidate.
-        lastCandidateResolver.resolve(details);
+        resolveLastCandidate(details);
         if (details.hasResult()) {
             applyConflictResolution(details, conflict);
             return;
@@ -230,6 +235,26 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         @Override
         public Collection<NodeState> getImplicitCapabilityProviders() {
             return implicitCapabilityProviders;
+        }
+    }
+
+    private static void resolveLastCandidate(Details details) {
+        Collection<? extends Capability> capabilityVersions = details.getCapabilityVersions();
+        CandidateDetails single = null;
+        for (Capability capabilityVersion : capabilityVersions) {
+            Collection<? extends CandidateDetails> candidates = details.getCandidates(capabilityVersion);
+            int size = candidates.size();
+            if (size >= 1) {
+                if (size == 1 && single == null) {
+                    single = candidates.iterator().next();
+                } else {
+                    // not a single candidate
+                    return;
+                }
+            }
+        }
+        if (single != null) {
+            single.select();
         }
     }
 
