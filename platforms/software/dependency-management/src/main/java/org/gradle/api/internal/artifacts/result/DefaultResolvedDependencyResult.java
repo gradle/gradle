@@ -20,6 +20,9 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.jspecify.annotations.Nullable;
+
+import java.util.Objects;
 
 /**
  * Default implementation of {@link ResolvedDependencyResult}.
@@ -30,7 +33,10 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
     private final ResolvedComponentResult from;
     private final boolean constraint;
     private final ResolvedComponentResult selectedComponent;
-    private final ResolvedVariantResult selectedVariant;
+
+    // TODO #19788: This should never be null. A resolved dependency result by definition has a target variant.
+    // Some bugs in dependency resolution may cause this to be null. We should fix them and make this non-nullable.
+    private final @Nullable ResolvedVariantResult selectedVariant;
 
     private final int hashCode;
 
@@ -39,7 +45,7 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
         ResolvedComponentResult from,
         boolean constraint,
         ResolvedComponentResult selectedComponent,
-        ResolvedVariantResult selectedVariant
+        @Nullable ResolvedVariantResult selectedVariant
     ) {
         this.requested = requested;
         this.from = from;
@@ -86,7 +92,7 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
             requested.equals(that.requested) &&
             from.equals(that.from) &&
             selectedComponent.equals(that.selectedComponent) &&
-            selectedVariant.equals(that.selectedVariant);
+            Objects.equals(selectedVariant, that.selectedVariant);
     }
 
     @Override
@@ -99,13 +105,13 @@ public class DefaultResolvedDependencyResult implements ResolvedDependencyResult
         ResolvedComponentResult from,
         ComponentSelector requested,
         ResolvedComponentResult selectedComponent,
-        ResolvedVariantResult selectedVariant
+        @Nullable ResolvedVariantResult selectedVariant
     ) {
         int result = requested.hashCode();
         result = 31 * result + from.hashCode();
         result = 31 * result + Boolean.hashCode(constraint);
         result = 31 * result + selectedComponent.hashCode();
-        result = 31 * result + selectedVariant.hashCode();
+        result = 31 * result + Objects.hashCode(selectedVariant);
         return result;
     }
 
