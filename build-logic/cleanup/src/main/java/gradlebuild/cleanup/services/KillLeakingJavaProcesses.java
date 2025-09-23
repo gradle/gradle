@@ -16,6 +16,9 @@
 
 package gradlebuild.cleanup.services;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.regex.Pattern.quote;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -25,6 +28,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
@@ -36,8 +40,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.util.regex.Pattern.quote;
 
 /**
  * NOTICE: this class is invoked via java command line, so we must NOT DEPEND ON ANY 3RD-PARTY LIBRARIES except JDK 11.
@@ -138,7 +140,7 @@ public class KillLeakingJavaProcesses {
     }
 
     private static void writePsOutputToFile(File rootProjectDir, List<String> psOutput) {
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"));
+        String timestamp = LocalDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"));
         File psOutFile = new File(rootProjectDir, timestamp + ".psoutput");
 
         try {
@@ -247,7 +249,7 @@ public class KillLeakingJavaProcesses {
 
             process.waitFor(1, TimeUnit.MINUTES);
             latch.await(1, TimeUnit.MINUTES);
-            return new ExecResult(args, process.exitValue(), stdout.toString(), stderr.toString());
+            return new ExecResult(args, process.exitValue(), stdout.toString(UTF_8), stderr.toString(UTF_8));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -258,7 +260,7 @@ public class KillLeakingJavaProcesses {
         PrintStream ps = new PrintStream(os, true);
         new Thread(() -> {
             try {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(forkedProcessOutput));
+                BufferedReader reader = new BufferedReader(new InputStreamReader(forkedProcessOutput, UTF_8));
                 String line;
                 while ((line = reader.readLine()) != null) {
                     ps.println(line);
