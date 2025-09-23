@@ -17,13 +17,19 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.CapabilityResolutionDetails;
 import org.gradle.api.artifacts.ComponentVariantIdentifier;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory;
@@ -34,22 +40,194 @@ import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.internal.VersionNumber;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class CapabilityConflictResolver implements CapabilitiesConflictHandler.Resolver {
+public class CapabilityConflictResolver {
 
-    private final NotationParser<Object, ComponentIdentifier> componentNotationParser = new ComponentIdentifierParserFactory().create();
+
+    private final ResolveState resolveState;
     private final ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> rules;
+    private final NotationParser<Object, ComponentIdentifier> componentNotationParser;
 
-    public CapabilityConflictResolver(ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> rules) {
+    public CapabilityConflictResolver(
+        ResolveState resolveState,
+        ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> rules
+    ) {
+        this.resolveState = resolveState;
         this.rules = rules;
+        this.componentNotationParser = new ComponentIdentifierParserFactory().create();
     }
 
-    @Override
-    public void resolve(CapabilitiesConflictHandler.ResolutionDetails details) {
+    /**
+     * Perform conflict resolution, selecting one of the candidates or rejecting all of them if none can be selected.
+     */
+    public void resolve(CapabilitiesConflictHandler.CapabilityConflict conflict) {
+        Details details = new Details(conflict);
+
+        // Candidates that are no longer selected are filtered out before these resolvers are executed.
+        // If there is only one candidate at the beginning of conflict resolution, select that candidate.
+        resolveLastCandidate(details);
+        if (details.hasResult()) {
+            applyConflictResolution(details, conflict);
+            return;
+        }
+
+        // Otherwise, let the user resolvers reject candidates.
+        applyUserDefinedRules(details);
+        if (details.hasResult()) {
+            applyConflictResolution(details, conflict);
+            return;
+        }
+
+        // If there is one candidate left after the user resolvers are executed, select that candidate.
+        resolveLastCandidate(details);
+        if (details.hasResult()) {
+            applyConflictResolution(details, conflict);
+            return;
+        }
+
+        // Otherwise, reject all remaining candidates.
+        Collection<? extends Capability> capabilityVersions = details.getCapabilityVersions();
+        for (Capability capabilityVersion : capabilityVersions) {
+            Collection<? extends CandidateDetails> candidates = details.getCandidates(capabilityVersion);
+            if (!candidates.isEmpty()) {
+                // Arbitrarily select and mark all as rejected
+                for (CandidateDetails candidate : candidates) {
+                    candidate.reject();
+                }
+            }
+        }
+    }
+
+    private void applyConflictResolution(Details details, CapabilitiesConflictHandler.CapabilityConflict conflict) {
+        // Visit the winning module first so that when we visit unattached dependencies of
+        // losing modules, the winning module always has a selected component.
+        Set<ModuleIdentifier> seen = new HashSet<>();
+        ModuleIdentifier winningModule = details.getSelected().getModule().getId();
+        resolveState.getModule(winningModule).replaceWith(details.getSelected());
+        seen.add(winningModule);
+
+        for (NodeState node : details.conflict.getNodes()) {
+            ModuleIdentifier module = node.getComponent().getModule().getId();
+            if (seen.add(module)) {
+                resolveState.getModule(module).replaceWith(details.getSelected());
+            }
+        }
+
+        if (conflict.getNodes().size() > 1) {
+            assert details.reason != null;
+            details.getSelected().addCause(ComponentSelectionReasons.CONFLICT_RESOLUTION.withDescription(details.reason));
+        }
+    }
+
+    private static void resolveLastCandidate(Details details) {
+        Collection<? extends Capability> capabilityVersions = details.getCapabilityVersions();
+        CandidateDetails single = null;
+        for (Capability capabilityVersion : capabilityVersions) {
+            Collection<? extends CandidateDetails> candidates = details.getCandidates(capabilityVersion);
+            int size = candidates.size();
+            if (size >= 1) {
+                if (size == 1 && single == null) {
+                    single = candidates.iterator().next();
+                } else {
+                    // not a single candidate
+                    return;
+                }
+            }
+        }
+        if (single != null) {
+            single.select();
+        }
+    }
+
+    private static class Details implements ResolutionDetails {
+        private final CapabilitiesConflictHandler.CapabilityConflict conflict;
+        private final Set<NodeState> evicted = new HashSet<>();
+        private NodeState selected;
+        private Describable reason;
+
+        private Details(CapabilitiesConflictHandler.CapabilityConflict conflict) {
+            this.conflict = conflict;
+        }
+
+        @Override
+        public Collection<? extends Capability> getCapabilityVersions() {
+            return conflict.getDescriptors();
+        }
+
+        @Override
+        public Collection<? extends CandidateDetails> getCandidates(Capability capability) {
+            ImmutableList.Builder<CandidateDetails> candidates = new ImmutableList.Builder<>();
+            String group = capability.getGroup();
+            String name = capability.getName();
+            String version = capability.getVersion();
+            for (final NodeState node : conflict.getNodes()) {
+                if (!evicted.contains(node)) {
+                    Capability componentCapability = node.findCapability(group, name);
+                    if (componentCapability != null && componentCapability.getVersion().equals(version)) {
+                        candidates.add(new CandidateDetails() {
+                            @Override
+                            public ComponentIdentifier getId() {
+                                return node.getComponent().getComponentId();
+                            }
+
+                            @Override
+                            public String getVariantName() {
+                                return node.getMetadata().getName();
+                            }
+
+                            @Override
+                            public void evict() {
+                                node.evict();
+                                evicted.add(node);
+                            }
+
+                            @Override
+                            public void select() {
+                                selected = node;
+                            }
+
+                            @Override
+                            public void reject() {
+                                ComponentState component = node.getComponent();
+                                component.rejectForCapabilityConflict(capability, conflictedNodes(node, conflict.getNodes()));
+                                component.getModule().replaceWith(component);
+                            }
+
+                            @Override
+                            public void byReason(Describable description) {
+                                reason = description;
+                            }
+                        });
+                    }
+                }
+            }
+            return candidates.build();
+        }
+
+        private Collection<NodeState> conflictedNodes(NodeState node, Collection<NodeState> nodes) {
+            List<NodeState> conflictedNodes = new ArrayList<>(nodes);
+            conflictedNodes.remove(node);
+            return conflictedNodes;
+        }
+
+        @Override
+        public boolean hasResult() {
+            return selected != null;
+        }
+
+        @Override
+        public ComponentState getSelected() {
+            return selected.getComponent();
+        }
+    }
+
+    private void applyUserDefinedRules(ResolutionDetails details) {
         details.getCapabilityVersions().stream()
             .collect(Collectors.groupingBy(c -> new DefaultImmutableCapability(c.getGroup(), c.getName(), null)))
             .forEach((capability, versions) -> {
@@ -62,7 +240,7 @@ public class CapabilityConflictResolver implements CapabilitiesConflictHandler.R
             });
     }
 
-    private void handleCapabilityAction(CapabilitiesConflictHandler.ResolutionDetails details, Capability key, List<? extends Capability> versions, DefaultCapabilityResolutionDetails resolutionDetails) {
+    private void handleCapabilityAction(ResolutionDetails details, Capability key, List<? extends Capability> versions, DefaultCapabilityResolutionDetails resolutionDetails) {
         for (CapabilitiesResolutionInternal.CapabilityResolutionRule action : rules) {
             ImmutableCapability capability = action.getTargetCapability();
             if (capability == null || (key.getGroup().equals(capability.getGroup()) && key.getName().equals(capability.getName()))) {
@@ -81,7 +259,7 @@ public class CapabilityConflictResolver implements CapabilitiesConflictHandler.R
         }
     }
 
-    private void performCapabilitySelection(CapabilitiesConflictHandler.ResolutionDetails details, List<? extends Capability> versions, DefaultCapabilityResolutionDetails resolutionDetails) {
+    private void performCapabilitySelection(ResolutionDetails details, List<? extends Capability> versions, DefaultCapabilityResolutionDetails resolutionDetails) {
         if (resolutionDetails.useHighest) {
             selectHightestVersion(details);
         } else if (resolutionDetails.selected != null) {
@@ -89,7 +267,7 @@ public class CapabilityConflictResolver implements CapabilitiesConflictHandler.R
         }
     }
 
-    private void selectHightestVersion(CapabilitiesConflictHandler.ResolutionDetails details) {
+    private void selectHightestVersion(ResolutionDetails details) {
         Collection<? extends Capability> capabilityVersions = details.getCapabilityVersions();
         if (capabilityVersions.size() > 1) {
             Set<Capability> sorted = Sets.newTreeSet((o1, o2) -> {
@@ -113,7 +291,7 @@ public class CapabilityConflictResolver implements CapabilitiesConflictHandler.R
         }
     }
 
-    private void selectExplicitCandidate(DefaultCapabilityResolutionDetails resolutionDetails, CapabilityInternal version, CapabilitiesConflictHandler.CandidateDetails cand) {
+    private void selectExplicitCandidate(DefaultCapabilityResolutionDetails resolutionDetails, CapabilityInternal version, CandidateDetails cand) {
         if (cand.getId().equals(resolutionDetails.selected.getId())) {
             if (cand.getVariantName().equals(resolutionDetails.selected.getVariantName())) {
                 cand.select();
@@ -202,6 +380,27 @@ public class CapabilityConflictResolver implements CapabilitiesConflictHandler.R
             return this;
         }
 
+    }
+
+    interface ResolutionDetails {
+
+        /**
+         * The actual selected component.
+         */
+        ComponentState getSelected();
+
+        Collection<? extends Capability> getCapabilityVersions();
+        Collection<? extends CandidateDetails> getCandidates(Capability capability);
+        boolean hasResult();
+    }
+
+    interface CandidateDetails {
+        ComponentIdentifier getId();
+        String getVariantName();
+        void evict();
+        void select();
+        void reject();
+        void byReason(Describable description);
     }
 
 }
