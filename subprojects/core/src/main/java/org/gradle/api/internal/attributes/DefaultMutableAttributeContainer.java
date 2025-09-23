@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.attributes;
 
+import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.provider.DelegatingProviderWithValue;
@@ -202,8 +203,8 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
 
     @NonNull
     @Override
-    public ObjectFactory getObjectFactory() {
-        return objectFactory;
+    public <T extends Named> T named(Class<T> type, String name) {
+        return objectFactory.named(type, name);
     }
 
     @Override
