@@ -23,6 +23,7 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.io.StreamByteBuffer;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +35,9 @@ import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -277,10 +281,6 @@ class ExceptionPlaceholder implements Serializable {
         if (throwable instanceof MultiCauseException) {
             return ((MultiCauseException) throwable).getCauses();
         } else {
-            List<? extends Throwable> causes = tryExtractMultiCauses(throwable);
-            if (causes != null) {
-                return causes;
-            }
             Throwable causeTmp;
             try {
                 causeTmp = throwable.getCause();
@@ -288,6 +288,10 @@ class ExceptionPlaceholder implements Serializable {
                 // TODO:ADAM - switch the logging back on.
                 //                LOGGER.debug("Ignoring failure to extract throwable cause.", ignored);
                 causeTmp = null;
+            }
+            List<? extends Throwable> causes = tryExtractMultiCauses(throwable, causeTmp);
+            if (causes != null) {
+                return causes;
             }
             return causeTmp == null ? Collections.<Throwable>emptyList() : Collections.singletonList(causeTmp);
         }
@@ -299,11 +303,69 @@ class ExceptionPlaceholder implements Serializable {
             if (CANDIDATE_GET_CAUSES.contains(method.getName())) {
                 Class<?> returnType = method.getReturnType();
                 if (Collection.class.isAssignableFrom(returnType)) {
+                    // Try to ensure the method returns Collection<? extends Throwable>
+                    // If there's no generic information, we assume it is fine
+                    Type fullType = method.getGenericReturnType();
+                    if (fullType instanceof ParameterizedType) {
+                        ParameterizedType parameterizedType = (ParameterizedType) fullType;
+                        LoggerFactory.getLogger("aaaa").warn("Found parameterized type: {}", parameterizedType);
+                        if (isNotThrowableCollection(parameterizedType)) {
+                            continue;
+                        }
+                    }
                     return method;
                 }
             }
         }
         return null;
+    }
+
+    private static boolean isNotThrowableCollection(ParameterizedType parameterizedType) {
+        Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+        if (actualTypeArguments.length == 1) {
+            Type actualTypeArgument = actualTypeArguments[0];
+            if (actualTypeArgument instanceof Class) {
+                // Collection<Thing> for example
+                // actualTypeArgument is `Thing.class`
+                Class<?> actualClass = (Class<?>) actualTypeArgument;
+                return !Throwable.class.isAssignableFrom(actualClass);
+            } else if (actualTypeArgument instanceof ParameterizedType) {
+                // Collection<GenericThing<String>> for example
+                // actualTypeArgument is `GenericThing<String>`
+                // We only need to check the raw type, `GenericThing`
+                ParameterizedType actualParameterizedType = (ParameterizedType) actualTypeArgument;
+                Type rawType = actualParameterizedType.getRawType();
+                if (rawType instanceof Class) {
+                    Class<?> rawClass = (Class<?>) rawType;
+                    return !Throwable.class.isAssignableFrom(rawClass);
+                }
+            } else if (actualTypeArgument instanceof WildcardType) {
+                // Collection<? extends Thing> or Collection<? super Thing> for example
+                // actualTypeArgument is `? extends Thing` or `? super Thing`
+                // We ignore the lower bound as it's likely to be nothing
+                WildcardType wildcardType = (WildcardType) actualTypeArgument;
+                Type[] upperBounds = wildcardType.getUpperBounds();
+                for (Type upperBound : upperBounds) {
+                    if (upperBound instanceof Class) {
+                        Class<?> upperClass = (Class<?>) upperBound;
+                        if (!Throwable.class.isAssignableFrom(upperClass)) {
+                            return true;
+                        }
+                    } else if (upperBound instanceof ParameterizedType) {
+                        ParameterizedType upperParameterizedType = (ParameterizedType) upperBound;
+                        Type rawType = upperParameterizedType.getRawType();
+                        if (rawType instanceof Class) {
+                            Class<?> rawClass = (Class<?>) rawType;
+                            if (!Throwable.class.isAssignableFrom(rawClass)) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // By default, assume it is not a Throwable collection
+        return true;
     }
 
     /**
@@ -312,7 +374,7 @@ class ExceptionPlaceholder implements Serializable {
      * something similar to what we do in Gradle with {@link DefaultMultiCauseException}.
      * It is, in particular, the case for opentest4j.
      */
-    private static List<? extends Throwable> tryExtractMultiCauses(Throwable throwable) {
+    private static List<? extends Throwable> tryExtractMultiCauses(Throwable throwable, @Nullable Throwable singleCause) {
         Method causesMethod = findCandidateGetCausesMethod(throwable);
         if (causesMethod != null) {
             Collection<?> causes;
@@ -326,12 +388,20 @@ class ExceptionPlaceholder implements Serializable {
             if (causes == null) {
                 return null;
             }
+            boolean hasSingleCauseInList = false;
             for (Object cause : causes) {
                 if (!(cause instanceof Throwable)) {
                     return null;
                 }
+                if (cause == singleCause) {
+                    hasSingleCauseInList = true;
+                }
             }
-            List<Throwable> result = new ArrayList<Throwable>(causes.size());
+            boolean shouldAddSingleCause = !hasSingleCauseInList && singleCause != null;
+            List<Throwable> result = new ArrayList<>(causes.size() + (shouldAddSingleCause ? 1 : 0));
+            if (shouldAddSingleCause) {
+                result.add(singleCause);
+            }
             for (Object cause : causes) {
                 result.add(Cast.<Throwable>uncheckedCast(cause));
             }
