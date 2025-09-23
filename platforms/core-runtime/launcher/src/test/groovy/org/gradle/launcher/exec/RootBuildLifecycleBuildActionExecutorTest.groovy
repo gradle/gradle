@@ -34,16 +34,19 @@ class RootBuildLifecycleBuildActionExecutorTest extends Specification {
 
     def "fires events before and after build action is run"() {
         def listener = Mock(BuildTreeLifecycleListener)
-        def buildAction = Stub(BuildAction)
-        def buildActionRunner = Mock(BuildActionRunner)
-        def buildStateRegistry = Mock(BuildStateRegistry)
-        def projectParallelExecutionController = Mock(ProjectParallelExecutionController)
-        def rootBuildState = Mock(RootBuildState)
         def buildTreeLifecycleController = Mock(BuildTreeLifecycleController)
+        def rootBuildState = Mock(RootBuildState) {
+            run(_) >> { it[0].apply(buildTreeLifecycleController) } // just run the action with mock controller
+        }
+        def buildStateRegistry = Mock(BuildStateRegistry) {
+            createRootBuild(_) >> rootBuildState
+        }
+        def buildActionRunner = Mock(BuildActionRunner)
+        def buildAction = Stub(BuildAction)
 
         def executor = new RootBuildLifecycleBuildActionExecutor(
             Stub(BuildModelParameters),
-            projectParallelExecutionController,
+            Stub(ProjectParallelExecutionController),
             listener,
             Stub(InternalProblems),
             Stub(BuildOperationProgressEventEmitter),
@@ -57,16 +60,11 @@ class RootBuildLifecycleBuildActionExecutorTest extends Specification {
         executor.execute(buildAction)
 
         then:
-        1 * projectParallelExecutionController.startProjectExecution(_)
         1 * listener.afterStart()
-        1 * buildStateRegistry.createRootBuild(_) >> rootBuildState
-        1 * rootBuildState.run(_) >> { args ->
-            def action = args[0]
-            action.apply(buildTreeLifecycleController)
-        }
-        1 * buildActionRunner.run(buildAction, buildTreeLifecycleController)
+        then:
+        1 * buildActionRunner.run(buildAction, _)
+        then:
         1 * listener.beforeStop()
-        1 * projectParallelExecutionController.finishProjectExecution()
         0 * listener._
     }
 
