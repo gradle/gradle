@@ -641,6 +641,7 @@ Class <org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor> is not 
 Class <org.gradle.api.internal.tasks.testing.DefaultTestTaskReports> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultTestTaskReports.java:0)
 Class <org.gradle.api.internal.tasks.testing.FailFastTestListenerInternal> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (FailFastTestListenerInternal.java:0)
 Class <org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (JvmTestExecutionSpec.java:0)
+Class <org.gradle.api.internal.tasks.testing.OnlyClassBasedTestClassProcessor> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (OnlyClassBasedTestClassProcessor.java:0)
 Class <org.gradle.api.internal.tasks.testing.RequiresTestFrameworkTestClassProcessor$TestFrameworkNotAvailableException> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (RequiresTestFrameworkTestClassProcessor.java:0)
 Class <org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (SuiteTestClassProcessor.java:0)
 Class <org.gradle.api.internal.tasks.testing.TestClassLoaderFactory> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (TestClassLoaderFactory.java:0)

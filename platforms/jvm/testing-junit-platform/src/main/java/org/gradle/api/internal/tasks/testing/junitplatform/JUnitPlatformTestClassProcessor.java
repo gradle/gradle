@@ -108,6 +108,11 @@ public final class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClas
     }
 
     @Override
+    public void processTestDefinition(TestDefinition testDefinition) {
+        doProcessTestDefinition(testDefinition);
+    }
+
+    @Override
     public void stop() {
         if (startedProcessing) {
             testClassExecutor.processAllTestClasses();

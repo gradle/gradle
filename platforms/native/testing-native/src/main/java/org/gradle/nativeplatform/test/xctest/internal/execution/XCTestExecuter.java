@@ -16,8 +16,8 @@
 
 package org.gradle.nativeplatform.test.xctest.internal.execution;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
+import org.gradle.api.internal.tasks.testing.OnlyClassBasedTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
@@ -114,7 +114,7 @@ public abstract class XCTestExecuter implements TestExecuter<XCTestTestExecution
         }
     }
 
-    static class XCTestProcessor implements TestClassProcessor {
+    static class XCTestProcessor implements OnlyClassBasedTestClassProcessor {
         private TestResultProcessor resultProcessor;
         private ExecHandle execHandle;
         private final ClientExecHandleBuilder execHandleBuilder;
@@ -138,17 +138,13 @@ public abstract class XCTestExecuter implements TestExecuter<XCTestTestExecution
         }
 
         @Override
-        public void processTestDefinition(TestDefinition testDefinition) {
-            if (!(testDefinition instanceof ClassTestDefinition)) {
-                throw new GradleException(String.format("XCTest only supports class-based test definitions, not %s.", testDefinition.getClass().getName()));
-            }
-
+        public void processClassTestDefinition(ClassTestDefinition testDefinition) {
             Deque<XCTestDescriptor> testDescriptors = new ArrayDeque<XCTestDescriptor>();
             TextStream stdOut = new XCTestScraper(TestOutputEvent.Destination.StdOut, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors);
             TextStream stdErr = new XCTestScraper(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors);
 
             String lineSeparator = SystemProperties.getInstance().getLineSeparator();
-            execHandle = executeTest(((ClassTestDefinition)testDefinition).getTestClassName(), new LineBufferingOutputStream(stdOut, lineSeparator), new LineBufferingOutputStream(stdErr, lineSeparator));
+            execHandle = executeTest(testDefinition.getTestClassName(), new LineBufferingOutputStream(stdOut, lineSeparator), new LineBufferingOutputStream(stdErr, lineSeparator));
 
             try {
                 execHandle.start();

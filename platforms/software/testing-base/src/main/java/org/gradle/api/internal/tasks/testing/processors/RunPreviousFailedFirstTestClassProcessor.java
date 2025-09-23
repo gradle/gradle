@@ -34,8 +34,8 @@ public class RunPreviousFailedFirstTestClassProcessor implements TestClassProces
     private final Set<String> previousFailedTestClasses;
     private final Set<File> previousFailedTestDefinitionDirectories;
     private final TestClassProcessor delegate;
-    private final LinkedHashSet<TestDefinition> prioritizedTestClasses = new LinkedHashSet<>();
-    private final LinkedHashSet<TestDefinition> otherTestClasses = new LinkedHashSet<>();
+    private final LinkedHashSet<TestDefinition> prioritizedTestDefinitions = new LinkedHashSet<>();
+    private final LinkedHashSet<TestDefinition> otherTestDefinitions = new LinkedHashSet<>();
 
     public RunPreviousFailedFirstTestClassProcessor(Set<String> previousFailedTestClasses, Set<File> previousFailedTestDefinitionDirectories, TestClassProcessor delegate) {
         this.previousFailedTestClasses = previousFailedTestClasses;
@@ -49,20 +49,20 @@ public class RunPreviousFailedFirstTestClassProcessor implements TestClassProces
     }
 
     @Override
-    public void processTestDefinition(TestDefinition testClass) {
-        if (wasPreviouslyRun(testClass)) {
-            prioritizedTestClasses.add(testClass);
+    public void processTestDefinition(TestDefinition testDefinition) {
+        if (wasPreviouslyRun(testDefinition)) {
+            prioritizedTestDefinitions.add(testDefinition);
         } else {
-            otherTestClasses.add(testClass);
+            otherTestDefinitions.add(testDefinition);
         }
     }
 
     @Override
     public void stop() {
-        for (TestDefinition test : prioritizedTestClasses) {
+        for (TestDefinition test : prioritizedTestDefinitions) {
             delegate.processTestDefinition(test);
         }
-        for (TestDefinition test : otherTestClasses) {
+        for (TestDefinition test : otherTestDefinitions) {
             delegate.processTestDefinition(test);
         }
         delegate.stop();
