@@ -189,6 +189,7 @@ data class CIBuildModel(
                 specificBuilds =
                     listOf(
                         SpecificBuild.SmokeTestsMinJavaVersion,
+                        SpecificBuild.SantaTrackerSmokeTests,
                     ),
                 functionalTests =
                     listOf(
