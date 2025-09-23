@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
-import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
 import org.gradle.api.internal.capabilities.CapabilityInternal;
 
@@ -37,11 +37,11 @@ public interface CapabilitiesConflictHandler {
     boolean hasConflicts();
 
     /**
-     * Resolves next conflict and trigger provided action after the resolution.
+     * Resolves next conflict.
      *
      * Must be called only if {@link #hasConflicts()} returns true.
      */
-    void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction);
+    void resolveNextConflict();
 
     /**
      * Has the given capability been seen as a non-default capability on a node?
@@ -55,7 +55,13 @@ public interface CapabilitiesConflictHandler {
         Collection<NodeState> getImplicitCapabilityProviders();
     }
 
-    interface ResolutionDetails extends ConflictResolutionResult {
+    interface ResolutionDetails {
+
+        /**
+         * The actual selected component.
+         */
+        ComponentState getSelected();
+
         Collection<? extends Capability> getCapabilityVersions();
         Collection<? extends CandidateDetails> getCandidates(Capability capability);
         boolean hasResult();
