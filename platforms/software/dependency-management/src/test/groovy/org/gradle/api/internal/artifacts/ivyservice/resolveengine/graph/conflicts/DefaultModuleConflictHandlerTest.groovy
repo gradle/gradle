@@ -26,11 +26,11 @@ import spock.lang.Subject
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 
-class DefaultConflictHandlerTest extends Specification {
+class DefaultModuleConflictHandlerTest extends Specification {
 
     def resolver = Mock(ModuleConflictResolver)
     def replacements = Mock(ImmutableModuleReplacements)
-    @Subject handler = new DefaultConflictHandler(resolver, replacements)
+    @Subject handler = new DefaultModuleConflictHandler(resolver, replacements)
     def details = Mock(ConflictResolverDetails)
 
     def "registers unconflicted modules"() {

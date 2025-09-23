@@ -34,15 +34,15 @@ import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflictFactory.potentialConflict;
 
-public class DefaultConflictHandler implements ModuleConflictHandler {
+public class DefaultModuleConflictHandler implements ModuleConflictHandler {
 
-    private final static Logger LOGGER = Logging.getLogger(DefaultConflictHandler.class);
+    private final static Logger LOGGER = Logging.getLogger(DefaultModuleConflictHandler.class);
 
     private final ModuleConflictResolver<ComponentState> resolver;
     private final ConflictContainer<ModuleIdentifier, ComponentState> conflicts = new ConflictContainer<>();
     private final ImmutableModuleReplacements moduleReplacements;
 
-    public DefaultConflictHandler(ModuleConflictResolver<ComponentState> resolver, ImmutableModuleReplacements moduleReplacements) {
+    public DefaultModuleConflictHandler(ModuleConflictResolver<ComponentState> resolver, ImmutableModuleReplacements moduleReplacements) {
         this.resolver = resolver;
         this.moduleReplacements = moduleReplacements;
     }
