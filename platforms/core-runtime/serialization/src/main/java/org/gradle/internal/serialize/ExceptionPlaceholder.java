@@ -16,6 +16,8 @@
 
 package org.gradle.internal.serialize;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.reflect.TypeToken;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
@@ -37,7 +39,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -297,75 +298,26 @@ class ExceptionPlaceholder implements Serializable {
         }
     }
 
-    private static Method findCandidateGetCausesMethod(Throwable throwable) {
-        Method[] declaredMethods = throwable.getClass().getDeclaredMethods();
+    private static final Type THROWABLE_COLLECTION_TYPE = new TypeToken<Collection<? extends Throwable>>() {}.getType();
+
+    @VisibleForTesting
+    static Method findCandidateGetCausesMethod(Class<? extends Throwable> clazz) {
+        Method[] declaredMethods = clazz.getDeclaredMethods();
         for (Method method : declaredMethods) {
             if (CANDIDATE_GET_CAUSES.contains(method.getName())) {
                 Class<?> returnType = method.getReturnType();
                 if (Collection.class.isAssignableFrom(returnType)) {
-                    // Try to ensure the method returns Collection<? extends Throwable>
+                    // Try to ensure the method returns Collection<Throwable>
                     // If there's no generic information, we assume it is fine
-                    Type fullType = method.getGenericReturnType();
-                    if (fullType instanceof ParameterizedType) {
-                        ParameterizedType parameterizedType = (ParameterizedType) fullType;
-                        LoggerFactory.getLogger("aaaa").warn("Found parameterized type: {}", parameterizedType);
-                        if (isNotThrowableCollection(parameterizedType)) {
-                            continue;
-                        }
+                    TypeToken<?> returnTypeToken = TypeToken.of(clazz).method(method).getReturnType();
+                    if (returnTypeToken.getType() instanceof ParameterizedType && !returnTypeToken.isSubtypeOf(THROWABLE_COLLECTION_TYPE)) {
+                        continue;
                     }
                     return method;
                 }
             }
         }
         return null;
-    }
-
-    private static boolean isNotThrowableCollection(ParameterizedType parameterizedType) {
-        Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
-        if (actualTypeArguments.length == 1) {
-            Type actualTypeArgument = actualTypeArguments[0];
-            if (actualTypeArgument instanceof Class) {
-                // Collection<Thing> for example
-                // actualTypeArgument is `Thing.class`
-                Class<?> actualClass = (Class<?>) actualTypeArgument;
-                return !Throwable.class.isAssignableFrom(actualClass);
-            } else if (actualTypeArgument instanceof ParameterizedType) {
-                // Collection<GenericThing<String>> for example
-                // actualTypeArgument is `GenericThing<String>`
-                // We only need to check the raw type, `GenericThing`
-                ParameterizedType actualParameterizedType = (ParameterizedType) actualTypeArgument;
-                Type rawType = actualParameterizedType.getRawType();
-                if (rawType instanceof Class) {
-                    Class<?> rawClass = (Class<?>) rawType;
-                    return !Throwable.class.isAssignableFrom(rawClass);
-                }
-            } else if (actualTypeArgument instanceof WildcardType) {
-                // Collection<? extends Thing> or Collection<? super Thing> for example
-                // actualTypeArgument is `? extends Thing` or `? super Thing`
-                // We ignore the lower bound as it's likely to be nothing
-                WildcardType wildcardType = (WildcardType) actualTypeArgument;
-                Type[] upperBounds = wildcardType.getUpperBounds();
-                for (Type upperBound : upperBounds) {
-                    if (upperBound instanceof Class) {
-                        Class<?> upperClass = (Class<?>) upperBound;
-                        if (!Throwable.class.isAssignableFrom(upperClass)) {
-                            return true;
-                        }
-                    } else if (upperBound instanceof ParameterizedType) {
-                        ParameterizedType upperParameterizedType = (ParameterizedType) upperBound;
-                        Type rawType = upperParameterizedType.getRawType();
-                        if (rawType instanceof Class) {
-                            Class<?> rawClass = (Class<?>) rawType;
-                            if (!Throwable.class.isAssignableFrom(rawClass)) {
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        // By default, assume it is not a Throwable collection
-        return true;
     }
 
     /**
@@ -375,7 +327,7 @@ class ExceptionPlaceholder implements Serializable {
      * It is, in particular, the case for opentest4j.
      */
     private static List<? extends Throwable> tryExtractMultiCauses(Throwable throwable, @Nullable Throwable singleCause) {
-        Method causesMethod = findCandidateGetCausesMethod(throwable);
+        Method causesMethod = findCandidateGetCausesMethod(throwable.getClass());
         if (causesMethod != null) {
             Collection<?> causes;
             try {

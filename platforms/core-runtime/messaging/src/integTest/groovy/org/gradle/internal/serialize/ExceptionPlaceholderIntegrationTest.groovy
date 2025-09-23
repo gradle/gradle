@@ -287,7 +287,6 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
 
                 @Test
                 public void throwGCE() {
-                    Thread.dumpStack();
                     throw new ${GradleConnectionException.name}(
                         "An irrelevant message",
                         new ExceptionNotPresentOnTestRunnerClasspath("The real cause")
