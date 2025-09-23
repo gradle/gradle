@@ -39,15 +39,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * A resolver which will select a candidate when it's the last one available.
- */
-public class UserConfiguredCapabilityResolver implements CapabilitiesConflictHandler.Resolver {
+public class CapabilityConflictResolver implements CapabilitiesConflictHandler.Resolver {
 
     private final NotationParser<Object, ComponentIdentifier> componentNotationParser = new ComponentIdentifierParserFactory().create();
     private final ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> rules;
 
-    public UserConfiguredCapabilityResolver(ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> rules) {
+    public CapabilityConflictResolver(ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> rules) {
         this.rules = rules;
     }
 
