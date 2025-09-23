@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.api-java")
-}
+package org.gradle.problems.internal.rendering;
 
-description = "Problems API rendering infrastructure"
+import org.gradle.api.problems.internal.InternalProblem;
 
-dependencies {
-    api(projects.problemsApi)
+import java.io.PrintWriter;
 
-    compileOnly(libs.jspecify)
+/**
+ * Writes a part of a problem.
+ */
+interface PartialProblemWriter {
 
-    implementation(libs.guava)
-    implementation(projects.baseServices)
-
-    integTestImplementation(projects.internalTesting)
-    integTestImplementation(testFixtures(projects.logging))
-    integTestDistributionRuntimeOnly(projects.distributionsFull)
+    void write(InternalProblem problem, RenderOptions options, PrintWriter output);
 }
