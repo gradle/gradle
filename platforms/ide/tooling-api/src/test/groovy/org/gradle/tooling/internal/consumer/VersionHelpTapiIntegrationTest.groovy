@@ -21,8 +21,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import spock.lang.Specification
 
-// CodeNarc ignore: ByteArrayOutputStream is used in test methods
-import java.io.ByteArrayOutputStream
+import java.io.ByteArrayOutputStream // codenarc-disable-line UnnecessaryGroovyImport
 
 class VersionHelpTapiIntegrationTest extends Specification {
 

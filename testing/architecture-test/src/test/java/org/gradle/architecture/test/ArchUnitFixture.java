@@ -592,6 +592,10 @@ public interface ArchUnitFixture {
         if (codeSource == null) {
             return null;
         }
-        return Paths.get(codeSource.getLocation().getPath());
+        try {
+            return Paths.get(codeSource.getLocation().toURI());
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

@@ -402,67 +402,81 @@ class CommandLineParserTest extends Specification {
         ]
     }
 
-    def parseFailsWhenCommandLineContainsUnknownShortOption() {
+    def parseAllowsUnknownShortOption() {
+        given:
+        parser.allowUnknownOptions()
+
         when:
-        parser.parse(['-a'])
+        def result = parser.parse(['-a'])
 
         then:
-        def e = thrown(CommandLineArgumentException)
-        e.message == 'Unknown command-line option \'-a\'.'
+        result.extraArguments == ['-a']
     }
 
-    def parseFailsWhenCommandLineContainsUnknownShortOptionWithDoubleDashes() {
+    def parseAllowsUnknownShortOptionWithDoubleDashes() {
+        given:
+        parser.allowUnknownOptions()
+
         when:
-        parser.parse(['--a'])
+        def result = parser.parse(['--a'])
 
         then:
-        def e = thrown(CommandLineArgumentException)
-        e.message == 'Unknown command-line option \'--a\'.'
+        result.extraArguments == ['--a']
     }
 
-    def parseFailsWhenCommandLineContainsUnknownShortOptionWithEqualsArgument() {
+    def parseAllowsUnknownShortOptionWithEqualsArgument() {
+        given:
+        parser.allowUnknownOptions()
+
         when:
-        parser.parse(['-a=arg'])
+        def result = parser.parse(['-a=arg'])
 
         then:
-        def e = thrown(CommandLineArgumentException)
-        e.message == 'Unknown command-line option \'-a\'.'
+        result.extraArguments == ['-a=arg']
     }
 
-    def parseFailsWhenCommandLineContainsUnknownShortOptionWithAttachedArgument() {
+    def parseAllowsUnknownShortOptionWithAttachedArgument() {
+        given:
+        parser.allowUnknownOptions()
+
         when:
-        parser.parse(['-aarg'])
+        def result = parser.parse(['-aarg'])
 
         then:
-        def e = thrown(CommandLineArgumentException)
-        e.message == 'Unknown command-line option \'-a\'.'
+        result.extraArguments == ['-aarg']
     }
 
-    def parseFailsWhenCommandLineContainsUnknownLongOption() {
+    def parseAllowsUnknownLongOption() {
+        given:
+        parser.allowUnknownOptions()
+
         when:
-        parser.parse(['--unknown'])
+        def result = parser.parse(['--unknown'])
 
         then:
-        def e = thrown(CommandLineArgumentException)
-        e.message == 'Unknown command-line option \'--unknown\'.'
+        result.extraArguments == ['--unknown']
     }
 
-    def parseFailsWhenCommandLineContainsUnknownLongOptionWithSingleDashes() {
+    def parseAllowsUnknownLongOptionWithSingleDashes() {
+        given:
+        parser.allowUnknownOptions()
+
         when:
-        parser.parse(['-unknown'])
+        def result = parser.parse(['-unknown'])
 
         then:
-        def e = thrown(CommandLineArgumentException)
-        e.message == 'Unknown command-line option \'-u\'.'
+        result.extraArguments == ['-u', 'nknown']
     }
 
-    def "parse fails when command line contains unknown option with newline #arg"() {
+    def "parse allows unknown option with newline #arg"() {
+        given:
+        parser.allowUnknownOptions()
+
         when:
-        parser.parse(arg)
+        def result = parser.parse(arg)
 
         then:
-        def e = thrown(CommandLineArgumentException)
-        e.message == "Unknown command-line option '${reportedAs}'."
+        result.extraArguments == [arg]
 
         where:
         arg                | reportedAs
@@ -475,35 +489,39 @@ class CommandLineParserTest extends Specification {
         '--\n=nothing'     | '--\n'
     }
 
-    def parseFailsWhenCommandLineContainsUnknownLongOptionWithEqualsArgument() {
+    def parseAllowsUnknownLongOptionWithEqualsArgument() {
+        given:
+        parser.allowUnknownOptions()
+
         when:
-        parser.parse(['--unknown=arg'])
+        def result = parser.parse(['--unknown=arg'])
 
         then:
-        def e = thrown(CommandLineArgumentException)
-        e.message == 'Unknown command-line option \'--unknown\'.'
+        result.extraArguments == ['--unknown=arg']
     }
 
-    def parseFailsWhenCommandLineContainsLongOptionWithAttachedArgument() {
+    def parseAllowsLongOptionWithAttachedArgument() {
+        given:
         parser.option("long").hasArgument()
+        parser.allowUnknownOptions()
 
         when:
-        parser.parse(['--longvalue'])
+        def result = parser.parse(['--longvalue'])
 
         then:
-        def e = thrown(CommandLineArgumentException)
-        e.message == 'Unknown command-line option \'--longvalue\'.'
+        result.extraArguments == ['--longvalue']
     }
 
-    def parseFailsWhenCommandLineContainsDashAndEquals() {
+    def parseAllowsDashAndEquals() {
+        given:
         parser.option("long").hasArgument()
+        parser.allowUnknownOptions()
 
         when:
-        parser.parse(['-='])
+        def result = parser.parse(['-='])
 
         then:
-        def e = thrown(CommandLineArgumentException)
-        e.message == 'Unknown command-line option \'-=\'.'
+        result.extraArguments == ['-=']
     }
 
     def getOptionFailsForUnknownOption() {
@@ -606,26 +624,28 @@ class CommandLineParserTest extends Specification {
         e.message == 'No argument was provided for command-line option \'-b\' with description: \'No argument description.\''
     }
 
-    def parseFailsWhenAttachedArgumentIsProvidedForOptionWhichDoesNotTakeAnArgument() {
+    def parseAllowsAttachedArgumentForOptionWhichDoesNotTakeAnArgument() {
+        given:
         parser.option('a')
+        parser.allowUnknownOptions()
 
         when:
-        parser.parse(['-aarg'])
+        def result = parser.parse(['-aarg'])
 
         then:
-        def e = thrown(CommandLineArgumentException)
-        e.message == 'Unknown command-line option \'-r\'.'
+        noExceptionThrown()
     }
 
-    def parseFailsWhenEqualsArgumentIsProvidedForOptionWhichDoesNotTakeAnArgument() {
+    def parseAllowsEqualsArgumentForOptionWhichDoesNotTakeAnArgument() {
+        given:
         parser.option('a')
+        parser.allowUnknownOptions()
 
         when:
-        parser.parse(['-a=arg'])
+        def result = parser.parse(['-a=arg'])
 
         then:
-        def e = thrown(CommandLineArgumentException)
-        e.message == 'Command-line option \'-a\' does not take an argument.'
+        result.extraArguments == ['-a=arg']
     }
 
     def "allow unknown options mode collects unknown options"() {

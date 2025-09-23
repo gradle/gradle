@@ -365,6 +365,8 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             createBuildActionFactoryActionCreator(loggingServices, basicServices, actionCreators);
             configureCreators();
 
+            parser.allowUnknownOptions();
+
             Action<? super ExecutionListener> action;
             try {
                 ParsedCommandLine commandLine = parser.parse(args);

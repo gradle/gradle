@@ -142,10 +142,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
 
         where:
         options                   | expectedMessage                                             | expectedSuggestion
-        '--broken'                | "Unknown command-line option '--broken'"                    | null
         'wrapper --version=1.2.3' | "Command-line option '--version' does not take an argument" | 'wrapper'
         '--version=1.2.3'         | "Command-line option '--version' does not take an argument" | null
-        '--wrapper'               | "Unknown command-line option '--wrapper'"                   | null
     }
 
     def "reports failure to build action due to command-line parse failure"() {

@@ -19,8 +19,7 @@ package org.gradle.tooling.internal.consumer.connection
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import spock.lang.Specification
 
-// CodeNarc ignore: ByteArrayOutputStream is used in test methods
-import java.io.ByteArrayOutputStream
+import java.io.ByteArrayOutputStream // codenarc-disable-line UnnecessaryGroovyImport
 
 class VersionHelpConsumerActionExecutorTest extends Specification {
     final ConsumerOperationParameters params = Mock()
