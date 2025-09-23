@@ -55,6 +55,8 @@ public class RootBuildLifecycleBuildActionExecutor {
     private final BuildActionRunner buildActionRunner;
     private final BuildStateRegistry buildStateRegistry;
 
+    private boolean executed;
+
     public RootBuildLifecycleBuildActionExecutor(
         BuildModelParameters buildModelParameters,
         ProjectParallelExecutionController projectParallelExecutionController,
@@ -83,6 +85,11 @@ public class RootBuildLifecycleBuildActionExecutor {
      * When this method returns, all user code will have been completed, including 'build finished' hooks.
      */
     public BuildActionRunner.Result execute(BuildAction action) {
+        if (executed) {
+            throw new IllegalStateException("Cannot execute a root build action more than once per build tree.");
+        }
+        executed = true;
+
         projectParallelExecutionController.startProjectExecution(buildModelParameters.isParallelProjectExecution());
         try {
             lifecycleListener.afterStart();
