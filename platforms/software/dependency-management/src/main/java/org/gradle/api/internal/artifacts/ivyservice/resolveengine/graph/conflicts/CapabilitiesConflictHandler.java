@@ -15,14 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
-import org.gradle.api.Describable;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
 import org.gradle.api.internal.capabilities.CapabilityInternal;
 
 import java.util.Collection;
+import java.util.Set;
 
 public interface CapabilitiesConflictHandler {
 
@@ -55,29 +53,11 @@ public interface CapabilitiesConflictHandler {
         Collection<NodeState> getImplicitCapabilityProviders();
     }
 
-    interface ResolutionDetails {
+    interface CapabilityConflict {
 
-        /**
-         * The actual selected component.
-         */
-        ComponentState getSelected();
+        Set<NodeState> getNodes();
+        Set<Capability> getDescriptors();
 
-        Collection<? extends Capability> getCapabilityVersions();
-        Collection<? extends CandidateDetails> getCandidates(Capability capability);
-        boolean hasResult();
-    }
-
-    interface CandidateDetails {
-        ComponentIdentifier getId();
-        String getVariantName();
-        void evict();
-        void select();
-        void reject();
-        void byReason(Describable description);
-    }
-
-    interface Resolver {
-        void resolve(ResolutionDetails details);
     }
 
 }
