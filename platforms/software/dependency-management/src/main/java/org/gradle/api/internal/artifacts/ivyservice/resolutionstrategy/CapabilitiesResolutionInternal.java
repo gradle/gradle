@@ -15,9 +15,50 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.CapabilitiesResolution;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
+import org.gradle.api.artifacts.CapabilityResolutionDetails;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
+import org.jspecify.annotations.Nullable;
 
+/**
+ * Internal counterpart to {@link CapabilitiesResolution}.
+ */
 public interface CapabilitiesResolutionInternal extends CapabilitiesResolution {
-    void apply(CapabilitiesConflictHandler.ResolutionDetails details);
+
+    ImmutableList<CapabilityResolutionRule> getRules();
+
+    /**
+     * An action that may resolve a capability conflict.
+     */
+    final class CapabilityResolutionRule {
+
+        private final @Nullable ImmutableCapability capability;
+        private final Action<? super CapabilityResolutionDetails> action;
+
+        public CapabilityResolutionRule(
+            @Nullable ImmutableCapability capability,
+            Action<? super CapabilityResolutionDetails> action
+        ) {
+            this.capability = capability;
+            this.action = action;
+        }
+
+        /**
+         * Get the capability that this action applies to, or null if it applies to all capabilities.
+         */
+        public @Nullable ImmutableCapability getTargetCapability() {
+            return capability;
+        }
+
+        /**
+         * The action to apply.
+         */
+        public Action<? super CapabilityResolutionDetails> getAction() {
+            return action;
+        }
+
+    }
+
 }
