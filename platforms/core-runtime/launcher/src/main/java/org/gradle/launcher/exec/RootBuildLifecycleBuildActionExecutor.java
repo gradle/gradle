@@ -84,15 +84,18 @@ public class RootBuildLifecycleBuildActionExecutor {
      */
     public BuildActionRunner.Result execute(BuildAction action) {
         projectParallelExecutionController.startProjectExecution(buildModelParameters.isParallelProjectExecution());
-        lifecycleListener.afterStart();
         try {
-            ProblemsProgressEventEmitterHolder.init(problemsService);
-            initDeprecationLogging();
-            maybeNagOnDeprecatedJavaRuntimeVersion();
-            RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null));
-            return rootBuild.run(buildController -> buildActionRunner.run(action, buildController));
+            lifecycleListener.afterStart();
+            try {
+                ProblemsProgressEventEmitterHolder.init(problemsService);
+                initDeprecationLogging();
+                maybeNagOnDeprecatedJavaRuntimeVersion();
+                RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null));
+                return rootBuild.run(buildController -> buildActionRunner.run(action, buildController));
+            } finally {
+                lifecycleListener.beforeStop();
+            }
         } finally {
-            lifecycleListener.beforeStop();
             projectParallelExecutionController.finishProjectExecution();
         }
     }
