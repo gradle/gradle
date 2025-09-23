@@ -40,6 +40,7 @@ class BuildModelParametersProviderTest extends Specification {
             configurationCacheParallelStore: false,
             configurationCacheParallelLoad: true,
             isolatedProjects: false,
+            isolatedProjectsDiagnostics: false,
             parallelProjectConfiguration: false,
             parallelToolingApiActions: false,
             intermediateModelCache: false,
@@ -73,6 +74,7 @@ class BuildModelParametersProviderTest extends Specification {
             configurationCacheParallelStore: true,
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
+            isolatedProjectsDiagnostics: false,
             parallelProjectConfiguration: true,
             parallelToolingApiActions: true,
             intermediateModelCache: models,
@@ -106,6 +108,7 @@ class BuildModelParametersProviderTest extends Specification {
             configurationCacheParallelStore: true,
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
+            isolatedProjectsDiagnostics: false,
             parallelProjectConfiguration: true,
             parallelToolingApiActions: true,
             intermediateModelCache: models,
@@ -148,6 +151,7 @@ class BuildModelParametersProviderTest extends Specification {
             configurationCacheParallelStore: ipParallelExpected,
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
+            isolatedProjectsDiagnostics: false,
             parallelProjectConfiguration: ipParallelExpected,
             parallelToolingApiActions: ipParallelExpected,
             intermediateModelCache: models,
@@ -190,6 +194,7 @@ class BuildModelParametersProviderTest extends Specification {
             configurationCacheParallelStore: true,
             configurationCacheParallelLoad: true,
             isolatedProjects: true,
+            isolatedProjectsDiagnostics: false,
             parallelProjectConfiguration: true,
             parallelToolingApiActions: true,
             intermediateModelCache: ipCachingExpected,
@@ -222,6 +227,42 @@ class BuildModelParametersProviderTest extends Specification {
 
         where:
         value << ['true', 'tasks']
+    }
+
+    def "parameters when isolated projects diagnostics are enabled for #description"() {
+        given:
+        def params = parameters(runsTasks: tasks, createsModel: models) {
+            isolatedProjects = Option.Value.value(true)
+            setIsolatedProjectsDiagnostics(true)
+            systemPropertiesArgs[BuildModelParametersProvider.isolatedProjectsParallel.systemPropertyName] = "true"
+            systemPropertiesArgs[BuildModelParametersProvider.isolatedProjectsCaching.systemPropertyName] = "tooling"
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), [
+            requiresToolingModels: models,
+            configureOnDemand: false,
+            parallelProjectExecution: false,
+            configurationCache: true,
+            configurationCacheParallelStore: false,
+            configurationCacheParallelLoad: true,
+            isolatedProjects: true,
+            isolatedProjectsDiagnostics: true,
+            parallelProjectConfiguration: false,
+            parallelToolingApiActions: false,
+            intermediateModelCache: false,
+            invalidateCoupledProjects: true,
+            modelAsProjectDependency: true,
+            resilientModelBuilding: false
+        ])
+
+        where:
+        tasks | models
+        true  | false
+        false | true
+        true  | true
+
+        description = tasks && models ? "running tasks and building models" : (tasks ? 'running tasks' : 'building models')
     }
 
     private BuildModelParameters parameters(
