@@ -216,6 +216,7 @@ data class CIBuildModel(
                 specificBuilds =
                     listOf(
                         SpecificBuild.TestPerformanceTest,
+                        SpecificBuild.SantaTrackerSmokeTests,
                     ),
                 functionalTests =
                     listOf(
