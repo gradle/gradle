@@ -16,9 +16,11 @@
 
 package org.gradle.testing.spock
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
-class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec {
+class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec implements VerifiesGenericTestReportResults {
 
     def setup() {
         def testBody = """
@@ -80,12 +82,11 @@ class Spock2FilteringIntegrationTest extends Spock2IntegrationSpec {
         succeeds("test", "--tests", "SubClass.$testMethod")
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted("SubClass")
-            .testClass("SubClass")
-            .assertTestCount(2, 0)
-            .assertTestPassed("$testMethod [param: value1, #0]")
-            .assertTestPassed("$testMethod [param: value2, #1]")
+        GenericTestExecutionResult testResult = resultsFor("tests/test")
+        def subClass = testResult.testPath("SubClass")
+        subClass.onlyRoot().assertChildCount(1, 0)
+        def subunrolled = testResult.testPath("SubClass:$testMethod")
+        subunrolled.onlyRoot().assertChildCount(2, 0)
 
         where:
         testMethod << ["sub unrolled test", "super unrolled test", "super super unrolled test"]
