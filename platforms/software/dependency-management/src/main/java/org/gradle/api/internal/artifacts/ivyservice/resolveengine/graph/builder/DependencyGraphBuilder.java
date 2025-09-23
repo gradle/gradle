@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
@@ -134,7 +135,7 @@ public class DependencyGraphBuilder {
         ImmutableModuleReplacements moduleReplacements,
         DependencySubstitutionApplicator dependencySubstitutionApplicator,
         ModuleConflictResolver<ComponentState> moduleConflictResolver,
-        List<CapabilitiesConflictHandler.Resolver> capabilityConflictResolvers,
+        ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> capabilityResolutionRules,
         ConflictResolution conflictResolution,
         boolean failingOnDynamicVersions,
         boolean failingOnChangingVersions,
@@ -161,7 +162,7 @@ public class DependencyGraphBuilder {
             syntheticDependencies,
             moduleConflictResolver,
             moduleReplacements,
-            capabilityConflictResolvers,
+            capabilityResolutionRules,
             variantSelector
         );
 

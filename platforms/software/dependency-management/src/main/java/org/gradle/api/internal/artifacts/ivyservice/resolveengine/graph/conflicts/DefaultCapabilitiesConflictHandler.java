@@ -22,6 +22,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveState;
@@ -46,7 +47,8 @@ import static java.util.Collections.emptySet;
 
 public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictHandler {
 
-    private final List<Resolver> resolvers;
+    private final LastCandidateCapabilityResolver lastCandidateResolver;
+    private final UserConfiguredCapabilityResolver userConfiguredResolver;
     private final ResolveState resolveState;
 
     /**
@@ -56,8 +58,9 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
     private final Deque<String> conflicts = new ArrayDeque<>();
 
-    public DefaultCapabilitiesConflictHandler(List<Resolver> resolvers, ResolveState resolveState) {
-        this.resolvers = resolvers;
+    public DefaultCapabilitiesConflictHandler(ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> capabilityResolutionRules, ResolveState resolveState) {
+        this.lastCandidateResolver = new LastCandidateCapabilityResolver();
+        this.userConfiguredResolver = new UserConfiguredCapabilityResolver(capabilityResolutionRules);
         this.resolveState = resolveState;
     }
 
@@ -137,30 +140,27 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         // We should treat this conflict as a version conflict.
 
         Details details = new Details(conflict);
-        for (Resolver resolver : resolvers) {
-            resolver.resolve(details);
-            if (details.hasResult()) {
-                // Visit the winning module first so that when we visit unattached dependencies of
-                // losing modules, the winning module always has a selected component.
-                Set<ModuleIdentifier> seen = new HashSet<>();
-                ModuleIdentifier winningModule = details.getSelected().getModule().getId();
-                resolveState.getModule(winningModule).replaceWith(details.getSelected());
-                seen.add(winningModule);
 
-                for (NodeState node : details.conflict.nodes) {
-                    ModuleIdentifier module = node.getComponent().getModule().getId();
-                    if (seen.add(module)) {
-                        resolveState.getModule(module).replaceWith(details.getSelected());
-                    }
-                }
+        // Candidates that are no longer selected are filtered out before these resolvers are executed.
+        // If there is only one candidate at the beginning of conflict resolution, select that candidate.
+        lastCandidateResolver.resolve(details);
+        if (details.hasResult()) {
+            applyConflictResolution(details, conflict);
+            return;
+        }
 
-                if (conflict.nodes.size() > 1) {
-                    assert details.reason != null;
-                    details.getSelected().addCause(ComponentSelectionReasons.CONFLICT_RESOLUTION.withDescription(details.reason));
-                }
+        // Otherwise, let the user resolvers reject candidates.
+        userConfiguredResolver.resolve(details);
+        if (details.hasResult()) {
+            applyConflictResolution(details, conflict);
+            return;
+        }
 
-                return;
-            }
+        // If there is one candidate left after the user resolvers are executed, select that candidate.
+        lastCandidateResolver.resolve(details);
+        if (details.hasResult()) {
+            applyConflictResolution(details, conflict);
+            return;
         }
 
         // Otherwise, reject all remaining candidates.
@@ -173,6 +173,27 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                     candidate.reject();
                 }
             }
+        }
+    }
+
+    private void applyConflictResolution(Details details, CapabilityConflict conflict) {
+        // Visit the winning module first so that when we visit unattached dependencies of
+        // losing modules, the winning module always has a selected component.
+        Set<ModuleIdentifier> seen = new HashSet<>();
+        ModuleIdentifier winningModule = details.getSelected().getModule().getId();
+        resolveState.getModule(winningModule).replaceWith(details.getSelected());
+        seen.add(winningModule);
+
+        for (NodeState node : details.conflict.nodes) {
+            ModuleIdentifier module = node.getComponent().getModule().getId();
+            if (seen.add(module)) {
+                resolveState.getModule(module).replaceWith(details.getSelected());
+            }
+        }
+
+        if (conflict.nodes.size() > 1) {
+            assert details.reason != null;
+            details.getSelected().addCause(ComponentSelectionReasons.CONFLICT_RESOLUTION.withDescription(details.reason));
         }
     }
 
