@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
@@ -34,7 +35,7 @@ import spock.lang.Specification
 class DefaultCapabilitiesConflictHandlerTest extends Specification {
 
     ResolveState resolveState = Mock(ResolveState)
-    DefaultCapabilitiesConflictHandler handler = new DefaultCapabilitiesConflictHandler([], resolveState)
+    DefaultCapabilitiesConflictHandler handler = new DefaultCapabilitiesConflictHandler(ImmutableList.of(), resolveState)
 
     private long id
 

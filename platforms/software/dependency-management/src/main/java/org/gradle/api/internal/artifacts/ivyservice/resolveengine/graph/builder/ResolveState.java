@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
@@ -32,6 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
@@ -121,7 +123,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         List<? extends DependencyMetadata> syntheticDependencies,
         ModuleConflictResolver<ComponentState> moduleConflictResolver,
         ImmutableModuleReplacements moduleReplacements,
-        List<CapabilitiesConflictHandler.Resolver> capabilityConflictResolvers,
+        ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> capabilityResolutionRules,
         GraphVariantSelector variantSelector
     ) {
         this.idGenerator = idGenerator;
@@ -142,7 +144,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         this.variantSelector = variantSelector;
 
         this.moduleConflictHandler = new DefaultModuleConflictHandler(moduleConflictResolver, moduleReplacements, this);
-        this.capabilitiesConflictHandler = new DefaultCapabilitiesConflictHandler(capabilityConflictResolvers, this);
+        this.capabilitiesConflictHandler = new DefaultCapabilitiesConflictHandler(capabilityResolutionRules, this);
 
         ModuleVersionIdentifier rootModuleVersionId = rootComponentState.getModuleVersionId();
         ComponentIdentifier rootComponentId = rootComponentState.getId();
