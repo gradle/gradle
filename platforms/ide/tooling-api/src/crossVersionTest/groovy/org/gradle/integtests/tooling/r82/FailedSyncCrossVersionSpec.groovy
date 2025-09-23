@@ -111,8 +111,8 @@ class FailedSyncCrossVersionSpec extends ToolingApiSpecification {
         model.paths == [":", ":included"]
         matchesScriptModels(model,
                 Pair.of("settings.gradle.kts", emptyList()),
-                // Pair.of("included/settings.gradle.kts", emptyList()), // TODO
-                // Pair.of("included/build.gradle.kts", Collections.singletonList(".*Build file.*build\\.gradle\\.kts.*Script compilation error.*")), // TODO
+                Pair.of("included/settings.gradle.kts", emptyList()),
+                Pair.of("included/build.gradle.kts", Collections.singletonList(".*Build file.*build\\.gradle\\.kts.*Script compilation error.*")),
         )
     }
 
@@ -187,7 +187,11 @@ class FailedSyncCrossVersionSpec extends ToolingApiSpecification {
         @Override
         MyCustomModel execute(BuildController controller) {
             GradleBuild build = controller.getModel(GradleBuild.class)
+
+            Map<File, KotlinDslScriptModel> scriptModels = new HashMap<>()
+
             KotlinDslScriptsModel buildScriptModel = controller.getModel(KotlinDslScriptsModel.class)
+            scriptModels.putAll(buildScriptModel.scriptModels)
 
             def paths = Stream.concat(Stream.of(build), build.includedBuilds.stream())
                 .flatMap(b -> b.projects.stream())
@@ -198,9 +202,15 @@ class FailedSyncCrossVersionSpec extends ToolingApiSpecification {
                 project.projectIdentifier
             }
 
+            def includedBuilds = build.getIncludedBuilds()
+            for (GradleBuild includedBuild : includedBuilds) {
+                KotlinDslScriptsModel includedBuildScriptModel = controller.getModel(includedBuild, KotlinDslScriptsModel.class)
+                scriptModels.putAll(includedBuildScriptModel.scriptModels)
+            }
+
             // Build your custom model
             return new MyCustomModel(
-                buildScriptModel.scriptModels,
+                scriptModels,
                 identifier,
                 paths
             )
