@@ -83,6 +83,8 @@ class FailedSyncCrossVersionSpec extends ToolingApiSpecification {
                 Pair.of("settings.gradle.kts", emptyList()),
                 Pair.of("build.gradle.kts", Collections.singletonList(".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
         )
+
+        // TODO: if a plugin is applied in the broken build file, do the classpaths in the script models reflect that (ie. contain plugin classes?)
     }
 
     def "basic build w/ included build - broken build file in included build"() {
@@ -114,7 +116,13 @@ class FailedSyncCrossVersionSpec extends ToolingApiSpecification {
                 Pair.of("included/settings.gradle.kts", emptyList()),
                 Pair.of("included/build.gradle.kts", Collections.singletonList(".*Build file.*build\\.gradle\\.kts.*Script compilation error.*")),
         )
+
+        // TODO: if a plugin is applied in the broken build file, do the classpaths in the script models reflect that (ie. contain plugin classes?)
     }
+
+    // TODO: different tests for a build file blowing up in the body or in the plugins block
+
+    // TODO: what if there is a convention plugin blowing up?
 
     def "basic build w/ included build - broken settings and build file in included build"() {
         given:
