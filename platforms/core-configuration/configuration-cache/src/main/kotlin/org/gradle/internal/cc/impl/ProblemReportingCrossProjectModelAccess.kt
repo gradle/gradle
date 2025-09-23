@@ -81,6 +81,7 @@ internal
 class ProblemReportingCrossProjectModelAccess(
     private val delegate: CrossProjectModelAccess,
     private val problems: ProblemsListener,
+    private val ipProblems: IsolatedProjectsProblems,
     private val coupledProjectsListener: CoupledProjectsListener,
     private val problemFactory: ProblemFactory,
     private val dynamicCallProblemReporting: DynamicCallProblemReporting,
@@ -130,7 +131,7 @@ class ProblemReportingCrossProjectModelAccess(
     override fun parentProjectDynamicInheritedScope(referrerProject: ProjectInternal): DynamicObject? {
         val parent = referrerProject.parent ?: return null
         return CrossProjectModelAccessTrackingParentDynamicObject(
-            parent, parent.inheritedScope, referrerProject, problems, coupledProjectsListener, problemFactory, dynamicCallProblemReporting
+            parent, parent.inheritedScope, referrerProject, ipProblems, coupledProjectsListener, problemFactory, dynamicCallProblemReporting
         )
     }
 
@@ -140,7 +141,7 @@ class ProblemReportingCrossProjectModelAccess(
         access: CrossProjectModelAccessInstance,
         instantiator: Instantiator
     ): ProjectInternal = MutableStateAccessAwareProject.wrap(this, referrer) {
-        instantiator.newInstance(ProblemReportingProject::class.java, this, referrer, access, problems, coupledProjectsListener, problemFactory, buildModelParameters, dynamicCallProblemReporting)
+        instantiator.newInstance(ProblemReportingProject::class.java, this, referrer, access, ipProblems, coupledProjectsListener, problemFactory, buildModelParameters, dynamicCallProblemReporting)
     }
 
     @Suppress("LargeClass")
@@ -148,7 +149,7 @@ class ProblemReportingCrossProjectModelAccess(
         delegate: ProjectInternal,
         referrer: ProjectInternal,
         private val access: CrossProjectModelAccessInstance,
-        private val problems: ProblemsListener,
+        private val ipProblems: IsolatedProjectsProblems,
         private val coupledProjectsListener: CoupledProjectsListener,
         private val problemFactory: ProblemFactory,
         private val buildModelParameters: BuildModelParameters,
@@ -560,7 +561,7 @@ class ProblemReportingCrossProjectModelAccess(
                 .exception()
                 .build()
 
-            problems.onProblem(problem)
+            ipProblems.onProblem(problem)
         }
 
         private

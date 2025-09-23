@@ -21,15 +21,28 @@ import org.gradle.internal.cc.impl.fixtures.AbstractConfigurationCacheOptInFeatu
 import static org.gradle.initialization.StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME
 
 abstract class AbstractIsolatedProjectsIntegrationTest extends AbstractConfigurationCacheOptInFeatureIntegrationTest {
-    public static final String ENABLE_CLI = "-D${PROPERTY_NAME}=true"
+    public static final String WARN_CLI = "-D${PROPERTY_NAME}=warn"
+    public static final String ENABLE_CLI = "-D${PROPERTY_NAME}=enabled"
     final def fixture = new IsolatedProjectsFixture(this)
+
+    void withIsolatedProjectsWarnOnly(String... moreExecuterArgs) {
+        executer.withArgument(WARN_CLI, *moreExecuterArgs)
+    }
 
     void withIsolatedProjects(String... moreExecuterArgs) {
         executer.withArgument(ENABLE_CLI, *moreExecuterArgs)
     }
 
+    void isolatedProjectsWarnOnlyRun(String... tasks) {
+        run(WARN_CLI, *tasks)
+    }
+
     void isolatedProjectsRun(String... tasks) {
         run(ENABLE_CLI, *tasks)
+    }
+
+    void isolatedProjectsWarnOnlyFails(String... tasks) {
+        fails(WARN_CLI, *tasks)
     }
 
     void isolatedProjectsFails(String... tasks) {

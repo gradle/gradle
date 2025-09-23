@@ -483,16 +483,36 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
-    public static class IsolatedProjectsOption extends BooleanBuildOption<StartParameterInternal> {
+    public static class IsolatedProjectsOption extends EnumBuildOption<IsolatedProjectsOption.Mode, StartParameterInternal> {
         public static final String PROPERTY_NAME = "org.gradle.unsafe.isolated-projects";
 
+        public enum Mode {
+            /**
+             * Isolated projects are disabled. This is the default.
+             */
+            DISABLED,
+            /**
+             * Isolated projects are disabled, but a warning is logged if APIs that are known to be incompatible with isolated projects are used.
+             */
+            WARN,
+            /**
+             * Isolated projects are enabled. Warnings from "warn" mode may become errors or have different behavior.
+             */
+            ENABLED,
+        }
+
         public IsolatedProjectsOption() {
-            super(PROPERTY_NAME);
+            super(
+                PROPERTY_NAME,
+                Mode.class,
+                Mode.values(),
+                PROPERTY_NAME
+            );
         }
 
         @Override
-        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setIsolatedProjects(Option.Value.value(value));
+        public void applyTo(Mode value, StartParameterInternal settings, Origin origin) {
+            settings.setIsolatedProjects(value);
         }
     }
 

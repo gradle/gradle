@@ -21,7 +21,7 @@ import org.gradle.api.Task
 
 interface ProblemsListener {
 
-    fun onProblem(problem: PropertyProblem)
+    fun onProblem(problem: PropertyProblem, interrupting: Boolean = false)
 
     fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder)
 

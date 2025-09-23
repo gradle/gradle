@@ -20,7 +20,6 @@ import groovy.lang.MissingMethodException
 import groovy.lang.MissingPropertyException
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.configuration.problems.ProblemFactory
-import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.metaobject.DynamicInvokeResult
@@ -33,7 +32,7 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
     private val ownerProject: ProjectInternal,
     private val delegate: DynamicObject,
     private val referrerProject: ProjectInternal,
-    private val problems: ProblemsListener,
+    private val ipProblems: IsolatedProjectsProblems,
     private val coupledProjectsListener: CoupledProjectsListener,
     private val problemFactory: ProblemFactory,
     private val dynamicCallProblemReporting: DynamicCallProblemReporting
@@ -140,7 +139,7 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
                 }
                 .exception()
                 .build()
-            problems.onProblem(problem)
+            ipProblems.onProblem(problem)
         }
     }
 
