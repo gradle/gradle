@@ -35,7 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     protected static final NATIVE_PLATFORM_BINARIES = 16
-    protected static final THIRD_PARTY_LIB_COUNT = 112
+    protected static final THIRD_PARTY_LIB_COUNT = 113
 
     @Shared
     String baseVersion = GradleVersion.current().baseVersion.version

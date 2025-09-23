@@ -176,6 +176,7 @@ dependencies {
         api(libs.trove4j)               { version { strictly("1.0.20200330") }}
         api(libs.jna)                   { version { strictly(jnaVersion) }}
         api(libs.jnaPlatform)           { version { strictly(jnaVersion) }}
+        api(libs.jnrConstants)          { version { strictly("0.10.4") } }
 
         // TODO upgrade this AGP version to recent version
         api(libs.agp)                   { version { strictly("3.0.0"); because("We use 3.0.0 for internal performance test") }}
