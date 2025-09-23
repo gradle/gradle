@@ -85,21 +85,22 @@ object BuildModelParametersProvider {
         val requiresModels = requirements.isCreatesModel
 
         val isolatedProjects = startParameter.isolatedProjects.get()
+        val isolatedProjectsDiagnostics = startParameter.isIsolatedProjectsDiagnostics
         val configureOnDemand =
-            if (isolatedProjects) isolatedProjectsConfigureOnDemand.forInvocation(requirements, options)
+            if (isolatedProjects) !isolatedProjectsDiagnostics && isolatedProjectsConfigureOnDemand.forInvocation(requirements, options)
             else !requiresModels && startParameter.isConfigureOnDemand
 
         // --parallel
         val vintageParallel = requirements.startParameter.isParallelProjectExecutionEnabled
         val parallelIsolatedProjectsAllowed = isolatedProjectsParallel.forInvocation(requirements, options)
-        val parallelProjectConfiguration = isolatedProjects && parallelIsolatedProjectsAllowed
+        val parallelProjectConfiguration = isolatedProjects && !isolatedProjectsDiagnostics && parallelIsolatedProjectsAllowed
         val parallelProjectExecution =
-            if (isolatedProjects) parallelIsolatedProjectsAllowed
+            if (isolatedProjects) !isolatedProjectsDiagnostics && parallelIsolatedProjectsAllowed
             else vintageParallel
 
         // Isolated projects without parallelism must be safe, so we ignore the Parallel CC flag
         val parallelConfigurationCacheStore =
-            if (isolatedProjects) parallelIsolatedProjectsAllowed && options[configurationCacheParallelStore]
+            if (isolatedProjects) !isolatedProjectsDiagnostics && parallelIsolatedProjectsAllowed && options[configurationCacheParallelStore]
             else startParameter.isConfigurationCacheParallel && options[configurationCacheParallelStore]
         // Parallel load is always safe, as opposed to parallel store
         val parallelConfigurationCacheLoad = options[configurationCacheParallelLoad]
@@ -120,8 +121,9 @@ object BuildModelParametersProvider {
                 configurationCacheParallelStore = parallelConfigurationCacheStore,
                 configurationCacheParallelLoad = parallelConfigurationCacheLoad,
                 isolatedProjects = isolatedProjects,
+                isolatedProjectsDiagnostics = isolatedProjectsDiagnostics,
                 parallelProjectConfiguration = parallelProjectConfiguration,
-                intermediateModelCache = isolatedProjects && options[isolatedProjectsCaching].buildingModels,
+                intermediateModelCache = isolatedProjects && !isolatedProjectsDiagnostics && options[isolatedProjectsCaching].buildingModels,
                 parallelToolingApiActions = parallelToolingActions,
                 invalidateCoupledProjects = invalidateCoupledProjects,
                 modelAsProjectDependency = modelAsProjectDependency,
@@ -140,6 +142,7 @@ object BuildModelParametersProvider {
                     configurationCacheParallelStore = false,
                     configurationCacheParallelLoad = false,
                     isolatedProjects = false,
+                    isolatedProjectsDiagnostics = false,
                     parallelProjectConfiguration = parallelProjectConfiguration,
                     intermediateModelCache = false,
                     parallelToolingApiActions = parallelToolingActions,
@@ -162,6 +165,7 @@ object BuildModelParametersProvider {
                     configurationCacheParallelStore = parallelConfigurationCacheStore,
                     configurationCacheParallelLoad = parallelConfigurationCacheLoad,
                     isolatedProjects = isolatedProjects,
+                    isolatedProjectsDiagnostics = isolatedProjectsDiagnostics,
                     parallelProjectConfiguration = parallelProjectConfiguration,
                     intermediateModelCache = false,
                     parallelToolingApiActions = parallelToolingActions,
@@ -213,6 +217,7 @@ object BuildModelParametersProvider {
             configurationCacheParallelStore = false,
             configurationCacheParallelLoad = false,
             isolatedProjects = false,
+            isolatedProjectsDiagnostics = false,
             parallelProjectConfiguration = false,
             intermediateModelCache = false,
             parallelToolingApiActions = false,

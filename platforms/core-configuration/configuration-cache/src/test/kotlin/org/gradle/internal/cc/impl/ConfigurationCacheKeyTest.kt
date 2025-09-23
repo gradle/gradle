@@ -150,6 +150,7 @@ class ConfigurationCacheKeyTest {
                     configurationCacheParallelStore = isolatedProjects,
                     configurationCacheParallelLoad = isolatedProjects,
                     isolatedProjects = isolatedProjects,
+                    isolatedProjectsDiagnostics = false,
                     parallelProjectConfiguration = isolatedProjects,
                     intermediateModelCache = false,
                     parallelToolingApiActions = false,
