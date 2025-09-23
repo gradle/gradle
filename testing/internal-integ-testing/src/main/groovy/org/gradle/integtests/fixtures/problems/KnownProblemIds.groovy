@@ -68,7 +68,8 @@ class KnownProblemIds {
         'dependency-variant-resolution': 'Dependency variant resolution',
 
         // groups from integration tests
-        'generic': 'Generic'
+        'generic': 'Generic',
+        'sample-problems': 'Sample Problems',
     ]
 
     /**
@@ -183,5 +184,6 @@ class KnownProblemIds {
         'generic:type9': ['This is the heading problem text9'],
         'generic:type11': ['inner'],
         'generic:type12': ['outer'],
+        'sample-problems:prototype-project': ['Project is a prototype']
     ]
 }

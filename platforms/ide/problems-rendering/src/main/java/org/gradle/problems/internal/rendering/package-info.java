@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NullMarked
+package org.gradle.problems.internal.rendering;
 
-plugins {
-    id("gradlebuild.distribution.api-java")
-}
-
-description = "Problems API rendering infrastructure"
-
-dependencies {
-    api(projects.problemsApi)
-
-    compileOnly(libs.jspecify)
-
-    implementation(libs.guava)
-    implementation(projects.baseServices)
-
-    integTestImplementation(projects.internalTesting)
-    integTestImplementation(testFixtures(projects.logging))
-    integTestDistributionRuntimeOnly(projects.distributionsFull)
-}
+import org.jspecify.annotations.NullMarked;
