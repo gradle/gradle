@@ -137,10 +137,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return module;
     }
 
-    public void selectAndRestartModule() {
-        module.replaceWith(this);
-    }
-
     @Override
     @Nullable
     public ComponentGraphResolveMetadata getMetadataOrNull() {

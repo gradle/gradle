@@ -101,7 +101,7 @@ public class DependencyGraphResolver {
         ImmutableModuleReplacements moduleReplacements,
         ImmutableActionSet<DependencySubstitutionInternal> dependencySubstitutionRule,
         ConflictResolution conflictResolution,
-        CapabilitiesResolutionInternal capabilitiesResolutionRules,
+        ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> capabilityResolutionRules,
         boolean failingOnDynamicVersions,
         boolean failingOnChangingVersions,
         ResolutionParameters.FailureResolutions failureResolutions,
@@ -109,7 +109,7 @@ public class DependencyGraphResolver {
     ) {
         DependencySubstitutionApplicator substitutionApplicator = createDependencySubstitutionApplicator(dependencySubstitutionRule);
         ModuleConflictResolver<ComponentState> moduleConflictResolver = createModuleConflictResolver(conflictResolution);
-        List<CapabilitiesConflictHandler.Resolver> capabilityConflictResolvers = createCapabilityConflictResolvers(capabilitiesResolutionRules);
+        List<CapabilitiesConflictHandler.Resolver> capabilityConflictResolvers = createCapabilityConflictResolvers(capabilityResolutionRules);
 
         dependencyGraphBuilder.resolve(
             rootComponent,
@@ -152,7 +152,7 @@ public class DependencyGraphResolver {
         return new ProjectDependencyForcingResolver<>(moduleConflictResolver);
     }
 
-    private static List<CapabilitiesConflictHandler.Resolver> createCapabilityConflictResolvers(CapabilitiesResolutionInternal capabilitiesResolutionRules) {
+    private static List<CapabilitiesConflictHandler.Resolver> createCapabilityConflictResolvers(ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> capabilityResolutionRules) {
 
         // The order of these resolvers is significant. They run in the declared order.
         return ImmutableList.of(
@@ -161,7 +161,7 @@ public class DependencyGraphResolver {
             new LastCandidateCapabilityResolver(),
 
             // Otherwise, let the user resolvers reject candidates.
-            new UserConfiguredCapabilityResolver(capabilitiesResolutionRules),
+            new UserConfiguredCapabilityResolver(capabilityResolutionRules),
 
             // If there is one candidate left after the user resolvers are executed, select that candidate.
             new LastCandidateCapabilityResolver()
