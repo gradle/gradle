@@ -30,16 +30,16 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 import spock.lang.Issue
 import spock.lang.Specification
 
-class ProblemRendererTest extends Specification {
+class GroupingProblemRendererTest extends Specification {
 
     private StringWriter stringWriter
     private PrintWriter writer
-    private ProblemRenderer renderer
+    private GroupingProblemRenderer renderer
 
     def setup() {
         stringWriter = new StringWriter()
         writer = new PrintWriter(stringWriter)
-        renderer = new ProblemRenderer(writer)
+        renderer = ProblemRenderer.groupingProblemRenderer(writer)
     }
 
     def "individual problem header is correct when only group display name is present"() {
@@ -55,7 +55,7 @@ class ProblemRendererTest extends Specification {
         renderedTextLines[0] == "test-id-display-name"
     }
 
-    def DefaultProblemBuilder createProblemBuilder() {
+    DefaultProblemBuilder createProblemBuilder() {
         new DefaultProblemBuilder(
             new ProblemsInfrastructure(
                 new AdditionalDataBuilderFactory(),

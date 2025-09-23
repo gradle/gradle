@@ -442,7 +442,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
                     builder.append(System.lineSeparator());
                 }
                 StringWriter problemWriter = new StringWriter();
-                new ProblemRenderer(problemWriter).render(new ArrayList<>(problems));
+                ProblemRenderer.groupingProblemRenderer(problemWriter).render(new ArrayList<>(problems));
                 builder.append(problemWriter);
 
                 // Workaround to keep the original behavior for Java compilation. We should render counters for all problems in the future.
