@@ -32,15 +32,16 @@ import spock.lang.Specification
 
 class RootBuildLifecycleBuildActionExecutorTest extends Specification {
 
+    def buildTreeLifecycleController = Mock(BuildTreeLifecycleController)
+    def rootBuildState = Mock(RootBuildState) {
+        run(_) >> { it[0].apply(buildTreeLifecycleController) } // run the action passing mock controller
+    }
+    def buildStateRegistry = Mock(BuildStateRegistry) {
+        createRootBuild(_) >> rootBuildState
+    }
+
     def "fires events before and after build action is run"() {
         def listener = Mock(BuildTreeLifecycleListener)
-        def buildTreeLifecycleController = Mock(BuildTreeLifecycleController)
-        def rootBuildState = Mock(RootBuildState) {
-            run(_) >> { it[0].apply(buildTreeLifecycleController) } // just run the action with mock controller
-        }
-        def buildStateRegistry = Mock(BuildStateRegistry) {
-            createRootBuild(_) >> rootBuildState
-        }
         def buildActionRunner = Mock(BuildActionRunner)
         def buildAction = Stub(BuildAction)
 
@@ -66,6 +67,30 @@ class RootBuildLifecycleBuildActionExecutorTest extends Specification {
         then:
         1 * listener.beforeStop()
         0 * listener._
+    }
+
+    def "cannot execute root build action more than once"() {
+        given:
+        def executor = new RootBuildLifecycleBuildActionExecutor(
+            Stub(BuildModelParameters),
+            Stub(ProjectParallelExecutionController),
+            Stub(BuildTreeLifecycleListener),
+            Stub(InternalProblems),
+            Stub(BuildOperationProgressEventEmitter),
+            Stub(StartParameter),
+            Stub(ProblemStream),
+            buildStateRegistry,
+            Mock(BuildActionRunner)
+        )
+
+        executor.execute(Stub(BuildAction))
+
+        when:
+        executor.execute(Stub(BuildAction))
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot execute a root build action more than once per build tree."
     }
 
 }
