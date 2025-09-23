@@ -73,7 +73,7 @@ public class JUnitTestClassExecutor implements TestExecutor {
     }
 
     @Override
-    public void execute(TestDefinition<?> testDefinition) {
+    public void execute(TestDefinition testDefinition) {
         if (!(testDefinition instanceof ClassTestDefinition)) {
             throw new IllegalArgumentException("JUnitTestClassExecutor only supports ClassTestDefinition instances.");
         }

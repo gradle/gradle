@@ -77,7 +77,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     }
 
     @Override
-    public void processTestDefinition(TestDefinition<?> testDefinition) {
+    public void processTestDefinition(TestDefinition testDefinition) {
         lock.lock();
         try {
             if (stoppedNow) {

@@ -59,7 +59,7 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
     }
 
     @Override
-    public void processTestDefinition(TestDefinition<?> testDefinition) {
+    public void processTestDefinition(TestDefinition testDefinition) {
         if (stoppedNow) {
             return;
         }

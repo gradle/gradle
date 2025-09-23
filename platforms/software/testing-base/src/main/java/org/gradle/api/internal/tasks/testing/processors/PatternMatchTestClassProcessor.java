@@ -39,8 +39,8 @@ public class PatternMatchTestClassProcessor implements TestClassProcessor {
     }
 
     @Override
-    public void processTestDefinition(TestDefinition<?> testDefinition) {
-        // TODO: Rework this - have the matcher work with TestDefinition directly
+    public void processTestDefinition(TestDefinition testDefinition) {
+        // TODO: Rework this - have the matcher work with TestDefinition directly and remove need for instanceof?
         if (testDefinition instanceof ClassTestDefinition) {
             if (testClassSelectionMatcher.mayIncludeClass(testDefinition.getId())) {
                 delegate.processTestDefinition(testDefinition);

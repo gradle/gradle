@@ -74,12 +74,12 @@ public class DefaultTestClassScanner implements TestDetector {
         candidateClassFiles.visit(new ClassFileVisitor() {
             @Override
             public void visitClassFile(FileVisitDetails fileDetails) {
-                TestDefinition<?> testDefinition = new ClassTestDefinition(getClassName(fileDetails));
+                TestDefinition testDefinition = new ClassTestDefinition(getClassName(fileDetails));
                 testClassProcessor.processTestDefinition(testDefinition);
             }
         });
         candidateResourceFiles.forEach(dir -> {
-            TestDefinition<?> testDefinition = new DirectoryBasedTestDefinition(dir.getAsFile());
+            TestDefinition testDefinition = new DirectoryBasedTestDefinition(dir.getAsFile());
             testClassProcessor.processTestDefinition(testDefinition);
         });
     }

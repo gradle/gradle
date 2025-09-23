@@ -16,17 +16,13 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.apache.commons.lang3.StringUtils;
-import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.NullMarked;
-import org.junit.platform.engine.DiscoverySelector;
-import org.junit.platform.engine.discovery.DiscoverySelectors;
-import org.gradle.api.internal.tasks.testing.ClassTestDefinition.ClassTestDefinitionParams;
 
 /**
  * A test definition which denotes a single test class.
  */
 @NullMarked
-public final class ClassTestDefinition implements TestDefinition<ClassTestDefinitionParams> {
+public final class ClassTestDefinition implements TestDefinition {
     private final String testClassName;
 
     public ClassTestDefinition(String testClassName) {
@@ -39,11 +35,6 @@ public final class ClassTestDefinition implements TestDefinition<ClassTestDefini
 
     public String getTestClassName() {
         return testClassName;
-    }
-
-    @Override
-    public DiscoverySelector getDiscoverySelector(ClassTestDefinitionParams params) {
-        return DiscoverySelectors.selectClass(loadClass(testClassName, params.getClassLoader()));
     }
 
     @Override
@@ -82,29 +73,5 @@ public final class ClassTestDefinition implements TestDefinition<ClassTestDefini
     @Override
     public String toString() {
         return "ClassTestDefinition(" + getId() + ')';
-    }
-
-    private Class<?> loadClass(String className, ClassLoader classLoader) {
-        try {
-            return Class.forName(className, false, classLoader);
-        } catch (ClassNotFoundException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    /**
-     * Parameters required to create a {@link DiscoverySelector} for a {@link ClassTestDefinition},
-     * which allow the client to supply a classloader to load the test class.
-     */
-    public static final class ClassTestDefinitionParams implements SelectorCreationParameters {
-        private final ClassLoader classLoader;
-
-        public ClassTestDefinitionParams(ClassLoader classLoader) {
-            this.classLoader = classLoader;
-        }
-
-        public ClassLoader getClassLoader() {
-            return classLoader;
-        }
     }
 }

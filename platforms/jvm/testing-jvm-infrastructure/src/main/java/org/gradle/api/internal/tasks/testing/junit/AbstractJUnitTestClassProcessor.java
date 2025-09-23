@@ -55,7 +55,7 @@ public abstract class AbstractJUnitTestClassProcessor implements RequiresTestFra
     protected abstract TestExecutor createTestExecutor(Actor resultProcessorActor);
 
     @Override
-    public void processTestDefinition(TestDefinition<?> testDefinition) {
+    public void processTestDefinition(TestDefinition testDefinition) {
         if (startedProcessing) {
             LOGGER.debug("Executing {}", testDefinition.getDisplayName());
             executor.execute(testDefinition);

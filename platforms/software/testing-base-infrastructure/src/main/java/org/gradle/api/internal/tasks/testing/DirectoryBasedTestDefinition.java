@@ -17,9 +17,6 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.jspecify.annotations.NullMarked;
-import org.junit.platform.engine.DiscoverySelector;
-import org.junit.platform.engine.discovery.DiscoverySelectors;
-import org.gradle.api.internal.tasks.testing.TestDefinition.SelectorCreationParameters;
 
 import java.io.File;
 
@@ -27,7 +24,7 @@ import java.io.File;
  * A test definition which denotes a directory containing non-class-based tests.
  */
 @NullMarked
-public final class DirectoryBasedTestDefinition implements TestDefinition<SelectorCreationParameters> {
+public final class DirectoryBasedTestDefinition implements TestDefinition {
     private final File resourceFile;
 
     public DirectoryBasedTestDefinition(File resourceFile) {
@@ -36,11 +33,6 @@ public final class DirectoryBasedTestDefinition implements TestDefinition<Select
 
     public File getTestDefintionFile() {
         return resourceFile;
-    }
-
-    @Override
-    public DiscoverySelector getDiscoverySelector(SelectorCreationParameters params) {
-        return DiscoverySelectors.selectDirectory(resourceFile);
     }
 
     /**

@@ -16,15 +16,12 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.Describable;
-import org.junit.platform.engine.DiscoverySelector;
 
 /**
  * Represents a container of tests to be executed, for instance, a test class or a directory
  * containing non-class-based tests.
- *
- * @param <T> The type of parameters used to create a {@link DiscoverySelector} for this test definition
  */
-public interface TestDefinition<T extends TestDefinition.SelectorCreationParameters> extends Describable {
+public interface TestDefinition extends Describable {
     /**
      * A stable identifier for this test class run info. Used for tracking test classes across test runs.
      * <p>
@@ -35,18 +32,4 @@ public interface TestDefinition<T extends TestDefinition.SelectorCreationParamet
      * @return unique id for this test definition
      */
     String getId();
-
-    /**
-     * Returns a JUnit Platform {@link DiscoverySelector} that can be used to select the tests represented by this
-     * test definition.
-     *
-     * @param params {@link SelectorCreationParameters} implementation containing info/data used to create
-     * a {@link DiscoverySelector} for this definition
-     * @return selector for the tests contained by this definition
-     */
-    DiscoverySelector getDiscoverySelector(T params);
-
-    interface SelectorCreationParameters {
-        SelectorCreationParameters EMPTY = new SelectorCreationParameters() {};
-    }
 }

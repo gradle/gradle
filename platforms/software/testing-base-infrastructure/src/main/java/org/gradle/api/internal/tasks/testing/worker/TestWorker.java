@@ -166,7 +166,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
     }
 
     @Override
-    public void processTestDefinition(final TestDefinition<?> testDefinition) {
+    public void processTestDefinition(final TestDefinition testDefinition) {
         submitToRun(new Runnable() {
             @Override
             public void run() {

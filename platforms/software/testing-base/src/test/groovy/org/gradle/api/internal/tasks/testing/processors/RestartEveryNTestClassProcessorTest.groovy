@@ -25,9 +25,9 @@ import spock.lang.Specification
 class RestartEveryNTestClassProcessorTest extends Specification {
     private final Factory<TestClassProcessor> factory = Mock();
     private final TestClassProcessor delegate = Mock();
-    private final TestDefinition<?> test1 = Mock();
-    private final TestDefinition<?> test2 = Mock();
-    private final TestDefinition<?> test3 = Mock();
+    private final TestDefinition test1 = Mock();
+    private final TestDefinition test2 = Mock();
+    private final TestDefinition test3 = Mock();
     private final TestResultProcessor resultProcessor = Mock();
     private RestartEveryNTestClassProcessor processor = new RestartEveryNTestClassProcessor(factory, 2);
 

@@ -32,5 +32,5 @@ public interface TestExecutor {
      *
      * @param testDefinition The definition of the test or tests to execute
      */
-    void execute(TestDefinition<?> testDefinition);
+    void execute(TestDefinition testDefinition);
 }

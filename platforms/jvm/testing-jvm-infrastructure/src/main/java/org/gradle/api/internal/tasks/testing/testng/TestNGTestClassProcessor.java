@@ -77,8 +77,9 @@ public class TestNGTestClassProcessor implements RequiresTestFrameworkTestClassP
     }
 
     @Override
-    public void processTestDefinition(TestDefinition<?> testDefinition) {
+    public void processTestDefinition(TestDefinition testDefinition) {
         if (startedProcessing) {
+            // TODO: TestClassProcessor should define a boolean canProcess(TestDefinition) method to centralize these kind of checks
             if (!(testDefinition instanceof ClassTestDefinition)) {
                 throw new GradleException(String.format("TestNG only supports class-based test definitions, not %s.", testDefinition.getClass().getName()));
             }

@@ -59,7 +59,7 @@ class MaxNParallelTestClassProcessorTest extends Specification {
     }
 
     def startsProcessorsOnDemandAndStopsAtEnd() {
-        TestDefinition<?> test = Mock()
+        TestDefinition test = Mock()
         TestClassProcessor processor1 = Mock()
         TestClassProcessor asyncProcessor1 = Mock()
         Actor actor1 = Mock()
@@ -86,7 +86,7 @@ class MaxNParallelTestClassProcessorTest extends Specification {
     }
 
     def startsMultipleProcessorsOnDemandAndStopsAtEnd() {
-        TestDefinition<?> test = Mock()
+        TestDefinition test = Mock()
         TestClassProcessor processor1 = Mock()
         TestClassProcessor processor2 = Mock()
         TestClassProcessor asyncProcessor1 = Mock()
@@ -125,7 +125,7 @@ class MaxNParallelTestClassProcessorTest extends Specification {
     }
 
     def roundRobinsTestClassesToProcessors() {
-        TestDefinition<?> test = Mock()
+        TestDefinition test = Mock()
         TestClassProcessor processor1 = Mock()
         TestClassProcessor processor2 = Mock()
         TestClassProcessor asyncProcessor1 = Mock()
@@ -169,7 +169,7 @@ class MaxNParallelTestClassProcessorTest extends Specification {
     }
 
     def "stopNow propagates to factory created processors"() {
-        TestDefinition<?> test = Mock()
+        TestDefinition test = Mock()
         TestClassProcessor processor1 = Mock()
         TestClassProcessor processor2 = Mock()
         TestClassProcessor asyncProcessor1 = Mock()

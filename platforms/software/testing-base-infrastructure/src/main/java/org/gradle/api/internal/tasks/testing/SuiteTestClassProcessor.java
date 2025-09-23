@@ -49,7 +49,7 @@ public class SuiteTestClassProcessor implements TestClassProcessor {
     }
 
     @Override
-    public void processTestDefinition(TestDefinition<?> testDefinition) {
+    public void processTestDefinition(TestDefinition testDefinition) {
         try {
             processor.processTestDefinition(testDefinition);
         } catch (Throwable t) {

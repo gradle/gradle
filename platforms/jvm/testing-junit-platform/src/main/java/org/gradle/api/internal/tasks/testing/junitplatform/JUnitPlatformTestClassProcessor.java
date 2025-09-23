@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
 import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
-import org.gradle.api.internal.tasks.testing.ClassTestDefinition.ClassTestDefinitionParams;
 import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
+import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestExecutor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -30,11 +30,13 @@ import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
+import org.jspecify.annotations.NullMarked;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.FilterResult;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.TestSource;
+import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.Launcher;
@@ -60,12 +62,18 @@ import static org.junit.platform.launcher.EngineFilter.includeEngines;
 import static org.junit.platform.launcher.TagFilter.excludeTags;
 import static org.junit.platform.launcher.TagFilter.includeTags;
 
-public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProcessor {
+/**
+ * A {@link TestClassProcessor} for JUnit Platform.
+ * <p>
+ * This class is instantiated by reflection from {@link JUnitPlatformTestClassProcessorFactory}.
+ */
+@SuppressWarnings("unused")
+public final class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProcessor {
     private final JUnitPlatformSpec spec;
     private final IdGenerator<?> idGenerator;
     private final Clock clock;
 
-    private CollectAllTestClassesExecutor testClassExecutor;
+    private CollectAllTestDefinitionsExecutor testClassExecutor;
     private BackwardsCompatibleLauncherSession launcherSession;
     private ClassLoader junitClassLoader;
 
@@ -95,7 +103,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
         launcherSession = BackwardsCompatibleLauncherSession.open();
         junitClassLoader = Thread.currentThread().getContextClassLoader();
-        testClassExecutor = new CollectAllTestClassesExecutor(threadSafeResultProcessor);
+        testClassExecutor = new CollectAllTestDefinitionsExecutor(threadSafeResultProcessor);
         return testClassExecutor;
     }
 
@@ -108,17 +116,17 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
     }
 
-    private final class CollectAllTestClassesExecutor implements TestExecutor {
+    @NullMarked
+    private final class CollectAllTestDefinitionsExecutor implements TestExecutor {
         private final List<DiscoverySelector> selectors = new ArrayList<>();
         private final TestResultProcessor resultProcessor;
-        private final ClassTestDefinitionParams classTestParams = new ClassTestDefinitionParams(junitClassLoader);
 
-        CollectAllTestClassesExecutor(TestResultProcessor resultProcessor) {
+        CollectAllTestDefinitionsExecutor(TestResultProcessor resultProcessor) {
             this.resultProcessor = resultProcessor;
         }
 
         @Override
-        public void execute(TestDefinition<?> testDefinition) {
+        public void execute(TestDefinition testDefinition) {
             if (testDefinition instanceof ClassTestDefinition) {
                 executeClass((ClassTestDefinition) testDefinition);
             } else if (testDefinition instanceof DirectoryBasedTestDefinition) {
@@ -133,11 +141,12 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
             if (isInnerClass(klass) || (supportsVintageTests() && isNestedClassInsideEnclosedRunner(klass))) {
                 return;
             }
-            selectors.add(testDefinition.getDiscoverySelector(classTestParams));
+            selectors.add(DiscoverySelectors.selectClass(klass));
         }
 
+
         private void executeDirectory(DirectoryBasedTestDefinition testDefinition) {
-            selectors.add(testDefinition.getDiscoverySelector(TestDefinition.SelectorCreationParameters.EMPTY));
+            selectors.add(DiscoverySelectors.selectDirectory(testDefinition.getTestDefintionFile()));
         }
 
         private void processAllTestClasses() {

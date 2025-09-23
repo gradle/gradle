@@ -108,7 +108,7 @@ public abstract class XCTestExecuter implements TestExecuter<XCTestTestExecution
         @Override
         public void detect() {
             for (String includedTests : testSelection.getIncludedTests()) {
-                TestDefinition<?> testDefinition = new ClassTestDefinition(includedTests);
+                TestDefinition testDefinition = new ClassTestDefinition(includedTests);
                 testClassProcessor.processTestDefinition(testDefinition);
             }
         }
@@ -138,7 +138,7 @@ public abstract class XCTestExecuter implements TestExecuter<XCTestTestExecution
         }
 
         @Override
-        public void processTestDefinition(TestDefinition<?> testDefinition) {
+        public void processTestDefinition(TestDefinition testDefinition) {
             if (!(testDefinition instanceof ClassTestDefinition)) {
                 throw new GradleException(String.format("XCTest only supports class-based test definitions, not %s.", testDefinition.getClass().getName()));
             }

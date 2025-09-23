@@ -34,8 +34,8 @@ public class RunPreviousFailedFirstTestClassProcessor implements TestClassProces
     private final Set<String> previousFailedTestClasses;
     private final Set<File> previousFailedTestDefinitionDirectories;
     private final TestClassProcessor delegate;
-    private final LinkedHashSet<TestDefinition<?>> prioritizedTestClasses = new LinkedHashSet<>();
-    private final LinkedHashSet<TestDefinition<?>> otherTestClasses = new LinkedHashSet<>();
+    private final LinkedHashSet<TestDefinition> prioritizedTestClasses = new LinkedHashSet<>();
+    private final LinkedHashSet<TestDefinition> otherTestClasses = new LinkedHashSet<>();
 
     public RunPreviousFailedFirstTestClassProcessor(Set<String> previousFailedTestClasses, Set<File> previousFailedTestDefinitionDirectories, TestClassProcessor delegate) {
         this.previousFailedTestClasses = previousFailedTestClasses;
@@ -49,7 +49,7 @@ public class RunPreviousFailedFirstTestClassProcessor implements TestClassProces
     }
 
     @Override
-    public void processTestDefinition(TestDefinition<?> testClass) {
+    public void processTestDefinition(TestDefinition testClass) {
         if (wasPreviouslyRun(testClass)) {
             prioritizedTestClasses.add(testClass);
         } else {
@@ -59,10 +59,10 @@ public class RunPreviousFailedFirstTestClassProcessor implements TestClassProces
 
     @Override
     public void stop() {
-        for (TestDefinition<?> test : prioritizedTestClasses) {
+        for (TestDefinition test : prioritizedTestClasses) {
             delegate.processTestDefinition(test);
         }
-        for (TestDefinition<?> test : otherTestClasses) {
+        for (TestDefinition test : otherTestClasses) {
             delegate.processTestDefinition(test);
         }
         delegate.stop();
@@ -73,7 +73,7 @@ public class RunPreviousFailedFirstTestClassProcessor implements TestClassProces
         delegate.stopNow();
     }
 
-    private boolean wasPreviouslyRun(TestDefinition<?> testDefinition) {
+    private boolean wasPreviouslyRun(TestDefinition testDefinition) {
         if (testDefinition instanceof ClassTestDefinition) {
             return previousFailedTestClasses.contains(((ClassTestDefinition) testDefinition).getTestClassName());
         } else if (testDefinition instanceof DirectoryBasedTestDefinition){
