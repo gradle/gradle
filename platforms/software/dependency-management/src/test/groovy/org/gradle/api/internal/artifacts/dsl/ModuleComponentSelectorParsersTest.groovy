@@ -24,14 +24,14 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.internal.artifacts.dependencies.DefaultPluginDependency
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
-import static org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers.multiParser
-import static org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers.parser
+import static ModuleComponentSelectorParsers.multiParser
+import static ModuleComponentSelectorParsers.parser
 
-class ModuleVersionSelectorParsersTest extends Specification {
+class ModuleComponentSelectorParsersTest extends Specification {
 
     def "understands group:name:version notation"() {
         when:
@@ -40,7 +40,7 @@ class ModuleVersionSelectorParsersTest extends Specification {
         then:
         v.size() == 1
         v[0].group == 'org.foo'
-        v[0].name  == 'bar'
+        v[0].module  == 'bar'
         v[0].version  == '1.0'
     }
 
@@ -51,12 +51,12 @@ class ModuleVersionSelectorParsersTest extends Specification {
 
         then:
         v.size() == 1
-        v[0].name  == 'charsequence'
+        v[0].module  == 'charsequence'
     }
 
     def "allows exact type on input"() {
         def module = DefaultModuleIdentifier.newId("org.foo", "bar")
-        def id = newSelector(module, "2.0")
+        def id = DefaultModuleComponentSelector.newSelector(module, "2.0")
 
         when:
         def v = multiParser("").parseNotation(id) as List
@@ -64,22 +64,22 @@ class ModuleVersionSelectorParsersTest extends Specification {
         then:
         v.size() == 1
         v[0].group == 'org.foo'
-        v[0].name  == 'bar'
+        v[0].module  == 'bar'
         v[0].version  == '2.0'
     }
 
     def "allows list of objects on input"() {
         def module = DefaultModuleIdentifier.newId("org.foo", "bar")
-        def id = newSelector(module,"2.0")
+        def id = DefaultModuleComponentSelector.newSelector(module,"2.0")
 
         when:
         def v = multiParser("").parseNotation([id, ["hey:man:1.0"], [group:'i', name:'like', version:'maps']]) as List
 
         then:
         v.size() == 3
-        v[0].name == 'bar'
-        v[1].name == 'man'
-        v[2].name == 'like'
+        v[0].module == 'bar'
+        v[1].module == 'man'
+        v[2].module == 'like'
     }
 
     def "allows map on input"() {
@@ -89,7 +89,7 @@ class ModuleVersionSelectorParsersTest extends Specification {
         then:
         v.size() == 1
         v[0].group == 'org.foo'
-        v[0].name  == 'bar'
+        v[0].module  == 'bar'
         v[0].version  == '1.0'
     }
 
@@ -155,7 +155,7 @@ class ModuleVersionSelectorParsersTest extends Specification {
 
         then:
         v.group == 'org.foo'
-        v.name  == 'bar'
+        v.module  == 'bar'
         v.version  == '1.0'
     }
 
@@ -173,7 +173,7 @@ class ModuleVersionSelectorParsersTest extends Specification {
         then:
         v
         v.group == 'org.foo'
-        v.name  == 'bar'
+        v.module  == 'bar'
         v.version  == '1.0'
     }
 
@@ -193,7 +193,7 @@ class ModuleVersionSelectorParsersTest extends Specification {
         then:
         v
         v.group == 'org.foo'
-        v.name  == 'bar'
+        v.module  == 'bar'
         v.version  == '1.0'
     }
 

@@ -19,9 +19,9 @@ import org.gradle.api.Describable
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.Describables
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 class ModuleVersionResolveExceptionTest extends Specification {
@@ -31,7 +31,7 @@ class ModuleVersionResolveExceptionTest extends Specification {
     }
 
     def "provides default message that includes selector"() {
-        def exception1 = new ModuleVersionResolveException(newSelector(mid("org", "a"), "1.2"), new RuntimeException())
+        def exception1 = new ModuleVersionResolveException(DefaultModuleComponentSelector.newSelector(mid("org", "a"), "1.2"), new RuntimeException())
 
         expect:
         exception1.message == 'Could not resolve org:a:1.2.'
@@ -43,7 +43,7 @@ class ModuleVersionResolveExceptionTest extends Specification {
         Describable c = Describables.of("org:c:1.0")
 
         def cause = new RuntimeException()
-        def exception = new ModuleVersionResolveException(newSelector(mid("a", "b"), "c"), cause)
+        def exception = new ModuleVersionResolveException(DefaultModuleComponentSelector.newSelector(mid("a", "b"), "c"), cause)
         def onePath = exception.withIncomingPaths([[a, b, c]])
         def twoPaths = exception.withIncomingPaths([[a, b, c], [a, c]])
 
