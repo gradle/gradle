@@ -29,7 +29,7 @@ class RunPreviousFailedFirstTestClassProcessorTest extends Specification {
 
     def 'previous failed test classes should be passed to delegate first'() {
         given:
-        processor = new RunPreviousFailedFirstTestClassProcessor(['Class3'] as Set, delegate)
+        processor = new RunPreviousFailedFirstTestClassProcessor(['Class3'] as Set, [] as Set, delegate)
 
         when:
         processor.startProcessing(testResultProcessor)

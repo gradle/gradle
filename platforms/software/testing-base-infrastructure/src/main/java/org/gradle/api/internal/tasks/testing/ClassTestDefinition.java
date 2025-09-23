@@ -20,9 +20,11 @@ import org.jspecify.annotations.NullMarked;
 
 /**
  * A test definition which denotes a single test class.
+ *
+ * @implNote Kept non-{@code final} to enable mocking.
  */
 @NullMarked
-public final class ClassTestDefinition implements TestDefinition {
+public class ClassTestDefinition implements TestDefinition {
     private final String testClassName;
 
     public ClassTestDefinition(String testClassName) {

@@ -18,6 +18,7 @@ package org.gradle.testing
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.getLATEST_JUPITER_VERSION
@@ -50,6 +51,7 @@ class TestTaskFailOnNoTestIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.")
     }
 
+    @Ignore("This is meant for local testing and only works on Tom's machine")
     def "resource-based testing detects tests from resources"() {
         settingsFile << """
             // TODO: Absolute paths on Tom's machine for testing

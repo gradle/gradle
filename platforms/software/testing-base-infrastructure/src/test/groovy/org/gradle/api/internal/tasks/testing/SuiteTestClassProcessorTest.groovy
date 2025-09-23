@@ -33,7 +33,7 @@ class SuiteTestClassProcessorTest extends Specification {
         _ * suiteDescriptor.getId() >> 'id'
         _ * suiteDescriptor.toString() >> '<suite>'
         _ * suiteDescriptor.isComposite() >> true
-        _ * testDefinition.getTestClassName() >> '<class-name>'
+        _ * testDefinition.getDisplayName() >> "test class '<class-name>'"
     }
 
     def firesSuiteStartEventOnStartProcessing() {
