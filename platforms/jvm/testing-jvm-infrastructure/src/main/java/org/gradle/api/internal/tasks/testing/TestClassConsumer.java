@@ -22,8 +22,6 @@ import org.jspecify.annotations.NullMarked;
  * A type that consumes tests.
  * <p>
  * Implemented by JUnit and JUnit Platform test frameworks to create types that execute tests by class name.
- * <p>
- * Replaces {@code Action<String>} with a named type for better discoverability and to allow for future expansion.
  */
 @NullMarked
 public interface TestClassConsumer {

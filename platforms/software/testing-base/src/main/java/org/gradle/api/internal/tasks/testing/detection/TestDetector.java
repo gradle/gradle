@@ -20,8 +20,6 @@ package org.gradle.api.internal.tasks.testing.detection;
  * A type that detects tests.
  * <p>
  * Used by test frameworks to detect tests in a given class or resource.
- * <p>
- * Replaces {@code Runnable} with a named type for better discoverability and to allow for future expansion.
  */
 public interface TestDetector {
     /**
