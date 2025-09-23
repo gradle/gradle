@@ -47,8 +47,8 @@ jdks:
     os: "linux"
     arch: "amd64"
     vendor: "temurin"
-    version: "jdk-25+33-ea-beta"
-    sha256: "30b836e180d892070a690a93c3d3ab057450d6dfa1bf3c0c32b57f7833f633ae"
+    version: "jdk-25+36"
+    sha256: "ee04de95ab9da7287d40bd2173076ecc2a6dd662f007bedfc6eb0380c0ef90e8"
   - params:
       - "linux.java8.openjdk.aarch64"
       - "linux.java8.oracle.aarch64"
