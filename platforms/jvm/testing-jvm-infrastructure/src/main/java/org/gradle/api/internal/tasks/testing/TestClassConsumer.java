@@ -19,18 +19,18 @@ package org.gradle.api.internal.tasks.testing;
 import org.jspecify.annotations.NullMarked;
 
 /**
- * A type that executes tests.
+ * A type that consumes tests.
  * <p>
- * Used by JUnit and JUnit Platform test frameworks.
+ * Implemented by JUnit and JUnit Platform test frameworks to create types that execute tests by class name.
  * <p>
  * Replaces {@code Action<String>} with a named type for better discoverability and to allow for future expansion.
  */
 @NullMarked
-public interface TestExecutor {
+public interface TestClassConsumer {
     /**
-     * Executes a class-based test given its resource name.
+     * Consumes a class-based test given the class's name.
      *
-     * @param testClassName The FQN of the test class to execute
+     * @param testClassName The FQN of the test class to consume
      */
-    void executeClass(String testClassName);
+    void consumeClass(String testClassName);
 }
