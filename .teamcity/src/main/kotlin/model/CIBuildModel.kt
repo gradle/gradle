@@ -142,7 +142,6 @@ data class CIBuildModel(
                         SpecificBuild.CheckLinks,
                         SpecificBuild.CheckTeamCityKotlinDSL,
                         SpecificBuild.SmokeTestsMaxJavaVersion,
-                        SpecificBuild.SantaTrackerSmokeTests,
                         SpecificBuild.ConfigCacheSantaTrackerSmokeTests,
                         SpecificBuild.GradleBuildSmokeTests,
                         SpecificBuild.ConfigCacheSmokeTestsMaxJavaVersion,
@@ -190,6 +189,7 @@ data class CIBuildModel(
                 specificBuilds =
                     listOf(
                         SpecificBuild.SmokeTestsMinJavaVersion,
+                        SpecificBuild.SantaTrackerSmokeTests,
                     ),
                 functionalTests =
                     listOf(
