@@ -119,8 +119,8 @@ class DependencyGraphBuilderTest extends Specification {
     }
     def dependencySubstitutionApplicator = new DefaultDependencySubstitutionApplicator(DependencyManagementTestUtil.componentSelectionDescriptorFactory(), Mock(Action), TestUtil.instantiatorFactory())
     def componentSelectorConverter = Mock(ComponentSelectorConverter) {
-        getModule(_) >> { ComponentSelector selector ->
-            DefaultModuleIdentifier.newId(selector.group, selector.module)
+        getModuleVersionId(_) >> { ComponentSelector selector ->
+            DefaultModuleIdentifier.newId(selector.group, selector.module, selector.version)
         }
     }
 

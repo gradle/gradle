@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VariantSelectionDetails;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -465,7 +465,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         @Override
         public void execute(DependencySubstitution substitution) {
             super.execute(substitution);
-            ModuleVersionSelector requested = componentSelectorConverter.getSelector(substitution.getRequested());
+            ModuleVersionIdentifier requested = componentSelectorConverter.getModuleVersionId(substitution.getRequested());
             DefaultDependencyResolveDetails details = instantiator.newInstance(DefaultDependencyResolveDetails.class, substitution, requested);
             delegate.execute(details);
             details.complete();

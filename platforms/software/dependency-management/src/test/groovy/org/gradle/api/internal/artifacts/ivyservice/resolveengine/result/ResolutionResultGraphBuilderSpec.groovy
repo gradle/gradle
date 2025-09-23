@@ -32,7 +32,6 @@ import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
 import static org.gradle.util.internal.CollectionUtils.first
 
@@ -259,8 +258,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
 
     private ResolvedGraphDependency dep(String from, String requested, Exception failure = null, String selected = requested) {
         def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("x", requested), DefaultImmutableVersionConstraint.of("1"))
-        def moduleVersionSelector = newSelector(DefaultModuleIdentifier.newId("x", requested), "1")
-        failure = failure == null ? null : new ModuleVersionResolveException(moduleVersionSelector, failure)
+        failure = failure == null ? null : new ModuleVersionResolveException(selector, failure)
         return Stub(ResolvedGraphDependency) {
             getRequested() >> selector
             getFromVariant() >> id(from)
