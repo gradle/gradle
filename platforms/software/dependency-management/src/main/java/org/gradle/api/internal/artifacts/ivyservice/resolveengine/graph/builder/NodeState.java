@@ -41,6 +41,7 @@ import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
@@ -1143,14 +1144,18 @@ public class NodeState implements DependencyGraphNode {
         }
     }
 
-    @Nullable
-    public Capability findCapability(String group, String name) {
-        Capability onComponent = component.findCapability(group, name);
-        if (onComponent != null) {
-            return onComponent;
-        }
-        ImmutableSet<ImmutableCapability> capabilities = metadata.getCapabilities().asSet();
-        if (!capabilities.isEmpty()) { // Not required, but Guava's performance bad for an empty immutable list
+    /**
+     * Determine if this node provides a capability with the given group and name.
+     * If so, return it. Otherwise, return null.
+     */
+    public @Nullable Capability findCapability(String group, String name) {
+        ImmutableCapabilities capabilities = metadata.getCapabilities();
+        if (capabilities.isEmpty()) {
+            // No capabilities declared. Use the component's implicit capability.
+            if (component.getId().getGroup().equals(group) && component.getId().getName().equals(name)) {
+                return component.getImplicitCapability();
+            }
+        } else {
             for (Capability capability : capabilities) {
                 if (capability.getGroup().equals(group) && capability.getName().equals(name)) {
                     return capability;

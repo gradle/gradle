@@ -441,14 +441,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return resolveState.getDefaultCapability();
     }
 
-    @Nullable
-    Capability findCapability(String group, String name) {
-        if (id.getGroup().equals(group) && id.getName().equals(name)) {
-            return getImplicitCapability();
-        }
-        return null;
-    }
-
     boolean hasMoreThanOneSelectedNodeUsingVariantAwareResolution() {
         int count = 0;
         for (NodeState node : nodes) {
