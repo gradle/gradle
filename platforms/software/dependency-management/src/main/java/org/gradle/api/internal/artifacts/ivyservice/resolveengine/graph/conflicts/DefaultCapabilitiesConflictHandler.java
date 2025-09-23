@@ -263,7 +263,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                             public void reject() {
                                 ComponentState component = node.getComponent();
                                 component.rejectForCapabilityConflict(capability, conflictedNodes(node, conflict.nodes));
-                                component.selectAndRestartModule();
+                                component.getModule().replaceWith(component);
                             }
 
                             @Override

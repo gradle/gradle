@@ -47,7 +47,7 @@ public class ImmutableCapabilities implements Iterable<ImmutableCapability> {
         if (capability == null) {
             return EMPTY;
         }
-        return new ImmutableCapabilities(ImmutableSet.of(asImmutable(capability)));
+        return new ImmutableCapabilities(ImmutableSet.of(DefaultImmutableCapability.of(capability)));
     }
 
     public static ImmutableCapabilities of(@Nullable Collection<? extends Capability> capabilities) {
@@ -61,17 +61,9 @@ public class ImmutableCapabilities implements Iterable<ImmutableCapability> {
 
         ImmutableSet.Builder<ImmutableCapability> builder = ImmutableSet.builderWithExpectedSize(capabilities.size());
         for (Capability capability : capabilities) {
-            builder.add(asImmutable(capability));
+            builder.add(DefaultImmutableCapability.of(capability));
         }
         return new ImmutableCapabilities(builder.build());
-    }
-
-    private static ImmutableCapability asImmutable(Capability capability) {
-        if (capability instanceof ImmutableCapability) {
-            return (ImmutableCapability) capability;
-        } else {
-            return new DefaultImmutableCapability(capability.getGroup(), capability.getName(), capability.getVersion());
-        }
     }
 
     public ImmutableSet<ImmutableCapability> asSet() {
