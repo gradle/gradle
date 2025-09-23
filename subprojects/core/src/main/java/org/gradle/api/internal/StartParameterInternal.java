@@ -176,15 +176,15 @@ public class StartParameterInternal extends StartParameter {
         return isolatedProjects;
     }
 
+    public void setIsolatedProjects(Option.Value<Boolean> isolatedProjects) {
+        this.isolatedProjects = isolatedProjects;
+    }
+
     @SuppressWarnings("deprecation")
     @Override
     public boolean isConfigurationCacheRequested() {
         StartParameterDeprecations.nagOnIsConfigurationCacheRequested();
         return configurationCache.get();
-    }
-
-    public void setIsolatedProjects(Option.Value<Boolean> isolatedProjects) {
-        this.isolatedProjects = isolatedProjects;
     }
 
     public ConfigurationCacheProblemsOption.Value getConfigurationCacheProblems() {
