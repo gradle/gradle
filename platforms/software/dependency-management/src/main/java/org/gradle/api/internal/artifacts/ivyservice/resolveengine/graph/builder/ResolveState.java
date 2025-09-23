@@ -26,13 +26,17 @@ import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint;
+import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultCapabilitiesConflictHandler;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultModuleConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ComponentStateFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
@@ -82,7 +86,6 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     private final ImmutableAttributesSchema consumerSchema;
     private final ModuleExclusions moduleExclusions;
     private final DeselectVersionAction deselectVersionAction = new DeselectVersionAction(this);
-    private final ReplaceSelectionWithConflictResultAction replaceSelectionWithConflictResultAction;
     private final ComponentSelectorConverter componentSelectorConverter;
     private final AttributesFactory attributesFactory;
     private final AttributeSchemaServices attributeSchemaServices;
@@ -116,8 +119,9 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         VersionParser versionParser,
         ConflictResolution conflictResolution,
         List<? extends DependencyMetadata> syntheticDependencies,
-        ModuleConflictHandler moduleConflictHandler,
-        CapabilitiesConflictHandler capabilitiesConflictHandler,
+        ModuleConflictResolver<ComponentState> moduleConflictResolver,
+        ImmutableModuleReplacements moduleReplacements,
+        List<CapabilitiesConflictHandler.Resolver> capabilityConflictResolvers,
         GraphVariantSelector variantSelector
     ) {
         this.idGenerator = idGenerator;
@@ -133,12 +137,12 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         this.versionComparator = versionComparator.asVersionComparator();
         this.versionParser = versionParser;
         this.conflictResolution = conflictResolution;
-        this.moduleConflictHandler = moduleConflictHandler;
-        this.capabilitiesConflictHandler = capabilitiesConflictHandler;
         this.resolveOptimizations = new ResolveOptimizations();
         this.attributeDesugaring = attributeDesugaring;
-        this.replaceSelectionWithConflictResultAction = new ReplaceSelectionWithConflictResultAction(this);
         this.variantSelector = variantSelector;
+
+        this.moduleConflictHandler = new DefaultModuleConflictHandler(moduleConflictResolver, moduleReplacements, this);
+        this.capabilitiesConflictHandler = new DefaultCapabilitiesConflictHandler(capabilityConflictResolvers, this);
 
         ModuleVersionIdentifier rootModuleVersionId = rootComponentState.getModuleVersionId();
         ComponentIdentifier rootComponentId = rootComponentState.getId();
@@ -283,10 +287,6 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
 
     public DeselectVersionAction getDeselectVersionAction() {
         return deselectVersionAction;
-    }
-
-    public ReplaceSelectionWithConflictResultAction getReplaceSelectionWithConflictResultAction() {
-        return replaceSelectionWithConflictResultAction;
     }
 
     public ComponentSelectorConverter getComponentSelectorConverter() {

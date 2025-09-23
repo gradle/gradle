@@ -34,7 +34,7 @@ import spock.lang.Specification
 class DefaultCapabilitiesConflictHandlerTest extends Specification {
 
     ResolveState resolveState = Mock(ResolveState)
-    DefaultCapabilitiesConflictHandler handler = new DefaultCapabilitiesConflictHandler([])
+    DefaultCapabilitiesConflictHandler handler = new DefaultCapabilitiesConflictHandler([], resolveState)
 
     private long id
 

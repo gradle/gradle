@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.capabilities.CapabilityInternal;
 
@@ -44,7 +45,9 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 
 public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictHandler {
+
     private final List<Resolver> resolvers;
+    private final ResolveState resolveState;
 
     /**
      * Tracks conflicted nodes by the capability id.
@@ -53,8 +56,9 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
     private final Deque<String> conflicts = new ArrayDeque<>();
 
-    public DefaultCapabilitiesConflictHandler(List<Resolver> resolvers) {
+    public DefaultCapabilitiesConflictHandler(List<Resolver> resolvers, ResolveState resolveState) {
         this.resolvers = resolvers;
+        this.resolveState = resolveState;
     }
 
     @Override
@@ -119,7 +123,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
     }
 
     @Override
-    public void resolveNextConflict(Action<ConflictResolutionResult> resolutionAction) {
+    public void resolveNextConflict() {
         String capabilityInConflict = conflicts.remove();
 
         ConflictedNodesTracker conflictTracker = capabilityWithoutVersionToTracker.get(capabilityInConflict);
@@ -136,7 +140,19 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         for (Resolver resolver : resolvers) {
             resolver.resolve(details);
             if (details.hasResult()) {
-                resolutionAction.execute(details);
+                // Visit the winning module first so that when we visit unattached dependencies of
+                // losing modules, the winning module always has a selected component.
+                Set<ModuleIdentifier> seen = new HashSet<>();
+                ModuleIdentifier winningModule = details.getSelected().getModule().getId();
+                resolveState.getModule(winningModule).replaceWith(details.getSelected());
+                seen.add(winningModule);
+
+                for (NodeState node : details.conflict.nodes) {
+                    ModuleIdentifier module = node.getComponent().getModule().getId();
+                    if (seen.add(module)) {
+                        resolveState.getModule(module).replaceWith(details.getSelected());
+                    }
+                }
 
                 if (conflict.nodes.size() > 1) {
                     assert details.reason != null;
@@ -265,24 +281,6 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             List<NodeState> conflictedNodes = new ArrayList<>(nodes);
             conflictedNodes.remove(node);
             return conflictedNodes;
-        }
-
-        @Override
-        public void withParticipatingModules(Action<? super ModuleIdentifier> action, ConflictResolutionResult result) {
-            Set<ModuleIdentifier> seen = new HashSet<>();
-
-            // Visit the winning module first so that when we visit unattached dependencies of
-            // losing modules, the winning module always has a selected component.
-            ModuleIdentifier winningModule = result.getSelected().getModule().getId();
-            action.execute(winningModule);
-            seen.add(winningModule);
-
-            for (NodeState node : conflict.nodes) {
-                ModuleIdentifier module = node.getComponent().getModule().getId();
-                if (seen.add(module)) {
-                    action.execute(module);
-                }
-            }
         }
 
         @Override
@@ -451,4 +449,5 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             return newConflict;
         }
     }
+
 }

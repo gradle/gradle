@@ -18,9 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ModuleResolveState
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveState
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -28,10 +29,10 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.n
 
 class DefaultModuleConflictHandlerTest extends Specification {
 
+    def resolveState = Mock(ResolveState)
     def resolver = Mock(ModuleConflictResolver)
     def replacements = Mock(ImmutableModuleReplacements)
-    @Subject handler = new DefaultModuleConflictHandler(resolver, replacements)
-    def details = Mock(ConflictResolverDetails)
+    @Subject handler = new DefaultModuleConflictHandler(resolver, replacements, resolveState)
 
     def "registers unconflicted modules"() {
         def a = candidate("org", "a")
@@ -74,14 +75,15 @@ class DefaultModuleConflictHandlerTest extends Specification {
     }
 
     def "resolves conflict"() {
-        def a = candidate("org", "a", "1", "2")
-        handler.registerCandidate(a)
+        given:
+        def candidateModule = candidate("org", "a", "1", "2")
+        handler.registerCandidate(candidateModule)
+        def selectedVersion = candidateModule.versions.find { it.id.version == '2' }
+        def targetModule = selectedVersion.module
+        resolveState.getModule(DefaultModuleIdentifier.newId("org", "a")) >> targetModule
 
         when:
-        details.getCandidates() >> { a.versions.findAll { it.id.version in ['1', '2']} }
-        handler.resolveNextConflict { ConflictResolutionResult r ->
-            assert r.selected.id == newId("org", "a", "2")
-        }
+        handler.resolveNextConflict()
 
         then:
         1 * resolver.select(_) >> { args ->
@@ -89,7 +91,7 @@ class DefaultModuleConflictHandlerTest extends Specification {
             def selected = details.candidates.find { it.id.version == '2' }
             details.select(selected)
         }
-        0 * details._
+        1 * targetModule.replaceWith(selectedVersion)
         0 * resolver._
 
         then:
@@ -97,13 +99,18 @@ class DefaultModuleConflictHandlerTest extends Specification {
     }
 
     private CandidateModule candidate(String group, String name, String ... versions) {
-        def candidate = Stub(CandidateModule)
-        candidate.getId() >> DefaultModuleIdentifier.newId(group, name)
-        candidate.getVersions() >> versions.collect { String version ->
-            def v = Stub(ComponentState)
-            v.getId() >> newId(group, name, version)
-            v
+        def moduleId = DefaultModuleIdentifier.newId(group, name)
+        return Stub(CandidateModule) {
+            getId() >> moduleId
+            getVersions() >> versions.collect { String version ->
+                Stub(ComponentState) {
+                    getId() >> newId(group, name, version)
+                    getModule() >> Mock(ModuleResolveState) {
+                        getId() >> moduleId
+                    }
+                }
+            }
         }
-        candidate
     }
+
 }

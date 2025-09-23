@@ -38,7 +38,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultCapabilitiesConflictHandler;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultModuleConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflict;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictException;
@@ -139,9 +138,6 @@ public class DependencyGraphBuilder {
         ResolutionParameters.FailureResolutions failureResolutions,
         DependencyGraphVisitor modelVisitor
     ) {
-        ModuleConflictHandler moduleConflictHandler = new DefaultModuleConflictHandler(moduleConflictResolver, moduleReplacements);
-        CapabilitiesConflictHandler capabilitiesConflictHandler = new DefaultCapabilitiesConflictHandler(capabilityConflictResolvers);
-
         ResolveState resolveState = new ResolveState(
             idGenerator,
             rootComponent,
@@ -160,8 +156,9 @@ public class DependencyGraphBuilder {
             versionParser,
             conflictResolution,
             syntheticDependencies,
-            moduleConflictHandler,
-            capabilitiesConflictHandler,
+            moduleConflictResolver,
+            moduleReplacements,
+            capabilityConflictResolvers,
             variantSelector
         );
 
@@ -208,9 +205,9 @@ public class DependencyGraphBuilder {
             } else {
                 // We have some batched up conflicts. Resolve the first, and continue traversing the graph
                 if (moduleConflictHandler.hasConflicts()) {
-                    moduleConflictHandler.resolveNextConflict(resolveState.getReplaceSelectionWithConflictResultAction());
+                    moduleConflictHandler.resolveNextConflict();
                 } else {
-                    capabilitiesConflictHandler.resolveNextConflict(resolveState.getReplaceSelectionWithConflictResultAction());
+                    capabilitiesConflictHandler.resolveNextConflict();
                 }
             }
 
