@@ -16,9 +16,9 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.Describable;
+import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.jspecify.annotations.Nullable;
 
@@ -118,8 +118,8 @@ public final class FreezableAttributeContainer extends AbstractAttributeContaine
     }
 
     @Override
-    public ObjectFactory getObjectFactory() {
-        return delegate.getObjectFactory();
+    public <T extends Named> T named(Class<T> type, String name) {
+        return delegate.named(type, name);
     }
 
     @Override

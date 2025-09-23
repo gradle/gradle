@@ -17,7 +17,7 @@
 package org.gradle.api.attributes;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.Named;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
@@ -145,11 +145,10 @@ public interface AttributeContainer extends HasAttributes {
     boolean contains(Attribute<?> key);
 
     /**
-     * Injected service to create named objects.
+     * Creates an Attribute of the given type and name.
      *
-     * @return injected service
      * @since 9.2.0
      */
     @Incubating
-    ObjectFactory getObjectFactory();
+    <T extends Named> T named(Class<T> type, String name);
 }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.model.ObjectFactory;
@@ -109,8 +110,8 @@ import java.util.TreeMap;
 
     @NonNull
     @Override
-    public ObjectFactory getObjectFactory() {
-        return objectFactory;
+    public <T extends Named> T named(Class<T> type, String name) {
+        return objectFactory.named(type, name);
     }
 
     @Override
