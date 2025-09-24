@@ -15,12 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
 import org.gradle.api.internal.capabilities.CapabilityInternal;
 
 import java.util.Collection;
-import java.util.Set;
 
 public interface CapabilitiesConflictHandler {
 
@@ -51,13 +49,6 @@ public interface CapabilitiesConflictHandler {
         NodeState getNode();
         CapabilityInternal getCapability();
         Collection<NodeState> getImplicitCapabilityProviders();
-    }
-
-    interface CapabilityConflict {
-
-        Set<NodeState> getNodes();
-        Set<Capability> getDescriptors();
-
     }
 
 }
