@@ -365,7 +365,11 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             createBuildActionFactoryActionCreator(loggingServices, basicServices, actionCreators);
             configureCreators();
 
-            parser.allowUnknownOptions();
+            // Removed parser.allowUnknownOptions(): allowing unknown options caused tests (e.g.
+            // DefaultCommandLineActionFactoryTest#"continues on failure to parse logging configuration")
+            // to observe different parsing behavior (masking invalid option formats and altering
+            // expected interaction counts). Revert to strict parsing so malformed logging options
+            // trigger the intended CommandLineArgumentException path.
 
             Action<? super ExecutionListener> action;
             try {
