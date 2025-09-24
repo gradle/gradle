@@ -20,6 +20,7 @@ import groovy.transform.SelfType
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReportGenerator
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.test.fixtures.file.TestFile
@@ -29,25 +30,25 @@ import org.gradle.test.fixtures.file.TestFile
  */
 @SelfType(AbstractIntegrationSpec)
 trait VerifiesGenericTestReportResults {
-    String resultsUrlFor(String name) {
-        def expectedReportFile = file("build/reports/tests/${name}/index.html")
+    String resultsUrlFor(String testTaskName = "test") {
+        def expectedReportFile = file("build/reports/tests/${testTaskName}/index.html")
         String renderedUrl = new ConsoleRenderer().asClickableFileUrl(expectedReportFile)
         renderedUrl
     }
 
-    GenericTestExecutionResult resultsFor(String testTaskReportsDirPath) {
-        return resultsFor(testDirectory, testTaskReportsDirPath)
+    GenericHtmlTestExecutionResult resultsFor(String testTaskReportsDirPath, TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
+        return resultsFor(testDirectory, testTaskReportsDirPath, testFramework)
     }
 
-    GenericTestExecutionResult resultsFor(TestFile rootBuildDir, String testTaskReportsDirPath) {
-        return new GenericHtmlTestExecutionResult(rootBuildDir, "build/reports/${testTaskReportsDirPath}")
+    GenericHtmlTestExecutionResult resultsFor(TestFile rootBuildDir, String testTaskReportsDirPath, TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
+        return new GenericHtmlTestExecutionResult(rootBuildDir, "build/reports/${testTaskReportsDirPath}", testFramework)
     }
 
-    GenericTestExecutionResult aggregateResults() {
-        return aggregateResults(testDirectory)
+    GenericHtmlTestExecutionResult aggregateResults(TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
+        return aggregateResults(testDirectory, testFramework)
     }
 
-    GenericTestExecutionResult aggregateResults(TestFile rootBuildDir) {
-        return new GenericHtmlTestExecutionResult(rootBuildDir, "build/reports/aggregate-test-results")
+    GenericHtmlTestExecutionResult aggregateResults(TestFile rootBuildDir, TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
+        return new GenericHtmlTestExecutionResult(rootBuildDir, "build/reports/aggregate-test-results", testFramework)
     }
 }

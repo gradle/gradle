@@ -16,6 +16,7 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.api.internal.tasks.testing.report.generic.TestPathExecutionResult
 import org.gradle.api.internal.tasks.testing.report.generic.TestPathRootExecutionResult
 import org.gradle.api.tasks.testing.TestResult
@@ -45,8 +46,8 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
     private final GenericHtmlTestExecutionResult delegate
 
-    HtmlTestExecutionResult(File projectDirectory, String testReportDirectory = "build/reports/tests/test") {
-        this.delegate = new GenericHtmlTestExecutionResult(projectDirectory, testReportDirectory)
+    HtmlTestExecutionResult(File projectDirectory, String testReportDirectory = "build/reports/tests/test", TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
+        this.delegate = new GenericHtmlTestExecutionResult(projectDirectory, testReportDirectory, testFramework)
     }
 
     private Set<String> getExecutedTestClasses() {
