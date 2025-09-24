@@ -188,6 +188,35 @@ public class JUnitTestEventAdapter extends RunListener {
         resultProcessor.started(parentDescriptor, new TestStartEvent(now, grandparentId));
     }
 
+    // Note: This is JUnit 4.13+ only, so it may not be called
+    // We only use it to provide more exact timing for suites
+    // If not called, the suite start time is when the first test starts
+    @Override
+    public void testSuiteStarted(Description description) {
+        testsStarted = true;
+        TestNode testNode = requirePostRunStartData().parentDescToNode.get(description);
+        if (testNode != null) {
+            startParentByNodeIfNeeded(testNode, clock.getCurrentTime());
+        }
+    }
+
+    // Note: This is JUnit 4.13+ only, so it may not be called
+    // We only use it to provide more exact timing for suites
+    // If not called, the suite end time is when the whole run finishes
+    @Override
+    public void testSuiteFinished(Description description) {
+        TestNode testNode = requirePostRunStartData().parentDescToNode.get(description);
+        if (testNode == null) {
+            return;
+        }
+        synchronized (lock) {
+            if (activeParents.remove(description)) {
+                // Parent was active, complete it now
+                resultProcessor.completed(testNode.resolveId(), new TestCompleteEvent(clock.getCurrentTime()));
+            }
+        }
+    }
+
     @Override
     public void testStarted(Description description) {
         testsStarted = true;
