@@ -3,6 +3,8 @@ rootProject.name = "configure-built-in-caches"
 buildCache {
     local {
         directory = File(rootDir, "build-cache")
+        // enabled = false // Uncomment to disable the local build cache
+        // push = false // Uncomment to disable storing outputs in the build cache
     }
 }
 // end::configure-directory-build-cache[]
