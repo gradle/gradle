@@ -87,7 +87,9 @@ class GroovyCoverage {
 
         allVersions.addAll(FUTURE)
 
-        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_25)) {
+            return VersionCoverage.versionsAtLeast(allVersions, '3.0.25')
+        } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
             return VersionCoverage.versionsAtLeast(allVersions, '3.0.24')
         } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_15)) {
             // Latest 3.0.x patches support Java 15+
