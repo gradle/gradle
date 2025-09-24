@@ -23,7 +23,6 @@ import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultDynamicLookupRoutine
 import org.gradle.api.internal.project.DynamicLookupRoutine
 import org.gradle.api.internal.project.ProjectRegistry
-import org.gradle.api.internal.project.ProjectWrapperFactory
 import org.gradle.configuration.ProjectsPreparer
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.internal.DynamicCallContextTracker
@@ -164,9 +163,9 @@ class DefaultBuildModelControllerServices(
             listenerManager: ListenerManager,
             dynamicCallProblemReporting: DynamicCallProblemReporting,
             buildModelParameters: BuildModelParameters,
-            projectWrapperFactory: ProjectWrapperFactory,
+            instantiator: Instantiator
         ): CrossProjectModelAccess {
-            val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry, projectWrapperFactory)
+            val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry, instantiator)
             return ProblemReportingCrossProjectModelAccess(
                 delegate,
                 problemsListener,
@@ -174,7 +173,7 @@ class DefaultBuildModelControllerServices(
                 problemFactory,
                 dynamicCallProblemReporting,
                 buildModelParameters,
-                projectWrapperFactory
+                instantiator
             )
         }
 
@@ -200,9 +199,9 @@ class DefaultBuildModelControllerServices(
         @Provides
         fun createCrossProjectModelAccess(
             projectRegistry: ProjectRegistry,
-            projectWrapperFactory: ProjectWrapperFactory
+            instantiator: Instantiator
         ): CrossProjectModelAccess {
-            return DefaultCrossProjectModelAccess(projectRegistry, projectWrapperFactory)
+            return DefaultCrossProjectModelAccess(projectRegistry, instantiator)
         }
 
         @Provides
