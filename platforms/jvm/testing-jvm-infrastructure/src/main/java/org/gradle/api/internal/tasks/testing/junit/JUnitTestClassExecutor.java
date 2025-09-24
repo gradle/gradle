@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestClassConsumer;
+import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -68,7 +69,8 @@ public class JUnitTestClassExecutor implements TestClassConsumer {
     }
 
     @Override
-    public void consumeClass(String testClassName) {
+    public void consumeClass(TestClassRunInfo testClassInfo) {
+        String testClassName = testClassInfo.getTestClassName();
         boolean started = false;
         try {
             Request request = shouldRunTestClass(testClassName);
