@@ -148,7 +148,7 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
         windowsStartScript.text == 'myApp start up script for Windows'
     }
 
-    @Requires(UnitTestPreconditions.UnixDerivative)
+    @Requires(UnitTestPreconditions.Unix)
     def "can execute generated Unix start script"() {
         when:
         succeeds('installDist')
@@ -163,7 +163,7 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
         outputContains('Hello World!')
     }
 
-    @Requires(UnitTestPreconditions.UnixDerivative)
+    @Requires(UnitTestPreconditions.Unix)
     def "can execute generated Unix start script using JAVA_HOME with spaces"() {
         given:
         def testJavaHome = file("javahome/java home with spaces")
@@ -185,7 +185,7 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
         testJavaHome.usingNativeTools().deleteDir() //remove symlink
     }
 
-    @Requires(UnitTestPreconditions.UnixDerivative)
+    @Requires(UnitTestPreconditions.Unix)
     def "java PID equals script PID"() {
         given:
         succeeds('installDist')
@@ -710,7 +710,7 @@ rootProject.name = 'sample'
     }
 
     @Issue("https://github.com/gradle/gradle-private/issues/3386")
-    @Requires(UnitTestPreconditions.UnixDerivative)
+    @Requires(UnitTestPreconditions.Unix)
     def "does not execute code in user-set environment variable"() {
         when:
         succeeds('installDist')
@@ -739,7 +739,7 @@ rootProject.name = 'sample'
         envVar << ["JAVA_OPTS", "SAMPLE_OPTS"]
     }
 
-    @Requires(UnitTestPreconditions.UnixDerivative)
+    @Requires(UnitTestPreconditions.Unix)
     def "environment variables can have spaces in their values"() {
         when:
         succeeds('installDist')
@@ -764,7 +764,7 @@ rootProject.name = 'sample'
         envVar << ["JAVA_OPTS", "SAMPLE_OPTS"]
     }
 
-    @Requires(UnitTestPreconditions.UnixDerivative)
+    @Requires(UnitTestPreconditions.Unix)
     def "environment variables can have spaces in their values that should be treated as separate tokens"() {
         when:
         succeeds('installDist')
@@ -789,7 +789,7 @@ rootProject.name = 'sample'
         envVar << ["JAVA_OPTS", "SAMPLE_OPTS"]
     }
 
-    @Requires(UnitTestPreconditions.UnixDerivative)
+    @Requires(UnitTestPreconditions.Unix)
     def "environment variables that do not have spaces in their values that should be treated as separate tokens"() {
         when:
         succeeds('installDist')
@@ -814,7 +814,7 @@ rootProject.name = 'sample'
         envVar << ["JAVA_OPTS", "SAMPLE_OPTS"]
     }
 
-    @Requires(UnitTestPreconditions.UnixDerivative)
+    @Requires(UnitTestPreconditions.Unix)
     def "environment variables that do not have spaces in their values that should be treated as one token"() {
         when:
         succeeds('installDist')
