@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.report.generic
 
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Strings
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.ImmutableMultiset
@@ -44,7 +45,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.jupiter.api.Assertions.fail
 
 class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
-
+    public static final String TEST_NG_PREFIX = ":Gradle suite:Gradle test"
     private final Lazy<Set<Path>> executedTestPathsLazy = Lazy.locking().of({
         def reportPath = htmlReportDirectory.toPath()
         try (Stream<java.nio.file.Path> paths = Files.walk(reportPath)) {
@@ -70,10 +71,12 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
             }.collect(Collectors.toSet())
         }
     })
-    private File htmlReportDirectory
+    private final File htmlReportDirectory
+    private final TestFramework testFramework
 
-    GenericHtmlTestExecutionResult(File projectDirectory, String testReportDirectory = "build/reports/tests/test") {
+    GenericHtmlTestExecutionResult(File projectDirectory, String testReportDirectory = "build/reports/tests/test", TestFramework testFramework) {
         this.htmlReportDirectory = new File(projectDirectory, testReportDirectory)
+        this.testFramework = testFramework
         // For debugging purposes, always log the location of the report
         println "HTML test report directory: ${htmlReportDirectory}"
     }
@@ -88,10 +91,12 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         return executedTestPathsLazy.get()
     }
 
+    @SuppressWarnings('GroovyAssignabilityCheck')
     @Override
     GenericTestExecutionResult assertTestPathsExecuted(String... testPaths) {
         // We always will detect ancestors of the executed test paths as well, so add them to the set
         Set<Path> extendedTestPaths = Stream.of(testPaths)
+            .map { frameworkTestPath(it) }
             .map { Path.path(it) }
             .flatMap {
                 Stream.concat(
@@ -119,8 +124,18 @@ Unexpected paths: ${unexpectedPaths}""")
     // Differs from `assertTestPathsExecuted` in that it only checks that at least the given paths were executed, not that they were the only ones.
     @Override
     GenericTestExecutionResult assertAtLeastTestPathsExecuted(String... testPaths) {
+        def frameworkTestPaths = testPaths.collect { frameworkTestPath(it) }
+        return assertAtLeastFrameworkTestPathsExecuted(frameworkTestPaths.toArray([] as String[]))
+    }
+
+    /**
+     * Like {@link #assertAtLeastTestPathsExecuted(String...)}, but the paths must be in the test framework specific format already.
+     */
+    GenericTestExecutionResult assertAtLeastFrameworkTestPathsExecuted(String... testPaths) {
         // We always will detect ancestors of the executed test paths as well, so add them to the set
         Path[] extendedTestPaths = Stream.of(testPaths)
+            .map {it.startsWith(TEST_NG_PREFIX) ? it.substring(TEST_NG_PREFIX.length()) : it }
+            .map {it == "" ? ":" : it }
             .map { Path.path(it) }
             .flatMap {
                 Stream.concat(
@@ -136,69 +151,27 @@ Unexpected paths: ${unexpectedPaths}""")
 
     @Override
     GenericTestExecutionResult assertTestPathsNotExecuted(String... testPaths) {
-        assertThat(executedTestPaths, not(hasItems(testPaths.collect { Path.path(it) }.toArray(Path[]::new))))
+        assertThat(executedTestPaths, not(hasItems(testPaths.collect {frameworkTestPath(it) }.collect { Path.path(it) }.toArray(Path[]::new))))
         return this
-    }
-
-    private java.nio.file.Path diskPathForTestPath(String testPath) {
-        String processedPath = Strings.isNullOrEmpty(testPath) ? "index.html" : GenericHtmlTestReportGenerator.getFilePath(Path.path(testPath))
-        htmlReportDirectory.toPath().resolve(processedPath)
     }
 
     @Override
     TestPathExecutionResult testPath(String rootTestPath) {
         assertAtLeastTestPathsExecuted(rootTestPath)
-        return new HtmlTestPathExecutionResult(diskPathForTestPath(rootTestPath).toFile())
+        return new HtmlTestPathExecutionResult(diskPathForTestPath(frameworkTestPath(rootTestPath)).toFile())
     }
 
     @SuppressWarnings('GroovyFallthrough')
     @Override
-    TestPathExecutionResult testPath(String testClassName, String testMethodName, TestFramework testFramework) {
-        String frameworkPathToTest
-        switch (testFramework) {
-            case TestFramework.SPOCK:
-            case TestFramework.JUNIT4:
-            case TestFramework.SCALA_TEST:
-                frameworkPathToTest = ":" + testClassName + ":" + testMethodName
-                break
-            case TestFramework.JUNIT_JUPITER:
-            case TestFramework.KOTLIN_TEST:
-                def suffix = Strings.isNullOrEmpty(testMethodName) ? "" : "()"
-                frameworkPathToTest = ":" + testClassName + ":" + testMethodName + suffix
-                break
-            case TestFramework.TEST_NG:
-                frameworkPathToTest = ":Gradle-suite:Gradle-test:" + testClassName + ":" + testMethodName
-                break
-            default:
-                throw new IllegalArgumentException("Unknown test framework: " + testFramework)
-        }
-
-        return testPath(frameworkPathToTest)
+    TestPathExecutionResult testPath(String testClassName, String testMethodName) {
+        return testPath(testClassName + ":" + testMethodName)
     }
 
-    @Override
-    TestPathExecutionResult junitJupiterPath(String testClassName, String testMethodName) {
-        return testPath(testClassName, testMethodName, TestFramework.JUNIT_JUPITER)
-    }
-
-    @Override
-    TestPathExecutionResult spockPath(String testClassName, String testMethodName) {
-        return testPath(testClassName, testMethodName, TestFramework.SPOCK)
-    }
-
-    @Override
-    TestPathExecutionResult junit4Path(String testClassName, String testMethodName) {
-        return testPath(testClassName, testMethodName, TestFramework.JUNIT4)
-    }
-
-    @Override
-    TestPathExecutionResult testNGPath(String testClassName, String testMethodName) {
-        return testPath(testClassName, testMethodName, TestFramework.TEST_NG)
-    }
-
+    @SuppressWarnings('GroovyFallthrough')
     @Override
     boolean testPathExists(String testPath) {
-        return Files.exists(diskPathForTestPath(testPath))
+        String frameworkPathToTest = frameworkTestPath(testPath)
+        return Files.exists(diskPathForTestPath(frameworkPathToTest))
     }
 
     @Override
@@ -206,6 +179,65 @@ Unexpected paths: ${unexpectedPaths}""")
         def metadataElems = Jsoup.parse(htmlReportDirectory.toPath().resolve("index.html").toFile(), null).select('.key')
         assertThat(metadataElems.collect() { it.text() }, equalTo(keys))
         return this
+    }
+
+    @VisibleForTesting
+    String frameworkTestPath(String testPath) {
+        String basePrefix, baseSuffix
+        if (Strings.isNullOrEmpty(testPath)) {
+            basePrefix = ""
+            baseSuffix = ""
+        } else if (testPath == ":") {
+            basePrefix = ""
+            baseSuffix = ""
+        } else {
+            int lastColon = testPath.lastIndexOf(':')
+            if (lastColon == -1) {
+                basePrefix = testPath
+                baseSuffix = ""
+            } else if (lastColon == 0) { // path is :ClassName
+                basePrefix = testPath.substring(1)
+                baseSuffix = ""
+            } else {
+                if (testPath.startsWith(":")) {
+                    basePrefix = testPath.substring(1, lastColon)
+                } else {
+                    basePrefix = testPath.substring(0, lastColon)
+                }
+                baseSuffix = testPath.substring(lastColon + 1)
+            }
+        }
+
+        String result
+        //noinspection GroovyFallthrough
+        switch (testFramework) {
+            case TestFramework.SPOCK:
+            case TestFramework.JUNIT4:
+            case TestFramework.SCALA_TEST:
+                def prefix = Strings.isNullOrEmpty(basePrefix) ? "" : ":" + basePrefix
+                def suffix = Strings.isNullOrEmpty(baseSuffix) ? "" : ":" + baseSuffix
+                result = prefix + suffix
+                break
+            case TestFramework.JUNIT_JUPITER:
+            case TestFramework.KOTLIN_TEST:
+                def prefix = Strings.isNullOrEmpty(basePrefix) ? "" : ":" + basePrefix
+                def suffix = Strings.isNullOrEmpty(baseSuffix) ? "" : ":" + baseSuffix + "()"
+                result = prefix + suffix
+                break
+            case TestFramework.TEST_NG:
+                def prefix = Strings.isNullOrEmpty(basePrefix) ? "" : ":" + basePrefix
+                def suffix = Strings.isNullOrEmpty(baseSuffix) ? "" : ":" + baseSuffix
+                result = TEST_NG_PREFIX + prefix + suffix
+                break
+            default:
+                throw new IllegalArgumentException("Unknown test framework: " + testFramework)
+        }
+        return result
+    }
+
+    private java.nio.file.Path diskPathForTestPath(String frameworkTestPath) {
+        String processedPath = Strings.isNullOrEmpty(frameworkTestPath) ? "index.html" : GenericHtmlTestReportGenerator.getFilePath(Path.path(frameworkTestPath))
+        htmlReportDirectory.toPath().resolve(processedPath)
     }
 
     private static class HtmlTestPathExecutionResult implements TestPathExecutionResult {
