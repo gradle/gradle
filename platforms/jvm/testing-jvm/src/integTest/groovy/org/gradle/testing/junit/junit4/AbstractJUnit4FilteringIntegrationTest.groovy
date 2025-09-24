@@ -110,8 +110,8 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
         succeedsWithTestTaskArguments("test")
 
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test")
-        testResult.testPath("ParameterizedFoo", "", testFramework).onlyRoot().assertOnlyChildrenExecuted("[0]", "[1]", "[2]", "[3]", "[4]")
+        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
+        testResult.testPath("ParameterizedFoo", "").onlyRoot().assertOnlyChildrenExecuted("[0]", "[1]", "[2]", "[3]", "[4]")
         for (int i = 0; i < 5; i++) {
             testResult.testPath(":ParameterizedFoo:[$i]").onlyRoot().assertChildCount(1, 0)
             testResult.testPath(":ParameterizedFoo:[$i]:pass[$i]").onlyRoot().assertHasResult(passedTestOutcome)
@@ -127,8 +127,8 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
         succeedsWithTestTaskArguments("test", "--tests", "*ParameterizedFoo.pass*")
 
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test")
-        testResult.testPath("ParameterizedFoo", "", testFramework).onlyRoot().assertOnlyChildrenExecuted("[0]", "[1]", "[2]", "[3]", "[4]")
+        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
+        testResult.testPath("ParameterizedFoo", "").onlyRoot().assertOnlyChildrenExecuted("[0]", "[1]", "[2]", "[3]", "[4]")
         for (int i = 0; i < 5; i++) {
             testResult.testPath(":ParameterizedFoo:[$i]").onlyRoot().assertChildCount(1, 0)
             testResult.testPath(":ParameterizedFoo:[$i]:pass[$i]").onlyRoot().assertHasResult(passedTestOutcome)
@@ -144,7 +144,7 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
         succeedsWithTestTaskArguments("test", "--tests", "*AllFooTests")
 
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test")
+        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
         testResult.assertTestPathsExecuted(":AllFooTests:FooTest:testFoo", ":AllFooTests:FooServerTest:testFooServer")
         testResult.testPath(":AllFooTests:FooTest:testFoo").onlyRoot().assertHasResult(passedTestOutcome)
         testResult.testPath(":AllFooTests:FooServerTest:testFooServer").onlyRoot().assertHasResult(passedTestOutcome)
@@ -168,7 +168,7 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
         succeedsWithTestTaskArguments("test")
 
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test")
+        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
         testResult.assertTestPathsExecuted(":AllFooTests:FooTest:testFoo", ":AllFooTests:FooServerTest:testFooServer")
         testResult.testPath(":AllFooTests:FooTest:testFoo").onlyRoot().assertHasResult(passedTestOutcome)
         testResult.testPath(":AllFooTests:FooServerTest:testFooServer").onlyRoot().assertHasResult(passedTestOutcome)

@@ -37,6 +37,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
     BlockingHttpServer server = new BlockingHttpServer()
     JvmBlockingTestClassGenerator generator
 
+    abstract GenericTestExecutionResult.TestFramework getTestFramework()
     abstract String getPathToTestPackages()
 
     def setup() {
@@ -62,7 +63,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         gradleHandle.waitForFailure()
 
         and:
-        GenericTestExecutionResult testResults = resultsFor("tests/test")
+        GenericTestExecutionResult testResults = resultsFor("tests/test", testFramework)
 
         TestPathExecutionResult gradleTest = testResults.testPath(pathToTestPackages)
         gradleTest.rootNames == ['Gradle Test Run :test']
@@ -98,7 +99,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         gradleHandle.waitForFailure()
 
         and:
-        GenericTestExecutionResult testResults = resultsFor("tests/test")
+        GenericTestExecutionResult testResults = resultsFor("tests/test", testFramework)
         TestPathExecutionResult failedTest = testResults.testPath("${pathToTestPackages}pkg.FailedTest")
         failedTest.onlyRoot().getFailedChildCount() == 1
         TestPathExecutionResult otherTest = testResults.testPath("${pathToTestPackages}pkg.OtherTest")
@@ -125,7 +126,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         gradleHandle.waitForFailure()
 
         and:
-        GenericTestExecutionResult testResults = resultsFor("tests/test")
+        GenericTestExecutionResult testResults = resultsFor("tests/test", testFramework)
         assert 1 == resourceForTest.keySet().sum {
             def path = pathToTestPackages + it
             if (testResults.testPathExists(path)) {
