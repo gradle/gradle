@@ -57,8 +57,6 @@ import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.BuildScopedTaskResolver;
 import org.gradle.api.internal.project.DefaultProjectTaskLister;
-import org.gradle.api.internal.project.DefaultProjectWrapperFactory;
-import org.gradle.api.internal.project.DefaultProjectWrapperRegistry;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
@@ -66,8 +64,6 @@ import org.gradle.api.internal.project.ProjectFactory;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ProjectTaskLister;
-import org.gradle.api.internal.project.ProjectWrapperFactory;
-import org.gradle.api.internal.project.ProjectWrapperRegistry;
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
@@ -299,8 +295,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(ScriptClassPathResolver.class, DefaultScriptClassPathResolver.class);
         registration.add(ScriptHandlerFactory.class, DefaultScriptHandlerFactory.class);
         registration.add(BuildOutputCleanupRegistry.class, HoldsProjectState.class, DefaultBuildOutputCleanupRegistry.class);
-        registration.add(ProjectWrapperRegistry.class, DefaultProjectWrapperRegistry.class);
-        registration.add(ProjectWrapperFactory.class, DefaultProjectWrapperFactory.class);
 
         supplier.applyServicesTo(registration, buildScopeServices);
 

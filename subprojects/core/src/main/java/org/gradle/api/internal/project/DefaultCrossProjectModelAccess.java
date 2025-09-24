@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.reflect.Instantiator;
 import org.jspecify.annotations.Nullable;
 import org.gradle.util.Path;
 
@@ -32,27 +33,27 @@ import java.util.stream.Collectors;
 public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
 
     private final ProjectRegistry projectRegistry;
-    private final ProjectWrapperFactory projectWrapperFactory;
+    private final Instantiator instantiator;
 
-    public DefaultCrossProjectModelAccess(ProjectRegistry projectRegistry, ProjectWrapperFactory projectWrapperFactory) {
+    public DefaultCrossProjectModelAccess(ProjectRegistry projectRegistry, Instantiator instantiator) {
         this.projectRegistry = projectRegistry;
-        this.projectWrapperFactory = projectWrapperFactory;
+        this.instantiator = instantiator;
     }
 
     @Override
     public ProjectInternal access(ProjectInternal referrer, ProjectInternal project) {
-        return LifecycleAwareProject.wrap(project, referrer, projectWrapperFactory);
+        return LifecycleAwareProject.wrap(project, referrer, instantiator);
     }
 
     @Override
     @Nullable
-    public @Nullable ProjectInternal findProject(ProjectInternal referrer, Path path) {
+    public ProjectInternal findProject(ProjectInternal referrer, Path path) {
         if (!path.isAbsolute()) {
             throw new IllegalArgumentException("Project path must be absolute");
         }
 
         ProjectInternal project = projectRegistry.getProjectInternal(path.asString());
-        return project != null ? LifecycleAwareProject.wrap(project, referrer, projectWrapperFactory) : null;
+        return project != null ? LifecycleAwareProject.wrap(project, referrer, instantiator) : null;
     }
 
     @Override
@@ -60,7 +61,7 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
         return target.getOwner().getChildProjects().stream().collect(
             Collectors.toMap(
                 ProjectState::getName,
-                projectState -> LifecycleAwareProject.wrap(projectState.getMutableModel(), referrer, projectWrapperFactory)
+                projectState -> LifecycleAwareProject.wrap(projectState.getMutableModel(), referrer, instantiator)
             )
         );
     }
@@ -68,14 +69,14 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     @Override
     public Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal target) {
         return projectRegistry.getSubProjects(target.getPath()).stream()
-            .map(project -> LifecycleAwareProject.wrap(project, referrer, projectWrapperFactory))
+            .map(project -> LifecycleAwareProject.wrap(project, referrer, instantiator))
             .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
     public Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal target) {
         return projectRegistry.getAllProjects(target.getPath()).stream()
-            .map(project -> LifecycleAwareProject.wrap(project, referrer, projectWrapperFactory))
+            .map(project -> LifecycleAwareProject.wrap(project, referrer, instantiator))
             .collect(Collectors.toCollection(TreeSet::new));
     }
 

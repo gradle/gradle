@@ -40,7 +40,6 @@ import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.MutableStateAccessAwareProject
 import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.ProjectWrapperFactory
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
 import org.gradle.api.logging.Logger
@@ -68,6 +67,7 @@ import org.gradle.internal.metaobject.DynamicInvokeResult
 import org.gradle.internal.metaobject.DynamicObject
 import org.gradle.internal.model.ModelContainer
 import org.gradle.internal.model.RuleBasedPluginListener
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
@@ -85,33 +85,33 @@ class ProblemReportingCrossProjectModelAccess(
     private val problemFactory: ProblemFactory,
     private val dynamicCallProblemReporting: DynamicCallProblemReporting,
     private val buildModelParameters: BuildModelParameters,
-    private val projectWrapperFactory: ProjectWrapperFactory
+    private val instantiator: Instantiator
 ) : CrossProjectModelAccess {
     override fun findProject(referrer: ProjectInternal, path: Path): ProjectInternal? {
         return delegate.findProject(referrer, path)?.let {
-            it.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, it), projectWrapperFactory)
+            it.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, it), instantiator)
         }
     }
 
     override fun access(referrer: ProjectInternal, project: ProjectInternal): ProjectInternal {
-        return project.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, project), projectWrapperFactory)
+        return project.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, project), instantiator)
     }
 
     override fun getChildProjects(referrer: ProjectInternal, target: ProjectInternal): MutableMap<String, Project> {
         return delegate.getChildProjects(referrer, target).mapValuesTo(LinkedHashMap()) {
-            (it.value as ProjectInternal).wrap(referrer, CrossProjectModelAccessInstance(CHILD, target), projectWrapperFactory)
+            (it.value as ProjectInternal).wrap(referrer, CrossProjectModelAccessInstance(CHILD, target), instantiator)
         }
     }
 
     override fun getSubprojects(referrer: ProjectInternal, target: ProjectInternal): MutableSet<out ProjectInternal> {
         return delegate.getSubprojects(referrer, target).mapTo(LinkedHashSet()) {
-            it.wrap(referrer, CrossProjectModelAccessInstance(SUBPROJECT, target), projectWrapperFactory)
+            it.wrap(referrer, CrossProjectModelAccessInstance(SUBPROJECT, target), instantiator)
         }
     }
 
     override fun getAllprojects(referrer: ProjectInternal, target: ProjectInternal): MutableSet<out ProjectInternal> {
         return delegate.getAllprojects(referrer, target).mapTo(LinkedHashSet()) {
-            it.wrap(referrer, CrossProjectModelAccessInstance(ALLPROJECTS, target), projectWrapperFactory)
+            it.wrap(referrer, CrossProjectModelAccessInstance(ALLPROJECTS, target), instantiator)
         }
     }
 
@@ -138,10 +138,9 @@ class ProblemReportingCrossProjectModelAccess(
     fun ProjectInternal.wrap(
         referrer: ProjectInternal,
         access: CrossProjectModelAccessInstance,
-        projectWrapperFactory: ProjectWrapperFactory
+        instantiator: Instantiator
     ): ProjectInternal = MutableStateAccessAwareProject.wrap(this, referrer) {
-        projectWrapperFactory.newWrapper(
-            this,
+        instantiator.newInstance(
             ProblemReportingProject::class.java,
             this,
             referrer,
