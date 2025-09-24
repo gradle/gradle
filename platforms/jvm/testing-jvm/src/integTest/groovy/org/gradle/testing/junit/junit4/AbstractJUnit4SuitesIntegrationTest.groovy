@@ -17,6 +17,7 @@
 package org.gradle.testing.junit.junit4
 
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.testing.junit.AbstractJUnitSuitesIntegrationTest
 import org.junit.Assume
@@ -127,7 +128,7 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
         executer.withTasks('test', '--debug-jvm').run()
 
         then:
-        GenericHtmlTestExecutionResult result = new GenericHtmlTestExecutionResult(testDirectory)
+        GenericHtmlTestExecutionResult result = new GenericHtmlTestExecutionResult(testDirectory, GenericTestExecutionResult.TestFramework.JUNIT4)
         result.assertTestPathsExecuted(
             ':org.gradle.ASuite:org.gradle.OkTest:ok',
             ':org.gradle.ASuite:org.gradle.OkTest:anotherOk',

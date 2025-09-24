@@ -78,13 +78,18 @@ abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilter
         run("test", "--tests", "*AwesomeSuite*")
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
+        def testResult = resultsFor(testDirectory, "tests/test", testFramework)
+        testResult.assertTestPathsExecuted("FooTest", "BarTest")
+        testResult.testPath("FooTest").onlyRoot().assertChildCount(1, 0)
+        testResult.testPath("BarTest").onlyRoot().assertChildCount(1, 0)
 
-        result.assertTestClassesExecuted('FooTest', 'BarTest')
-        result.testClass('FooTest').assertTestCount(1, 0)
-        result.testClass('FooTest').assertTestOutcomes(passedTestOutcome, 'pass')
-        result.testClass('BarTest').assertTestCount(1, 0)
-        result.testClass('BarTest').assertTestOutcomes(passedTestOutcome, 'pass')
+//        def result = new DefaultTestExecutionResult(testDirectory)
+//
+//        result.assertTestClassesExecuted('FooTest', 'BarTest')
+//        result.testClass('FooTest').assertTestCount(1, 0)
+//        result.testClass('FooTest').assertTestOutcomes(passedTestOutcome, 'pass')
+//        result.testClass('BarTest').assertTestCount(1, 0)
+//        result.testClass('BarTest').assertTestOutcomes(passedTestOutcome, 'pass')
     }
 
     @Issue("GRADLE-3112")
@@ -104,12 +109,17 @@ abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilter
         run("test")
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
+        def testResult = resultsFor(testDirectory, "tests/test", testFramework)
+        testResult.assertTestPathsExecuted("FooTest", "BarTest")
+        testResult.testPath("FooTest").onlyRoot().assertChildCount(1, 0)
+        testResult.testPath("BarTest").onlyRoot().assertChildCount(1, 0)
 
-        result.assertTestClassesExecuted('FooTest', 'BarTest')
-        result.testClass('FooTest').assertTestCount(1, 0)
-        result.testClass('FooTest').assertTestOutcomes(passedTestOutcome, 'pass')
-        result.testClass('BarTest').assertTestCount(1, 0)
-        result.testClass('BarTest').assertTestOutcomes(passedTestOutcome, 'pass')
+        def result = new DefaultTestExecutionResult(testDirectory)
+//
+//        result.assertTestClassesExecuted('FooTest', 'BarTest')
+//        result.testClass('FooTest').assertTestCount(1, 0)
+//        result.testClass('FooTest').assertTestOutcomes(passedTestOutcome, 'pass')
+//        result.testClass('BarTest').assertTestCount(1, 0)
+//        result.testClass('BarTest').assertTestOutcomes(passedTestOutcome, 'pass')
     }
 }
