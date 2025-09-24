@@ -68,7 +68,9 @@ The build output would then be dependent on the state of the machine it was run 
 
 ==== Do This Instead
 
-Use *Ephemeral CI* for publishing builds.
+Published artifacts should always be built in a trusted, pristine environment. 
+The best way to achieve this is by using a fresh, isolated, and temporary CI machine. 
+This approach, often referred to as *Ephemeral CI*, guarantees that the build starts from a clean slate every time, with no lingering artifacts, caches, or other external state.
 
 === Tags
 
