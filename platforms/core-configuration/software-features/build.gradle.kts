@@ -18,7 +18,7 @@ plugins {
     id("gradlebuild.distribution.implementation-kotlin")
 }
 
-description = "Implementation of Software Features and Types"
+description = "Implementation of Project Features and Types"
 
 dependencies {
     api(projects.coreApi)

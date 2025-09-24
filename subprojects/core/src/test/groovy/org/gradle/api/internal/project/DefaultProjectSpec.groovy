@@ -52,9 +52,9 @@ import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.invocation.GradleLifecycleActionExecutor
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.plugin.software.internal.SoftwareFeatureApplicator
-import org.gradle.plugin.software.internal.SoftwareFeaturesDynamicObject
-import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureApplicator
+import org.gradle.plugin.software.internal.ProjectFeaturesDynamicObject
+import org.gradle.plugin.software.internal.ProjectFeatureRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -242,7 +242,7 @@ class DefaultProjectSpec extends Specification {
         def objectFactory = Stub(ObjectFactory) {
             fileCollection() >> TestFiles.fileCollectionFactory().configurableFiles()
             property(Object) >> propertyFactory.property(Object)
-            newInstance(SoftwareFeaturesDynamicObject, _) >> Stub(SoftwareFeaturesDynamicObject)
+            newInstance(ProjectFeaturesDynamicObject, _) >> Stub(ProjectFeaturesDynamicObject)
         }
 
         def serviceRegistry = new DefaultServiceRegistry()
@@ -265,8 +265,8 @@ class DefaultProjectSpec extends Specification {
         serviceRegistry.add(FileResolver, Stub(FileResolver))
         serviceRegistry.add(FileCollectionFactory, Stub(FileCollectionFactory))
         serviceRegistry.add(GradleLifecycleActionExecutor, Stub(GradleLifecycleActionExecutor))
-        serviceRegistry.add(SoftwareFeatureRegistry, Stub(SoftwareFeatureRegistry))
-        serviceRegistry.add(SoftwareFeatureApplicator, Stub(SoftwareFeatureApplicator))
+        serviceRegistry.add(ProjectFeatureRegistry, Stub(ProjectFeatureRegistry))
+        serviceRegistry.add(ProjectFeatureApplicator, Stub(ProjectFeatureApplicator))
 
         def antBuilder = Mock(AntBuilder)
         serviceRegistry.add(AntBuilderFactory, Mock(AntBuilderFactory) {

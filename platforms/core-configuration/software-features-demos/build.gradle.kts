@@ -18,7 +18,7 @@ plugins {
     id("gradlebuild.distribution.implementation-kotlin")
 }
 
-description = "Demos of Software Features and Types"
+description = "Demos of Project Features and Types"
 
 dependencies {
     api(projects.antlr)

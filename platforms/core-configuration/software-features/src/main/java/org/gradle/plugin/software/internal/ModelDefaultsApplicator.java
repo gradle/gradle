@@ -21,11 +21,11 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * Applies the model defaults for the software type declared in the given plugin to a target object.
+ * Applies the model defaults for the project type declared in the given plugin to a target object.
  */
 @ServiceScope(Scope.Project.class)
 public interface ModelDefaultsApplicator {
-    void applyDefaultsTo(Object target, Object definition, ClassLoaderContext classLoaderContext, Plugin<?> plugin, SoftwareFeatureImplementation<?, ?> softwareFeatureImplementation);
+    void applyDefaultsTo(Object target, Object definition, ClassLoaderContext classLoaderContext, Plugin<?> plugin, ProjectFeatureImplementation<?, ?> projectFeatureImplementation);
 
     interface ClassLoaderContext {
         ClassLoader getClassLoader();

@@ -17,10 +17,10 @@
 package org.gradle.api.internal.plugins;
 
 /**
- * A builder for configuring a DSL binding for a software type or software feature.
+ * A builder for configuring a DSL binding for a project type or project feature.
  *
- * @param <T> the type of the software type or software feature definition object
- * @param <V> the type of the build model object for this software type or software feature
+ * @param <T> the type of the project type or project feature definition object
+ * @param <V> the type of the build model object for this project type or project feature
  */
 public interface DslBindingBuilder<T extends HasBuildModel<V>, V extends BuildModel> {
     /**

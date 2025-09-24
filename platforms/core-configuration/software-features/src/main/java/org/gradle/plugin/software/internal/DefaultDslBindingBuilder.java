@@ -20,8 +20,8 @@ import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.DslBindingBuilder;
 import org.gradle.api.internal.plugins.DslBindingBuilderInternal;
 import org.gradle.api.internal.plugins.HasBuildModel;
-import org.gradle.api.internal.plugins.SoftwareFeatureBinding;
-import org.gradle.api.internal.plugins.SoftwareFeatureTransform;
+import org.gradle.api.internal.plugins.ProjectFeatureBinding;
+import org.gradle.api.internal.plugins.ProjectFeatureApplyAction;
 import org.gradle.api.internal.plugins.TargetTypeInformation;
 import org.gradle.internal.Cast;
 import org.gradle.util.Path;
@@ -37,7 +37,7 @@ public class DefaultDslBindingBuilder<T extends HasBuildModel<V>, V extends Buil
     private final TargetTypeInformation<?> targetDefinitionType;
     private final Class<V> buildModelType;
     private final Path path;
-    private final SoftwareFeatureTransform<?, ?, ?> transform;
+    private final ProjectFeatureApplyAction<?, ?, ?> transform;
 
     @Nullable private Class<?> dslImplementationType;
     @Nullable private Class<?> buildModelImplementationType;
@@ -47,7 +47,7 @@ public class DefaultDslBindingBuilder<T extends HasBuildModel<V>, V extends Buil
         Class<V> buildModelType,
         TargetTypeInformation<?> targetDefinitionType,
         Path path,
-        SoftwareFeatureTransform<T, V, ?> transform
+        ProjectFeatureApplyAction<T, V, ?> transform
     ) {
         this.targetDefinitionType = targetDefinitionType;
         this.dslType = dslType;
@@ -56,16 +56,16 @@ public class DefaultDslBindingBuilder<T extends HasBuildModel<V>, V extends Buil
         this.transform = transform;
     }
 
-    private static <T extends HasBuildModel<V>, V extends BuildModel> SoftwareFeatureBinding<T, V> bindingOf(
+    private static <T extends HasBuildModel<V>, V extends BuildModel> ProjectFeatureBinding<T, V> bindingOf(
         Class<T> dslType,
         @Nullable Class<? extends T> dslImplementationType,
         Path path,
         TargetTypeInformation<?> targetDefinitionType,
         Class<V> buildModelType,
         @Nullable Class<? extends V> buildModelImplementationType,
-        SoftwareFeatureTransform<T, ?, V> transform
+        ProjectFeatureApplyAction<T, ?, V> transform
     ) {
-        return new SoftwareFeatureBinding<T, V>() {
+        return new ProjectFeatureBinding<T, V>() {
             @Override
             public TargetTypeInformation<?> targetDefinitionType() {
                 return targetDefinitionType;
@@ -82,7 +82,7 @@ public class DefaultDslBindingBuilder<T extends HasBuildModel<V>, V extends Buil
             }
 
             @Override
-            public SoftwareFeatureTransform<T, ?, V> getTransform() {
+            public ProjectFeatureApplyAction<T, ?, V> getTransform() {
                 return transform;
             }
 
@@ -116,7 +116,7 @@ public class DefaultDslBindingBuilder<T extends HasBuildModel<V>, V extends Buil
     }
 
     @Override
-    public SoftwareFeatureBinding<T, V> build() {
+    public ProjectFeatureBinding<T, V> build() {
         if (dslImplementationType != null && !dslType.isAssignableFrom(dslImplementationType)) {
             throw new IllegalArgumentException("Implementation type " + dslImplementationType + " is not a subtype of dsl type " + dslType);
         }

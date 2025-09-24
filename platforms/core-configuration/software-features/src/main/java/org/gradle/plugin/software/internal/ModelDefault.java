@@ -17,7 +17,7 @@
 package org.gradle.plugin.software.internal;
 
 /**
- * Represents a reusable set of defaults declared for a software type.
+ * Represents a reusable set of defaults declared for a project type.
  *
  * @param <T> the type of the receiver of the convention
  *

@@ -20,7 +20,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 
-@RegistersSoftwareTypes(GroovySoftwareTypePlugin::class)
+@RegistersSoftwareTypes(GroovyProjectTypePlugin::class)
 class GroovyEcosystemPlugin : Plugin<Settings> {
     override fun apply(target: Settings) = Unit
 }
