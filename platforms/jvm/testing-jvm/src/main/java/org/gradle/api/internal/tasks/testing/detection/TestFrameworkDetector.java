@@ -20,13 +20,18 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 public interface TestFrameworkDetector {
     void startDetection(TestClassProcessor testClassProcessor);
 
     boolean processTestClass(RelativeFile testClassFile);
+    boolean processTestResource(RelativeFile testResourceFile);
 
     void setTestClasses(List<File> testClasses);
+
+    // TODO: Perhaps this needs a hierarchy of test detectors: TestDectector -> ClassBasedTestDetector | ResourceBasedTestDetector
+    void setTestResources(Set<File> resourceFiles);
 
     void setTestClasspath(List<File> classpath);
 }

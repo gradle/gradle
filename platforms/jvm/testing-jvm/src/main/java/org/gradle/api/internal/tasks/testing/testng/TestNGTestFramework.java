@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.DirectoryReport;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
@@ -108,4 +109,9 @@ public abstract class TestNGTestFramework implements TestFramework {
         detector = null;
     }
 
+    @Override
+    @Internal
+    public String getDisplayName() {
+        return "Test NG";
+    }
 }

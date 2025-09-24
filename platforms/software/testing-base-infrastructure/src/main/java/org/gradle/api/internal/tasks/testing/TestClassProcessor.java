@@ -29,6 +29,7 @@ public interface TestClassProcessor extends Stoppable {
      */
     void startProcessing(TestResultProcessor resultProcessor);
 
+    // TODO: Rename, redoc
     /**
      * Accepts the given test class for processing. May execute synchronously, asynchronously, or defer execution for
      * later.

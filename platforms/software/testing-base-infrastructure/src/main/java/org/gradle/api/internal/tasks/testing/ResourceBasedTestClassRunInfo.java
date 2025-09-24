@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks.testing;
 
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
-// TODO: rename this: TestDefinitionInfo?
-public interface TestClassRunInfo {
-    @Nullable // TODO: Use Optional returns? Add a isClass method? Make some opaque getTestDefinition?  Have executor just accept this definition interface?
-    String getTestClassName();
+// TODO: Obviously this name is terrible
+@NullMarked
+public class ResourceBasedTestClassRunInfo implements TestClassRunInfo {
+    private final File resourceFile;
 
+    public ResourceBasedTestClassRunInfo(File resourceFile) {
+        this.resourceFile = resourceFile;
+    }
+
+    @Override
     @Nullable
-    File getTestResourceFile();
+    public String getTestClassName() {
+        return null;
+    }
+
+    @Override
+    public File getTestResourceFile() {
+        return resourceFile;
+    }
 }

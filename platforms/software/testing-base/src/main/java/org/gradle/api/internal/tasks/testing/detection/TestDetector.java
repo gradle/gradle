@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.testing;
 
-import org.jspecify.annotations.Nullable;
+package org.gradle.api.internal.tasks.testing.detection;
 
-import java.io.File;
-
-// TODO: rename this: TestDefinitionInfo?
-public interface TestClassRunInfo {
-    @Nullable // TODO: Use Optional returns? Add a isClass method? Make some opaque getTestDefinition?  Have executor just accept this definition interface?
-    String getTestClassName();
-
-    @Nullable
-    File getTestResourceFile();
+/**
+ * A type that detects tests.
+ * <p>
+ * Used by test frameworks to detect tests in a given class or resource.
+ * <p>
+ * Replaces {@code Runnable} with a named type for better discoverability and to allow for future expansion.
+ */
+public interface TestDetector {
+    /**
+     * Detect tests.
+     */
+    void detect();
 }

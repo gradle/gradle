@@ -17,6 +17,9 @@
 package org.gradle.testing.junit.platform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.hamcrest.CoreMatchers
+import org.junit.jupiter.api.Assertions
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 
@@ -74,5 +77,66 @@ class JUnitPlatformIntegrationSpec extends AbstractIntegrationSpec {
                 public void bad() { }
             }
             '''
+    }
+
+    def "test results show passing and failing tests"() {
+        given:
+        createPassingFailingTest()
+
+        buildFile << """
+            tasks.withType(AbstractTestTask) {
+                ignoreFailures = true
+            }
+        """
+
+        when:
+        succeeds "test", "--debug-jvm"
+
+        then:
+        testResult.assertTestClassesExecuted('SomeTest', 'SomeOtherTest')
+        testResult.testClass('SomeTest').assertTestFailed(failingTestCaseName, CoreMatchers.containsString("test failure message"))
+        testResult.testClass('SomeOtherTest').assertTestPassed(passingTestCaseName)
+
+        Assertions.fail()
+    }
+
+    void createPassingFailingTest() {
+        file('src/main/java/AppException.java').writelns(
+            "public class AppException extends Exception { }"
+        )
+
+        file('src/test/java/SomeTest.java') << """
+            public class SomeTest {
+                @org.junit.jupiter.api.Test
+                public void ${failingTestCaseName} {
+                    System.err.println("some error output");
+                    org.junit.jupiter.api.Assertions.fail(\"test failure message\");
+                }
+                @org.junit.jupiter.api.Test
+                public void ${passingTestCaseName} { }
+            }
+        """
+        file('src/test/java/SomeOtherTest.java') << """
+            public class SomeOtherTest {
+                @org.junit.jupiter.api.Test
+                public void ${passingTestCaseName} { }
+            }
+        """
+    }
+
+    protected DefaultTestExecutionResult getTestResult() {
+        new DefaultTestExecutionResult(testDirectory, 'build', '', '', testTaskName)
+    }
+
+    String getTestTaskName() {
+        return "test"
+    }
+
+    String getPassingTestCaseName() {
+        return "pass()"
+    }
+
+    String getFailingTestCaseName() {
+        return "fail()"
     }
 }

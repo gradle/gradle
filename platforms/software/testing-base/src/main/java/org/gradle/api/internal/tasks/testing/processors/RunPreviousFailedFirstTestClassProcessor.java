@@ -30,6 +30,7 @@ import java.util.Set;
 public class RunPreviousFailedFirstTestClassProcessor implements TestClassProcessor {
     private final Set<String> previousFailedTestClasses;
     private final TestClassProcessor delegate;
+    // TODO: rename - test definitions/cases?
     private final LinkedHashSet<TestClassRunInfo> prioritizedTestClasses = new LinkedHashSet<TestClassRunInfo>();
     private final LinkedHashSet<TestClassRunInfo> otherTestClasses = new LinkedHashSet<TestClassRunInfo>();
 

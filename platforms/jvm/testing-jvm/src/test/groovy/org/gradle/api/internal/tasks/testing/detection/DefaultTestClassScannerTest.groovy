@@ -39,7 +39,7 @@ class DefaultTestClassScannerTest extends Specification {
         def class2 = stubFileVisitDetails('class2')
 
         when:
-        scanner.run()
+        scanner.detect()
 
         then:
         1 * detector.startDetection(processor)
@@ -60,7 +60,7 @@ class DefaultTestClassScannerTest extends Specification {
 
     void skipAnonymousClass() {
         when:
-        scanner.run()
+        scanner.detect()
 
         then:
         1 * detector.startDetection(processor)
