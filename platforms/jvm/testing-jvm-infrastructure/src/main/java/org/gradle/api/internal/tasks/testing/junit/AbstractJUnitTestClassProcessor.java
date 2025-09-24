@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.RequiresTestFrameworkTestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
+import org.gradle.api.internal.tasks.testing.TestExecutor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
@@ -30,7 +30,7 @@ public abstract class AbstractJUnitTestClassProcessor implements RequiresTestFra
 
     private final ActorFactory actorFactory;
     private Actor resultProcessorActor;
-    private Action<String> executor;
+    private TestExecutor executor;
 
     protected boolean startedProcessing;
 
@@ -52,13 +52,12 @@ public abstract class AbstractJUnitTestClassProcessor implements RequiresTestFra
 
     protected abstract TestResultProcessor createResultProcessorChain(TestResultProcessor resultProcessor);
 
-    protected abstract Action<String> createTestExecutor(Actor resultProcessorActor);
+    protected abstract TestExecutor createTestExecutor(Actor resultProcessorActor);
 
-    @Override
-    public void processTestClass(TestClassRunInfo testClass) {
+    public void doProcessTestDefinition(TestDefinition testDefinition) {
         if (startedProcessing) {
-            LOGGER.debug("Executing test class {}", testClass.getTestClassName());
-            executor.execute(testClass.getTestClassName());
+            LOGGER.debug("Executing {}", testDefinition.getDisplayName());
+            executor.execute(testDefinition);
         }
     }
 

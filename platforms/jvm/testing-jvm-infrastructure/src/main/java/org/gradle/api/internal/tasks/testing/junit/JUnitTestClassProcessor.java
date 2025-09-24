@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
+import org.gradle.api.internal.tasks.testing.OnlyClassBasedTestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestExecutor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.actor.Actor;
@@ -24,7 +26,7 @@ import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 
-public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor {
+public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor implements OnlyClassBasedTestClassProcessor {
     private final IdGenerator<?> idGenerator;
     private final JUnitSpec spec;
     private final Clock clock;
@@ -52,7 +54,7 @@ public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor {
     }
 
     @Override
-    protected Action<String> createTestExecutor(Actor resultProcessorActor) {
+    protected TestExecutor createTestExecutor(Actor resultProcessorActor) {
         TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
         TestClassExecutionListener threadSafeTestClassListener = resultProcessorActor.getProxy(TestClassExecutionListener.class);
 
@@ -64,5 +66,10 @@ public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor {
             threadSafeTestClassListener,
             threadSafeResultProcessor
         );
+    }
+
+    @Override
+    public void processClassTestDefinition(ClassTestDefinition testDefinition) {
+        doProcessTestDefinition(testDefinition);
     }
 }

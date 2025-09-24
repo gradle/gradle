@@ -65,4 +65,7 @@ public interface TestFramework extends Closeable {
     @Internal
     Action<WorkerProcessBuilder> getWorkerConfigurationAction();
 
+    default boolean supportsResourceBasedTesting() {
+        return false;
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.worker;
-
-import org.gradle.api.internal.tasks.testing.TestDefinition;
+package org.gradle.api.internal.tasks.testing.detection;
 
 /**
- * @see org.gradle.api.internal.tasks.testing.TestClassProcessor
+ * A type that detects tests.
+ * <p>
+ * Used by test frameworks to detect tests in a given class or resource.
+ * <p>
+ * Replaces {@code Runnable} with a named type for better discoverability and to allow for future expansion.
  */
-public interface RemoteTestClassProcessor {
+public interface TestDetector {
     /**
-     * Does not block.
+     * Detect tests.
      */
-    void startProcessing();
-
-    /**
-     * Does not block.
-     */
-    void processTestDefinition(TestDefinition testDefinition);
-
-    /**
-     * Does not block.
-     */
-    void stop();
+    void detect();
 }

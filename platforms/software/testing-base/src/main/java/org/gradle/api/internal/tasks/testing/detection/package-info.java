@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.worker;
-
-import org.gradle.api.internal.tasks.testing.TestDefinition;
-
 /**
- * @see org.gradle.api.internal.tasks.testing.TestClassProcessor
+ * Internal types used for detecting tests.
  */
-public interface RemoteTestClassProcessor {
-    /**
-     * Does not block.
-     */
-    void startProcessing();
-
-    /**
-     * Does not block.
-     */
-    void processTestDefinition(TestDefinition testDefinition);
-
-    /**
-     * Does not block.
-     */
-    void stop();
-}
+@org.jspecify.annotations.NullMarked
+package org.gradle.api.internal.tasks.testing.detection;

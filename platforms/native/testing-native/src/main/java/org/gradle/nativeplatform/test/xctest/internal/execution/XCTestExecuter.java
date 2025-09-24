@@ -16,11 +16,13 @@
 
 package org.gradle.nativeplatform.test.xctest.internal.execution;
 
-import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
+import org.gradle.api.internal.tasks.testing.OnlyClassBasedTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestDefinition;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.detection.TestDetector;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.SystemProperties;
@@ -84,7 +86,7 @@ public abstract class XCTestExecuter implements TestExecuter<XCTestTestExecution
 
         TestClassProcessor processor = new XCTestProcessor(getClock(), executable, workingDir, getExecHandleFactory().newExecHandleBuilder(), getIdGenerator(), rootTestSuiteId);
 
-        Runnable detector = new XCTestDetector(processor, testExecutionSpec.getTestSelection());
+        TestDetector detector = new XCTestDetector(processor, testExecutionSpec.getTestSelection());
 
         new TestMainAction(detector, processor, testResultProcessor, getWorkerLeaseService(), getTimeProvider(), rootTestSuiteId, "Gradle Test Run " + testExecutionSpec.getPath()).run();
     }
@@ -94,7 +96,7 @@ public abstract class XCTestExecuter implements TestExecuter<XCTestTestExecution
         throw new UnsupportedOperationException("XCTest does not support failing fast on first test failure.");
     }
 
-    private static class XCTestDetector implements Runnable {
+    private static class XCTestDetector implements TestDetector {
         private final TestClassProcessor testClassProcessor;
         private final XCTestSelection testSelection;
 
@@ -104,15 +106,15 @@ public abstract class XCTestExecuter implements TestExecuter<XCTestTestExecution
         }
 
         @Override
-        public void run() {
+        public void detect() {
             for (String includedTests : testSelection.getIncludedTests()) {
-                TestClassRunInfo testClass = new DefaultTestClassRunInfo(includedTests);
-                testClassProcessor.processTestClass(testClass);
+                TestDefinition testDefinition = new ClassTestDefinition(includedTests);
+                testClassProcessor.processTestDefinition(testDefinition);
             }
         }
     }
 
-    static class XCTestProcessor implements TestClassProcessor {
+    static class XCTestProcessor implements OnlyClassBasedTestClassProcessor {
         private TestResultProcessor resultProcessor;
         private ExecHandle execHandle;
         private final ClientExecHandleBuilder execHandleBuilder;
@@ -136,13 +138,14 @@ public abstract class XCTestExecuter implements TestExecuter<XCTestTestExecution
         }
 
         @Override
-        public void processTestClass(TestClassRunInfo testClass) {
+        public void processClassTestDefinition(ClassTestDefinition testDefinition) {
             Deque<XCTestDescriptor> testDescriptors = new ArrayDeque<XCTestDescriptor>();
             TextStream stdOut = new XCTestScraper(TestOutputEvent.Destination.StdOut, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors);
             TextStream stdErr = new XCTestScraper(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors);
 
             String lineSeparator = SystemProperties.getInstance().getLineSeparator();
-            execHandle = executeTest(testClass.getTestClassName(), new LineBufferingOutputStream(stdOut, lineSeparator), new LineBufferingOutputStream(stdErr, lineSeparator));
+            execHandle = executeTest(testDefinition.getTestClassName(), new LineBufferingOutputStream(stdOut, lineSeparator), new LineBufferingOutputStream(stdErr, lineSeparator));
+
             try {
                 execHandle.start();
                 ExecResult result = execHandle.waitForFinish();

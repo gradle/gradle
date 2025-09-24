@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks.testing;
 
-public interface TestClassRunInfo {
-    String getTestClassName();
+import org.jspecify.annotations.NullMarked;
+
+/**
+ * A type that executes tests.
+ * <p>
+ * Used by JUnit and JUnit Platform test frameworks.
+ * <p>
+ * Replaces {@code Action<String>} with a named type for better discoverability and to allow for future expansion.
+ */
+@NullMarked
+public interface TestExecutor {
+    /**
+     * Executes the given test definition.
+     *
+     * @param testDefinition The definition of the test or tests to execute
+     */
+    void execute(TestDefinition testDefinition);
 }
