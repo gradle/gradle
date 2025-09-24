@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.CapabilityResolutionDetails;
@@ -24,31 +23,29 @@ import org.gradle.api.artifacts.ComponentVariantIdentifier;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
-import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory;
-import org.gradle.internal.Describables;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.DefaultComponentVariantIdentifier;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.internal.VersionNumber;
+import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Responsible for resolving capability conflicts.
+ */
 public class CapabilityConflictResolver {
-
 
     private final ResolveState resolveState;
     private final ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> rules;
@@ -64,313 +61,273 @@ public class CapabilityConflictResolver {
     }
 
     /**
-     * Perform conflict resolution, selecting one of the candidates or rejecting all of them if none can be selected.
+     * A node in conflict and the capability it provides that is in conflict.
      */
-    public void resolve(CapabilitiesConflictHandler.CapabilityConflict conflict) {
-        Details details = new Details(conflict);
+    private static class Candidate {
 
-        // Candidates that are no longer selected are filtered out before these resolvers are executed.
+        final NodeState node;
+        final ImmutableCapability capability;
+
+        public Candidate(NodeState node, ImmutableCapability capability) {
+            this.node = node;
+            this.capability = capability;
+        }
+
+    }
+
+    /**
+     * Applies user-supplied capability conflict resolution rules to the set of candidate nodes.
+     * Conflict resolution finishes with a single selected candidate, or all candidates being rejected.
+     *
+     * @param group The group of the capability in conflict.
+     * @param name The name of the capability in conflict.
+     * @param nodes The nodes that provide the capability in conflict.
+     */
+    public void resolve(String group, String name, Collection<NodeState> nodes) {
+        // Candidates that are no longer selected are filtered out before this resolver is executed.
         // If there is only one candidate at the beginning of conflict resolution, select that candidate.
-        resolveLastCandidate(details);
-        if (details.hasResult()) {
-            applyConflictResolution(details, conflict);
+        if (nodes.size() == 1) {
+            NodeState onlyNode = nodes.iterator().next();
+            ModuleIdentifier winningModule = onlyNode.getComponent().getModule().getId();
+            resolveState.getModule(winningModule).replaceWith(onlyNode.getComponent());
             return;
         }
 
-        // Otherwise, let the user resolvers reject candidates.
-        applyUserDefinedRules(details);
-        if (details.hasResult()) {
-            applyConflictResolution(details, conflict);
-            return;
-        }
-
-        // If there is one candidate left after the user resolvers are executed, select that candidate.
-        resolveLastCandidate(details);
-        if (details.hasResult()) {
-            applyConflictResolution(details, conflict);
-            return;
-        }
-
-        // Otherwise, reject all remaining candidates.
-        Collection<? extends Capability> capabilityVersions = details.getCapabilityVersions();
-        for (Capability capabilityVersion : capabilityVersions) {
-            Collection<? extends CandidateDetails> candidates = details.getCandidates(capabilityVersion);
-            if (!candidates.isEmpty()) {
-                // Arbitrarily select and mark all as rejected
-                for (CandidateDetails candidate : candidates) {
-                    candidate.reject();
-                }
-            }
-        }
-    }
-
-    private void applyConflictResolution(Details details, CapabilitiesConflictHandler.CapabilityConflict conflict) {
-        // Visit the winning module first so that when we visit unattached dependencies of
-        // losing modules, the winning module always has a selected component.
-        Set<ModuleIdentifier> seen = new HashSet<>();
-        ModuleIdentifier winningModule = details.getSelected().getModule().getId();
-        resolveState.getModule(winningModule).replaceWith(details.getSelected());
-        seen.add(winningModule);
-
-        for (NodeState node : details.conflict.getNodes()) {
-            ModuleIdentifier module = node.getComponent().getModule().getId();
-            if (seen.add(module)) {
-                resolveState.getModule(module).replaceWith(details.getSelected());
-            }
-        }
-
-        if (conflict.getNodes().size() > 1) {
-            assert details.reason != null;
-            details.getSelected().addCause(ComponentSelectionReasons.CONFLICT_RESOLUTION.withDescription(details.reason));
-        }
-    }
-
-    private static void resolveLastCandidate(Details details) {
-        Collection<? extends Capability> capabilityVersions = details.getCapabilityVersions();
-        CandidateDetails single = null;
-        for (Capability capabilityVersion : capabilityVersions) {
-            Collection<? extends CandidateDetails> candidates = details.getCandidates(capabilityVersion);
-            int size = candidates.size();
-            if (size >= 1) {
-                if (size == 1 && single == null) {
-                    single = candidates.iterator().next();
-                } else {
-                    // not a single candidate
-                    return;
-                }
-            }
-        }
-        if (single != null) {
-            single.select();
-        }
-    }
-
-    private static class Details implements ResolutionDetails {
-        private final CapabilitiesConflictHandler.CapabilityConflict conflict;
-        private final Set<NodeState> evicted = new HashSet<>();
-        private NodeState selected;
-        private Describable reason;
-
-        private Details(CapabilitiesConflictHandler.CapabilityConflict conflict) {
-            this.conflict = conflict;
-        }
-
-        @Override
-        public Collection<? extends Capability> getCapabilityVersions() {
-            return conflict.getDescriptors();
-        }
-
-        @Override
-        public Collection<? extends CandidateDetails> getCandidates(Capability capability) {
-            ImmutableList.Builder<CandidateDetails> candidates = new ImmutableList.Builder<>();
-            String group = capability.getGroup();
-            String name = capability.getName();
-            String version = capability.getVersion();
-            for (final NodeState node : conflict.getNodes()) {
-                if (!evicted.contains(node)) {
-                    Capability componentCapability = node.findCapability(group, name);
-                    if (componentCapability != null && componentCapability.getVersion().equals(version)) {
-                        candidates.add(new CandidateDetails() {
-                            @Override
-                            public ComponentIdentifier getId() {
-                                return node.getComponent().getComponentId();
-                            }
-
-                            @Override
-                            public String getVariantName() {
-                                return node.getMetadata().getName();
-                            }
-
-                            @Override
-                            public void evict() {
-                                node.evict();
-                                evicted.add(node);
-                            }
-
-                            @Override
-                            public void select() {
-                                selected = node;
-                            }
-
-                            @Override
-                            public void reject() {
-                                ComponentState component = node.getComponent();
-                                component.rejectForCapabilityConflict(capability, conflictedNodes(node, conflict.getNodes()));
-                                component.getModule().replaceWith(component);
-                            }
-
-                            @Override
-                            public void byReason(Describable description) {
-                                reason = description;
-                            }
-                        });
+        ImmutableList<Candidate> candidates = discoverCandidates(group, name, nodes);
+        SelectedCandidate winner = findSelectedCandidate(group, name, candidates);
+        if (winner != null) {
+            // Evict any node from the same component as the selected node, so we don't attach edges to it.
+            // TODO #19788: Eviction currently causes broken graphs.
+            for (Candidate candidate : candidates) {
+                if (candidate.node.getComponent().getComponentId().equals(winner.node.getComponent().getComponentId())) {
+                    if (candidate.node != winner.node) {
+                        candidate.node.evict();
                     }
                 }
             }
-            return candidates.build();
-        }
 
-        private Collection<NodeState> conflictedNodes(NodeState node, Collection<NodeState> nodes) {
-            List<NodeState> conflictedNodes = new ArrayList<>(nodes);
-            conflictedNodes.remove(node);
-            return conflictedNodes;
-        }
+            // Visit the winning module first so that when we visit unattached dependencies of
+            // losing modules, the winning module always has a selected component.
+            Set<ModuleIdentifier> seen = new HashSet<>();
+            ModuleIdentifier winningModule = winner.node.getComponent().getModule().getId();
+            resolveState.getModule(winningModule).replaceWith(winner.node.getComponent());
+            winner.node.getComponent().addCause(ComponentSelectionReasons.CONFLICT_RESOLUTION.withDescription(winner.reason));
+            seen.add(winningModule);
 
-        @Override
-        public boolean hasResult() {
-            return selected != null;
-        }
+            for (Candidate losingCandidate : candidates) {
+                ModuleIdentifier losingModule = losingCandidate.node.getComponent().getModule().getId();
+                if (seen.add(losingModule)) {
+                    resolveState.getModule(losingModule).replaceWith(winner.node.getComponent());
+                }
+            }
+        } else {
+            // If no winner was selected, reject all candidates.
+            for (Candidate candidate : candidates) {
+                Set<NodeState> conflictedNodes = candidates.stream().map(c -> c.node)
+                    .filter(node -> node != candidate.node)
+                    .collect(Collectors.toSet());
 
-        @Override
-        public ComponentState getSelected() {
-            return selected.getComponent();
+                ComponentState component = candidate.node.getComponent();
+                component.rejectForCapabilityConflict(candidate.capability, conflictedNodes);
+                component.getModule().replaceWith(component);
+            }
         }
     }
 
-    private void applyUserDefinedRules(ResolutionDetails details) {
-        details.getCapabilityVersions().stream()
-            .collect(Collectors.groupingBy(c -> new DefaultImmutableCapability(c.getGroup(), c.getName(), null)))
-            .forEach((capability, versions) -> {
-                List<ComponentVariantIdentifier> candidateIds = versions.stream()
-                    .flatMap(c -> details.getCandidates(c).stream())
-                    .map(detail -> new DefaultComponentVariantIdentifier(detail.getId(), detail.getVariantName()))
-                    .collect(Collectors.toList());
-                DefaultCapabilityResolutionDetails resolutionDetails = new DefaultCapabilityResolutionDetails(componentNotationParser, capability, candidateIds);
-                handleCapabilityAction(details, capability, versions, resolutionDetails);
-            });
+    private static ImmutableList<Candidate> discoverCandidates(String group, String name, Collection<NodeState> nodes) {
+        ImmutableList.Builder<Candidate> candidates = ImmutableList.builderWithExpectedSize(nodes.size());
+        for (NodeState node : nodes) {
+            ImmutableCapability capability = node.findCapability(group, name);
+            if (capability == null) {
+                throw new IllegalArgumentException("Node " + node.getDisplayName() + " does not provide capability " + group + ":" + name);
+            }
+            candidates.add(new Candidate(node, capability));
+        }
+        return candidates.build();
     }
 
-    private void handleCapabilityAction(ResolutionDetails details, Capability key, List<? extends Capability> versions, DefaultCapabilityResolutionDetails resolutionDetails) {
-        for (CapabilitiesResolutionInternal.CapabilityResolutionRule action : rules) {
-            ImmutableCapability capability = action.getTargetCapability();
-            if (capability == null || (key.getGroup().equals(capability.getGroup()) && key.getName().equals(capability.getName()))) {
+    /**
+     * Contains the user-selected node, if any, and the reason for selecting it.
+     */
+    static class SelectedCandidate {
+
+        final NodeState node;
+        final Describable reason;
+
+        SelectedCandidate(NodeState node, Describable reason) {
+            this.node = node;
+            this.reason = reason;
+        }
+
+    }
+
+    /**
+     * Successively applies all applicable capability resolution rules until a candidate is selected.
+     * Returns null if no rules selected any candidate.
+     */
+    private @Nullable SelectedCandidate findSelectedCandidate(
+        String group,
+        String name,
+        ImmutableList<Candidate> initialCandidates
+    ) {
+        ImmutableList<Candidate> candidates = initialCandidates;
+        for (CapabilitiesResolutionInternal.CapabilityResolutionRule rule : rules) {
+            if (rule.appliesTo(group, name)) {
+                DefaultCapabilityResolutionDetails details = new DefaultCapabilityResolutionDetails(
+                    componentNotationParser,
+                    group,
+                    name,
+                    candidates
+                );
+
                 try {
-                    action.getAction().execute(resolutionDetails);
+                    rule.getAction().execute(details);
                 } catch (Exception ex) {
                     if (ex instanceof InvalidUserCodeException) {
                         throw ex;
                     }
                     throw new InvalidUserCodeException("Capability resolution rule failed with an error", ex);
                 }
-                if (resolutionDetails.didSomething) {
-                    performCapabilitySelection(details, versions, resolutionDetails);
-                }
-            }
-        }
-    }
 
-    private void performCapabilitySelection(ResolutionDetails details, List<? extends Capability> versions, DefaultCapabilityResolutionDetails resolutionDetails) {
-        if (resolutionDetails.useHighest) {
-            selectHightestVersion(details);
-        } else if (resolutionDetails.selected != null) {
-            versions.forEach(version -> details.getCandidates(version).forEach(cand -> selectExplicitCandidate(resolutionDetails, (CapabilityInternal) version, cand)));
-        }
-    }
-
-    private void selectHightestVersion(ResolutionDetails details) {
-        Collection<? extends Capability> capabilityVersions = details.getCapabilityVersions();
-        if (capabilityVersions.size() > 1) {
-            Set<Capability> sorted = Sets.newTreeSet((o1, o2) -> {
-                VersionNumber v1 = VersionNumber.parse(o1.getVersion());
-                VersionNumber v2 = VersionNumber.parse(o2.getVersion());
-                return v2.compareTo(v1);
-            });
-            sorted.addAll(capabilityVersions);
-            boolean first = true;
-            for (Capability capability : sorted) {
-                DisplayName reason = Describables.of("latest version of capability", ((CapabilityInternal) capability).getCapabilityId());
-                boolean isFirst = first;
-                details.getCandidates(capability).forEach(cand -> {
-                    cand.byReason(reason);
-                    if (!isFirst) {
-                        cand.evict();
+                if (details.useHighest) {
+                    ImmutableList<Candidate> highestVersions = findHighestVersions(candidates);
+                    if (highestVersions.size() == 1) {
+                        return new SelectedCandidate(
+                            highestVersions.iterator().next().node,
+                            () -> "latest version of capability " + group + ":" + name
+                        );
+                    } else {
+                        candidates = highestVersions;
                     }
-                });
-                first = false;
+                } else if (details.selected != null) {
+                    NodeState selectedNode = details.selected.node;
+                    Describable selectionReason = details.reason != null
+                        ? () -> "On capability " + group + ":" + name + " " + details.reason
+                        : () -> "Explicit selection of " + selectedNode.getComponent().getComponentId().getDisplayName() + " variant " + selectedNode.getMetadata().getName();
+                    return new SelectedCandidate(selectedNode, selectionReason);
+                }
             }
         }
+
+        return null;
     }
 
-    private void selectExplicitCandidate(DefaultCapabilityResolutionDetails resolutionDetails, CapabilityInternal version, CandidateDetails cand) {
-        if (cand.getId().equals(resolutionDetails.selected.getId())) {
-            if (cand.getVariantName().equals(resolutionDetails.selected.getVariantName())) {
-                cand.select();
-                String reason = resolutionDetails.reason;
-                if (reason != null) {
-                    cand.byReason(Describables.of("On capability", version.getCapabilityId(), reason));
-                } else {
-                    cand.byReason(() -> String.format("Explicit selection of %s variant %s",
-                        resolutionDetails.selected.getId().getDisplayName(),
-                        resolutionDetails.selected.getVariantName()
-                    ));
-                }
-            } else {
-                cand.evict();
+    /**
+     * Find all candidates that have the highest version of the capability in conflict.
+     * If all candidates have the same version, returns all candidates.
+     */
+    private static ImmutableList<Candidate> findHighestVersions(ImmutableList<Candidate> candidates) {
+        String highestVersion = null;
+        ImmutableList.Builder<Candidate> highestVersionCandidates = ImmutableList.builderWithExpectedSize(candidates.size());
+        for (Candidate candidate : candidates) {
+            String version = candidate.capability.getVersion();
+            int comparison = VersionNumber.parse(version).compareTo(VersionNumber.parse(highestVersion));
+            if (highestVersion == null) {
+                highestVersion = version;
+                highestVersionCandidates.add(candidate);
+            } else if (comparison > 0) {
+                highestVersion = version;
+                highestVersionCandidates = ImmutableList.builderWithExpectedSize(candidates.size());
+                highestVersionCandidates.add(candidate);
+            } else if (comparison == 0) {
+                highestVersionCandidates.add(candidate);
             }
         }
+
+        return highestVersionCandidates.build();
     }
 
     private static class DefaultCapabilityResolutionDetails implements CapabilityResolutionDetails {
 
-        private final NotationParser<Object, ComponentIdentifier> notationParser;
-        private final Capability capability;
-        private final List<ComponentVariantIdentifier> candidates;
+        private final NotationParser<Object, ComponentIdentifier> componentIdParser;
+        private final String group;
+        private final String name;
+        private final ImmutableList<Candidate> candidates;
 
-        boolean didSomething;
-        boolean useHighest;
-        private String reason;
-        private ComponentVariantIdentifier selected;
+        // Mutable State
+        private boolean useHighest;
+        private @Nullable String reason;
+        private @Nullable Candidate selected;
 
-        private DefaultCapabilityResolutionDetails(NotationParser<Object, ComponentIdentifier> notationParser, Capability capability, List<ComponentVariantIdentifier> candidates) {
-            this.notationParser = notationParser;
-            this.capability = capability;
+        private DefaultCapabilityResolutionDetails(
+            NotationParser<Object, ComponentIdentifier> componentIdParser,
+            String group,
+            String name,
+            ImmutableList<Candidate> candidates
+        ) {
+            this.componentIdParser = componentIdParser;
+            this.group = group;
+            this.name = name;
             this.candidates = candidates;
         }
 
         @Override
-        public Capability getCapability() {
-            return capability;
+        public ImmutableCapability getCapability() {
+            return new DefaultImmutableCapability(group, name, null);
         }
 
         @Override
-        public List<ComponentVariantIdentifier> getCandidates() {
-            return candidates;
+        public ImmutableList<ComponentVariantIdentifier> getCandidates() {
+            ImmutableList.Builder<ComponentVariantIdentifier> candidateIds = ImmutableList.builderWithExpectedSize(candidates.size());
+            for (Candidate candidate : candidates) {
+                candidateIds.add(new DefaultComponentVariantIdentifier(
+                    candidate.node.getComponent().getComponentId(),
+                    candidate.node.getMetadata().getName()
+                ));
+            }
+            return candidateIds.build();
         }
 
         @Override
-        public CapabilityResolutionDetails select(ComponentVariantIdentifier candidate) {
-            didSomething = true;
-            selected = candidate;
+        public CapabilityResolutionDetails select(ComponentVariantIdentifier candidateId) {
+            for (Candidate candidate : candidates) {
+                if (candidate.node.getComponent().getComponentId().equals(candidateId.getId())) {
+                    if (candidate.node.getMetadata().getName().equals(candidateId.getVariantName())) {
+                        this.selected = candidate;
+                        break;
+                    }
+                }
+            }
+
             return this;
         }
 
         @Override
         public CapabilityResolutionDetails select(Object notation) {
-            ComponentIdentifier componentIdentifier = notationParser.parseNotation(notation);
-            for (ComponentVariantIdentifier candidate : candidates) {
-                if (componentIdentifier.equals(candidate.getId())) {
-                    select(candidate);
+            // TODO: This method only allows users to select a component identifier.
+            //       However, it is the nodes of a component which participate in capability conflicts.
+            //       This method arbitrarily selects the first candidate node from any given component,
+            //       making it imprecise. We should fix this somehow or deprecate this method in favor
+            //       of the other `select` method, which permits selecting a specific variant.
+            ComponentIdentifier selectedComponentId = componentIdParser.parseNotation(notation);
+
+            for (Candidate candidate : candidates) {
+                ComponentIdentifier candidateComponentId = candidate.node.getComponent().getComponentId();
+
+                if (selectedComponentId.equals(candidateComponentId)) {
+                    this.selected = candidate;
                     return this;
                 }
-                if (candidate.getId() instanceof ModuleComponentIdentifier && componentIdentifier instanceof ModuleComponentIdentifier) {
-                    // because it's a capability conflict resolution, there is only one candidate per module identifier
-                    // so we can be lenient wrt the version number used in the descriptor, which helps whenever the user
-                    // used the convenience "notation" method
-                    ModuleComponentIdentifier candMCI = (ModuleComponentIdentifier) candidate.getId();
-                    ModuleComponentIdentifier compMCI = (ModuleComponentIdentifier) componentIdentifier;
-                    if (candMCI.getModuleIdentifier().equals(compMCI.getModuleIdentifier())) {
-                        select(candidate);
+
+                if (candidateComponentId instanceof ModuleComponentIdentifier && selectedComponentId instanceof ModuleComponentIdentifier) {
+                    // Since we are performing capability conflict resolution, there is only one candidate component per module.
+                    // So, we can be lenient wrt the version number in the component ID.
+                    ModuleComponentIdentifier candidateId = (ModuleComponentIdentifier) candidateComponentId;
+                    ModuleComponentIdentifier selectedId = (ModuleComponentIdentifier) selectedComponentId;
+                    if (candidateId.getModuleIdentifier().equals(selectedId.getModuleIdentifier())) {
+                        this.selected = candidate;
                         return this;
                     }
                 }
             }
-            throw new InvalidUserCodeException(componentIdentifier + " is not a valid candidate for conflict resolution on capability " + capability + ": candidates are " + candidates);
+
+            List<String> formattedCandidates = candidates.stream().map(c -> c.node.getDisplayName()).sorted().collect(Collectors.toList());
+            throw new InvalidUserCodeException(selectedComponentId + " is not a valid candidate for conflict resolution on capability '" + group + ":" + name + "': candidates are " + formattedCandidates);
         }
 
         @Override
         public CapabilityResolutionDetails selectHighestVersion() {
-            didSomething = true;
-            useHighest = true;
+            this.useHighest = true;
             return this;
         }
 
@@ -380,27 +337,6 @@ public class CapabilityConflictResolver {
             return this;
         }
 
-    }
-
-    interface ResolutionDetails {
-
-        /**
-         * The actual selected component.
-         */
-        ComponentState getSelected();
-
-        Collection<? extends Capability> getCapabilityVersions();
-        Collection<? extends CandidateDetails> getCandidates(Capability capability);
-        boolean hasResult();
-    }
-
-    interface CandidateDetails {
-        ComponentIdentifier getId();
-        String getVariantName();
-        void evict();
-        void select();
-        void reject();
-        void byReason(Describable description);
     }
 
 }

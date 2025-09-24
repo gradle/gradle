@@ -16,10 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveState;
@@ -122,7 +120,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         String capabilityInConflict = conflicts.remove();
 
         ConflictedNodesTracker conflictTracker = capabilityWithoutVersionToTracker.get(capabilityInConflict);
-        DefaultCapabilityConflict conflict = conflictTracker.updateClearAndReturnConflict();
+        CapabilityConflict conflict = conflictTracker.updateClearAndReturnConflict();
 
         if (!conflict.isValidConflict()) {
             return;
@@ -131,7 +129,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         // TODO: What if, after we filter, we only have nodes with the default capability?
         // We should treat this conflict as a version conflict.
 
-        resolver.resolve(conflict);
+        resolver.resolve(conflict.group, conflict.name, conflict.nodes);
     }
 
     @Override
@@ -170,36 +168,26 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         }
     }
 
-    private static class DefaultCapabilityConflict implements CapabilityConflict {
+    private static class CapabilityConflict {
 
         private final String group;
         private final String name;
-
         private final Set<NodeState> nodes;
-        private final Set<Capability> descriptors;
         private final Map<NodeState, Set<NodeState>> nodeToDependentNodes;
 
-        private DefaultCapabilityConflict(String group, String name, Set<NodeState> nodes, boolean alreadySeen) {
+        private CapabilityConflict(String group, String name, Set<NodeState> nodes, boolean alreadySeen) {
             this(group, name, nodes, alreadySeen ? buildDependentRelationships(nodes) : emptyMap());
         }
 
-        private DefaultCapabilityConflict(String group, String name, Set<NodeState> nodes, Map<NodeState, Set<NodeState>> nodeToDependentNodes) {
+        private CapabilityConflict(String group, String name, Set<NodeState> nodes, Map<NodeState, Set<NodeState>> nodeToDependentNodes) {
             this.group = group;
             this.name = name;
             this.nodes = nodes;
             this.nodeToDependentNodes = nodeToDependentNodes;
-            final ImmutableSet.Builder<Capability> builder = new ImmutableSet.Builder<>();
-            for (final NodeState node : nodes) {
-                Capability capability = node.findCapability(group, name);
-                if (capability != null) {
-                    builder.add(capability);
-                }
-            }
-            this.descriptors = builder.build();
         }
 
-        private DefaultCapabilityConflict withDifferentNodes(Set<NodeState> selectedNodes) {
-            return new DefaultCapabilityConflict(group, name, selectedNodes, nodeToDependentNodes);
+        private CapabilityConflict withDifferentNodes(Set<NodeState> selectedNodes) {
+            return new CapabilityConflict(group, name, selectedNodes, nodeToDependentNodes);
         }
 
         /**
@@ -227,15 +215,6 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             return nodeToDependents;
         }
 
-        @Override
-        public Set<NodeState> getNodes() {
-            return nodes;
-        }
-
-        @Override
-        public Set<Capability> getDescriptors() {
-            return descriptors;
-        }
     }
 
     /**
@@ -255,7 +234,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
          * If non-null, the capability tracked by this tracker has a pending conflict
          * that must be resolved.
          */
-        private DefaultCapabilityConflict pendingConflict;
+        private CapabilityConflict pendingConflict;
 
         private ConflictedNodesTracker(CapabilityInternal capability) {
             this.group = capability.getGroup();
@@ -271,8 +250,8 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
          * Record this fact, so that later if we see the conflict again, we can compute node relationships
          * between conflict participants.
          */
-        private DefaultCapabilityConflict updateClearAndReturnConflict() {
-            DefaultCapabilityConflict currentConflict = pendingConflict;
+        private CapabilityConflict updateClearAndReturnConflict() {
+            CapabilityConflict currentConflict = pendingConflict;
             this.pendingConflict = null;
 
             Set<NodeState> selectedNodes = new LinkedHashSet<>();
@@ -331,7 +310,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
          */
         private boolean createOrUpdateConflict(Set<NodeState> candidatesForConflict) {
             boolean newConflict = pendingConflict == null;
-            this.pendingConflict = new DefaultCapabilityConflict(group, name, candidatesForConflict, previousConflictedNodes.contains(candidatesForConflict));
+            this.pendingConflict = new CapabilityConflict(group, name, candidatesForConflict, previousConflictedNodes.contains(candidatesForConflict));
             return newConflict;
         }
     }
