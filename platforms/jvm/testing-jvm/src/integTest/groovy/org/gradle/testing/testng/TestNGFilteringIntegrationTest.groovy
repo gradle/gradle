@@ -81,10 +81,10 @@ class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTes
 
         then:
         def testResult = resultsFor(testDirectory, "tests/test", testFramework)
-        def fooTest = testResult.testPath(":AwesomeSuite:AwesomeTest:FooTest").onlyRoot()
+        def fooTest = testResult.testPathPreNormalized(":AwesomeSuite:AwesomeTest:FooTest").onlyRoot()
         fooTest.assertChildCount(1, 0)
         fooTest.assertChildrenExecuted("pass")
-        def barTest = testResult.testPath(":AwesomeSuite:AwesomeTest:BarTest").onlyRoot()
+        def barTest = testResult.testPathPreNormalized(":AwesomeSuite:AwesomeTest:BarTest").onlyRoot()
         barTest.assertChildCount(1, 0)
         barTest.assertChildrenExecuted("pass")
     }
@@ -107,10 +107,10 @@ class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTes
 
         then:
         def testResult = resultsFor(testDirectory, "tests/test", testFramework)
-        def fooTest = testResult.testPath(":AwesomeSuite:AwesomeTest:FooTest").onlyRoot()
+        def fooTest = testResult.testPathPreNormalized(":AwesomeSuite:AwesomeTest:FooTest").onlyRoot()
         fooTest.assertChildCount(1, 0)
         fooTest.assertChildrenExecuted("pass")
-        def barTest = testResult.testPath(":AwesomeSuite:AwesomeTest:BarTest").onlyRoot()
+        def barTest = testResult.testPathPreNormalized(":AwesomeSuite:AwesomeTest:BarTest").onlyRoot()
         barTest.assertChildCount(1, 0)
         barTest.assertChildrenExecuted("pass")
     }
