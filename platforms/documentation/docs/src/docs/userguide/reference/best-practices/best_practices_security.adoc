@@ -45,7 +45,7 @@ The official SHA-256 checksums can be found on the link:https://gradle.org/relea
 `<<tags_reference.adoc#tag:properties,#properties>>`, `<<tags_reference.adoc#tag:wrapper,#wrapper>>`
 
 [[build-published-artifacts-securely]]
-== Build Published Artifacts Securely
+== Build your Published Artifacts Securely
 
 Ensure that published artifacts are built in a trusted, reproducible way to protect your software supply chain.
 
