@@ -125,16 +125,15 @@ Unexpected paths: ${unexpectedPaths}""")
     @Override
     GenericTestExecutionResult assertAtLeastTestPathsExecuted(String... testPaths) {
         def frameworkTestPaths = testPaths.collect { frameworkTestPath(it) }
-        return assertAtLeastFrameworkTestPathsExecuted(frameworkTestPaths.toArray([] as String[]))
+        return assertAtLeastTestPathsExecutedPreNormalized(frameworkTestPaths.toArray([] as String[]))
     }
 
     /**
      * Like {@link #assertAtLeastTestPathsExecuted(String...)}, but the paths must be in the test framework specific format already.
      */
-    GenericTestExecutionResult assertAtLeastFrameworkTestPathsExecuted(String... testPaths) {
+    GenericTestExecutionResult assertAtLeastTestPathsExecutedPreNormalized(String... testPaths) {
         // We always will detect ancestors of the executed test paths as well, so add them to the set
         Path[] extendedTestPaths = Stream.of(testPaths)
-            .map {it.startsWith(TEST_NG_PREFIX) ? it.substring(TEST_NG_PREFIX.length()) : it }
             .map {it == "" ? ":" : it }
             .map { Path.path(it) }
             .flatMap {
@@ -159,6 +158,11 @@ Unexpected paths: ${unexpectedPaths}""")
     TestPathExecutionResult testPath(String rootTestPath) {
         assertAtLeastTestPathsExecuted(rootTestPath)
         return new HtmlTestPathExecutionResult(diskPathForTestPath(frameworkTestPath(rootTestPath)).toFile())
+    }
+
+    TestPathExecutionResult testPathPreNormalized(String rootTestPath) {
+        assertAtLeastTestPathsExecutedPreNormalized(rootTestPath)
+        return new HtmlTestPathExecutionResult(diskPathForTestPath(rootTestPath).toFile())
     }
 
     @SuppressWarnings('GroovyFallthrough')

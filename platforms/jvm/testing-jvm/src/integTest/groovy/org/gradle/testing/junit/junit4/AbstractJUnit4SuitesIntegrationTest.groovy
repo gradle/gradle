@@ -125,7 +125,7 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
             }
         """.stripIndent()
         when:
-        executer.withTasks('test', '--debug-jvm').run()
+        executer.withTasks('test').run()
 
         then:
         GenericHtmlTestExecutionResult result = new GenericHtmlTestExecutionResult(testDirectory, GenericTestExecutionResult.TestFramework.JUNIT4)

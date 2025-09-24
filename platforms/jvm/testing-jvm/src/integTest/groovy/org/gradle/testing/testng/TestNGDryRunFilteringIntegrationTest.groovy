@@ -86,13 +86,13 @@ class TestNGDryRunFilteringIntegrationTest extends AbstractTestNGFilteringIntegr
 
         then:
         def testResult = resultsFor(testDirectory, "tests/test", testFramework)
-        testResult.assertTestPathsExecuted("FooTest")
+        testResult.assertAtLeastTestPathsExecuted("FooTest")
         testResult.testPath("FooTest").onlyRoot().assertChildCount(1, 0)
-        testResult.testPath("FooTest").onlyRoot().assertStderr(Matchers.containsText("Run foo!"))
+        testResult.testPath("FooTest:foo").onlyRoot().assertStderr(Matchers.containsText("Run foo!"))
 
         def dryRunTestResult = resultsFor(testDirectory, "tests/dryRunTest", testFramework)
-        dryRunTestResult.assertTestPathsExecuted("BarTest")
+        dryRunTestResult.assertAtLeastTestPathsExecuted("BarTest")
         dryRunTestResult.testPath("BarTest").onlyRoot().assertChildCount(1, 0)
-        dryRunTestResult.testPath("BarTest").onlyRoot().assertStderr(IsEmptyString.emptyString())
+        dryRunTestResult.testPath("BarTest:bar").onlyRoot().assertStderr(IsEmptyString.emptyString())
     }
 }
