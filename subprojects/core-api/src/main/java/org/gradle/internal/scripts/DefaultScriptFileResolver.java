@@ -47,7 +47,7 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
     @Nullable
     public File resolveScriptFile(File dir, String basename) {
         File selectedCandidate = null;
-        List<File> ignoredCandidates = new ArrayList<>();
+        List<File> ignoredCandidates = null;
 
         for (String extension : EXTENSIONS) {
             File candidate = new File(dir, basename + extension);
@@ -55,12 +55,15 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
                 if (selectedCandidate == null) {
                     selectedCandidate = candidate;
                 } else {
+                    if (ignoredCandidates == null) {
+                        ignoredCandidates = new ArrayList<>();
+                    }
                     ignoredCandidates.add(candidate);
                 }
             }
         }
 
-        if (!ignoredCandidates.isEmpty()) {
+        if (ignoredCandidates != null) {
             reportMultipleCandidates(dir, selectedCandidate, ignoredCandidates);
         }
 
