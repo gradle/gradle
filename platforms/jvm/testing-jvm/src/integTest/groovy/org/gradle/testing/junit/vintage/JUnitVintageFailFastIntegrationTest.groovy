@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.vintage
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.AbstractJvmFailFastIntegrationSpec
 
@@ -26,5 +27,10 @@ class JUnitVintageFailFastIntegrationTest extends AbstractJvmFailFastIntegration
     @Override
     String getPathToTestPackages() {
         return ":"
+    }
+
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.JUNIT4
     }
 }
