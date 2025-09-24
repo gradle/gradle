@@ -65,7 +65,6 @@ These methods rely on the outputs of previous builds, which can introduce a secu
 An incremental build might use a leftover artifact from an older, potentially compromised, build. 
 Similarly, using a remote build cache or other caching mechanisms can lead to accidental inclusion of outdated or malicious content, resulting in a non-reproducible artifact. 
 The build output would then be dependent on the state of the machine it was run on, undermining the integrity of your software.
-or outdated outputs.
 
 ==== Do This Instead
 
