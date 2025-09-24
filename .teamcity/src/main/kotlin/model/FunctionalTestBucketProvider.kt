@@ -38,7 +38,8 @@ val ALL_CROSS_VERSION_BUCKETS =
         listOf("8.6", "8.8"), // 8.6 <=version < 8.8
         listOf("8.8", "8.10"), // 8.8 <=version < 8.10
         listOf("8.10", "8.13"), // 8.10 <=version < 8.13
-        listOf("8.13", "99.0"), // 8.13 <=version < 99.0
+        listOf("8.13", "9.0"), // 8.13 <=version < 9.0
+        listOf("9.0", "99.0"), // 9.0 <=version < 99.0
     )
 
 typealias BuildProjectToSubprojectTestClassTimes = Map<String, Map<String, List<TestClassTime>>>
