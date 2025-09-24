@@ -59,7 +59,7 @@ public abstract class AbstractJUnitTestClassProcessor implements RequiresTestFra
             } else {
                 LOGGER.debug("Executing test suite {} containing classes {}", testClass.getTestClassName(), testClass.getSuiteClassNames());
             }
-            executor.consumeClass(testClass.getTestClassName());
+            executor.consumeClass(testClass);
         }
     }
 
