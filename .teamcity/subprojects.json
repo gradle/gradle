@@ -266,6 +266,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "core-flow-services-api",
+    "path": "platforms/core-configuration/core-flow-services-api",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "core-kotlin-extensions",
     "path": "platforms/core-configuration/core-kotlin-extensions",
     "unitTests": false,

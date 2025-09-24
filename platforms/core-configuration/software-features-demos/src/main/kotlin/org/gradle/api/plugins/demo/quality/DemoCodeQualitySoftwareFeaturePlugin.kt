@@ -76,7 +76,7 @@ class DemoCodeQualitySoftwareFeaturePlugin : Plugin<Project> {
                 DemoCodeQualityDefinition::class,
                 JvmOutputs::class
             ) { _, _, target ->
-                val targetModel = getOrCreateModel(target)
+                val targetModel = getBuildModel(target)
 
                 project.tasks.register("check" + StringUtils.capitalize(targetModel.name) + "DemoBytecodeQuality", DefaultTask::class.java) { task ->
                     task.group = LifecycleBasePlugin.VERIFICATION_GROUP

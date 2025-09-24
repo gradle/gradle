@@ -83,6 +83,7 @@ public class SnapshotTaskInputsBuildOperationResult extends BaseSnapshotInputsBu
                 this.normalization = normalization;
             }
 
+            @SuppressWarnings("unused")
             public String getNormalization() {
                 return normalization;
             }

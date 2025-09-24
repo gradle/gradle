@@ -16,26 +16,108 @@
 
 package org.gradle.plugin.software.internal;
 
-import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.Named;
+import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.plugins.BuildModel;
+import org.gradle.api.internal.plugins.HasBuildModel;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.extensibility.ExtensibleDynamicObject;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
+import org.jspecify.annotations.Nullable;
+
+import javax.inject.Inject;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 public class SoftwareFeatureSupportInternal {
 
-    private static final String CONTEXT_EXTENSION_NAME = "$softwareFeatureContext";
+    public interface ProjectFeatureDefinitionContext {
+        Object getBuildModel();
 
-    public interface SoftwareFeatureContext {
+        Map<SoftwareFeatureImplementation<?, ?>, Object> childrenDefinitions();
+
+        ChildDefinitionAdditionResult getOrAddChildDefinition(SoftwareFeatureImplementation<?, ?> feature, Supplier<Object> definition);
+
+        final class ChildDefinitionAdditionResult {
+            public final boolean isNew;
+            public final Object definition;
+
+            public ChildDefinitionAdditionResult(boolean isNew, Object definition) {
+                this.isNew = isNew;
+                this.definition = definition;
+            }
+        }
+
         SoftwareFeatureApplicator getSoftwareFeatureApplicator();
 
         SoftwareFeatureRegistry getSoftwareFeatureRegistry();
+
+        ObjectFactory objectFactory();
     }
 
-    private static class DefaultSoftwareFeatureContext implements SoftwareFeatureContext {
+    public static class DefaultProjectFeatureDefinitionContext implements ProjectFeatureDefinitionContext {
         private final SoftwareFeatureApplicator softwareFeatureApplicator;
         private final SoftwareFeatureRegistry softwareFeatureRegistry;
+        private final ObjectFactory objectFactory;
+        protected final Object buildModel;
+        private final Map<SoftwareFeatureImplementation<?, ?>, Object> childrenDefinitions = new LinkedHashMap<>();
 
-        private DefaultSoftwareFeatureContext(SoftwareFeatureApplicator softwareFeatureApplicator, SoftwareFeatureRegistry softwareFeatureRegistry) {
+        public static class Factory {
+            private final SoftwareFeatureApplicator softwareFeatureApplicator;
+            private final SoftwareFeatureRegistry softwareFeatureRegistry;
+            private final ObjectFactory objectFactory;
+
+            @Inject
+            public Factory(SoftwareFeatureApplicator softwareFeatureApplicator, SoftwareFeatureRegistry softwareFeatureRegistry, ObjectFactory objectFactory) {
+                this.softwareFeatureApplicator = softwareFeatureApplicator;
+                this.softwareFeatureRegistry = softwareFeatureRegistry;
+                this.objectFactory = objectFactory;
+            }
+
+            public DefaultProjectFeatureDefinitionContext create(Object buildModel) {
+                return new DefaultProjectFeatureDefinitionContext(
+                    softwareFeatureApplicator,
+                    softwareFeatureRegistry,
+                    objectFactory,
+                    buildModel
+                );
+            }
+        }
+
+        public DefaultProjectFeatureDefinitionContext(
+            SoftwareFeatureApplicator softwareFeatureApplicator,
+            SoftwareFeatureRegistry softwareFeatureRegistry,
+            ObjectFactory objectFactory,
+            Object buildModel
+        ) {
             this.softwareFeatureApplicator = softwareFeatureApplicator;
             this.softwareFeatureRegistry = softwareFeatureRegistry;
+            this.objectFactory = objectFactory;
+            this.buildModel = buildModel;
+        }
+
+        @Override
+        public Object getBuildModel() {
+            return buildModel;
+        }
+
+        @Override
+        public Map<SoftwareFeatureImplementation<?, ?>, Object> childrenDefinitions() {
+            return Collections.unmodifiableMap(childrenDefinitions);
+        }
+
+        @Override
+        public ChildDefinitionAdditionResult getOrAddChildDefinition(SoftwareFeatureImplementation<?, ?> feature, Supplier<Object> computeDefinition) {
+            if (childrenDefinitions.containsKey(feature)) {
+                return new ChildDefinitionAdditionResult(false, childrenDefinitions.get(feature));
+            }
+            Object definition = computeDefinition.get();
+            childrenDefinitions.put(feature, definition);
+            return new ChildDefinitionAdditionResult(true, definition);
         }
 
         @Override
@@ -47,21 +129,80 @@ public class SoftwareFeatureSupportInternal {
         public SoftwareFeatureRegistry getSoftwareFeatureRegistry() {
             return softwareFeatureRegistry;
         }
-    }
 
-    public static SoftwareFeatureContext getContext(ExtensionAware target) {
-        return (SoftwareFeatureContext) target.getExtensions().getByName(CONTEXT_EXTENSION_NAME);
-    }
-
-    public static void registerContextIfAbsent(
-        ExtensionAware target,
-        SoftwareFeatureApplicator softwareFeatureApplicator,
-        SoftwareFeatureRegistry softwareFeatureRegistry
-    ) {
-        ExtensionContainer extensions = target.getExtensions();
-        if (extensions.findByName(CONTEXT_EXTENSION_NAME) == null) {
-            extensions.add(CONTEXT_EXTENSION_NAME, new DefaultSoftwareFeatureContext(softwareFeatureApplicator, softwareFeatureRegistry));
+        @Override
+        public ObjectFactory objectFactory() {
+            return objectFactory;
         }
     }
 
+    public static @Nullable ProjectFeatureDefinitionContext tryGetContext(Object definition) {
+        DynamicInvokeResult result = ((DynamicObjectAware) definition).getAsDynamicObject().tryInvokeMethod(SoftwareFeaturesDynamicObject.CONTEXT_METHOD_NAME);
+        if (result.isFound()) {
+            return (ProjectFeatureDefinitionContext) Objects.requireNonNull(result.getValue());
+        } else {
+            return null;
+        }
+    }
+
+    public static ProjectFeatureDefinitionContext getContext(DynamicObjectAware definition) {
+        Optional<ProjectFeatureDefinitionContext> maybeContext = Optional.ofNullable(tryGetContext(definition));
+
+        return maybeContext.orElseThrow(() ->
+            new IllegalStateException("Incorrect lifecycle state for definition '" + definition +
+                "'. Expected it to have the context and build model attached already, got none. " +
+                "Check that the feature's apply action registers the build model for this definition.")
+        );
+    }
+
+    public static <V extends BuildModel> void attachDefinitionContext(
+        Object target,
+        V buildModel,
+        SoftwareFeatureApplicator softwareFeatureApplicator,
+        SoftwareFeatureRegistry softwareFeatureRegistry,
+        ObjectFactory objectFactory
+    ) {
+        DynamicObjectAware targetDynamicObjectAware = (DynamicObjectAware) target;
+        DefaultProjectFeatureDefinitionContext context = new DefaultProjectFeatureDefinitionContext(softwareFeatureApplicator, softwareFeatureRegistry, objectFactory, buildModel);
+        addSoftwareFeatureDynamicObjectToDefinition(objectFactory, targetDynamicObjectAware, context);
+    }
+
+    public static void attachLegacyDefinitionContext(
+        Object target,
+        SoftwareFeatureApplicator softwareFeatureApplicator,
+        SoftwareFeatureRegistry softwareFeatureRegistry,
+        ObjectFactory objectFactory
+    ) {
+        DefaultProjectFeatureDefinitionContext.Factory factory = new DefaultProjectFeatureDefinitionContext.Factory(softwareFeatureApplicator, softwareFeatureRegistry, objectFactory);
+        DefaultProjectFeatureDefinitionContext context = factory.create(target);
+        addSoftwareFeatureDynamicObjectToDefinition(objectFactory, (DynamicObjectAware) target, context);
+    }
+
+
+    public static <T extends HasBuildModel<V>, V extends BuildModel> V createBuildModelInstance(ObjectFactory objectFactory, T definition, SoftwareFeatureImplementation<T, V> softwareFeature) {
+        return createBuildModelInstance(objectFactory, definition, softwareFeature.getBuildModelImplementationType());
+    }
+
+    public static <V> V createBuildModelInstance(ObjectFactory factory, Object definition, Class<? extends V> buildModelType) {
+        if (Named.class.isAssignableFrom(buildModelType)) {
+            if (Named.class.isAssignableFrom(definition.getClass())) {
+                return factory.newInstance(buildModelType, ((Named) definition).getName());
+            } else {
+                throw new IllegalArgumentException("Cannot infer a name for " + buildModelType.getSimpleName() + " because the parent object of type " + definition.getClass().getSimpleName() + " does not implement Named.");
+            }
+        } else {
+            return factory.newInstance(buildModelType);
+        }
+    }
+
+    private static void addSoftwareFeatureDynamicObjectToDefinition(
+        ObjectFactory objectFactory,
+        DynamicObjectAware dslObjectToInitialize,
+        ProjectFeatureDefinitionContext context
+    ) {
+        ((ExtensibleDynamicObject) dslObjectToInitialize.getAsDynamicObject()).addObject(
+            objectFactory.newInstance(SoftwareFeaturesDynamicObject.class, dslObjectToInitialize, context),
+            ExtensibleDynamicObject.Location.BeforeConvention
+        );
+    }
 }

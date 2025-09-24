@@ -20,7 +20,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
-@Requires(UnitTestPreconditions.UnixDerivative)
+@Requires(UnitTestPreconditions.Unix)
 class DeleteTaskUnixDerivativeSymlinkIntegrationTest extends DeleteIntegrationTest {
     @Override
     protected void createSymbolicLink(TestFile link, TestFile target) {

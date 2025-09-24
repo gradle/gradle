@@ -33,7 +33,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    @Requires([UnitTestPreconditions.UnixDerivative, PluginTestPreconditions.BashAvailable])
+    @Requires([UnitTestPreconditions.Unix, PluginTestPreconditions.BashAvailable])
     def "can execute generated Unix start script in Bash"() {
         given:
         succeeds('installDist')
@@ -45,7 +45,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains('Hello World!')
     }
 
-    @Requires([UnitTestPreconditions.UnixDerivative, PluginTestPreconditions.DashAvailable])
+    @Requires([UnitTestPreconditions.Unix, PluginTestPreconditions.DashAvailable])
     def "can execute generated Unix start script in Dash"() {
         given:
         succeeds('installDist')
@@ -57,7 +57,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains('Hello World!')
     }
 
-    @Requires([UnitTestPreconditions.UnixDerivative, PluginTestPreconditions.StaticShAvailable])
+    @Requires([UnitTestPreconditions.Unix, PluginTestPreconditions.StaticShAvailable])
     def "can execute generated Unix start script in BusyBox"() {
         given:
         succeeds('installDist')
@@ -69,7 +69,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains('Hello World!')
     }
 
-    @Requires([UnitTestPreconditions.UnixDerivative, PluginTestPreconditions.BashAvailable])
+    @Requires([UnitTestPreconditions.Unix, PluginTestPreconditions.BashAvailable])
     def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script in Bash"() {
         given:
         extendBuildFileWithAppHomeProperty()
@@ -82,7 +82,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains("App Home: ${file('build/install/sample').absolutePath}")
     }
 
-    @Requires([UnitTestPreconditions.UnixDerivative, PluginTestPreconditions.DashAvailable])
+    @Requires([UnitTestPreconditions.Unix, PluginTestPreconditions.DashAvailable])
     def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script in Dash"() {
         given:
         extendBuildFileWithAppHomeProperty()
@@ -95,7 +95,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains("App Home: ${file('build/install/sample').absolutePath}")
     }
 
-    @Requires([UnitTestPreconditions.UnixDerivative, PluginTestPreconditions.StaticShAvailable])
+    @Requires([UnitTestPreconditions.Unix, PluginTestPreconditions.StaticShAvailable])
     def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script in BusyBox"() {
         given:
         extendBuildFileWithAppHomeProperty()
@@ -108,7 +108,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains("App Home: ${file('build/install/sample').absolutePath}")
     }
 
-    @Requires([UnitTestPreconditions.UnixDerivative, PluginTestPreconditions.BashAvailable])
+    @Requires([UnitTestPreconditions.Unix, PluginTestPreconditions.BashAvailable])
     def "can pass argument to App with custom start script in Bash"() {
         given:
         succeeds('installDist')
@@ -123,7 +123,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains('Arg: -DGOO=\'car < caz\'')
     }
 
-    @Requires([UnitTestPreconditions.UnixDerivative, PluginTestPreconditions.DashAvailable])
+    @Requires([UnitTestPreconditions.Unix, PluginTestPreconditions.DashAvailable])
     def "can pass argument to App with custom start script in Dash"() {
         given:
         succeeds('installDist')
@@ -138,7 +138,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains('Arg: -DGOO=\'car < caz\'')
     }
 
-    @Requires([UnitTestPreconditions.UnixDerivative, PluginTestPreconditions.StaticShAvailable])
+    @Requires([UnitTestPreconditions.Unix, PluginTestPreconditions.StaticShAvailable])
     def "can pass argument to App with custom start script in BusyBox"() {
         given:
         succeeds('installDist')

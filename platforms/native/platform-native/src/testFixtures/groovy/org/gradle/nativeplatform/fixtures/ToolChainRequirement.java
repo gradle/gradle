@@ -39,6 +39,10 @@ public enum ToolChainRequirement {
     VISUALCPP_2019,
     // Any available Visual Studio >= 2019
     VISUALCPP_2019_OR_NEWER,
+    // Exactly Visual Studio 2022
+    VISUALCPP_2022,
+    // Any available Visual Studio >= 2022
+    VISUALCPP_2022_OR_NEWER,
     // Any windows GCC compatible implementation (mingw, cygwin)
     WINDOWS_GCC,
     // Any available GCC implementation (including mingw, cygwin, but not clang)

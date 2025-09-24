@@ -47,7 +47,7 @@ class AntlrSoftwareFeaturePlugin : Plugin<Project> {
                 AntlrGrammarsDefinition::class,
                 JavaClasses::class
             ) { definition, buildModel, target ->
-                val parentModel = getOrCreateModel(target)
+                val parentModel = getBuildModel(target)
 
                 definition.grammarSources = createAntlrSourceDirectorySet(definition.name, project.objects)
                 val outputDirectory = projectLayout.buildDirectory.dir("/generated-src/antlr/" + definition.grammarSources.getName())

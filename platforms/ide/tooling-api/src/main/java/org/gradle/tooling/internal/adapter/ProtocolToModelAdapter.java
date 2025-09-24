@@ -692,28 +692,28 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
                 parameterTypes
             );
             lock.readLock().lock();
-            Optional<Method> cached = store.get(key);
-            if (cached == null) {
-                cacheMiss++;
-                lock.readLock().unlock();
-                lock.writeLock().lock();
-                try {
-                    cached = store.get(key);
-                    if (cached == null) {
-                        cached = lookup(owner, name, parameterTypes);
-                        if (cacheMiss % 10 == 0) {
-                            removeDirtyEntries();
-                        }
-                        store.put(key, cached);
-                    }
-                    lock.readLock().lock();
-                } finally {
-                    lock.writeLock().unlock();
-                }
-            } else {
-                cacheHit++;
-            }
             try {
+                Optional<Method> cached = store.get(key);
+                if (cached == null) {
+                    cacheMiss++;
+                    lock.readLock().unlock();
+                    lock.writeLock().lock();
+                    try {
+                        cached = store.get(key);
+                        if (cached == null) {
+                            cached = lookup(owner, name, parameterTypes);
+                            if (cacheMiss % 10 == 0) {
+                                removeDirtyEntries();
+                            }
+                            store.put(key, cached);
+                        }
+                    } finally {
+                        lock.readLock().lock();
+                        lock.writeLock().unlock();
+                    }
+                } else {
+                    cacheHit++;
+                }
                 return cached.orNull();
             } finally {
                 lock.readLock().unlock();

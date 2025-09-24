@@ -134,4 +134,8 @@ class InstrumentedInputAccessListener(
         }
         undeclaredInputBroadcast.directoryChildrenObserved(directory, consumer)
     }
+
+    override fun startParameterProjectPropertiesObserved() {
+        undeclaredInputBroadcast.startParameterProjectPropertiesObserved()
+    }
 }

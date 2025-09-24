@@ -20,8 +20,10 @@ package org.gradle.ide.sync
 import org.gradle.ide.starter.IdeScenarioBuilder
 import org.gradle.ide.sync.fixtures.IsolatedProjectsIdeSyncFixture
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/4661")
 class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
 
     private TestFile gradleCheckout = testDirectory.createDir("gradle-checkout")

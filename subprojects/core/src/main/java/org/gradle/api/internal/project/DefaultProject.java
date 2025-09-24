@@ -123,7 +123,9 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
-import org.gradle.plugin.software.internal.SoftwareFeaturesDynamicObject;
+import org.gradle.plugin.software.internal.SoftwareFeatureApplicator;
+import org.gradle.plugin.software.internal.SoftwareFeatureRegistry;
+import org.gradle.plugin.software.internal.SoftwareFeatureSupportInternal;
 import org.gradle.util.Configurable;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -261,8 +263,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         }
         extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
 
-        DynamicObject softwareFeaturesDynamicObject = getObjects().newInstance(SoftwareFeaturesDynamicObject.class, this);
-        extensibleDynamicObject.addObject(softwareFeaturesDynamicObject, ExtensibleDynamicObject.Location.BeforeConvention);
+        SoftwareFeatureSupportInternal.attachLegacyDefinitionContext(this, services.get(SoftwareFeatureApplicator.class), services.get(SoftwareFeatureRegistry.class), getObjects());
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
@@ -541,15 +542,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public Map<String, Project> getChildProjectsUnchecked() {
-        Map<String, Project> childProjects = new TreeMap<>();
-        for (ProjectState project : owner.getChildProjects()) {
-            childProjects.put(project.getName(), project.getMutableModel());
-        }
-        return childProjects;
-    }
-
-    @Override
     public Map<String, Project> getChildProjects() {
         return getChildProjects(this);
     }
@@ -732,7 +724,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ProjectInternal project(ProjectInternal referrer, String path) throws UnknownProjectException {
-        ProjectInternal project = getCrossProjectModelAccess().findProject(referrer, this, path);
+        ProjectInternal project = findProject(referrer, path);
         if (project == null) {
             throw new UnknownProjectException(String.format("Project with path '%s' could not be found in %s.", path, this));
         }
@@ -747,7 +739,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Nullable
     @Override
     public ProjectInternal findProject(ProjectInternal referrer, String path) {
-        return getCrossProjectModelAccess().findProject(referrer, this, path);
+        Path targetPath = getProjectIdentity().getProjectPath().absolutePath(Path.path(path));
+        return getCrossProjectModelAccess().findProject(referrer, targetPath);
     }
 
     @Override

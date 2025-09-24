@@ -168,16 +168,18 @@ abstract class AbstractIdeSyncTest extends Specification {
     }
 
     private static Path findIdeStarter() {
-        def ideStarterDirs = Files.newDirectoryStream(Paths.get("build/ideStarter")).asList()
-        switch (ideStarterDirs.size()) {
+        def ideStarterPath = System.getProperty("ide.starter.path")
+        assert ideStarterPath != null
+        def ideStarterCandidates = Files.newDirectoryStream(Paths.get(ideStarterPath)).asList()
+        switch (ideStarterCandidates.size()) {
             case 1:
-                def path = ideStarterDirs[0].resolve("bin/app").toAbsolutePath()
+                def path = ideStarterCandidates[0].resolve("bin/app").toAbsolutePath()
                 assert Files.isRegularFile(path): "Unexpected gradle-ide-starter layout"
                 return path
             case 0:
-                throw new IllegalStateException("gradle-ide-starter is missing")
+                throw new IllegalStateException("gradle-ide-starter is missing from '$ideStarterPath'")
             default:
-                throw new IllegalStateException("More than one gradle-ide-starter found: $ideStarterDirs")
+                throw new IllegalStateException("More than one gradle-ide-starter found in '$ideStarterPath': $ideStarterCandidates")
         }
     }
 

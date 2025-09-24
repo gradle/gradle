@@ -35,16 +35,14 @@ import java.util.concurrent.ConcurrentHashMap
 class DevelocityPluginSmokeTest extends AbstractSmokeTest {
 
     enum CI {
-        TEAM_CITY(
-            AbstractSmokeTest.TestedVersions.teamCityGradlePluginRef,
-            "https://raw.githubusercontent.com/etiennestuder/teamcity-build-scan-plugin/%s/agent/src/main/resources/init-scripts/develocity-injection.init.gradle"
-        ),
+        // https://github.com/jenkinsci/gradle-plugin/releases
         JENKINS(
-            AbstractSmokeTest.TestedVersions.jenkinsGradlePluginRef,
-            "https://raw.githubusercontent.com/jenkinsci/gradle-plugin/%s/src/main/resources/hudson/plugins/gradle/injection/init-script.gradle"
+            "2.16.1149.v711b_998b_0532",
+            "https://raw.githubusercontent.com/jenkinsci/gradle-plugin/refs/tags/%s/plugin/src/main/resources/hudson/plugins/gradle/injection/init-script.gradle"
         ),
+        // https://github.com/gradle/develocity-bamboo-plugin/releases
         BAMBOO(
-            AbstractSmokeTest.TestedVersions.bambooGradlePluginRef,
+            "develocity-bamboo-plugin-3.0.2",
             "https://raw.githubusercontent.com/gradle/develocity-bamboo-plugin/refs/tags/%s/src/main/resources/develocity/gradle/develocity-init-script.gradle"
         );
 
@@ -158,7 +156,8 @@ class DevelocityPluginSmokeTest extends AbstractSmokeTest {
         "4.0.1",
         "4.0.2",
         "4.1",
-        "4.1.1"
+        "4.1.1",
+        "4.2"
     ]
 
     // Current injection scripts support Develocity plugin 3.6.4 and above
@@ -169,6 +168,7 @@ class DevelocityPluginSmokeTest extends AbstractSmokeTest {
     private static final VersionNumber FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS_FOR_TEST_ACCELERATION = VersionNumber.parse("3.17")
     private static final VersionNumber FIRST_VERSION_SUPPORTING_SAFE_MODE = VersionNumber.parse("3.15")
     private static final VersionNumber FIRST_VERSION_UNDER_DEVELOCITY_BRAND = VersionNumber.parse("3.17")
+    private static final VersionNumber FIRST_VERSION_WITH_IMPORT_JUNIT_XML_REPORTS = VersionNumber.parse("3.17")
 
     def "coverage at least up to auto-applied version"() {
         expect:
@@ -443,8 +443,6 @@ public class MyFlakyTest {
                 "- The deprecated \"gradleEnterprise.buildScan.uploadInBackground\" API has been replaced by \"develocity.buildScan.uploadInBackground\"")
             .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
                 "- The deprecated \"gradleEnterprise.buildScan.value\" API has been replaced by \"develocity.buildScan.value\"")
-            .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber && ci == CI.TEAM_CITY,
-                "- The deprecated \"gradleEnterprise.buildScan.buildScanPublished\" API has been replaced by \"develocity.buildScan.buildScanPublished\"")
             .maybeExpectLegacyDeprecationWarning(
                 "Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated. " +
                     "This is scheduled to be removed in Gradle 10. " +
@@ -459,6 +457,48 @@ public class MyFlakyTest {
         where:
         [ci, pluginVersion] << [CI.values(), SUPPORTED_BY_CI_INJECTION].combinations()
         ciScriptVersion = ci.gitRef
+    }
+
+    def "can use ImportJUnitXmlReports"() {
+        when:
+        usePluginVersion version
+
+        and:
+        settingsFile < < """
+            include('sub')
+        """
+        buildFile << """
+            tasks.register('fakeTest', Copy) {
+                from("androidTest-results/TEST-Pixel_5_API_30(AVD) - 11-app-.xml")
+                into(layout.buildDirectory.dir("result"))
+            }
+        """
+        file("sub/build.gradle") << """
+            import com.gradle.develocity.agent.gradle.test.ImportJUnitXmlReports
+            import com.gradle.develocity.agent.gradle.test.JUnitXmlDialect
+
+            def testTask = project(':').tasks.named('fakeTest')
+            ImportJUnitXmlReports.register(tasks, testTask, JUnitXmlDialect.ANDROID_CONNECTED)
+        """
+
+        file("androidTest-results/TEST-Pixel_5_API_30(AVD) - 11-app-.xml").text = """<?xml version='1.0' encoding='UTF-8' ?>
+<testsuite name="com.example.ClassName" tests="1" failures="1" errors="0" skipped="0" time="1.419" timestamp="2021-08-26T09:42:57" hostname="localhost">
+  <properties>
+    <property name="device" value="Pixel_5_API_30(AVD) - 11" />
+    <property name="flavor" value="" />
+    <property name="project" value="app" />
+  </properties>
+  <testcase name="tooDeepStackTrace" classname="com.example.ClassName" time="0.286">
+    <failure>foo</failure>
+  </testcase>
+</testsuite>"""
+
+        then:
+        def result = build(":fakeTest")
+        result.task(":sub:fakeTestImportJUnitXmlReports").outcome == TaskOutcome.SUCCESS
+
+        where:
+        version << SUPPORTED.findAll { VersionNumber.parse(it) >= FIRST_VERSION_WITH_IMPORT_JUNIT_XML_REPORTS }
     }
 
     private static boolean supportsSafeMode(VersionNumber pluginVersion) {

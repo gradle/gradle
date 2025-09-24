@@ -26,6 +26,7 @@ import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classloader.MultiParentClassLoader
 import org.gradle.internal.classloader.VisitableURLClassLoader
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.Requires
@@ -102,6 +103,7 @@ class ToolingApiClassLoaderProvider {
         sharedSpec.allowClass(SupportedJavaVersionsExpectations)
         sharedSpec.allowClass(JavaVersionParser)
         sharedSpec.allowClass(DebugUtil)
+        sharedSpec.allowClass(Jvm)
         def sharedClassLoader = classLoaderFactory.createFilteringClassLoader(Thread.currentThread().getContextClassLoader(), sharedSpec)
 
         def parentClassLoader = new MultiParentClassLoader(toolingApi.classLoader, sharedClassLoader)

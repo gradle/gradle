@@ -85,4 +85,6 @@ public interface InstrumentedInputsListener {
     void fileSystemEntryObserved(File file, String consumer);
 
     void directoryContentObserved(File file, String consumer);
+
+    void startParameterProjectPropertiesObserved();
 }

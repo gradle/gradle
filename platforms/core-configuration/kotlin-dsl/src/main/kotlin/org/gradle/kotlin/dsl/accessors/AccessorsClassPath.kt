@@ -54,6 +54,7 @@ import org.gradle.kotlin.dsl.concurrent.runBlocking
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.KOTLIN_DSL_PACKAGE_NAME
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeaderFor
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.primitiveKotlinTypeNames
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.typeProjectionStrings
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.getBooleanKotlinDslOption
@@ -526,7 +527,7 @@ fun classNamesFromTypeString(typeString: String): ClassNamesFromTypeString {
 
     fun nonPrimitiveKotlinType(): String? =
         buffer.takeIf(StringBuilder::isNotEmpty)?.toString()?.let {
-            if (it in primitiveKotlinTypeNames) null
+            if (it in primitiveKotlinTypeNames || it in typeProjectionStrings) null
             else it
         }
 

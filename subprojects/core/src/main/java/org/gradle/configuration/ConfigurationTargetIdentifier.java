@@ -32,7 +32,7 @@ import java.util.Locale;
  * This is primarily used to support
  * {@code ApplyScriptPluginBuildOperationType.Details} and {@code ApplyPluginBuildOperationType.Details}.
  */
-@ServiceScope({Scope.Gradle.class, Scope.Settings.class, Scope.Project.class})
+@ServiceScope({Scope.Build.class, Scope.Settings.class, Scope.Project.class})
 public abstract class ConfigurationTargetIdentifier {
 
     private ConfigurationTargetIdentifier() {

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-= Testing Gradle plugins
+= Testing Plugins
 
 Testing plays a crucial role in the development process by ensuring reliable and high-quality software.
 This principle applies to build code, including Gradle plugins.
@@ -25,6 +25,14 @@ The end user can provide the URL via an extension named `verification`.
 
 The following build script assumes that the plugin JAR file has been published to a binary repository.
 The script demonstrates how to apply the plugin to the project and configure its exposed extension:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/testingPlugins">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/include-plugin-build",files="build.gradle.kts[]"]
@@ -57,14 +65,12 @@ Manual Testing :: While manual testing is straightforward, it is error-prone and
 
 Automated Testing :: Automated testing includes unit, integration, and functional testing.
 
-image::testing-pyramid.png[float=right]
-
 The testing pyramid introduced by Mike Cohen in his book link:https://www.mountaingoatsoftware.com/books/succeeding-with-agile-software-development-using-scrum[Succeeding with Agile: Software Development Using Scrum] describes three types of automated tests:
 
+image::testing-pyramid.png[]
+
 1. *Unit Testing:* Verifies the smallest units of code, typically methods, in isolation. It uses Stubs or Mocks to isolate code from external dependencies.
-
-2. *Integration Testing:* Validates that multiple units or components work together.
-
+2. *Integration Testing:* Validates that multiple units or components work together, often with external systems like file I/O or HTTP.
 3. *Functional Testing:* Tests the system from the end user's perspective, ensuring correct functionality. End-to-end tests for Gradle plugins simulate a build, apply the plugin, and execute specific tasks to verify functionality.
 
 === Tooling support
@@ -79,9 +85,9 @@ For detailed explanations and code examples, refer to the specific sections belo
 |======================
 |Test type                               |Tooling support
 |<<manual-tests,Manual tests>>           |<<composite_builds.adoc#composite_builds,Gradle composite builds>>
-|<<unit-tests,Unit tests>>               |Any JVM-based test framework
+|<<unit-tests,Unit tests>>               |Any JVM-based test framework + `ProjectBuilder`
 |<<integration-tests,Integration tests>> |Any JVM-based test framework
-|<<functional-tests,Functional tests>>   |Any JVM-based test framework and <<test_kit.adoc#test_kit,Gradle TestKit>>
+|<<functional-tests,Functional tests>>   |Any JVM-based test framework + <<test_kit.adoc#test_kit,Gradle TestKit (`GradleRunner`)>>
 |======================
 
 [[manual-tests]]
@@ -90,6 +96,7 @@ For detailed explanations and code examples, refer to the specific sections belo
 The <<composite_builds.adoc#composite_builds,composite builds>> feature of Gradle makes it easy to test a plugin manually.
 The standalone plugin project and the consuming project can be combined into a single unit, making it straightforward to try out or debug changes without re-publishing the binary file:
 
+[source,text]
 ----
 .
 ├── include-plugin-build   // <1>
@@ -106,10 +113,17 @@ The standalone plugin project and the consuming project can be combined into a s
 There are two ways to include a plugin project in a consuming project:
 
 1. By using the command line option `--include-build`.
-
 2. By using the method `includeBuild` in `settings.gradle`.
 
 The following code snippet demonstrates the use of the settings file:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/testingPlugins">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/include-plugin-build",files="settings.gradle.kts[tags=include-build]"]
@@ -134,6 +148,7 @@ By default, the Java project creates a convention for organizing unit tests in t
 Additionally, if you apply the Groovy plugin, source code under the directory `src/test/groovy` is considered for compilation (with the same standard for Kotlin under the directory `src/test/kotlin`).
 Consequently, source code directories for other test types should follow a similar pattern:
 
+[source,text]
 ----
 .
 └── src
@@ -161,8 +176,6 @@ You can also rely on third-party plugins for convenience, such as the link:https
 
 === Modeling test types
 
-NOTE: A new configuration DSL for modeling the below `integrationTest` suite is available via the incubating <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>> plugin.
-
 In Gradle, source code directories are represented using the concept of <<java_plugin.adoc#source_sets,source sets>>.
 A source set is configured to point to one or more directories containing source code.
 When you define a source set, Gradle automatically sets up compilation tasks for the specified directories.
@@ -187,6 +200,14 @@ dependencies {
 ----
 
 We use that to define an `integrationTestImplementation` dependency to the project itself, which represents the "main" variant of our project (i.e., the compiled plugin code):
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/testingPlugins">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
 
 ====
 include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/url-verifier-plugin",files="build.gradle.kts[tags=test-source-set]"]
@@ -220,7 +241,6 @@ The Gradle team prefers Spock over other options for its expressiveness and conc
 == Implementing automated tests
 
 This section discusses representative implementation examples for unit, integration, and functional tests.
-All test classes are based on the use of Spock, though it should be relatively easy to adapt the code to a different test framework.
 
 [[unit-tests]]
 === Implementing unit tests
@@ -247,8 +267,12 @@ IMPORTANT: When writing unit tests, it's important to test boundary conditions a
 Try to extract as much logic as possible from classes that use the Gradle API to make it testable as unit tests.
 It will result in maintainable code and faster test execution.
 
+Unit tests for Gradle plugins typically use the link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[ProjectBuilder] API.
+This allows you to create an in-memory `Project` instance, apply your plugin, and verify that it registers extensions or tasks correctly.
+`ProjectBuilder` does *not* execute tasks — it is only suitable for verifying configuration logic.
+
 [[sec:writing_tests_for_your_plugin]]
-You can use the link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[ProjectBuilder] class to create link:{groovyDslPath}/org.gradle.api.Project.html[Project] instances to use when you test your plugin implementation.
+Here is a simple example:
 
 [source.multi-language-sample,java]
 .src/test/java/org/example/GreetingPluginTest.java
@@ -301,6 +325,9 @@ include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/url-verifi
 Functional tests for Gradle plugins use an instance of `GradleRunner` to execute the build under test.
 `GradleRunner` is an API provided by TestKit, which internally uses the Tooling API to execute the build.
 
+Unlike `ProjectBuilder`, which is limited to configuration, `GradleRunner` runs actual builds.
+This makes it possible to assert that tasks succeed, fail, or produce expected output.
+
 The following example applies the plugin to the build script under test, configures the extension and executes the build with the task `verifyUrl`.
 Please see the <<test_kit.adoc#test_kit,TestKit documentation>> to get more familiar with the functionality of TestKit.
 
@@ -315,7 +342,36 @@ include::{snippetsPath}/developingPlugins/testingPlugins/groovy/url-verifier-plu
 TestKit determines the plugin classpath by running a specific Gradle task.
 You will need to execute the `assemble` task to initially generate the plugin classpath or to reflect changes to it even when running TestKit-based functional tests from the IDE.
 
-Some IDEs provide a convenience option to delegate the "test classpath generation and execution" to the build.
-In IntelliJ, you can find this option under Preferences... > Build, Execution, Deployment > Build Tools > Gradle > Runner > Delegate IDE build/run actions to Gradle.
+== Example of a unit test
 
-image::intellij-delegate-to-build.png[]
+The following is an example of a unit test of the `Greeting` plugin from <<implementing_gradle_plugins_binary.adoc#implementing_binary_plugins, Binary Plugins>>:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/plugin-binary">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/plugins/plugin-binary/kotlin",files="plugin/src/test/kotlin/org/example/GreetingPluginTest.kt[]"]
+include::sample[dir="snippets/plugins/plugin-binary/groovy",files="plugin/src/test/groovy/org/example/GreetingPluginTest.groovy[]"]
+====
+
+== Example of a functional test
+
+The following is an example of a functional test of the `Greeting` plugin from <<implementing_gradle_plugins_binary.adoc#implementing_binary_plugins, Binary Plugins>>:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/plugin-binary">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/plugins/plugin-binary/kotlin",files="plugin/src/functionalTest/kotlin/org/example/GreetingPluginFunctionalTest.kt[]"]
+include::sample[dir="snippets/plugins/plugin-binary/groovy",files="plugin/src/functionalTest/groovy/org/example/GreetingPluginFunctionalTest.groovy[]"]
+====

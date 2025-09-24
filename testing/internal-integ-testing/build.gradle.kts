@@ -191,6 +191,7 @@ val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsIn
 val copyTestedVersionsInfo by tasks.registering(Copy::class) {
     from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
     from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/kotlin-versions.properties"))
+    from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/smoke-tested-plugins.properties"))
     into(layout.buildDirectory.dir("generated-resources/tested-versions"))
 }
 

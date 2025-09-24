@@ -123,7 +123,7 @@ class TarBuildCacheEntryPackerTest extends AbstractTarBuildCacheEntryPackerSpec 
         "unicode" | "tree-dezső"
     }
 
-    @Requires(UnitTestPreconditions.UnixDerivative)
+    @Requires(UnitTestPreconditions.Unix)
     def "can pack tree directory with files having #type characters in name"() {
         def sourceOutputDir = temporaryFolder.file("source").createDir()
         sourceOutputDir.file(fileName) << "output"

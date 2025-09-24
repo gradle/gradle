@@ -72,6 +72,7 @@ public class DefaultProjectRegistryTest {
         Project expectedGetProject
     ) {
         assertSame(expectedGetProject, projectRegistry.getProject(project.getPath()));
+        assertSame(expectedGetProject, projectRegistry.getProjectInternal(project.getPath()));
         assertEquals(expectedAllProjects, projectRegistry.getAllProjects(project.getPath()));
         assertEquals(expectedSubProjects, projectRegistry.getSubProjects(project.getPath()));
         assertTrue(projectRegistry.getAllProjects(project.getPath()).contains(project));
@@ -82,6 +83,7 @@ public class DefaultProjectRegistryTest {
         projectRegistry = new DefaultProjectRegistry();
         Project otherRoot = TestUtil.create(temporaryFolder.getTestDirectory()).rootProject();
         assertNull(projectRegistry.getProject(otherRoot.getPath()));
+        assertNull(projectRegistry.getProjectInternal(otherRoot.getPath()));
         assertEquals(new TreeSet<ProjectInternal>(), projectRegistry.getAllProjects(otherRoot.getPath()));
         assertEquals(new TreeSet<ProjectInternal>(), projectRegistry.getSubProjects(otherRoot.getPath()));
     }

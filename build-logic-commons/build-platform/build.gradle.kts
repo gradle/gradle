@@ -27,7 +27,7 @@ dependencies {
     constraints {
         api("org.gradle.guides:gradle-guides-plugin:0.24.0")
         api("org.apache.ant:ant:1.10.15") // Bump the version brought in transitively by gradle-guides-plugin
-        api("com.gradle:develocity-gradle-plugin:4.1.1") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
+        api("com.gradle:develocity-gradle-plugin:4.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
         api("com.gradle.publish:plugin-publish-plugin:1.3.1")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.3")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.4.1")

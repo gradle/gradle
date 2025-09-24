@@ -31,13 +31,12 @@ import javax.annotation.concurrent.ThreadSafe;
 public class WorkerExecutionQueueFactory implements Factory<ConditionalExecutionQueue<DefaultWorkResult>>, Stoppable {
     public static final String QUEUE_DISPLAY_NAME = "WorkerExecutor Queue";
     private final ConditionalExecutionQueueFactory conditionalExecutionQueueFactory;
-    private ConditionalExecutionQueue<DefaultWorkResult> queue;
+    private @Nullable ConditionalExecutionQueue<DefaultWorkResult> queue;
 
     public WorkerExecutionQueueFactory(ConditionalExecutionQueueFactory conditionalExecutionQueueFactory) {
         this.conditionalExecutionQueueFactory = conditionalExecutionQueueFactory;
     }
 
-    @Nullable
     @Override
     public synchronized ConditionalExecutionQueue<DefaultWorkResult> create() {
         if (queue == null) {

@@ -47,8 +47,15 @@ import java.util.concurrent.TimeUnit;
  * <p>This listener forwards nothing unless it receives periodic {@link UpdateNowEvent} clock events.</p>
  */
 public class GroupingProgressLogEventGenerator implements OutputEventListener {
-    private static final long HIGH_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
-    private static final long LOW_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(2);
+    /**
+     * Maximum amount of codepoints we allow to buffer before we flush the output.
+     * The calculation targets 1MiB of buffer space with 2 byte per codepoint
+     * (worst case scenario when each codepoint will be stored as UTF-16).
+     */
+    public static final long HIGH_WATERMARK_CODEPOINTS = 1000000L / 2L;
+    public static final long HIGH_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(30);
+    public static final long LOW_WATERMARK_FLUSH_TIMEOUT = TimeUnit.SECONDS.toMillis(2);
+
     private final OutputEventListener listener;
     private final LogHeaderFormatter headerFormatter;
     private final boolean verbose;
@@ -196,6 +203,11 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
         private boolean headerSent;
         private boolean outputRendered;
 
+        /**
+         * Approximate size of the buffered logs.
+         * This marks a best-case scenario, as codepoints varies in size depending on the character encoding.
+         */
+        private long approximateBufferCodepointSize = 0L;
         private List<RenderableOutputEvent> bufferedLogs = new ArrayList<RenderableOutputEvent>();
 
         OperationGroup(String category, String description, long startTime, @Nullable OperationIdentifier parentBuildOp, OperationIdentifier buildOpIdentifier, BuildOperationCategory buildOperationCategory) {
@@ -217,7 +229,25 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
                 lastUpdateTime = currentTimePeriod;
                 needHeaderSeparator = true;
             } else {
+                // We add the output to the buffer
+                // This won't consume significant memory as only the reference to `output` is stored
                 bufferedLogs.add(output);
+
+                // Update the approximate size of the buffered logs
+                if (output instanceof LogEvent) {
+                    LogEvent logEvent = (LogEvent) output;
+                    int logMessageCodepoints = logEvent.getMessage().length();
+                    approximateBufferCodepointSize += logMessageCodepoints;
+                } else if (output instanceof StyledTextOutputEvent) {
+                    StyledTextOutputEvent styledTextOutputEvent = (StyledTextOutputEvent) output;
+                    for (StyledTextOutputEvent.Span span : styledTextOutputEvent.getSpans()) {
+                        approximateBufferCodepointSize += span.getText().length();
+                    }
+                }
+
+                if (approximateBufferCodepointSize >= HIGH_WATERMARK_CODEPOINTS) {
+                    flushOutput();
+                }
             }
         }
 
@@ -241,6 +271,7 @@ public class GroupingProgressLogEventGenerator implements OutputEventListener {
                 GroupingProgressLogEventGenerator.this.needHeaderSeparator = hasContent;
 
                 bufferedLogs.clear();
+                approximateBufferCodepointSize = 0;
                 lastUpdateTime = currentTimePeriod;
                 lastRenderedBuildOpId = buildOpIdentifier;
             }

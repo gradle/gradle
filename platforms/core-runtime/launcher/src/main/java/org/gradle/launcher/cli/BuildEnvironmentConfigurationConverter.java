@@ -91,7 +91,7 @@ public class BuildEnvironmentConfigurationConverter {
         // toolchain-specific properties to be specified with -P instead of -D
         Map<String, String> gradlePropertiesAsSeenByToolchains = new HashMap<>();
         gradlePropertiesAsSeenByToolchains.putAll(properties.getProperties());
-        gradlePropertiesAsSeenByToolchains.putAll(startParameter.getProjectProperties());
+        gradlePropertiesAsSeenByToolchains.putAll(startParameter.getProjectPropertiesUntracked());
         toolchainConfigurationBuildOptionBackedConverter.convert(args, gradlePropertiesAsSeenByToolchains, daemonParameters.getToolchainConfiguration());
         daemonParameters.setRequestedJvmCriteriaFromMap(properties.getDaemonJvmProperties());
 

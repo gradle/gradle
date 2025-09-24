@@ -26,6 +26,9 @@ import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 class ProtobufPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
+    // https://central.sonatype.com/artifact/com.google.protobuf/protobuf-java/versions
+    private static protobufToolsVersion = "4.31.1"
+
     @Issue("https://plugins.gradle.org/plugin/com.google.protobuf")
     def "protobuf plugin"() {
         given:
@@ -39,11 +42,11 @@ class ProtobufPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
             protobuf {
                 protoc {
-                    artifact = "com.google.protobuf:protoc:${TestedVersions.protobufTools}"
+                    artifact = "com.google.protobuf:protoc:$protobufToolsVersion"
                 }
             }
             dependencies {
-                implementation "com.google.protobuf:protobuf-java:${TestedVersions.protobufTools}"
+                implementation "com.google.protobuf:protobuf-java:$protobufToolsVersion"
             }
         """
 

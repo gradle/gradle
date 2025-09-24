@@ -16,24 +16,47 @@
 
 package org.gradle.testkit.runner.internal;
 
+import com.google.common.io.ByteSource;
 import org.gradle.testkit.runner.BuildTask;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
+import java.nio.charset.Charset;
 import java.util.List;
 
 public class GradleExecutionResult {
 
     private final BuildOperationParameters buildOperationParameters;
-    private final String output;
+    private final ByteSource outputSource;
     private final List<BuildTask> tasks;
+    @Nullable
     private final Throwable throwable;
 
     public GradleExecutionResult(BuildOperationParameters buildOperationParameters, String standardOutput, List<BuildTask> tasks) {
         this(buildOperationParameters, standardOutput, tasks, null);
     }
 
-    public GradleExecutionResult(BuildOperationParameters buildOperationParameters, String output, List<BuildTask> tasks, Throwable throwable) {
+    public GradleExecutionResult(
+        BuildOperationParameters buildOperationParameters,
+        String standardOutput,
+        List<BuildTask> tasks,
+        @Nullable Throwable throwable
+    ) {
+        this(buildOperationParameters, ByteSource.wrap(standardOutput.getBytes(Charset.defaultCharset())), tasks, throwable);
+    }
+
+    public GradleExecutionResult(BuildOperationParameters buildOperationParameters, ByteSource outputSource, List<BuildTask> tasks) {
+        this(buildOperationParameters, outputSource, tasks, null);
+    }
+
+    public GradleExecutionResult(
+        BuildOperationParameters buildOperationParameters,
+        ByteSource outputSource,
+        List<BuildTask> tasks,
+        @Nullable Throwable throwable
+    ) {
         this.buildOperationParameters = buildOperationParameters;
-        this.output = output;
+        this.outputSource = outputSource;
         this.tasks = tasks;
         this.throwable = throwable;
     }
@@ -42,14 +65,16 @@ public class GradleExecutionResult {
         return buildOperationParameters;
     }
 
-    public String getOutput() {
-        return output;
+    @NonNull
+    public ByteSource getOutputSource() {
+        return outputSource;
     }
 
     public List<BuildTask> getTasks() {
         return tasks;
     }
 
+    @Nullable
     public Throwable getThrowable() {
         return throwable;
     }

@@ -53,7 +53,6 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
     @Override
     public Factory<File> temporaryDirectoryFactory(final String... path) {
         return new Factory<File>() {
-            @Nullable
             @Override
             public File create() {
                 return newTemporaryDirectory(path);

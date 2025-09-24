@@ -126,6 +126,10 @@ class AndroidGradlePluginVersions {
         return version
     }
 
+    static String buildToolsVersion() {
+        return loadedProperties().getProperty("buildToolsVersion")
+    }
+
     private String getAgpNightlyRepositoryInitScript() {
         return """
             beforeSettings { settings ->
@@ -199,7 +203,7 @@ class AndroidGradlePluginVersions {
             return "34.0.0"
         }
 
-        return "35.0.0"
+        return buildToolsVersion()
     }
 
     static JavaVersion getMinimumJavaVersionFor(VersionNumber agpVersion) {

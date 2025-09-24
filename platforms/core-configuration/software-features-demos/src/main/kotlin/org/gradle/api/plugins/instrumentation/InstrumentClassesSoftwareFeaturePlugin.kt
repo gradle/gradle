@@ -55,7 +55,7 @@ class InstrumentClassesSoftwareFeaturePlugin : Plugin<Project> {
                     val instrumentClassesTask = project.tasks.register("instrument" + StringUtils.capitalize(target.name) + "Classes", InstrumentClasses::class.java) { task ->
                         task.group = LifecycleBasePlugin.BUILD_GROUP
                         task.description = "Instruments the ${target.name} classes."
-                        task.bytecodeDir.set(getOrCreateModel(target).byteCodeDir)
+                        task.bytecodeDir.set(getBuildModel(target).byteCodeDir)
                         task.instrumentedClassesDir.set(definition.destinationDirectory)
                     }
 

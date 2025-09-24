@@ -47,7 +47,7 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.ComponentArtifactResolveState;
+import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -193,31 +193,33 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private ComponentArtifactsResult buildComponentResult(ComponentIdentifier componentId, ComponentMetaDataResolver componentMetaDataResolver, ArtifactResolver artifactResolver) {
         BuildableComponentResolveResult moduleResolveResult = new DefaultBuildableComponentResolveResult();
         componentMetaDataResolver.resolve(componentId, DefaultComponentOverrideMetadata.EMPTY, moduleResolveResult);
-        ComponentArtifactResolveState componentState = moduleResolveResult.getState().prepareForArtifactResolution();
-        DefaultComponentArtifactsResult componentResult = new DefaultComponentArtifactsResult(componentState.getId());
+        ComponentArtifactResolveMetadata component = moduleResolveResult.getState().prepareForArtifactResolution().getArtifactMetadata();
+        DefaultComponentArtifactsResult componentResult = new DefaultComponentArtifactsResult(component.getId());
         for (Class<? extends Artifact> artifactType : artifactTypes) {
-            moduleResolveResult.getModuleVersionId();
-            addArtifacts(componentResult, artifactType, componentState, artifactResolver);
+            addArtifacts(componentResult, artifactType, component, artifactResolver);
         }
         return componentResult;
     }
 
-    private <T extends Artifact> void addArtifacts(DefaultComponentArtifactsResult artifacts, Class<T> type, ComponentArtifactResolveState componentState, ArtifactResolver artifactResolver) {
+    private <T extends Artifact> void addArtifacts(
+        DefaultComponentArtifactsResult artifacts,
+        Class<T> type,
+        ComponentArtifactResolveMetadata component,
+        ArtifactResolver artifactResolver
+    ) {
         BuildableArtifactSetResolveResult artifactSetResolveResult = new DefaultBuildableArtifactSetResolveResult();
-        componentState.resolveArtifactsWithType(artifactResolver, convertType(type), artifactSetResolveResult);
+        ArtifactType artifactType = componentTypeRegistry.getComponentRegistration(componentType).getArtifactType(type);
+        artifactResolver.resolveArtifactsWithType(component, artifactType, artifactSetResolveResult);
 
         for (ComponentArtifactMetadata artifactMetaData : artifactSetResolveResult.getResult()) {
             BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
-            artifactResolver.resolveArtifact(componentState.getArtifactMetadata(), artifactMetaData, resolveResult);
+            artifactResolver.resolveArtifact(component, artifactMetaData, resolveResult);
             try {
-                artifacts.addArtifact(externalResolverFactory.verifiedArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, Describables.of(componentState.getId().getDisplayName()), type, resolveResult.getResult().getFile())));
+                artifacts.addArtifact(externalResolverFactory.verifiedArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, Describables.of(component.getId().getDisplayName()), type, resolveResult.getResult().getFile())));
             } catch (Exception e) {
                 artifacts.addArtifact(new DefaultUnresolvedArtifactResult(artifactMetaData.getId(), type, e));
             }
         }
     }
 
-    private <T extends Artifact> ArtifactType convertType(Class<T> requestedType) {
-        return componentTypeRegistry.getComponentRegistration(componentType).getArtifactType(requestedType);
-    }
 }

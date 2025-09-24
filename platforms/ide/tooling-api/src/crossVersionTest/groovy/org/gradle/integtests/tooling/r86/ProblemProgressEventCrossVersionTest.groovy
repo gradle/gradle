@@ -24,15 +24,14 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.ProblemProgressEventCrossVersionTest.ProblemProgressListener
 import org.gradle.tooling.BuildException
 
+import static org.gradle.api.problems.fixtures.ReportingScript.getProblemReportingScript
+
 @ToolingApiVersion("=8.6")
 @TargetGradleVersion(">=8.6")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {
-        buildFile getProblemReportTaskString(taskActionMethodBody)
-        // TODO using the following code breaks the test, but it should be possible to use it
-        //  buildFile getProblemReportingScript(taskActionMethodBody)
-        //  issue https://github.com/gradle/gradle/issues/27484
+          buildFile getProblemReportingScript(taskActionMethodBody)
     }
 
     static String getProblemReportTaskString(String taskActionMethodBody) {

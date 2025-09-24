@@ -269,14 +269,17 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 }
             }
 
+            is ConfigurationCacheFingerprint.StartParameterProjectProperties -> input.run {
+                ifOrNull(host.startParameterProperties != snapshot) {
+                    text("the set of Gradle properties has changed: ").text(detailedMessageForChanges(snapshot, host.startParameterProperties))
+                }
+            }
+
             is ConfigurationCacheFingerprint.GradleEnvironment -> input.run {
                 when {
                     host.gradleUserHomeDir != gradleUserHomeDir -> text("Gradle user home directory has changed")
 
                     jvmFingerprint() != jvm -> text("JVM has changed")
-
-                    startParameterProperties != null && host.startParameterProperties != startParameterProperties ->
-                        text("the set of Gradle properties has changed: ").text(detailedMessageForChanges(startParameterProperties, host.startParameterProperties))
 
                     host.ignoreInputsDuringConfigurationCacheStore != ignoreInputsDuringConfigurationCacheStore ->
                         text("the value of ignored configuration inputs flag (${StartParameterBuildOptions.ConfigurationCacheIgnoreInputsDuringStore.PROPERTY_NAME}) has changed")

@@ -17,7 +17,8 @@ package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.Action
 import org.gradle.api.Incubating
-import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.Project
+import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.deprecation.ConfigurationDeprecationType
 import org.gradle.internal.hash.Hashing.hashString
@@ -85,14 +86,20 @@ private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragme
     val deprecation = highestDeprecationByLevel(accessor.spec.modelType.deprecation(), accessor.spec.targetType.deprecation())
     val annotations = "${maybeDeprecationAnnotations(deprecation)}${maybeOptInAnnotationSource(accessor.spec.modelType, accessor.spec.targetType)}"
 
+    val targetTypeKotlinString = spec.targetType.type.kotlinString
+    val featureKind = when (accessor.spec.targetType.type.value.concreteClass) {
+        Project::class.java -> "project type"
+        else -> "project feature"
+    }
+
     className to sequenceOf(
         AccessorFragment(
             source = """
             |        /**
-            |         * Applies the "$functionName" software type to the project and configures the model with the [configure] action.
+            |         * Applies the "$functionName" $featureKind to the target and configures the definition with the [configure] action.
             |         */
             |        @Incubating
-            |        ${annotations}fun ${spec.targetType.type.kotlinString}.`${functionName}`(configure: Action<in ${spec.modelType.type.kotlinString}>) {
+            |        ${annotations}fun $targetTypeKotlinString.`${functionName}`(configure: Action<in ${spec.modelType.type.kotlinString}>) {
             |            applySoftwareType(this, "$functionName", configure)
             |        }
             """.trimMargin(),
@@ -106,10 +113,10 @@ private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragme
                 }) {
                     maybeWithDeprecation(deprecation)
                     ALOAD(0)
-                    CHECKCAST(ExtensionAware::class.internalName)
+                    CHECKCAST(DynamicObjectAware::class.internalName)
                     LDC(functionName)
                     ALOAD(1)
-                    invokeRuntime("applySoftwareFeature", "(L${ExtensionAware::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V")
+                    invokeRuntime("applySoftwareFeature", "(L${DynamicObjectAware::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V")
                     RETURN()
                 }
             },
@@ -1162,12 +1169,23 @@ val TypeOf<*>.kmType: KmType
     get() = when {
         isParameterized -> genericTypeOf(
             classOf(parameterizedTypeDefinition.concreteClass),
-            actualTypeArguments.map { it.kmType }
+            actualTypeArguments.map { it.kmTypeProjection }
         )
 
         isWildcard -> (upperBound ?: lowerBound)?.kmType ?: KotlinType.any
         else -> classOf(concreteClass)
     }
+
+private
+val TypeOf<*>.kmTypeProjection: KmTypeProjection
+    get() = KmTypeProjection(
+        variance = when {
+            upperBound != null -> KmVariance.OUT
+            lowerBound != null -> KmVariance.IN
+            else -> KmVariance.INVARIANT
+        },
+        type = kmType
+    )
 
 
 internal

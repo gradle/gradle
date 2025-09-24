@@ -17,6 +17,9 @@
 package org.gradle.plugin.management.internal;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.use.PluginId;
 import org.jspecify.annotations.Nullable;
@@ -26,14 +29,14 @@ import java.util.Optional;
 public class DefaultPluginRequest implements PluginRequestInternal {
 
     private final PluginId id;
-    private final String version;
+    private final @Nullable String version;
     private final boolean apply;
-    private final Integer lineNumber;
-    private final String scriptDisplayName;
-    private final ModuleVersionSelector module;
-    private final PluginRequest originalRequest;
+    private final @Nullable Integer lineNumber;
+    private final @Nullable String scriptDisplayName;
+    private final @Nullable ComponentSelector selector;
+    private final @Nullable PluginRequest originalRequest;
     private final Origin origin;
-    private final PluginCoordinates alternativeCoordinates;
+    private final @Nullable PluginCoordinates alternativeCoordinates;
 
     public DefaultPluginRequest(
         PluginId id,
@@ -42,7 +45,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         @Nullable String scriptDisplayName,
         @Nullable Integer lineNumber,
         @Nullable String version,
-        @Nullable ModuleVersionSelector module,
+        @Nullable ComponentSelector selector,
         @Nullable PluginRequest originalRequest,
         @Nullable PluginCoordinates alternativeCoordinates
     ) {
@@ -51,7 +54,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         this.apply = apply;
         this.lineNumber = lineNumber;
         this.scriptDisplayName = scriptDisplayName;
-        this.module = module;
+        this.selector = selector;
         this.originalRequest = originalRequest;
         this.origin = origin;
         this.alternativeCoordinates = alternativeCoordinates;
@@ -68,10 +71,18 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         return version;
     }
 
+    @Override
+    public @Nullable ComponentSelector getSelector() {
+        return selector;
+    }
+
     @Nullable
     @Override
     public ModuleVersionSelector getModule() {
-        return module;
+        if (selector instanceof ModuleComponentSelector) {
+            return DefaultModuleVersionSelector.newSelector((ModuleComponentSelector) selector);
+        }
+        return null;
     }
 
     @Override
@@ -103,8 +114,8 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         if (version != null) {
             b.append(", version: '").append(version).append("'");
         }
-        if (module != null) {
-            b.append(", artifact: '").append(module).append("'");
+        if (selector != null) {
+            b.append(", artifact: '").append(selector).append("'");
         }
         if (!apply) {
             b.append(", apply: false");

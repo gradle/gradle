@@ -20,7 +20,8 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
@@ -99,9 +100,10 @@ public class DefaultPluginHandler implements PluginHandler {
         ModuleIdentifier pluginMarker = DefaultModuleIdentifier.newId(pluginId, pluginId + PLUGIN_MARKER_SUFFIX);
         Predicate<Dependency> predicate = dependency -> hasMatchingCoordinates(dependency, pluginMarker);
 
-        ModuleVersionSelector moduleSelector = autoAppliedPlugin.getModule();
-        if (moduleSelector != null) {
-            predicate = predicate.or(dependency -> hasMatchingCoordinates(dependency, moduleSelector.getModule()));
+        ComponentSelector selector = autoAppliedPlugin.getSelector();
+        if (selector instanceof ModuleComponentSelector) {
+            ModuleComponentSelector moduleSelector = (ModuleComponentSelector) selector;
+            predicate = predicate.or(dependency -> hasMatchingCoordinates(dependency, moduleSelector.getModuleIdentifier()));
         }
 
         Configuration classpathConfiguration = scriptHandler.getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);

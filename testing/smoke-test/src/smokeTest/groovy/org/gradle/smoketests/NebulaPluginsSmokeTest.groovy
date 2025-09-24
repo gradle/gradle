@@ -131,7 +131,7 @@ testImplementation('junit:junit:4.7')""")
         runner('buildEnvironment', 'generateLock').build()
 
         where:
-        nebulaDepLockVersion << TestedVersions.nebulaDependencyLock.versions
+        nebulaDepLockVersion << [TestedVersions.nebulaDependencyLock]
     }
 
     @Issue("gradle/gradle#3798")
@@ -195,7 +195,7 @@ testImplementation('junit:junit:4.7')""")
         runner('resolve').build()
 
         where:
-        version << TestedVersions.nebulaDependencyLock
+        version << [TestedVersions.nebulaDependencyLock]
     }
 
     @Issue('https://plugins.gradle.org/plugin/com.netflix.nebula.resolution-rules')

@@ -28,7 +28,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * <p>This includes resolving the entry tasks and calculating the task graph.</p>
  */
-@ServiceScope(Scope.Gradle.class)
+@ServiceScope(Scope.Build.class)
 public interface TaskExecutionPreparer {
     void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan);
 }

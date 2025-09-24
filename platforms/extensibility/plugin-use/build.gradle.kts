@@ -20,6 +20,7 @@ dependencies {
     api(projects.softwareFeatures)
 
     api(libs.guava)
+    api(libs.inject)
     api(libs.jspecify)
 
     implementation(projects.functional)

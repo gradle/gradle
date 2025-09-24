@@ -24,11 +24,10 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.IdentityHashMap;
-import java.util.Map;
 
 @ServiceScope(Scope.Build.class)
 public class WorkNodeDependencyResolver implements DependencyResolver, HoldsProjectState {
-    private final Map<WorkNodeAction, ActionNode> nodesForAction = new IdentityHashMap<WorkNodeAction, ActionNode>();
+    private final IdentityHashMap<WorkNodeAction, ActionNode> nodesForAction = new IdentityHashMap<>();
 
     @Override
     public boolean resolve(Task task, final Object node, Action<? super Node> resolveAction) {
