@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
-import org.gradle.api.internal.capabilities.CapabilityInternal;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
@@ -44,6 +44,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -345,7 +346,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     public void rejectForCapabilityConflict(Capability capability, Collection<NodeState> conflictedNodes) {
         this.rejected = true;
         if (this.capabilityReject == null) {
-            this.capabilityReject = Pair.of(capability, conflictedNodes);
+            this.capabilityReject = Pair.of(capability, new HashSet<>(conflictedNodes));
         } else {
             mergeCapabilityRejects(capability, conflictedNodes);
         }
@@ -356,7 +357,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         if (this.capabilityReject.getLeft().equals(capability)) {
             this.capabilityReject.getRight().addAll(conflictedNodes);
         } else {
-            this.capabilityReject = Pair.of(capability, conflictedNodes);
+            this.capabilityReject = Pair.of(capability, new HashSet<>(conflictedNodes));
         }
     }
 
@@ -376,7 +377,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private static String formatCapabilityRejectMessage(ModuleIdentifier id, Pair<Capability, Collection<NodeState>> capabilityConflict) {
         return "Module '" + id + "' has been rejected:\n" +
             "   Cannot select module with conflict on capability '" + formatCapability(capabilityConflict.left) + "' also provided by " +
-            capabilityConflict.getRight().stream().map(NodeState::getDisplayName).collect(Collectors.toList());
+            capabilityConflict.getRight().stream().map(NodeState::getDisplayName).sorted().collect(Collectors.toList());
     }
 
     private static String formatCapability(Capability capability) {
@@ -433,7 +434,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         }
     }
 
-    CapabilityInternal getImplicitCapability() {
+    ImmutableCapability getImplicitCapability() {
         return resolveState.getDefaultCapability();
     }
 

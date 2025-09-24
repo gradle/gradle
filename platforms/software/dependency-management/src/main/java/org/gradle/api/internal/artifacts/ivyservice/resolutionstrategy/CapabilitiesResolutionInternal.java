@@ -46,10 +46,11 @@ public interface CapabilitiesResolutionInternal extends CapabilitiesResolution {
         }
 
         /**
-         * Get the capability that this action applies to, or null if it applies to all capabilities.
+         * Returns true if this rule may be executed to resolve conflicts on
+         * a capability with the given group and name.
          */
-        public @Nullable ImmutableCapability getTargetCapability() {
-            return capability;
+        public boolean appliesTo(String group, String name) {
+            return capability == null || (capability.getGroup().equals(group) && capability.getName().equals(name));
         }
 
         /**

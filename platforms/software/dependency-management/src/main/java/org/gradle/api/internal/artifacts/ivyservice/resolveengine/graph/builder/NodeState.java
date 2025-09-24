@@ -1148,7 +1148,7 @@ public class NodeState implements DependencyGraphNode {
      * Determine if this node provides a capability with the given group and name.
      * If so, return it. Otherwise, return null.
      */
-    public @Nullable Capability findCapability(String group, String name) {
+    public @Nullable ImmutableCapability findCapability(String group, String name) {
         ImmutableCapabilities capabilities = metadata.getCapabilities();
         if (capabilities.isEmpty()) {
             // No capabilities declared. Use the component's implicit capability.
@@ -1156,7 +1156,7 @@ public class NodeState implements DependencyGraphNode {
                 return component.getImplicitCapability();
             }
         } else {
-            for (Capability capability : capabilities) {
+            for (ImmutableCapability capability : capabilities) {
                 if (capability.getGroup().equals(group) && capability.getName().equals(name)) {
                     return capability;
                 }
