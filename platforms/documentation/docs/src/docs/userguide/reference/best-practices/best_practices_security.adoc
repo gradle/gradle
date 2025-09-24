@@ -60,7 +60,11 @@ that contains minimal infrastructure, such as only the JDK.
 
 ==== Don't Do This
 
-Using remote build cache or other caching mechanisms for these builds may include old
+Do not use incremental, local, or cached builds when publishing. 
+These methods rely on the outputs of previous builds, which can introduce a security vector. 
+An incremental build might use a leftover artifact from an older, potentially compromised, build. 
+Similarly, using a remote build cache or other caching mechanisms can lead to accidental inclusion of outdated or malicious content, resulting in a non-reproducible artifact. 
+The build output would then be dependent on the state of the machine it was run on, undermining the integrity of your software.
 Local or incremental builds create a security risk and can produce *non-reproducible artifacts* due to leftover
 or outdated outputs.
 
