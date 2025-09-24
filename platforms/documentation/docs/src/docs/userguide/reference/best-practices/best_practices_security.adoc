@@ -61,7 +61,6 @@ that contains minimal infrastructure, such as only the JDK.
 ==== Don't Do This
 
 Using remote build cache or other caching mechanisms for these builds may include old
-outputs,temporary files, or cached artifacts.
 Local or incremental builds create a security risk and can produce *non-reproducible artifacts* due to leftover
 or outdated outputs.
 
