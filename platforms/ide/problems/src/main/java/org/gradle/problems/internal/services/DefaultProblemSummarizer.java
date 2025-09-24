@@ -17,7 +17,7 @@
 package org.gradle.problems.internal.services;
 
 import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails;
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.api.problems.internal.ProblemReportCreator;
 import org.gradle.api.problems.internal.ProblemSummarizer;
@@ -79,7 +79,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     }
 
     @Override
-    public void emit(InternalProblem problem, @Nullable OperationIdentifier id) {
+    public void emit(ProblemInternal problem, @Nullable OperationIdentifier id) {
         if (summarizerStrategy.shouldEmit(problem)) {
             problem = maybeAddTaskLocation(problem, id);
             problemReportCreator.addProblem(problem);
@@ -90,7 +90,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     }
 
     @NonNull
-    private InternalProblem maybeAddTaskLocation(InternalProblem problem, @Nullable OperationIdentifier id) {
+    private ProblemInternal maybeAddTaskLocation(ProblemInternal problem, @Nullable OperationIdentifier id) {
         TaskIdentity taskIdentity = taskProvider.taskIdentityFor(id);
         if (taskIdentity != null) {
             problem = problem.toBuilder(new ProblemsInfrastructure(null, null, null, null, null, null)).taskLocation(taskIdentity.getTaskPath()).build();

@@ -29,7 +29,7 @@ import java.util.List;
 import static com.google.common.base.Objects.equal;
 
 @NullMarked
-public class DefaultProblem implements Serializable, InternalProblem {
+public class DefaultProblem implements Serializable, ProblemInternal {
     private final ProblemDefinition problemDefinition;
     private final String contextualLabel;
     private final List<String> solutions;
@@ -104,7 +104,7 @@ public class DefaultProblem implements Serializable, InternalProblem {
     }
 
     @Override
-    public InternalProblemBuilder toBuilder(ProblemsInfrastructure infrastructure) {
+    public ProblemBuilderInternal toBuilder(ProblemsInfrastructure infrastructure) {
         return new DefaultProblemBuilder(this, infrastructure);
     }
 
