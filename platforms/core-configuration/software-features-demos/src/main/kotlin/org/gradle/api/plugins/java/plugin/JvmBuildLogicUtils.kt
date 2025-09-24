@@ -18,7 +18,7 @@ package org.gradle.api.plugins.java.plugin
 
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectProvider
-import org.gradle.api.internal.plugins.SoftwareFeatureApplicationContext
+import org.gradle.api.internal.plugins.ProjectFeatureApplicationContext
 import org.gradle.api.plugins.java.HasCompiledBytecode
 import org.gradle.api.plugins.java.HasJarFile
 import org.gradle.api.plugins.java.HasProcessedResources
@@ -30,7 +30,7 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.util.internal.TextUtil.capitalize
 import kotlin.jvm.java
 
-internal fun <T> SoftwareFeatureApplicationContext.registerJar(
+internal fun <T> ProjectFeatureApplicationContext.registerJar(
     mainClasses: NamedDomainObjectProvider<T>,
     model: HasJarFile
 ) where T: HasProcessedResources, T : HasCompiledBytecode {
@@ -42,7 +42,7 @@ internal fun <T> SoftwareFeatureApplicationContext.registerJar(
     model.jarFile.set(jarTask.map { it.archiveFile.get() })
 }
 
-internal fun <T> SoftwareFeatureApplicationContext.registerResourcesProcessing(source: T): TaskProvider<Copy> where T : Named, T : HasResources {
+internal fun <T> ProjectFeatureApplicationContext.registerResourcesProcessing(source: T): TaskProvider<Copy> where T : Named, T : HasResources {
     val processResourcesTask = project.tasks.register("process" + capitalize(source.name) + "Resources", Copy::class.java) { task ->
         task.group = LifecycleBasePlugin.BUILD_GROUP
         task.description = "Processes the ${source.name} resources."

@@ -28,7 +28,7 @@ import org.jetbrains.kotlin.lexer.KtTokens
 internal
 data class AccessorScope(
     private val targetTypesByName: HashMap<AccessorNameSpec, HashSet<TypeAccessibility.Accessible>> = hashMapOf(),
-    private val softwareFeatureEntriesByName: HashMap<AccessorNameSpec, HashSet<TypedSoftwareFeatureEntry>> = hashMapOf(),
+    private val projectFeatureEntriesByName: HashMap<AccessorNameSpec, HashSet<TypedProjectFeatureEntry>> = hashMapOf(),
     private val containerElementFactoriesByName: HashMap<AccessorNameSpec, HashSet<TypedContainerElementFactoryEntry>> = hashMapOf(),
 ) {
     fun uniqueAccessorsFor(entries: Iterable<ProjectSchemaEntry<TypeAccessibility>>): Sequence<TypedAccessorSpec> =
@@ -37,14 +37,14 @@ data class AccessorScope(
     fun uniqueAccessorsFrom(accessorSpecs: Sequence<TypedAccessorSpec>): Sequence<TypedAccessorSpec> =
         accessorSpecs.filter(::add)
 
-    fun uniqueSoftwareFeatureEntries(softwareFeatureEntries: Iterable<TypedSoftwareFeatureEntry>): Sequence<TypedSoftwareFeatureEntry> =
-        softwareFeatureEntries.asSequence().filter(::add)
+    fun uniqueProjectFeatureEntries(projectFeatureEntries: Iterable<TypedProjectFeatureEntry>): Sequence<TypedProjectFeatureEntry> =
+        projectFeatureEntries.asSequence().filter(::add)
 
     fun uniqueContainerElementFactories(elementFactoryEntries: Iterable<TypedContainerElementFactoryEntry>): Sequence<TypedContainerElementFactoryEntry> =
         elementFactoryEntries.asSequence().filter(::add)
 
-    private fun add(softwareFeatureEntry: TypedSoftwareFeatureEntry): Boolean =
-        softwareFeatureEntriesByName.getOrPut(softwareFeatureEntry.softwareFeatureName) { hashSetOf() }.add(softwareFeatureEntry)
+    private fun add(projectFeatureEntry: TypedProjectFeatureEntry): Boolean =
+        projectFeatureEntriesByName.getOrPut(projectFeatureEntry.projectFeatureName) { hashSetOf() }.add(projectFeatureEntry)
 
     private fun add(containerElementFactory: TypedContainerElementFactoryEntry): Boolean =
         containerElementFactoriesByName.getOrPut(containerElementFactory.name) { hashSetOf() }.add(containerElementFactory)
@@ -290,7 +290,7 @@ fun accessibleModelDefaultAccessorFor(name: AccessorNameSpec, type: String, depr
     val annotations = """${maybeDeprecationAnnotations(deprecation)}${maybeOptInAnnotationSource(optIns)}"""
     """
     |        /**
-    |         * Adds model defaults for the [$original][$name] software type.
+    |         * Adds model defaults for the [$original][$name] project type.
     |         */
     |        ${annotations}fun SharedModelDefaults.`$kotlinIdentifier`(configure: Action<$type>): Unit =
     |            add("$stringLiteral", $type, configure)
@@ -302,7 +302,7 @@ private
 fun inaccessibleModelDefaultAccessorFor(name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
     """
         /**
-         * Adds model defaults for the `$original` software type.
+         * Adds model defaults for the `$original` project type.
          *
          * ${documentInaccessibilityReasons(name, typeAccess)}
          */
@@ -376,8 +376,8 @@ data class TypedAccessorSpec(
 )
 
 internal
-data class TypedSoftwareFeatureEntry(
-    val softwareFeatureName: AccessorNameSpec,
+data class TypedProjectFeatureEntry(
+    val projectFeatureName: AccessorNameSpec,
     val modelType: TypeAccessibility,
     val targetType: TypeAccessibility
 )

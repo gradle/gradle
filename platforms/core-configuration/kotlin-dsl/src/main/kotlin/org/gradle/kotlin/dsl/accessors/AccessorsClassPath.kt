@@ -703,7 +703,7 @@ fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run 
     putAll(schema.tasks)
     putAll(schema.containerElements)
     putContainerElementFactoryEntries(schema.containerElementFactories)
-    putSoftwareFeatureEntries(schema.softwareFeatureEntries)
+    putProjectFeatureEntries(schema.projectFeatureEntries)
     putAllSorted(schema.configurations.map { it.target })
     hash()
 }
@@ -735,10 +735,10 @@ private fun Hasher.putContainerElementFactoryEntries(entries: List<ContainerElem
     }
 }
 
-private fun Hasher.putSoftwareFeatureEntries(entries: List<SoftwareFeatureEntry<SchemaType>>) {
+private fun Hasher.putProjectFeatureEntries(entries: List<ProjectFeatureEntry<SchemaType>>) {
     putInt(entries.size)
     entries.forEach { entry ->
-        putString(entry.softwareFeatureName)
+        putString(entry.featureName)
         putString(entry.ownDefinitionType.kotlinString)
         putString(entry.targetDefinitionType.kotlinString)
     }

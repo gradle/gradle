@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.serialization
 
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.PolymorphicModuleBuilder
 import kotlinx.serialization.modules.SerializersModule
@@ -170,11 +169,11 @@ object SchemaSerialization {
             }
             polymorphic(SchemaItemMetadata::class) {
                 subclass(SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultContainerElementFactory::class)
-                subclass(SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultSoftwareFeatureOrigin::class)
+                subclass(SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultProjectFeatureOrigin::class)
             }
             polymorphic(SchemaMemberOrigin::class) {
                 subclass(SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultContainerElementFactory::class)
-                subclass(SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultSoftwareFeatureOrigin::class)
+                subclass(SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultProjectFeatureOrigin::class)
             }
             polymorphic(DataType.TypeVariableUsage::class) {
                 subclass(DataTypeInternal.DefaultTypeVariableUsage::class)

@@ -19,7 +19,7 @@ plugins {
     id("gradlebuild.publish-public-libraries")
 }
 
-description = "Public API classes used by software features"
+description = "Public API classes used by project features"
 
 dependencies {
     api(projects.stdlibJavaExtensions)

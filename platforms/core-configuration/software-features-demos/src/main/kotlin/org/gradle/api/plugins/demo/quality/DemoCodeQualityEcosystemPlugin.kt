@@ -18,9 +18,9 @@ package org.gradle.api.plugins.demo.quality
 
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.plugins.software.RegistersSoftwareFeatures
+import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
 
-@RegistersSoftwareFeatures(DemoCodeQualitySoftwareFeaturePlugin::class)
+@RegistersProjectFeatures(DemoCodeQualityProjectFeaturePlugin::class)
 class DemoCodeQualityEcosystemPlugin : Plugin<Settings> {
     override fun apply(target: Settings) = Unit
 }

@@ -22,11 +22,11 @@ import org.gradle.cache.internal.CrossBuildInMemoryCache
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.kotlin.dsl.accessors.ContainerElementFactoryEntry
-import org.gradle.kotlin.dsl.accessors.SoftwareFeatureEntry
-import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
+import org.gradle.kotlin.dsl.accessors.ProjectFeatureEntry
+import org.gradle.plugin.software.internal.ProjectFeatureRegistry
 
 typealias ContainerElementFactories = List<ContainerElementFactoryEntry<TypeOf<*>>>
-typealias SoftwareTypeEntries = List<SoftwareFeatureEntry<TypeOf<*>>>
+typealias ProjectTypeEntries = List<ProjectFeatureEntry<TypeOf<*>>>
 
 interface KotlinDslDclSchemaCache {
     fun getOrPutContainerElementFactories(
@@ -36,9 +36,9 @@ interface KotlinDslDclSchemaCache {
     ): ContainerElementFactories
 
     fun getOrPutContainerElementSoftwareTypes(
-        forRegistry: SoftwareFeatureRegistry,
-        produceIfAbsent: () -> SoftwareTypeEntries
-    ): SoftwareTypeEntries
+        forRegistry: ProjectFeatureRegistry,
+        produceIfAbsent: () -> ProjectTypeEntries
+    ): ProjectTypeEntries
 }
 
 class CrossBuildInMemoryKotlinDslDclSchemaCache(
@@ -48,7 +48,7 @@ class CrossBuildInMemoryKotlinDslDclSchemaCache(
     private val containerElementFactoriesCache: CrossBuildInMemoryCache<ContainerElementFactoriesKey, ContainerElementFactories> =
         crossBuildInMemoryCacheFactory.newCache()
 
-    private val softwareTypeEntriesCache: CrossBuildInMemoryCache<SoftwareFeatureRegistry, SoftwareTypeEntries> =
+    private val projectTypeEntriesCache: CrossBuildInMemoryCache<ProjectFeatureRegistry, ProjectTypeEntries> =
         crossBuildInMemoryCacheFactory.newCache()
 
     private data class ContainerElementFactoriesKey(
@@ -66,9 +66,9 @@ class CrossBuildInMemoryKotlinDslDclSchemaCache(
         }
 
     override fun getOrPutContainerElementSoftwareTypes(
-        forRegistry: SoftwareFeatureRegistry,
-        produceIfAbsent: () -> SoftwareTypeEntries
-    ): SoftwareTypeEntries = softwareTypeEntriesCache.get(forRegistry) { _ ->
+        forRegistry: ProjectFeatureRegistry,
+        produceIfAbsent: () -> ProjectTypeEntries
+    ): ProjectTypeEntries = projectTypeEntriesCache.get(forRegistry) { _ ->
         produceIfAbsent()
     }
 }

@@ -27,14 +27,14 @@ import org.jspecify.annotations.Nullable;
 import java.util.Map;
 
 /**
- * @deprecated Kept for binary compatiblity as an alias for {@link SoftwareFeatureRegistry}, as it is exposed in protected members of some tasks
- *   Use {@link SoftwareFeatureRegistry} instead.
+ * @deprecated Kept for binary compatiblity as an alias for {@link ProjectFeatureRegistry}, as it is exposed in protected members of some tasks
+ *   Use {@link ProjectFeatureRegistry} instead.
  */
 @Deprecated
 @ServiceScope(Scope.Build.class)
 @SuppressWarnings("DeprecatedIsStillUsed")
 public interface SoftwareTypeRegistry {
     void register(@Nullable String pluginId, Class<? extends Plugin<Project>> pluginClass, Class<? extends Plugin<Settings>> registeringPluginClass);
-    Map<String, SoftwareFeatureImplementation<?, ?>> getSoftwareFeatureImplementations();
+    Map<String, ProjectFeatureImplementation<?, ?>> getProjectFeatureImplementations();
     NamedDomainObjectCollectionSchema getSchema();
 }
