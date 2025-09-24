@@ -16,10 +16,12 @@
 
 package org.gradle.integtests.tooling.r82
 
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.internal.Pair
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildController
@@ -33,7 +35,7 @@ import java.util.regex.Pattern
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
-import static java.util.Collections.emptyList
+import static java.util.Collections.singletonList
 
 @ToolingApiVersion('>=8.2') // Since our action uses `buildTreePath`
 @TargetGradleVersion('>=8.2')
@@ -61,33 +63,95 @@ class FailedSyncCrossVersionSpec extends ToolingApiSpecification {
         failure.assertHasDescription("Script compilation error")
     }
 
-    def "basic build - broken build file"() {
+    def "basic build - broken build file - intact plugins block"() {
         given:
         settingsKotlinFile << """
+            dependencyResolutionManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
             rootProject.name = "root"
         """
         buildKotlinFile << """
+            plugins { `kotlin-dsl` }
+            
             blow up !!!
         """
 
         when:
         MyCustomModel model = succeeds {
             action(new CustomModelAction())
-                .withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
-                .run()
+                    .withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
+                    .run()
         }
 
         then:
         model.paths == [":"]
-        matchesScriptModels(model,
-                Pair.of("settings.gradle.kts", emptyList()),
-                Pair.of("build.gradle.kts", Collections.singletonList(".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
-        )
-
-        // TODO: if a plugin is applied in the broken build file, do the classpaths in the script models reflect that (ie. contain plugin classes?)
+        assertHasScriptModelForFiles(model, "settings.gradle.kts", "build.gradle.kts")
+        assertHasErrorsInScriptModels(model, Pair.of("build.gradle.kts", singletonList(".*Build file.*build\\.gradle\\.kts.*Script compilation error.*")))
+        assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-kotlin-dsl-plugins")
     }
 
-    def "basic build w/ included build - broken build file in included build"() {
+    def "basic build - broken build file - broken plugins block"() {
+        given:
+        settingsKotlinFile << """
+            rootProject.name = "root"
+        """
+        buildKotlinFile << """
+            plugins { blow up !!! }
+        """
+
+        when:
+        MyCustomModel model = succeeds {
+            action(new CustomModelAction())
+                    .withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
+                    .run()
+        }
+
+        then:
+        model.paths == [":"]
+        assertHasScriptModelForFiles(model, "settings.gradle.kts", "build.gradle.kts")
+        assertHasErrorsInScriptModels(model, Pair.of("build.gradle.kts", singletonList(".*Build file.*build\\.gradle\\.kts.*Script compilation error.*")))
+        assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-api")
+    }
+
+    def "basic build w/ included build - broken build file in included build - intact plugins block"() {
+        given:
+        settingsKotlinFile << """
+            rootProject.name = "root"
+            includeBuild("included")
+        """
+
+        def included = file("included")
+        included.file("settings.gradle.kts") << """
+            dependencyResolutionManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
+            rootProject.name = "included"
+        """
+        included.file("build.gradle.kts") << """
+            plugins { `kotlin-dsl` }
+            blow up !!!
+        """
+
+        when:
+        MyCustomModel model = succeeds {
+            action(new CustomModelAction())
+                    .withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
+                    .run()
+        }
+
+        then:
+        model.paths == [":", ":included"]
+        assertHasScriptModelForFiles(model, "settings.gradle.kts", "included/settings.gradle.kts", "included/build.gradle.kts")
+        assertHasErrorsInScriptModels(model, Pair.of("included/build.gradle.kts", singletonList(".*Build file.*build\\.gradle\\.kts.*Script compilation error.*")))
+        assertHasJarsInScriptModelClasspath(model, "included/build.gradle.kts", "gradle-kotlin-dsl-plugins")
+    }
+
+    def "basic build w/ included build - broken build file in included build - broken plugins block"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -99,28 +163,22 @@ class FailedSyncCrossVersionSpec extends ToolingApiSpecification {
             rootProject.name = "included"
         """
         included.file("build.gradle.kts") << """
-            blow up !!!
+            plugins { blow up !!! }
         """
 
         when:
         MyCustomModel model = succeeds {
             action(new CustomModelAction())
-                .withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
-                .run()
+                    .withArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
+                    .run()
         }
 
         then:
         model.paths == [":", ":included"]
-        matchesScriptModels(model,
-                Pair.of("settings.gradle.kts", emptyList()),
-                Pair.of("included/settings.gradle.kts", emptyList()),
-                Pair.of("included/build.gradle.kts", Collections.singletonList(".*Build file.*build\\.gradle\\.kts.*Script compilation error.*")),
-        )
-
-        // TODO: if a plugin is applied in the broken build file, do the classpaths in the script models reflect that (ie. contain plugin classes?)
+        assertHasScriptModelForFiles(model, "settings.gradle.kts", "included/settings.gradle.kts", "included/build.gradle.kts")
+        assertHasErrorsInScriptModels(model, Pair.of("included/build.gradle.kts", singletonList(".*Build file.*build\\.gradle\\.kts.*Script compilation error.*")))
+        assertHasJarsInScriptModelClasspath(model, "included/build.gradle.kts", "gradle-api")
     }
-
-    // TODO: different tests for a build file blowing up in the body or in the plugins block
 
     // TODO: what if there is a convention plugin blowing up?
 
@@ -151,24 +209,55 @@ class FailedSyncCrossVersionSpec extends ToolingApiSpecification {
         failure.assertHasDescription("Script compilation error") // TODO: info about the main build would be nice
     }
 
-    void matchesScriptModels(MyCustomModel model, Pair<String, List<String>>... expected) {
+    void assertHasScriptModelForFiles(MyCustomModel model, String... expectedFiles) {
         def scriptModels = model.scriptModels
-        assert scriptModels.size() == expected.size()
+        assert scriptModels.size() == expectedFiles.size(): "Expected ${expectedFiles.size()} script models, but got ${scriptModels.size()} "
 
-        for (Pair<String, List<String>> expectedElement : expected) {
-            def expectedFile = new File(projectDir, expectedElement.left)
-            def scriptModel = scriptModels.get(expectedFile)
-            assert scriptModel != null
-            matchScriptModelExceptions(scriptModel, expectedElement.right)
+        for (String expectedFile : expectedFiles) {
+            assert scriptModels.containsKey(new File(projectDir, expectedFile)): "No script model for file $expectedFile"
         }
     }
 
-    void matchScriptModelExceptions(KotlinDslScriptModel scriptModel, List<String> expected) {
+    void assertHasErrorsInScriptModels(MyCustomModel model, Pair<String, List<String>>... expected) {
+        def scriptModels = new HashMap<>(model.scriptModels)
+
+        for (Pair<String, List<String>> expectedElement : expected) {
+            def expectedFile = new File(projectDir, expectedElement.left)
+            def scriptModel = scriptModels.remove(expectedFile)
+            assert scriptModel != null: "Script model for file ${expectedElement.left} not available"
+            matchScriptModelExceptions(scriptModel, expectedElement.right)
+        }
+
+        for (Map.Entry<File, KotlinDslScriptModel> entry : scriptModels.entrySet()) {
+            assert entry.getValue().exceptions.isEmpty(): "Unexpected errors in script model for file ${entry.key}"
+        }
+    }
+
+    private static void matchScriptModelExceptions(KotlinDslScriptModel scriptModel, List<String> expected) {
         def exceptions = scriptModel.exceptions
-        assert exceptions.size() == expected.size()
+        assert exceptions.size() == expected.size(): "Expected ${expected.size()} exceptions, but got ${exceptions.size()}"
 
         for (int i = 0; i < expected.size(); i++) {
-            assert Pattern.compile(expected.get(i), Pattern.DOTALL).matcher(exceptions.get(i)).matches()
+            def exception = exceptions.get(i)
+            def expectedPattern = expected.get(i)
+            assert Pattern.compile(expectedPattern, Pattern.DOTALL).matcher(exception).matches(): "Exception \"${exception}\" doesn't match expected pattern \"${expectedPattern}\""
+        }
+    }
+
+    void assertHasJarsInScriptModelClasspath(MyCustomModel model, String expectedFile, String... expectedJars) {
+        def scriptModel = model.scriptModels.get(new File(projectDir, expectedFile))
+        assert scriptModel != null: "Expected script model for file $expectedFile, but there wasn't one"
+
+        def jarFilesInClasspath = scriptModel.classPath.stream()
+                .filter { it.isFile() }
+                .map { it.name }
+                .filter { it.endsWith(".jar") }
+                .collect(Collectors.toList())
+
+        for (String expectedJar : expectedJars) {
+            assert jarFilesInClasspath.stream().filter {it.startsWith(expectedJar)}.findFirst().isPresent() :
+                    "Expected jar named $expectedJar in the script model classpath for file $expectedFile, " +
+                    "but it wasn't there: ${jarFilesInClasspath.stream().collect(Collectors.joining("\n\t", "\n\t", ""))}"
         }
     }
 
@@ -179,9 +268,9 @@ class FailedSyncCrossVersionSpec extends ToolingApiSpecification {
         List<String> paths
 
         MyCustomModel(
-            Map<File, KotlinDslScriptModel> scriptModels,
-            List<ProjectIdentifier> projectIdentifiers,
-            List<String> paths
+                Map<File, KotlinDslScriptModel> scriptModels,
+                List<ProjectIdentifier> projectIdentifiers,
+                List<String> paths
         ) {
             this.scriptModels = scriptModels
             this.projectIdentifiers = projectIdentifiers
@@ -202,9 +291,9 @@ class FailedSyncCrossVersionSpec extends ToolingApiSpecification {
             scriptModels.putAll(buildScriptModel.scriptModels)
 
             def paths = Stream.concat(Stream.of(build), build.includedBuilds.stream())
-                .flatMap(b -> b.projects.stream())
-                .map(p -> p.buildTreePath)
-                .collect(Collectors.toList())
+                    .flatMap(b -> b.projects.stream())
+                    .map(p -> p.buildTreePath)
+                    .collect(Collectors.toList())
 
             def identifier = build.projects.collect { project ->
                 project.projectIdentifier
@@ -218,9 +307,9 @@ class FailedSyncCrossVersionSpec extends ToolingApiSpecification {
 
             // Build your custom model
             return new MyCustomModel(
-                scriptModels,
-                identifier,
-                paths
+                    scriptModels,
+                    identifier,
+                    paths
             )
         }
 
