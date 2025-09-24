@@ -4,12 +4,6 @@ plugins {
 
 description = "Gradle plugin development plugins"
 
-errorprone {
-    disabledChecks.addAll(
-        "DefaultCharset", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.core)
