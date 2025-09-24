@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints
 import org.gradle.api.specs.Spec
@@ -28,6 +29,10 @@ import org.gradle.internal.component.model.VariantGraphResolveState
 import spock.lang.Specification
 
 class NodeStateTest extends Specification {
+
+    def resolveState = Stub(ResolveState) {
+        getDependencySubstitutionApplicator() >> DependencySubstitutionApplicator.NO_OP
+    }
 
     int idIdx = 0
     NodeState root = nextNode()
@@ -219,7 +224,6 @@ class NodeStateTest extends Specification {
 
     private NodeState nextNode(int outgoingEndorsing = 0) {
         def state = Stub(VariantGraphResolveState)
-        def resolveState = Stub(ResolveState)
 
         def newState = new NodeState(idIdx++, Stub(ComponentState), resolveState, state, true)
         // if there are outgoing endorsing edges, also include a normal edge to make sure that it is filtered out
