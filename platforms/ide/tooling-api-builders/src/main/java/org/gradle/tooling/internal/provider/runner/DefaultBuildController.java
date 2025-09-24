@@ -45,7 +45,12 @@ import java.util.function.Supplier;
 
 @NullMarked
 @SuppressWarnings("deprecation")
-class DefaultBuildController implements org.gradle.tooling.internal.protocol.InternalBuildController, InternalBuildControllerVersion2, InternalActionAwareBuildController, InternalStreamedValueRelay {
+class DefaultBuildController
+    implements org.gradle.tooling.internal.protocol.InternalBuildController,
+    InternalBuildControllerVersion2,
+    InternalActionAwareBuildController,
+    InternalStreamedValueRelay {
+
     private final WorkerThreadRegistry workerThreadRegistry;
     private final BuildTreeModelController controller;
     private final BuildCancellationToken cancellationToken;
@@ -92,7 +97,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
      * This is used by consumers 4.4 and later
      */
     @Override
-    public BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, Object parameter)
+    public BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter)
         throws BuildExceptionVersion1, InternalUnsupportedModelException {
         assertCanQuery();
         if (cancellationToken.isCancellationRequested()) {
