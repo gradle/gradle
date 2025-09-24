@@ -30,6 +30,11 @@ class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec i
         return ":Gradle suite:Gradle test:"
     }
 
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.TEST_NG
+    }
+
     def "parallel #parallel execution with #threadCount threads, #maxWorkers workers fails fast"() {
         given:
         buildFile.text = generator.initBuildFile(maxWorkers)

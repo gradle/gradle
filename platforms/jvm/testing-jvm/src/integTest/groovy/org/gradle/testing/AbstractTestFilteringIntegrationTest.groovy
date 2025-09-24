@@ -94,18 +94,18 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         succeedsWithTestTaskArguments("test", "--tests=Ok2*")
 
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test")
-        testResult.testPath("", "", testFramework).onlyRoot().assertChildCount(1, 0)
-        testResult.testPath("Ok2", "", testFramework).onlyRoot().assertChildCount(1, 0)
+        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
+        testResult.testPath("", "").onlyRoot().assertChildCount(1, 0)
+        testResult.testPath("Ok2", "").onlyRoot().assertChildCount(1, 0)
 
         when:
         succeedsWithTestTaskArguments("cleanTest", "test", "--tests=Ok*")
 
         then:
-        GenericTestExecutionResult testResult2 = resultsFor("tests/test")
-        testResult2.testPath("", "", testFramework).onlyRoot().assertChildCount(2, 0)
-        testResult2.testPath("Ok", "", testFramework).onlyRoot().assertChildCount(1, 0)
-        testResult2.testPath("Ok2", "", testFramework).onlyRoot().assertChildCount(1, 0)
+        GenericTestExecutionResult testResult2 = resultsFor("tests/test", testFramework)
+        testResult2.testPath("", "").onlyRoot().assertChildCount(2, 0)
+        testResult2.testPath("Ok", "").onlyRoot().assertChildCount(1, 0)
+        testResult2.testPath("Ok2", "").onlyRoot().assertChildCount(1, 0)
 
         when:
         failsWithTestTaskArguments("test", "--tests=DoesNotMatchAClass*")
@@ -157,11 +157,11 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         }
 
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test")
+        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
         if (dryRun) {
-            testResult.testPath("org.gradle.FooTest", testMethodName, testFramework).onlyRoot().assertStderr(Matchers.emptyString())
+            testResult.testPath("org.gradle.FooTest", testMethodName).onlyRoot().assertStderr(Matchers.emptyString())
         } else {
-            testResult.testPath("org.gradle.FooTest", testMethodName, testFramework).onlyRoot().assertStderr(Matchers.containsString("ran FooTest.${testMethodName}!"))
+            testResult.testPath("org.gradle.FooTest", testMethodName).onlyRoot().assertStderr(Matchers.containsString("ran FooTest.${testMethodName}!"))
         }
 
         where:
@@ -203,8 +203,8 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         succeedsWithTestTaskArguments("test")
 
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test")
-        testResult.testPath("FooTest", "", testFramework).onlyRoot().assertChildCount(2, 0)
+        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
+        testResult.testPath("FooTest", "").onlyRoot().assertChildCount(2, 0)
     }
 
     def "executes multiple methods from different classes"() {
@@ -245,10 +245,10 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         succeedsWithTestTaskArguments("test")
 
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test")
-        testResult.testPath("", "", testFramework).onlyRoot().assertOnlyChildrenExecuted("Foo1Test", "Foo2Test")
-        testResult.testPath("Foo1Test", "pass1", testFramework).onlyRoot().assertHasResult(passedTestOutcome)
-        testResult.testPath("Foo2Test", "pass2", testFramework).onlyRoot().assertHasResult(passedTestOutcome)
+        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
+        testResult.testPath("", "").onlyRoot().assertOnlyChildrenExecuted("Foo1Test", "Foo2Test")
+        testResult.testPath("Foo1Test", "pass1").onlyRoot().assertHasResult(passedTestOutcome)
+        testResult.testPath("Foo2Test", "pass2").onlyRoot().assertHasResult(passedTestOutcome)
     }
 
     def "reports when no matching methods found"() {
@@ -318,8 +318,8 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
 
         when: succeedsWithTestTaskArguments("test", "--tests", "FooTest.pass")
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test")
-        testResult.testPath("FooTest", "pass", testFramework).onlyRoot().assertHasResult(passedTestOutcome)
+        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
+        testResult.testPath("FooTest", "pass").onlyRoot().assertHasResult(passedTestOutcome)
 
         when: succeedsWithTestTaskArguments("test", "--tests", "FooTest.pass")
         then: skipped(":test") //up-to-date
@@ -329,9 +329,9 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
 
         then:
         executedAndNotSkipped(":test")
-        GenericTestExecutionResult testResult2 = resultsFor("tests/test")
-        testResult2.testPath("FooTest", "pass", testFramework).onlyRoot().assertHasResult(passedTestOutcome)
-        testResult2.testPath("FooTest", "pass2", testFramework).onlyRoot().assertHasResult(passedTestOutcome)
+        GenericTestExecutionResult testResult2 = resultsFor("tests/test", testFramework)
+        testResult2.testPath("FooTest", "pass").onlyRoot().assertHasResult(passedTestOutcome)
+        testResult2.testPath("FooTest", "pass2").onlyRoot().assertHasResult(passedTestOutcome)
     }
 
     def "can select multiple tests from commandline #scenario"() {
@@ -368,30 +368,30 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         succeedsWithTestTaskArguments(stringArrayOf(command))
 
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test")
+        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
         testResult.assertAtLeastTestPathsExecuted(classesExecuted.collect { ":$it" } as String[])
         if (!foo1TestsExecuted.isEmpty()) {
-            testResult.testPath("Foo1Test", "", testFramework).onlyRoot().assertChildCount(foo1TestsExecuted.size(), 0)
+            testResult.testPath("Foo1Test", "").onlyRoot().assertChildCount(foo1TestsExecuted.size(), 0)
             for (String testName : foo1TestsExecuted) {
-                testResult.testPath("Foo1Test", testName, testFramework).onlyRoot().assertHasResult(passedTestOutcome)
+                testResult.testPath("Foo1Test", testName).onlyRoot().assertHasResult(passedTestOutcome)
             }
         }
         if (!foo2TestsExecuted.isEmpty()) {
-            testResult.testPath("Foo2Test", "", testFramework).onlyRoot().assertChildCount(foo2TestsExecuted.size(), 0)
+            testResult.testPath("Foo2Test", "").onlyRoot().assertChildCount(foo2TestsExecuted.size(), 0)
             for (String testName : foo2TestsExecuted) {
-                testResult.testPath("Foo2Test", testName, testFramework).onlyRoot().assertHasResult(passedTestOutcome)
+                testResult.testPath("Foo2Test", testName).onlyRoot().assertHasResult(passedTestOutcome)
             }
         }
         if (!barTestsExecuted.isEmpty()) {
-            testResult.testPath("BarTest", "", testFramework).onlyRoot().assertChildCount(barTestsExecuted.size(), 0)
+            testResult.testPath("BarTest", "").onlyRoot().assertChildCount(barTestsExecuted.size(), 0)
             for (String testName : barTestsExecuted) {
-                testResult.testPath("BarTest", testName, testFramework).onlyRoot().assertHasResult(passedTestOutcome)
+                testResult.testPath("BarTest", testName).onlyRoot().assertHasResult(passedTestOutcome)
             }
         }
         if (!otherTestsExecuted.isEmpty()) {
-            testResult.testPath("OtherTest", "", testFramework).onlyRoot().assertChildCount(otherTestsExecuted.size(), 0)
+            testResult.testPath("OtherTest", "").onlyRoot().assertChildCount(otherTestsExecuted.size(), 0)
             for (String testName : otherTestsExecuted) {
-                testResult.testPath("OtherTest", testName, testFramework).onlyRoot().assertHasResult(passedTestOutcome)
+                testResult.testPath("OtherTest", testName).onlyRoot().assertHasResult(passedTestOutcome)
             }
         }
 
@@ -418,8 +418,8 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         succeedsWithTestTaskArguments('test', '--tests', '*ATest*', '--tests', '*BTest*', '--info')
 
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test")
-        testResult.testPath("", "", testFramework).onlyRoot().assertOnlyChildrenExecuted("ATest")
+        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
+        testResult.testPath("", "").onlyRoot().assertOnlyChildrenExecuted("ATest")
 
         where:
         includeType                   | includeConfig
@@ -444,8 +444,8 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         succeedsWithTestTaskArguments('test', '--info')
 
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test")
-        testResult.testPath("", "", testFramework).onlyRoot().assertOnlyChildrenExecuted("BTest")
+        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
+        testResult.testPath("", "").onlyRoot().assertOnlyChildrenExecuted("BTest")
     }
 
     def "invoking filter.includePatterns not disable include/exclude filter"() {
@@ -464,8 +464,8 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         succeedsWithTestTaskArguments('test', '--info')
 
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test")
-        testResult.testPath("", "", testFramework).onlyRoot().assertOnlyChildrenExecuted("BTest")
+        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
+        testResult.testPath("", "").onlyRoot().assertOnlyChildrenExecuted("BTest")
     }
 
     def "can exclude tests"() {
@@ -485,10 +485,10 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         executedAndNotSkipped(":test")
 
         and:
-        GenericTestExecutionResult testResult = resultsFor("tests/test")
-        testResult.testPath("", "", testFramework).onlyRoot().assertOnlyChildrenExecuted("ATest", "CTest")
-        testResult.testPath("ATest", "test", testFramework).onlyRoot().assertHasResult(passedTestOutcome)
-        testResult.testPath("CTest", "test", testFramework).onlyRoot().assertHasResult(passedTestOutcome)
+        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
+        testResult.testPath("", "").onlyRoot().assertOnlyChildrenExecuted("ATest", "CTest")
+        testResult.testPath("ATest", "test").onlyRoot().assertHasResult(passedTestOutcome)
+        testResult.testPath("CTest", "test").onlyRoot().assertHasResult(passedTestOutcome)
     }
 
     private createTestABC() {

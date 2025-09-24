@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.DryRunFilteringTest
 import org.gradle.testing.fixture.TestNGCoverage
-import org.hamcrest.text.IsEmptyString
 import org.gradle.util.Matchers
+import org.hamcrest.text.IsEmptyString
 
 @TargetCoverage({ TestNGCoverage.SUPPORTS_DRY_RUN })
 class TestNGDryRunFilteringIntegrationTest extends AbstractTestNGFilteringIntegrationTest implements DryRunFilteringTest {
@@ -84,12 +82,17 @@ class TestNGDryRunFilteringIntegrationTest extends AbstractTestNGFilteringIntegr
         """
 
         when:
-        def testResult = new DefaultTestExecutionResult(testDirectory)
-        def dryRunTestResult = new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'dryRunTest')
         run "dryRunTest", "test"
 
         then:
-        testResult.testClass("FooTest").assertStderr(Matchers.containsText("Run foo!"))
-        dryRunTestResult.testClass("BarTest").assertStderr(IsEmptyString.emptyString())
+        def testResult = resultsFor(testDirectory, "tests/test", testFramework)
+        testResult.assertTestPathsExecuted("FooTest")
+        testResult.testPath("FooTest").onlyRoot().assertChildCount(1, 0)
+        testResult.testPath("FooTest").onlyRoot().assertStderr(Matchers.containsText("Run foo!"))
+
+        def dryRunTestResult = resultsFor(testDirectory, "tests/dryRunTest", testFramework)
+        dryRunTestResult.assertTestPathsExecuted("BarTest")
+        dryRunTestResult.testPath("BarTest").onlyRoot().assertChildCount(1, 0)
+        dryRunTestResult.testPath("BarTest").onlyRoot().assertStderr(IsEmptyString.emptyString())
     }
 }
