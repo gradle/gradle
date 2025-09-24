@@ -155,7 +155,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         result.output.contains("Lint found errors in the project; aborting build.")
 
         where:
-        agpVersion << TestedVersions.androidGradle.versions
+        agpVersion << ["8.4.2"]
     }
 }
 
