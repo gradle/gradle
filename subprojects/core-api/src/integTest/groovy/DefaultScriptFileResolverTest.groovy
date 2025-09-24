@@ -17,6 +17,7 @@
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.scripts.ScriptFileUtil
 import org.gradle.test.fixtures.file.TestFile
 
 import java.util.stream.Collectors
@@ -36,11 +37,15 @@ class DefaultScriptFileResolverTest extends AbstractIntegrationSpec {
         then:
         outputContains(expectedMessage(testDirectory, acceptedFile, ignoredFiles))
         where:
-        [acceptedScript, ignoredScripts] << [
-            ["build.gradle", ['build.gradle.kts', 'build.gradle.dcl']],
-            ["build.gradle", ['build.gradle.dcl', 'build.gradle.kts']],
-            ["build.gradle.kts", ['build.gradle.dcl']],
-        ]
+        [acceptedScript, ignoredScripts] << createCombinations(ScriptFileUtil.getValidExtensions())
+    }
+
+    private static List<List<Object>> createCombinations(String... extensions) {
+        (0..<extensions.length - 1).collectMany { i ->
+            def accepted = "build${extensions[i]}"
+            def ignored = extensions[i + 1..<extensions.length].collect { "build${it}" }
+            ignored.permutations().collect { ignoredList -> [accepted, ignoredList] }
+        }
     }
 
     private def expectedMessage(TestFile rootDir, TestFile acceptedPath, List<TestFile> ignoredPaths) {
