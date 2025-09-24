@@ -22,11 +22,17 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 
+import static org.gradle.integtests.tooling.r813.WorkerProblemCrossVersionTest.prePostFixInternal
+
 @ToolingApiVersion(">=8.14")
 @TargetGradleVersion(">=8.14")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
+    String problemsInternalClassName
+
     def setupBuild() {
+        problemsInternalClassName = prePostFixInternal(targetVersion, "Problems")
+
         file('buildSrc/build.gradle') << """
             plugins {
                 id 'java'
@@ -81,7 +87,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             import java.util.Collections;
             import java.io.FileWriter;
             import org.gradle.api.problems.Problems;
-            import org.gradle.api.problems.internal.InternalProblems;
+            import org.gradle.api.problems.internal.$problemsInternalClassName;
             import org.gradle.api.problems.ProblemId;
             import org.gradle.api.problems.ProblemGroup;
             import org.gradle.api.model.ObjectFactory;
@@ -93,7 +99,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             public abstract class ProblemWorkerAction implements WorkAction<ProblemsWorkerTaskParameter> {
 
                 @Inject
-                public abstract InternalProblems getProblems();
+                public abstract $problemsInternalClassName getProblems();
 
                 @Inject
                 public abstract ObjectFactory getObjectFactory();
