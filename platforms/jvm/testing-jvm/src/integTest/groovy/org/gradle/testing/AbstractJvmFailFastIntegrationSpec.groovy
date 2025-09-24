@@ -38,7 +38,6 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
     JvmBlockingTestClassGenerator generator
 
     abstract GenericTestExecutionResult.TestFramework getTestFramework()
-    abstract String getPathToTestPackages()
 
     def setup() {
         server.start()
@@ -65,15 +64,15 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
         and:
         GenericTestExecutionResult testResults = resultsFor("tests/test", testFramework)
 
-        TestPathExecutionResult gradleTest = testResults.testPath(pathToTestPackages)
+        TestPathExecutionResult gradleTest = testResults.testPath("")
         gradleTest.rootNames == ['Gradle Test Run :test']
         gradleTest.onlyRoot().assertChildCount(2, 1)
         gradleTest.onlyRoot().assertOnlyChildrenExecuted("pkg.FailedTest", "pkg.OtherTest")
 
-        TestPathExecutionResult failedTest = testResults.testPath("${pathToTestPackages}pkg.FailedTest")
+        TestPathExecutionResult failedTest = testResults.testPath("pkg.FailedTest")
         failedTest.onlyRoot().assertChildCount(1, 1)
 
-        TestPathExecutionResult otherTest = testResults.testPath("${pathToTestPackages}pkg.OtherTest")
+        TestPathExecutionResult otherTest = testResults.testPath("pkg.OtherTest")
         otherTest.onlyRoot().assertChildCount(1, 0)
 
         where:
@@ -100,9 +99,9 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
 
         and:
         GenericTestExecutionResult testResults = resultsFor("tests/test", testFramework)
-        TestPathExecutionResult failedTest = testResults.testPath("${pathToTestPackages}pkg.FailedTest")
+        TestPathExecutionResult failedTest = testResults.testPath("pkg.FailedTest")
         failedTest.onlyRoot().getFailedChildCount() == 1
-        TestPathExecutionResult otherTest = testResults.testPath("${pathToTestPackages}pkg.OtherTest")
+        TestPathExecutionResult otherTest = testResults.testPath("pkg.OtherTest")
         otherTest.onlyRoot().getSkippedChildCount() == 1
 
         where:
@@ -127,8 +126,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
 
         and:
         GenericTestExecutionResult testResults = resultsFor("tests/test", testFramework)
-        assert 1 == resourceForTest.keySet().sum {
-            def path = pathToTestPackages + it
+        assert 1 == resourceForTest.keySet().sum {path ->
             if (testResults.testPathExists(path)) {
                 TestPathExecutionResult test = testResults.testPath(path)
                 test.onlyRoot().getFailedChildCount()
@@ -137,16 +135,14 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
             }
         }
         resourceForTest.keySet().with {
-            def doesntExist = count {
-                def path = pathToTestPackages + it
+            def doesntExist = count { path ->
                 !testResults.testPathExists(path)
             }
             def zeroChildren = count {
-                def path = pathToTestPackages + it
+                def path = it
                 testResults.testPathExists(path) && testResults.testPath(path).rootNames.size() == 0
             }
-            def skipped = count {
-                def path = pathToTestPackages + it
+            def skipped = count { path ->
                 testResults.testPathExists(path) && testResults.testPath(path).onlyRoot().getSkippedChildCount()
             }
             assert testOmitted == (doesntExist + zeroChildren + skipped)

@@ -108,7 +108,7 @@ class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrat
 
         then:
         def testResult = resultsFor(testDirectory, "tests/test", testFramework)
-        testResult.assertAtLeastFrameworkTestPathsExecuted(expectedTests as String[])
+        testResult.assertAtLeastTestPathsExecutedPreNormalized(expectedTests as String[])
         assertExpectedTestCounts(testResult, expectedTests)
 
         where:
