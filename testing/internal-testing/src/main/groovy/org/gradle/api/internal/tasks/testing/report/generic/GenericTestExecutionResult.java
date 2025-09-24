@@ -58,20 +58,11 @@ public interface GenericTestExecutionResult {
     TestPathExecutionResult testPath(String testPath);
 
     /**
-     * Returns the result for the given test class and method that use the given test framework.
-     * <p>
-     * This overload is useful for polymorphic tests where multiple tests share the same path but have different names due to
-     * different test engines or frameworks being used.  For example: JUnit Jupiter includes parens in a test method name.
+     * Returns the result for the given test class and method.
      * <p>
      * These are paths in the style of {@link org.gradle.util.Path}, e.g. `:TestClass:testMethod:subTest`.
-     * </p>
      */
-    TestPathExecutionResult testPath(String testClassName, String testMethodName, TestFramework testFramework);
-
-    TestPathExecutionResult junitJupiterPath(String testClassName, String testMethodName);
-    TestPathExecutionResult spockPath(String testClassName, String testMethodName);
-    TestPathExecutionResult junit4Path(String testClassName, String testMethodName);
-    TestPathExecutionResult testNGPath(String testClassName, String testMethodName);
+    TestPathExecutionResult testPath(String testClassName, String testMethodName);
 
     enum TestFramework {
         TEST_NG,
