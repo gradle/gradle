@@ -28,8 +28,6 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ArtifactSelectionDetailsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
@@ -52,7 +50,6 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.logging.text.TreeFormatter;
-import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -305,7 +302,6 @@ public class NodeState implements DependencyGraphNode {
                 Collection<DependencyState> dependencyStates = potentiallyActivatedConstraints.get(module);
                 if (!dependencyStates.isEmpty()) {
                     for (DependencyState dependencyState : dependencyStates) {
-                        dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
                         createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter, false);
                     }
                     visitedDependencies = true;
@@ -378,7 +374,7 @@ public class NodeState implements DependencyGraphNode {
             // Let's clear that state since it is no longer part of selection
             for (DependencyState dependencyState : cachedFilteredDependencyStates) {
                 if (dependencyState.getDependency().isConstraint()) {
-                    ModuleResolveState targetModule = resolveState.getModule(dependencyState.getModuleIdentifier());
+                    ModuleResolveState targetModule = resolveState.getModule(dependencyState.getModuleIdentifier(resolveState.getComponentSelectorConverter()));
                     if (targetModule.isPending()) {
                         targetModule.unregisterConstraintProvider(this);
                     }
@@ -413,10 +409,6 @@ public class NodeState implements DependencyGraphNode {
         } else {
             LOGGER.debug("{} has no incoming edges. ignoring.", this);
         }
-    }
-
-    private DependencyState createDependencyState(DependencyMetadata md) {
-        return new DependencyState(md, resolveState.getComponentSelectorConverter());
     }
 
     /**
@@ -456,7 +448,7 @@ public class NodeState implements DependencyGraphNode {
         if (potentiallyActivatedConstraints == null) {
             potentiallyActivatedConstraints = LinkedHashMultimap.create();
         }
-        potentiallyActivatedConstraints.put(dependencyState.getModuleIdentifier(), dependencyState);
+        potentiallyActivatedConstraints.put(dependencyState.getModuleIdentifier(resolveState.getComponentSelectorConverter()), dependencyState);
     }
 
     private List<? extends DependencyMetadata> dependencies() {
@@ -501,11 +493,6 @@ public class NodeState implements DependencyGraphNode {
         }
         List<DependencyState> tmp = new ArrayList<>(from.size());
         for (DependencyState dependencyState : from) {
-            if (isExcluded(spec, dependencyState)) {
-                continue;
-            }
-            dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
-
             if (!isExcluded(spec, dependencyState)) {
                 tmp.add(dependencyState);
             }
@@ -517,15 +504,13 @@ public class NodeState implements DependencyGraphNode {
         if (dependencies.isEmpty()) {
             return Collections.emptyList();
         }
-        List<DependencyState> tmp = new ArrayList<>(dependencies.size());
-        for (DependencyMetadata dependency : dependencies) {
-            tmp.add(cachedDependencyStateFor(dependency));
-        }
-        return tmp;
-    }
 
-    private DependencyState cachedDependencyStateFor(DependencyMetadata md) {
-        return dependencyStateCache.computeIfAbsent(md, this::createDependencyState);
+        DependencySubstitutionApplicator dependencySubstitutionApplicator = resolveState.getDependencySubstitutionApplicator();
+        List<DependencyState> result = new ArrayList<>(dependencies.size());
+        for (DependencyMetadata dependency : dependencies) {
+            result.add(dependencyStateCache.computeIfAbsent(dependency, dependencySubstitutionApplicator::applySubstitutions));
+        }
+        return result;
     }
 
     /**
@@ -592,32 +577,6 @@ public class NodeState implements DependencyGraphNode {
     }
 
 
-    /**
-     * Execute any dependency substitution rules that apply to this dependency.
-     *
-     * This may be better done as a decorator on ConfigurationMetadata.getDependencies()
-     */
-    static DependencyState maybeSubstitute(DependencyState dependencyState, DependencySubstitutionApplicator dependencySubstitutionApplicator) {
-        DependencySubstitutionApplicator.SubstitutionResult substitutionResult = dependencySubstitutionApplicator.apply(dependencyState.getDependency());
-        if (substitutionResult.hasFailure()) {
-            dependencyState.failure = new ModuleVersionResolveException(dependencyState.getRequested(), substitutionResult.getFailure());
-            return dependencyState;
-        }
-
-        DependencySubstitutionInternal details = substitutionResult.getResult();
-        if (details != null && details.isUpdated()) {
-            // This caching works because our substitutionResult are cached themselves
-            return dependencyState.withSubstitution(substitutionResult, result -> {
-                ArtifactSelectionDetailsInternal artifactSelectionDetails = details.getArtifactSelectionDetails();
-                if (artifactSelectionDetails.isUpdated()) {
-                    return dependencyState.withTargetAndArtifacts(details.getTarget(), artifactSelectionDetails.getTargetSelectors(), details.getRuleDescriptors());
-                }
-                return dependencyState.withTarget(details.getTarget(), details.getRuleDescriptors());
-            });
-        }
-        return dependencyState;
-    }
-
     private boolean isExcluded(ExcludeSpec excludeSpec, DependencyState dependencyState) {
         DependencyMetadata dependency = dependencyState.getDependency();
         if (!resolveState.getEdgeFilter().isSatisfiedBy(dependency)) {
@@ -627,7 +586,7 @@ public class NodeState implements DependencyGraphNode {
         if (excludeSpec == moduleExclusions.nothing()) {
             return false;
         }
-        ModuleIdentifier targetModuleId = dependencyState.getModuleIdentifier();
+        ModuleIdentifier targetModuleId = dependencyState.getModuleIdentifier(resolveState.getComponentSelectorConverter());
         if (excludeSpec.excludes(targetModuleId)) {
             LOGGER.debug("{} is excluded from {} by {}.", targetModuleId, this, excludeSpec);
             return true;
@@ -991,7 +950,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     boolean versionProvidedByAncestors(DependencyState dependencyState) {
-        return !dependencyState.isForced() && ancestorsStrictVersionConstraints != null && ancestorsStrictVersionConstraints.contains(dependencyState.getModuleIdentifier());
+        return !dependencyState.isForced() && ancestorsStrictVersionConstraints != null && ancestorsStrictVersionConstraints.contains(dependencyState.getModuleIdentifier(resolveState.getComponentSelectorConverter()));
     }
 
     private boolean sameIncomingEdgesAsPreviousPass(int incomingEdgeCount) {

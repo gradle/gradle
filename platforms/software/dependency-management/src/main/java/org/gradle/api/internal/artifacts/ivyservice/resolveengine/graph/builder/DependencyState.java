@@ -15,27 +15,19 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import org.gradle.api.artifacts.DependencyArtifactSelector;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.internal.Describables;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
-import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
-import java.util.Collections;
-import java.util.HashMap;
+import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.BY_ANCESTOR;
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.CONSTRAINT;
@@ -45,7 +37,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.
 /**
  * A declared dependency, potentially transformed based on a substitution.
  */
-class DependencyState {
+public class DependencyState {
 
     /**
      * The original requested component, before substitution.
@@ -57,31 +49,29 @@ class DependencyState {
      */
     private final DependencyMetadata dependency;
 
-    private final List<ComponentSelectionDescriptorInternal> ruleDescriptors;
-    private final ComponentSelectorConverter componentSelectorConverter;
-    private final int hashCode;
+    /**
+     * Describes the substitutions applied to this dependency, if any.
+     */
+    private final ImmutableList<ComponentSelectionDescriptorInternal> ruleDescriptors;
 
-    private ModuleIdentifier moduleIdentifier;
-    public ModuleVersionResolveException failure;
+    /**
+     * If non-null, the failure that occurred while trying to substitute this dependency.
+     */
+    private final @Nullable ModuleVersionResolveException substitutionFailure;
+
+    private @Nullable ModuleIdentifier moduleIdentifier;
     private boolean reasonsAlreadyAdded;
-    private Map<DependencySubstitutionApplicator.SubstitutionResult, DependencyState> substitutionResultMap;
 
-    DependencyState(DependencyMetadata dependency, ComponentSelectorConverter componentSelectorConverter) {
-        this(dependency, dependency.getSelector(), Collections.emptyList(), componentSelectorConverter);
-    }
-
-    private DependencyState(DependencyMetadata dependency, ComponentSelector requested, List<ComponentSelectionDescriptorInternal> ruleDescriptors, ComponentSelectorConverter componentSelectorConverter) {
+    public DependencyState(
+        DependencyMetadata dependency,
+        ComponentSelector requested,
+        ImmutableList<ComponentSelectionDescriptorInternal> ruleDescriptors,
+        @Nullable ModuleVersionResolveException substitutionFailure
+    ) {
         this.dependency = dependency;
         this.requested = requested;
         this.ruleDescriptors = ruleDescriptors;
-        this.componentSelectorConverter = componentSelectorConverter;
-        this.hashCode = computeHashCode();
-    }
-
-    private int computeHashCode() {
-        int hashCode = dependency.hashCode();
-        hashCode = 31 * hashCode + requested.hashCode();
-        return hashCode;
+        this.substitutionFailure = substitutionFailure;
     }
 
     public ComponentSelector getRequested() {
@@ -92,47 +82,23 @@ class DependencyState {
         return dependency;
     }
 
-    public ModuleIdentifier getModuleIdentifier() {
+    public @Nullable ModuleVersionResolveException getSubstitutionFailure() {
+        return substitutionFailure;
+    }
+
+    /**
+     * Determine the module identifier of the component that this dependency targets.
+     * <p>
+     * This may resolve the target component. In practice all components do not necessarily belong
+     * to a module, so we should avoid this method if possible. If possible, we should delay this
+     * sort of functionality to _after_ we've resolved a selector to a component.
+     */
+    public ModuleIdentifier getModuleIdentifier(ComponentSelectorConverter componentSelectorConverter) {
         if (moduleIdentifier == null) {
             moduleIdentifier = componentSelectorConverter.getModule(dependency.getSelector());
         }
         return moduleIdentifier;
     }
-
-    public DependencyState withTarget(ComponentSelector target, List<ComponentSelectionDescriptorInternal> ruleDescriptors) {
-        DependencyMetadata targeted = dependency.withTarget(target);
-        return new DependencyState(targeted, requested, ruleDescriptors, componentSelectorConverter);
-    }
-
-
-    public DependencyState withTargetAndArtifacts(ComponentSelector target, List<DependencyArtifactSelector> targetSelectors, List<ComponentSelectionDescriptorInternal> ruleDescriptors) {
-        DependencyMetadata targeted = dependency.withTargetAndArtifacts(target, toIvyArtifacts(target, targetSelectors));
-        return new DependencyState(targeted, requested, ruleDescriptors, componentSelectorConverter);
-    }
-
-    private List<IvyArtifactName> toIvyArtifacts(ComponentSelector target, List<DependencyArtifactSelector> targetSelectors) {
-        return targetSelectors.stream()
-            .map(avs -> createArtifact(target, avs))
-            .collect(Collectors.toList());
-    }
-
-    private DefaultIvyArtifactName createArtifact(ComponentSelector target, DependencyArtifactSelector avs) {
-        String extension = avs.getExtension() != null ? avs.getExtension() : avs.getType();
-        return new DefaultIvyArtifactName(
-            nameOf(target),
-            avs.getType(),
-            extension,
-            avs.getClassifier()
-        );
-    }
-
-    private static String nameOf(ComponentSelector target) {
-        if (target instanceof ModuleComponentSelector) {
-            return ((ModuleComponentSelector) target).getModule();
-        }
-        throw new IllegalStateException("Substitution with artifacts for something else than a module is not supported");
-    }
-
 
     public boolean isForced() {
         if (!ruleDescriptors.isEmpty()) {
@@ -201,21 +167,4 @@ class DependencyState {
             || !reasons.contains(reason);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        return this == o;
-        // This is a performance optimization, dependency states are deduplicated
-    }
-
-    @Override
-    public int hashCode() {
-        return hashCode;
-    }
-
-    public DependencyState withSubstitution(DependencySubstitutionApplicator.SubstitutionResult substitutionResult, Function<DependencySubstitutionApplicator.SubstitutionResult, DependencyState> mappingFunction) {
-        if (substitutionResultMap == null) {
-            substitutionResultMap = new HashMap<>();
-        }
-        return substitutionResultMap.computeIfAbsent(substitutionResult, mappingFunction);
-    }
 }

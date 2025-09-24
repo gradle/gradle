@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactSelectionDetails;
+import org.gradle.api.artifacts.DependencyArtifactSelector;
 import org.gradle.api.artifacts.DependencyResolveDetails;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.DependencySubstitutions;
@@ -61,8 +63,8 @@ import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.util.List;
 import java.util.function.Supplier;
 
 public class DefaultDependencySubstitutions implements DependencySubstitutionsInternal {
@@ -329,23 +331,18 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             DependencySubstitutionInternal ds = (DependencySubstitutionInternal) dependencySubstitution;
             delegate.execute(new DependencySubstitutionInternal() {
                 @Override
-                public ComponentSelector getTarget() {
-                    return ds.getTarget();
+                public @Nullable ComponentSelector getConfiguredTargetSelector() {
+                    return ds.getConfiguredTargetSelector();
                 }
 
                 @Override
-                public List<ComponentSelectionDescriptorInternal> getRuleDescriptors() {
+                public @Nullable ImmutableList<ComponentSelectionDescriptorInternal> getRuleDescriptors() {
                     return ds.getRuleDescriptors();
                 }
 
                 @Override
-                public boolean isUpdated() {
-                    return ds.isUpdated();
-                }
-
-                @Override
-                public ArtifactSelectionDetailsInternal getArtifactSelectionDetails() {
-                    return ds.getArtifactSelectionDetails();
+                public @Nullable ImmutableList<DependencyArtifactSelector> getConfiguredArtifactSelectors() {
+                    return ds.getConfiguredArtifactSelectors();
                 }
 
                 @Override
