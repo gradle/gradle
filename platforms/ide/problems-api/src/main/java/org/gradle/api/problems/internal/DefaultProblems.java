@@ -25,7 +25,7 @@ import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.jspecify.annotations.NonNull;
 
-public class DefaultProblems implements ProblemsInternal {
+public class DefaultProblems implements ProblemsInternal, InternalProblems {
 
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final ProblemSummarizer problemSummarizer;
