@@ -99,7 +99,7 @@ class LifecycleAwareProjectIntegrationTest extends AbstractIntegrationSpec imple
         outputContains "a foo=bar1"
     }
 
-    def 'LifecycleAwareProject instances are not ephemeral'() {
+    def 'LifecycleAwareProject instances are ephemeral'() {
         given:
         file("buildSrc/build.gradle", """
             plugins {
@@ -145,6 +145,6 @@ class LifecycleAwareProjectIntegrationTest extends AbstractIntegrationSpec imple
         run "help"
 
         then:
-        outputContains("class org.gradle.api.internal.project.LifecycleAwareProject_Decorated to project ':a'")
+        outputDoesNotContain("class org.gradle.api.internal.project.LifecycleAwareProject_Decorated to project ':a'")
     }
 }
