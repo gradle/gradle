@@ -51,7 +51,11 @@ Ensure that published artifacts are built in a trusted, reproducible way to prot
 
 === Explanation
 
-The published artifacts should be generated from a *complete, fresh build* using an empty machine
+For a project to be trustworthy, its published artifacts must be reproducible. 
+This means that a clean build from a given set of source files will always produce a byte-for-byte identical output, regardless of when or where the build is executed. 
+To achieve this, the build process must be isolated from any external state that could influence the final artifact.
+
+When preparing a project for publishing, it is critical to use a secure, isolated, and non-incremental build process. This prevents potential security risks and ensures that the published artifact is a direct and verifiable result of the source code.
 that contains minimal infrastructure, such as only the JDK.
 
 ==== Don't Do This
