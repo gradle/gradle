@@ -81,18 +81,16 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
      */
     private static final int OUTPUT_BUFFER_FILE_THRESHOLD_BYTES = 1024 * 1024;
 
-    private final static AtomicBoolean SHUTDOWN_REGISTERED = new AtomicBoolean();
+    private static final AtomicBoolean SHUTDOWN_REGISTERED = new AtomicBoolean();
 
+    @SuppressWarnings("CatchAndPrintStackTrace") // We don't have logging infrastructure here
     private static void maybeRegisterCleanup() {
         if (SHUTDOWN_REGISTERED.compareAndSet(false, true)) {
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        DefaultGradleConnector.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    DefaultGradleConnector.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }, CLEANUP_THREAD_NAME));
         }
@@ -239,7 +237,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         public void statusChanged(ProgressEvent event) {
             if (event instanceof TaskStartEvent) {
                 TaskStartEvent taskStartEvent = (TaskStartEvent) event;
-                if (!accept(taskStartEvent)) {
+                if (taskIsFromBuildSrc(taskStartEvent)) {
                     return;
                 }
                 order.put(taskStartEvent.getDescriptor().getTaskPath(), tasks.size());
@@ -247,7 +245,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             }
             if (event instanceof TaskFinishEvent) {
                 TaskFinishEvent taskFinishEvent = (TaskFinishEvent) event;
-                if (!accept(taskFinishEvent)) {
+                if (taskIsFromBuildSrc(taskFinishEvent)) {
                     return;
                 }
                 String taskPath = taskFinishEvent.getDescriptor().getTaskPath();
@@ -260,9 +258,8 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             }
         }
 
-        private boolean accept(TaskProgressEvent event) {
-            // Exclude tasks from `buildSrc`
-            return !event.getDescriptor().getTaskPath().startsWith(":buildSrc");
+        private static boolean taskIsFromBuildSrc(TaskProgressEvent event) {
+            return event.getDescriptor().getTaskPath().startsWith(":buildSrc");
         }
 
         private BuildTask determineBuildTask(TaskOperationResult result, String taskPath) {
