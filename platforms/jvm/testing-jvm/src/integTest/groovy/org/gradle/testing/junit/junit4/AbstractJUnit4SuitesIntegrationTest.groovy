@@ -87,6 +87,16 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
 
             public class OkTest {
 
+                ${beforeClassAnnotation} public static void init() {
+                    System.out.println("before OkTest class out");
+                    System.err.println("before OkTest class err");
+                }
+
+                ${afterClassAnnotation} public static void end() {
+                    System.out.println("after OkTest class out");
+                    System.err.println("after OkTest class err");
+                }
+
                 @Test
                 public void ok() throws Exception {
                     System.err.println("This is test stderr");
@@ -105,6 +115,16 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
             ${testFrameworkImports}
 
             public class OtherTest {
+
+                ${beforeClassAnnotation} public static void init() {
+                    System.out.println("before OtherTest class out");
+                    System.err.println("before OtherTest class err");
+                }
+
+                ${afterClassAnnotation} public static void end() {
+                    System.out.println("after OtherTest class out");
+                    System.err.println("after OtherTest class err");
+                }
 
                 @Test
                 public void ok() throws Exception {
@@ -134,18 +154,18 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
             ':org.gradle.ASuite:org.gradle.OkTest:anotherOk',
             ':org.gradle.ASuite:org.gradle.OtherTest:ok'
         )
-        result.testPath(':org.gradle.ASuite').onlyRoot().assertStdout(equalTo(""))
-        result.testPath(':org.gradle.ASuite').onlyRoot().assertStderr(equalTo(""))
+        result.testPath(':org.gradle.ASuite').onlyRoot().assertStdout(equalTo("suite class loaded\nbefore suite class out\nnon-asci char: ż\nafter suite class out\n"))
+        result.testPath(':org.gradle.ASuite').onlyRoot().assertStderr(equalTo("before suite class err\nafter suite class err\n"))
 
-        result.testPath(':org.gradle.ASuite:org.gradle.OkTest').onlyRoot().assertStdout(equalTo(""))
-        result.testPath(':org.gradle.ASuite:org.gradle.OkTest').onlyRoot().assertStderr(equalTo(""))
+        result.testPath(':org.gradle.ASuite:org.gradle.OkTest').onlyRoot().assertStdout(equalTo("before OkTest class out\nafter OkTest class out\n"))
+        result.testPath(':org.gradle.ASuite:org.gradle.OkTest').onlyRoot().assertStderr(equalTo("before OkTest class err\nafter OkTest class err\n"))
         result.testPath(':org.gradle.ASuite:org.gradle.OkTest:ok').onlyRoot().assertStdout(equalTo(""))
         result.testPath(':org.gradle.ASuite:org.gradle.OkTest:ok').onlyRoot().assertStderr(equalTo("This is test stderr\n"))
         result.testPath(':org.gradle.ASuite:org.gradle.OkTest:anotherOk').onlyRoot().assertStdout(equalTo("sys out from another test method\n"))
         result.testPath(':org.gradle.ASuite:org.gradle.OkTest:anotherOk').onlyRoot().assertStderr(equalTo("sys err from another test method\n"))
 
-        result.testPath(':org.gradle.ASuite:org.gradle.OtherTest').onlyRoot().assertStdout(equalTo("after suite class out\n"))
-        result.testPath(':org.gradle.ASuite:org.gradle.OtherTest').onlyRoot().assertStderr(equalTo("after suite class err\n"))
+        result.testPath(':org.gradle.ASuite:org.gradle.OtherTest').onlyRoot().assertStdout(equalTo("before OtherTest class out\nafter OtherTest class out\n"))
+        result.testPath(':org.gradle.ASuite:org.gradle.OtherTest').onlyRoot().assertStderr(equalTo("before OtherTest class err\nafter OtherTest class err\n"))
         result.testPath(':org.gradle.ASuite:org.gradle.OtherTest:ok').onlyRoot().assertStdout(equalTo("This is other stdout\n"))
         result.testPath(':org.gradle.ASuite:org.gradle.OtherTest:ok').onlyRoot().assertStderr(equalTo(""))
     }
