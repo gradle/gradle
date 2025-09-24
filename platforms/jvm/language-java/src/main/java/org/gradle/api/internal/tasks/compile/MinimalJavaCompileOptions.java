@@ -17,80 +17,83 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.compile.CompileOptions;
-import org.gradle.api.tasks.compile.DebugOptions;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.List;
 
+/**
+ * Immutable, transportable options for configuring Java compilation,
+ * which is serialized over to Java compiler daemons.
+ */
 public class MinimalJavaCompileOptions implements Serializable {
-    private List<File> sourcepath;
-    private List<String> compilerArgs;
-    private String encoding;
-    private String bootClasspath;
-    private String extensionDirs;
-    private MinimalJavaCompilerDaemonForkOptions forkOptions;
-    private DebugOptions debugOptions;
-    private boolean debug;
-    private boolean deprecation;
-    private boolean failOnError;
-    private boolean listFiles;
-    private boolean verbose;
-    private boolean warnings;
-    private File annotationProcessorGeneratedSourcesDirectory;
-    private File headerOutputDirectory;
-    private String javaModuleVersion;
-    private String javaModuleMainClass;
-    private boolean supportsCompilerApi;
-    private boolean supportsConstantsAnalysis;
-    private boolean supportsIncrementalCompilationAfterFailure;
-    private File previousCompilationDataFile;
 
-    public MinimalJavaCompileOptions(final CompileOptions compileOptions) {
-        FileCollection sourcepath = compileOptions.getSourcepath();
-        this.sourcepath = sourcepath == null ? null : ImmutableList.copyOf(sourcepath.getFiles());
-        this.compilerArgs = Lists.newArrayList(compileOptions.getAllCompilerArgs());
-        this.encoding = compileOptions.getEncoding();
-        this.bootClasspath = getAsPath(compileOptions.getBootstrapClasspath());
-        this.extensionDirs = compileOptions.getExtensionDirs();
-        this.forkOptions = new MinimalJavaCompilerDaemonForkOptions(compileOptions.getForkOptions());
-        this.debugOptions = compileOptions.getDebugOptions();
-        this.debug = compileOptions.isDebug();
-        this.deprecation = compileOptions.isDeprecation();
-        this.failOnError = compileOptions.isFailOnError();
-        this.listFiles = compileOptions.isListFiles();
-        this.verbose = compileOptions.isVerbose();
-        this.warnings = compileOptions.isWarnings();
-        this.annotationProcessorGeneratedSourcesDirectory = compileOptions.getGeneratedSourceOutputDirectory().getAsFile().getOrNull();
-        this.headerOutputDirectory = compileOptions.getHeaderOutputDirectory().getAsFile().getOrNull();
-        this.javaModuleVersion = compileOptions.getJavaModuleVersion().getOrNull();
-        this.javaModuleMainClass = compileOptions.getJavaModuleMainClass().getOrNull();
-        this.supportsIncrementalCompilationAfterFailure = compileOptions.getIncrementalAfterFailure().getOrElse(false);
+    private final ImmutableList<File> sourcepath;
+    private final ImmutableList<String> compilerArgs;
+    private final @Nullable String encoding;
+    private final @Nullable String bootClasspath;
+    private final @Nullable String extensionDirs;
+    private final MinimalJavaCompilerDaemonForkOptions forkOptions;
+    private final MinimalCompilerDaemonDebugOptions debugOptions;
+    private final boolean debug;
+    private final boolean deprecation;
+    private final boolean failOnError;
+    private final boolean listFiles;
+    private final boolean verbose;
+    private final boolean warnings;
+    private final @Nullable File annotationProcessorGeneratedSourcesDirectory;
+    private final @Nullable File headerOutputDirectory;
+    private final @Nullable String javaModuleVersion;
+    private final @Nullable String javaModuleMainClass;
+    private final boolean supportsIncrementalCompilationAfterFailure;
+
+    public MinimalJavaCompileOptions(
+        ImmutableList<File> sourcepath,
+        ImmutableList<String> compilerArgs,
+        @Nullable String encoding,
+        @Nullable String bootClasspath,
+        @Nullable String extensionDirs,
+        MinimalJavaCompilerDaemonForkOptions forkOptions,
+        MinimalCompilerDaemonDebugOptions debugOptions,
+        boolean debug,
+        boolean deprecation,
+        boolean failOnError,
+        boolean listFiles,
+        boolean verbose,
+        boolean warnings,
+        @Nullable File annotationProcessorGeneratedSourcesDirectory,
+        @Nullable File headerOutputDirectory,
+        @Nullable String javaModuleVersion,
+        @Nullable String javaModuleMainClass,
+        boolean supportsIncrementalCompilationAfterFailure
+    ) {
+        this.sourcepath = sourcepath;
+        this.compilerArgs = compilerArgs;
+        this.encoding = encoding;
+        this.bootClasspath = bootClasspath;
+        this.extensionDirs = extensionDirs;
+        this.forkOptions = forkOptions;
+        this.debugOptions = debugOptions;
+        this.debug = debug;
+        this.deprecation = deprecation;
+        this.failOnError = failOnError;
+        this.listFiles = listFiles;
+        this.verbose = verbose;
+        this.warnings = warnings;
+        this.annotationProcessorGeneratedSourcesDirectory = annotationProcessorGeneratedSourcesDirectory;
+        this.headerOutputDirectory = headerOutputDirectory;
+        this.javaModuleVersion = javaModuleVersion;
+        this.javaModuleMainClass = javaModuleMainClass;
+        this.supportsIncrementalCompilationAfterFailure = supportsIncrementalCompilationAfterFailure;
     }
 
     @Nullable
-    private static String getAsPath(@Nullable FileCollection files) {
-        return files == null ? null : files.getAsPath();
-    }
-
-    public List<File> getSourcepath() {
+    public ImmutableList<File> getSourcepath() {
         return sourcepath;
     }
 
-    public void setSourcepath(List<File> sourcepath) {
-        this.sourcepath = sourcepath;
-    }
-
-    public List<String> getCompilerArgs() {
+    public ImmutableList<String> getCompilerArgs() {
         return compilerArgs;
-    }
-
-    public void setCompilerArgs(List<String> compilerArgs) {
-        this.compilerArgs = compilerArgs;
     }
 
     @Nullable
@@ -98,88 +101,46 @@ public class MinimalJavaCompileOptions implements Serializable {
         return encoding;
     }
 
-    public void setEncoding(@Nullable String encoding) {
-        this.encoding = encoding;
-    }
-
+    @Nullable
     public String getBootClasspath() {
         return bootClasspath;
     }
 
-    public void setBootClasspath(String bootClasspath) {
-        this.bootClasspath = bootClasspath;
-    }
-
+    @Nullable
     public String getExtensionDirs() {
         return extensionDirs;
-    }
-
-    public void setExtensionDirs(String extensionDirs) {
-        this.extensionDirs = extensionDirs;
     }
 
     public MinimalJavaCompilerDaemonForkOptions getForkOptions() {
         return forkOptions;
     }
 
-    public void setForkOptions(MinimalJavaCompilerDaemonForkOptions forkOptions) {
-        this.forkOptions = forkOptions;
-    }
-
-    public DebugOptions getDebugOptions() {
+    public MinimalCompilerDaemonDebugOptions getDebugOptions() {
         return debugOptions;
-    }
-
-    public void setDebugOptions(DebugOptions debugOptions) {
-        this.debugOptions = debugOptions;
     }
 
     public boolean isDebug() {
         return debug;
     }
 
-    public void setDebug(boolean debug) {
-        this.debug = debug;
-    }
-
     public boolean isDeprecation() {
         return deprecation;
-    }
-
-    public void setDeprecation(boolean deprecation) {
-        this.deprecation = deprecation;
     }
 
     public boolean isFailOnError() {
         return failOnError;
     }
 
-    public void setFailOnError(boolean failOnError) {
-        this.failOnError = failOnError;
-    }
-
     public boolean isListFiles() {
         return listFiles;
-    }
-
-    public void setListFiles(boolean listFiles) {
-        this.listFiles = listFiles;
     }
 
     public boolean isVerbose() {
         return verbose;
     }
 
-    public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
-    }
-
     public boolean isWarnings() {
         return warnings;
-    }
-
-    public void setWarnings(boolean warnings) {
-        this.warnings = warnings;
     }
 
     @Nullable
@@ -187,17 +148,9 @@ public class MinimalJavaCompileOptions implements Serializable {
         return annotationProcessorGeneratedSourcesDirectory;
     }
 
-    public void setAnnotationProcessorGeneratedSourcesDirectory(@Nullable File annotationProcessorGeneratedSourcesDirectory) {
-        this.annotationProcessorGeneratedSourcesDirectory = annotationProcessorGeneratedSourcesDirectory;
-    }
-
     @Nullable
     public File getHeaderOutputDirectory() {
         return headerOutputDirectory;
-    }
-
-    public void setHeaderOutputDirectory(@Nullable File headerOutputDirectory) {
-        this.headerOutputDirectory = headerOutputDirectory;
     }
 
     @Nullable
@@ -205,49 +158,35 @@ public class MinimalJavaCompileOptions implements Serializable {
         return javaModuleVersion;
     }
 
-    public void setJavaModuleVersion(@Nullable String javaModuleVersion) {
-        this.javaModuleVersion = javaModuleVersion;
-    }
-
     @Nullable
     public String getJavaModuleMainClass() {
         return javaModuleMainClass;
-    }
-
-    public void setJavaModuleMainClass(@Nullable String javaModuleMainClass) {
-        this.javaModuleMainClass = javaModuleMainClass;
-    }
-
-    @Nullable
-    public File getPreviousCompilationDataFile() {
-        return previousCompilationDataFile;
-    }
-
-    public void setPreviousCompilationDataFile(@Nullable File previousCompilationDataFile) {
-        this.previousCompilationDataFile = previousCompilationDataFile;
-    }
-
-    public boolean supportsCompilerApi() {
-        return supportsCompilerApi;
-    }
-
-    public void setSupportsCompilerApi(boolean supportsCompilerApi) {
-        this.supportsCompilerApi = supportsCompilerApi;
-    }
-
-    public boolean supportsConstantAnalysis() {
-        return supportsConstantsAnalysis;
-    }
-
-    public void setSupportsConstantAnalysis(boolean supportsConstantsAnalysis) {
-        this.supportsConstantsAnalysis = supportsConstantsAnalysis;
     }
 
     public boolean supportsIncrementalCompilationAfterFailure() {
         return supportsIncrementalCompilationAfterFailure;
     }
 
-    public void setSupportsIncrementalCompilationAfterFailure(boolean supportsIncrementalCompilationAfterFailure) {
-        this.supportsIncrementalCompilationAfterFailure = supportsIncrementalCompilationAfterFailure;
+    public MinimalJavaCompileOptions withSourcePath(ImmutableList<File> sourcepath) {
+        return new MinimalJavaCompileOptions(
+            sourcepath,
+            getCompilerArgs(),
+            getEncoding(),
+            getBootClasspath(),
+            getExtensionDirs(),
+            getForkOptions(),
+            getDebugOptions(),
+            isDebug(),
+            isDeprecation(),
+            isFailOnError(),
+            isListFiles(),
+            isVerbose(),
+            isWarnings(),
+            getAnnotationProcessorGeneratedSourcesDirectory(),
+            getHeaderOutputDirectory(),
+            getJavaModuleVersion(),
+            getJavaModuleMainClass(),
+            supportsIncrementalCompilationAfterFailure()
+        );
     }
 }

@@ -20,8 +20,8 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.internal.GUtil
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.GUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -29,18 +29,18 @@ import static org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder
 
 class JavaCompilerArgumentsBuilderTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider(getClass())
+    TestNameTestDirectoryProvider tempDirectory = new TestNameTestDirectoryProvider(getClass())
 
     def defaultOptionsWithoutClasspath = ["-g", "-sourcepath", "", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION]
     def defaultOptions = ["-g", "-sourcepath", "", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
 
-    def spec = new DefaultJavaCompileSpec()
-    def builder = new JavaCompilerArgumentsBuilder(spec)
-
-    def setup() {
-        spec.tempDir = tempDir.file("tmp")
-        spec.compileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
+    def spec = new DefaultJavaCompileSpec().with {
+        tempDir = tempDirectory.file("tmp")
+        compileOptions = TestJavaOptions.of()
+        it
     }
+
+    def builder = new JavaCompilerArgumentsBuilder(spec)
 
     def "generates options for an unconfigured spec"() {
         expect:
@@ -84,7 +84,9 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def "removes -source and -target option if --release is present"() {
         when:
-        spec.compileOptions.compilerArgs += ['--release', '7']
+        spec.compileOptions = TestJavaOptions.of {
+            compilerArgs = ['--release', '7']
+        }
         spec.sourceCompatibility = '1.7'
         spec.targetCompatibility = '1.7'
 
@@ -94,7 +96,9 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def "can use a GString for the value of the release flag"() {
         when:
-        spec.compileOptions.compilerArgs += ['--release', "${ -> 7}"]
+        spec.compileOptions = TestJavaOptions.of {
+            compilerArgs = ['--release', "${ -> 7}"]
+        }
         spec.sourceCompatibility = '1.7'
         spec.targetCompatibility = '1.7'
 
@@ -112,13 +116,17 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def "generates -verbose option"() {
         when:
-        spec.compileOptions.verbose = true
+        spec.compileOptions = TestJavaOptions.of {
+            verbose = true
+        }
 
         then:
         builder.build() == ["-verbose"] + defaultOptions
 
         when:
-        spec.compileOptions.verbose = false
+        spec.compileOptions = TestJavaOptions.of {
+            verbose = false
+        }
 
         then:
         builder.build() == defaultOptions
@@ -126,13 +134,17 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def "generates -deprecation option"() {
         when:
-        spec.compileOptions.deprecation = true
+        spec.compileOptions = TestJavaOptions.of {
+            deprecation = true
+        }
 
         then:
         builder.build() == ["-deprecation"] + defaultOptions
 
         when:
-        spec.compileOptions.deprecation = false
+        spec.compileOptions = TestJavaOptions.of {
+            deprecation = false
+        }
 
         then:
         builder.build() == defaultOptions
@@ -140,13 +152,17 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def "generates -nowarn option"() {
         when:
-        spec.compileOptions.warnings = true
+        spec.compileOptions = TestJavaOptions.of {
+            warnings = true
+        }
 
         then:
         builder.build() == defaultOptions
 
         when:
-        spec.compileOptions.warnings = false
+        spec.compileOptions = TestJavaOptions.of {
+            warnings = false
+        }
 
         then:
         builder.build() == ["-nowarn"] + defaultOptions
@@ -154,42 +170,52 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def "generates -g option"() {
         when:
-        spec.compileOptions.debug = true
+        spec.compileOptions = TestJavaOptions.of {
+            debug = true
+        }
 
         then:
         builder.build() == defaultOptions
 
         when:
-        spec.compileOptions.debugOptions.debugLevel = "source,vars"
+        spec.compileOptions = TestJavaOptions.of {
+            debugOptions.debugLevel = "source,vars"
+        }
 
         then:
         builder.build() == ["-g:source,vars"] + defaultOptions.findAll { it != "-g" }
 
         when:
-        spec.compileOptions.debug = false
+        spec.compileOptions = TestJavaOptions.of {
+            debug = false
+        }
 
         then:
         builder.build() == ["-g:none"] + defaultOptions.findAll { it != "-g" }
     }
 
     def "generates -encoding option"() {
-        spec.compileOptions.encoding = "some-encoding"
+        spec.compileOptions = TestJavaOptions.of {
+            encoding = "some-encoding"
+        }
 
         expect:
         builder.build() == ["-encoding", "some-encoding"] + defaultOptions
     }
 
     def "generates -bootclasspath option"() {
-        def compileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
-        compileOptions.bootstrapClasspath = TestFiles.fixed(new File("lib1.jar"), new File("lib2.jar"))
-        spec.compileOptions = compileOptions
+        spec.compileOptions = TestJavaOptions.of {
+            bootstrapClasspath = TestFiles.fixed(new File("lib1.jar"), new File("lib2.jar"))
+        }
 
         expect:
         builder.build() == ["-bootclasspath", "lib1.jar${File.pathSeparator}lib2.jar"] + defaultOptions
     }
 
     def "generates -extdirs option"() {
-        spec.compileOptions.extensionDirs = "/dir1:/dir2"
+        spec.compileOptions = TestJavaOptions.of {
+            extensionDirs = "/dir1:/dir2"
+        }
 
         expect:
         builder.build() == ["-extdirs", "/dir1:/dir2"] + defaultOptions
@@ -215,14 +241,18 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def "generates -s option"() {
         def outputDir = new File("build/generated-sources")
-        spec.compileOptions.annotationProcessorGeneratedSourcesDirectory = outputDir
+        spec.compileOptions = TestJavaOptions.of {
+            generatedSourceOutputDirectory.set(outputDir)
+        }
 
         expect:
-        builder.build() == ["-g", "-sourcepath", "", "-proc:none", "-s", outputDir.path, USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
+        builder.build() == ["-g", "-sourcepath", "", "-proc:none", "-s", outputDir.absolutePath, USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
     }
 
     def "adds custom compiler args last"() {
-        spec.compileOptions.compilerArgs = ["-a", "value-a", "-b", "value-b"]
+        spec.compileOptions = TestJavaOptions.of {
+            compilerArgs = ["-a", "value-a", "-b", "value-b"]
+        }
 
         expect:
         builder.build() == defaultOptions + ["-a", "value-a", "-b", "value-b"]
@@ -279,9 +309,9 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     }
 
     def "can include/exclude launcher options"() {
-        spec.compileOptions.forkOptions.with {
-            memoryInitialSize = "64m"
-            memoryMaximumSize = "1g"
+        spec.compileOptions = TestJavaOptions.of {
+            forkOptions.memoryInitialSize = "64m"
+            forkOptions.memoryMaximumSize = "1g"
         }
 
         when:
@@ -298,9 +328,9 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     }
 
     def "does not include launcher options by default"() {
-        spec.compileOptions.forkOptions.with {
-            memoryInitialSize = "64m"
-            memoryMaximumSize = "1g"
+        spec.compileOptions = TestJavaOptions.of {
+            forkOptions.memoryInitialSize = "64m"
+            forkOptions.memoryMaximumSize = "1g"
         }
 
         expect:
@@ -338,7 +368,9 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         def file1 = new File("/lib/lib1.jar")
         def file2 = new File("/lib/lib2.jar")
         def fc = [file1, file2]
-        spec.compileOptions.sourcepath = fc
+        spec.compileOptions = TestJavaOptions.of {
+            sourcepath = TestFiles.fixed(fc)
+        }
         def expected = ["-g", "-sourcepath", GUtil.asPath(fc), "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
 
         expect:
@@ -349,7 +381,9 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     def "prohibits setting #option as compiler argument"() {
         given:
         def userProvidedPath = ['/libs/lib3.jar', '/libs/lib4.jar'].join(File.pathSeparator)
-        spec.compileOptions.compilerArgs = [option, userProvidedPath]
+        spec.compileOptions = TestJavaOptions.of {
+            compilerArgs = [option, userProvidedPath]
+        }
 
         when:
         builder.build()
@@ -370,8 +404,10 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def "removes sourcepath when module-source-path is provided"() {
         given:
-        spec.compileOptions.sourcepath = [new File("/ignored")]
-        spec.compileOptions.compilerArgs = ['--module-source-path', '/src/other']
+        spec.compileOptions = TestJavaOptions.of {
+            sourcepath = TestFiles.fixed(new File("/ignored"))
+            compilerArgs = ['--module-source-path', '/src/other']
+        }
         def expected = ["-g", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", "", "--module-source-path", "/src/other"]
 
         expect:

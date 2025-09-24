@@ -21,7 +21,6 @@ import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetec
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.jvm.toolchain.internal.JavaCompilerFactory;
-import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 import org.gradle.process.internal.JavaForkOptionsFactory;
@@ -72,13 +71,13 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends CompileSpec> Compiler<T> create(Class<T> type) {
+    public <T> Compiler<T> create(Class<T> type) {
         Compiler<T> result = createTargetCompiler(type);
         return (Compiler<T>) new ModuleApplicationNameWritingCompiler<>(new AnnotationProcessorDiscoveringCompiler<>(new NormalizingJavaCompiler((Compiler<JavaCompileSpec>) result), processorDetector));
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends CompileSpec> Compiler<T> createTargetCompiler(Class<T> type) {
+    private <T> Compiler<T> createTargetCompiler(Class<T> type) {
         if (!JavaCompileSpec.class.isAssignableFrom(type)) {
             throw new IllegalArgumentException(String.format("Cannot create a compiler for a spec with type %s", type.getSimpleName()));
         }
@@ -93,4 +92,5 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
             return (Compiler<T>) new JdkJavaCompiler(getJavaHomeBasedJavaCompilerFactory(), problems);
         }
     }
+
 }

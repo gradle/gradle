@@ -93,6 +93,7 @@ public class TimeTrackingProcessor extends DelegatingProcessor {
     }
 
     @Override
+    @SuppressWarnings("DoNotClaimAnnotations")
     public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment roundEnv) {
         return track(new Factory<Boolean>() {
             @Override

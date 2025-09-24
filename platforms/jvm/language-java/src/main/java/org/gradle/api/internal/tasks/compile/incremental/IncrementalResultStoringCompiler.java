@@ -78,12 +78,12 @@ class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Com
         CompilerApiData compilerApiData = getCompilerApiData(spec, result);
         ClassSetAnalysisData minimizedClasspathSnapshot = classpathSnapshot.reduceToTypesAffecting(outputSnapshot, compilerApiData);
         PreviousCompilationData data = new PreviousCompilationData(outputSnapshot, annotationProcessingData, minimizedClasspathSnapshot, compilerApiData);
-        File previousCompilationDataFile = Objects.requireNonNull(spec.getCompileOptions().getPreviousCompilationDataFile());
+        File previousCompilationDataFile = Objects.requireNonNull(spec.getPreviousCompilationDataFile());
         previousCompilationAccess.writePreviousCompilationData(data, previousCompilationDataFile);
     }
 
     private CompilerApiData getCompilerApiData(JavaCompileSpec spec, WorkResult result) {
-        if (spec.getCompileOptions().supportsCompilerApi()) {
+        if (spec.supportsCompilerApi()) {
             CompilerApiData previousCompilerApiData = null;
             RecompilationSpec recompilationSpec = null;
             if (result instanceof IncrementalCompilationResult) {
@@ -108,7 +108,7 @@ class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Com
                     mergedSourceClassesMapping = mergeSourceClassesMappings(previousSourceClassesMapping, newSourceClassesMapping, changedClasses);
                 }
                 ConstantToDependentsMapping mergedConstants = new ConstantToDependentsMappingMerger().merge(newConstantsToDependentsMapping, previousConstantToDependentsMapping, changedClasses);
-                if (spec.getCompileOptions().supportsConstantAnalysis()) {
+                if (spec.supportsConstantAnalysis()) {
                     return CompilerApiData.withConstantsMapping(mergedSourceClassesMapping, mergedConstants);
                 } else {
                     return CompilerApiData.withoutConstantsMapping(mergedSourceClassesMapping);

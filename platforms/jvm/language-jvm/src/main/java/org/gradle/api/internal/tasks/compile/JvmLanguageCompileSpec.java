@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.language.base.internal.compile.CompileSpec;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.List;
 
-public interface JvmLanguageCompileSpec extends CompileSpec {
+public interface JvmLanguageCompileSpec extends Serializable {
     File getTempDir();
 
     void setTempDir(File tempDir);

@@ -58,13 +58,18 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
-public class ApiGroovyCompiler implements org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec>, Serializable {
+/**
+ * Executes Groovy compilation in-process via the Groovy compiler API.
+ */
+public class ApiGroovyCompiler implements Compiler<GroovyJavaJointCompileSpec>, Serializable {
+
     private final Compiler<JavaCompileSpec> javaCompiler;
     private final ObjectFactory objectFactory;
 
@@ -154,7 +159,6 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         configuration.setSourceEncoding(spec.getGroovyCompileOptions().getEncoding());
         configuration.setTargetBytecode(spec.getTargetCompatibility());
         configuration.setTargetDirectory(spec.getDestinationDir());
-        canonicalizeValues(spec.getGroovyCompileOptions().getOptimizationOptions());
 
         VersionNumber version = parseGroovyVersion();
         if (version.compareTo(VersionNumber.parse("2.5")) >= 0) {
@@ -170,7 +174,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             applyConfigurationScript(spec.getGroovyCompileOptions().getConfigurationScript(), configuration);
         }
         try {
-            configuration.setOptimizationOptions(spec.getGroovyCompileOptions().getOptimizationOptions());
+            configuration.setOptimizationOptions(canonicalizeValues(spec.getGroovyCompileOptions().getOptimizationOptions()));
         } catch (NoSuchMethodError ignored) { /* method was only introduced in Groovy 1.8 */ }
 
         try {
@@ -251,7 +255,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                             if (spec.getCompileOptions().getSourcepath() != null) {
                                 sourcepathBuilder.addAll(spec.getCompileOptions().getSourcepath());
                             }
-                            spec.getCompileOptions().setSourcepath(sourcepathBuilder.build());
+                            spec.setCompileOptions(spec.getCompileOptions().withSourcePath(sourcepathBuilder.build()));
                         }
 
                         spec.setSourceFiles(Iterables.filter(spec.getSourceFiles(), new Predicate<File>() {
@@ -372,13 +376,14 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
     // This is necessary because:
     // 1. serialization/deserialization of the compile spec doesn't preserve Boolean.TRUE/Boolean.FALSE but creates new instances
     // 1. org.codehaus.groovy.classgen.asm.WriterController makes identity comparisons
-    @SuppressWarnings("ModifyCollectionInEnhancedForLoop")
-    private void canonicalizeValues(Map<String, Boolean> options) {
+    private static Map<String, Boolean> canonicalizeValues(Map<String, Boolean> options) {
+        Map<String, Boolean> result = new LinkedHashMap<>();
         for (String key : options.keySet()) {
             // unboxing and boxing does the trick
             boolean value = options.get(key);
-            options.put(key, value);
+            result.put(key, value);
         }
+        return result;
     }
 
     private ClassLoader getExtClassLoader() {

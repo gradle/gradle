@@ -27,6 +27,8 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
 
     MinimalJavaCompileOptions getCompileOptions();
 
+    void setCompileOptions(MinimalJavaCompileOptions compileOptions);
+
     @Override
     File getDestinationDir();
 
@@ -70,5 +72,19 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
     default boolean annotationProcessingConfigured() {
         return !getAnnotationProcessorPath().isEmpty() && !getCompileOptions().getCompilerArgs().contains("-proc:none");
     }
+
+
+    @Nullable
+    File getPreviousCompilationDataFile();
+
+    void setPreviousCompilationDataFile(@Nullable File previousCompilationDataFile);
+
+    boolean supportsCompilerApi();
+
+    void setSupportsCompilerApi(boolean supportsCompilerApi);
+
+    boolean supportsConstantAnalysis();
+
+    void setSupportsConstantAnalysis(boolean supportsConstantsAnalysis);
 
 }

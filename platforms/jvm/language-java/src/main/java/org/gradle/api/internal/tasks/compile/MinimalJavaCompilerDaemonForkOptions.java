@@ -16,26 +16,29 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.tasks.compile.ForkOptions;
+import com.google.common.collect.ImmutableList;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
 public class MinimalJavaCompilerDaemonForkOptions extends MinimalCompilerDaemonForkOptions {
-    private String executable;
 
-    private String tempDir;
+    private final @Nullable String executable;
+    private final @Nullable String tempDir;
+    private final @Nullable File javaHome;
 
-    private File javaHome;
-
-    public MinimalJavaCompilerDaemonForkOptions(ForkOptions forkOptions) {
-        super(forkOptions);
-        this.executable = forkOptions.getExecutable();
-        this.tempDir = forkOptions.getTempDir();
-        @SuppressWarnings("deprecation")
-        File customJavaHome = forkOptions.getJavaHome();
-        this.javaHome = customJavaHome;
-        setJvmArgs(forkOptions.getAllJvmArgs());
+    public MinimalJavaCompilerDaemonForkOptions(
+        @Nullable String memoryInitialSize,
+        @Nullable String memoryMaximumSize,
+        ImmutableList<String> jvmArgs,
+        @Nullable String executable,
+        @Nullable String tempDir,
+        @Nullable File javaHome
+    ) {
+        super(memoryInitialSize, memoryMaximumSize, jvmArgs);
+        this.executable = executable;
+        this.tempDir = tempDir;
+        this.javaHome = javaHome;
     }
 
     @Nullable
@@ -43,17 +46,9 @@ public class MinimalJavaCompilerDaemonForkOptions extends MinimalCompilerDaemonF
         return executable;
     }
 
-    public void setExecutable(@Nullable String executable) {
-        this.executable = executable;
-    }
-
     @Nullable
     public String getTempDir() {
         return tempDir;
-    }
-
-    public void setTempDir(@Nullable String tempDir) {
-        this.tempDir = tempDir;
     }
 
     @Nullable
@@ -61,7 +56,4 @@ public class MinimalJavaCompilerDaemonForkOptions extends MinimalCompilerDaemonF
         return javaHome;
     }
 
-    public void setJavaHome(@Nullable File javaHome) {
-        this.javaHome = javaHome;
-    }
 }

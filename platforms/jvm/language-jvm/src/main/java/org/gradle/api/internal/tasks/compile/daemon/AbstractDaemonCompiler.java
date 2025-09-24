@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.internal.tasks.compile.MinimalCompilerDaemonForkOptions;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.internal.UncheckedException;
-import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DefaultWorkResult;
@@ -29,7 +28,7 @@ import java.util.Set;
 import static org.gradle.process.internal.util.MergeOptionsUtil.mergeHeapSize;
 import static org.gradle.process.internal.util.MergeOptionsUtil.normalized;
 
-public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements Compiler<T> {
+public abstract class AbstractDaemonCompiler<T> implements Compiler<T> {
     private final CompilerWorkerExecutor compilerWorkerExecutor;
 
     public AbstractDaemonCompiler(CompilerWorkerExecutor compilerWorkerExecutor) {
@@ -48,22 +47,26 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
 
     protected abstract DaemonForkOptions toDaemonForkOptions(T spec);
 
-    protected abstract CompilerWorkerExecutor.CompilerParameters getCompilerParameters(T spec);
+    protected abstract CompilerParameters getCompilerParameters(T spec);
 
     /**
-     * Additional services required by {@link CompilerWorkerExecutor.CompilerParameters#getCompilerClassName()} which
+     * Additional services required by {@link CompilerParameters#getCompilerClassName()} which
      * are not already permitted for injection in worker actions.
      */
     protected abstract Set<Class<?>> getAdditionalCompilerServices();
 
-    protected BaseForkOptions mergeForkOptions(BaseForkOptions left, BaseForkOptions right) {
-        BaseForkOptions merged = new BaseForkOptions();
-        merged.setMemoryInitialSize(mergeHeapSize(left.getMemoryInitialSize(), right.getMemoryInitialSize()));
-        merged.setMemoryMaximumSize(mergeHeapSize(left.getMemoryMaximumSize(), right.getMemoryMaximumSize()));
+    public MinimalCompilerDaemonForkOptions mergeForkOptions(MinimalCompilerDaemonForkOptions left, MinimalCompilerDaemonForkOptions right) {
+        String memoryInitialSize = mergeHeapSize(left.getMemoryInitialSize(), right.getMemoryInitialSize());
+        String memoryMaximumSize = mergeHeapSize(left.getMemoryMaximumSize(), right.getMemoryMaximumSize());
+
         Set<String> mergedJvmArgs = normalized(left.getJvmArgs());
         mergedJvmArgs.addAll(normalized(right.getJvmArgs()));
-        merged.setJvmArgs(Lists.newArrayList(mergedJvmArgs));
-        return merged;
+
+        return new MinimalCompilerDaemonForkOptions(
+            memoryInitialSize,
+            memoryMaximumSize,
+            ImmutableList.copyOf(mergedJvmArgs)
+        );
     }
 
 }

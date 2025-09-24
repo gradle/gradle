@@ -20,11 +20,12 @@ import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.C
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.workers.internal.DefaultWorkResult;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class ApiCompilerResult extends DefaultWorkResult {
+public class ApiCompilerResult extends DefaultWorkResult implements Serializable {
 
     private final AnnotationProcessingResult annotationProcessingResult = new AnnotationProcessingResult();
     private final ConstantsAnalysisResult constantsAnalysisResult = new ConstantsAnalysisResult();

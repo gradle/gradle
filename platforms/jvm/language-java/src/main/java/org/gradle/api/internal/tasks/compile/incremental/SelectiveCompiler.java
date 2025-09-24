@@ -69,7 +69,7 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
             LOG.info("Full recompilation is required because no incremental change information is available. This is usually caused by clean builds or changing compiler arguments.");
             return rebuildAllCompiler.execute(spec);
         }
-        File previousCompilationDataFile = Objects.requireNonNull(spec.getCompileOptions().getPreviousCompilationDataFile());
+        File previousCompilationDataFile = Objects.requireNonNull(spec.getPreviousCompilationDataFile());
         if (!previousCompilationDataFile.exists()) {
             LOG.info("Full recompilation is required because no previous compilation result is available.");
             return rebuildAllCompiler.execute(spec);

@@ -17,69 +17,74 @@
 package org.gradle.api.internal.tasks.scala;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.tasks.scala.IncrementalCompileOptions;
-import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
 import org.gradle.language.scala.tasks.KeepAliveMode;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
-import java.util.List;
 
+/**
+ * Immutable, transportable options for configuring Scala compilation,
+ * which is serialized over to Scala compiler daemons.
+ */
 public class MinimalScalaCompileOptions implements Serializable {
-    private boolean failOnError = true;
-    private boolean deprecation = true;
-    private boolean unchecked = true;
-    private String debugLevel;
-    private boolean optimize;
-    private String encoding;
-    private boolean force;
-    private List<String> additionalParameters;
-    private boolean listFiles;
-    private String loggingLevel;
-    private List<String> loggingPhases;
-    private MinimalScalaCompilerDaemonForkOptions forkOptions;
-    private transient IncrementalCompileOptions incrementalOptions;
+
+    private final boolean failOnError;
+    private final boolean deprecation;
+    private final boolean unchecked;
+    private final String debugLevel;
+    private final boolean optimize;
+    private final String encoding;
+    private final boolean force;
+    private final ImmutableList<String> additionalParameters;
+    private final boolean listFiles;
+    private final String loggingLevel;
+    private final ImmutableList<String> loggingPhases;
+    private final MinimalScalaCompilerDaemonForkOptions forkOptions;
+    private final MinimalIncrementalCompileOptions incrementalOptions;
     private final KeepAliveMode keepAliveMode;
 
-    public MinimalScalaCompileOptions(BaseScalaCompileOptions compileOptions) {
-        this.failOnError = compileOptions.isFailOnError();
-        this.deprecation = compileOptions.isDeprecation();
-        this.unchecked = compileOptions.isUnchecked();
-        this.debugLevel = compileOptions.getDebugLevel();
-        this.optimize = compileOptions.isOptimize();
-        this.encoding = compileOptions.getEncoding();
-        this.force = compileOptions.isForce();
-        this.additionalParameters = ImmutableList.copyOf(compileOptions.getAdditionalParameters());
-        this.listFiles = compileOptions.isListFiles();
-        this.loggingLevel = compileOptions.getLoggingLevel();
-        this.loggingPhases = compileOptions.getLoggingPhases() == null ? null : ImmutableList.copyOf(compileOptions.getLoggingPhases());
-        this.forkOptions = new MinimalScalaCompilerDaemonForkOptions(compileOptions.getForkOptions());
-        this.incrementalOptions = compileOptions.getIncrementalOptions();
-        this.keepAliveMode = compileOptions.getKeepAliveMode().get();
+    public MinimalScalaCompileOptions(
+        boolean failOnError,
+        boolean deprecation,
+        boolean unchecked,
+        String debugLevel,
+        boolean optimize,
+        String encoding,
+        boolean force,
+        ImmutableList<String> additionalParameters,
+        boolean listFiles,
+        String loggingLevel,
+        ImmutableList<String> loggingPhases,
+        MinimalScalaCompilerDaemonForkOptions forkOptions,
+        MinimalIncrementalCompileOptions incrementalOptions,
+        KeepAliveMode keepAliveMode
+    ) {
+        this.failOnError = failOnError;
+        this.deprecation = deprecation;
+        this.unchecked = unchecked;
+        this.debugLevel = debugLevel;
+        this.optimize = optimize;
+        this.encoding = encoding;
+        this.force = force;
+        this.additionalParameters = additionalParameters;
+        this.listFiles = listFiles;
+        this.loggingLevel = loggingLevel;
+        this.loggingPhases = loggingPhases;
+        this.forkOptions = forkOptions;
+        this.incrementalOptions = incrementalOptions;
+        this.keepAliveMode = keepAliveMode;
     }
 
     public boolean isFailOnError() {
         return failOnError;
     }
 
-    public void setFailOnError(boolean failOnError) {
-        this.failOnError = failOnError;
-    }
-
     public boolean isDeprecation() {
         return deprecation;
     }
 
-    public void setDeprecation(boolean deprecation) {
-        this.deprecation = deprecation;
-    }
-
     public boolean isUnchecked() {
         return unchecked;
-    }
-
-    public void setUnchecked(boolean unchecked) {
-        this.unchecked = unchecked;
     }
 
     @Nullable
@@ -87,16 +92,8 @@ public class MinimalScalaCompileOptions implements Serializable {
         return debugLevel;
     }
 
-    public void setDebugLevel(@Nullable String debugLevel) {
-        this.debugLevel = debugLevel;
-    }
-
     public boolean isOptimize() {
         return optimize;
-    }
-
-    public void setOptimize(boolean optimize) {
-        this.optimize = optimize;
     }
 
     @Nullable
@@ -104,68 +101,37 @@ public class MinimalScalaCompileOptions implements Serializable {
         return encoding;
     }
 
-    public void setEncoding(@Nullable String encoding) {
-        this.encoding = encoding;
-    }
-
     public boolean isForce() {
         return force;
     }
 
-    public void setForce(boolean force) {
-        this.force = force;
-    }
-
     @Nullable
-    public List<String> getAdditionalParameters() {
+    public ImmutableList<String> getAdditionalParameters() {
         return additionalParameters;
-    }
-
-    public void setAdditionalParameters(@Nullable List<String> additionalParameters) {
-        this.additionalParameters = additionalParameters;
     }
 
     public boolean isListFiles() {
         return listFiles;
     }
 
-    public void setListFiles(boolean listFiles) {
-        this.listFiles = listFiles;
-    }
-
     public String getLoggingLevel() {
         return loggingLevel;
     }
 
-    public void setLoggingLevel(String loggingLevel) {
-        this.loggingLevel = loggingLevel;
-    }
-
-    public List<String> getLoggingPhases() {
+    public ImmutableList<String> getLoggingPhases() {
         return loggingPhases;
-    }
-
-    public void setLoggingPhases(List<String> loggingPhases) {
-        this.loggingPhases = loggingPhases;
     }
 
     public MinimalScalaCompilerDaemonForkOptions getForkOptions() {
         return forkOptions;
     }
 
-    public void setForkOptions(MinimalScalaCompilerDaemonForkOptions forkOptions) {
-        this.forkOptions = forkOptions;
-    }
-
-    public IncrementalCompileOptions getIncrementalOptions() {
+    public MinimalIncrementalCompileOptions getIncrementalOptions() {
         return incrementalOptions;
-    }
-
-    public void setIncrementalOptions(IncrementalCompileOptions incrementalOptions) {
-        this.incrementalOptions = incrementalOptions;
     }
 
     public KeepAliveMode getKeepAliveMode() {
         return keepAliveMode;
     }
+
 }

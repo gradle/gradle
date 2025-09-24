@@ -16,14 +16,20 @@
 
 package org.gradle.api.internal.tasks.scala;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.tasks.compile.MinimalCompilerDaemonForkOptions;
-import org.gradle.api.tasks.scala.ScalaForkOptions;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
 
 public class MinimalScalaCompilerDaemonForkOptions extends MinimalCompilerDaemonForkOptions implements Serializable {
-    public MinimalScalaCompilerDaemonForkOptions(ScalaForkOptions forkOptions) {
-        super(forkOptions);
-        setJvmArgs(forkOptions.getAllJvmArgs());
+
+    public MinimalScalaCompilerDaemonForkOptions(
+        @Nullable String memoryInitialSize,
+        @Nullable String memoryMaximumSize,
+        ImmutableList<String> jvmArgs
+    ) {
+        super(memoryInitialSize, memoryMaximumSize, jvmArgs);
     }
+
 }

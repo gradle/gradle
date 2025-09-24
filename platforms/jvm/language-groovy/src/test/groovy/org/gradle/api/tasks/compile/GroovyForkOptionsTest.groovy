@@ -28,7 +28,7 @@ class GroovyForkOptionsTest {
 
     @Before
     void setUp()  {
-        forkOptions = TestUtil.newInstance(GroovyForkOptions.class)
+        forkOptions = TestUtil.newInstance(GroovyForkOptions)
     }
 
     @Test

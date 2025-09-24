@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
-import org.gradle.api.tasks.compile.CompileOptions;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -30,6 +29,7 @@ import java.util.Set;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implements JavaCompileSpec {
+
     private MinimalJavaCompileOptions compileOptions;
     private List<File> annotationProcessorPath;
     private Set<AnnotationProcessorDeclaration> effectiveAnnotationProcessors;
@@ -38,10 +38,18 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     private List<File> sourceRoots;
     private Set<String> classesToCompile = Collections.emptySet();
     private File backupDestinationDir;
+    private boolean supportsCompilerApi;
+    private boolean supportsConstantsAnalysis;
+    private @Nullable File previousCompilationDataFile;
 
     @Override
     public MinimalJavaCompileOptions getCompileOptions() {
         return compileOptions;
+    }
+
+    @Override
+    public void setCompileOptions(MinimalJavaCompileOptions compileOptions) {
+        this.compileOptions = compileOptions;
     }
 
     @Nullable
@@ -53,10 +61,6 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     @Override
     public void setClassBackupDir(@Nullable File classBackupDir) {
         this.backupDestinationDir = classBackupDir;
-    }
-
-    public void setCompileOptions(CompileOptions compileOptions) {
-        this.compileOptions = new MinimalJavaCompileOptions(compileOptions);
     }
 
     @Override
@@ -138,6 +142,37 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     @Override
     public void setSourcesRoots(List<File> sourcesRoots) {
         this.sourceRoots = sourcesRoots;
+    }
+
+    @Override
+    @Nullable
+    public File getPreviousCompilationDataFile() {
+        return previousCompilationDataFile;
+    }
+
+    @Override
+    public void setPreviousCompilationDataFile(@Nullable File previousCompilationDataFile) {
+        this.previousCompilationDataFile = previousCompilationDataFile;
+    }
+
+    @Override
+    public boolean supportsCompilerApi() {
+        return supportsCompilerApi;
+    }
+
+    @Override
+    public void setSupportsCompilerApi(boolean supportsCompilerApi) {
+        this.supportsCompilerApi = supportsCompilerApi;
+    }
+
+    @Override
+    public boolean supportsConstantAnalysis() {
+        return supportsConstantsAnalysis;
+    }
+
+    @Override
+    public void setSupportsConstantAnalysis(boolean supportsConstantsAnalysis) {
+        this.supportsConstantsAnalysis = supportsConstantsAnalysis;
     }
 
 }
