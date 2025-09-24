@@ -17,9 +17,7 @@
 package org.gradle.testing.junit.jupiter
 
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import spock.lang.Issue
 
@@ -109,33 +107,31 @@ class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrat
         fails "test", "--tests", commandLineFilter
 
         then:
-        result.assertTaskExecuted(":test")
-        def testResult = new DefaultTestExecutionResult(testDirectory)
+        def testResult = resultsFor(testDirectory, "tests/test", testFramework)
+        testResult.assertAtLeastFrameworkTestPathsExecuted(expectedTests as String[])
         assertExpectedTestCounts(testResult, expectedTests)
 
         where:
         commandLineFilter                                 | withConfiguredFilters | expectedTests
-        'SampleTest'                                      | false                 | ['SampleTest', 'SampleTest$NestedTestClass', 'SampleTest$NestedTestClass$SubNestedTestClass']
-        'SampleTest'                                      | true                  | ['SampleTest', 'SampleTest$NestedTestClass', 'SampleTest$NestedTestClass$SubNestedTestClass']
-        'SampleTest$NestedTestClass'                      | false                 | ['SampleTest$NestedTestClass', 'SampleTest$NestedTestClass$SubNestedTestClass']
-        'SampleTest$NestedTestClass'                      | true                  | ['SampleTest$NestedTestClass', 'SampleTest$NestedTestClass$SubNestedTestClass']
-        'SampleTest$NestedTestClass$SubNestedTestClass'   | false                 | ['SampleTest$NestedTestClass$SubNestedTestClass']
-        'SampleTest$NestedTestClass$SubNestedTestClass'   | true                  | ['SampleTest$NestedTestClass$SubNestedTestClass']
+        'SampleTest'                                      | false                 | [':SampleTest', ':SampleTest:SampleTest$NestedTestClass', ':SampleTest:SampleTest$NestedTestClass:SampleTest$NestedTestClass$SubNestedTestClass']
+        'SampleTest'                                      | true                  | [':SampleTest', ':SampleTest:SampleTest$NestedTestClass', ':SampleTest:SampleTest$NestedTestClass:SampleTest$NestedTestClass$SubNestedTestClass']
+        'SampleTest$NestedTestClass'                      | false                 | [':SampleTest:SampleTest$NestedTestClass', ':SampleTest:SampleTest$NestedTestClass:SampleTest$NestedTestClass$SubNestedTestClass']
+        'SampleTest$NestedTestClass'                      | true                  | [':SampleTest:SampleTest$NestedTestClass', ':SampleTest:SampleTest$NestedTestClass:SampleTest$NestedTestClass$SubNestedTestClass']
+        'SampleTest$NestedTestClass$SubNestedTestClass'   | false                 | [':SampleTest:SampleTest$NestedTestClass:SampleTest$NestedTestClass$SubNestedTestClass']
+        'SampleTest$NestedTestClass$SubNestedTestClass'   | true                  | [':SampleTest:SampleTest$NestedTestClass:SampleTest$NestedTestClass$SubNestedTestClass']
     }
 
-    void assertExpectedTestCounts(TestExecutionResult testExecutionResult, List < String > expectedTests) {
-        testExecutionResult.assertTestClassesExecuted(expectedTests as String[])
-
+    void assertExpectedTestCounts(GenericTestExecutionResult testExecutionResult, List<String> expectedTests) {
         if (expectedTests.contains('SampleTest')) {
-            testExecutionResult.testClass('SampleTest').assertTestCount(1, 1, 0)
+            testExecutionResult.testPath('SampleTest').onlyRoot().assertChildCount(1, 0)
         }
 
         if (expectedTests.contains('SampleTest$NestedTestClass')) {
-            testExecutionResult.testClass('SampleTest$NestedTestClass').assertTestCount(1, 1, 0)
+            testExecutionResult.testPath('SampleTest$NestedTestClass').onlyRoot().assertChildCount(1, 0)
         }
 
         if (expectedTests.contains('SampleTest$NestedTestClass$SubNestedTestClass')) {
-            testExecutionResult.testClass('SampleTest$NestedTestClass$SubNestedTestClass').assertTestCount(4, 4, 0)
+            testExecutionResult.testPath('SampleTest$NestedTestClass$SubNestedTestClass').onlyRoot().assertChildCount(4, 0)
         }
     }
 
@@ -145,58 +141,5 @@ class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrat
                 excludeTestsMatching "*Something*"
             }
         """ : ""
-    }
-
-    def "can filter tests from build file."() {
-        given:
-        // this addition to the build files ...
-        buildFile << """
-            test {
-              filter {
-                includeTestsMatching "*FooTest"
-              }
-            }
-        """
-        // and ...
-        theSuiteFiles()
-
-        when:
-        succeedsWithTestTaskArguments("test")
-
-        then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-
-        result.assertTestClassesExecuted("FooTest", "FooServerTest")
-        result.testClass("FooTest").assertTestCount(1, 0);
-        result.testClass("FooTest").assertTestOutcomes(passedTestOutcome, "testFoo")
-    }
-
-    void theSuiteFiles() {
-        file("src/test/java/FooTest.java") << """
-            ${testFrameworkImports}
-            public class FooTest {
-                @Test
-                public void testFoo() {
-throw new RuntimeException("FooTest RAN!");
-                }
-            }
-        """
-        file("src/test/java/FooServerTest.java") << """
-            ${testFrameworkImports}
-            public class FooServerTest {
-                @Test
-                public void testFooServer() {
-throw new RuntimeException("FooServerTest RAN!");
-}
-            }
-        """
-        file("src/test/java/BarTest.java") << """
-            ${testFrameworkImports}
-            public class BarTest {
-                @Test
-                public void testBar() {
-throw new RuntimeException("BarTest RAN!"); }
-            }
-        """
     }
 }

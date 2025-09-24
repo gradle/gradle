@@ -18,7 +18,6 @@
 package org.gradle.testing.testng
 
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import org.gradle.testing.fixture.TestNGCoverage
@@ -81,13 +80,13 @@ class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTes
         run("test", "--tests", "*AwesomeSuite*")
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-
-        result.assertTestClassesExecuted('FooTest', 'BarTest')
-        result.testClass('FooTest').assertTestCount(1, 0)
-        result.testClass('FooTest').assertTestsExecuted('pass')
-        result.testClass('BarTest').assertTestCount(1, 0)
-        result.testClass('BarTest').assertTestsExecuted('pass')
+        def testResult = resultsFor(testDirectory, "tests/test", testFramework)
+        def fooTest = testResult.testPath(":AwesomeSuite:AwesomeTest:FooTest").onlyRoot()
+        fooTest.assertChildCount(1, 0)
+        fooTest.assertChildrenExecuted("pass")
+        def barTest = testResult.testPath(":AwesomeSuite:AwesomeTest:BarTest").onlyRoot()
+        barTest.assertChildCount(1, 0)
+        barTest.assertChildrenExecuted("pass")
     }
 
     @Issue("GRADLE-3112")
@@ -107,12 +106,12 @@ class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTes
         run("test")
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-
-        result.assertTestClassesExecuted('FooTest', 'BarTest')
-        result.testClass('FooTest').assertTestCount(1, 0)
-        result.testClass('FooTest').assertTestsExecuted('pass')
-        result.testClass('BarTest').assertTestCount(1, 0)
-        result.testClass('BarTest').assertTestsExecuted('pass')
+        def testResult = resultsFor(testDirectory, "tests/test", testFramework)
+        def fooTest = testResult.testPath(":AwesomeSuite:AwesomeTest:FooTest").onlyRoot()
+        fooTest.assertChildCount(1, 0)
+        fooTest.assertChildrenExecuted("pass")
+        def barTest = testResult.testPath(":AwesomeSuite:AwesomeTest:BarTest").onlyRoot()
+        barTest.assertChildCount(1, 0)
+        barTest.assertChildrenExecuted("pass")
     }
 }
