@@ -147,7 +147,7 @@ public interface AttributeContainer extends HasAttributes {
     /**
      * Creates an Attribute of the given type and name.
      *
-     * @since 9.2.0
+     * @since 9.3.0
      */
     @Incubating
     <T extends Named> T named(Class<T> type, String name);
