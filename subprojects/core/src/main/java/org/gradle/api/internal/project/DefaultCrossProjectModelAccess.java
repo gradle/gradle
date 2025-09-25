@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.invocation.GradleLifecycleActionExecutor;
 import org.jspecify.annotations.Nullable;
 import org.gradle.util.Path;
 
@@ -34,15 +35,21 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
 
     private final ProjectRegistry projectRegistry;
     private final Instantiator instantiator;
+    private final GradleLifecycleActionExecutor gradleLifecycleActionExecutor;
 
-    public DefaultCrossProjectModelAccess(ProjectRegistry projectRegistry, Instantiator instantiator) {
+    public DefaultCrossProjectModelAccess(
+        ProjectRegistry projectRegistry,
+        Instantiator instantiator,
+        GradleLifecycleActionExecutor gradleLifecycleActionExecutor
+    ) {
         this.projectRegistry = projectRegistry;
         this.instantiator = instantiator;
+        this.gradleLifecycleActionExecutor = gradleLifecycleActionExecutor;
     }
 
     @Override
     public ProjectInternal access(ProjectInternal referrer, ProjectInternal project) {
-        return LifecycleAwareProject.wrap(project, referrer, instantiator);
+        return LifecycleAwareProject.wrap(project, referrer, instantiator, gradleLifecycleActionExecutor);
     }
 
     @Override
@@ -53,7 +60,7 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
         }
 
         ProjectInternal project = projectRegistry.getProjectInternal(path.asString());
-        return project != null ? LifecycleAwareProject.wrap(project, referrer, instantiator) : null;
+        return project != null ? LifecycleAwareProject.wrap(project, referrer, instantiator, gradleLifecycleActionExecutor) : null;
     }
 
     @Override
@@ -61,7 +68,7 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
         return target.getOwner().getChildProjects().stream().collect(
             Collectors.toMap(
                 ProjectState::getName,
-                projectState -> LifecycleAwareProject.wrap(projectState.getMutableModel(), referrer, instantiator)
+                projectState -> LifecycleAwareProject.wrap(projectState.getMutableModel(), referrer, instantiator, gradleLifecycleActionExecutor)
             )
         );
     }
@@ -69,14 +76,14 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     @Override
     public Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal target) {
         return projectRegistry.getSubProjects(target.getPath()).stream()
-            .map(project -> LifecycleAwareProject.wrap(project, referrer, instantiator))
+            .map(project -> LifecycleAwareProject.wrap(project, referrer, instantiator, gradleLifecycleActionExecutor))
             .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
     public Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal target) {
         return projectRegistry.getAllProjects(target.getPath()).stream()
-            .map(project -> LifecycleAwareProject.wrap(project, referrer, instantiator))
+            .map(project -> LifecycleAwareProject.wrap(project, referrer, instantiator, gradleLifecycleActionExecutor))
             .collect(Collectors.toCollection(TreeSet::new));
     }
 
