@@ -151,7 +151,7 @@ fun buildProjectTypeInfo(
     projectFeatureRegistry: ProjectFeatureRegistry,
     pluginTypeToSchemaClassMapping: (KClass<*>) -> KClass<*>
 ): ProjectFeatureSchemaBindingIndex {
-    val softwareTypeInfo = projectFeatureRegistry.getProjectFeatureImplementations().values.mapNotNull {
+    val projectTypeInfo = projectFeatureRegistry.getProjectFeatureImplementations().values.mapNotNull {
         it.targetDefinitionType.run {
             if (this is DefinitionTargetTypeInformation && definitionType == Project::class.java)
                 ProjectFeatureInfo(it, SOFTWARE_TYPE_ACCESSOR_PREFIX)
@@ -159,7 +159,7 @@ fun buildProjectTypeInfo(
         }
     }
     return ProjectFeatureSchemaBindingIndex(
-        softwareTypeInfo.groupBy { pluginTypeToSchemaClassMapping((it.targetDefinitionType as DefinitionTargetTypeInformation).definitionType.kotlin) },
+        projectTypeInfo.groupBy { pluginTypeToSchemaClassMapping((it.targetDefinitionType as DefinitionTargetTypeInformation).definitionType.kotlin) },
         emptyMap()
     )
 }

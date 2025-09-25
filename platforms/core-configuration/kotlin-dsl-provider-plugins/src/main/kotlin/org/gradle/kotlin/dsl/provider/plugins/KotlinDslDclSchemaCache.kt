@@ -35,7 +35,7 @@ interface KotlinDslDclSchemaCache {
         produceIfAbsent: () -> ContainerElementFactories
     ): ContainerElementFactories
 
-    fun getOrPutContainerElementSoftwareTypes(
+    fun getOrPutContainerElementProjectTypes(
         forRegistry: ProjectFeatureRegistry,
         produceIfAbsent: () -> ProjectTypeEntries
     ): ProjectTypeEntries
@@ -65,7 +65,7 @@ class CrossBuildInMemoryKotlinDslDclSchemaCache(
             produceIfAbsent().ifEmpty { emptyList() } // avoid referencing lots of empty lists, store a reference to the singleton instead
         }
 
-    override fun getOrPutContainerElementSoftwareTypes(
+    override fun getOrPutContainerElementProjectTypes(
         forRegistry: ProjectFeatureRegistry,
         produceIfAbsent: () -> ProjectTypeEntries
     ): ProjectTypeEntries = projectTypeEntriesCache.get(forRegistry) { _ ->
