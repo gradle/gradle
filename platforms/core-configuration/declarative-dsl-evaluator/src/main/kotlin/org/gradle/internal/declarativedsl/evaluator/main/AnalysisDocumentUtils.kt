@@ -32,7 +32,7 @@ import org.gradle.internal.declarativedsl.evaluator.runner.stepResultOrPartialRe
 
 object AnalysisDocumentUtils {
     fun documentWithModelDefaults(modelDefaultsSequenceResult: AnalysisSequenceResult, mainSequenceResult: AnalysisSequenceResult): DocumentOverlayResult? {
-        val usedModelDefaults = mainSequenceResult.modelDefaultsConsumingStep()?.stepResultOrPartialResult?.usedSoftwareTypeNames()
+        val usedModelDefaults = mainSequenceResult.modelDefaultsConsumingStep()?.stepResultOrPartialResult?.usedProjectTypeNames()
             ?: return null
 
         val modelDefaults = modelDefaultsSequenceResult.extractModelDefaultsDocument(usedModelDefaults) ?: return null
@@ -48,7 +48,7 @@ object AnalysisDocumentUtils {
         return DocumentWithResolution(document, resolutionContainer)
     }
 
-    fun AnalysisStepResult.usedSoftwareTypeNames(): Set<String> =
+    fun AnalysisStepResult.usedProjectTypeNames(): Set<String> =
         findUsedProjectFeatureNames(resolutionResult)
 
     fun AnalysisSequenceResult.extractModelDefaultsDocument(forSoftwareTypes: Set<String>): DocumentWithResolution? {

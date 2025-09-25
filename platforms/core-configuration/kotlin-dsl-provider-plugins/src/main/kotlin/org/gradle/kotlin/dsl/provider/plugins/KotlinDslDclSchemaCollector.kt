@@ -51,7 +51,7 @@ data class KotlinDslDclSchema(
  * the collection of the DCL schema parts that are relevant to Kotlin DSL.
  */
 internal fun KotlinDslDclSchemaCollector.collectDclSchemaForKotlinDslTarget(target: Any, targetScope: ClassLoaderScope): KotlinDslDclSchema? {
-    fun softwareTypeRegistryOf(target: Any): ProjectFeatureRegistry? =
+    fun projectTypeRegistryOf(target: Any): ProjectFeatureRegistry? =
         when (target) {
             is Project -> target.serviceOf<ProjectFeatureRegistry>()
             is Settings -> target.serviceOf<ProjectFeatureRegistry>()
@@ -71,16 +71,16 @@ internal fun KotlinDslDclSchemaCollector.collectDclSchemaForKotlinDslTarget(targ
         collectContainerFactories(interpretationSequence, targetScope)
     } ?: return null
 
-    val softwareTypes = softwareTypeRegistryOf(target)?.let(::collectSoftwareTypes) ?: return null
+    val projectTypes = projectTypeRegistryOf(target)?.let(::collectProjectTypes) ?: return null
 
-    return KotlinDslDclSchema(containerElementFactories, softwareTypes)
+    return KotlinDslDclSchema(containerElementFactories, projectTypes)
 }
 
 
 @ServiceScope(Scope.UserHome::class)
 internal interface KotlinDslDclSchemaCollector {
     fun collectContainerFactories(interpretationSequence: InterpretationSequence, classLoaderScope: ClassLoaderScope): List<ContainerElementFactoryEntry<TypeOf<*>>>
-    fun collectSoftwareTypes(projectFeatureRegistry: ProjectFeatureRegistry): List<ProjectFeatureEntry<TypeOf<*>>>
+    fun collectProjectTypes(projectFeatureRegistry: ProjectFeatureRegistry): List<ProjectFeatureEntry<TypeOf<*>>>
 }
 
 internal class CachedKotlinDslDclSchemaCollector(
@@ -90,8 +90,8 @@ internal class CachedKotlinDslDclSchemaCollector(
     override fun collectContainerFactories(interpretationSequence: InterpretationSequence, classLoaderScope: ClassLoaderScope): List<ContainerElementFactoryEntry<TypeOf<*>>> =
         cache.getOrPutContainerElementFactories(interpretationSequence, classLoaderScope) { delegate.collectContainerFactories(interpretationSequence, classLoaderScope) }
 
-    override fun collectSoftwareTypes(projectFeatureRegistry: ProjectFeatureRegistry): List<ProjectFeatureEntry<TypeOf<*>>> =
-        cache.getOrPutContainerElementSoftwareTypes(projectFeatureRegistry) { delegate.collectSoftwareTypes(projectFeatureRegistry) }
+    override fun collectProjectTypes(projectFeatureRegistry: ProjectFeatureRegistry): List<ProjectFeatureEntry<TypeOf<*>>> =
+        cache.getOrPutContainerElementProjectTypes(projectFeatureRegistry) { delegate.collectProjectTypes(projectFeatureRegistry) }
 }
 
 internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector {
@@ -139,7 +139,7 @@ internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector 
         }
     }
 
-    override fun collectSoftwareTypes(projectFeatureRegistry: ProjectFeatureRegistry): List<ProjectFeatureEntry<TypeOf<*>>> =
+    override fun collectProjectTypes(projectFeatureRegistry: ProjectFeatureRegistry): List<ProjectFeatureEntry<TypeOf<*>>> =
         projectFeatureRegistry.projectFeatureImplementations.entries.map { (name, implementation) ->
             val targetType = when (val target = implementation.targetDefinitionType) {
                 is TargetTypeInformation.DefinitionTargetTypeInformation ->  TypeOf.typeOf(target.definitionType)

@@ -63,7 +63,7 @@ class DefaultProjectSchemaProviderTest {
         assertThat(
             DefaultProjectSchemaProvider(object : KotlinDslDclSchemaCollector {
                 override fun collectContainerFactories(interpretationSequence: InterpretationSequence, classLoaderScope: ClassLoaderScope): List<ContainerElementFactoryEntry<TypeOf<*>>> = emptyList()
-                override fun collectSoftwareTypes(projectFeatureRegistry: ProjectFeatureRegistry): List<ProjectFeatureEntry<TypeOf<*>>> = emptyList()
+                override fun collectProjectTypes(projectFeatureRegistry: ProjectFeatureRegistry): List<ProjectFeatureEntry<TypeOf<*>>> = emptyList()
             }).targetSchemaFor(
                 androidExtension,
                 typeOf<AndroidExtension>(),
