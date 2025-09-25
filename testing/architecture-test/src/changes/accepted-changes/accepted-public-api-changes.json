@@ -7,6 +7,14 @@
             "changes": [
                 "Method added to interface"
             ]
+        },
+        {
+            "type": "org.gradle.caching.configuration.AbstractBuildCache",
+            "member": "Class org.gradle.caching.configuration.AbstractBuildCache",
+            "acceptation": "Interface added for laziness to be replaced in Gradle 10",
+            "changes": [
+                "org.gradle.caching.configuration.BuildCachePushProperty"
+            ]
         }
     ]
 }
