@@ -1337,13 +1337,13 @@ Required by:
             resolvable("runtimeClasspath") {
                 extendsFrom(implementation.get())
                 attributes {
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "FOOBAR"))
+                    attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "FOOBAR"))
                 }
             }
             consumable("runtimeElements") {
                 extendsFrom(implementation.get())
                 attributes {
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "FOOBAR"))
+                    attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "FOOBAR"))
                 }
             }
         }
