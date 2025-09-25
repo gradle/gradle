@@ -147,7 +147,7 @@ class JUnitTestClassProcessorTest extends Specification {
         1 * processor.started({ it.id == 1 }, { it.parentId == null })
         1 * processor.started({ it.id == 2 && it.name == "broken" && it.className == ATestClassWithRunner.name }, { it.parentId == 1 })
         1 * processor.started({ it.id == 3 && it.name == "ok" && it.className == ATestClassWithRunner.name }, { it.parentId == 1 })
-        1 * processor.failure(2, { assertRuntimExceptionWith(it, "broken custom runner")})
+        1 * processor.failure(2, { assertRuntimeExceptionWith(it, "broken custom runner")})
         1 * processor.completed(3, { it.resultType == null })
         1 * processor.completed(2, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })
@@ -179,8 +179,8 @@ class JUnitTestClassProcessorTest extends Specification {
         then:
         1 * processor.started({ it.id == 1 }, { it.parentId == null })
         1 * processor.started({ it.id == 2 && it.name == 'test' && it.className == ATestClassWithBrokenBeforeAndAfterMethod.name }, { it.parentId == 1 })
-        1 * processor.failure(2, { assertRuntimExceptionWith(it, "setup") })
-        1 * processor.failure(2, { assertRuntimExceptionWith(it, "teardown") })
+        1 * processor.failure(2, { assertRuntimeExceptionWith(it, "setup") })
+        1 * processor.failure(2, { assertRuntimeExceptionWith(it, "teardown") })
         1 * processor.completed(2, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })
         0 * processor._
@@ -193,7 +193,7 @@ class JUnitTestClassProcessorTest extends Specification {
         then:
         1 * processor.started({ it.id == 1 }, { it.parentId == null })
         1 * processor.started({ it.id == 2 && it.name == testMethodName && it.className == testClass.name }, { it.parentId == 1 })
-        1 * processor.failure(2, { assertRuntimExceptionWith(it, "broken") })
+        1 * processor.failure(2, { assertRuntimeExceptionWith(it, "broken") })
         1 * processor.completed(2, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })
         0 * processor._
@@ -216,8 +216,10 @@ class JUnitTestClassProcessorTest extends Specification {
 
         then:
         1 * processor.started({ it.id == 1 }, { it.parentId == null })
-        1 * processor.started({ it.id == 2 && it.name == AJunit3TestClass.name && it.className == ATestSetUpWithBrokenSetUp.name }, { it.parentId == 1 })
-        1 * processor.failure(2, { assertRuntimExceptionWith(it, "broken") })
+        1 * processor.started({ it.id == 2 && it.name == ATestSetUpWithBrokenSetUp.name }, { it.parentId == null })
+        1 * processor.started({ it.id == 3 && it.name == AJunit3TestClass.name }, { it.parentId == 2})
+        1 * processor.failure(3, { assertRuntimeExceptionWith(it, "broken") })
+        1 * processor.completed(3, { it.resultType == null })
         1 * processor.completed(2, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })
         0 * processor._
@@ -234,7 +236,7 @@ class JUnitTestClassProcessorTest extends Specification {
         1 * processor.completed(2, { it.resultType == null })
 
         1 * processor.started({ it.id == 3 && it.name == 'broken' && it.className == ATestClassWithRunnerThatBreaksAfterRunningSomeTests.name }, { it.parentId == 1 })
-        1 * processor.failure(3, { assertRuntimExceptionWith(it, "after tests") })
+        1 * processor.failure(3, { assertRuntimeExceptionWith(it, "after tests") })
         1 * processor.completed(3, { it.resultType == null })
 
         1 * processor.completed(1, { it.resultType == null })
@@ -326,7 +328,7 @@ class JUnitTestClassProcessorTest extends Specification {
         1 * processor.started({ it.id == 1 }, { it.parentId == null })
         1 * processor.started({ it.id == 2 && it.name == "broken" && it.className == ATestClassWithRunner.name }, { it.parentId == 1 })
         1 * processor.started({ it.id == 3 && it.name == "ok" && it.className == ATestClassWithRunner.name }, { it.parentId == 1 })
-        1 * processor.failure(2, { assertRuntimExceptionWith(it, "broken custom runner")})
+        1 * processor.failure(2, { assertRuntimeExceptionWith(it, "broken custom runner")})
         1 * processor.completed(3, { it.resultType == null })
         1 * processor.completed(2, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })
@@ -556,7 +558,7 @@ class JUnitTestClassProcessorTest extends Specification {
         thrown(UnsupportedOperationException)
     }
 
-    void assertRuntimExceptionWith(TestFailure testFailure, String message) {
+    void assertRuntimeExceptionWith(TestFailure testFailure, String message) {
         assert testFailure.rawFailure instanceof RuntimeException
         assert testFailure.details.message == message
     }
