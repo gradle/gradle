@@ -118,13 +118,17 @@ public abstract class TestReport extends DefaultTask {
     private boolean isGenericImplementation(List<Path> resultDirsAsPaths) {
         Boolean isGenericImplementation = null;
         for (File resultDir : getTestResults().getFiles()) {
-            boolean resultDirIsGenericImplementation = SerializableTestResultStore.isGenericTestResults(resultDir);
-            if (isGenericImplementation == null) {
-                isGenericImplementation = resultDirIsGenericImplementation;
-            } else if (isGenericImplementation != resultDirIsGenericImplementation) {
-                throw new IllegalStateException("Cannot mix generic and non-generic test results in the same report.");
-            }
-            resultDirsAsPaths.add(resultDir.toPath());
+            if (!resultDir.exists()) {
+                    continue;
+                }
+                boolean resultDirIsGenericImplementation = SerializableTestResultStore.isGenericTestResults(resultDir);
+                if (isGenericImplementation == null) {
+                    isGenericImplementation = resultDirIsGenericImplementation;
+                } else if (isGenericImplementation != resultDirIsGenericImplementation) {
+                    throw new IllegalStateException("Cannot mix generic and non-generic test results in the same report.");
+                }
+                resultDirsAsPaths.add(resultDir.toPath());
+
         }
         return Objects.requireNonNull(isGenericImplementation, "@SkipWhenEmpty should prevent this from being null");
     }
