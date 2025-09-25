@@ -25,8 +25,8 @@ import org.gradle.tooling.model.ProjectIdentifier
 import org.gradle.tooling.model.gradle.ResilientGradleBuild
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 
-@ToolingApiVersion('>=9.2')
-@TargetGradleVersion('>=9.2')
+@ToolingApiVersion('>=9.3')
+@TargetGradleVersion('>=9.3')
 class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {

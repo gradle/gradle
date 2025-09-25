@@ -45,7 +45,6 @@ import org.gradle.internal.service.scopes.BrokenBuildsCapturingListener;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
 
-import java.util.Collections;
 import java.util.Map;
 
 public class CompositeBuildServices extends AbstractGradleModuleServices {
@@ -118,7 +117,7 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
 
             @Override
             public Map<BuildState, Failure> getBrokenBuilds() {
-                return Collections.emptyMap();
+                throw new UnsupportedOperationException("getBrokenBuilds() should not be called in non-resilient model building");
             }
 
             @Override
@@ -128,7 +127,7 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
 
             @Override
             public Map<SettingsInternal, Failure> getBrokenSettings() {
-                return Collections.emptyMap();
+                throw new UnsupportedOperationException("getBrokenSettings() should not be called in non-resilient model building");
             }
         }
     }

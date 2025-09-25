@@ -75,7 +75,7 @@ public class DefaultBuildIncluder implements BuildIncluder {
             return rootBuild;
         } else {
             IncludedBuildState build = buildRegistry.addIncludedBuild(buildDefinition, gradle.getOwner());
-            try{
+            try {
                 coordinator.prepareForInclusion(build, buildDefinition.isPluginBuild());
             } catch (Exception e) {
                 buildIncludeListener.buildInclusionFailed(build, e);
