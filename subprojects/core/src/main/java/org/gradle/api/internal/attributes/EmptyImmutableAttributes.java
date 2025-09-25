@@ -19,12 +19,10 @@ package org.gradle.api.internal.attributes;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
@@ -90,12 +88,6 @@ public final class EmptyImmutableAttributes extends AbstractAttributeContainer i
     @Override
     public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntriesProvider() {
         return Providers.of(ImmutableMap.of());
-    }
-
-    @NonNull
-    @Override
-    public <T extends Named> T named(Class<T> type, String name) {
-        throw new UnsupportedOperationException("This container is immutable and cannot be mutated, so creating an Attribute is not supported.");
     }
 
     @Override
