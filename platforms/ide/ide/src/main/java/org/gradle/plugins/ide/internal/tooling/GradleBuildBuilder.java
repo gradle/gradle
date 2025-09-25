@@ -27,6 +27,7 @@ import org.gradle.plugins.ide.internal.tooling.model.BasicGradleProject;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleBuild;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -47,85 +48,98 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
 
     @Override
     public DefaultGradleBuild create(BuildState target) {
-        ensureProjectsLoaded(target);
-        return convert(target, new LinkedHashMap<>());
+        return new GradleBuildCreator(target).create();
     }
 
-    protected void ensureProjectsLoaded(BuildState target) {
-        target.ensureProjectsLoaded();
-    }
+    @NullMarked
+    protected class GradleBuildCreator {
+        protected final BuildState target;
+        protected final Map<BuildState, DefaultGradleBuild> all = new LinkedHashMap<>();
 
-    protected DefaultGradleBuild convert(BuildState targetBuild, Map<BuildState, DefaultGradleBuild> all) {
-        DefaultGradleBuild model = all.get(targetBuild);
-        if (model != null) {
+        GradleBuildCreator(BuildState target) {
+            this.target = target;
+        }
+
+        DefaultGradleBuild create() {
+            ensureProjectsLoaded(target);
+            return convert(target);
+        }
+
+        protected void ensureProjectsLoaded(BuildState target) {
+            target.ensureProjectsLoaded();
+        }
+
+        protected DefaultGradleBuild convert(BuildState targetBuild) {
+            DefaultGradleBuild model = all.get(targetBuild);
+            if (model != null) {
+                return model;
+            }
+            model = new DefaultGradleBuild();
+            all.put(targetBuild, model);
+
+            // Make sure the project tree has been loaded and can be queried (but not necessarily configured)
+            ensureProjectsLoaded(targetBuild);
+
+            GradleInternal gradle = targetBuild.getMutableModel();
+            addProjects(targetBuild, model);
+            addIncludedBuilds(gradle, model);
+            addAllImportableBuilds(targetBuild, gradle, model);
+
             return model;
         }
-        model = new DefaultGradleBuild();
-        all.put(targetBuild, model);
 
-        // Make sure the project tree has been loaded and can be queried (but not necessarily configured)
-        ensureProjectsLoaded(targetBuild);
+        protected void addProjects(BuildState target, DefaultGradleBuild model) {
+            Map<ProjectState, BasicGradleProject> convertedProjects = new LinkedHashMap<>();
 
-        GradleInternal gradle = targetBuild.getMutableModel();
-        addProjects(targetBuild, model);
-        addIncludedBuilds(gradle, model, all);
+            ProjectState rootProject = target.getProjects().getRootProject();
+            BasicGradleProject convertedRootProject = convert(target, rootProject, convertedProjects);
+            model.setRootProject(convertedRootProject);
 
-        iterateParents(targetBuild, all, gradle, model);
-
-        return model;
-    }
-
-    protected void addIncludedBuilds(GradleInternal gradle, DefaultGradleBuild model, Map<BuildState, DefaultGradleBuild> all) {
-        for (IncludedBuildInternal reference : gradle.includedBuilds()) {
-            BuildState target = reference.getTarget();
-            if (target instanceof IncludedBuildState || target instanceof RootBuildState) {
-                DefaultGradleBuild convertedIncludedBuild = convert(target, all);
-                model.addIncludedBuild(convertedIncludedBuild);
-            } else {
-                throw new IllegalStateException("Unknown build type: " + reference.getClass().getName());
+            for (ProjectState project : target.getProjects().getAllProjects()) {
+                model.addProject(convertedProjects.get(project));
             }
         }
-    }
 
-    protected void iterateParents(BuildState targetBuild, Map<BuildState, DefaultGradleBuild> all, GradleInternal gradle, DefaultGradleBuild model) {
-        if (gradle.getParent() == null) {
-            List<DefaultGradleBuild> allBuilds = new ArrayList<>();
-            buildStateRegistry.visitBuilds(buildState -> {
-                // Do not include the root build and only include builds that are intended to be imported into an IDE
-                if (buildState != targetBuild && buildState.isImportableBuild()) {
-                    allBuilds.add(convert(buildState, all));
+        protected void addIncludedBuilds(GradleInternal gradle, DefaultGradleBuild model) {
+            for (IncludedBuildInternal reference : gradle.includedBuilds()) {
+                BuildState target = reference.getTarget();
+                if (target instanceof IncludedBuildState || target instanceof RootBuildState) {
+                    DefaultGradleBuild convertedIncludedBuild = convert(target);
+                    model.addIncludedBuild(convertedIncludedBuild);
+                } else {
+                    throw new IllegalStateException("Unknown build type: " + reference.getClass().getName());
                 }
-            });
-            model.addBuilds(allBuilds);
+            }
         }
-    }
 
-    protected void addProjects(BuildState target, DefaultGradleBuild model) {
-        Map<ProjectState, BasicGradleProject> convertedProjects = new LinkedHashMap<>();
-
-        ProjectState rootProject = target.getProjects().getRootProject();
-        BasicGradleProject convertedRootProject = convert(target, rootProject, convertedProjects);
-        model.setRootProject(convertedRootProject);
-
-        for (ProjectState project : target.getProjects().getAllProjects()) {
-            model.addProject(convertedProjects.get(project));
+        protected void addAllImportableBuilds(BuildState targetBuild, GradleInternal gradle, DefaultGradleBuild model) {
+            if (gradle.getParent() == null) {
+                List<DefaultGradleBuild> allBuilds = new ArrayList<>();
+                buildStateRegistry.visitBuilds(buildState -> {
+                    // Do not include the root build and only include builds that are intended to be imported into an IDE
+                    if (buildState != targetBuild && buildState.isImportableBuild()) {
+                        allBuilds.add(convert(buildState));
+                    }
+                });
+                model.addBuilds(allBuilds);
+            }
         }
-    }
 
-    protected BasicGradleProject convert(BuildState owner, ProjectState project, Map<ProjectState, BasicGradleProject> convertedProjects) {
-        DefaultProjectIdentifier id = new DefaultProjectIdentifier(owner.getBuildRootDir(), project.getProjectPath().asString());
-        BasicGradleProject converted = new BasicGradleProject()
-            .setName(project.getName())
-            .setProjectIdentifier(id)
-            .setBuildTreePath(project.getIdentityPath().asString())
-            .setProjectDirectory(project.getProjectDir());
-        if (project.getBuildParent() != null) {
-            converted.setParent(convertedProjects.get(project.getBuildParent()));
+        protected BasicGradleProject convert(BuildState owner, ProjectState project, Map<ProjectState, BasicGradleProject> convertedProjects) {
+            DefaultProjectIdentifier id = new DefaultProjectIdentifier(owner.getBuildRootDir(), project.getProjectPath().asString());
+            BasicGradleProject converted = new BasicGradleProject()
+                .setName(project.getName())
+                .setProjectIdentifier(id)
+                .setBuildTreePath(project.getIdentityPath().asString())
+                .setProjectDirectory(project.getProjectDir());
+            if (project.getBuildParent() != null) {
+                converted.setParent(convertedProjects.get(project.getBuildParent()));
+            }
+            convertedProjects.put(project, converted);
+            for (ProjectState child : project.getChildProjects()) {
+                converted.addChild(convert(owner, child, convertedProjects));
+            }
+            return converted;
         }
-        convertedProjects.put(project, converted);
-        for (ProjectState child : project.getChildProjects()) {
-            converted.addChild(convert(owner, child, convertedProjects));
-        }
-        return converted;
     }
 }
