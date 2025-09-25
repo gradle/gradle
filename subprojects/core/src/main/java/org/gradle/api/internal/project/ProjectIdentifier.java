@@ -15,20 +15,32 @@
  */
 package org.gradle.api.internal.project;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 
-// TODO need a better name for this
-public interface ProjectIdentifier {
-    String getName();
+/**
+ * A legacy identifier for a project, used in some legacy software model implementations.
+ * <p>
+ * Avoid this type if possible. Prefer {@link ProjectIdentity}.
+ */
+public class ProjectIdentifier {
 
-    String getPath();
+    private final String projectPath;
+    private final File projectDir;
 
-    @Nullable
-    ProjectIdentifier getParentIdentifier();
+    public ProjectIdentifier(
+        String projectPath,
+        File projectDir
+    ) {
+        this.projectPath = projectPath;
+        this.projectDir = projectDir;
+    }
 
-    File getProjectDir();
+    public String getPath() {
+        return projectPath;
+    }
 
-    File getBuildFile();
+    public File getProjectDir() {
+        return projectDir;
+    }
+
 }
