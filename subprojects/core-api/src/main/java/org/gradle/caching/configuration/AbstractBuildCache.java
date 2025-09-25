@@ -16,6 +16,7 @@
 
 package org.gradle.caching.configuration;
 
+import org.gradle.api.provider.Property;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
@@ -25,7 +26,7 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
  */
 public abstract class AbstractBuildCache implements BuildCache {
     private boolean enabled = true;
-    private boolean push;
+    private final Property<Boolean> push = PropertyBridges.booleanBacked(false);
 
     /**
      * {@inheritDoc}
@@ -50,7 +51,7 @@ public abstract class AbstractBuildCache implements BuildCache {
     @Override
     @ToBeReplacedByLazyProperty
     public boolean isPush() {
-        return push;
+        return push.getOrElse(false);
     }
 
     /**
@@ -58,6 +59,6 @@ public abstract class AbstractBuildCache implements BuildCache {
      */
     @Override
     public void setPush(boolean push) {
-        this.push = push;
+        this.push.set(push);
     }
 }

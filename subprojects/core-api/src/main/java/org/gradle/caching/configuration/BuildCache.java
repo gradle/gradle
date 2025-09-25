@@ -16,6 +16,8 @@
 
 package org.gradle.caching.configuration;
 
+import org.gradle.api.provider.Property;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 /**
@@ -46,4 +48,13 @@ public interface BuildCache {
      * Sets whether a given build can store outputs in the build cache.
      */
     void setPush(boolean enabled);
+
+    /**
+     * Controls whether a given build can store outputs in the build cache.
+     * Uses [PropertyBridges] to maintain source and binary compatibility.
+     */
+    @ReplacesEagerProperty(originalType = boolean.class)
+    default Property<Boolean> getPush() {
+        return PropertyBridges.booleanBridge(this::isPush, this::setPush);
+    }
 }
