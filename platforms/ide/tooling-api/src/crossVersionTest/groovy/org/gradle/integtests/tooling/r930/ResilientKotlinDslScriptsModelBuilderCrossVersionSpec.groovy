@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r920
+package org.gradle.integtests.tooling.r930
 
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -34,10 +34,10 @@ import org.gradle.util.internal.ToBeImplemented
 
 import java.util.function.Function
 
-import static org.gradle.integtests.tooling.r920.ResilientKotlinDslScriptsModelBuilderCrossVersionSpec.KotlinModelAction.QueryStrategy.*
+import static org.gradle.integtests.tooling.r930.ResilientKotlinDslScriptsModelBuilderCrossVersionSpec.KotlinModelAction.QueryStrategy.*
 
-@ToolingApiVersion('>=9.2')
-@TargetGradleVersion('>=9.2')
+@ToolingApiVersion('>=9.3.0')
+@TargetGradleVersion('>=9.3.0')
 class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSpecification {
 
     static final String GRADLE_PROJECT_FAILURE = "Failed to get GradleProject model"
