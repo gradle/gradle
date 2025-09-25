@@ -370,7 +370,7 @@ public class DependencyGraphBuilder {
     }
 
     private static void checkIfDynamicVersionAllowed(ComponentState selected, List<SelectorState> selectors) {
-        String version = selected.getId().getVersion();
+        String version = selected.getVersion();
         // There must be at least one non dynamic selector agreeing with the selection
         // for the resolution result to be stable
         // and for dynamic selectors, only the "stable" ones work, which is currently
@@ -447,12 +447,12 @@ public class DependencyGraphBuilder {
 
     private static Pair<Conflict, List<String>> buildConflictResolutions(ComponentState selected, ResolutionParameters.FailureResolutions failureResolutions) {
         ImmutableList<Conflict.Participant> participants = selected.getModule().getAllVersions().stream()
-            .map(component -> new Conflict.Participant(component.getId().getVersion(), component.getComponentId()))
+            .map(component -> new Conflict.Participant(component.getVersion(), component.getComponentId()))
             .collect(ImmutableList.toImmutableList());
 
         Conflict conflict = new Conflict(
             participants,
-            selected.getModuleVersion().getModule(),
+            selected.getModule().getId(),
             selected.getSelectionReason()
         );
 

@@ -158,7 +158,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
 
         // Create root component and module
         ModuleResolveState rootModule = getModule(rootModuleVersionId.getModule(), true);
-        ComponentState rootComponent = rootModule.getVersion(rootModuleVersionId, rootComponentId);
+        ComponentState rootComponent = rootModule.getVersion(rootModuleVersionId.getVersion(), rootComponentId);
         rootComponent.setRoot();
         rootComponent.setState(rootComponentState, ComponentGraphSpecificResolveState.EMPTY_STATE);
         rootModule.select(rootComponent);
@@ -213,8 +213,8 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     }
 
     @Override
-    public ComponentState getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState) {
-        ComponentState componentState = getModule(id.getModule()).getVersion(id, componentIdentifier);
+    public ComponentState getRevision(ComponentIdentifier componentIdentifier, ModuleIdentifier moduleId, String version, ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState) {
+        ComponentState componentState = getModule(moduleId).getVersion(version, componentIdentifier);
         if (!componentState.alreadyResolved()) {
             componentState.setState(state, graphState);
         }

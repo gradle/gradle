@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
@@ -56,11 +57,12 @@ import java.util.stream.StreamSupport;
  * Resolution state for a given component
  */
 public class ComponentState implements ComponentResolutionState, DependencyGraphComponent {
+
     private final ComponentIdentifier componentIdentifier;
-    private final ModuleVersionIdentifier id;
+    private final String version;
     private final ComponentMetaDataResolver resolver;
     private final List<NodeState> nodes = new LinkedList<>();
-    private final Long resultId;
+    private final long resultId;
     private final ModuleResolveState module;
     private final List<ComponentSelectionDescriptorInternal> selectionCauses = new ArrayList<>();
     private final int hashCode;
@@ -77,23 +79,23 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private boolean root;
     private Pair<Capability, Collection<NodeState>> capabilityReject;
 
-    ComponentState(long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver) {
+    ComponentState(long resultId, ModuleResolveState module, String version, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver) {
         this.resultId = resultId;
         this.module = module;
-        this.id = id;
+        this.version = version;
         this.componentIdentifier = componentIdentifier;
         this.resolver = resolver;
-        this.hashCode = 31 * id.hashCode() ^ Long.hashCode(resultId);
+        this.hashCode = 31 * componentIdentifier.hashCode() ^ Long.hashCode(resultId);
     }
 
     @Override
     public String toString() {
-        return id.toString();
+        return componentIdentifier.getDisplayName();
     }
 
     @Override
     public String getVersion() {
-        return id.getVersion();
+        return version;
     }
 
     @Override
@@ -101,20 +103,10 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return resultId;
     }
 
-    @Override
-    public ModuleVersionIdentifier getId() {
-        return id;
-    }
-
     @Nullable
     @Override
     public String getRepositoryName() {
         return graphResolveState.getRepositoryName();
-    }
-
-    @Override
-    public ModuleVersionIdentifier getModuleVersion() {
-        return id;
     }
 
     @Nullable
@@ -134,6 +126,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return nodes;
     }
 
+    @Override
     public ModuleResolveState getModule() {
         return module;
     }
@@ -234,7 +227,8 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
                     ComponentGraphResolveState versionState = version.getResolveStateOrNull();
                     if (versionState instanceof LenientPlatformGraphResolveState) {
                         LenientPlatformGraphResolveState lenientState = (LenientPlatformGraphResolveState) versionState;
-                        ComponentGraphResolveState withIds = lenientState.copyWithIds((ModuleComponentIdentifier) componentIdentifier, id);
+                        ModuleVersionIdentifier moduleVersionId = DefaultModuleVersionIdentifier.newId(module.getId(), getVersion());
+                        ComponentGraphResolveState withIds = lenientState.copyWithIds((ModuleComponentIdentifier) componentIdentifier, moduleVersionId);
                         setState(withIds, ComponentGraphSpecificResolveState.EMPTY_STATE);
                         return true;
                     }
@@ -462,7 +456,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
         ComponentState that = (ComponentState) o;
 
-        return that.resultId.equals(resultId);
+        return that.resultId == resultId;
 
     }
 
@@ -470,4 +464,5 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     public int hashCode() {
         return hashCode;
     }
+
 }

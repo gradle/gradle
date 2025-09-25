@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
+import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.MutableVersionConstraint
 import org.gradle.api.artifacts.component.ComponentIdentifier
@@ -134,6 +135,16 @@ abstract class AbstractConflictResolverTest extends Specification {
 
         @Override
         VirtualPlatformState getPlatformState() {
+        }
+
+        @Override
+        ModuleResolutionState getModule() {
+            return new ModuleResolutionState() {
+                @Override
+                ModuleIdentifier getId() {
+                    return TestComponent.this.id.module
+                }
+            }
         }
     }
 }

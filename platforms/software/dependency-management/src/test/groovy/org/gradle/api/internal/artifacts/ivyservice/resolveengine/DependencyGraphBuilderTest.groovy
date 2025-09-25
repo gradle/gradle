@@ -223,7 +223,7 @@ class DependencyGraphBuilderTest extends Specification {
         1 * conflictResolver.select(!null) >> {  args ->
             def details = args[0]
             Collection<ComponentResolutionState> candidates = details.candidates
-            def sel = candidates.find { it.id.name == 'b' }
+            def sel = candidates.find { it.module.id.name == 'b' }
             assert sel
             details.select(sel)
         }
@@ -1216,8 +1216,8 @@ class DependencyGraphBuilderTest extends Specification {
         }
     }
 
-    def ids(TestComponent... descriptors) {
-        return descriptors.collect { it.component.metadata.moduleVersionId } as Set
+    Set<ComponentIdentifier> ids(TestComponent... descriptors) {
+        return descriptors.collect { it.component.metadata.id } as Set
     }
 
     class TestComponent {
@@ -1237,7 +1237,7 @@ class DependencyGraphBuilderTest extends Specification {
 
     static class TestGraphVisitor implements DependencyGraphVisitor {
         def root
-        def components = new LinkedHashSet()
+        Set<ComponentIdentifier> components = new LinkedHashSet()
         final Map<ComponentSelector, FailureDetails> failures = new LinkedHashMap<>()
 
         Set<ComponentSelector> getUnresolvedDependencies() {
@@ -1251,7 +1251,7 @@ class DependencyGraphBuilderTest extends Specification {
 
         @Override
         void visitNode(DependencyGraphNode node) {
-            components.add(node.owner.moduleVersion)
+            components.add(node.owner.componentId)
         }
 
         @Override

@@ -298,8 +298,8 @@ class SelectorStateResolverTest extends Specification {
 
     static class TestComponentFactory implements ComponentStateFactory<ComponentResolutionState> {
         @Override
-        ComponentResolutionState getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, @Nullable ComponentGraphResolveState state, @Nullable ComponentGraphSpecificResolveState graphState) {
-            return new TestComponentResolutionState(componentIdentifier, id)
+        ComponentResolutionState getRevision(ComponentIdentifier componentIdentifier, ModuleIdentifier moduleId, String version, @Nullable ComponentGraphResolveState state, @Nullable ComponentGraphSpecificResolveState graphState) {
+            return new TestComponentResolutionState(componentIdentifier, moduleId, version)
         }
     }
 

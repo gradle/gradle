@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
@@ -23,5 +23,5 @@ import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.jspecify.annotations.Nullable;
 
 public interface ComponentStateFactory<T extends ComponentResolutionState> {
-    T getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, @Nullable ComponentGraphResolveState state, @Nullable ComponentGraphSpecificResolveState graphState);
+    T getRevision(ComponentIdentifier componentIdentifier, ModuleIdentifier moduleId, String version, @Nullable ComponentGraphResolveState state, @Nullable ComponentGraphSpecificResolveState graphState);
 }

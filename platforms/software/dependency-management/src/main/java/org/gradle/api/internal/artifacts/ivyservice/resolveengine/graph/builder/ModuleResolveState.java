@@ -18,14 +18,15 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
@@ -60,7 +61,7 @@ import java.util.stream.StreamSupport;
 /**
  * Resolution state for a given module.
  */
-public class ModuleResolveState implements CandidateModule {
+public class ModuleResolveState implements CandidateModule, ModuleResolutionState {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModuleResolveState.class);
     private static final int MAX_SELECTION_CHANGE = 1000;
 
@@ -68,7 +69,7 @@ public class ModuleResolveState implements CandidateModule {
     private final ComponentIdGenerator idGenerator;
     private final ModuleIdentifier id;
     private final List<EdgeState> unattachedEdges = new LinkedList<>();
-    private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<>();
+    private final Map<String, ComponentState> versions = new LinkedHashMap<>();
     private final ModuleSelectors<SelectorState> selectors;
     private final ConflictResolution conflictResolution;
     private final AttributesFactory attributesFactory;
@@ -314,10 +315,9 @@ public class ModuleResolveState implements CandidateModule {
         }
     }
 
-    public ComponentState getVersion(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
-        assert id.getModule().equals(this.id);
-        return versions.computeIfAbsent(id, k ->
-            new ComponentState(idGenerator.nextGraphNodeId(), this, id, componentIdentifier, metaDataResolver)
+    public ComponentState getVersion(String version, ComponentIdentifier componentIdentifier) {
+        return versions.computeIfAbsent(version, k ->
+            new ComponentState(idGenerator.nextGraphNodeId(), this, version, componentIdentifier, metaDataResolver)
         );
     }
 
@@ -504,7 +504,15 @@ public class ModuleResolveState implements CandidateModule {
         for (ComponentState componentState : versions.values()) {
             if (componentState.getMetadataOrNull() == null) {
                 // TODO LJA Using the root as the NodeState here is a bit of a cheat, investigate if we can track the proper NodeState
-                componentState.setState(LenientPlatformGraphResolveState.of(idGenerator, (ModuleComponentIdentifier) componentState.getComponentId(), componentState.getId(), platformState, resolveState.getRoot(), resolveState), ComponentGraphSpecificResolveState.EMPTY_STATE);
+                LenientPlatformGraphResolveState platformResolveState = LenientPlatformGraphResolveState.of(
+                    idGenerator,
+                    (ModuleComponentIdentifier) componentState.getComponentId(),
+                    DefaultModuleVersionIdentifier.newId(getId(), componentState.getVersion()),
+                    platformState,
+                    resolveState.getRoot(),
+                    resolveState
+                );
+                componentState.setState(platformResolveState, ComponentGraphSpecificResolveState.EMPTY_STATE);
             }
         }
     }

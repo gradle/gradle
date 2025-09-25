@@ -58,7 +58,7 @@ public class VersionConflictResolutionDetails implements Describable {
                 }
             }
             more = true;
-            sb.append(next.getId().getVersion());
+            sb.append(next.getVersion());
         }
         return sb.toString();
     }

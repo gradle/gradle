@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
@@ -44,11 +43,6 @@ public interface ResolvedGraphComponent {
      * Returns a unique id for this component.
      */
     ComponentIdentifier getComponentId();
-
-    /**
-     * Returns the module version for this component.
-     */
-    ModuleVersionIdentifier getModuleVersion();
 
     /**
      * The reason this component was selected in the graph.

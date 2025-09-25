@@ -23,10 +23,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ModuleResolveState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveState
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 import spock.lang.Subject
-
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 
 class DefaultModuleConflictHandlerTest extends Specification {
 
@@ -97,7 +96,7 @@ class DefaultModuleConflictHandlerTest extends Specification {
         given:
         def candidateModule = candidate("org", "a", "1", "2")
         handler.registerCandidate(candidateModule)
-        def selectedVersion = candidateModule.versions.find { it.id.version == '2' }
+        def selectedVersion = candidateModule.versions.find { it.version == '2' }
         def targetModule = selectedVersion.module
         resolveState.getModule(DefaultModuleIdentifier.newId("org", "a")) >> targetModule
 
@@ -107,7 +106,7 @@ class DefaultModuleConflictHandlerTest extends Specification {
         then:
         1 * resolver.select(_) >> { args ->
             def details = args[0]
-            def selected = details.candidates.find { it.id.version == '2' }
+            def selected = details.candidates.find { it.version == '2' }
             details.select(selected)
         }
         1 * targetModule.replaceWith(selectedVersion)
@@ -119,15 +118,15 @@ class DefaultModuleConflictHandlerTest extends Specification {
 
     private CandidateModule candidate(String group, String name, String ... versions) {
         def moduleId = DefaultModuleIdentifier.newId(group, name)
-        return Stub(CandidateModule) {
-            getId() >> moduleId
-            getVersions() >> versions.collect { String version ->
-                Stub(ComponentState) {
-                    getId() >> newId(group, name, version)
-                    getModule() >> resolveState.getModule(moduleId)
-                }
+        def module = resolveState.getModule(moduleId)
+        module.getVersions() >> versions.collect { String version ->
+            Stub(ComponentState) {
+                getComponentId() >> DefaultModuleComponentIdentifier.newId(moduleId, version)
+                getVersion() >> version
+                getModule() >> module
             }
         }
+        module
     }
 
 }

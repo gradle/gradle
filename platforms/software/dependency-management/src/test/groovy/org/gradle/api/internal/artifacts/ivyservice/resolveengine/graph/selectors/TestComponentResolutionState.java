@@ -15,9 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.VirtualPlatformState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
@@ -29,22 +31,25 @@ import java.util.Set;
 
 public class TestComponentResolutionState implements ComponentResolutionState {
     private ComponentIdentifier componentIdentifier;
-    private ModuleVersionIdentifier id;
+    private ModuleIdentifier moduleId;
+    private String version;
     private boolean rejected;
 
-    public TestComponentResolutionState(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id) {
+    public TestComponentResolutionState(ComponentIdentifier componentIdentifier, ModuleIdentifier moduleId, String version) {
         this.componentIdentifier = componentIdentifier;
-        this.id = id;
+        this.moduleId = moduleId;
+        this.version = version;
     }
 
     public TestComponentResolutionState(ModuleVersionIdentifier id) {
         this.componentIdentifier = DefaultModuleComponentIdentifier.newId(id);
-        this.id = id;
+        this.moduleId = id.getModule();
+        this.version = id.getVersion();
     }
 
     @Override
     public String getVersion() {
-        return id.getVersion();
+        return version;
     }
 
     @Override
@@ -53,8 +58,13 @@ public class TestComponentResolutionState implements ComponentResolutionState {
     }
 
     @Override
-    public ModuleVersionIdentifier getId() {
-        return id;
+    public ModuleResolutionState getModule() {
+        return new ModuleResolutionState() {
+            @Override
+            public ModuleIdentifier getId() {
+                return moduleId;
+            }
+        };
     }
 
     @Nullable

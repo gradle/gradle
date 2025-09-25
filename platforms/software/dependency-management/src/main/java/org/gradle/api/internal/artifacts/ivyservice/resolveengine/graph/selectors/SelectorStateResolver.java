@@ -55,7 +55,7 @@ public class SelectorStateResolver<T extends ComponentResolutionState> {
         this.conflictResolver = conflictResolver;
         this.componentFactory = componentFactory;
         this.rootComponent = rootComponent;
-        this.rootModuleId = rootComponent.getId().getModule();
+        this.rootModuleId = rootComponent.getModule().getId();
         this.resolveOptimizations = resolveOptimizations;
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;

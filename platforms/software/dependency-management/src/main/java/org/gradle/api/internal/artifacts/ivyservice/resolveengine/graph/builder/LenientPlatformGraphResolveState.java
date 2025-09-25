@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.NamedVariantIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
@@ -184,7 +183,7 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
                 component.virtualPlatformState,
                 component.resolveState,
                 component.platformNode,
-                component.getMetadata().getModuleVersionId()
+                component.getMetadata().getModuleVersionId().getVersion()
             );
 
             String name = Dependency.DEFAULT_CONFIGURATION;
@@ -401,18 +400,18 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
         private final VirtualPlatformState virtualPlatformState;
         private final ResolveState resolveState;
         private final NodeState platformNode;
-        private final ModuleVersionIdentifier moduleVersionIdentifier;
+        private final String version;
 
         public ImplicitVariantDependencyFactory(
             VirtualPlatformState virtualPlatformState,
             ResolveState resolveState,
             NodeState platformNode,
-            ModuleVersionIdentifier moduleVersionIdentifier
+            String version
         ) {
             this.virtualPlatformState = virtualPlatformState;
             this.resolveState = resolveState;
             this.platformNode = platformNode;
-            this.moduleVersionIdentifier = moduleVersionIdentifier;
+            this.version = version;
         }
 
         @Override
@@ -423,8 +422,8 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
                 dependencies.add(new LenientPlatformDependencyMetadata(
                     resolveState,
                     platformNode,
-                    DefaultModuleComponentSelector.newSelector(module.getId(), moduleVersionIdentifier.getVersion()),
-                    DefaultModuleComponentIdentifier.newId(module.getId(), moduleVersionIdentifier.getVersion()),
+                    DefaultModuleComponentSelector.newSelector(module.getId(), version),
+                    DefaultModuleComponentIdentifier.newId(module.getId(), version),
                     virtualPlatformState.getSelectedPlatformId(),
                     virtualPlatformState.isForced(),
                     true
@@ -508,10 +507,8 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
          * Determine if the given component version exists, by resolving it.
          */
         private boolean componentVersionExists(ModuleComponentIdentifier componentId) {
-            ModuleVersionIdentifier moduleVersionId =
-                DefaultModuleVersionIdentifier.newId(componentId.getModuleIdentifier(), componentId.getVersion());
             return resolveState.getModule(componentId.getModuleIdentifier())
-                .getVersion(moduleVersionId, componentId)
+                .getVersion(componentId.getVersion(), componentId)
                 .getResolveStateOrNull() != null;
         }
 

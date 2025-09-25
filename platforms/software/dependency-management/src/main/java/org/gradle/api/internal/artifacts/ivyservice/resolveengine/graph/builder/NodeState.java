@@ -564,8 +564,7 @@ public class NodeState implements DependencyGraphNode {
      * Resolve the given platform, creating a lenient platform if the platform does not exist.
      */
     private void resolvePlatform(ModuleComponentIdentifier componentId) {
-        ModuleVersionIdentifier toModuleVersionId = DefaultModuleVersionIdentifier.newId(componentId.getModuleIdentifier(), componentId.getVersion());
-        ComponentState componentState = resolveState.getModule(componentId.getModuleIdentifier()).getVersion(toModuleVersionId, componentId);
+        ComponentState componentState = resolveState.getModule(componentId.getModuleIdentifier()).getVersion(componentId.getVersion(), componentId);
         // We need to check if the target version exists. For this, we have to try to get metadata for the aligned version.
         // If it's there, it means we can align, otherwise, we must NOT add the edge, or resolution would fail
         ComponentGraphResolveState resolvedComponent = componentState.getResolveStateOrNull();
@@ -577,7 +576,8 @@ public class NodeState implements DependencyGraphNode {
         }
         if (resolvedComponent == null) {
             // the platform doesn't exist, so we're building a lenient one
-            ComponentGraphResolveState newLenientPlatform = LenientPlatformGraphResolveState.of(resolveState.getIdGenerator(), componentId, toModuleVersionId, virtualPlatformState, this, resolveState);
+            ModuleVersionIdentifier platformModuleVersionId = DefaultModuleVersionIdentifier.newId(componentId.getModuleIdentifier(), componentId.getVersion());
+            ComponentGraphResolveState newLenientPlatform = LenientPlatformGraphResolveState.of(resolveState.getIdGenerator(), componentId, platformModuleVersionId, virtualPlatformState, this, resolveState);
             componentState.setState(newLenientPlatform, ComponentGraphSpecificResolveState.EMPTY_STATE);
             // And now let's make sure we do not have another version of that virtual platform missing its metadata
             componentState.getModule().maybeCreateVirtualMetadata(resolveState);
@@ -1120,7 +1120,8 @@ public class NodeState implements DependencyGraphNode {
         ImmutableCapabilities capabilities = metadata.getCapabilities();
         if (capabilities.isEmpty()) {
             // No capabilities declared. Use the component's implicit capability.
-            if (component.getId().getGroup().equals(group) && component.getId().getName().equals(name)) {
+            ModuleIdentifier moduleId = component.getModule().getId();
+            if (moduleId.getGroup().equals(group) && moduleId.getName().equals(name)) {
                 return component.getImplicitCapability();
             }
         } else {

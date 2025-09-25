@@ -18,9 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.ModuleIdentifier
-import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ModuleResolveState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState
@@ -90,13 +88,13 @@ class DefaultCapabilitiesConflictHandlerTest extends Specification {
 
     ComponentState component(String group="group", String name="name", String version="1.0") {
         def moduleId = DefaultModuleIdentifier.newId(group, name)
-        def module = resolveState.getModule(moduleId)
-        ModuleVersionIdentifier mvi = DefaultModuleVersionIdentifier.newId(moduleId, version)
         Mock(ComponentState) {
-            getId() >> mvi
-            getComponentId() >> DefaultModuleComponentIdentifier.newId(mvi)
+            getComponentId() >> DefaultModuleComponentIdentifier.newId(moduleId, version)
+            getModule() >> Mock(ModuleResolveState) {
+                getId() >> moduleId
+            }
+            getVersion() >> version
             isCandidateForConflictResolution() >> true
-            getModule() >> module
             isSelected() >> true
             getImplicitCapability() >> capability(group, name)
         }

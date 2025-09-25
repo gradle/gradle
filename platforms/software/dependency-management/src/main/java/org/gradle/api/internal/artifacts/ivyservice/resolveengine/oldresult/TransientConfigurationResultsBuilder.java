@@ -18,12 +18,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -64,9 +65,9 @@ public class TransientConfigurationResultsBuilder implements DependencyArtifacts
 
     private final BinaryStore binaryStore;
     private final Store<TransientConfigurationResults> cache;
+    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ResolutionHost resolutionHost;
-    private final ModuleVersionIdentifierSerializer moduleVersionIdSerializer;
     private BinaryStore.BinaryData binaryData;
 
     public TransientConfigurationResultsBuilder(
@@ -76,9 +77,9 @@ public class TransientConfigurationResultsBuilder implements DependencyArtifacts
         BuildOperationExecutor buildOperationExecutor,
         ResolutionHost resolutionHost
     ) {
-        this.moduleVersionIdSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
         this.binaryStore = binaryStore;
         this.cache = cache;
+        this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.buildOperationExecutor = buildOperationExecutor;
         this.resolutionHost = resolutionHost;
     }
@@ -88,7 +89,11 @@ public class TransientConfigurationResultsBuilder implements DependencyArtifacts
         binaryStore.write(encoder -> {
             encoder.writeByte(NODE);
             encoder.writeSmallLong(node.getNodeId());
-            moduleVersionIdSerializer.write(encoder, node.getComponent().getId());
+            ComponentResolutionState component = node.getComponent();
+            ModuleIdentifier moduleId = component.getModule().getId();
+            encoder.writeString(moduleId.getGroup());
+            encoder.writeString(moduleId.getName());
+            encoder.writeString(component.getVersion());
             encoder.writeString(node.getMetadata().getName());
         });
 
@@ -170,7 +175,10 @@ public class TransientConfigurationResultsBuilder implements DependencyArtifacts
                 switch (type) {
                     case NODE:
                         id = decoder.readSmallLong();
-                        ModuleVersionIdentifier moduleVersionId = moduleVersionIdSerializer.read(decoder);
+                        String group = decoder.readString();
+                        String name = decoder.readString();
+                        String version = decoder.readString();
+                        ModuleVersionIdentifier moduleVersionId = moduleIdentifierFactory.moduleWithVersion(group, name, version);
                         String variantName = decoder.readString();
                         allDependencies.put(id, new DefaultResolvedDependency(variantName, moduleVersionId, buildOperationProcessor, resolutionHost));
                         break;

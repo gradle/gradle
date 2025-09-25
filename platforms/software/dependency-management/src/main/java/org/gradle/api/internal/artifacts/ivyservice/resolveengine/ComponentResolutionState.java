@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StringVersioned;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.VirtualPlatformState;
@@ -26,9 +25,15 @@ import org.jspecify.annotations.Nullable;
 import java.util.Set;
 
 public interface ComponentResolutionState extends StringVersioned {
+
     ComponentIdentifier getComponentId();
 
-    ModuleVersionIdentifier getId();
+    /**
+     * The module that owns this component.
+     * <p>
+     * A dependency graph may not contain more than one component from any given module.
+     */
+    ModuleResolutionState getModule();
 
     /**
      * Returns the meta-data for the component. Resolves if not already resolved.
