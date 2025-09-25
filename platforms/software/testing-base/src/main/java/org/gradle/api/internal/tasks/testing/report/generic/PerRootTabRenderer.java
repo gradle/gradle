@@ -161,7 +161,10 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                     .attribute("id", failureOutputId)
                     .characters("");
                 for (SerializableFailure failure : info.getResult().getFailures()) {
-                    htmlWriter.characters(failure.getStackTrace() + "\n");
+                    htmlWriter.characters(failure.getStackTrace());
+                    for (int i = 0; i < failure.getCauses().size(); i++) {
+                        htmlWriter.characters("Cause " + (i+1) + ": " + failure.getCauses().get(i) + "\n");
+                    }
                 }
                 htmlWriter.endElement();
                 addClipboardCopyButton(htmlWriter, failureOutputId);

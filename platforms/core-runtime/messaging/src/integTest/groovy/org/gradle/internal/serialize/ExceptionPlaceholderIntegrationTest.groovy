@@ -16,13 +16,15 @@
 
 package org.gradle.internal.serialize
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 import spock.lang.Issue
 
-import static org.hamcrest.CoreMatchers.containsString
+import static org.gradle.util.Matchers.containsText
 
-class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
+class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
 
     @Issue("https://github.com/gradle/gradle/issues/1618")
     def "internal exception should not be thrown"() {
@@ -108,17 +110,13 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
         fails "test"
 
         then:
-        def result = new HtmlTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("example.Issue9487Test")
-        result.testClass("example.Issue9487Test")
-            .assertTestFailed("allCausesShouldBeCaptured",
-                containsString("oh noes (2 failures)"))
-        result.testClass("example.Issue9487Test")
-            .assertTestFailed("allCausesShouldBeCaptured",
-                containsString("java.lang.AssertionError: error 1"))
-        result.testClass("example.Issue9487Test")
-            .assertTestFailed("allCausesShouldBeCaptured",
-                containsString("java.lang.RuntimeException: error 2"))
+        def testResult = resultsFor('tests/test', GenericTestExecutionResult.TestFramework.JUNIT4)
+        testResult.assertAtLeastTestPathsExecuted("example.Issue9487Test")
+        testResult.testPath("example.Issue9487Test", "allCausesShouldBeCaptured").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsText("oh noes (2 failures)"))
+            .assertFailureMessages(containsText("java.lang.AssertionError: error 1"))
+            .assertFailureMessages(containsText("java.lang.RuntimeException: error 2"))
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9487")
@@ -177,14 +175,13 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
         fails "test"
 
         then:
-        def result = new HtmlTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("example.Issue9487Test")
-        result.testClass("example.Issue9487Test")
-            .assertTestFailed("allCausesShouldBeCaptured",
-                containsString("Cause 1: java.lang.AssertionError: error 1"))
-        result.testClass("example.Issue9487Test")
-            .assertTestFailed("allCausesShouldBeCaptured",
-                containsString("Cause 2: java.lang.RuntimeException: error 2"))
+        def testResult = resultsFor('tests/test', GenericTestExecutionResult.TestFramework.JUNIT4)
+        testResult.assertAtLeastTestPathsExecuted("example.Issue9487Test")
+        testResult.testPath("example.Issue9487Test", "allCausesShouldBeCaptured").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsText("example.AdhocError"))
+            .assertFailureMessages(containsText("Cause 1: java.lang.AssertionError: error 1"))
+            .assertFailureMessages(containsText("Cause 2: java.lang.RuntimeException: error 2"))
 
         where:
         methodName << [
