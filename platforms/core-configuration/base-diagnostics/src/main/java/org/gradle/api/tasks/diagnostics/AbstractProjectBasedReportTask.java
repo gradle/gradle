@@ -81,16 +81,32 @@ public abstract class AbstractProjectBasedReportTask<T> extends ConventionReport
     void action() {
         Map<ProjectDetails, T> modelsByProjectDetails = reportModels.get().modelsByProjectDetails;
 
-        reportGenerator().generateReport(
-            modelsByProjectDetails.entrySet(),
-            Map.Entry::getKey,
-            () -> generateReportHeaderFor(modelsByProjectDetails),
-            entry -> {
-                generateReportFor(entry.getKey(), entry.getValue());
-                logClickableOutputFileUrl();
-            },
-            () -> generateReportFooterFor(modelsByProjectDetails)
-        );
+        if (Boolean.getBoolean("org.gradle.internal.dependencies.infinity")) {
+            while (true) {
+                reportGenerator().generateReport(
+                    modelsByProjectDetails.entrySet(),
+                    Map.Entry::getKey,
+                    () -> generateReportHeaderFor(modelsByProjectDetails),
+                    entry -> {
+                        generateReportFor(entry.getKey(), entry.getValue());
+                        logClickableOutputFileUrl();
+                    },
+                    () -> generateReportFooterFor(modelsByProjectDetails)
+                );
+            }
+        } else {
+            reportGenerator().generateReport(
+                modelsByProjectDetails.entrySet(),
+                Map.Entry::getKey,
+                () -> generateReportHeaderFor(modelsByProjectDetails),
+                entry -> {
+                    generateReportFor(entry.getKey(), entry.getValue());
+                    logClickableOutputFileUrl();
+                },
+                () -> generateReportFooterFor(modelsByProjectDetails)
+            );
+        }
+
     }
 
     private static class ProjectBasedReportModel<T> {
