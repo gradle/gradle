@@ -34,19 +34,19 @@ trait VerifiesGenericTestReportResults {
         renderedUrl
     }
 
-    GenericHtmlTestExecutionResult resultsFor(String testTaskReportsDirPath, TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
+    GenericHtmlTestExecutionResult resultsFor(String testTaskReportsDirPath = 'tests/test', TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
         return resultsFor(testDirectory, testTaskReportsDirPath, testFramework)
     }
 
-    GenericHtmlTestExecutionResult resultsFor(TestFile rootBuildDir, String testTaskReportsDirPath, TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
+    GenericHtmlTestExecutionResult resultsFor(TestFile rootBuildDir, String testTaskReportsDirPath = 'tests/test', TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
         return new GenericHtmlTestExecutionResult(rootBuildDir, "build/reports/${testTaskReportsDirPath}", testFramework)
     }
 
-    GenericHtmlTestExecutionResult aggregateResults(TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
-        return aggregateResults(testDirectory, testFramework)
+    GenericHtmlTestExecutionResult aggregateResults(String testTaskReportsDirPath = '', TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
+        return aggregateResults(testDirectory, testTaskReportsDirPath, 'aggregate-test-results', testFramework)
     }
 
-    GenericHtmlTestExecutionResult aggregateResults(TestFile rootBuildDir, TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
-        return new GenericHtmlTestExecutionResult(rootBuildDir, "build/reports/aggregate-test-results", testFramework)
+    GenericHtmlTestExecutionResult aggregateResults(TestFile rootBuildDir, String testTaskReportsDirPath = 'tests/test', String reportName = 'aggregate-test-results', TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
+        return new GenericHtmlTestExecutionResult(rootBuildDir, "build/reports/$testTaskReportsDirPath/$reportName", testFramework)
     }
 }
