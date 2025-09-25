@@ -33,6 +33,8 @@ public final class AutoAppliedDevelocityPlugin {
 
     public static final PluginId ID = new DefaultPluginId("com.gradle.develocity");
     public static final PluginId BUILD_SCAN_PLUGIN_ID = new DefaultPluginId("com.gradle.build-scan");
+    public static final PluginId CONVENTIONS_PLUGIN_ID = new DefaultPluginId("io.github.gradle.develocity-conventions-plugin");
+    public static final String CONVENTIONS_PLUGIN_VERSION = "0.12.1";
 
     public static final PluginId GRADLE_ENTERPRISE_PLUGIN_ID = new DefaultPluginId("com.gradle.enterprise");
     public static final String GRADLE_ENTERPRISE_PLUGIN_ARTIFACT_NAME = "gradle-enterprise-gradle-plugin";
