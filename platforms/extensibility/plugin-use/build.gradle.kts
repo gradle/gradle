@@ -16,8 +16,8 @@ dependencies {
     api(projects.modelCore)
     api(projects.modelReflect)
     api(projects.problemsApi)
-    api(projects.softwareFeaturesApi)
-    api(projects.softwareFeatures)
+    api(projects.projectFeaturesApi)
+    api(projects.projectFeatures)
 
     api(libs.guava)
     api(libs.inject)
