@@ -16,11 +16,12 @@
 
 package org.gradle.integtests.tooling.r930
 
-
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.Failure
@@ -31,10 +32,12 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.tooling.model.kotlin.dsl.ResilientKotlinDslScriptsModel
 import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Ignore
 
 import java.util.function.Function
 
-import static org.gradle.integtests.tooling.r930.ResilientKotlinDslScriptsModelBuilderCrossVersionSpec.KotlinModelAction.QueryStrategy.*
+import static org.gradle.integtests.tooling.r930.ResilientKotlinDslScriptsModelBuilderCrossVersionSpec.KotlinModelAction.QueryStrategy.INCLUDED_BUILDS_FIRST
+import static org.gradle.integtests.tooling.r930.ResilientKotlinDslScriptsModelBuilderCrossVersionSpec.KotlinModelAction.QueryStrategy.ROOT_PROJECT_FIRST
 
 @ToolingApiVersion('>=9.3.0')
 @TargetGradleVersion('>=9.3.0')
@@ -43,10 +46,315 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
     static final String GRADLE_PROJECT_FAILURE = "Failed to get GradleProject model"
 
     def setup() {
-        settingsFile.delete()
+        settingsFile.delete() // This is automatically created by `ToolingApiSpecification`
     }
 
-    def "returns all models if there is no exception"() {
+    def "basic build - nothing broken"() {
+        given:
+        settingsKotlinFile << """
+            dependencyResolutionManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
+            rootProject.name = "root"
+        """
+        buildKotlinFile << """
+            plugins { `kotlin-dsl` }
+        """
+
+        when:
+        def original = succeeds {
+            action(KotlinModelAction.originalModel(ROOT_PROJECT_FIRST)).run()
+        }
+
+        then:
+        original
+
+        when:
+        def resilientModels = succeeds {
+            action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
+                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                    .run()
+        }
+
+        then:
+        def originalScripts = original.scriptModels.keySet()
+        def resilientScripts = resilientModels.scriptModels.keySet()
+        resilientScripts.size() == originalScripts.size()
+        for (File scriptFile : original.scriptModels.keySet()) {
+            def modelAssert = new ResilientKotlinModelAssert(scriptFile, resilientModels, original)
+            modelAssert.assertBothModelsExist()
+            modelAssert.assertClassPathsAreEqual()
+            modelAssert.assertImplicitImportsAreEqual()
+        }
+        resilientModels.failureMessages.isEmpty()
+        resilientModels.otherModelFailures.isEmpty()
+    }
+
+    @Ignore // TODO
+    def "basic build - broken settings file"() {
+        given:
+        settingsKotlinFile << """
+            blow up !!!
+        """
+
+        when:
+        def original = succeeds {
+            action(KotlinModelAction.originalModel(ROOT_PROJECT_FIRST)).run()
+        }
+
+        then:
+        original
+
+        when:
+        def resilientModels = succeeds {
+            action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
+                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                    .run()
+        }
+
+        then:
+        def originalScripts = original.scriptModels.keySet()
+        def resilientScripts = resilientModels.scriptModels.keySet()
+        resilientScripts.size() == originalScripts.size()
+        for (File scriptFile : original.scriptModels.keySet()) {
+            def modelAssert = new ResilientKotlinModelAssert(scriptFile, resilientModels, original)
+            modelAssert.assertBothModelsExist()
+            modelAssert.assertClassPathsAreEqual()
+            modelAssert.assertImplicitImportsAreEqual()
+        }
+        resilientModels.failureMessages.isEmpty()
+        resilientModels.otherModelFailures.isEmpty()
+    }
+
+    @Ignore // TODO
+    def "basic build - broken build file - intact plugins block"() {
+        given:
+        settingsKotlinFile << """
+            dependencyResolutionManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
+            rootProject.name = "root"
+        """
+        buildKotlinFile << """
+            plugins { `kotlin-dsl` }
+            
+            blow up !!!
+        """
+
+        when:
+        def original = succeeds {
+            action(KotlinModelAction.originalModel(ROOT_PROJECT_FIRST)).run()
+        }
+
+        then:
+        original
+
+        when:
+        def resilientModels = succeeds {
+            action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
+                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                    .run()
+        }
+
+        then:
+        def originalScripts = original.scriptModels.keySet()
+        def resilientScripts = resilientModels.scriptModels.keySet()
+        resilientScripts.size() == originalScripts.size()
+        for (File scriptFile : original.scriptModels.keySet()) {
+            def modelAssert = new ResilientKotlinModelAssert(scriptFile, resilientModels, original)
+            modelAssert.assertBothModelsExist()
+            modelAssert.assertClassPathsAreEqual()
+            modelAssert.assertImplicitImportsAreEqual()
+        }
+        resilientModels.failureMessages.isEmpty()
+        resilientModels.otherModelFailures.isEmpty()
+    }
+
+    @Ignore // TODO
+    def "basic build - broken build file - broken plugins block"() {
+        given:
+        settingsKotlinFile << """
+            rootProject.name = "root"
+        """
+        buildKotlinFile << """
+            plugins { blow up !!! }
+        """
+
+        when:
+        def original = succeeds {
+            action(KotlinModelAction.originalModel(ROOT_PROJECT_FIRST)).run()
+        }
+
+        then:
+        original
+
+        when:
+        def resilientModels = succeeds {
+            action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
+                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                    .run()
+        }
+
+        then:
+        def originalScripts = original.scriptModels.keySet()
+        def resilientScripts = resilientModels.scriptModels.keySet()
+        resilientScripts.size() == originalScripts.size()
+        for (File scriptFile : original.scriptModels.keySet()) {
+            def modelAssert = new ResilientKotlinModelAssert(scriptFile, resilientModels, original)
+            modelAssert.assertBothModelsExist()
+            modelAssert.assertClassPathsAreEqual()
+            modelAssert.assertImplicitImportsAreEqual()
+        }
+        resilientModels.failureMessages.isEmpty()
+        resilientModels.otherModelFailures.isEmpty()
+    }
+
+    @Ignore // TODO
+    def "basic build w/ included build - broken build file in included build - intact plugins block"() {
+        given:
+        settingsKotlinFile << """
+            rootProject.name = "root"
+            includeBuild("included")
+        """
+
+        def included = file("included")
+        included.file("settings.gradle.kts") << """
+            dependencyResolutionManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
+            rootProject.name = "included"
+        """
+        included.file("build.gradle.kts") << """
+            plugins { `kotlin-dsl` }
+            blow up !!!
+        """
+
+        when:
+        def original = succeeds {
+            action(KotlinModelAction.originalModel(ROOT_PROJECT_FIRST)).run()
+        }
+
+        then:
+        original
+
+        when:
+        def resilientModels = succeeds {
+            action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
+                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                    .run()
+        }
+
+        then:
+        def originalScripts = original.scriptModels.keySet()
+        def resilientScripts = resilientModels.scriptModels.keySet()
+        resilientScripts.size() == originalScripts.size()
+        for (File scriptFile : original.scriptModels.keySet()) {
+            def modelAssert = new ResilientKotlinModelAssert(scriptFile, resilientModels, original)
+            modelAssert.assertBothModelsExist()
+            modelAssert.assertClassPathsAreEqual()
+            modelAssert.assertImplicitImportsAreEqual()
+        }
+        resilientModels.failureMessages.isEmpty()
+        resilientModels.otherModelFailures.isEmpty()
+    }
+
+    @Ignore // TODO
+    def "basic build w/ included build - broken build file in included build - broken plugins block"() {
+        given:
+        settingsKotlinFile << """
+            rootProject.name = "root"
+            includeBuild("included")
+        """
+
+        def included = file("included")
+        included.file("settings.gradle.kts") << """
+            rootProject.name = "included"
+        """
+        included.file("build.gradle.kts") << """
+            plugins { blow up !!! }
+        """
+
+        when:
+        def original = succeeds {
+            action(KotlinModelAction.originalModel(ROOT_PROJECT_FIRST)).run()
+        }
+
+        then:
+        original
+
+        when:
+        def resilientModels = succeeds {
+            action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
+                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                    .run()
+        }
+
+        then:
+        def originalScripts = original.scriptModels.keySet()
+        def resilientScripts = resilientModels.scriptModels.keySet()
+        resilientScripts.size() == originalScripts.size()
+        for (File scriptFile : original.scriptModels.keySet()) {
+            def modelAssert = new ResilientKotlinModelAssert(scriptFile, resilientModels, original)
+            modelAssert.assertBothModelsExist()
+            modelAssert.assertClassPathsAreEqual()
+            modelAssert.assertImplicitImportsAreEqual()
+        }
+        resilientModels.failureMessages.isEmpty()
+        resilientModels.otherModelFailures.isEmpty()
+    }
+
+    @Ignore // TODO
+    def "basic build w/ included build - broken settings and build file in included build"() {
+        given:
+        settingsKotlinFile << """
+            rootProject.name = "root"
+            includeBuild("included")
+        """
+
+        def included = file("included")
+        def includedSettings = included.file("settings.gradle.kts") << """
+            boom !!!
+        """
+        included.file("build.gradle.kts") << """
+            blow up !!!
+        """
+
+        when:
+        def original = succeeds {
+            action(KotlinModelAction.originalModel(ROOT_PROJECT_FIRST)).run()
+        }
+
+        then:
+        original
+
+        when:
+        def resilientModels = succeeds {
+            action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
+                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                    .run()
+        }
+
+        then:
+        def originalScripts = original.scriptModels.keySet()
+        def resilientScripts = resilientModels.scriptModels.keySet()
+        resilientScripts.size() == originalScripts.size()
+        for (File scriptFile : original.scriptModels.keySet()) {
+            def modelAssert = new ResilientKotlinModelAssert(scriptFile, resilientModels, original)
+            modelAssert.assertBothModelsExist()
+            modelAssert.assertClassPathsAreEqual()
+            modelAssert.assertImplicitImportsAreEqual()
+        }
+        resilientModels.failureMessages.isEmpty()
+        resilientModels.otherModelFailures.isEmpty()
+    }
+
+    def "bigger build - nothing broken"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -57,7 +365,6 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             plugins {
                 id("java")
             }
-
         """
         file("b/build.gradle.kts") << """
             plugins {
@@ -86,8 +393,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         when:
         def resilientModels = succeeds {
             action(KotlinModelAction.resilientModel(ROOT_PROJECT_FIRST))
-                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                .run()
+                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                    .run()
         }
 
         then:
@@ -104,7 +411,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         resilientModels.otherModelFailures.isEmpty()
     }
 
-    def "returns all successful and first failed script model when #description with #queryStrategy"() {
+    def "bigger build - broken build file in included build - #description with #queryStrategy"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -126,7 +433,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             plugins {
                 id("java")
             }
-        """
+        """ // TODO: why is this not failing just like "basic build w/ included build - broken build file in included build - intact plugins block" above? it's the same failure...
         def d = file("d/build.gradle.kts") << """
             plugins {
                 id("java")
@@ -145,8 +452,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         c << """$breakage"""
         def resilientModels = succeeds {
             action(KotlinModelAction.resilientModel(queryStrategy))
-                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                .run()
+                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                    .run()
         }
 
         then:
@@ -178,7 +485,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         "script compilation fails" | "broken !!!"                                 | "broken !!!"     | INCLUDED_BUILDS_FIRST
     }
 
-    def "returns scripts models when project convention plugin is failing with exception with #queryStrategy"() {
+    def "build w/ convention plugins - broken project convention plugin - exception - #queryStrategy"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -238,8 +545,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         projectPlugin << "throw RuntimeException(\"Failing script\")"
         def resilientModels = succeeds {
             action(KotlinModelAction.resilientModel(queryStrategy))
-                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
-                .run()
+                    .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                    .run()
         }
 
         then:
@@ -272,7 +579,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         queryStrategy << [ROOT_PROJECT_FIRST, INCLUDED_BUILDS_FIRST]
     }
 
-    def "returns scripts models when project convention plugin is failing with compile error with #queryStrategy"() {
+    def "build w/ convention plugins - broken project convention - compile error - #queryStrategy"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -371,7 +678,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
     }
 
     @ToBeImplemented("Needs resilient GradleBuild model")
-    def "returns scripts models for when settings convention plugin is broken"() {
+    def "build w/ convention plugins - broken settings convention"() {
         given:
         settingsKotlinFile << """
             pluginManagement {
@@ -481,9 +788,9 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             }
 
             return new KotlinModel(
-                scriptModels,
-                failures,
-                otherModelFailures
+                    scriptModels,
+                    failures,
+                    otherModelFailures
             )
         }
 
@@ -528,11 +835,11 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         ResilientKotlinModelAssert assertBothModelsExist() {
             if (!originalModel) {
                 throw new AssertionError("Original model for script ${scriptFile} is missing, scripts that have original model are:\n" +
-                    " ${originalCustomModel.scriptModels.keySet()}")
+                        " ${originalCustomModel.scriptModels.keySet()}")
             }
             if (!resilientModel) {
                 throw new AssertionError("Resilient model for script ${scriptFile} is missing, scripts that have resilient model are:\n" +
-                    " ${resilientCustomModel.scriptModels.keySet()}")
+                        " ${resilientCustomModel.scriptModels.keySet()}")
             }
             return this
         }
@@ -541,8 +848,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         ResilientKotlinModelAssert assertClassPathsAreEqual() {
             if (resilientModel.classPath != originalModel.classPath) {
                 throw new AssertionError("Class paths are not equal for script ${scriptFile}:\n" +
-                    " - Resilient classPath: ${resilientModel.classPath}\n" +
-                    " - Original classPath:  ${originalModel.classPath}")
+                        " - Resilient classPath: ${resilientModel.classPath}\n" +
+                        " - Original classPath:  ${originalModel.classPath}")
             }
             return this
         }
@@ -551,8 +858,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             def filteredOriginalClassPath = originalModel.classPath.findAll { filter.apply(TextUtil.normaliseFileSeparators(it.absolutePath)) }
             if (resilientModel.classPath != filteredOriginalClassPath) {
                 throw new AssertionError("Class paths are not equal after filtering original entries for script ${scriptFile}:\n" +
-                    " - Resilient classPath:         ${resilientModel.classPath}\n" +
-                    " - Filtered original classPath: ${filteredOriginalClassPath}")
+                        " - Resilient classPath:         ${resilientModel.classPath}\n" +
+                        " - Filtered original classPath: ${filteredOriginalClassPath}")
             }
             return this
         }
@@ -562,8 +869,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             def filteredOriginalClassPath = originalModel.classPath.findAll { filter.apply(TextUtil.normaliseFileSeparators(it.absolutePath)) }
             if (filteredResilient != filteredOriginalClassPath) {
                 throw new AssertionError("Class paths are not equal after filtering some entries for script ${scriptFile}:\n" +
-                    " - Riltered resilient: ${filteredResilient}\n" +
-                    " - Riltered original:  ${filteredOriginalClassPath}")
+                        " - Riltered resilient: ${filteredResilient}\n" +
+                        " - Riltered original:  ${filteredOriginalClassPath}")
             }
             return this
         }
@@ -572,7 +879,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             def filteredResilient = resilientModel.classPath.findAll { TextUtil.normaliseFileSeparators(it.absolutePath).contains(path) }
             if (filteredResilient.isEmpty()) {
                 throw new AssertionError("Resilient Class paths for script ${scriptFile} did not contain entries with path '${path}':\n" +
-                    " - Resilient classPath: ${resilientModel.classPath}")
+                        " - Resilient classPath: ${resilientModel.classPath}")
             }
             return this
         }
@@ -580,8 +887,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         ResilientKotlinModelAssert assertImplicitImportsAreEqual() {
             if (resilientModel.implicitImports != originalModel.implicitImports) {
                 throw new AssertionError("Implicit imports are not equal for script ${scriptFile}:\n" +
-                    " - Resilient imports: ${resilientModel.implicitImports}\n" +
-                    " - Original imports:  ${originalModel.implicitImports}")
+                        " - Resilient imports: ${resilientModel.implicitImports}\n" +
+                        " - Original imports:  ${originalModel.implicitImports}")
             }
             return this
         }
