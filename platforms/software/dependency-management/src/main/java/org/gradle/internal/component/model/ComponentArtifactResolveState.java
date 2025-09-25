@@ -17,9 +17,6 @@
 package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.internal.resolve.resolver.ArtifactResolver;
-import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 
 /**
  * State for a component instance that is used to perform artifact resolution.
@@ -37,6 +34,7 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
  * <p>Instances of this type are created using {@link ComponentGraphResolveState#prepareForArtifactResolution()}.</p>
  */
 public interface ComponentArtifactResolveState {
+
     ComponentIdentifier getId();
 
     /**
@@ -44,8 +42,4 @@ public interface ComponentArtifactResolveState {
      */
     ComponentArtifactResolveMetadata getArtifactMetadata();
 
-    /**
-     * Discovers the set of artifacts belonging to this component, with the type specified. Does not download the artifacts. Any failures are packaged up in the result.
-     */
-    void resolveArtifactsWithType(ArtifactResolver artifactResolver, ArtifactType artifactType, BuildableArtifactSetResolveResult result);
 }

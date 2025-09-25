@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks
+package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.jspecify.annotations.NullMarked;
 
-@Requires(UnitTestPreconditions.Unix)
-class DeleteTaskUnixDerivativeSymlinkIntegrationTest extends DeleteIntegrationTest {
-    @Override
-    protected void createSymbolicLink(TestFile link, TestFile target) {
-        link.createLink(target)
-    }
+/**
+ * A type that consumes tests.
+ * <p>
+ * Implemented by JUnit and JUnit Platform test frameworks to create types that execute tests by class name.
+ */
+@NullMarked
+public interface TestClassConsumer {
+    /**
+     * Consumes a class-based test given the class's name.
+     *
+     * @param testClassName The FQN of the test class to consume
+     */
+    void consumeClass(String testClassName);
 }

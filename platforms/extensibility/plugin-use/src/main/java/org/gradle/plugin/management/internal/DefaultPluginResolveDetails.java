@@ -16,14 +16,14 @@
 
 package org.gradle.plugin.management.internal;
 
-import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.artifacts.dsl.ModuleComponentSelectorParsers;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.management.PluginResolveDetails;
 
 public class DefaultPluginResolveDetails implements PluginResolveDetails {
-    private static final NotationParser<Object, ModuleVersionSelector> USE_MODULE_NOTATION_PARSER = ModuleVersionSelectorParsers.parser("useModule()");
+    private static final NotationParser<Object, ModuleComponentSelector> USE_MODULE_NOTATION_PARSER = ModuleComponentSelectorParsers.parser("useModule()");
 
     private final PluginRequestInternal pluginRequest;
     private PluginRequestInternal targetPluginRequest;
@@ -62,7 +62,7 @@ public class DefaultPluginResolveDetails implements PluginResolveDetails {
             targetPluginRequest.getScriptDisplayName(),
             targetPluginRequest.getLineNumber(),
             version,
-            targetPluginRequest.getModule(),
+            targetPluginRequest.getSelector(),
             targetPluginRequest,
             targetPluginRequest.getAlternativeCoordinates().orElse(null)
         );

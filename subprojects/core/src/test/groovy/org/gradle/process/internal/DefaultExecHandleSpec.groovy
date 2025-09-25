@@ -27,6 +27,8 @@ import org.gradle.process.ExecResult
 import org.gradle.process.ProcessExecutionException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.UsesNativeServices
 import org.gradle.util.internal.GUtil
 import org.gradle.util.internal.TextUtil
@@ -93,7 +95,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
     void "understands when application exits with non-zero"() {
         given:
-        def execHandle = handle().args(args(BrokenApp.class)).build()
+        def execHandle = handle().args(args(BrokenApp.class, "72")).build()
 
         when:
         def result = execHandle.start().waitForFinish()
@@ -107,7 +109,56 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
         then:
         def e = thrown(ProcessExecutionException)
-        e.message.contains "finished with non-zero exit value 72"
+        e.message == "Process '${execHandle.displayName}' finished with non-zero exit value 72"
+    }
+
+    @Requires(UnitTestPreconditions.Unix)
+    void "provides detailed error message for processes terminated by a signal"() {
+        given:
+        def execHandle = handle().args(args(BrokenApp.class, exitCode.toString())).build()
+
+        when:
+        def result = execHandle.start().waitForFinish()
+
+        then:
+        execHandle.state == ExecHandleState.FAILED
+        result.exitValue == exitCode
+
+        when:
+        result.assertNormalExitValue()
+
+        then:
+        def e = thrown(ProcessExecutionException)
+        e.message == "Process '${execHandle.displayName}' finished with non-zero exit value $exitCode ($expectedMessage)"
+
+        where:
+        exitCode | expectedMessage
+        137      | "this value may indicate that the process was terminated with the SIGKILL signal, which is often caused by the system running out of memory"
+        143      | "this value may indicate that the process was terminated with the SIGTERM signal"
+    }
+
+    @Requires(UnitTestPreconditions.Windows)
+    void "provides detailed error message for processes terminated by the OS on Windows"() {
+        given:
+        def execHandle = handle().args(args(BrokenApp.class, exitCode.toString())).build()
+
+        when:
+        def result = execHandle.start().waitForFinish()
+
+        then:
+        execHandle.state == ExecHandleState.FAILED
+        result.exitValue == exitCode
+
+        when:
+        result.assertNormalExitValue()
+
+        then:
+        def e = thrown(ProcessExecutionException)
+        e.message == "Process '${execHandle.displayName}' finished with non-zero exit value $exitCode ($expectedMessage)"
+
+        where:
+        exitCode    | expectedMessage
+        -1073741823 | "NTSTATUS 0xC0000001"
     }
 
     void "start fails when process cannot be started"() {
@@ -185,7 +236,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
     void "can abort after process has failed"() {
         given:
-        def execHandle = handle().args(args(BrokenApp.class)).build()
+        def execHandle = handle().args(args(BrokenApp.class, "72")).build()
         execHandle.start().waitForFinish()
 
         when:
@@ -231,7 +282,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
     void "clients can listen to notifications when execution fails"() {
         ExecHandleListener listener = Mock()
-        def execHandle = handle().listener(listener).args(args(BrokenApp.class)).build()
+        def execHandle = handle().listener(listener).args(args(BrokenApp.class, "72")).build()
 
         when:
         execHandle.start()
@@ -289,7 +340,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     void "propagates listener finish notification failure after execution fails"() {
         def failure = new RuntimeException()
         ExecHandleListener listener = Mock()
-        def execHandle = handle().listener(listener).args(args(BrokenApp.class)).build()
+        def execHandle = handle().listener(listener).args(args(BrokenApp.class, "72")).build()
 
         when:
         execHandle.start()
@@ -396,7 +447,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     @Ignore //not yet implemented
     //it may not be easily testable
     void "detach detects when process did not start or died prematurely"() {
-        def execHandle = handle().args(args(BrokenApp.class)).build()
+        def execHandle = handle().args(args(BrokenApp.class, "72")).build()
 
         when:
         execHandle.start()
@@ -503,7 +554,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
     public static class BrokenApp {
         public static void main(String[] args) {
-            System.exit(72)
+            System.exit(args[0].toInteger())
         }
     }
 
