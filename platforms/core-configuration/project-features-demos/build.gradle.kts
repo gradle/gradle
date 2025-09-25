@@ -28,7 +28,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.declarativeDslApi)
     api(projects.reporting)
-    api(projects.softwareFeatures)
+    api(projects.projectFeatures)
 
     api(libs.kotlinStdlib)
     api(libs.inject)

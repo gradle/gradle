@@ -104,7 +104,7 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.snapshots)
-    api(projects.softwareFeatures)
+    api(projects.projectFeatures)
     api(projects.stdlibJavaExtensions)
     api(projects.time)
     api(projects.versionedCache)
@@ -130,7 +130,7 @@ dependencies {
     implementation(projects.coreFlowServicesApi) {
         because("DefaultBuildServicesRegistry has ordering dependency with FlowScope")
     }
-    implementation(projects.softwareFeaturesApi)
+    implementation(projects.projectFeaturesApi)
 
     implementation(libs.asmCommons)
     implementation(libs.commonsCompress)
