@@ -34,16 +34,16 @@ import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaB
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.kotlin.dsl.accessors.ContainerElementFactoryEntry
-import org.gradle.kotlin.dsl.accessors.SoftwareFeatureEntry
+import org.gradle.kotlin.dsl.accessors.ProjectFeatureEntry
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureRegistry
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.lang.reflect.WildcardType
 
 data class KotlinDslDclSchema(
     val containerElementFactories: List<ContainerElementFactoryEntry<TypeOf<*>>>,
-    val softwareFeatures: List<SoftwareFeatureEntry<TypeOf<*>>>
+    val projectFeatures: List<ProjectFeatureEntry<TypeOf<*>>>
 )
 
 /**
@@ -51,10 +51,10 @@ data class KotlinDslDclSchema(
  * the collection of the DCL schema parts that are relevant to Kotlin DSL.
  */
 internal fun KotlinDslDclSchemaCollector.collectDclSchemaForKotlinDslTarget(target: Any, targetScope: ClassLoaderScope): KotlinDslDclSchema? {
-    fun softwareTypeRegistryOf(target: Any): SoftwareFeatureRegistry? =
+    fun projectTypeRegistryOf(target: Any): ProjectFeatureRegistry? =
         when (target) {
-            is Project -> target.serviceOf<SoftwareFeatureRegistry>()
-            is Settings -> target.serviceOf<SoftwareFeatureRegistry>()
+            is Project -> target.serviceOf<ProjectFeatureRegistry>()
+            is Settings -> target.serviceOf<ProjectFeatureRegistry>()
             else -> null
         }
 
@@ -71,16 +71,16 @@ internal fun KotlinDslDclSchemaCollector.collectDclSchemaForKotlinDslTarget(targ
         collectContainerFactories(interpretationSequence, targetScope)
     } ?: return null
 
-    val softwareTypes = softwareTypeRegistryOf(target)?.let(::collectSoftwareTypes) ?: return null
+    val projectTypes = projectTypeRegistryOf(target)?.let(::collectProjectTypes) ?: return null
 
-    return KotlinDslDclSchema(containerElementFactories, softwareTypes)
+    return KotlinDslDclSchema(containerElementFactories, projectTypes)
 }
 
 
 @ServiceScope(Scope.UserHome::class)
 internal interface KotlinDslDclSchemaCollector {
     fun collectContainerFactories(interpretationSequence: InterpretationSequence, classLoaderScope: ClassLoaderScope): List<ContainerElementFactoryEntry<TypeOf<*>>>
-    fun collectSoftwareTypes(softwareFeatureRegistry: SoftwareFeatureRegistry): List<SoftwareFeatureEntry<TypeOf<*>>>
+    fun collectProjectTypes(projectFeatureRegistry: ProjectFeatureRegistry): List<ProjectFeatureEntry<TypeOf<*>>>
 }
 
 internal class CachedKotlinDslDclSchemaCollector(
@@ -90,8 +90,8 @@ internal class CachedKotlinDslDclSchemaCollector(
     override fun collectContainerFactories(interpretationSequence: InterpretationSequence, classLoaderScope: ClassLoaderScope): List<ContainerElementFactoryEntry<TypeOf<*>>> =
         cache.getOrPutContainerElementFactories(interpretationSequence, classLoaderScope) { delegate.collectContainerFactories(interpretationSequence, classLoaderScope) }
 
-    override fun collectSoftwareTypes(softwareFeatureRegistry: SoftwareFeatureRegistry): List<SoftwareFeatureEntry<TypeOf<*>>> =
-        cache.getOrPutContainerElementSoftwareTypes(softwareFeatureRegistry) { delegate.collectSoftwareTypes(softwareFeatureRegistry) }
+    override fun collectProjectTypes(projectFeatureRegistry: ProjectFeatureRegistry): List<ProjectFeatureEntry<TypeOf<*>>> =
+        cache.getOrPutContainerElementProjectTypes(projectFeatureRegistry) { delegate.collectProjectTypes(projectFeatureRegistry) }
 }
 
 internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector {
@@ -139,15 +139,15 @@ internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector 
         }
     }
 
-    override fun collectSoftwareTypes(softwareFeatureRegistry: SoftwareFeatureRegistry): List<SoftwareFeatureEntry<TypeOf<*>>> =
-        softwareFeatureRegistry.softwareFeatureImplementations.entries.map { (name, implementation) ->
+    override fun collectProjectTypes(projectFeatureRegistry: ProjectFeatureRegistry): List<ProjectFeatureEntry<TypeOf<*>>> =
+        projectFeatureRegistry.projectFeatureImplementations.entries.map { (name, implementation) ->
             val targetType = when (val target = implementation.targetDefinitionType) {
                 is TargetTypeInformation.DefinitionTargetTypeInformation ->  TypeOf.typeOf(target.definitionType)
                 is TargetTypeInformation.BuildModelTargetTypeInformation<*> ->
                     parameterizedTypeOfRawGenericClass(listOf(TypeProjection(target.buildModelType, TypeProjectionKind.OUT)), HasBuildModel::class.java)
                 else -> error("Unexpected target type $target")
             }
-            SoftwareFeatureEntry(name, TypeOf.typeOf(implementation.definitionPublicType), targetType)
+            ProjectFeatureEntry(name, TypeOf.typeOf(implementation.definitionPublicType), targetType)
         }
 
     /**

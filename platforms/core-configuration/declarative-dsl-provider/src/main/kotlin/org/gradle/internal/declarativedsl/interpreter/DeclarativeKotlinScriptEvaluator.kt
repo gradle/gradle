@@ -21,7 +21,7 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.declarativedsl.defaults.softwareFeatureRegistryBasedModelDefaultsRegistrar
+import org.gradle.internal.declarativedsl.defaults.projectFeatureRegistryBasedModelDefaultsRegistrar
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure.NoSchemaAvailable
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheck
@@ -42,7 +42,7 @@ import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
 import org.gradle.internal.declarativedsl.evaluator.checks.AccessOnCurrentReceiverCheck
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureRegistry
 
 
 @ServiceScope(Scope.Build::class)
@@ -58,13 +58,13 @@ interface DeclarativeKotlinScriptEvaluator {
 internal
 fun defaultDeclarativeScriptEvaluator(
     schemaBuilder: InterpretationSchemaBuilder,
-    softwareFeatureRegistry: SoftwareFeatureRegistry
+    projectFeatureRegistry: ProjectFeatureRegistry
 ): DeclarativeKotlinScriptEvaluator = DefaultDeclarativeKotlinScriptEvaluator(
     schemaBuilder,
     documentChecks = setOf(SettingsBlocksCheck, AccessOnCurrentReceiverCheck, UnsupportedSyntaxFeatureCheck),
     resolutionResultHandlers = setOf(
         ApplyModelDefaultsHandler.DO_NOTHING,
-        ModelDefaultsDefinitionCollector(softwareFeatureRegistryBasedModelDefaultsRegistrar(softwareFeatureRegistry))
+        ModelDefaultsDefinitionCollector(projectFeatureRegistryBasedModelDefaultsRegistrar(projectFeatureRegistry))
     )
 )
 
