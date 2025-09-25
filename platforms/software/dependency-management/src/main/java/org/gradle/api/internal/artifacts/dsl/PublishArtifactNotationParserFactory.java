@@ -33,7 +33,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
@@ -59,15 +58,14 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
 
     @Override
     public NotationParser<Object, ConfigurablePublishArtifact> create() {
-        FileNotationConverter fileConverter = new FileNotationConverter();
         return NotationParserBuilder
                 .toType(ConfigurablePublishArtifact.class)
                 .converter(new DecoratingConverter())
                 .converter(new ArchiveTaskNotationConverter())
                 .converter(new FileProviderNotationConverter())
                 .converter(new FileSystemLocationNotationConverter())
-                .converter(fileConverter)
-                .converter(new FileMapNotationConverter(fileConverter))
+                .converter(new FileNotationConverter())
+                .converter(new FileMapNotationConverter())
                 .toComposite();
     }
 
@@ -99,20 +97,12 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
     }
 
     private static class FileMapNotationConverter extends MapNotationConverter<ConfigurablePublishArtifact> {
-        private final FileNotationConverter fileConverter;
-
-        private FileMapNotationConverter(FileNotationConverter fileConverter) {
-            this.fileConverter = fileConverter;
-        }
 
         @Override
         public void describe(DiagnosticsVisitor visitor) {
             visitor.candidate("Maps with 'file' key");
         }
 
-        protected PublishArtifact parseMap(@MapKey("file") File file) {
-            return fileConverter.parseType(file);
-        }
     }
 
     private class FileProviderNotationConverter extends TypedNotationConverter<Provider<?>, ConfigurablePublishArtifact> {

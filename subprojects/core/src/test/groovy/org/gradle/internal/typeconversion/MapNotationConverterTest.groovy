@@ -96,6 +96,7 @@ class MapNotationConverterTest extends Specification {
     }
 
     static class DummyConverter extends MapNotationConverter<TargetObject> {
+        @SuppressWarnings("UnusedMethod")
         protected TargetObject parseMap(@MapKey('name') String name,
                                         @MapKey('version') String version,
                                         @MapKey('optional') @Nullable optional) {

@@ -27,7 +27,7 @@ public class DependencyMetadataNotationParser {
         return NotationParserBuilder
             .toType(implementationType)
             .fromCharSequence(new DependencyStringNotationConverter<>(instantiator, implementationType, stringInterner))
-            .converter(new DependencyMapNotationConverter<>(instantiator, implementationType))
+            .converter(new DependencyMapNotationConverter<>())
             .invalidNotationMessage("Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")
             .toComposite();
     }

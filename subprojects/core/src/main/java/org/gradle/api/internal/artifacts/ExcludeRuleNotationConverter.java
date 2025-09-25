@@ -16,14 +16,11 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
-import org.jspecify.annotations.Nullable;
 
 public class ExcludeRuleNotationConverter extends MapNotationConverter<ExcludeRule> {
 
@@ -39,13 +36,4 @@ public class ExcludeRuleNotationConverter extends MapNotationConverter<ExcludeRu
         visitor.candidate("Maps with 'group' and/or 'module'").example("[group: 'com.google.collections', module: 'google-collections']");
     }
 
-    protected ExcludeRule parseMap(
-        @MapKey(ExcludeRule.GROUP_KEY) @Nullable String group,
-        @MapKey(ExcludeRule.MODULE_KEY) @Nullable String module
-    ) {
-        if (group == null && module == null) {
-            throw new InvalidUserDataException("Dependency exclude rule requires 'group' and/or 'module' specified. For example: [group: 'com.google.collections']");
-        }
-        return new DefaultExcludeRule(group, module);
-    }
 }

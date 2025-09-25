@@ -87,8 +87,8 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     }
 
     @Override
-    public ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder, Map<? extends String, ? extends Object> map) {
-        return projectDependencyFactory.createFromMap(projectFinder, map);
+    public ProjectDependency createProjectDependencyFromMap(ProjectFinder unused, Map<? extends String, ?> map) {
+        return projectDependencyFactory.createFromMap(map);
     }
 
     // region DependencyFactory methods
