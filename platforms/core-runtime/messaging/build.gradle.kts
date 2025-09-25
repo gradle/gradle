@@ -36,6 +36,7 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
     integTestImplementation(projects.serviceRegistryBuilder)
     integTestImplementation(projects.toolingApi)
+    integTestImplementation(testFixtures(projects.testingBase))
 }
 tasks.isolatedProjectsIntegTest {
     enabled = false

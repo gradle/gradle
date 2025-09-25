@@ -25,6 +25,8 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents a test result that can be stored for a long time (potentially across process invocations).
@@ -178,13 +180,23 @@ public final class SerializableTestResult {
             encoder.writeString(failure.getMessage());
             encoder.writeString(failure.getStackTrace());
             encoder.writeString(failure.getExceptionType());
+            encoder.writeInt(failure.getCauses().size());
+            for (String cause : failure.getCauses()) {
+                encoder.writeString(cause);
+            }
         }
 
         private static SerializableFailure deserializeFailure(Decoder decoder) throws IOException {
             String message = decoder.readString();
             String stackTrace = decoder.readString();
             String exceptionType = decoder.readString();
-            return new SerializableFailure(message, stackTrace, exceptionType);
+
+            int causeCount = decoder.readInt();
+            List<String> causes = new ArrayList<>(causeCount);
+            for (int i = 0; i < causeCount; i++) {
+                causes.add(decoder.readString());
+            }
+            return new SerializableFailure(message, stackTrace, exceptionType, causes);
         }
 
         private static void serializeMetadatas(SerializableTestResult result, Encoder encoder) throws IOException {
