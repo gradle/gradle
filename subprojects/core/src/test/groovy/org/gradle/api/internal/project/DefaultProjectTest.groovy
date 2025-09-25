@@ -156,9 +156,9 @@ class DefaultProjectTest extends Specification {
     ProcessOperations processOperationsMock = Stub(ProcessOperations)
     LoggingManagerInternal loggingManagerMock = Stub(LoggingManagerInternal)
     Instantiator instantiatorMock = Stub(Instantiator) {
-        newInstance(LifecycleAwareProject, _, _) >> { args ->
+        newInstance(LifecycleAwareProject, _, _, _) >> { args ->
             def params = args[1]
-            new LifecycleAwareProject(params[0], params[1])
+            new LifecycleAwareProject(params[0], params[1], gradleLifecycleActionExecutor)
         }
         newInstance(SoftwareFeaturesDynamicObject, _) >> Stub(SoftwareFeaturesDynamicObject)
     }
@@ -240,7 +240,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) CrossProjectConfigurator) >> crossProjectConfigurator
         serviceRegistryMock.get(DependencyResolutionManagementInternal) >> dependencyResolutionManagement
         serviceRegistryMock.get(DomainObjectCollectionFactory) >> TestUtil.domainObjectCollectionFactory()
-        serviceRegistryMock.get(CrossProjectModelAccess) >> new DefaultCrossProjectModelAccess(projectRegistry, instantiatorMock)
+        serviceRegistryMock.get(CrossProjectModelAccess) >> new DefaultCrossProjectModelAccess(projectRegistry, instantiatorMock, gradleLifecycleActionExecutor)
         serviceRegistryMock.get(GradleLifecycleActionExecutor) >> gradleLifecycleActionExecutor
         serviceRegistryMock.get(ObjectFactory) >> objectFactory
         serviceRegistryMock.get(TaskDependencyFactory) >> DefaultTaskDependencyFactory.withNoAssociatedProject()
@@ -971,8 +971,8 @@ def scriptMethod(Closure closure) {
 
     def equalsContractForWrappers() {
         when:
-        Project wrapped = LifecycleAwareProject.wrap(project, child1, instantiatorMock)
-        Project overwrapped = LifecycleAwareProject.wrap(wrapped, child1, instantiatorMock)
+        Project wrapped = LifecycleAwareProject.wrap(project, child1, instantiatorMock, gradleLifecycleActionExecutor)
+        Project overwrapped = LifecycleAwareProject.wrap(wrapped, child1, instantiatorMock, gradleLifecycleActionExecutor)
         then:
         project == wrapped
         wrapped == project
@@ -984,7 +984,7 @@ def scriptMethod(Closure closure) {
 
     def mapUsageForWrappers() {
         given:
-        Project wrapped = LifecycleAwareProject.wrap(project, child1, instantiatorMock)
+        Project wrapped = LifecycleAwareProject.wrap(project, child1, instantiatorMock, gradleLifecycleActionExecutor)
         def map = [:]
         when:
         map[project] = "foo"
