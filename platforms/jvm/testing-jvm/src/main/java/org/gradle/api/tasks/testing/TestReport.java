@@ -105,6 +105,9 @@ public abstract class TestReport extends DefaultTask {
             List<Path> resultDirsAsPaths = new ArrayList<>(getTestResults().getFiles().size());
             Boolean isGenericImplementation = null;
             for (File resultDir : getTestResults().getFiles()) {
+                if (!resultDir.exists()) {
+                    continue;
+                }
                 boolean resultDirIsGenericImplementation = SerializableTestResultStore.isGenericTestResults(resultDir);
                 if (isGenericImplementation == null) {
                     isGenericImplementation = resultDirIsGenericImplementation;
