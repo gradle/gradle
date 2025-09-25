@@ -16,27 +16,44 @@
 
 package org.gradle.plugins.ide.internal.tooling.model;
 
+import com.google.common.collect.Streams;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
+
+import java.util.Objects;
+import java.util.stream.Stream;
 
 @NullMarked
 public class DefaultResilientGradleBuild extends DefaultGradleBuild {
     private boolean failed = false;
-    private String failure;
+    @Nullable
+    private String failure = null;
 
-    public DefaultGradleBuild setFailure(String failure) {
+    public DefaultGradleBuild setFailure(@Nullable String failure) {
         this.failed = failure != null;
         this.failure = failure;
 
         return this;
     }
 
-    public boolean didItFail(){
+    public boolean didItFail() {
         return failed ||
-            allBuilds.stream().map(DefaultResilientGradleBuild.class::cast).anyMatch(DefaultResilientGradleBuild::didItFail) ||
-            includedBuilds.stream().map(DefaultResilientGradleBuild.class::cast).anyMatch(DefaultResilientGradleBuild::didItFail);
+            getBuildsStream().anyMatch(DefaultResilientGradleBuild::didItFail);
     }
 
+    @Nullable
     public String getFailure() {
+        if (failure == null) {
+            return getBuildsStream()
+                .map(DefaultResilientGradleBuild::getFailure)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+        }
         return failure;
+    }
+
+    private Stream<DefaultResilientGradleBuild> getBuildsStream() {
+        return Streams.concat(allBuilds.stream(), includedBuilds.stream()).map(DefaultResilientGradleBuild.class::cast);
     }
 }

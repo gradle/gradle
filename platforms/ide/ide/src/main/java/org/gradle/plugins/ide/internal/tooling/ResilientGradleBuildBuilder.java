@@ -97,7 +97,7 @@ public class ResilientGradleBuildBuilder extends GradleBuildBuilder {
             } else if (!brokenSettings.isEmpty()) {
                 Map.Entry<SettingsInternal, Failure> settingsEntry = brokenSettings.entrySet().iterator().next();
                 ProjectDescriptor rootProject = settingsEntry.getKey().getRootProject();
-                BasicGradleProject root = convertRoot(targetBuild, rootProject);
+                BasicGradleProject root = convertBrokenRootProject(targetBuild, rootProject);
                 model.setRootProject(root);
                 model.addProject(root);
                 model.setFailure(settingsEntry.getValue().toString());
@@ -117,7 +117,7 @@ public class ResilientGradleBuildBuilder extends GradleBuildBuilder {
             return model;
         }
 
-        protected BasicGradleProject convertRoot(BuildState owner, ProjectDescriptor project) {
+        protected BasicGradleProject convertBrokenRootProject(BuildState owner, ProjectDescriptor project) {
             DefaultProjectIdentifier id = new DefaultProjectIdentifier(owner.getBuildRootDir(), project.getPath());
             return new BasicGradleProject()
                 .setName(project.getName())

@@ -22,8 +22,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.gradle.ResilientGradleBuild
 
-@TargetGradleVersion(">=9.2.0")
-@ToolingApiVersion(">=9.2.0")
+@TargetGradleVersion(">=9.3.0")
+@ToolingApiVersion(">=9.3.0")
 class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
     def "nested included builds are visible only in the model of the containing build"() {
         given:
