@@ -18,11 +18,11 @@ package org.gradle.api.file;
 import org.gradle.api.Describable;
 import org.gradle.api.Named;
 import org.gradle.api.Task;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.model.internal.core.UnmanagedStruct;
 import org.jspecify.annotations.Nullable;
 
@@ -150,7 +150,8 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * @return The classes directory property for this set of sources.
      * @since 6.1
      */
-    Provider<Directory> getClassesDirectory();
+    @ReplacesEagerProperty(adapter = SourceDirectorySetAdapter.class)
+    DirectoryProperty getClassesDirectory();
 
     /**
      * Define the task responsible for processing the source.
