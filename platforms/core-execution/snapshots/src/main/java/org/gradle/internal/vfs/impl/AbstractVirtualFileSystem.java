@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
@@ -36,6 +37,17 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractVirtualFileSystem.class);
 
     private final ReentrantLock updateLock = new ReentrantLock();
+    private final LinkedBlockingQueue<FileSystemLocationSnapshot> snapshotsQueue = new LinkedBlockingQueue<>();
+    private final Thread snapshotStoringThread = new Thread(() -> {
+        try {
+            while (true) {
+                FileSystemLocationSnapshot snapshot = snapshotsQueue.take();
+                store(snapshot.getAbsolutePath(), () -> snapshot);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }, "VFS Snapshot Storing Thread");
 
     // Mutable state, changes need to be guarded by updateLock
     protected volatile SnapshotHierarchy root;
@@ -44,6 +56,8 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     protected AbstractVirtualFileSystem(SnapshotHierarchy root) {
         this.root = root;
         this.versionHierarchyRoot = VersionHierarchyRoot.empty(0, root.getCaseSensitivity());
+        this.snapshotStoringThread.setDaemon(true);
+        this.snapshotStoringThread.start();
     }
 
     protected void underLock(Runnable runnable) {
@@ -86,10 +100,13 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public <T> T storeWithAction(String baseLocation, StoringAction<T> storingAction) {
-        long versionBefore = versionHierarchyRoot.getVersion(baseLocation);
+    public <T> T storeAsyncWithAction(String baseLocation, StoringAction<T> storingAction) {
         return storingAction.snapshot(snapshot -> {
-            storeIfUnchanged(snapshot.getAbsolutePath(), versionBefore, snapshot);
+            try {
+                snapshotsQueue.put(snapshot);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
             return snapshot;
         });
     }
@@ -136,6 +153,10 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     public void invalidateAll() {
         LOGGER.debug("Invalidating the whole VFS");
         invalidate(Collections.singletonList(VfsRelativePath.ROOT));
+    }
+
+    public boolean isQueueEmpty() {
+        return snapshotsQueue.isEmpty();
     }
 
     /**

@@ -48,14 +48,13 @@ public interface VirtualFileSystem {
      */
     FileSystemLocationSnapshot store(String absolutePath, Supplier<FileSystemLocationSnapshot> snapshotSupplier);
 
-
     /**
      * Snapshots via a {@link StoringAction} and stores the result in the VFS.
      *
      * If the snapshotted location is invalidated while snapshotting,
      * then the snapshot is not stored in the VFS to avoid inconsistent state.
      */
-    <T> T storeWithAction(String baseLocation, StoringAction<T> storingAction);
+    <T> T storeAsyncWithAction(String baseLocation, StoringAction<T> storingAction);
 
     /**
      * Snapshotting action which produces possibly more than one snapshot.
