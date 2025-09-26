@@ -16,7 +16,7 @@
 
 package org.gradle.jvm.toolchain
 
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ShowToolchainsIntegrationTest extends AbstractIntegrationSpec {

@@ -1367,8 +1367,8 @@ group:projectB:2.2;release
           }
 
           dependencies {
-              conf group: "group", name: "projectA", version: "1.+"
-              conf group: "group", name: "projectB", version: "latest.release"
+              conf("group:projectA:1.+")
+              conf("group:projectB:latest.release")
           }
           """
     }

@@ -16,16 +16,19 @@
 
 package org.gradle.integtests.tooling.fixture
 
+import org.gradle.api.internal.jvm.JavaVersionParser
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.GradleVersion
 import org.spockframework.runtime.extension.IMethodInvocation
+
+import java.util.function.Predicate
+import java.util.stream.Collectors
 
 class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
 
     private static final GradleVersion INSTALLATION_GRADLE_VERSION
-    private static final GradleVersionSpec GRADLE_VERSION_SPEC = new GradleVersionSpec()
+    private static final GradleVersionPredicate GRADLE_VERSION_PREDICATE = new GradleVersionPredicate()
 
     static {
         // If we are testing a non-current tooling API version, we will have loaded the class using its classloader and thus
@@ -82,29 +85,31 @@ class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
 
     @Override
     boolean isTestEnabled(AbstractMultiTestInterceptor.TestDetails testDetails) {
-        if (!gradle.daemonIdleTimeoutConfigurable && OperatingSystem.current().isWindows()) {
-            // Older daemon don't have configurable ttl and they hung for 3 hours afterwards.
-            // This is a real problem on windows due to eager file locking and continuous CI failures.
-            // On linux it's a lesser problem - long-lived daemons hung and steal resources but don't lock files.
-            // So, for windows we'll only run tests against target gradle that supports ttl
-            return false
-        }
-
-        ToolingApiVersion toolingVersionAnnotation = testDetails.getAnnotation(ToolingApiVersion)
-        Spec<GradleVersion> toolingVersionSpec = toVersionSpec(toolingVersionAnnotation)
-        if (!toolingVersionSpec.isSatisfiedBy(this.toolingApiVersion)) {
-            return false
-        }
-        TargetGradleVersion gradleVersionAnnotation = testDetails.getAnnotation(TargetGradleVersion)
-        Spec<GradleVersion> gradleVersionSpec = toVersionSpec(gradleVersionAnnotation)
-        return gradleVersionSpec.isSatisfiedBy(this.gradleVersion)
+        // We cannot use JavaVersionParser.parseCurrentMajorVersion, since that method
+        // is new and the target distribution version of the class sometimes shadows the
+        // version of this class that has the new method.
+        int currentJavaVersion = JavaVersionParser.parseMajorVersion(System.getProperty("java.version"))
+        return toolingApiSupported(testDetails, currentJavaVersion) && daemonSupported(testDetails, currentJavaVersion)
     }
 
-    private static Spec<GradleVersion> toVersionSpec(annotation) {
-        if (annotation == null) {
-            return Specs.SATISFIES_ALL
+    private boolean daemonSupported(AbstractMultiTestInterceptor.TestDetails testDetails, int jvmVersion) {
+        List<TargetGradleVersion> gradleVersionAnnotations = testDetails.getAnnotations(TargetGradleVersion)
+        return toVersionPredicate(gradleVersionAnnotations).test(this.gradleVersion) && gradle.daemonWorksWith(jvmVersion)
+    }
+
+    private boolean toolingApiSupported(AbstractMultiTestInterceptor.TestDetails testDetails, int jvmVersion) {
+        List<ToolingApiVersion> toolingVersionAnnotations = testDetails.getAnnotations(ToolingApiVersion)
+        return toVersionPredicate(toolingVersionAnnotations).test(this.toolingApiVersion) && toolingApi.clientWorksWith(jvmVersion)
+    }
+
+    private static Predicate<GradleVersion> toVersionPredicate(List<?> annotations) {
+        if (annotations.isEmpty()) {
+            return (v) -> true;
         }
-        return GRADLE_VERSION_SPEC.toSpec(constraintFor(annotation))
+        List<Predicate<GradleVersion>> predicates = annotations.stream().map { annotation ->
+            GRADLE_VERSION_PREDICATE.toPredicate(constraintFor(annotation))
+        }.collect(Collectors.toList())
+        return (v) -> predicates.stream().allMatch { it.test(v) }
     }
 
     private static String constraintFor(annotation) {

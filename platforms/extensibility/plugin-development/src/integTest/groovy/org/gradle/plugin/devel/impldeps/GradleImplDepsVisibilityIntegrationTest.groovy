@@ -25,12 +25,13 @@ import org.gradle.testfixtures.ProjectBuilder
 class GradleImplDepsVisibilityIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     def "cannot compile against classes that are not part of Gradle's public API"() {
-        when:
+        given:
         buildFile << testablePluginProject()
 
         file('src/test/groovy/MyTest.groovy') << """
-            class MyTest extends groovy.test.GroovyTestCase {
+            class MyTest {
 
+                @org.junit.jupiter.api.Test
                 void testImplIsHidden() {
                     try {
                         getClass().classLoader.loadClass("$Maps.name")
@@ -39,15 +40,19 @@ class GradleImplDepsVisibilityIntegrationTest extends BaseGradleImplDepsIntegrat
                         // expected
                     }
                 }
+
             }
         """
 
+        when:
+        succeeds('test')
+
         then:
-        succeeds 'build'
+        assertTestExecuted("MyTest", "testImplIsHidden")
     }
 
     def "can reliably compile and unit test a plugin that depends on a conflicting version off a non-public Gradle API"() {
-        when:
+        given:
         buildFile << testablePluginProject()
         buildFile << """
             dependencies {
@@ -68,12 +73,12 @@ class GradleImplDepsVisibilityIntegrationTest extends BaseGradleImplDepsIntegrat
             }
         """
 
-        then:
+        expect:
         succeeds 'build'
     }
 
     def "can compile typical Java-based Gradle plugin using Gradle API"() {
-        when:
+        given:
         buildFile << applyJavaPlugin()
         buildFile << gradleApiDependency()
 
@@ -89,40 +94,45 @@ class GradleImplDepsVisibilityIntegrationTest extends BaseGradleImplDepsIntegrat
             }
         """
 
-        then:
+        expect:
         succeeds 'build'
     }
 
     def "can compile typical Groovy-based Gradle plugin using Gradle API without having to declare Groovy dependency"() {
-        when:
+        given:
         buildFile << applyGroovyPlugin()
         buildFile << gradleApiDependency()
 
         file('src/main/groovy/MyPlugin.groovy') << customGroovyPlugin()
 
-        then:
+        expect:
         succeeds 'build'
     }
 
     def "can use ProjectBuilder to unit test a plugin"() {
-        when:
+        given:
         buildFile << testablePluginProject()
 
         file('src/main/groovy/MyPlugin.groovy') << customGroovyPlugin()
 
         file('src/test/groovy/MyTest.groovy') << """
-            class MyTest extends groovy.test.GroovyTestCase {
+            class MyTest {
 
+                @org.junit.jupiter.api.Test
                 void testCanUseProjectBuilder() {
                     def project = ${ProjectBuilder.name}.builder().build()
                     project.plugins.apply(MyPlugin)
                     project.plugins.apply(org.gradle.api.plugins.JavaPlugin)
                     project.evaluate()
                 }
+
             }
         """
 
+        when:
+        succeeds('test')
+
         then:
-        succeeds 'build'
+        assertTestExecuted("MyTest", "testCanUseProjectBuilder")
     }
 }

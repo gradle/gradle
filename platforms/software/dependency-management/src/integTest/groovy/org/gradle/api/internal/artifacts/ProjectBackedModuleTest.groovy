@@ -29,7 +29,6 @@ class ProjectBackedModuleTest extends AbstractProjectBuilderSpec {
         module.group == project.group.toString()
         module.version == project.version.toString()
         module.status == project.status.toString()
-        module.componentId == project.owner.componentIdentifier
 
         when:
         project.group = "fo${1}o"
@@ -41,4 +40,5 @@ class ProjectBackedModuleTest extends AbstractProjectBuilderSpec {
         module.version == "fo2o"
         module.status == "fo3o"
     }
+
 }

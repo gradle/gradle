@@ -22,55 +22,58 @@ package org.gradle.api.internal.artifacts.configurations;
 public interface MutationValidator {
     enum MutationType {
         /**
-         * The mutation of the resolution strategy of the configuration, i.e. caching, resolution rules etc.
+         * The mutation of basic state, including transitivity, attributes, capabilities.
          */
-        STRATEGY("resolution strategy", false),
+        BASIC_STATE("state"),
 
         /**
-         * The mutation of anything that will affect the resolved dependency graph of this configuration.
+         * The mutation of the resolution strategy of the configuration, i.e. caching, resolution rules etc.
          */
-        DEPENDENCIES("dependencies", true),
+        STRATEGY("resolution strategy"),
+
+        /**
+         * The mutation of dependencies, dependency constraints, or global excludes.
+         */
+        DEPENDENCIES("dependencies"),
 
         /**
          * The mutation of the attributes (other than coordinates) of a dependency.
          * Theoretically these should be bundled under {@link MutationType#DEPENDENCIES}, but these mutations are not (yet)
          * prevented on resolved configurations.
          */
-        DEPENDENCY_ATTRIBUTES("dependency attributes", true),
+        DEPENDENCY_ATTRIBUTES("dependency attributes"),
 
         /**
          * The mutation of the attributes (other than coordinates) of a dependency constraint.
          * Theoretically these should be bundled under {@link MutationType#DEPENDENCIES}, but these mutations are not (yet)
          * prevented on resolved configurations.
          */
-        DEPENDENCY_CONSTRAINT_ATTRIBUTES("dependency constraint attributes", true),
+        DEPENDENCY_CONSTRAINT_ATTRIBUTES("dependency constraint attributes"),
 
         /**
          * The mutation of the artifacts of the configuration.
          */
-        ARTIFACTS("artifacts", true),
+        ARTIFACTS("artifacts"),
 
         /**
          * The mutation of the allowed usage of the configuration (can be consumed, resolved, deprecated for declaration against...)
          */
-        USAGE("usage", false),
+        USAGE("usage"),
 
         /**
          * The mutation of the role of the configuration (can be queries, resolved, ...)
          */
-        ROLE("role", false),
+        ROLE("role"),
 
         /**
          * The mutation of the hierarchy of the configuration, i.e. which configurations this configuration extends from.
          */
-        HIERARCHY("hierarchy", false);
+        HIERARCHY("hierarchy");
 
         private final String displayName;
-        private final boolean plural;
 
-        MutationType(String displayName, boolean plural) {
+        MutationType(String displayName) {
             this.displayName = displayName;
-            this.plural = plural;
         }
 
         @Override
@@ -78,9 +81,6 @@ public interface MutationValidator {
             return displayName;
         }
 
-        public boolean isPlural() {
-            return plural;
-        }
     }
 
     /**

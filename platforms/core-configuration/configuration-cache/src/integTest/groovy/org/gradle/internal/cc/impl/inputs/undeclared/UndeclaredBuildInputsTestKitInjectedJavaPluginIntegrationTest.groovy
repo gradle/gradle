@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
@@ -106,7 +105,7 @@ implementation-class: SneakyPlugin
 
         private GradleRunner createRunner() {
             def runner = GradleRunner.create()
-            if (!GradleContextualExecuter.embedded) {
+            if (!IntegrationTestBuildContext.embedded) {
                 runner.withGradleInstallation(buildContext.gradleHomeDir)
             }
             runner.withTestKitDir(testKitDir)

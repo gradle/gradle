@@ -22,39 +22,30 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.BuildServiceRegistry;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
+import org.gradle.internal.inspection.DefaultTypeParameterInspection;
+import org.gradle.internal.inspection.TypeParameterInspection;
+import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
 import org.gradle.internal.logging.text.TreeFormatter;
-import org.gradle.internal.reflect.Types;
-import org.gradle.internal.reflect.Types.TypeVisitResult;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
 import org.gradle.process.ExecOperations;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.atomic.AtomicReference;
 
-public class IsolationScheme<IMPLEMENTATION, PARAMS> {
-    private final Class<IMPLEMENTATION> interfaceType;
-    private final Class<PARAMS> paramsType;
+public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspection<INTERFACE, PARAMS> {
+    private final Class<INTERFACE> interfaceType;
     private final Class<? extends PARAMS> noParamsType;
+    private final TypeParameterInspection<INTERFACE, PARAMS> typeParameterInspection;
 
-    public IsolationScheme(Class<IMPLEMENTATION> interfaceType, Class<PARAMS> paramsType, Class<? extends PARAMS> noParamsType) {
+    public IsolationScheme(Class<INTERFACE> interfaceType, Class<PARAMS> paramsType, Class<? extends PARAMS> noParamsType) {
         this.interfaceType = interfaceType;
-        this.paramsType = paramsType;
         this.noParamsType = noParamsType;
+        this.typeParameterInspection = new DefaultTypeParameterInspection<>(interfaceType, paramsType, noParamsType);
     }
 
     /**
@@ -62,9 +53,10 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
      *
      * @return The parameters type, or {@code null} when the implementation takes no parameters.
      */
+    @Override
     @Nullable
-    public <T extends IMPLEMENTATION, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType) {
-        return parameterTypeFor(implementationType, 0);
+    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType) {
+        return typeParameterInspection.parameterTypeFor(implementationType);
     }
 
     /**
@@ -72,117 +64,21 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
      *
      * @return The parameters type, or {@code null} when the implementation takes no parameters.
      */
+    @Override
     @Nullable
-    public <T extends IMPLEMENTATION, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType, int typeArgumentIndex) {
-        if (implementationType == interfaceType) {
-            return null;
-        }
-        Class<P> parametersType = inferParameterType(implementationType, typeArgumentIndex);
-        if (parametersType == paramsType) {
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node("Could not create the parameters for ");
-            formatter.appendType(implementationType);
-            formatter.append(": must use a sub-type of ");
-            formatter.appendType(parametersType);
-            formatter.append(" as the parameters type. Use ");
-            formatter.appendType(noParamsType);
-            formatter.append(" as the parameters type for implementations that do not take parameters.");
-            throw new IllegalArgumentException(formatter.toString());
-        }
-        if (parametersType == noParamsType) {
-            return null;
-        }
-        return parametersType;
-    }
-
-    /**
-     * Walk the type hierarchy until we find the interface type and keep track the chain of the type parameters.
-     *
-     * E.g.: For {@code interface Baz<T>}, interface {@code Bar<T extends CharSequence> extends Baz<T>} and {@code class Foo implements Bar<String>},
-     * we'll have mapping {@code T extends CharSequence -> String} and {@code T -> String}.
-     *
-     * When we come to {@code Baz<T>}, we can then query the mapping for {@code T} and get {@code String}.
-     */
-    @NonNull
-    private <T extends IMPLEMENTATION, P extends PARAMS> Class<P> inferParameterType(Class<T> implementationType, int typeArgumentIndex) {
-        AtomicReference<Type> foundType = new AtomicReference<>();
-        Map<Type, Type> collectedTypes = new HashMap<>();
-        Types.walkTypeHierarchy(implementationType, type -> {
-            for (Type genericInterface : type.getGenericInterfaces()) {
-                if (collectTypeParameters(genericInterface, foundType, collectedTypes, typeArgumentIndex)) {
-                    return TypeVisitResult.TERMINATE;
-                }
-            }
-            Type genericSuperclass = type.getGenericSuperclass();
-            if (collectTypeParameters(genericSuperclass, foundType, collectedTypes, typeArgumentIndex)) {
-                return TypeVisitResult.TERMINATE;
-            }
-            return TypeVisitResult.CONTINUE;
-        });
-
-        // Note: we don't handle GenericArrayType here, since
-        // we don't support arrays as a type of a Parameter anywhere
-        Type type = unwrapTypeVariable(foundType.get());
-        return type instanceof Class
-            ? Cast.uncheckedNonnullCast(type)
-            : type instanceof ParameterizedType
-            ? Cast.uncheckedNonnullCast(((ParameterizedType) type).getRawType())
-            : Cast.uncheckedNonnullCast(paramsType);
-    }
-
-    private boolean collectTypeParameters(Type type, AtomicReference<Type> foundType, Map<Type, Type> collectedTypeParameters, int typeArgumentIndex) {
-        if (type instanceof ParameterizedType) {
-            ParameterizedType parameterizedType = (ParameterizedType) type;
-            if (parameterizedType.getRawType().equals(interfaceType)) {
-                Type parameter = parameterizedType.getActualTypeArguments()[typeArgumentIndex];
-                foundType.set(collectedTypeParameters.getOrDefault(parameter, parameter));
-                return true;
-            }
-            Type[] actualTypes = parameterizedType.getActualTypeArguments();
-            Type[] typeParameters = ((Class<?>) parameterizedType.getRawType()).getTypeParameters();
-            for (int i = 0; i < typeParameters.length; i++) {
-                Type firstActualInTypeChain = collectedTypeParameters.getOrDefault(actualTypes[i], actualTypes[i]);
-                collectedTypeParameters.put(typeParameters[i], firstActualInTypeChain);
-            }
-        }
-        return false;
-    }
-
-    private Type unwrapTypeVariable(Type type) {
-        if (type instanceof TypeVariable) {
-            Type nextType;
-            Queue<Type> queue = new ArrayDeque<>();
-            queue.add(type);
-            while ((nextType = queue.poll()) != null) {
-                for (Type bound : ((TypeVariable<?>) nextType).getBounds()) {
-                    if (bound instanceof TypeVariable) {
-                        queue.add(bound);
-                    } else if (isAssignableFromType(paramsType, bound)) {
-                        return bound;
-                    }
-                }
-            }
-        }
-        return type;
-    }
-
-    private static boolean isAssignableFromType(Class<?> clazz, Type type) {
-        return (type instanceof Class && clazz.isAssignableFrom((Class<?>) type))
-            || (type instanceof ParameterizedType && clazz.isAssignableFrom((Class<?>) ((ParameterizedType) type).getRawType()));
+    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType, int typeArgumentIndex) {
+        return typeParameterInspection.parameterTypeFor(implementationType, typeArgumentIndex);
     }
 
     /**
      * Returns the services available for injection into the implementation instance.
      */
-    public ServiceLookup servicesForImplementation(@Nullable PARAMS params, ServiceLookup allServices) {
-        return servicesForImplementation(params, allServices, Collections.emptyList(), c -> false);
-    }
-
-    /**
-     * Returns the services available for injection into the implementation instance.
-     */
-    public ServiceLookup servicesForImplementation(@Nullable PARAMS params, ServiceLookup allServices, Collection<? extends Class<?>> additionalWhiteListedServices, Spec<Class<?>> whiteListPolicy) {
-        return new ServicesForIsolatedObject(interfaceType, noParamsType, params, allServices, additionalWhiteListedServices, whiteListPolicy);
+    public ServiceLookup servicesForImplementation(
+        @Nullable PARAMS params,
+        ServiceLookup allServices,
+        Collection<? extends Class<?>> additionalWhiteListedServices
+    ) {
+        return new ServicesForIsolatedObject(interfaceType, noParamsType, params, allServices, additionalWhiteListedServices);
     }
 
     private static class ServicesForIsolatedObject implements ServiceLookup {
@@ -190,23 +86,20 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
         private final Class<?> noParamsType;
         private final Collection<? extends Class<?>> additionalWhiteListedServices;
         private final ServiceLookup allServices;
-        private final Object params;
-        private final Spec<Class<?>> whiteListPolicy;
+        private final @Nullable Object params;
 
         public ServicesForIsolatedObject(
             Class<?> interfaceType,
             Class<?> noParamsType,
             @Nullable Object params,
             ServiceLookup allServices,
-            Collection<? extends Class<?>> additionalWhiteListedServices,
-            Spec<Class<?>> whiteListPolicy
+            Collection<? extends Class<?>> additionalWhiteListedServices
         ) {
             this.interfaceType = interfaceType;
             this.noParamsType = noParamsType;
             this.additionalWhiteListedServices = additionalWhiteListedServices;
             this.allServices = allServices;
             this.params = params;
-            this.whiteListPolicy = whiteListPolicy;
         }
 
         @Nullable
@@ -241,13 +134,13 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
                 if (serviceClass.isAssignableFrom(InternalProblems.class)) {
                     return allServices.find(InternalProblems.class);
                 }
+                if (serviceClass.isAssignableFrom(ManagedObjectRegistry.class)) {
+                    return allServices.find(ManagedObjectRegistry.class);
+                }
                 for (Class<?> whiteListedService : additionalWhiteListedServices) {
                     if (serviceClass.isAssignableFrom(whiteListedService)) {
                         return allServices.find(whiteListedService);
                     }
-                }
-                if (whiteListPolicy.isSatisfiedBy(serviceClass)) {
-                    return allServices.find(serviceClass);
                 }
             }
             return null;

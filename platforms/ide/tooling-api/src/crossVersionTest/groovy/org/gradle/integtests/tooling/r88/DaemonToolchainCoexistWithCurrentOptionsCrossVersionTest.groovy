@@ -23,15 +23,17 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.GradleConnectionException
+import org.junit.Assume
 
 // 8.8 did not support configuring the set of available Java homes or disabling auto-detection
 @TargetGradleVersion(">=8.9")
 class DaemonToolchainCoexistWithCurrentOptionsCrossVersionTest extends ToolingApiSpecification implements DaemonJvmPropertiesFixture {
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given toolchain properties are provided then build succeeds"() {
         given:
-        def otherJvm = AvailableJavaHomes.differentVersion
+        def otherJvm = AvailableJavaHomes.getDifferentDaemonVersionFor(targetDist)
+        Assume.assumeNotNull(otherJvm)
+
         writeJvmCriteria(otherJvm.javaVersion.majorVersion)
         captureJavaHome()
 
@@ -47,12 +49,13 @@ class DaemonToolchainCoexistWithCurrentOptionsCrossVersionTest extends ToolingAp
         assertDaemonUsedJvm(otherJvm.javaHome)
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given disabled auto-detection When using daemon toolchain Then build fails"() {
         given:
         // We don't want to be able to find an already running compatible daemon
         requireIsolatedDaemons()
-        def otherJvm = AvailableJavaHomes.differentVersion
+        def otherJvm = AvailableJavaHomes.getDifferentDaemonVersionFor(targetDist)
+        Assume.assumeNotNull(otherJvm)
+
         writeJvmCriteria(otherJvm.javaVersion.majorVersion)
         captureJavaHome()
 
@@ -66,10 +69,12 @@ class DaemonToolchainCoexistWithCurrentOptionsCrossVersionTest extends ToolingAp
         e.cause.message.contains("Cannot find a Java installation on your machine")
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(IntegTestPreconditions.Java8HomeAvailable)
     def "Given defined org.gradle.java.home gradle property When using daemon toolchain Then option is ignored resolving with expected toolchain"() {
         given:
-        def otherJvm = AvailableJavaHomes.differentVersion
+        def otherJvm = AvailableJavaHomes.getDifferentDaemonVersionFor(targetDist)
+        Assume.assumeNotNull(otherJvm)
+
         writeJvmCriteria(otherJvm.javaVersion.majorVersion)
         captureJavaHome()
         file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk8.javaHome.canonicalPath)

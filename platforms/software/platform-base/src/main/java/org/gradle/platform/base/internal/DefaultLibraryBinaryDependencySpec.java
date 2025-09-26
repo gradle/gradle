@@ -16,7 +16,6 @@
 package org.gradle.platform.base.internal;
 
 import com.google.common.base.Joiner;
-import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.platform.base.DependencySpec;
@@ -24,6 +23,7 @@ import org.gradle.platform.base.LibraryBinaryDependencySpec;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class DefaultLibraryBinaryDependencySpec implements LibraryBinaryDependencySpec {
 
@@ -73,16 +73,16 @@ public class DefaultLibraryBinaryDependencySpec implements LibraryBinaryDependen
             return false;
         }
         DefaultLibraryBinaryDependencySpec that = (DefaultLibraryBinaryDependencySpec) o;
-        return ObjectUtils.equals(projectPath, that.projectPath)
-            && ObjectUtils.equals(libraryName, that.libraryName)
-            && ObjectUtils.equals(variant, that.variant);
+        return Objects.equals(projectPath, that.projectPath)
+            && Objects.equals(libraryName, that.libraryName)
+            && Objects.equals(variant, that.variant);
     }
 
     @Override
     public int hashCode() {
-        int result = ObjectUtils.hashCode(projectPath);
-        result = 31 * result + ObjectUtils.hashCode(libraryName);
-        result = 31 * result + ObjectUtils.hashCode(variant);
+        int result = Objects.hashCode(projectPath);
+        result = 31 * result + Objects.hashCode(libraryName);
+        result = 31 * result + Objects.hashCode(variant);
         return result;
     }
 

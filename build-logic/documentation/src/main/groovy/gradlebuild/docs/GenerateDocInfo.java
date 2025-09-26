@@ -27,11 +27,11 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.UncheckedException;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -69,7 +69,7 @@ public abstract class GenerateDocInfo extends DefaultTask {
             try {
                 Files.write(docInfo.toPath(), Collections.singleton(String.format("<meta name=\"adoc-src-path\" content=\"%s\">", relativePath)), StandardOpenOption.CREATE);
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         });
     }

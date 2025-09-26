@@ -17,31 +17,42 @@
 package org.gradle.plugins.ide.tooling.r211
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.model.eclipse.EclipseProject
+import org.junit.Assume
 
 import static org.gradle.plugins.ide.tooling.r210.ConventionsExtensionsCrossVersionFixture.javaTargetCompatibility
 
-@TargetGradleVersion(">=3.0")
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
         settingsFile << "rootProject.name = 'root'"
     }
 
+    @Requires(value = [IntegTestPreconditions.Java17HomeAvailable, IntegTestPreconditions.Java21HomeAvailable, IntegTestPreconditions.NotEmbeddedExecutor])
     def "Java project has target bytecode level"() {
+        Assume.assumeTrue("Target Gradle version supports running with Java " + jvm.javaVersionMajor, targetDist.daemonWorksWith(jvm.javaVersionMajor))
+
         given:
         buildFile << "apply plugin: 'java'"
 
         when:
-        EclipseProject rootProject = loadToolingModel(EclipseProject)
+        EclipseProject rootProject = loadToolingModel(EclipseProject, jvm)
 
         then:
-        rootProject.javaSourceSettings.targetBytecodeVersion== JavaVersion.current()
+        rootProject.javaSourceSettings.targetBytecodeVersion == JavaVersion.toVersion(jvm.javaVersion.majorVersion)
+
+        where:
+        jvm << [AvailableJavaHomes.jdk17, AvailableJavaHomes.jdk21]
     }
 
+    @Requires(value = [IntegTestPreconditions.Java17HomeAvailable, IntegTestPreconditions.Java21HomeAvailable, IntegTestPreconditions.NotEmbeddedExecutor])
     def "Java project has jdk"() {
+        Assume.assumeTrue("Target Gradle version supports running with Java " + jvm.javaVersionMajor, targetDist.daemonWorksWith(jvm.javaVersionMajor))
+
         given:
         buildFile << """
 apply plugin: 'java'
@@ -49,12 +60,15 @@ apply plugin: 'java'
 description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
 """
         when:
-        EclipseProject rootProject = loadToolingModel(EclipseProject)
+        EclipseProject rootProject = loadToolingModel(EclipseProject, jvm)
 
         then:
         rootProject.javaSourceSettings.jdk != null
-        rootProject.javaSourceSettings.jdk.javaVersion == JavaVersion.current()
+        rootProject.javaSourceSettings.jdk.javaVersion == JavaVersion.toVersion(jvm.javaVersion.majorVersion)
         rootProject.javaSourceSettings.jdk.javaHome.toString() == rootProject.gradleProject.description
+
+        where:
+        jvm << [AvailableJavaHomes.jdk17, AvailableJavaHomes.jdk21]
     }
 
     def "target bytecode level respects explicit targetCompatibility configuration"() {
@@ -93,10 +107,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
 
     def "Multi-project build can define different target bytecode level for subprojects"() {
         given:
-        createDirs("subproject-a", "subproject-b", "subproject-c")
-        settingsFile << """
-            include 'subproject-a', 'subproject-b', 'subproject-c'
-        """
+        includeProjects("subproject-a", "subproject-b", "subproject-c")
 
         buildFile << """
             project(':subproject-a') {

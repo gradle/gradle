@@ -16,14 +16,12 @@
 
 package org.gradle.internal.cc.impl.fingerprint
 
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.Describable
 import org.gradle.api.logging.Logger
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.internal.Try
+import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
@@ -49,6 +47,9 @@ import org.gradle.internal.serialize.graph.runWriteOperation
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -366,6 +367,9 @@ class ConfigurationCacheFingerprintCheckerTest {
             get() = undefined()
             set(_) {}
 
+        override val problemsListener: ProblemsListener
+            get() = undefined()
+
         override fun onProblem(problem: PropertyProblem): Unit =
             undefined()
 
@@ -485,6 +489,9 @@ class ConfigurationCacheFingerprintCheckerTest {
         override var trace: PropertyTrace
             get() = undefined()
             set(_) {}
+
+        override val problemsListener: ProblemsListener
+            get() = undefined()
 
         override fun onProblem(problem: PropertyProblem): Unit =
             undefined()

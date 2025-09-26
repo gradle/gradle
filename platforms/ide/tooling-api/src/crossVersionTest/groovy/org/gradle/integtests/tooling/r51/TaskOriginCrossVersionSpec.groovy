@@ -88,7 +88,7 @@ class TaskOriginCrossVersionSpec extends ToolingApiSpecification {
         task(':lazyTask').originPlugin.displayName == "build.gradle"
     }
 
-    @TargetGradleVersion('>=3.0 <5.1')
+    @TargetGradleVersion('>=4.0 <5.1')
     def "throws UnsupportedMethodException for task origin when target version does not support it"() {
         when:
         runBuild('tasks')

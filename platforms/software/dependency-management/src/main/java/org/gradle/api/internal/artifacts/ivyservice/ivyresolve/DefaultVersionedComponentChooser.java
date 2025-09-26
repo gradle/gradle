@@ -118,22 +118,28 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
                 continue;
             }
 
-            RejectedByAttributesVersion maybeRejectByAttributes = tryRejectByAttributes(candidateId, metadataProvider, consumerAttributes);
-            if (maybeRejectByAttributes != null) {
-                result.doesNotMatchConsumerAttributes(maybeRejectByAttributes);
-            } else if (isRejectedBySelector(candidateId, rejectedVersionSelector)) {
+            // Do this check first, it cannot require the metadata
+            if (isRejectedBySelector(candidateId, rejectedVersionSelector)) {
                 // Mark this version as rejected
                 result.rejectedBySelector(candidateId, rejectedVersionSelector);
-            } else {
-                RejectedByRuleVersion rejectedByRules = isRejectedByRule(candidateId, rules, metadataProvider);
-                if (rejectedByRules != null) {
-                    // Mark this version as rejected
-                    result.rejectedByRule(rejectedByRules);
+                continue;
+            }
 
-                    if (requestedVersionMatcher.matchesUniqueVersion()) {
-                        // Only consider one candidate, because matchesUniqueVersion means that there's no ambiguity on the version number
-                        break;
-                    }
+            // Do these checks second, they may require the metadata
+            RejectedByRuleVersion rejectedByRules = isRejectedByRule(candidateId, rules, metadataProvider);
+            if (rejectedByRules != null) {
+                // Mark this version as rejected
+                result.rejectedByRule(rejectedByRules);
+
+                if (requestedVersionMatcher.matchesUniqueVersion()) {
+                    // Only consider one candidate, because matchesUniqueVersion means that there's no ambiguity on the version number
+                    break;
+                }
+            } else {
+                // This last check always requires the metadata
+                RejectedByAttributesVersion maybeRejectByAttributes = tryRejectByAttributes(candidateId, metadataProvider, consumerAttributes);
+                if (maybeRejectByAttributes != null) {
+                    result.doesNotMatchConsumerAttributes(maybeRejectByAttributes);
                 } else {
                     result.matches(candidateId);
                     return;

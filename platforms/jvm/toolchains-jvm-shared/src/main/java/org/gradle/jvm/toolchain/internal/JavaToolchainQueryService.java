@@ -24,7 +24,6 @@ import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JavaInstallationCapability;
@@ -32,6 +31,7 @@ import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadataComparator;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
+import org.gradle.internal.jvm.inspection.JvmToolchainMetadata;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
@@ -207,20 +207,20 @@ public class JavaToolchainQueryService {
             .filter(result -> matcher.test(result.metadata))
             .min(Comparator.comparing(result -> result.metadata, new JvmInstallationMetadataComparator(currentJavaHome)))
             .map(result -> {
-                warnIfAutoProvisionedToolchainUsedWithoutRepositoryDefinitions(result.location);
+                warnIfAutoProvisionedToolchainUsedWithoutRepositoryDefinitions(result);
                 return new JavaToolchain(result.metadata, fileFactory, new JavaToolchainInput(spec), false);
             });
     }
 
-    private void warnIfAutoProvisionedToolchainUsedWithoutRepositoryDefinitions(InstallationLocation javaHome) {
+    private void warnIfAutoProvisionedToolchainUsedWithoutRepositoryDefinitions(JvmToolchainMetadata candidate) {
+        InstallationLocation javaHome = candidate.location;
         boolean autoDetectedToolchain = javaHome.isAutoProvisioned();
         if (autoDetectedToolchain && installService.isAutoDownloadEnabled() && !installService.hasConfiguredToolchainRepositories()) {
-            DeprecationLogger.warnOfChangedBehaviour(
-                    "Using a toolchain installed via auto-provisioning, but having no toolchain repositories configured",
-                    "Consider defining toolchain download repositories, otherwise the build might fail in clean environments; " +
-                        "see " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl()
-                )
-                .withUserManual("toolchains", "sub:download_repositories") //has no effect due to bug in DeprecationLogger.warnOfChangedBehaviour
+            DeprecationLogger.deprecateBehaviour(String.format("Using toolchain '%s' installed via auto-provisioning without toolchain repositories.", candidate.metadata.getDisplayName()))
+                .withAdvice("Add toolchain repositories to this build.")
+                .withContext("Builds may fail when this toolchain is not available in other environments.")
+                .willBecomeAnErrorInGradle10()
+                .withUserManual("toolchains", "sub:download_repositories")
                 .nagUser();
         }
     }

@@ -45,9 +45,9 @@ import javax.inject.Inject;
  * considered as an input to the work graph cache.
  * </p>
  * <p>
- * It is possible to have some Gradle services to be <a href="https://docs.gradle.org/current/userguide/service_injection.html#service_injection">injected</a>
+ * It is possible to have Gradle services <a href="https://docs.gradle.org/current/userguide/service_injection.html#service_injection">injected</a>
  * into the implementation, similar to tasks and plugins.
- * It can be done by adding a parameter to the constructor and annotating the
+ * This can be done by adding a parameter to the constructor and annotating the
  * constructor with the {@code @Inject} annotation:
  * <pre>
  * public abstract class MyValueSource implements ValueSource&lt;String, ValueSourceParameters.None&gt; {

@@ -16,7 +16,6 @@
 package org.gradle.language.base.internal.tasks;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.execution.history.OutputsCleaner;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileType;
@@ -24,6 +23,7 @@ import org.gradle.internal.file.FileType;
 import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;

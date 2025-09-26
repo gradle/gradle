@@ -24,6 +24,9 @@ import org.gradle.internal.snapshot.impl.WorkSerializationException;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFactory {
     private final IsolatableFactory isolatableFactory;
     private final IsolatableSerializerRegistry serializerRegistry;
@@ -35,25 +38,53 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
 
     @Override
     public <T extends WorkParameters> TransportableActionExecutionSpec newTransportableSpec(IsolatedParametersActionExecutionSpec<T> spec) {
-        return new TransportableActionExecutionSpec(spec.getImplementationClass().getName(), serializerRegistry.serialize(spec.getIsolatedParams()), spec.getClassLoaderStructure(), spec.getBaseDir(), spec.getProjectCacheDir(), spec.isInternalServicesRequired());
+        return new TransportableActionExecutionSpec(
+            spec.getImplementationClass().getName(),
+            serializerRegistry.serialize(spec.getIsolatedParams()),
+            spec.getClassLoaderStructure(),
+            spec.getBaseDir(),
+            spec.getProjectCacheDir(),
+            spec.getAdditionalWhitelistedServices().stream().map(Class::getName).collect(Collectors.toSet())
+        );
     }
 
     @Override
-    public <T extends WorkParameters> IsolatedParametersActionExecutionSpec<T> newIsolatedSpec(String displayName, Class<? extends WorkAction<T>> implementationClass, T params, WorkerRequirement workerRequirement, boolean usesInternalServices) {
-        ClassLoaderStructure classLoaderStructure = workerRequirement instanceof IsolatedClassLoaderWorkerRequirement ? ((IsolatedClassLoaderWorkerRequirement) workerRequirement).getClassLoaderStructure() : null;
-        return new IsolatedParametersActionExecutionSpec<>(implementationClass, displayName, implementationClass.getName(), isolatableFactory.isolate(params), classLoaderStructure, workerRequirement.getWorkerDirectory(), workerRequirement.getProjectCacheDir(), usesInternalServices);
+    public <T extends WorkParameters> IsolatedParametersActionExecutionSpec<T> newIsolatedSpec(
+        String displayName,
+        Class<? extends WorkAction<T>> implementationClass,
+        T params,
+        WorkerRequirement workerRequirement,
+        Set<Class<?>> additionalWhitelistedServices
+    ) {
+        ClassLoaderStructure classLoaderStructure = workerRequirement instanceof IsolatedClassLoaderWorkerRequirement
+            ? ((IsolatedClassLoaderWorkerRequirement) workerRequirement).getClassLoaderStructure()
+            : null;
+
+        return new IsolatedParametersActionExecutionSpec<>(
+            implementationClass,
+            displayName,
+            implementationClass.getName(),
+            isolatableFactory.isolate(params),
+            classLoaderStructure,
+            workerRequirement.getWorkerDirectory(),
+            workerRequirement.getProjectCacheDir(),
+            additionalWhitelistedServices
+        );
     }
 
     @Override
     public <T extends WorkParameters> SimpleActionExecutionSpec<T> newSimpleSpec(IsolatedParametersActionExecutionSpec<T> spec) {
         T params = Cast.uncheckedCast(spec.getIsolatedParams().isolate());
-        return new SimpleActionExecutionSpec<>(spec.getImplementationClass(), params, spec.isInternalServicesRequired());
+        return new SimpleActionExecutionSpec<>(spec.getImplementationClass(), params, spec.getAdditionalWhitelistedServices());
     }
 
     @Override
     public <T extends WorkParameters> SimpleActionExecutionSpec<T> newSimpleSpec(TransportableActionExecutionSpec spec) {
         T params = Cast.uncheckedCast(serializerRegistry.deserialize(spec.getSerializedParameters()).isolate());
-        return new SimpleActionExecutionSpec<>(Cast.uncheckedCast(fromClassName(spec.getImplementationClassName())), params, spec.isInternalServicesRequired());
+        Set<Class<?>> additionalWhitelistedServices = spec.getAdditionalWhitelistedServicesClassNames()
+            .stream().map(DefaultActionExecutionSpecFactory::fromClassName)
+            .collect(Collectors.toSet());
+        return new SimpleActionExecutionSpec<>(Cast.uncheckedCast(fromClassName(spec.getImplementationClassName())), params, additionalWhitelistedServices);
     }
 
     static Class<?> fromClassName(String className) {

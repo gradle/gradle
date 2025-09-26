@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang3.NotImplementedException;
 
 import java.io.IOException;
 import java.io.InputStream;

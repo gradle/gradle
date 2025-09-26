@@ -4,7 +4,11 @@ plugins {
 
 description = "Process memory abstractions."
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
 
 dependencies {
     api(projects.concurrent)

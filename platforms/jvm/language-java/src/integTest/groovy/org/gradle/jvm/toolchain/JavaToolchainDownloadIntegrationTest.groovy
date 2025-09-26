@@ -16,12 +16,11 @@
 
 package org.gradle.jvm.toolchain
 
-import net.rubygrapefruit.platform.internal.DefaultSystemInfo
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.platform.internal.CurrentBuildPlatform
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
 import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
@@ -139,23 +138,17 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imple
                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
                .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=99, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}. " +
                    "Some toolchain resolvers had provisioning failures: custom (Unable to download toolchain matching the requirements " +
-                   "({languageVersion=99, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}) from 'http://exoticJavaToolchain.com/java-99', " +
-                   "due to: Attempting to download java toolchain from an insecure URI http://exoticJavaToolchain.com/java-99. This is not supported, use a secure URI instead.).")
+                   "({languageVersion=99, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}) from 'http://exoticJavaToolchain.invalid/java-99', " +
+                   "due to: Attempting to download java toolchain from an insecure URI http://exoticJavaToolchain.invalid/java-99. This is not supported, use a secure URI instead.).")
     }
 
     private static String unsecuredToolchainResolverCode() {
         """
             @Override
             public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
-                URI uri = URI.create("http://exoticJavaToolchain.com/java-" + request.getJavaToolchainSpec().getLanguageVersion().get());
+                URI uri = URI.create("http://exoticJavaToolchain.invalid/java-" + request.getJavaToolchainSpec().getLanguageVersion().get());
                 return Optional.of(JavaToolchainDownload.fromUri(uri));
             }
         """
     }
-
-    private def getFailureMessageBuildPlatform() {
-        def buildPlatform = new CurrentBuildPlatform(new DefaultSystemInfo(), OperatingSystem.current())
-        return "for ${buildPlatform.operatingSystem} on ${buildPlatform.architecture.toString().toLowerCase()}"
-    }
-
 }

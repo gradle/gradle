@@ -45,6 +45,7 @@ import static org.hamcrest.CoreMatchers.notNullValue
 import static org.hamcrest.CoreMatchers.nullValue
 import static org.hamcrest.CoreMatchers.startsWith
 import static org.hamcrest.MatcherAssert.assertThat
+import static org.junit.Assert.assertThrows
 import static org.junit.Assert.assertTrue
 
 final class ConfigurationCacheProblemsFixture {
@@ -181,6 +182,71 @@ final class ConfigurationCacheProblemsFixture {
         assertIncompatibleTasks(result.output, rootDir, spec)
     }
 
+    void assertFailureHtmlReportHasProblems(
+        ExecutionFailure failure,
+        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+    ) {
+        assertFailureHtmlReportHasProblems(failure, ConfigureUtil.configureUsing(specClosure))
+    }
+
+    void assertFailureHtmlReportHasProblems(
+        ExecutionFailure failure,
+        Action<HasConfigurationCacheProblemsSpec> specAction = {}
+    ) {
+        assertHtmlReportHasProblems(failure.error, newProblemsSpec(specAction))
+    }
+
+    void assertResultHtmlReportHasProblems(
+        ExecutionResult result,
+        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+    ) {
+        assertResultHtmlReportHasProblems(result, ConfigureUtil.configureUsing(specClosure))
+    }
+
+    /**
+     * Asserts a report generated for non-fatal
+     * @param result
+     * @param specAction
+     */
+    void assertResultHtmlReportHasProblems(
+        ExecutionResult result,
+        Action<HasConfigurationCacheProblemsSpec> specAction = {}
+    ) {
+        assertHtmlReportHasProblems(result.output, newProblemsSpec { HasConfigurationCacheProblemsSpec it ->
+            it.checkReportProblems = true
+            specAction.execute(it)
+        })
+    }
+
+    void assertResultConsoleSummaryHasNoProblems(ExecutionResult result) {
+        assertThrows(AssertionFailedError) {
+            extractSummary(result.output)
+        }
+    }
+
+    void assertResultHasConsoleSummary(
+        ExecutionResult result,
+        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+    ) {
+        assertResultHasConsoleSummary(result, ConfigureUtil.configureUsing(specClosure))
+    }
+
+    void assertResultHasConsoleSummary(
+        ExecutionResult result,
+        Action<HasConfigurationCacheProblemsSpec> specAction = {}
+    ) {
+        assertHasConsoleSummary(result.output, newProblemsSpec(specAction))
+    }
+
+    private void assertHtmlReportHasProblems(
+        String output,
+        HasConfigurationCacheProblemsSpec spec
+    ) {
+        assertProblemsHtmlReport(output, rootDir, spec)
+        assertInputs(output, rootDir, spec)
+        assertIncompatibleTasks(output, rootDir, spec)
+    }
+
     HasConfigurationCacheProblemsSpec newProblemsSpec(
         @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
@@ -210,7 +276,7 @@ final class ConfigurationCacheProblemsFixture {
         return buildMatcherForProblemsFailureDescription(
             "Maximum number of configuration cache problems has been reached.\n" +
                 "This behavior can be adjusted. " +
-                new DocumentationRegistry().getDocumentationRecommendationFor("on this", "configuration_cache", "config_cache:usage:max_problems"),
+                new DocumentationRegistry().getDocumentationRecommendationFor("on this", "configuration_cache_enabling", "config_cache:usage:max_problems"),
             spec
         )
     }
@@ -248,6 +314,13 @@ final class ConfigurationCacheProblemsFixture {
     }
 
     private static void assertHasConsoleSummary(String text, HasConfigurationCacheProblemsSpec spec) {
+        if (spec.checkReportProblems) {
+            // At this time, message expectations are either console-compatible or report-compatible.
+            // Only the former are prefixed by location information ("Build file 'build.gradle': line...: <core-message>" or "Task `:foo` of type `Bar`: <core-message>").
+            // When report problems are to be checked, then assert(Result)HtmlReportHasProblems should be used directly.
+            throw new UnsupportedOperationException("content expectations for HTML report must be verified via #assertResultHtmlReportHasProblems or #assertFailureHtmlReportHasProblems")
+        }
+
         def uniqueCount = spec.uniqueProblems.size()
         def totalCount = spec.totalProblemsCount ?: uniqueCount
 
@@ -270,8 +343,10 @@ final class ConfigurationCacheProblemsFixture {
             rootDir,
             output,
             totalProblemCount,
-            spec.uniqueProblems.size(),
-            spec.problemsWithStackTraceCount == null ? totalProblemCount : spec.problemsWithStackTraceCount
+            spec.uniqueProblems,
+            spec.problemsWithStackTraceCount == null ? totalProblemCount : spec.problemsWithStackTraceCount,
+            spec.incompatibleTasks instanceof ItemSpec.ExpectingSome,
+            spec.checkReportProblems
         )
     }
 
@@ -329,9 +404,9 @@ final class ConfigurationCacheProblemsFixture {
             }
         }
         if (!(spec instanceof ItemSpec.IgnoreUnexpected)) {
-            assert unexpectedItems.isEmpty() : "Unexpected '$kind' items $unexpectedItems found in the report, expecting $expectedItems"
+            assert unexpectedItems.isEmpty(): "Unexpected '$kind' items $unexpectedItems found in the report, expecting $expectedItems"
         }
-        assert expectedItems.isEmpty() : "Expecting $expectedItems in the report, found $unexpectedItems"
+        assert expectedItems.isEmpty(): "Expecting $expectedItems in the report, found $unexpectedItems"
     }
 
     static String formatItemForAssert(Map<String, Object> item, String kind) {
@@ -356,7 +431,7 @@ final class ConfigurationCacheProblemsFixture {
             case "Field": return trace['name']
             case "InputProperty": return trace['name']
             case "OutputProperty": return trace['name']
-            // Build file 'build.gradle'
+                // Build file 'build.gradle'
             case "BuildLogic": return trace['location'].toString().capitalize()
             case "BuildLogicClass": return trace['type']
             default: return "Gradle runtime"
@@ -367,10 +442,13 @@ final class ConfigurationCacheProblemsFixture {
         File rootDir,
         String output,
         int totalProblemCount,
-        int uniqueProblemCount,
-        int problemsWithStackTraceCount
+        List<Matcher> uniqueProblems,
+        int problemsWithStackTraceCount,
+        boolean expectIncompatibleTasks,
+        boolean checkReportProblems
     ) {
-        def expectReport = totalProblemCount > 0 || uniqueProblemCount > 0
+        def uniqueProblemCount = uniqueProblems.size()
+        def expectReport = totalProblemCount > 0 || uniqueProblemCount > 0 || expectIncompatibleTasks
         def reportDir = resolveConfigurationCacheReportDirectory(rootDir, output)
         if (expectReport) {
             Map<String, Object> jsModel = readJsModelFromReportDir(reportDir)
@@ -384,6 +462,13 @@ final class ConfigurationCacheProblemsFixture {
                 numberOfProblemsWithStacktraceIn(jsModel),
                 equalTo(problemsWithStackTraceCount)
             )
+            if (checkReportProblems) {
+                def problemMessages = problemMessagesIn(jsModel)
+                for (int i in uniqueProblems.indices) {
+                    // note that matchers for problem messages in report don't contain location prefixes
+                    assert uniqueProblems[i].matches(problemMessages[i])
+                }
+            }
         } else {
             assertThat("Unexpected HTML report URI found", reportDir, nullValue())
         }
@@ -439,6 +524,21 @@ final class ConfigurationCacheProblemsFixture {
         return (jsModel.diagnostics as List<Object>).count { it['problem'] != null }
     }
 
+    /**
+     * Makes a best effort to collect problem messages from the JS model.
+     *
+     * Does not include source locations, text is collected raw.
+     */
+    private static List<String> problemMessagesIn(jsModel) {
+        return (jsModel.diagnostics as List<Object>)
+            .findAll{ it['problem'] != null }
+            .collect {
+                it['problem']
+                    .collect { (it as Map).values() }
+                    .flatten().join()
+            }
+    }
+
     protected static int numberOfProblemsWithStacktraceIn(jsModel) {
         return (jsModel.diagnostics as List<Object>).count { it['problem'] != null && it['error']?.getAt('parts') != null }
     }
@@ -491,7 +591,7 @@ ${text}
         return new ProblemsSummary(totalProblems, problems.size(), problems)
     }
 
-    @ToString(includeNames=true)
+    @ToString(includeNames = true)
     private static class ProblemsSummary {
         final int totalProblems
         final int uniqueProblems
@@ -625,6 +725,15 @@ class HasConfigurationCacheProblemsSpec {
     @Nullable
     @PackageScope
     Integer problemsWithStackTraceCount
+
+    /**
+     * Whether to check for problem messages in the report.
+     *
+     * Note that message expectations are either console or report compatible,
+     * so it is incorrect to enable report problems and attempt to check console messages.
+     */
+    @PackageScope
+    Boolean checkReportProblems = false
 
     @PackageScope
     void validateSpec() {

@@ -6,7 +6,6 @@ description = "Adds support for generating parsers from Antlr grammars."
 
 errorprone {
     disabledChecks.addAll(
-        "DefaultCharset", // 1 occurrences
         "Finally", // 1 occurrences
     )
 }
@@ -24,7 +23,10 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.baseServices)
+    implementation(projects.languageJava)
+    implementation(projects.logging)
     implementation(projects.platformJvm)
+    implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)
     implementation(projects.pluginsJavaLibrary)
 

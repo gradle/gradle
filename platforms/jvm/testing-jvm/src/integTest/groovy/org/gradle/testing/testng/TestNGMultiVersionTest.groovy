@@ -18,6 +18,7 @@ package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
+import org.gradle.testing.fixture.TestNGCoverage
 
 trait TestNGMultiVersionTest {
     AbstractTestingMultiVersionIntegrationTest.BuildScriptConfiguration getBuildScriptConfiguration() {
@@ -51,6 +52,11 @@ trait TestNGMultiVersionTest {
         String getExcludeCategoryOrTagConfigurationElement() {
             // TODO implement this if needed
             throw new UnsupportedOperationException()
+        }
+
+        @Override
+        boolean supportsJavaVersion(int javaVersion) {
+            return TestNGCoverage.supportsJavaVersion(MultiVersionIntegrationSpec.version as String, javaVersion)
         }
     }
 

@@ -51,6 +51,7 @@ public class FullExceptionFormatter implements TestExceptionFormatter {
 
     private void printException(TestDescriptor descriptor, Throwable exception,
                                 @Nullable List<StackTraceElement> parentTrace, int exceptionLevel, StringBuilder builder) {
+        @SuppressWarnings("InlineMeInliner") //Strings.repeat is from guava not Java 11+
         String exceptionIndent = Strings.repeat(INDENT, exceptionLevel + 1);
         String exceptionText = exceptionLevel == 0 ? exception.toString() : "\nCaused by:\n" + exception.toString();
         String indentedText = TextUtil.indent(exceptionText, exceptionIndent);

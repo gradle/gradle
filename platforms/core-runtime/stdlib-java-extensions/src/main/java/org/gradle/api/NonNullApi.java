@@ -32,7 +32,7 @@ import java.lang.annotation.Target;
  * Subpackages do not inherit nullability rules and must be annotated.
  *
  * @since 4.2
- * @deprecated Deprecated in Gradle 9.0 for removal in Gradle 10.
+ * @deprecated Deprecated in Gradle 9 for removal in Gradle 10.
  * Prefer JSpecify annotations such as {@link org.jspecify.annotations.NullMarked} and {@link org.jspecify.annotations.Nullable}.
  * Note that you can also still use JSR305 annotations such as {@link javax.annotation.Nonnull} and {@link javax.annotation.Nullable}.
  */

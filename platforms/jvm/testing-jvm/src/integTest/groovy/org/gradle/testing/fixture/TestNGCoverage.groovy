@@ -32,7 +32,7 @@ class TestNGCoverage {
     private static final String BEFORE_BROKEN_PRESERVE_ORDER = '6.1.1' // Latest version before introduction of cbeust/testng#639 bug
     private static final String FIXED_BROKEN_PRESERVE_ORDER = '6.9.4'  // Fixes cbeust/testng#639 for preserve-order
 
-    private static final Set<String> VERSIONS = [
+    public static final Set<String> ALL_VERSIONS = [
         '5.12.1', // Newest version without TestNG#setConfigFailurePolicy method (Added in 5.13)
         FIXED_ILLEGAL_ACCESS,
         BEFORE_BROKEN_PRESERVE_ORDER,
@@ -42,7 +42,7 @@ class TestNGCoverage {
         NEWEST
     ]
 
-    static final Set<String> SUPPORTED_BY_JDK = testNgVersionsSupportedByJdk(VERSIONS, JavaVersion.current())
+    static final Set<String> SUPPORTED_BY_JDK = testNgVersionsSupportedByJdk(ALL_VERSIONS, JavaVersion.current())
     static final Set<String> SUPPORTS_PRESERVE_ORDER = SUPPORTED_BY_JDK.findAll {
         VersionNumber version = VersionNumber.parse(it)
         version >= VersionNumber.parse(FIRST_PRESERVE_ORDER_SUPPORT)
@@ -54,6 +54,10 @@ class TestNGCoverage {
 
     static boolean providesClassListener(Object version) {
         VersionNumber.parse(version.toString()) >= VersionNumber.parse(FIXED_ICLASS_LISTENER)
+    }
+
+    static boolean supportsJavaVersion(String testNgVersion, int javaVersion) {
+        return testNgVersionsSupportedByJdk([testNgVersion] as Set,  JavaVersion.toVersion(javaVersion)).contains(testNgVersion)
     }
 
     private static Set<String> testNgVersionsSupportedByJdk(Set<String> versions, JavaVersion javaVersion) {

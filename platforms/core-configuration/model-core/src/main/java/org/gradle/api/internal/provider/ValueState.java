@@ -73,6 +73,8 @@ public abstract class ValueState<S> {
 
     public abstract void disallowChanges();
 
+    public abstract boolean isDisallowChanges();
+
     public abstract void finalizeOnNextGet();
 
     public abstract void disallowUnsafeRead();
@@ -231,7 +233,9 @@ public abstract class ValueState<S> {
             } else if (warnOnUpgradedPropertyChanges) {
                 String shownDisplayName = displayName.getDisplayName();
                 DeprecationLogger.deprecateBehaviour("Changing property value of " + shownDisplayName + " at execution time.")
-                    .startingWithGradle9("changing property value of " + shownDisplayName + " at execution time is deprecated and will fail in Gradle 10")
+                    // this should only happen in Gradle 10, when Provider API migration will come to the mainline,
+                    // so forbidding it must wait until Gradle 11
+                    .startingWithGradle11("changing property value of " + shownDisplayName + " at execution time will become an error")
                     // TODO add documentation
                     .undocumented()
                     .nagUser();
@@ -241,6 +245,11 @@ public abstract class ValueState<S> {
         @Override
         public void disallowChanges() {
             disallowChanges = true;
+        }
+
+        @Override
+        public boolean isDisallowChanges() {
+            return disallowChanges;
         }
 
         @Override
@@ -371,6 +380,11 @@ public abstract class ValueState<S> {
         @Override
         public void disallowChanges() {
             // Finalized, so already cannot change
+        }
+
+        @Override
+        public boolean isDisallowChanges() {
+            return true;
         }
 
         @Override

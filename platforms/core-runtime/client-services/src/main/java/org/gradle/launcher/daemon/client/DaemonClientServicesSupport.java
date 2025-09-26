@@ -16,6 +16,9 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.internal.provider.DefaultPropertyFactory;
+import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.GlobalCache;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
@@ -26,9 +29,6 @@ import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.layout.GlobalCacheDir;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.api.internal.provider.DefaultPropertyFactory;
-import org.gradle.api.internal.provider.PropertyFactory;
-import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.UUIDGenerator;
@@ -51,6 +51,7 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
@@ -100,11 +101,6 @@ public abstract class DaemonClientServicesSupport implements ServiceRegistration
     }
 
     @Provides
-    JvmVersionValidator createJvmVersionValidator() {
-        return new JvmVersionValidator();
-    }
-
-    @Provides
     JvmMetadataDetector createJvmMetadataDetector(ClientExecHandleBuilderFactory execHandleFactory, TemporaryFileProvider temporaryFileProvider, GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory) {
         return new PersistentJvmMetadataDetector(new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider), globalScopedCacheBuilderFactory.createCacheBuilder("jvms"));
     }
@@ -145,8 +141,13 @@ public abstract class DaemonClientServicesSupport implements ServiceRegistration
     }
 
     @Provides
-    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionValidator jvmVersionValidator, JvmVersionDetector jvmVersionDetector, DaemonRequestContext daemonRequestContext, Lazy<JavaToolchainQueryService> javaToolchainQueryService, PropertyFactory propertyFactory) {
-        return new DefaultDaemonStarter(daemonDir, daemonParameters, daemonRequestContext, daemonGreeter, jvmVersionValidator, jvmVersionDetector, javaToolchainQueryService, propertyFactory);
+    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionDetector jvmVersionDetector, DaemonRequestContext daemonRequestContext, PropertyFactory propertyFactory, ServiceRegistry serviceRegistry) {
+        // The creation of this service is deemed expensive enough in the context of the launcher.
+        // We defer it, because it is only needed if daemon toolchains are active and there is no compatible running daemon.
+        // The service registry does not currently support lazy service injection out-of-the-box.
+        // Caveat of this hack: the service registry does not observe the dependency between these two services, so there is no closing order guarantee
+        Lazy<JavaToolchainQueryService> javaToolchainQueryService = Lazy.unsafe().of(() -> serviceRegistry.get(JavaToolchainQueryService.class));
+        return new DefaultDaemonStarter(daemonDir, daemonParameters, daemonRequestContext, daemonGreeter, jvmVersionDetector, javaToolchainQueryService, propertyFactory);
     }
 
     @Provides

@@ -40,7 +40,5 @@ public abstract class DefaultSingleFileReport extends SimpleReport implements Si
     }
 
     @Inject
-    protected ProjectLayout getProjectLayout() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProjectLayout getProjectLayout();
 }

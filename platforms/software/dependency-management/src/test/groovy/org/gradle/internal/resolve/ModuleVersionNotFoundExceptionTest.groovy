@@ -15,13 +15,17 @@
  */
 package org.gradle.internal.resolve
 
+import org.gradle.api.Describable
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.api.internal.attributes.DefaultImmutableAttributesEntry
 import org.gradle.api.internal.attributes.matching.AttributeMatcher
-import org.gradle.util.AttributeTestUtil
+import org.gradle.internal.Describables
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.isolation.IsolatableFactory
+import org.gradle.util.SnapshotTestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
@@ -29,6 +33,9 @@ import static org.gradle.internal.component.external.model.DefaultModuleComponen
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 class ModuleVersionNotFoundExceptionTest extends Specification {
+
+    private static final IsolatableFactory ISOLATABLE_FACTORY = SnapshotTestUtil.isolatableFactory()
+
     static ModuleIdentifier mid(String group, String name) {
         DefaultModuleIdentifier.newId(group, name)
     }
@@ -127,9 +134,9 @@ Searched in the following locations:
     }
 
     def "can add incoming paths to exception"() {
-        def a = DefaultModuleComponentIdentifier.newId(mid("org", "a"), "1.2")
-        def b = DefaultModuleComponentIdentifier.newId(mid("org", "b"), "5")
-        def c = DefaultModuleComponentIdentifier.newId(mid("org", "c"), "1.0")
+        Describable a = Describables.of("org:a:1.2")
+        Describable b = Describables.of("org:b:5")
+        Describable c = Describables.of("org:c:1.0")
 
         def exception = new ModuleVersionNotFoundException(newId("a", "b", "c"), ["http://somewhere"])
         def onePath = exception.withIncomingPaths([[a, b, c]])
@@ -226,7 +233,16 @@ Searched in the following locations:
     static List<AttributeMatcher.MatchingDescription> toDescriptions(Map<String, List<String>> attributes) {
         attributes.collect { k, v ->
             def attribute = Attribute.of(k, String)
-            new AttributeMatcher.MatchingDescription<Object>(attribute, AttributeTestUtil.attributesFactory().of(attribute, v[0]), AttributeTestUtil.attributesFactory().of(attribute, v[1]), v[2])
+
+            def requestedValue = v[0] as String
+            def foundValue = v[1] as String
+            def match = v[2] as Boolean
+
+            new AttributeMatcher.MatchingDescription<Object>(
+                new DefaultImmutableAttributesEntry<>(attribute, ISOLATABLE_FACTORY.isolate(requestedValue)),
+                new DefaultImmutableAttributesEntry<>(attribute, ISOLATABLE_FACTORY.isolate(foundValue)),
+                match
+            )
         }
     }
 }

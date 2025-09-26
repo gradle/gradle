@@ -70,6 +70,7 @@ public class ClassSetAnalysis {
         return new ClassSetDiff(allChanges, changedConstants);
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private Map<String, IntSet> findChangedConstants(ClassSetAnalysis other, DependentsSet affectedClasses) {
         if (affectedClasses.isDependencyToAll()) {
             return Collections.emptyMap();

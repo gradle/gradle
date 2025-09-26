@@ -155,6 +155,7 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The ComponentMetadataHandler.all(Object) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_management_rules")
         fails 'checkDeps'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
         failure.assertHasFileName("Build file '$buildFile.path'")
@@ -184,6 +185,7 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("The ComponentMetadataHandler.all(Object) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_management_rules")
         fails 'checkDeps'
         resolve.assertFailurePresent(failure)
         failure.assertHasFileName("Build file '$buildFile.path'")

@@ -12,21 +12,15 @@ dependencies {
     api(projects.buildOperations)
     api(projects.concurrent)
     api(projects.files)
-    api(projects.logging) {
-        because("Because GradleVersion temporarily lives in the logging project until 9.0")
-    }
-    api(projects.messaging)
     api(projects.serialization)
     api(projects.stdlibJavaExtensions)
 
     api(libs.jspecify)
 
-    implementation(projects.classloaders)
-    implementation(projects.buildProcessServices)
-    implementation(projects.functional)
     implementation(projects.io)
     implementation(projects.time)
 
+    implementation(libs.fastutil)
     implementation(libs.guava)
     implementation(libs.jsr305)
     implementation(libs.slf4jApi)

@@ -17,9 +17,9 @@
 package org.gradle.model.internal.core.rule.describe;
 
 import com.google.common.base.Objects;
-import javax.annotation.concurrent.ThreadSafe;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 
 @ThreadSafe
@@ -39,7 +39,7 @@ class NestedModelRuleDescriptor extends AbstractModelRuleDescriptor {
         try {
             appendable.append(" > ");
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         child.describeTo(appendable);
     }

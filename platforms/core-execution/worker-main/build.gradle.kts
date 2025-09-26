@@ -5,7 +5,11 @@ plugins {
 description = "Contains the main class that is loaded in a worker process, which is able to execute arbitrary actions. " +
     "These classes are loaded in a separate worker daemon process and should have a minimal dependency set."
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
 
 dependencies {
     api(projects.serviceLookup)

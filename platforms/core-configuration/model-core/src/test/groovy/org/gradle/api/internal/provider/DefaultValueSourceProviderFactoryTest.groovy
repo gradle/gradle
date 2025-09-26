@@ -48,20 +48,7 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         configured
     }
 
-    def "provider forUseAtConfigurationTime is a no-op"() {
-
-        given:
-        configurationTimeBarrier.atConfigurationTime >> true
-        def provider = createProviderOf(EchoValueSource) {
-            it.parameters.value.set('42')
-        }
-        def configTimeProvider = provider.forUseAtConfigurationTime()
-
-        expect:
-        configTimeProvider === provider
-    }
-
-    def "providers forUseAtConfigurationTime obtain value only once at #time time"() {
+    def "value source providers obtain value only once at #time time"() {
 
         given:
         configurationTimeBarrier.atConfigurationTime >> atConfigurationTime

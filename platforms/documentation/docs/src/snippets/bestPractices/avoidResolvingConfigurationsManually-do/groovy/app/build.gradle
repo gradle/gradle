@@ -1,0 +1,36 @@
+plugins {
+    id "application"
+}
+
+// tag::do-this[]
+dependencies {
+    runtimeOnly(project(":lib")) // <1>
+}
+
+abstract class GoodClasspathPrinter extends DefaultTask {
+
+    @InputFiles
+    abstract ConfigurableFileCollection getClasspath() // <2>
+
+    protected int calculateDigest(File fileOrDirectory) {
+        if (!fileOrDirectory.exists()) {
+            throw new IllegalArgumentException("File or directory $fileOrDirectory doesn't exist")
+        }
+        return 0 // actual implementation is stripped
+    }
+
+    @TaskAction
+    void run() {
+        logger.lifecycle(
+            classpath.collect { file ->
+                def digest = calculateDigest(file) // <3>
+                "$file#$digest"
+            }.join("\n")
+        )
+    }
+}
+
+tasks.register("goodClasspathPrinter", GoodClasspathPrinter) {
+    classpath.from(configurations.named("runtimeClasspath")) // <4>
+}
+// end::do-this[]

@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationSpec
 import org.gradle.plugins.ide.fixtures.IdeaFixtures
@@ -35,7 +34,6 @@ include ':child1', ':child2', ':child3'
 """
     }
 
-    @ToBeFixedForConfigurationCache
     void "global sourceCompatibility results in project language level"() {
         given:
         buildFile << """
@@ -57,7 +55,6 @@ allprojects {
         iml('child3').languageLevel == null
     }
 
-    @ToBeFixedForConfigurationCache
     void "specific module languageLevel is exposed with derived language level"() {
         given:
         buildFile << """
@@ -91,7 +88,6 @@ project(':child3') {
         iml("child3").languageLevel == null
     }
 
-    @ToBeFixedForConfigurationCache
     void "use project language level not source language level and target bytecode level when explicitly set"() {
         given:
         buildFile << """
@@ -170,7 +166,6 @@ project(':child3') {
         ipr.bytecodeTargetLevel.children().size() == 0
     }
 
-    @ToBeFixedForConfigurationCache
     void "uses subproject sourceCompatibility even if root project does not apply java plugin"() {
         buildFile << """
 allprojects {
@@ -192,7 +187,6 @@ subprojects {
         iml('child3').languageLevel == null
     }
 
-    @ToBeFixedForConfigurationCache
     void "module languageLevel always exposed when no idea root project found"() {
         buildFile << """
 subprojects {
@@ -212,7 +206,6 @@ subprojects {
     }
 
 
-    @ToBeFixedForConfigurationCache
     def "project bytecodeLevel set explicitly for same java versions"() {
         given:
         createDirs("subprojectA", "subprojectB", "subprojectC")
@@ -246,7 +239,6 @@ idea {
         ipr.bytecodeTargetLevel.@target == "1.6"
     }
 
-    @ToBeFixedForConfigurationCache
     def "explicit project target level when module version differs from project java sdk"() {
         given:
         createDirs("subprojectA", "subprojectB", "subprojectC")
@@ -279,7 +271,6 @@ idea {
         ipr.bytecodeTargetLevel.@target == "1.7"
     }
 
-    @ToBeFixedForConfigurationCache
     def "target bytecode version set if differs from calculated idea project bytecode version"() {
         given:
         createDirs("subprojectA")
@@ -311,7 +302,6 @@ project(':subprojectA') {
         ipr.bytecodeTargetLevel.module.find { it.@name == "subprojectA" }.@target == "1.7"
     }
 
-    @ToBeFixedForConfigurationCache
     def "language level set if differs from calculated idea project language level"() {
         given:
         createDirs("child1")
@@ -342,7 +332,6 @@ project(':child1') {
         iml('child1').languageLevel == "JDK_1_7"
     }
 
-    @ToBeFixedForConfigurationCache
     def "language level set if root has no idea plugin applied"() {
         given:
         createDirs("child1")
@@ -369,7 +358,6 @@ project(':child1') {
         iml('child1').languageLevel == "JDK_1_7"
     }
 
-    @ToBeFixedForConfigurationCache
     def "can have module specific bytecode version"() {
         given:
         createDirs("subprojectA", "subprojectB", "subprojectC", "subprojectD")
@@ -423,7 +411,6 @@ idea {
         ipr.bytecodeTargetLevel.module.find { it.@name == "subprojectB" }.@target == "1.7"
     }
 
-    @ToBeFixedForConfigurationCache
     void "language levels specified in properties files are ignored"() {
         given:
         file('gradle.properties') << """

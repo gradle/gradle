@@ -35,10 +35,10 @@ class GccToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainInt
         buildFile << """
 apply plugin: 'c'
 
-model {
     toolChains {
         ${toolChain.buildScriptConfig}
     }
+model {
     components {
         main(NativeExecutableSpec) {
             binaries.all {
@@ -57,12 +57,10 @@ model {
     def "can build when language tools that are not required are not available"() {
         when:
         buildFile << """
-model {
-    toolChains {
-        ${toolChain.id} {
-            eachPlatform {
-                cppCompiler.executable = 'does-not-exist'
-            }
+toolChains {
+    ${toolChain.id} {
+        eachPlatform {
+            cppCompiler.executable = 'does-not-exist'
         }
     }
 }
@@ -76,7 +74,6 @@ model {
     def "does not break when compiler not available and not building"() {
         when:
         buildFile << """
-model {
     toolChains {
         ${toolChain.id} {
             eachPlatform {
@@ -86,7 +83,6 @@ model {
             }
         }
     }
-}
 """
 
         then:
@@ -96,7 +92,6 @@ model {
     def "tool chain is not available when no tools are available"() {
         when:
         buildFile << """
-model {
     toolChains {
         ${toolChain.id} {
             eachPlatform {
@@ -112,7 +107,6 @@ model {
             }
         }
     }
-}
 """
         fails "compileMainExecutableMainC"
 
@@ -128,7 +122,6 @@ model {
     def "fails when required language tool is not available but other language tools are available"() {
         when:
         buildFile << """
-model {
     toolChains {
         ${toolChain.id} {
             eachPlatform {
@@ -136,7 +129,6 @@ model {
             }
         }
     }
-}
 """
         fails "compileMainExecutableMainC"
 
@@ -148,7 +140,6 @@ model {
     def "fails when required linker tool is not available but language tool is available"() {
         when:
         buildFile << """
-model {
     toolChains {
         ${toolChain.id} {
             eachPlatform {
@@ -156,7 +147,6 @@ model {
             }
         }
     }
-}
 """
         fails "mainExecutable"
 

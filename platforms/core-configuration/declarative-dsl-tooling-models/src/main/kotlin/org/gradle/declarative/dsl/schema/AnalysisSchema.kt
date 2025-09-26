@@ -49,6 +49,7 @@ interface AnalysisSchema : Serializable {
     val assignmentAugmentationsByTypeName: Map<FqName, List<AssignmentAugmentation>>
 
     val externalFunctionsByFqName: Map<FqName, DataTopLevelFunction>
+    val infixFunctionsByFqName: Map<FqName, DataTopLevelFunction>
     val externalObjectsByFqName: Map<FqName, ExternalObjectProviderKey>
     val defaultImports: Set<FqName>
 }

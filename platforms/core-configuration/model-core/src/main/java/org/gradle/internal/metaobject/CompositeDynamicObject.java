@@ -74,7 +74,18 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
     }
 
     @Override
-    public Map<String, Object> getProperties() {
+    public DynamicInvokeResult trySetPropertyWithoutInstrumentation(String name, @Nullable Object value) {
+        for (DynamicObject object : updateObjects) {
+            DynamicInvokeResult result = object.trySetPropertyWithoutInstrumentation(name, value);
+            if (result.isFound()) {
+                return result;
+            }
+        }
+        return DynamicInvokeResult.notFound();
+    }
+
+    @Override
+    public Map<String, @Nullable Object> getProperties() {
         Map<String, Object> properties = new HashMap<String, Object>();
         for (int i = objects.length - 1; i >= 0; i--) {
             DynamicObject object = objects[i];

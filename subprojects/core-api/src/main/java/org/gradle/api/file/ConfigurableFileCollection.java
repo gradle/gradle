@@ -17,19 +17,22 @@ package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ManagedType;
 import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.api.provider.SupportsConvention;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
 /**
  * <p>A {@code ConfigurableFileCollection} is a mutable {@code FileCollection}.</p>
  *
- * <p>You can obtain an instance of {@code ConfigurableFileCollection} by calling {@link org.gradle.api.Project#files(Object...)} or {@link ObjectFactory#fileCollection()}.</p>
- *
  * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.</p>
+ *
+ * @see ManagedType Create an instance of this as a managed property (preferred).
+ * @see org.gradle.api.model.ObjectFactory#fileCollection() Create an instance of this manually.
  */
+@ManagedType
 @SupportsKotlinAssignmentOverloading
 public interface ConfigurableFileCollection extends FileCollection, HasConfigurableValue, SupportsConvention {
     /**
@@ -51,7 +54,7 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      *
      * @param paths The paths. {@code null} values are ignored.
      */
-    void setFrom(Object... paths);
+    void setFrom(@Nullable Object... paths);
 
     /**
      * Specifies the value to use as the convention (default value) to be used when resolving this file collection,
@@ -81,7 +84,7 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      * @since 8.8
      */
     @Incubating
-    ConfigurableFileCollection convention(Object... paths);
+    ConfigurableFileCollection convention(@Nullable Object... paths);
 
     /**
      * Adds a set of source paths to this collection. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
@@ -89,7 +92,7 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      * @param paths The files to add. {@code null} values are ignored.
      * @return this
      */
-    ConfigurableFileCollection from(Object... paths);
+    ConfigurableFileCollection from(@Nullable Object... paths);
 
     /**
      * Returns the set of tasks which build the files of this collection.

@@ -16,8 +16,7 @@
 
 package org.gradle.internal.metaobject
 
-import org.gradle.test.precondition.TestPrecondition
-import org.gradle.test.preconditions.UnitTestPreconditions
+
 import spock.lang.Specification
 
 class CompositeDynamicObjectTest extends Specification {
@@ -157,8 +156,7 @@ class CompositeDynamicObjectTest extends Specification {
         obj.invokeMethod("m", "value")
 
         then:
-        // Groovy 3.x incorrectly records the name of the enclosing class for some reason
-        def className = TestPrecondition.satisfied(UnitTestPreconditions.IsGroovy3) ? CompositeDynamicObjectTest.name : CompositeDynamicObjectTest.name + '$1'
+        def className = CompositeDynamicObjectTest.name + '$1'
         def e = thrown MissingMethodException
         e.message.startsWith("No signature of method: ${className}.m() is applicable for argument types: (String) values: [value]")
     }

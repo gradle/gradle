@@ -16,7 +16,7 @@
 
 package org.gradle.initialization
 
-
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.initialization.Settings
@@ -78,7 +78,7 @@ class DefaultSettingsTest extends DefaultSettingsCommonTest {
         includeFlat << [{ Settings settings, String p1, String p2 -> settings.includeFlat([p1, p2] as String[]) }, { Settings settings, String p1, String p2 -> settings.includeFlat([p1, p2]) }]
     }
 
-    void testDescriptor(DefaultProjectDescriptor descriptor, String name, File projectDir) {
+    void testDescriptor(ProjectDescriptorInternal descriptor, String name, File projectDir) {
         assert name == descriptor.getName()
         assert projectDir == descriptor.getProjectDir()
     }
@@ -88,7 +88,7 @@ class DefaultSettingsTest extends DefaultSettingsCommonTest {
         File testDir = new File("testDir")
 
         when:
-        DefaultProjectDescriptor projectDescriptor = settings.createProjectDescriptor(settings.getRootProject(), testName, testDir)
+        ProjectDescriptorInternal projectDescriptor = settings.createProjectDescriptor(settings.getRootProject(), testName, testDir)
 
         then:
         settings.rootProject.is(projectDescriptor.parent)
@@ -98,20 +98,20 @@ class DefaultSettingsTest extends DefaultSettingsCommonTest {
     }
 
     def 'can find project by path'() {
-        DefaultProjectDescriptor projectDescriptor = createTestDescriptor()
+        ProjectDescriptorInternal projectDescriptor = createTestDescriptor()
 
         when:
-        DefaultProjectDescriptor foundProjectDescriptor = settings.project(projectDescriptor.path)
+        ProjectDescriptorInternal foundProjectDescriptor = settings.project(projectDescriptor.path)
 
         then:
         foundProjectDescriptor.is(projectDescriptor)
     }
 
     def 'can find project by directory'() {
-        DefaultProjectDescriptor projectDescriptor = createTestDescriptor()
+        ProjectDescriptorInternal projectDescriptor = createTestDescriptor()
 
         when:
-        DefaultProjectDescriptor foundProjectDescriptor = settings.project(projectDescriptor.projectDir)
+        ProjectDescriptorInternal foundProjectDescriptor = settings.project(projectDescriptor.projectDir)
 
         then:
         foundProjectDescriptor.is(projectDescriptor)
@@ -134,7 +134,7 @@ class DefaultSettingsTest extends DefaultSettingsCommonTest {
         thrown(UnknownProjectException)
     }
 
-    private DefaultProjectDescriptor createTestDescriptor() {
+    private ProjectDescriptorInternal createTestDescriptor() {
         String testName = "testname"
         File testDir = new File("testDir")
         return settings.createProjectDescriptor(settings.rootProject, testName, testDir)
@@ -185,4 +185,18 @@ class DefaultSettingsTest extends DefaultSettingsCommonTest {
         IllegalArgumentException exception = thrown()
         exception.getMessage() == 'There is no feature named UNKNOWN_FEATURE'
     }
+
+    def cannotLocateProjectsWithAmbiguousProjectDir() {
+        settings.include(":foo")
+        settings.include(":bar")
+        settings.project(":bar").projectDir = settings.project(":foo").projectDir
+
+        when:
+        settings.project(settings.project(":foo").projectDir)
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message.startsWith("Found multiple projects with project directory ")
+    }
+
 }

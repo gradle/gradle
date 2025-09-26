@@ -27,10 +27,8 @@ class SwiftToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainI
 
     def setup() {
         buildFile << """
-            model {
-                toolChains {
-                    ${toolChain.buildScriptConfig}
-                }
+            toolChains {
+                ${toolChain.buildScriptConfig}
             }
         """
     }
@@ -50,13 +48,11 @@ class SwiftToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainI
 
         when:
         buildFile << """
-            model {
                 toolChains {
                     ${toolChain.id} {
                         path.add(0, file('${scriptDir.toURI()}'))
                     }
                 }
-            }
             apply plugin: 'swift-application'
         """
 

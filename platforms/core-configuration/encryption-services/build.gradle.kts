@@ -31,7 +31,9 @@ dependencies {
     implementation(projects.buildOption)
     implementation(projects.coreApi)
     implementation(projects.coreKotlinExtensions)
+    implementation(projects.files)
     implementation(projects.loggingApi)
     implementation(projects.persistentCache)
+    implementation(projects.scopedPersistentCache)
     implementation(projects.stdlibKotlinExtensions)
 }

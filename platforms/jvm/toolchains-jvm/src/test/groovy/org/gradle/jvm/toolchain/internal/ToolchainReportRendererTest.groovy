@@ -16,19 +16,19 @@
 
 package org.gradle.jvm.toolchain.internal
 
-import org.gradle.internal.jvm.inspection.JavaInstallationCapability
+import org.gradle.api.tasks.diagnostics.internal.ToolchainReportRenderer
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmToolchainMetadata
 import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.api.tasks.diagnostics.internal.ToolchainReportRenderer
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.TempDir
 
 class ToolchainReportRendererTest extends Specification {
 
-    @TempDir
-    File temporaryFolder
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     InstallationLocation installation = Mock(InstallationLocation)
 
@@ -44,7 +44,7 @@ class ToolchainReportRendererTest extends Specification {
         installation.source >> "SourceSupplier"
 
         expect:
-        assertOutput(metadata, """{identifier} + vendorName JRE 1.8.0-b01{normal}
+        assertOutput(metadata, """{identifier} + vendorName JRE 8 (1.8.0-b01){normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
      | Vendor:             {description}vendorName{normal}
@@ -57,27 +57,23 @@ class ToolchainReportRendererTest extends Specification {
 
     def "jdk is rendered properly"() {
         given:
-        File javaHome = new File(temporaryFolder, "javahome").tap { mkdirs() }
-        def metadata = new JvmMetadataWithAddedCapabilities(
-            JvmInstallationMetadata.from(
+        def javaHome = temporaryFolder.createDir("javahome")
+        def metadata = JvmInstallationMetadata.from(
                 javaHome,
                 "1.8.0", "adoptopenjdk",
                 "runtimeName", "1.8.0-b01",
                 "jvmName", "25.292-b01", "jvmVendor",
                 "myArch"
-            ),
-            JavaInstallationCapability.JDK_CAPABILITIES
-        )
+            )
         installation.source >> "SourceSupplier"
 
-        def binDir = new File(javaHome, "bin")
-        if (binDir.mkdir()) {
-            File javac = new File(binDir, OperatingSystem.current().getExecutableName('javac'))
-            javac << 'dummy'
-        }
+        def binDir = javaHome.createDir("bin")
+        binDir.file(OperatingSystem.current().getExecutableName('javac')).touch()
+        binDir.file(OperatingSystem.current().getExecutableName('javadoc')).touch()
+        binDir.file(OperatingSystem.current().getExecutableName('jar')).touch()
 
         expect:
-        assertOutput(metadata, """{identifier} + AdoptOpenJDK 1.8.0-b01{normal}
+        assertOutput(metadata, """{identifier} + AdoptOpenJDK JDK 8 (1.8.0-b01){normal}
      | Location:           {description}${javaHome}{normal}
      | Language Version:   {description}8{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}

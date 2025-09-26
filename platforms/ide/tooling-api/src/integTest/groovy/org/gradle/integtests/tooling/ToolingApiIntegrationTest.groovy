@@ -18,19 +18,16 @@ package org.gradle.integtests.tooling
 import org.gradle.api.logging.LogLevel
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.OtherGradleVersionFixture
 import org.gradle.integtests.fixtures.executer.GradleHandle
-import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
-import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.time.CountdownTimer
 import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
-import org.junit.Assume
 import spock.lang.Issue
 
 import java.time.ZoneOffset
@@ -41,17 +38,14 @@ import static org.gradle.integtests.tooling.fixture.ToolingApiTestCommon.LOG_LEV
 import static org.gradle.integtests.tooling.fixture.ToolingApiTestCommon.runLogScript
 import static org.gradle.integtests.tooling.fixture.ToolingApiTestCommon.validateLogs
 
-class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
+class ToolingApiIntegrationTest extends AbstractIntegrationSpec implements OtherGradleVersionFixture {
 
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
-    final GradleDistribution otherVersion = new ReleasedVersionDistributions().mostRecentRelease
 
     TestFile projectDir
 
     def setup() {
         projectDir = temporaryFolder.testDirectory
-        // When adding support for a new JDK version, the previous release might not work with it yet.
-        Assume.assumeTrue(otherVersion.worksWith(Jvm.current()))
 
         settingsFile.touch()
     }
@@ -60,7 +54,6 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
         propertiesFile << "org.gradle.logging.level=quiet"
         buildFile << LOG_LEVEL_TEST_SCRIPT
     }
-
 
     def "tooling api uses to the current version of gradle when none has been specified"() {
         buildFile << "assert gradle.gradleVersion == '${GradleVersion.current().version}'"
@@ -233,7 +226,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
             dependencies {
                 implementation "org.gradle:gradle-tooling-api:${distribution.version.baseVersion.version}"
-                runtimeOnly 'org.slf4j:slf4j-simple:1.7.10'
+                runtimeOnly 'org.slf4j:slf4j-simple:2.0.17'
             }
 
             application.mainClass = 'Main'

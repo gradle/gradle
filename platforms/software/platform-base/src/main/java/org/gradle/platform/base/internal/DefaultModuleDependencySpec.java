@@ -16,12 +16,13 @@
 
 package org.gradle.platform.base.internal;
 
-import org.apache.commons.lang.ObjectUtils;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.ModuleDependencySpec;
 import org.gradle.platform.base.ModuleDependencySpecBuilder;
 import org.jspecify.annotations.Nullable;
+
+import java.util.Objects;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -137,16 +138,16 @@ public final class DefaultModuleDependencySpec implements ModuleDependencySpec {
             return false;
         }
         DefaultModuleDependencySpec that = (DefaultModuleDependencySpec) o;
-        return ObjectUtils.equals(group, that.group)
-            && ObjectUtils.equals(name, that.name)
-            && ObjectUtils.equals(version, that.version);
+        return Objects.equals(group, that.group)
+            && Objects.equals(name, that.name)
+            && Objects.equals(version, that.version);
     }
 
     @Override
     public int hashCode() {
-        int result = ObjectUtils.hashCode(group);
-        result = 31 * result + ObjectUtils.hashCode(name);
-        result = 31 * result + ObjectUtils.hashCode(version);
+        int result = Objects.hashCode(group);
+        result = 31 * result + Objects.hashCode(name);
+        result = 31 * result + Objects.hashCode(version);
         return result;
     }
 }

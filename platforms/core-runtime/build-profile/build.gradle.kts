@@ -13,13 +13,15 @@ dependencies {
     api(projects.coreApi)
     api(projects.enterpriseLogging)
 
+    api(libs.jspecify)
+
+
     implementation(projects.logging)
     implementation(projects.loggingApi)
     implementation(projects.reportRendering)
     implementation(projects.serviceLookup)
 
     implementation(libs.guava)
-    implementation(libs.jspecify)
 
     testImplementation(projects.internalTesting)
 

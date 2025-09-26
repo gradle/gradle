@@ -18,7 +18,7 @@ package org.gradle.api.internal.plugins
 
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails
 import org.gradle.util.internal.TextUtil
-import org.gradle.util.internal.WrapUtil
+import spock.lang.Issue
 import spock.lang.Specification
 
 class WindowsStartScriptGeneratorTest extends Specification {
@@ -119,9 +119,53 @@ class WindowsStartScriptGeneratorTest extends Specification {
         destination.toString().contains('set APP_HOME=%DIRNAME%..\\..')
     }
 
-    private JavaAppStartScriptGenerationDetails createScriptGenerationDetails(List<String> defaultJvmOpts, String scriptRelPath) {
+    def "generates correct output for #type entry point"() {
+        given:
+        JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails(null, 'bin/sample/start', entryPoint)
+        Writer destination = new StringWriter()
+
+        when:
+        generator.generateScript(details, destination)
+
+        then:
+        def appExecutionLine = destination.toString().readLines().find { it.startsWith('"%JAVA_EXE%"') }
+        appExecutionLine.contains(entryPointArgs)
+
+        where:
+        type                          | entryPoint                                        | entryPointArgs
+        "main class"                  | new MainClass("com.example.Main")                 | 'com.example.Main'
+        "executable jar"              | new ExecutableJar("example.jar")                  | '-jar "%APP_HOME%\\example.jar"'
+        "main module"                 | new MainModule("com.example", null)               | '--module com.example'
+        "main module with main class" | new MainModule("com.example", "com.example.Main") | '--module com.example/com.example.Main'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/33415")
+    def "Do not set classpath if it is empty"() {
+        given:
+        JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails(null, 'bin', new MainClass(""), classpath)
+        Writer destination = new StringWriter()
+
+        when:
+        generator.generateScript(details, destination)
+
+        then:
+        destination.toString().contains(text) == result
+
+        where:
+        classpath             | text                       | result
+        []                    | 'set CLASSPATH'            | false
+        []                    | '-classpath "%CLASSPATH%"' | false
+        ['path\\to\\Jar.jar'] | 'set CLASSPATH'            | true
+        ['path\\to\\Jar.jar'] | '-classpath "%CLASSPATH%"' | true
+    }
+
+    private JavaAppStartScriptGenerationDetails createScriptGenerationDetails(
+        List<String> defaultJvmOpts,
+        String scriptRelPath,
+        AppEntryPoint appEntryPoint = new MainClass(""),
+        List<String> classpath = ['path/to/Jar.jar']
+    ) {
         final String applicationName = 'TestApp'
-        final List<String> classpath = WrapUtil.toList('path/to/Jar.jar')
-        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, null, null, "", defaultJvmOpts, classpath, [], scriptRelPath, null)
+        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, null, null, appEntryPoint, defaultJvmOpts, classpath, [], scriptRelPath, null)
     }
 }

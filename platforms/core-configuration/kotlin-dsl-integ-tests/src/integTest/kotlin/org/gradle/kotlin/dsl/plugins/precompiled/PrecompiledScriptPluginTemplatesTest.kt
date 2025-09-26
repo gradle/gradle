@@ -16,16 +16,6 @@
 
 package org.gradle.kotlin.dsl.plugins.precompiled
 
-import com.nhaarman.mockito_kotlin.KStubbing
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doAnswer
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.eq
-import com.nhaarman.mockito_kotlin.inOrder
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.same
-import com.nhaarman.mockito_kotlin.verify
-
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -36,30 +26,30 @@ import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
-
 import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.assertFailsWith
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
 import org.gradle.kotlin.dsl.fixtures.withFolders
-
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledProjectScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledSettingsScript
-
 import org.gradle.test.fixtures.file.LeaksFileHandles
-
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-
 import org.jetbrains.kotlin.name.NameUtils
-
 import org.junit.Test
-
 import org.mockito.invocation.InvocationOnMock
-
+import org.mockito.kotlin.KStubbing
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import java.io.File
 
 
@@ -449,24 +439,6 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    fun `precompiled project script receiver is undecorated`() {
-
-        assertUndecoratedImplicitReceiverOf<Project>("my-project-plugin.gradle.kts")
-    }
-
-    @Test
-    fun `precompiled settings script receiver is undecorated`() {
-
-        assertUndecoratedImplicitReceiverOf<Settings>("my-settings-plugin.settings.gradle.kts")
-    }
-
-    @Test
-    fun `precompiled init script receiver is undecorated`() {
-
-        assertUndecoratedImplicitReceiverOf<Gradle>("my-init-plugin.init.gradle.kts")
-    }
-
-    @Test
     fun `nested plugins block fails to compile with reasonable message`() {
 
         withKotlinDslPlugin()
@@ -481,12 +453,14 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             """
         )
 
+        // Error message relies on Kotlin's Deprecated.HIDDEN
+        executer.noDeprecationChecks()
         buildAndFail("classes").run {
             assertHasDescription(
                 "Execution failed for task ':compileKotlin'."
             )
             assertHasErrorOutput(
-                """my-project-plugin.gradle.kts:3:17 Using 'plugins(PluginDependenciesSpec.() -> Unit): Nothing' is an error. The plugins {} block must not be used here. If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = "id") instead."""
+                """my-project-plugin.gradle.kts:3:17 'fun Project.plugins(block: PluginDependenciesSpec.() -> Unit): Nothing' is deprecated. The plugins {} block must not be used here. If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = "id") instead."""
             )
         }
     }
@@ -550,6 +524,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
 
         val pluginRepositoriesBlock = repositoriesBlockFor(pluginsRepository)
 
+        file("bar").mkdirs()
         withSettings(
             """
             pluginManagement {
@@ -630,34 +605,6 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
     private
     fun <T : Any> InvocationOnMock.executeActionArgument(index: Int, configurationAction: T) {
         getArgument<Action<T>>(index).execute(configurationAction)
-    }
-
-    @Suppress("deprecation")
-    private
-    inline fun <reified T : Any> assertUndecoratedImplicitReceiverOf(fileName: String) {
-
-        givenPrecompiledKotlinScript(
-            fileName,
-            """
-            val ${T::class.simpleName}.receiver get() = this
-            (receiver as ${org.gradle.api.internal.HasConvention::class.qualifiedName}).convention.add("receiver", receiver)
-            """
-        )
-
-        val convention = mock<org.gradle.api.plugins.Convention>()
-        val receiver = mock<org.gradle.api.internal.HasConvention>(extraInterfaces = arrayOf(T::class)) {
-            on { getConvention() } doReturn convention
-        }
-
-        instantiatePrecompiledScriptOf(
-            receiver as T,
-            scriptClassNameForFile(fileName)
-        )
-
-        verify(convention).add(
-            eq("receiver"),
-            same(receiver)
-        )
     }
 
     private

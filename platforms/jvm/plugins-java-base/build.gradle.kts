@@ -27,8 +27,6 @@ errorprone {
 }
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
-    api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
@@ -37,6 +35,8 @@ dependencies {
     api(projects.languageJvm)
     api(projects.modelCore)
     api(projects.platformJvm)
+    api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
     api(projects.toolchainsJvmShared)
 
     api(libs.groovy)
@@ -45,17 +45,17 @@ dependencies {
 
     implementation(projects.fileCollections)
     implementation(projects.fileOperations)
+    implementation(projects.javadoc)
     implementation(projects.jvmServices)
     implementation(projects.logging)
     implementation(projects.platformBase)
     implementation(projects.reporting)
+    implementation(projects.serviceLookup)
     implementation(projects.testingBase)
     implementation(projects.testingJvm)
     implementation(projects.toolchainsJvm)
-    implementation(projects.serviceLookup)
 
     implementation(libs.commonsLang)
-    implementation(libs.guava)
 
     testImplementation(testFixtures(projects.core))
 
@@ -68,5 +68,3 @@ dependencies {
 packageCycles {
     excludePatterns.add("org/gradle/api/plugins/**")
 }
-
-integTest.usesJavadocCodeSnippets.set(true)

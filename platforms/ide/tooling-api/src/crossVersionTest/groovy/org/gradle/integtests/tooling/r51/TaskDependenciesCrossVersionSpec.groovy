@@ -98,9 +98,7 @@ class TaskDependenciesCrossVersionSpec extends ToolingApiSpecification {
 
     def "reports task dependencies for tasks in multi-project builds"() {
         given:
-        settingsFile << """
-            include 'subproject'
-        """
+        includeProjects("subproject")
         buildFile << """
             project(':subproject') {
                 task a { enabled = false }
@@ -147,7 +145,7 @@ class TaskDependenciesCrossVersionSpec extends ToolingApiSpecification {
         task(':compileJava').dependencies == tasks(':included:jar')
     }
 
-    @TargetGradleVersion('>=3.0 <5.1')
+    @TargetGradleVersion('>=4.0 <5.1')
     def "throws UnsupportedMethodException for task dependencies when target version does not support it"() {
         when:
         runBuild('tasks')

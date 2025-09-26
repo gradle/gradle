@@ -16,15 +16,15 @@
 
 package org.gradle.internal.cc.impl
 
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.times
-import com.nhaarman.mockitokotlin2.verify
 import org.gradle.api.internal.project.DynamicLookupRoutine
 import org.gradle.configuration.internal.DynamicCallContextTracker
 import org.gradle.internal.metaobject.DynamicInvokeResult
 import org.gradle.internal.metaobject.DynamicObject
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 
 
 class TrackingDynamicLookupRoutineTest {

@@ -22,7 +22,7 @@ import org.gradle.internal.scan.time.BuildScanBuildStartedTime
 
 class BuildScanBuildStartedTimeIntegTest extends AbstractIntegrationSpec {
 
-    def "can access build scan build started time"() {
+    def "can access Build Scan build started time"() {
         when:
         buildFile << """
             def time = project.services.get($BuildScanBuildStartedTime.name).buildStartedTime

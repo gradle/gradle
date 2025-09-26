@@ -19,6 +19,7 @@ package org.gradle.performance.fixture;
 import groovy.transform.CompileStatic;
 import joptsimple.OptionParser;
 import org.apache.commons.io.FileUtils;
+import org.gradle.internal.UncheckedException;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.GradleProfilerReporter;
@@ -36,7 +37,6 @@ import org.gradle.profiler.result.BuildInvocationResult;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -108,7 +108,7 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
             FileUtils.cleanDirectory(workingDir);
             FileUtils.copyDirectory(templateDir, workingDir);
         } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
+            throw UncheckedException.throwAsUncheckedException(ex);
         }
     }
 

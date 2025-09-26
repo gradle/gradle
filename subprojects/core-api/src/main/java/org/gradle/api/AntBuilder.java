@@ -16,6 +16,7 @@
 package org.gradle.api;
 
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 
@@ -30,7 +31,7 @@ public abstract class AntBuilder extends groovy.ant.AntBuilder {
      *
      * @return The properties. Never returns null.
      */
-    public abstract Map<String, Object> getProperties();
+    public abstract Map<String, @Nullable Object> getProperties();
 
     /**
      * Returns the references of the Ant project. This is a live map, you that you can make changes to the map and these
@@ -38,7 +39,7 @@ public abstract class AntBuilder extends groovy.ant.AntBuilder {
      *
      * @return The references. Never returns null.
      */
-    public abstract Map<String, Object> getReferences();
+    public abstract Map<String, @Nullable Object> getReferences();
 
     /**
      * Imports an Ant build into the associated Gradle project.

@@ -40,7 +40,6 @@ import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadata
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory
-import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.internal.action.InstantiatingAction
@@ -109,7 +108,7 @@ class ExternalModuleComponentResolverFactoryTest extends Specification {
 
     def "returns an empty resolver when no repositories are configured"() {
         when:
-        def resolver = newFactory().createResolvers(Collections.emptyList(), Stub(ComponentMetadataProcessorFactory), Stub(ComponentSelectionRulesInternal), false, Mock(CacheExpirationControl), ImmutableAttributes.EMPTY, ImmutableAttributesSchema.EMPTY)
+        def resolver = newFactory().createResolvers(Collections.emptyList(), Stub(ComponentMetadataProcessorFactory), Stub(ComponentSelectionRulesInternal), false, Mock(CacheExpirationControl), ImmutableAttributesSchema.EMPTY)
 
         then:
         resolver instanceof NoRepositoriesResolver
@@ -125,7 +124,7 @@ class ExternalModuleComponentResolverFactoryTest extends Specification {
         def componentSelectionRules = Stub(ComponentSelectionRulesInternal)
 
         when:
-        def resolver = newFactory().createResolvers(repositories, Stub(ComponentMetadataProcessorFactory), componentSelectionRules, false, Mock(CacheExpirationControl), ImmutableAttributes.EMPTY, ImmutableAttributesSchema.EMPTY)
+        def resolver = newFactory().createResolvers(repositories, Stub(ComponentMetadataProcessorFactory), componentSelectionRules, false, Mock(CacheExpirationControl), ImmutableAttributesSchema.EMPTY)
 
         then:
         assert resolver instanceof UserResolverChain

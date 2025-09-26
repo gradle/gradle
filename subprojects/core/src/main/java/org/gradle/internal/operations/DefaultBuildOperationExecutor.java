@@ -22,7 +22,6 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.work.WorkerLimits;
 import org.jspecify.annotations.Nullable;
@@ -62,7 +61,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
-        executeInParallel(false, new QueueWorker<>(getCurrentBuildOperation(), RunnableBuildOperation::run), schedulingAction, buildOperationConstraint);
+        executeInParallel(false, RunnableBuildOperation::run, schedulingAction, buildOperationConstraint);
     }
 
     @Override
@@ -72,7 +71,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
-        executeInParallel(true, new QueueWorker<>(getCurrentBuildOperation(), RunnableBuildOperation::run), schedulingAction, buildOperationConstraint);
+        executeInParallel(true, RunnableBuildOperation::run, schedulingAction, buildOperationConstraint);
     }
 
     @Override
@@ -82,7 +81,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
-        executeInParallel(false, new QueueWorker<>(getCurrentBuildOperation(), worker), schedulingAction, buildOperationConstraint);
+        executeInParallel(false, worker, schedulingAction, buildOperationConstraint);
     }
 
     @Nullable
@@ -90,9 +89,19 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         return (BuildOperationState) currentBuildOperationRef.get();
     }
 
-    private <O extends BuildOperation> void executeInParallel(boolean allowAccessToProjectState, BuildOperationQueue.QueueWorker<O> worker, Action<BuildOperationQueue<O>> queueAction, BuildOperationConstraint buildOperationConstraint) {
+    private <O extends BuildOperation> void executeInParallel(
+        boolean allowAccessToProjectState,
+        BuildOperationWorker<O> worker,
+        Action<BuildOperationQueue<O>> queueAction,
+        BuildOperationConstraint buildOperationConstraint
+    ) {
         ManagedExecutor executor = managedExecutors.get(buildOperationConstraint);
-        BuildOperationQueue<O> queue = buildOperationQueueFactory.create(executor, allowAccessToProjectState, worker);
+        BuildOperationQueue<O> queue = buildOperationQueueFactory.create(
+            executor,
+            allowAccessToProjectState,
+            operation -> runner.execute(operation, worker),
+            getCurrentBuildOperation()
+        );
 
         List<GradleException> failures = new ArrayList<>();
         try {
@@ -128,37 +137,4 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         }
     }
 
-    @Deprecated
-    @Override
-    public BuildOperationRef getCurrentOperation() {
-        DeprecationLogger.deprecateInternalApi("BuildOperationExecutor.getCurrentOperation()")
-            .willBeRemovedInGradle9()
-            .undocumented()
-            .nagUser();
-        BuildOperationRef operationRef = currentBuildOperationRef.get();
-        if (operationRef == null) {
-            throw new IllegalStateException("No operation is currently running.");
-        }
-        return operationRef;
-    }
-
-    private class QueueWorker<O extends BuildOperation> implements BuildOperationQueue.QueueWorker<O> {
-        private final BuildOperationState parent;
-        private final BuildOperationWorker<? super O> worker;
-
-        private QueueWorker(@Nullable BuildOperationState parent, BuildOperationWorker<? super O> worker) {
-            this.parent = parent;
-            this.worker = worker;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "runnable worker";
-        }
-
-        @Override
-        public void execute(O buildOperation) {
-            runner.execute(buildOperation, worker, parent);
-        }
-    }
 }

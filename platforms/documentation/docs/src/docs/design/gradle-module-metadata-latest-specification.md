@@ -77,7 +77,7 @@ The following statements must hold for the variants:
 ### `attributes` value
 
 This value, nested in `variants` or elements of `dependencies` or `dependencyConstraints` nodes, must contain an object with a value for each attribute.
-The attribute value must be a string or boolean.
+The value of each attribute must be a string, a boolean, or an integer.
 
 ### `capabilities` value
 

@@ -16,18 +16,13 @@
 
 package org.gradle.internal.build;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.BuildWorkExecutor;
-import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.service.ServiceRegistry;
-
-import java.io.File;
 
 public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleControllerFactory {
     private final StateTransitionControllerFactory stateTransitionControllerFactory;
@@ -46,24 +41,9 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
 
     @Override
     public BuildLifecycleController newInstance(BuildDefinition buildDefinition, ServiceRegistry buildScopeServices) {
-        StartParameter startParameter = buildDefinition.getStartParameter();
-
-        @SuppressWarnings("deprecation")
-        File customSettingsFile = DeprecationLogger.whileDisabled(startParameter::getSettingsFile);
-        if (customSettingsFile != null) {
-            logFileDeprecationWarning(DeprecationLogger.deprecateAction("Specifying custom settings file location"));
-        }
-        @SuppressWarnings("deprecation")
-        File customBuildFile = DeprecationLogger.whileDisabled(startParameter::getBuildFile);
-        if (customBuildFile != null) {
-            logFileDeprecationWarning(DeprecationLogger.deprecateAction("Specifying custom build file location"));
-        }
-
         GradleInternal gradle = buildScopeServices.get(GradleInternal.class);
         ListenerManager listenerManager = buildScopeServices.get(ListenerManager.class);
-
         BuildModelController buildModelController = buildScopeServices.get(BuildModelController.class);
-
         return new DefaultBuildLifecycleController(
             gradle,
             buildModelController,
@@ -75,12 +55,5 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
             buildToolingModelControllerFactory,
             stateTransitionControllerFactory
         );
-    }
-
-    private static void logFileDeprecationWarning(DeprecationMessageBuilder<?> specifyingCustomFileLocation) {
-        specifyingCustomFileLocation
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "configuring_custom_build_layout")
-            .nagUser();
     }
 }

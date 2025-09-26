@@ -331,36 +331,6 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
         tasks.create<Copy>("koto").description += "!"
     }
 
-    @Test
-    fun `polymorphic named domain object container scope string invoke`() {
-
-        testTaskContainerVia(
-            "scope-string invoke",
-            script = """
-
-            tasks {
-
-                val foo: TaskProvider<Task>  = "foo"()
-                val bar: TaskProvider<Task> = "bar" {
-                    description += "!"
-                }
-
-                val bat: TaskProvider<Task> = "bat"(Task::class)
-                val pipistrelle: TaskProvider<Copy> = "pipistrelle"(Copy::class) {
-                    description += "!"
-                    destinationDir = file("out")
-                }
-            }
-        """,
-            tasksAssertions = listOf(
-                taskAssertion("foo"),
-                taskAssertion("bar", Task::class, equalTo("null!")),
-                taskAssertion("bat"),
-                taskAssertion("pipistrelle", Copy::class, equalTo("null!"))
-            )
-        )
-    }
-
     private
     fun testTaskContainerVia(
         name: String,

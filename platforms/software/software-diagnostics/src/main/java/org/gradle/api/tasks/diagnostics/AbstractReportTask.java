@@ -59,14 +59,10 @@ public abstract class AbstractReportTask extends ConventionTask {
     }
 
     @Inject
-    protected BuildClientMetaData getClientMetaData() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract BuildClientMetaData getClientMetaData();
 
     @Inject
-    protected StyledTextOutputFactory getTextOutputFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract StyledTextOutputFactory getTextOutputFactory();
 
     @TaskAction
     public void generate() {
@@ -83,7 +79,6 @@ public abstract class AbstractReportTask extends ConventionTask {
     ReportGenerator reportGenerator() {
         return new ReportGenerator(
             getRenderer(),
-            getClientMetaData(),
             getOutputFile(),
             getTextOutputFactory()
         );

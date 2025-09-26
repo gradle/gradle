@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.resource.cached;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -36,7 +36,7 @@ public class DefaultExternalResourceFileStore extends GroupedAndNamedUniqueFileS
     private static final Grouper<String> GROUPER = new Grouper<String>() {
         @Override
         public String determineGroup(String s) {
-            return String.valueOf(Math.abs(s.hashCode()) % 100);
+            return String.valueOf(Math.abs(s.hashCode() % 100));
         }
 
         @Override

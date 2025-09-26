@@ -16,10 +16,9 @@
 
 package org.gradle.api.tasks.options
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import spock.lang.Issue
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import spock.lang.Issue
 
 class TaskOptionIntegrationTest extends AbstractOptionIntegrationSpec {
 
@@ -208,7 +207,7 @@ Options
      --prop3     Configures command line option 'prop3'.""")
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @UnsupportedWithConfigurationCache(because = "Cross-task configuration at execution time")
     def "can override option with configure task"() {
         given:
         file('buildSrc/src/main/java/SampleTask.java') << taskWithSingleOption("String")
@@ -406,7 +405,7 @@ Options
         succeeds('myTask', '--serial=1234')
 
         then:
-        result.assertTaskExecuted(':myTask').assertOutputContains('Serial: 1234')
+        result.assertTaskScheduled(':myTask').assertOutputContains('Serial: 1234')
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18496")
@@ -447,7 +446,7 @@ Options
         succeeds('myTask', '--serial=1234', '--serialNumber=4321')
 
         then:
-        result.assertTaskExecuted(':myTask').assertOutputContains('Serial: 4321')
+        result.assertTaskScheduled(':myTask').assertOutputContains('Serial: 4321')
     }
 
     def "options from interfaces with same method defined in class should use overridden value"() {
@@ -485,13 +484,13 @@ Options
         succeeds('myTask', '--serial=1234', '--serialNumber=4321')
 
         then:
-        result.assertTaskExecuted(':myTask').assertOutputContains('Serial: 4321')
+        result.assertTaskScheduled(':myTask').assertOutputContains('Serial: 4321')
 
         when:
         succeeds('myTask', '--serialNumber=4321', '--serial=1234')
 
         then:
-        result.assertTaskExecuted(':myTask').assertOutputContains('Serial: 4321')
+        result.assertTaskScheduled(':myTask').assertOutputContains('Serial: 4321')
     }
 
     def "options from interfaces with same method defined twice with same name should work"() {
@@ -531,7 +530,7 @@ Options
         succeeds('myTask', '--serial=1234')
 
         then:
-        result.assertTaskExecuted(':myTask').assertOutputContains('Serial: 1234')
+        result.assertTaskScheduled(':myTask').assertOutputContains('Serial: 1234')
 
         when:
         succeeds('help', '--task', 'myTask')
@@ -577,6 +576,6 @@ Options
         succeeds('myTask', '--serial=1234')
 
         then:
-        result.assertTaskExecuted(':myTask').assertOutputContains('Serial: 1234')
+        result.assertTaskScheduled(':myTask').assertOutputContains('Serial: 1234')
     }
 }

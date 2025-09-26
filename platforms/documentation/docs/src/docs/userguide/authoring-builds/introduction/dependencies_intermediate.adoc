@@ -1,0 +1,120 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[dependencies_intro]]
+= Declaring and Managing Dependencies
+
+Gradle provides a rich and flexible model for declaring dependencies, managing versions, and resolving conflicts across builds.
+
+image::gradle-basic-13.png[]
+
+== Declare Dependencies
+
+The `dependencies{}` block is where you declare the external libraries, internal modules, or files your project needs to compile, run, or test:
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/kotlin/app",files="build.gradle.kts[tags=java-dependency-mgmt]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/groovy/app",files="build.gradle[tags=java-dependency-mgmt]"]
+====
+
+Each dependency is associated with a configuration, such as `implementation`, `runtimeOnly`, or `testImplementation`, which defines the scope in which it's used.
+
+== Centralize Versions with Version Catalogs
+
+Gradle recommends using version catalogs to declare dependency versions in a single, reusable location:
+
+====
+include::sample[dir="snippets/init/generated/groovy",files="gradle/libs.versions.toml[]"]
+====
+
+You can then use these aliases in your build scripts:
+
+====
+include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-dep]"]
+include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-dep]"]
+====
+
+== Enforce and Constrain Versions
+
+Gradle allows you to constrain dependency versions to avoid unwanted upgrades or enforce known good versions:
+
+====
+include::sample[dir="snippets/how-to/downgrade-transitives/kotlin",files="build.gradle.kts[tags=dependency-full]"]
+include::sample[dir="snippets/how-to/downgrade-transitives/groovy",files="build.gradle[tags=dependency-full]"]
+====
+
+You can also constrain a module globally:
+
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-versionsWithConstraints/kotlin",files="build.gradle.kts[tags=dependency-constraints]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-versionsWithConstraints/groovy",files="build.gradle[tags=dependency-constraints]"]
+====
+
+== Resolve Conflicts with Capabilities
+
+Sometimes multiple libraries provide the same functionality under different coordinates. This can lead to classpath conflicts:
+
+[source,kotlin]
+----
+dependencies {
+    implementation("jaxen:jaxen:1.1.6")     // Transitive dependency that brings XPath functionality
+    implementation("org.jdom:jdom2:2.0.6")  // Also offers XPath functionality
+}
+
+----
+
+Gradle lets you model these cases using capabilities.
+For example:
+
+[source,kotlin]
+----
+dependencies {
+    implementation("jaxen:jaxen:1.1.6") {
+        capabilities {
+            requireCapability("xml:xpath-support")
+        }
+    }
+    implementation("org.jdom:jdom2:2.0.6")
+}
+----
+
+Then declare capabilities via a component metadata rule:
+
+[source,kotlin]
+----
+components {
+    withModule("jaxen:jaxen") {
+        allVariants {
+            withCapabilities {
+                addCapability("xml", "xpath-support", "1.0")
+            }
+        }
+    }
+    withModule("org.jdom:jdom2") {
+        allVariants {
+            withCapabilities {
+                addCapability("xml", "xpath-support", "1.0")
+            }
+        }
+    }
+}
+----
+
+Gradle will now treat `jaxen` and `jdom2` as alternate implementations and select the one with a required capability.
+
+There are many more ways to influence dependency resolution in Gradle.
+Consult the <<getting_started_dep_man.adoc#dependency-management-in-gradle,Dependency Management>> chapter to learn more.
+
+[.text-right]
+**Next Step:** <<writing_tasks_intermediate.adoc#writing_tasks,Learn about Creating and Registering Tasks>> >>

@@ -17,6 +17,8 @@
 package org.gradle.api
 
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 @DoesNotSupportNonAsciiPaths(reason = "Uses non-Unicode default charset")
 class HttpScriptPluginInEncodingtegrationSpec extends AbstractHttpScriptPluginIntegrationSpec {
@@ -46,6 +48,7 @@ task check {
         succeeds 'check'
     }
 
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires explicit encoding")
     def "assumes utf-8 encoding when none specified by http server"() {
         given:
         applyTrustStore()

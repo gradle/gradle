@@ -752,7 +752,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
 Searched in the following locations:
   - ${m.pom.file.displayUri}
 Required by:
-    project :buildC""")
+    project ':buildC'""")
         failure.assertHasResolutions(REPOSITORY_HINT,
             STACKTRACE_MESSAGE,
             INFO_DEBUG,

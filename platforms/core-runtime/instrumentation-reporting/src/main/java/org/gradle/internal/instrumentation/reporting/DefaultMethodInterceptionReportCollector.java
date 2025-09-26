@@ -16,10 +16,11 @@
 
 package org.gradle.internal.instrumentation.reporting;
 
+import org.gradle.internal.UncheckedException;
+
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -49,7 +50,7 @@ public class DefaultMethodInterceptionReportCollector implements MethodIntercept
                 try {
                     return Files.readAllLines(report.toPath(), StandardCharsets.UTF_8).stream();
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }).distinct().forEach(System.out::println);
         }

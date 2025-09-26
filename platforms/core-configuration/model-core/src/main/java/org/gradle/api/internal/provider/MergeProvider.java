@@ -35,9 +35,9 @@ import java.util.List;
  */
 public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> {
 
-    private final List<Provider<R>> items;
+    private final List<? extends Provider<R>> items;
 
-    public MergeProvider(List<Provider<R>> items) {
+    public MergeProvider(List<? extends Provider<R>> items) {
         this.items = ImmutableList.copyOf(items);
     }
 

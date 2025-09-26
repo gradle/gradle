@@ -7,4 +7,10 @@ description = "Configuration input discovery code"
 dependencies {
     api(libs.jspecify)
     api(libs.guava)
+
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
+}
+
+errorprone {
+    nullawayEnabled = true
 }

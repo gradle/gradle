@@ -17,16 +17,14 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
+import org.gradle.util.DebugUtil;
 import org.gradle.util.GradleVersion;
-
-import java.lang.management.ManagementFactory;
 
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NO_DAEMON;
 
 public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
 
     private boolean daemonExplicitlyRequired;
-    private boolean debugMode = false;
 
     public DaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider);
@@ -35,7 +33,6 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
 
     public DaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext);
-        debugMode = isDebuggerAttached();
         super.requireDaemon();
     }
 
@@ -73,13 +70,11 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
     @Override
     public GradleExecuter reset() {
         super.reset();
-        if (debugMode) {
-            startBuildProcessInDebugger(true);
-        }
         return this;
     }
 
+    @Override
     protected boolean isDebuggerAttached() {
-        return ManagementFactory.getRuntimeMXBean().getInputArguments().toString().indexOf("-agentlib:jdwp") > 0;
+        return DebugUtil.isDebuggerAttached();
     }
 }

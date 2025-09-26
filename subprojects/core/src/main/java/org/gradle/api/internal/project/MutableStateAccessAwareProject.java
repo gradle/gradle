@@ -79,9 +79,6 @@ import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
-import org.gradle.process.ExecResult;
-import org.gradle.process.ExecSpec;
-import org.gradle.process.JavaExecSpec;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.NonNull;
@@ -93,7 +90,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Wrapper for {@link ProjectInternal}, that declares some API methods as access to a mutable state of the project.
@@ -113,11 +110,9 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     public static <T extends MutableStateAccessAwareProject> ProjectInternal wrap(
         ProjectInternal target,
         ProjectInternal referrer,
-        Function<ProjectInternal, T> wrapper
+        Supplier<T> wrapperSupplier
     ) {
-        return target == referrer
-            ? target
-            : wrapper.apply(target);
+        return target == referrer ? target : wrapperSupplier.get();
     }
 
     protected final ProjectInternal delegate;
@@ -138,14 +133,17 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    @SuppressWarnings({"EqualsDoesntCheckParameterClass", "EqualsWhichDoesntCheckParameterClass"})
     public final boolean equals(Object other) {
-        return delegate.equals(other);
+        if (!(other instanceof ProjectInternal)) {
+            return false;
+        }
+        ProjectInternal otherProject = (ProjectInternal) other;
+        return getProjectIdentity().equals(otherProject.getProjectIdentity());
     }
 
     @Override
     public final int hashCode() {
-        return delegate.hashCode();
+        return getProjectIdentity().hashCode();
     }
 
     @Nullable
@@ -432,11 +430,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
         return Cast.uncheckedCast(delegate.getSubprojects(referrer));
     }
 
-    @Override
-    public Map<String, Project> getChildProjectsUnchecked() {
-        return delegate.getChildProjectsUnchecked();
-    }
-
     @Nullable
     @Override
     public ProjectInternal findProject(ProjectInternal referrer, String path) {
@@ -474,7 +467,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public Map<String, ?> getProperties() {
+    public Map<String, ? extends @Nullable Object> getProperties() {
         onMutableStateAccess("properties");
         return delegate.getProperties();
     }
@@ -650,30 +643,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     public ProjectLayout getLayout() {
         onMutableStateAccess("layout");
         return delegate.getLayout();
-    }
-
-    @Override
-    @Deprecated
-    public ExecResult javaexec(Closure closure) {
-        return delegate.javaexec(closure);
-    }
-
-    @Override
-    @Deprecated
-    public ExecResult javaexec(Action<? super JavaExecSpec> action) {
-        return delegate.javaexec(action);
-    }
-
-    @Override
-    @Deprecated
-    public ExecResult exec(Closure closure) {
-        return delegate.exec(closure);
-    }
-
-    @Override
-    @Deprecated
-    public ExecResult exec(Action<? super ExecSpec> action) {
-        return delegate.exec(action);
     }
 
     @Override
@@ -886,16 +855,19 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
+    @Deprecated
     public <T> NamedDomainObjectContainer<T> container(Class<T> type) {
         return delegate.container(type);
     }
 
     @Override
+    @Deprecated
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory) {
         return delegate.container(type, factory);
     }
 
     @Override
+    @Deprecated
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure) {
         return delegate.container(type, factoryClosure);
     }
@@ -1111,17 +1083,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     public void artifacts(Action<? super ArtifactHandler> configureAction) {
         onMutableStateAccess("artifacts");
         delegate.artifacts(configureAction);
-    }
-
-    /**
-     * @deprecated the concept of conventions is deprecated. Use extensions instead
-     */
-    @Override
-    @Deprecated
-    @SuppressWarnings("deprecation")
-    public org.gradle.api.plugins.Convention getConvention() {
-        onMutableStateAccess("convention");
-        return delegate.getConvention();
     }
 
     @Override

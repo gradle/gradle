@@ -17,6 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -56,7 +58,6 @@ import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.operations.BuildOperationConstraint;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -411,7 +412,8 @@ public class DependencyGraphBuilder {
             if (selected != null) {
                 ResolutionFailureHandler resolutionFailureHandler = resolveState.getVariantSelector().getFailureHandler();
                 if (selected.isRejected()) {
-                    GradleException error = new GradleException(selected.getRejectedErrorMessage());
+                    List<String> conflictResolutions = buildConflictResolutions(selected, failureResolutions).getRight();
+                    GradleException error = resolutionFailureHandler.moduleRejected(module, conflictResolutions);
                     attachFailureToEdges(error, module.getIncomingEdges());
                     // We need to attach failures on unattached dependencies too, in case a node wasn't selected
                     // at all, but we still want to see an error message for it.
@@ -435,22 +437,6 @@ public class DependencyGraphBuilder {
             } else if (module.isVirtualPlatform()) {
                 attachMultipleForceOnPlatformFailureToEdges(module);
             }
-        }
-
-        if (resolveState.getRoot().wasIncomingEdgeAdded()) {
-            String rootNodeName = resolveState.getRoot().getMetadata().getName();
-            DeprecationLogger.deprecate(
-                    String.format(
-                        "While resolving configuration '%s', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. " +
-                            "Depending on the resolved configuration in this manner",
-                        rootNodeName
-                    ))
-                .withProblemIdDisplayName("Configurations should not act as both a resolution root and a variant simultaneously.")
-                .withProblemId("configurations-acting-as-both-root-and-variant")
-                .withAdvice("Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them.")
-                .willBecomeAnErrorInGradle9()
-                .withUpgradeGuideSection(8, "depending_on_root_configuration")
-                .nagUser();
         }
     }
 
@@ -540,6 +526,17 @@ public class DependencyGraphBuilder {
         // This component was selected due to version conflict resolution.
         // Fail all incoming edges.
 
+        Pair<Conflict, List<String>> resolutions = buildConflictResolutions(selected, failureResolutions);
+        VersionConflictException failure = new VersionConflictException(resolutions.getLeft(), resolutions.getRight());
+
+        for (NodeState node : selected.getNodes()) {
+            for (EdgeState incomingEdge : node.getIncomingEdges()) {
+                incomingEdge.failWith(failure);
+            }
+        }
+    }
+
+    private static Pair<Conflict, List<String>> buildConflictResolutions(ComponentState selected, ResolutionParameters.FailureResolutions failureResolutions) {
         ImmutableList<Conflict.Participant> participants = selected.getModule().getAllVersions().stream()
             .map(component -> new Conflict.Participant(component.getId().getVersion(), component.getComponentId()))
             .collect(ImmutableList.toImmutableList());
@@ -550,14 +547,7 @@ public class DependencyGraphBuilder {
             selected.getSelectionReason()
         );
 
-        List<String> resolutions = failureResolutions.forVersionConflict(conflict);
-        VersionConflictException failure = new VersionConflictException(conflict, resolutions);
-
-        for (NodeState node : selected.getNodes()) {
-            for (EdgeState incomingEdge : node.getIncomingEdges()) {
-                incomingEdge.failWith(failure);
-            }
-        }
+        return new ImmutablePair<>(conflict, failureResolutions.forVersionConflict(conflict));
     }
 
     /**

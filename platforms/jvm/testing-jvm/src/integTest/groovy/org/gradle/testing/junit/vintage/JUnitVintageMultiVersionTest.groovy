@@ -52,5 +52,10 @@ trait JUnitVintageMultiVersionTest extends JUnit4CommonTestSources {
         String getExcludeCategoryOrTagConfigurationElement() {
             return "excludeTags"
         }
+
+        @Override
+        boolean supportsJavaVersion(int javaVersion) {
+            return javaVersion >= 8
+        }
     }
 }

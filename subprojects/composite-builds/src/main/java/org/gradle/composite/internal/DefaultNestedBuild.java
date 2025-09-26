@@ -16,7 +16,6 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.UncheckedException;
@@ -41,21 +40,19 @@ import java.util.List;
 import java.util.function.Function;
 
 class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedBuild {
+
     private final Path identityPath;
     private final BuildState owner;
-    private final BuildIdentifier buildIdentifier;
     private final BuildDefinition buildDefinition;
     private final BuildTreeLifecycleController buildTreeLifecycleController;
 
     DefaultNestedBuild(
-        BuildIdentifier buildIdentifier,
         Path identityPath,
         BuildDefinition buildDefinition,
         BuildState owner,
         BuildTreeState buildTree
     ) {
         super(buildTree, buildDefinition, owner);
-        this.buildIdentifier = buildIdentifier;
         this.identityPath = identityPath;
         this.buildDefinition = buildDefinition;
         this.owner = owner;
@@ -73,11 +70,6 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
             CompositeStoppable.stoppable().addFailure(t).add(buildScopeServices).stop();
             throw UncheckedException.throwAsUncheckedException(t);
         }
-    }
-
-    @Override
-    public BuildIdentifier getBuildIdentifier() {
-        return buildIdentifier;
     }
 
     @Override
@@ -108,11 +100,6 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     @Override
     public <T> T run(Function<? super BuildTreeLifecycleController, T> buildAction) {
         return buildAction.apply(buildTreeLifecycleController);
-    }
-
-    @Override
-    public Path calculateIdentityPathForProject(Path projectPath) {
-        return getBuildController().getGradle().getIdentityPath().append(projectPath);
     }
 
     @Override

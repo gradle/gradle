@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.platform
 
 import net.rubygrapefruit.platform.SystemInfo
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
@@ -33,7 +32,7 @@ import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32
-import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32_AND_64
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP_2019
 
 class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def testApp = new PlatformDetectingTestApp()
@@ -209,7 +208,8 @@ model {
         executable("build/exe/exe/exe").exec().out == "${arch.altName} ${os.familyName}" * 2
     }
 
-    @RequiresInstalledToolChain(SUPPORTS_32_AND_64)
+    // No arm support in VS2022+
+    @RequiresInstalledToolChain(VISUALCPP_2019)
     def "build binary for multiple target architectures"() {
         when:
         buildFile << """
@@ -400,7 +400,6 @@ model {
     }
 
     @Issue("GRADLE-3499")
-    @ToBeFixedForConfigurationCache(because = ":components")
     def "can create a binary which name contains dots"() {
         when:
         buildFile << '''

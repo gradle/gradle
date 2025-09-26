@@ -49,6 +49,8 @@ class CanonicalDocumentTextGeneratorTest {
 
         x = 1
         y = 2
+        z = "foo" to bar()
+        a = f("x") to f("y" to g("h"))
 
         block {
             test()

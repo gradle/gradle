@@ -72,7 +72,7 @@ import spock.lang.Specification
         and:
         def events = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
         events.size() == 1
-        events[0].message == "Retrieving attribute with a null key. This behavior has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes from attribute containers using null keys. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#null-attribute-lookup"
+        events[0].message == "Retrieving attribute with a null key. This behavior has been deprecated. This will fail with an error in Gradle 10. Don't request attributes from attribute containers using null keys. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#null-attribute-lookup"
     }
 
     def "requesting a null key from a container with elements emits a deprecation message"() {
@@ -88,7 +88,7 @@ import spock.lang.Specification
         and:
         def events = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
         events.size() == 1
-        events[0].message == "Retrieving attribute with a null key. This behavior has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes from attribute containers using null keys. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#null-attribute-lookup"
+        events[0].message == "Retrieving attribute with a null key. This behavior has been deprecated. This will fail with an error in Gradle 10. Don't request attributes from attribute containers using null keys. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#null-attribute-lookup"
     }
 
     def "can't contain 2 identically named attributes with different types from the same classloader"() {
@@ -98,10 +98,12 @@ import spock.lang.Specification
 
         then:
         def exception = thrown(Exception)
-        if (container instanceof ImmutableAttributes) {
-            exception.message == "Cannot have two attributes with the same name but different types. This container already has an attribute named 'test' of type 'java.lang.Integer' and you are trying to store another one of type 'java.lang.String'"
+        if (exception instanceof AttributeMergingException) {
+            assert exception.message == "An attribute named 'test' of type 'java.lang.String' already exists in this container"
+        } else if (container instanceof ImmutableAttributes) {
+            assert exception.message == "Cannot have two attributes with the same name but different types. This container already has an attribute named 'test' of type 'java.lang.Integer' and you are trying to store another one of type 'java.lang.String'"
         } else {
-            exception.message == "Cannot have two attributes with the same name but different types. This container has an attribute named 'test' of type 'java.lang.String' and another attribute of type 'java.lang.Integer'"
+            assert exception.message == "Cannot have two attributes with the same name but different types. This container has an attribute named 'test' of type 'java.lang.String' and another attribute of type 'java.lang.Integer'"
         }
     }
 
@@ -138,10 +140,12 @@ import spock.lang.Specification
 
         then:
         def exception = thrown(Exception)
-        if (container instanceof ImmutableAttributes) {
-            exception.message == "Cannot have two attributes with the same name but different types. This container already has an attribute named 'test' of type 'org.gradle.api.Named' and you are trying to store another one of type 'org.gradle.api.Named'"
+        if (exception instanceof AttributeMergingException) {
+            assert exception.message == "An attribute named 'test' of type 'org.gradle.api.Named' already exists in this container"
+        } else if (container instanceof ImmutableAttributes) {
+            assert exception.message == "Cannot have two attributes with the same name but different types. This container already has an attribute named 'test' of type 'org.gradle.api.Named' and you are trying to store another one of type 'org.gradle.api.Named'"
         } else {
-            exception.message == "Cannot have two attributes with the same name but different types. This container has an attribute named 'test' of type 'org.gradle.api.Named' and another attribute of type 'org.gradle.api.Named'"
+            assert exception.message == "Cannot have two attributes with the same name but different types. This container has an attribute named 'test' of type 'org.gradle.api.Named' and another attribute of type 'org.gradle.api.Named'"
         }
     }
 

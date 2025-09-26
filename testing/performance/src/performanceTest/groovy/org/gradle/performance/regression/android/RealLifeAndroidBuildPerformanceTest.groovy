@@ -28,6 +28,7 @@ import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.ScenarioContext
 import org.gradle.profiler.mutations.AbstractFileChangeMutator
+import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
 import java.util.regex.Matcher
@@ -36,7 +37,7 @@ import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.fixture.AndroidTestProject.LARGE_ANDROID_BUILD
 import static org.gradle.performance.results.OperatingSystem.LINUX
-import static org.gradle.profiler.mutations.AbstractCleanupMutator.CleanupSchedule.BUILD
+import static org.gradle.profiler.mutations.AbstractScheduledMutator.Schedule.BUILD
 
 class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanceTest implements AndroidPerformanceTestFixture {
 
@@ -46,9 +47,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
     def setup() {
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
         agpVersion = AndroidTestProject.useAgpLatestStableOrRcVersion(runner)
-        // TODO Use dynamic Kotlin version once https://issuetracker.google.com/issues/312738720 is fixed
-        // kgpVersion = AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
-        kgpVersion = "1.9.22"
+        kgpVersion = AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
     }
 
     @RunFor([
@@ -65,9 +64,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         runner.args.add('-Dorg.gradle.parallel=true')
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
-        if (IncrementalAndroidTestProject.NOW_IN_ANDROID == testProject) {
-            configureRunnerSpecificallyForNowInAndroid()
-        }
+        configureBuildForProject(testProject)
         applyDevelocityPlugin()
 
         when:
@@ -105,9 +102,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         runner.addBuildMutator { invocationSettings ->
             ClearArtifactTransformCacheWithoutInstrumentedJarsMutator.create(invocationSettings.getGradleUserHome(), BUILD)
         }
-        if (IncrementalAndroidTestProject.NOW_IN_ANDROID == testProject) {
-            configureRunnerSpecificallyForNowInAndroid()
-        }
+        configureBuildForProject(testProject)
         applyDevelocityPlugin()
 
         when:
@@ -143,6 +138,14 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         result.assertCurrentVersionHasNotRegressed()
     }
 
+    private void configureBuildForProject(AndroidTestProject testProject) {
+        if (IncrementalAndroidTestProject.NOW_IN_ANDROID == testProject) {
+            configureRunnerSpecificallyForNowInAndroid()
+        } else if (IncrementalAndroidTestProject.SANTA_TRACKER == testProject) {
+            configureRunnerSpecificallyForSantaTracker()
+        }
+    }
+
     private void configureRunnerSpecificallyForNowInAndroid() {
         runner.gradleOpts.addAll([
             "--add-opens",
@@ -156,8 +159,16 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
             "--add-opens",
             "java.base/java.net=ALL-UNNAMED"
         ]) // needed when tests are being run with CC on, see https://github.com/gradle/gradle/issues/22765
+        if (VersionNumber.parse(kgpVersion) > VersionNumber.parse("2.1.20")) {
+            // NowInAndroid supports Kotlin 2.1.20 max
+            kgpVersion = "2.1.20"
+        }
         runner.addBuildMutator { is -> new SupplementaryRepositoriesMutator(is) }
         runner.addBuildMutator { is -> new AgpAndKgpVersionMutator(is, agpVersion, kgpVersion) }
+    }
+
+    private void configureRunnerSpecificallyForSantaTracker() {
+        runner.args.add("-DkotlinVersion=$kgpVersion")
     }
 
     private class TestFinalizerMutator implements BuildMutator {
@@ -201,19 +212,19 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
             replaceVersion(text, "kotlin", "$kgpVersion")
 
             // See https://developer.android.com/jetpack/androidx/releases/compose-kotlin#pre-release_kotlin_compatibility
-            replaceVersion(text, "androidxComposeCompiler", "1.5.8")
+            replaceVersion(text, "androidxComposeCompiler", "1.5.8", false)
 
             // See https://github.com/google/ksp/tags
-            replaceVersion(text, "ksp", "1.9.22-1.0.16")
+            replaceVersion(text, "ksp", "2.1.20-1.0.32")
         }
 
-        private static void replaceVersion(StringBuilder text, String target, String version) {
+        private static void replaceVersion(StringBuilder text, String target, String version, Boolean mandatory = false) {
             Matcher matcher = text =~ /(${target}.*)\n/
             if (matcher.find()) {
                 def result = matcher.toMatchResult()
                 text.replace(result.start(0), result.end(0), "${target} = \"${version}\"\n")
-            } else {
-                throw new IllegalStateException("Unable to replace version catalog entry 'target'.")
+            } else if (mandatory) {
+                throw new IllegalStateException("Unable to replace version catalog entry '$target'.")
             }
         }
     }

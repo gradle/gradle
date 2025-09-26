@@ -20,7 +20,14 @@ package org.gradle.api.internal.tasks.util
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.model.ObjectFactory
+import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.internal.logging.CollectingTestOutputEventListener
+import org.gradle.internal.logging.ConfigureLogging
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.process.JavaForkOptions
 import org.gradle.process.internal.DefaultJavaDebugOptions
@@ -45,8 +52,13 @@ class DefaultJavaForkOptionsTest extends Specification {
     private final fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
     private final ObjectFactory objectFactory = TestUtil.objectFactory(tmpDir.testDirectory)
     private DefaultJavaForkOptions options
+    final CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
+    @Rule
+    final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
+    final diagnosticsFactory = new NoOpProblemDiagnosticsFactory()
 
     def setup() {
+        DeprecationLogger.init(WarningMode.All, Mock(BuildOperationProgressEventEmitter), TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream())
         options = new DefaultJavaForkOptions(objectFactory, resolver, fileCollectionFactory)
     }
 
@@ -97,6 +109,11 @@ class DefaultJavaForkOptionsTest extends Specification {
         options.setAllJvmArgs(ImmutableSet.of("arg2"))
         then:
         options.allJvmArgs == ['arg2', fileEncodingProperty(), *localeProperties()]
+
+        and:
+        def events = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
+        events.size() == 1
+        events[0].message.startsWith('The DefaultJavaForkOptions.setAllJvmArgs method has been deprecated.')
     }
 
     def "can add jvmArgs"() {

@@ -17,10 +17,10 @@ package org.gradle.api.internal.tasks.testing.report;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestMethodResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -74,7 +74,7 @@ public class HtmlTestReport {
                 for (TestMethodResult collectedResult : collectedResults) {
                     final TestResult testResult = model.addTest(classResult.getId(), classResult.getClassName(), classResult.getClassDisplayName(), collectedResult.getName(), collectedResult.getDisplayName(), collectedResult.getDuration());
                     if (collectedResult.getResultType() == SKIPPED) {
-                        testResult.setIgnored();
+                        testResult.markIgnored(collectedResult.getAssumptionFailure());
                     } else {
                         List<SerializableFailure> failures = collectedResult.getFailures();
                         for (SerializableFailure failure : failures) {

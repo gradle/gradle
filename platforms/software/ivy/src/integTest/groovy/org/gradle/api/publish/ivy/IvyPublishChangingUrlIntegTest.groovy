@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -37,7 +36,6 @@ class IvyPublishChangingUrlIntegTest extends AbstractIvyPublishIntegTest {
     IvyModule repo2Module = repo2.module(org, moduleName, rev)
 
     // This documents observable behavior from the Nexus plugin
-    @ToBeFixedForConfigurationCache(because = "changes to IvyArtifactRepository.getUrl are lost")
     def "can change URL to repository from provider"() {
         given:
         settingsFile << "rootProject.name = '${moduleName}'"
@@ -76,6 +74,10 @@ class IvyPublishChangingUrlIntegTest extends AbstractIvyPublishIntegTest {
             abstract class InitializeRepository extends DefaultTask {
                 @Internal
                 abstract Property<StagingRepositoryDescriptorRegistryBuildService> getRepositoryRegistry()
+
+                public InitializeRepository() {
+                    notCompatibleWithConfigurationCache("Updates repository at runtime")
+                }
 
                 @TaskAction
                 void initializeRepository() {

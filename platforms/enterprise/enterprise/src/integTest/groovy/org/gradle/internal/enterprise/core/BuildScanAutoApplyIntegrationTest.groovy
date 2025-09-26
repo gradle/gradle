@@ -17,24 +17,20 @@
 package org.gradle.internal.enterprise.core
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.enterprise.DevelocityPluginCheckInFixture
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
 import org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService
-import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
+import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.MINIMUM_SUPPORTED_PLUGIN_VERSION
 
 class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String PLUGIN_AUTO_APPLY_VERSION = AutoAppliedDevelocityPlugin.VERSION
-    private static final String PLUGIN_MINIMUM_VERSION = LegacyGradleEnterprisePluginCheckInService.FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY
     private static final String PLUGIN_NEWER_VERSION = newerThanAutoApplyPluginVersion()
-
-    private static final VersionNumber PLUGIN_MINIMUM_NON_DEPRECATED_VERSION = DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_SINCE_GRADLE_9
 
     private final DevelocityPluginCheckInFixture fixture = new DevelocityPluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
     private final GradleEnterprisePluginCheckInFixture gradleEnterpriseFixture = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
@@ -54,16 +50,6 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     def "automatically applies plugin when --scan is provided on command-line"() {
         when:
         runBuildWithScanRequest()
-
-        then:
-        pluginAppliedOnce()
-    }
-
-    def "only applies once when -b used"() {
-        when:
-        file("other-build.gradle") << "task dummy {}"
-        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
-        runBuildWithScanRequest("-b", "other-build.gradle")
 
         then:
         pluginAppliedOnce()
@@ -121,11 +107,6 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << fixture.plugins()
 
         and:
-        if (!GradleContextualExecuter.configCache && VersionNumber.parse(version) < PLUGIN_MINIMUM_NON_DEPRECATED_VERSION) {
-            executer.expectDocumentedDeprecationWarning("Gradle Enterprise plugin $version has been deprecated. Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
-        }
-
-        and:
         runBuildWithScanRequest()
 
         then:
@@ -133,7 +114,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         sequence | version
-        "older"  | PLUGIN_MINIMUM_VERSION
+        "older"  | MINIMUM_SUPPORTED_PLUGIN_VERSION
         "same"   | PLUGIN_AUTO_APPLY_VERSION
         "newer"  | PLUGIN_NEWER_VERSION
     }
@@ -155,11 +136,6 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         """
 
         and:
-        if (!GradleContextualExecuter.configCache && VersionNumber.parse(version) < PLUGIN_MINIMUM_NON_DEPRECATED_VERSION) {
-            executer.expectDocumentedDeprecationWarning("Gradle Enterprise plugin $version has been deprecated. Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
-        }
-
-        and:
         runBuildWithScanRequest()
 
         then:
@@ -167,7 +143,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         sequence | version
-        "older"  | PLUGIN_MINIMUM_VERSION
+        "older"  | MINIMUM_SUPPORTED_PLUGIN_VERSION
         "same"   | PLUGIN_AUTO_APPLY_VERSION
         "newer"  | PLUGIN_NEWER_VERSION
     }
@@ -193,11 +169,6 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         """
 
         and:
-        if (!GradleContextualExecuter.configCache && VersionNumber.parse(version) < PLUGIN_MINIMUM_NON_DEPRECATED_VERSION) {
-            executer.expectDocumentedDeprecationWarning("Gradle Enterprise plugin $version has been deprecated. Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13")
-        }
-
-        and:
         runBuildWithScanRequest('-I', 'init.gradle')
 
         then:
@@ -205,7 +176,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         sequence | version
-        "older"  | PLUGIN_MINIMUM_VERSION
+        "older"  | MINIMUM_SUPPORTED_PLUGIN_VERSION
         "same"   | PLUGIN_AUTO_APPLY_VERSION
         "newer"  | PLUGIN_NEWER_VERSION
     }
@@ -256,7 +227,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Error resolving plugin [id: 'com.gradle.build-scan', version: '$PLUGIN_AUTO_APPLY_VERSION']")
         failure.assertHasCause(
-            "The build scan plugin is not compatible with this version of Gradle.\n" +
+            "The Develocity plugin is not compatible with this version of Gradle.\n" +
                 "Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information."
         )
     }

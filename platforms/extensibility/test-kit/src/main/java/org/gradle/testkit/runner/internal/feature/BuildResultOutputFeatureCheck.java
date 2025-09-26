@@ -40,7 +40,7 @@ public class BuildResultOutputFeatureCheck implements FeatureCheck {
             if (targetGradleVersion.compareTo(MINIMUM_SUPPORTED_GRADLE_VERSION) < 0) {
                 DeprecationLogger.deprecate("Capturing build output in debug mode with the GradleRunner for the version of Gradle you are using (%s) is deprecated with TestKit. " +
                         "TestKit will only support the last 5 major versions in future.")
-                    .willBecomeAnErrorInGradle9()
+                    .willBecomeAnErrorInGradle10()
                     .withUserManual("third_party_integration", "sec:embedding_compatibility")
                     .nagUser();
             }

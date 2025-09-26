@@ -21,6 +21,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.plugins.DefaultTemplateBasedStartScriptGenerator
+import org.gradle.api.internal.plugins.ExecutableJar
 import org.gradle.api.internal.plugins.StartScriptGenerator
 import org.gradle.api.internal.plugins.StartScriptTemplateBindingFactory
 import org.gradle.api.internal.resources.FileCollectionBackedTextResource
@@ -78,9 +79,9 @@ abstract class GradleStartScriptGenerator : DefaultTask() {
         generator.setApplicationName("Gradle")
         generator.setOptsEnvironmentVar("GRADLE_OPTS")
         generator.setExitEnvironmentVar("GRADLE_EXIT_CONSOLE")
-        generator.setMainClassName("org.gradle.launcher.GradleMain")
+        generator.setEntryPoint(ExecutableJar("lib/$launcherJarName"))
         generator.setScriptRelPath("bin/gradle")
-        generator.setClasspath(listOf("lib/$launcherJarName"))
+        generator.setClasspath(emptyList())
         generator.setAppNameSystemProperty("org.gradle.appname")
         generator.setDefaultJvmOpts(listOf("-Xmx64m", "-Xms64m"))
 

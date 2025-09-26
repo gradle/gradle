@@ -50,7 +50,7 @@ public class ExponentialBackoff<S extends ExponentialBackoff.Signal> {
         restartTimer();
     }
 
-    public void restartTimer() {
+    public final void restartTimer() {
         timer = Time.startCountdownTimer(timeoutMs);
     }
 

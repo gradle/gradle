@@ -18,6 +18,8 @@ package org.gradle.integtests.fixtures.versions
 
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.Factory
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector
+import org.gradle.util.internal.DefaultGradleVersion
 import spock.lang.Specification
 
 import static org.gradle.util.GradleVersion.version
@@ -69,11 +71,14 @@ class ReleasedVersionDistributionsTest extends Specification {
     }
 
     def "get supported does that"() {
+        given:
+        def minVersion = ((DefaultGradleVersion) DefaultGradleConnector.MINIMUM_SUPPORTED_GRADLE_VERSION).majorVersion
+
         when:
-        props.versions = "1.3-rc-1 1.2 0.8"
+        props.versions = "${minVersion}.3-rc-1 ${minVersion}.2 ${minVersion - 1}.8".toString()
 
         then:
-        versions().supported*.version == [version("1.3-rc-1"), version("1.2")]
+        versions().supported*.version == [version("${minVersion}.3-rc-1"), version("${minVersion}.2")]
     }
 
     def "get previous distribution for #description"() {

@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
@@ -49,7 +50,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
     @LeaksFileHandles
     def "generates event for resolving intrinsic artifacts by iterating the configuration"() {
         given:
-        settingsFile << settingsFileContent()
+        setupSettingsFile()
         buildFile << buildFileContent('')
         expectDownload()
 
@@ -69,9 +70,16 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         resolveArtifacts.child("Resolve ${expectedDisplayName('provider', 'jar', '1.0')} (test:provider:1.0)")
     }
 
+    def TestFile setupSettingsFile() {
+        settingsFile << """
+            rootProject.name = 'consumer'
+        """
+        includeProjects("provider")
+    }
+
     def "generates event for resolving intrinsic artifacts via file collection"() {
         given:
-        settingsFile << settingsFileContent()
+        setupSettingsFile()
         buildFile << buildFileContent('.files')
         expectDownload()
 
@@ -93,7 +101,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
 
     def "generates event for resolving intrinsic artifacts via incoming file collection"() {
         given:
-        settingsFile << settingsFileContent()
+        setupSettingsFile()
         buildFile << buildFileContent('.incoming.files')
         expectDownload()
 
@@ -115,7 +123,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
 
     def "generates event for resolving intrinsic artifacts via incoming artifact collection"() {
         given:
-        settingsFile << settingsFileContent()
+        setupSettingsFile()
         buildFile << buildFileContent('.incoming.artifacts')
         expectDownload()
 
@@ -137,7 +145,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
 
     def "generates event for resolving artifact view via artifact collection"() {
         given:
-        settingsFile << settingsFileContent()
+        setupSettingsFile()
         expectDownloadOtherTypes()
         buildFile << buildFileContent('.incoming.artifactView { it.attributes { it.attribute(kind, "thing") } }.artifacts')
 
@@ -159,7 +167,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
 
     def "generates event for resolving artifact view via file collection"() {
         given:
-        settingsFile << settingsFileContent()
+        setupSettingsFile()
         expectDownloadOtherTypes()
         buildFile << buildFileContent('.incoming.artifactView { it.attributes { it.attribute(kind, "thing") } }.files')
 
@@ -181,7 +189,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
 
     def "generates event for resolving artifacts even if dependencies have no artifacts"() {
         given:
-        settingsFile << settingsFileContent()
+        setupSettingsFile()
         buildFile << buildFileContent('')
         expectDownloadNoArtifacts()
 
@@ -202,7 +210,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
 
     def "generates event for resolving artifact view even if the view is empty"() {
         given:
-        settingsFile << settingsFileContent()
+        setupSettingsFile()
         buildFile << buildFileContent('.incoming.artifactView { it.attributes { it.attribute(kind, "none") } }.files')
         expectDownloadOtherTypes()
 
@@ -223,7 +231,7 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
 
     def "does not generate event if configuration has no dependencies"() {
         given:
-        settingsFile << settingsFileContent()
+        setupSettingsFile()
         buildFile << buildFileContent('', 'configurationWithoutDependency')
 
         when:
@@ -239,13 +247,6 @@ class ResolveArtifactsProgressCrossVersionSpec extends ToolingApiSpecification {
         def resolveDependencies = events.operation('Resolve dependencies of :configurationWithoutDependency')
         resolveDependencies.parent.descriptor.displayName.matches("Execute .* for :resolve")
         resolveDependencies.parent.children.size() == 1
-    }
-
-    def settingsFileContent() {
-        """
-            rootProject.name = 'consumer'
-            include 'provider'
-        """
     }
 
     def expectDownload() {

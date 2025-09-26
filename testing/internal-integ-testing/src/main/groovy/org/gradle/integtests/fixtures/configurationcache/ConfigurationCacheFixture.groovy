@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.configurationcache
 
 import org.gradle.configuration.ApplyScriptPluginBuildOperationType
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
@@ -26,6 +27,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 class ConfigurationCacheFixture {
     static final String ISOLATED_PROJECTS_MESSAGE = "Isolated projects is an incubating feature."
     static final String CONFIGURE_ON_DEMAND_MESSAGE = "Configuration on demand is an incubating feature."
+    static final String LENIENT = "--${StartParameterBuildOptions.ConfigurationCacheProblemsOption.LONG_OPTION}=warn"
 
     private final AbstractIntegrationSpec spec
     final BuildOperationsFixture buildOperations
@@ -66,7 +68,7 @@ class ConfigurationCacheFixture {
     void assertStateStored(HasBuildActions details) {
         assertHasStoreReason(details)
 
-        assertWorkGraphOrModelStored(details.runsTasks, details.createsModels, details.loadsOnStore)
+        assertWorkGraphOrModelStored(details.runsTasks, details.createsModels, details.loadsAfterStore)
 
         spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
 
@@ -117,9 +119,18 @@ class ConfigurationCacheFixture {
         assert details.runsTasks || details.createsModels
         if (details.runsTasks) {
             if (details.hasStoreFailure) {
-                configurationCacheBuildOperations.assertStateStoreFailed()
+                configurationCacheBuildOperations.assertStorePhaseFailed()
             } else {
-                configurationCacheBuildOperations.assertStateStored(false)
+                configurationCacheBuildOperations.assertStorePhaseSuccessful()
+            }
+            if (details.loadsAfterStore) {
+                if (details.hasLoadFailure) {
+                    configurationCacheBuildOperations.assertLoadPhaseFailed()
+                } else {
+                    configurationCacheBuildOperations.assertLoadPhaseSuccessful()
+                }
+            } else {
+                configurationCacheBuildOperations.assertLoadPhaseSkipped()
             }
         } else {
             configurationCacheBuildOperations.assertNoWorkGraphOperations()
@@ -248,7 +259,10 @@ class ConfigurationCacheFixture {
     private void assertWorkGraphOrModelStored(boolean runsTasks, boolean createsModels, boolean loadAfterStore) {
         assert runsTasks || createsModels
         if (runsTasks) {
-            configurationCacheBuildOperations.assertStateStored(loadAfterStore)
+            configurationCacheBuildOperations.assertStorePhaseSuccessful()
+            if (loadAfterStore) {
+                configurationCacheBuildOperations.assertLoadPhaseSuccessful()
+            }
         } else {
             configurationCacheBuildOperations.assertNoWorkGraphOperations()
         }
@@ -260,7 +274,7 @@ class ConfigurationCacheFixture {
     }
 
     private void assertHasProblems(HasProblems problemDetails) {
-        if (spec.failed) {
+        if (spec.failed && !problemDetails.reportedOutsideBuildFailure) {
             problems.assertFailureHasProblems(spec.failure) {
                 applyProblemsTo(problemDetails, delegate)
             }
@@ -330,22 +344,25 @@ class ConfigurationCacheFixture {
         invalidationDetails.changedFiles.each { file ->
             reasons.add("file '${file.replace('/', File.separator)}'")
         }
-        if (invalidationDetails.changedGradleProperty) {
-            reasons.add("the set of Gradle properties")
+        if (invalidationDetails.changedStartParameterProjectProperties != null) {
+            reasons.add("the set of Gradle properties has changed: $invalidationDetails.changedStartParameterProjectProperties")
+        }
+        if (invalidationDetails.changedGradleProperty != null) {
+            reasons.add("Gradle property '$invalidationDetails.changedGradleProperty' has changed")
         }
         if (invalidationDetails.changedSystemProperty != null) {
-            reasons.add("system property '$invalidationDetails.changedSystemProperty'")
+            reasons.add("system property '$invalidationDetails.changedSystemProperty' has changed")
         }
         if (invalidationDetails.changedTask != null) {
-            reasons.add("an input to task '${invalidationDetails.changedTask}'")
+            reasons.add("an input to task '${invalidationDetails.changedTask}' has changed")
         }
 
         assert details.createsModels || details.runsTasks
         def messages = reasons.collect { reason ->
             if (details.createsModels) {
-                "Creating tooling model as configuration cache cannot be reused because $reason has changed"
+                "Creating tooling model as configuration cache cannot be reused because $reason"
             } else if (details.runsTasks) {
-                "Calculating task graph as configuration cache cannot be reused because $reason has changed"
+                "Calculating task graph as configuration cache cannot be reused because $reason"
             } else {
                 throw new IllegalStateException("Expected creating models and/or running tasks")
             }
@@ -357,7 +374,7 @@ class ConfigurationCacheFixture {
 
     private void assertNothingConfigured() {
         def configuredProjects = buildOperations.all(ConfigureProjectBuildOperationType)
-        // A synthetic "project configured" operation is fired for each root project for build scans
+        // A synthetic "project configured" operation is fired for each root project for a Build Scan
         assert configuredProjects.every { it.details.projectPath == ':' }
 
         def scripts = buildOperations.all(ApplyScriptPluginBuildOperationType)
@@ -401,6 +418,13 @@ class ConfigurationCacheFixture {
     trait HasProblems extends HasIncompatibleTasks {
         final List<ProblemDetails> problems = []
 
+        /**
+         * Normally, CC problem summary is part of the end-of-build CC build failure.
+         * In the presence of another build failure, the summary can be still included but as part of regular output.
+         * It happens when there is no end-of-build CC build failure, for instance there are only interrupting or suppressed CC problems.
+         */
+        boolean reportedOutsideBuildFailure = false
+
         void problem(String message, int count = 1, boolean hasStackTrace = true) {
             problems.add(new ProblemDetails(message, count, hasStackTrace))
         }
@@ -428,15 +452,18 @@ class ConfigurationCacheFixture {
         boolean runsTasks = true
         // Whether to expect tooling models, which is normally the case when running any Tooling API build action
         boolean createsModels = false
-        boolean loadsOnStore = true
+        // Whether the load operation is expected, which may not be the case when building models or dealing with incompatible tasks or store serialization errors
+        boolean loadsAfterStore = true
         boolean hasStoreFailure = true
+        boolean hasLoadFailure = false
 
         abstract String getStoreAction()
     }
 
     trait HasInvalidationReason {
         List<String> changedFiles = []
-        boolean changedGradleProperty
+        String changedStartParameterProjectProperties
+        String changedGradleProperty
         String changedSystemProperty
         String changedTask
 
@@ -448,8 +475,12 @@ class ConfigurationCacheFixture {
             changedTask = name
         }
 
-        void gradlePropertyChanged() {
-            changedGradleProperty = true
+        void startParameterProjectPropertiesChanged(String message) {
+            changedStartParameterProjectProperties = message
+        }
+
+        void gradlePropertyChanged(String name) {
+            changedGradleProperty = name
         }
 
         void systemPropertyChanged(String name) {

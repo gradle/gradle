@@ -30,14 +30,13 @@ class ToolingApiEclipseModelDependencyAccessRuleCrossVersionSpec extends Tooling
         def mavenRepo = new MavenFileRepository(file("maven-repo"))
         mavenRepo.module("org.example", "example-lib", "1.0").publish()
 
-        createDirs("sub")
         settingsFile <<
-        """rootProject.name = 'root'
-           include 'sub'
+            """rootProject.name = 'root'
         """
+        includeProjects("sub")
 
         buildFile <<
-        """apply plugin: 'java'
+            """apply plugin: 'java'
            apply plugin: 'eclipse'
 
            repositories {
@@ -70,7 +69,7 @@ class ToolingApiEclipseModelDependencyAccessRuleCrossVersionSpec extends Tooling
     def "Has some access rules"() {
         setup:
         buildFile <<
-        """import org.gradle.plugins.ide.eclipse.model.AccessRule
+            """import org.gradle.plugins.ide.eclipse.model.AccessRule
            eclipse {
                classpath {
                    containers 'classpathContainerPath'

@@ -52,6 +52,21 @@ public interface ProviderFactory {
      *
      * <p>The provider is live and will call the {@link Callable} each time its value is queried. The {@link Callable} may return {@code null}, in which case the provider is considered to have no value.
      *
+     * <h4>Configuration Cache</h4>
+     * <p>This provider is always <a href="provider/Provider.html#configuration-cache">computed and its value is cached</a> by the Configuration Cache.
+     * If this provider is created at configuration time, the {@link Callable} may call configuration-time only APIs and capture objects of arbitrary types.
+     * <p>This can be useful when you need to lazily compute some value to use at execution time based on configuration-time only data. For example, you can compute an archive name based on the name
+     * and the version of the project:
+     * <pre class='autoTested'>
+     *   tasks.register("createArchive") {
+     *       def archiveNameProvider = providers.provider { project.name + "-" + project.version + ".jar" }
+     *       doLast {
+     *           def archiveName = new File(archiveNameProvider.get())
+     *           // ... create the archive and put in its contents.
+     *       }
+     *   }
+     * </pre>
+     *
      * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
      * @return The provider. Never returns null.
      */
@@ -155,21 +170,21 @@ public interface ProviderFactory {
      * Creates a {@link Provider} whose value is a name-to-value map of the Gradle properties with the names starting with the given prefix.
      * The prefix comparison is case-sensitive. The returned map is immutable.
      *
-     * @param variableNamePrefix The prefix of the Gradle property names
+     * @param propertyNamePrefix The prefix of the Gradle property names
      * @return The provider. Never returns null.
      * @since 8.0
      */
-    Provider<Map<String, String>> gradlePropertiesPrefixedBy(String variableNamePrefix);
+    Provider<Map<String, String>> gradlePropertiesPrefixedBy(String propertyNamePrefix);
 
     /**
      * Creates a {@link Provider} whose value is a name-to-value map of the Gradle properties with the names starting with the given prefix.
      * The prefix comparison is case-sensitive. The returned map is immutable.
      *
-     * @param variableNamePrefix The prefix of the Gradle property names
+     * @param propertyNamePrefix The prefix of the Gradle property names
      * @return The provider. Never returns null.
      * @since 8.0
      */
-    Provider<Map<String, String>> gradlePropertiesPrefixedBy(Provider<String> variableNamePrefix);
+    Provider<Map<String, String>> gradlePropertiesPrefixedBy(Provider<String> propertyNamePrefix);
 
     /**
      * Allows lazy access to the contents of the given file.

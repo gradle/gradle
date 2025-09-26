@@ -30,7 +30,6 @@ import com.google.api.services.storage.model.StorageObject;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.ResourceExceptions;
@@ -40,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;

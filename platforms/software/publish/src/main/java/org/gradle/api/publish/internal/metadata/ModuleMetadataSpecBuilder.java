@@ -66,7 +66,7 @@ import java.util.TreeMap;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
-import static org.apache.commons.lang.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 /**
  * Builds a {@link ModuleMetadataSpec} from a {@link PublicationInternal} and its {@link SoftwareComponent}.
@@ -167,6 +167,7 @@ public class ModuleMetadataSpecBuilder {
         return new MergeProvider<>(variants);
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private List<ModuleMetadataSpec.Artifact> artifactsOf(SoftwareComponentVariant variant) {
         if (variant.getArtifacts().isEmpty()) {
             return emptyList();
@@ -296,6 +297,7 @@ public class ModuleMetadataSpecBuilder {
         );
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private List<ModuleMetadataSpec.Capability> capabilitiesFor(Collection<? extends Capability> capabilities) {
         if (capabilities.isEmpty()) {
             return emptyList();
@@ -314,6 +316,7 @@ public class ModuleMetadataSpecBuilder {
         return metadataCapabilities;
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private static List<ModuleMetadataSpec.Capability> capabilitySelectorsFor(
         Set<CapabilitySelector> capabilitySelectors,
         ModuleMetadataSpec.DependencyCoordinates targetComponent
@@ -352,6 +355,7 @@ public class ModuleMetadataSpecBuilder {
         }
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private List<ModuleMetadataSpec.Attribute> attributesFor(AttributeContainer attributes) {
         if (attributes.isEmpty()) {
             return emptyList();
@@ -391,6 +395,7 @@ public class ModuleMetadataSpecBuilder {
         }
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private List<ModuleMetadataSpec.Dependency> dependenciesOf(SoftwareComponentVariant variant, ComponentDependencyResolver dependencyResolver) {
         if (variant.getDependencies().isEmpty()) {
             return emptyList();
@@ -423,6 +428,7 @@ public class ModuleMetadataSpecBuilder {
         return dependencies;
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private List<ModuleMetadataSpec.DependencyConstraint> dependencyConstraintsFor(SoftwareComponentVariant variant, ComponentDependencyResolver dependencyResolver) {
         if (variant.getDependencyConstraints().isEmpty()) {
             return emptyList();

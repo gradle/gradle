@@ -18,6 +18,7 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
@@ -47,14 +48,22 @@ public interface BuildActionRunner {
         private final boolean hasResult;
         private final Object result;
         private final Throwable buildFailure;
+        private final Failure richBuildFailure;
         private final Throwable clientFailure;
-        private static final Result NOTHING = new Result(false, null, null, null);
-        private static final Result NULL = new Result(true, null, null, null);
+        private static final Result NOTHING = new Result(false, null, null, null, null);
+        private static final Result NULL = new Result(true, null, null, null, null);
 
-        private Result(boolean hasResult, @Nullable Object result, @Nullable Throwable buildFailure, @Nullable Throwable clientFailure) {
+        private Result(
+            boolean hasResult,
+            @Nullable Object result,
+            @Nullable Throwable buildFailure,
+            @Nullable Failure richBuildFailure,
+            @Nullable Throwable clientFailure
+        ) {
             this.hasResult = hasResult;
             this.result = result;
             this.buildFailure = buildFailure;
+            this.richBuildFailure = richBuildFailure;
             this.clientFailure = clientFailure;
         }
 
@@ -66,15 +75,19 @@ public interface BuildActionRunner {
             if (result == null) {
                 return NULL;
             }
-            return new Result(true, result, null, null);
+            return new Result(true, result, null, null, null);
         }
 
         public static Result failed(Throwable buildFailure) {
-            return new Result(true, null, buildFailure, buildFailure);
+            return new Result(true, null, buildFailure, null, buildFailure);
+        }
+
+        public static Result failed(Throwable buildFailure, Failure richBuildFailure) {
+            return new Result(true, null, buildFailure, richBuildFailure, buildFailure);
         }
 
         public static Result failed(Throwable buildFailure, RuntimeException clientFailure) {
-            return new Result(true, null, buildFailure, clientFailure);
+            return new Result(true, null, buildFailure, null, clientFailure);
         }
 
         /**
@@ -98,6 +111,16 @@ public interface BuildActionRunner {
         @Nullable
         public Throwable getBuildFailure() {
             return buildFailure;
+        }
+
+        /**
+         * Returns a preprocessed failure that was reported in the build outcome.
+         * <p>
+         * {@code null} when there is no failure, or when the build failure hasn't been converted, yet, or when the failure happened after converting the build failure.
+         */
+        @Nullable
+        public Failure getRichBuildFailure() {
+            return richBuildFailure;
         }
 
         /**
@@ -130,6 +153,11 @@ public interface BuildActionRunner {
             } else {
                 return failed(new MultipleBuildFailures(newFailures));
             }
+        }
+
+        public Result withFailure(Failure richBuildFailure) {
+            assert buildFailure != null;
+            return new Result(hasResult, result, buildFailure, richBuildFailure, clientFailure);
         }
 
         /**

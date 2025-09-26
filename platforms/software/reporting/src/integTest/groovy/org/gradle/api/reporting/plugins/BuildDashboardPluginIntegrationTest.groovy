@@ -17,11 +17,11 @@
 package org.gradle.api.reporting.plugins
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
@@ -31,7 +31,6 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
 
     def setup() {
         writeBuildFile()
-        expectTaskProjectDeprecation = true
     }
 
     private void goodCode(TestFile root = testDirectory) {
@@ -120,10 +119,8 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         'buildDashboard'
     }
 
-    @ToBeFixedForConfigurationCache(because = ":buildDashboard")
     void 'build dashboard for a project with no other reports lists just the dashboard'() {
         when:
-        expectTaskProjectDeprecation()
         run('buildDashboard')
 
         then:
@@ -132,14 +129,12 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         unavailableReports.empty
     }
 
-    @ToBeFixedForConfigurationCache(because = ":buildDashboard")
     void 'build dashboard lists the enabled reports for the project'() {
         given:
         goodCode()
         goodTests()
 
         when:
-        expectTaskProjectDeprecation()
         run('check', 'buildDashboard')
 
         then:
@@ -149,14 +144,12 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':test', 'junitXml')
     }
 
-    @ToBeFixedForConfigurationCache(because = ":buildDashboard")
     void 'build dashboard lists the reports which have not been generated'() {
         given:
         goodCode()
         goodTests()
 
         when:
-        expectTaskProjectDeprecation()
         run('buildDashboard')
 
         then:
@@ -167,14 +160,12 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasUnavailableReport(':test', 'junitXml')
     }
 
-    @ToBeFixedForConfigurationCache(because = ":buildDashboard")
     void 'build dashboard is always generated after report generating tasks have executed'() {
         given:
         goodCode()
         goodTests()
 
         when:
-        expectTaskProjectDeprecation()
         run('buildDashboard', 'check')
 
         then:
@@ -184,14 +175,12 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':test', 'junitXml')
     }
 
-    @ToBeFixedForConfigurationCache(because = ":buildDashboard")
     void 'running a report generating task also generates build dashboard'() {
         given:
         goodCode()
         goodTests()
 
         when:
-        expectTaskProjectDeprecation()
         run('test')
 
         then:
@@ -201,14 +190,12 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':test', 'junitXml')
     }
 
-    @ToBeFixedForConfigurationCache(because = ":buildDashboard")
     void 'build dashboard is generated even if report generating task fails'() {
         given:
         goodCode()
         badTests()
 
         when:
-        expectTaskProjectDeprecation()
         runAndFail('check')
 
         then:
@@ -256,20 +243,17 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         """
 
         when:
-        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         run('buildDashboard')
 
         then:
         !buildDashboardFile.exists()
     }
 
-    @ToBeFixedForConfigurationCache(because = ":buildDashboard")
     void 'buildDashboard is incremental'() {
         given:
         goodCode()
 
         expect:
-        expectTaskProjectDeprecation()
         run('buildDashboard')
         executedAndNotSkipped(':buildDashboard')
 
@@ -280,12 +264,10 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         buildDashboardFile.delete()
 
         then:
-        expectTaskProjectDeprecation()
         run('buildDashboard')
         executedAndNotSkipped(':buildDashboard')
     }
 
-    @ToBeFixedForConfigurationCache(because = ":buildDashboard")
     @Requires(UnitTestPreconditions.StableGroovy) // FIXME KM temporarily disabling while CodeNarc runs in Worker API with multiple Groovy runtimes
     void 'enabling an additional report renders buildDashboard out-of-date'() {
         given:
@@ -293,7 +275,6 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         withCodenarc()
 
         when:
-        expectTaskProjectDeprecation()
         run('check')
         executedAndNotSkipped(':buildDashboard')
 
@@ -310,7 +291,6 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         """
 
         and:
-        expectTaskProjectDeprecation()
         run('check')
         executedAndNotSkipped(':buildDashboard')
 
@@ -321,14 +301,12 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':codenarcMain', 'text')
     }
 
-    @ToBeFixedForConfigurationCache(because = ":buildDashboard")
     void 'generating a report that was previously not available renders buildDashboard out-of-date'() {
         given:
         goodCode()
         goodTests()
 
         when:
-        expectTaskProjectDeprecation()
         run('buildDashboard')
         executedAndNotSkipped(':buildDashboard')
 
@@ -340,7 +318,6 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasUnavailableReport(':test', 'junitXml')
 
         when:
-        expectTaskProjectDeprecation()
         run('test')
         executedAndNotSkipped(':buildDashboard')
 
@@ -352,7 +329,6 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         unavailableReports.empty
     }
 
-    @ToBeFixedForConfigurationCache(because = ":buildDashboard")
     void 'reports from subprojects are aggregated'() {
         given:
         goodCode()
@@ -360,7 +336,6 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         setupSubproject()
 
         when:
-        expectTaskProjectDeprecation()
         run('buildDashboard', 'check')
 
         then:
@@ -372,9 +347,9 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':subproject:test', 'junitXml')
     }
 
-    @ToBeFixedForConfigurationCache(because = ":buildDashboard")
     void 'dashboard includes JaCoCo reports'() {
         given:
+        JacocoCoverage.assumeDefaultJacocoWorksOnCurrentJdk()
         goodCode()
         goodTests()
         buildFile << """
@@ -382,7 +357,6 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         """
 
         when:
-        expectTaskProjectDeprecation()
         run("test", "jacocoTestReport")
 
         then:
@@ -393,7 +367,6 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':jacocoTestReport', 'html')
     }
 
-    @ToBeFixedForConfigurationCache(because = ":buildDashboard")
     @Requires(UnitTestPreconditions.StableGroovy) // FIXME KM temporarily disabling while CodeNarc runs in Worker API with multiple Groovy runtimes
     void 'dashboard includes CodeNarc reports'() {
         given:
@@ -401,7 +374,6 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         withCodenarc()
 
         when:
-        expectTaskProjectDeprecation()
         run("check")
 
         then:

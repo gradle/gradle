@@ -16,12 +16,15 @@
 
 package org.gradle.internal.watch
 
-import org.gradle.testdistribution.LocalOnly
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.testdistribution.LocalOnly
 import org.junit.Rule
 
 @LocalOnly
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()

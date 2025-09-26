@@ -18,6 +18,10 @@ package org.gradle.api.publish;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.component.SoftwareComponentFactory;
+
+import javax.inject.Inject;
 
 /**
  * The configuration of how to "publish" the different components of a project.
@@ -106,5 +110,19 @@ public interface PublishingExtension {
      * @param configure The action or closure to configure the publications with.
      */
     void publications(Action<? super PublicationContainer> configure);
+
+    /**
+     * Get an instance of the {@link SoftwareComponentFactory} service.
+     * <p>
+     * This service may be used to create component instances for publishing with
+     * {@link org.gradle.api.publish.maven.MavenPublication#from(SoftwareComponent)} and
+     * {@link org.gradle.api.publish.ivy.IvyPublication#from(SoftwareComponent)}
+     *
+     * @return the software component factory service.
+     *
+     * @since 9.2.0
+     */
+    @Inject
+    SoftwareComponentFactory getSoftwareComponentFactory();
 
 }

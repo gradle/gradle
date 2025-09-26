@@ -109,19 +109,19 @@ public class ArchUnitFixtureTest {
 
     @Test
     public void accepts_interfaces_as_abstract_classes() {
-        ConditionEvent event = checkClassCondition(ArchUnitFixture.beAbstract(), Interface.class);
+        ConditionEvent event = checkClassCondition(ArchUnitFixture.beAbstractClass(), Interface.class);
         assertNoViolation(event);
     }
 
     @Test
     public void accepts_abstract_classes() {
-        ConditionEvent event = checkClassCondition(ArchUnitFixture.beAbstract(), AbstractClass.class);
+        ConditionEvent event = checkClassCondition(ArchUnitFixture.beAbstractClass(), AbstractClass.class);
         assertNoViolation(event);
     }
 
     @Test
     public void reports_non_abstract_classes() {
-        ConditionEvent event = checkClassCondition(ArchUnitFixture.beAbstract(), ConcreteClass.class);
+        ConditionEvent event = checkClassCondition(ArchUnitFixture.beAbstractClass(), ConcreteClass.class);
         assertThat(event.isViolation()).isTrue();
         assertThat(eventDescription(event)).isEqualTo("org.gradlebuild.ConcreteClass is not abstract");
     }

@@ -17,9 +17,7 @@
 package org.gradle.api.reporting.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
-@UnsupportedWithConfigurationCache(because = "software model")
 class ModelReportIntegrationTest extends AbstractIntegrationSpec {
 
     @Override
@@ -27,10 +25,16 @@ class ModelReportIntegrationTest extends AbstractIntegrationSpec {
         super.setupExecuter()
     }
 
-    def "displays basic structure of an empty project"() {
-        given:
-        buildFile
+    def setup() {
+        buildFile << """
+            plugins {
+                id 'model-reporting-tasks'
+                id 'component-reporting-tasks'
+            }
+        """
+    }
 
+    def "displays basic structure of an empty project"() {
         when:
         run "model"
 
@@ -87,9 +91,9 @@ model {
         then:
         ModelReportOutput.from(output).hasNodeStructure {
             container {
-                ids(type: 'java.util.List<java.lang.Integer>', creator: 'container(Container) { ... } @ build.gradle line 12, column 5', nodeValue: '[]')
-                labels(type: 'java.util.List<java.lang.String>', creator: 'container(Container) { ... } @ build.gradle line 12, column 5', nodeValue: "[bug, blocker]")
-                values(type: 'java.util.List<java.lang.Double>', creator: 'container(Container) { ... } @ build.gradle line 12, column 5', nodeValue: 'null')
+                ids(type: 'java.util.List<java.lang.Integer>', creator: 'container(Container) { ... } @ build.gradle line 17, column 5', nodeValue: '[]')
+                labels(type: 'java.util.List<java.lang.String>', creator: 'container(Container) { ... } @ build.gradle line 17, column 5', nodeValue: "[bug, blocker]")
+                values(type: 'java.util.List<java.lang.Double>', creator: 'container(Container) { ... } @ build.gradle line 17, column 5', nodeValue: 'null')
             }
         }
     }
@@ -206,16 +210,16 @@ model {
         then:
         ModelReportOutput.from(output).hasNodeStructure {
             nullCredentials {
-                password(type: 'java.lang.String', creator: 'nullCredentials(PasswordCredentials) { ... } @ build.gradle line 27, column 5')
-                username(type: 'java.lang.String', creator: 'nullCredentials(PasswordCredentials) { ... } @ build.gradle line 27, column 5')
+                password(type: 'java.lang.String', creator: 'nullCredentials(PasswordCredentials) { ... } @ build.gradle line 32, column 5')
+                username(type: 'java.lang.String', creator: 'nullCredentials(PasswordCredentials) { ... } @ build.gradle line 32, column 5')
             }
             numbers {
                 threshold(nodeValue: "0.8")
                 value(nodeValue: "5")
             }
             primaryCredentials {
-                password(nodeValue: 'hunter2', type: 'java.lang.String', creator: 'primaryCredentials(PasswordCredentials) { ... } @ build.gradle line 22, column 5')
-                username(nodeValue: 'uname', type: 'java.lang.String', creator: 'primaryCredentials(PasswordCredentials) { ... } @ build.gradle line 22, column 5')
+                password(nodeValue: 'hunter2', type: 'java.lang.String', creator: 'primaryCredentials(PasswordCredentials) { ... } @ build.gradle line 27, column 5')
+                username(nodeValue: 'uname', type: 'java.lang.String', creator: 'primaryCredentials(PasswordCredentials) { ... } @ build.gradle line 27, column 5')
             }
             unsetNumbers {
                 threshold(nodeValue: '0.0')
@@ -270,37 +274,37 @@ model {
         modelReportOutput.nodeContentEquals('''
 + nullCredentials
       | Type:   \tPasswordCredentials
-      | Creator: \tnullCredentials(PasswordCredentials) @ build.gradle line 27, column 5
+      | Creator: \tnullCredentials(PasswordCredentials) @ build.gradle line 32, column 5
     + password
           | Type:   \tjava.lang.String
           | Value:  \tnull
-          | Creator: \tnullCredentials(PasswordCredentials) @ build.gradle line 27, column 5
+          | Creator: \tnullCredentials(PasswordCredentials) @ build.gradle line 32, column 5
     + username
           | Type:   \tjava.lang.String
           | Value:  \tnull
-          | Creator: \tnullCredentials(PasswordCredentials) @ build.gradle line 27, column 5
+          | Creator: \tnullCredentials(PasswordCredentials) @ build.gradle line 32, column 5
 + numbers
       | Type:   \tNumbers
-      | Creator: \tnumbers(Numbers) { ... } @ build.gradle line 28, column 5
+      | Creator: \tnumbers(Numbers) { ... } @ build.gradle line 33, column 5
     + threshold
           | Type:   \tdouble
           | Value:  \t0.8
-          | Creator: \tnumbers(Numbers) { ... } @ build.gradle line 28, column 5
+          | Creator: \tnumbers(Numbers) { ... } @ build.gradle line 33, column 5
     + value
           | Type:   \tjava.lang.Integer
           | Value:  \t5
-          | Creator: \tnumbers(Numbers) { ... } @ build.gradle line 28, column 5
+          | Creator: \tnumbers(Numbers) { ... } @ build.gradle line 33, column 5
 + primaryCredentials
       | Type:   \tPasswordCredentials
-      | Creator: \tprimaryCredentials(PasswordCredentials) { ... } @ build.gradle line 22, column 5
+      | Creator: \tprimaryCredentials(PasswordCredentials) { ... } @ build.gradle line 27, column 5
     + password
           | Type:   \tjava.lang.String
           | Value:  \thunter2
-          | Creator: \tprimaryCredentials(PasswordCredentials) { ... } @ build.gradle line 22, column 5
+          | Creator: \tprimaryCredentials(PasswordCredentials) { ... } @ build.gradle line 27, column 5
     + username
           | Type:   \tjava.lang.String
           | Value:  \tuname
-          | Creator: \tprimaryCredentials(PasswordCredentials) { ... } @ build.gradle line 22, column 5
+          | Creator: \tprimaryCredentials(PasswordCredentials) { ... } @ build.gradle line 27, column 5
 + tasks
       | Type:   \torg.gradle.model.ModelMap<org.gradle.api.Task>
       | Creator: \tProject.<init>.tasks()
@@ -414,15 +418,15 @@ model {
              ⤷ copyToTaskContainer
 + unsetNumbers
       | Type:   \tNumbers
-      | Creator: \tunsetNumbers(Numbers) { ... } @ build.gradle line 32, column 5
+      | Creator: \tunsetNumbers(Numbers) { ... } @ build.gradle line 37, column 5
     + threshold
           | Type:   \tdouble
           | Value:  \t0.0
-          | Creator: \tunsetNumbers(Numbers) { ... } @ build.gradle line 32, column 5
+          | Creator: \tunsetNumbers(Numbers) { ... } @ build.gradle line 37, column 5
     + value
           | Type:   \tjava.lang.Integer
           | Value:  \tnull
-          | Creator: \tunsetNumbers(Numbers) { ... } @ build.gradle line 32, column 5
+          | Creator: \tunsetNumbers(Numbers) { ... } @ build.gradle line 37, column 5
 
 ''')
     }

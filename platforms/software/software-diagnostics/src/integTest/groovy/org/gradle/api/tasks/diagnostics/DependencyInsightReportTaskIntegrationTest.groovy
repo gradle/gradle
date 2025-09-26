@@ -457,10 +457,9 @@ org:foo:1.0 FAILED
       - By constraint: Dependency version enforced by Dependency Locking
    Failures:
       - Could not resolve org:foo:{strictly 1.0}.
-          - Cannot find a version of 'org:foo' that satisfies the version constraints:
-               Dependency path ':insight-test:unspecified' --> 'org:foo:1.+'
-               Constraint path ':insight-test:unspecified' --> 'org:foo:1.1'
-               Constraint path ':insight-test:unspecified' --> 'org:foo:{strictly 1.0}' because of the following reason: Dependency version enforced by Dependency Locking
+          - Component is the target of multiple version constraints with conflicting requirements:
+            1.0 - from lock file
+            1.1
 
 org:foo:{strictly 1.0} -> 1.0 FAILED
 \\--- lockedConf
@@ -2498,7 +2497,7 @@ org.test:leaf:1.0
 """
     }
 
-    def "mentions web-based dependency insight report available using build scans"() {
+    def "mentions web-based dependency insight report available using a Build Scan"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
         mavenRepo.module("org", "leaf2").publish()
@@ -2597,8 +2596,8 @@ org:bar: FAILED
    Failures:
       - Could not resolve org:bar:{reject all versions}.
           - Module 'org:bar' has been rejected:
-               Dependency path ':insight-test:unspecified' --> 'org:bar:[1.0,)'
-               Constraint path ':insight-test:unspecified' --> 'org:bar:{reject all versions}' because of the following reason: Nope, you won't use this
+               Dependency path: 'root project :' (compileClasspath) --> 'org:bar:[1.0,)'
+               Constraint path: 'root project :' (compileClasspath) --> 'org:bar:{reject all versions}' because of the following reason: Nope, you won't use this
 
 org:bar:{reject all versions} FAILED
 \\--- compileClasspath
@@ -2614,8 +2613,8 @@ org:foo: (by constraint) FAILED
    Failures:
       - Could not resolve org:foo:{reject 1.0 & 1.1 & 1.2}.
           - Cannot find a version of 'org:foo' that satisfies the version constraints:
-               Dependency path ':insight-test:unspecified' --> 'org:foo:[1.0,)'
-               Constraint path ':insight-test:unspecified' --> 'org:foo:{reject 1.0 & 1.1 & 1.2}'
+               Dependency path: 'root project :' (compileClasspath) --> 'org:foo:[1.0,)'
+               Constraint path: 'root project :' (compileClasspath) --> 'org:foo:{reject 1.0 & 1.1 & 1.2}'
 
 org:foo:{reject 1.0 & 1.1 & 1.2} FAILED
 \\--- compileClasspath

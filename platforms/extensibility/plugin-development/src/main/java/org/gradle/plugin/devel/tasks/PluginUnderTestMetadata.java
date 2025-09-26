@@ -18,13 +18,13 @@ package org.gradle.plugin.devel.tasks;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -45,24 +45,18 @@ public abstract class PluginUnderTestMetadata extends DefaultTask {
 
     public static final String IMPLEMENTATION_CLASSPATH_PROP_KEY = "implementation-classpath";
     public static final String METADATA_FILE_NAME = "plugin-under-test-metadata.properties";
-    private final ConfigurableFileCollection pluginClasspath = getProject().files();
-    private final DirectoryProperty outputDirectory = getProject().getObjects().directoryProperty();
 
     /**
      * The code under test. Defaults to {@code sourceSets.main.runtimeClasspath}.
      */
     @Classpath
-    public ConfigurableFileCollection getPluginClasspath() {
-        return pluginClasspath;
-    }
+    public abstract ConfigurableFileCollection getPluginClasspath();
 
     /**
      * The target output directory used for writing the classpath manifest. Defaults to {@code "$buildDir/$task.name"}.
      */
     @OutputDirectory
-    public DirectoryProperty getOutputDirectory() {
-        return outputDirectory;
-    }
+    public abstract DirectoryProperty getOutputDirectory();
 
     @TaskAction
     public void generate() {
@@ -86,7 +80,7 @@ public abstract class PluginUnderTestMetadata extends DefaultTask {
         try {
             PropertiesUtils.store(properties, outputFile);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

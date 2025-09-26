@@ -23,14 +23,13 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentCache
 import org.gradle.api.internal.configuration.DefaultBuildFeatures
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.Logging
 import org.gradle.execution.selection.BuildTaskSelector
-import org.gradle.initialization.EnvironmentChangeTracker
-import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.initialization.Environment
 import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.buildoption.DefaultInternalOptions
-import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.cc.buildtree.BuildModelParametersProvider
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor
@@ -38,9 +37,15 @@ import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.DefaultBuildTreeModelSideEffectExecutor
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.RunTasksRequirements
-import org.gradle.internal.cc.base.logger
-import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
+import org.gradle.internal.cc.base.problems.IgnoringProblemsListener
+import org.gradle.internal.cc.impl.barrier.BarrierAwareBuildTreeLifecycleControllerFactory
+import org.gradle.internal.cc.impl.barrier.VintageConfigurationTimeActionRunner
+import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
+import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheClassLoaderScopesFingerprintController
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
+import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheInputFileChecker
+import org.gradle.internal.cc.impl.fingerprint.DefaultConfigurationCacheInputFileCheckerHost
+import org.gradle.internal.cc.impl.fingerprint.IsolatedProjectsClassLoaderScopesFingerprintController
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheInjectedClasspathInstrumentationStrategy
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheProblemsListener
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
@@ -49,10 +54,12 @@ import org.gradle.internal.cc.impl.initialization.InstrumentedExecutionAccessLis
 import org.gradle.internal.cc.impl.initialization.VintageInjectedClasspathInstrumentationStrategy
 import org.gradle.internal.cc.impl.models.DefaultToolingModelParameterCarrierFactory
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
+import org.gradle.internal.cc.impl.promo.ConfigurationCachePromoHandler
+import org.gradle.internal.cc.impl.promo.PromoInputsListener
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
-import org.gradle.internal.cc.impl.services.DefaultBuildModelParameters
+import org.gradle.internal.cc.impl.services.ConfigurationCacheEnvironment
 import org.gradle.internal.cc.impl.services.DefaultDeferredRootBuildGradle
-import org.gradle.internal.cc.impl.services.VintageEnvironmentChangeTracker
+import org.gradle.internal.cc.impl.services.DefaultEnvironment
 import org.gradle.internal.configuration.problems.DefaultProblemFactory
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
@@ -67,28 +74,8 @@ import org.gradle.util.internal.IncubationLogger
 
 
 class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices {
-    companion object {
-        private
-        val parallelBuilding = InternalFlag("org.gradle.internal.tooling.parallel", true)
 
-        private
-        val invalidateCoupledProjects = InternalFlag("org.gradle.internal.invalidate-coupled-projects", true)
-
-        /**
-         * If model dependencies between projects should be treated as project dependencies.
-         * Model dependency is observed when a project requests a model from another project.
-         */
-        private
-        val modelProjectDependencies = InternalFlag("org.gradle.internal.model-project-dependencies", true)
-
-        private
-        val isolatedProjectsToolingModelsConfigureOnDemand =
-            InternalFlag("org.gradle.internal.isolated-projects.configure-on-demand.tooling", false)
-
-        private
-        val isolatedProjectsTasksConfigureOnDemand =
-            InternalFlag("org.gradle.internal.isolated-projects.configure-on-demand.tasks", false)
-    }
+    private val logger = Logging.getLogger(BuildTreeModelControllerServices::class.java)
 
     override fun servicesForBuildTree(requirements: BuildActionModelRequirements): BuildTreeModelControllerServices.Supplier {
         val startParameter = requirements.startParameter
@@ -101,19 +88,18 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         }
 
         val configurationCacheLogLevel = if (startParameter.isConfigurationCacheQuiet) LogLevel.INFO else LogLevel.LIFECYCLE
-        val modelParameters = getBuildModelParameters(
-            requirements,
-            startParameter,
-            configurationCacheLogLevel
-        )
+        val modelParameters = BuildModelParametersProvider.parameters(requirements, startParameter, configurationCacheLogLevel)
+        logger.info("Operational build model parameters: {}", modelParameters.toDisplayMap())
 
-        if (!startParameter.isConfigurationCacheQuiet) {
-            if (modelParameters.isIsolatedProjects) {
-                IncubationLogger.incubatingFeatureUsed("Isolated projects")
+        if (modelParameters.isIsolatedProjects) {
+            IncubationLogger.incubatingFeatureUsed("Isolated projects")
+        } else {
+            if (modelParameters.isConfigurationCacheParallelStore) {
+                IncubationLogger.incubatingFeatureUsed("Parallel Configuration Cache")
             }
-        }
-        if (!modelParameters.isIsolatedProjects && modelParameters.isConfigureOnDemand) {
-            IncubationLogger.incubatingFeatureUsed("Configuration on demand")
+            if (modelParameters.isConfigureOnDemand) {
+                IncubationLogger.incubatingFeatureUsed("Configuration on demand")
+            }
         }
 
         val loggingParameters = ConfigurationCacheLoggingParameters(configurationCacheLogLevel)
@@ -126,94 +112,11 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         }
     }
 
-    private
-    fun getBuildModelParameters(
-        requirements: BuildActionModelRequirements,
-        startParameter: StartParameterInternal,
-        configurationCacheLogLevel: LogLevel
-    ): BuildModelParameters {
-
-        val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
-        val requiresTasks = requirements.isRunsTasks
-        val isolatedProjects = startParameter.isolatedProjects.get()
-        val parallelProjectExecution = isolatedProjects || requirements.startParameter.isParallelProjectExecutionEnabled
-        val parallelToolingActions = parallelProjectExecution && options.getOption(parallelBuilding).get()
-        val invalidateCoupledProjects = isolatedProjects && options.getOption(invalidateCoupledProjects).get()
-        val modelAsProjectDependency = isolatedProjects && options.getOption(modelProjectDependencies).get()
-
-        return if (requirements.isCreatesModel) {
-            val configureOnDemand = isolatedProjects &&
-                options.getOption(isolatedProjectsToolingModelsConfigureOnDemand).get() &&
-                (!requiresTasks || options.getOption(isolatedProjectsTasksConfigureOnDemand).get())
-            DefaultBuildModelParameters(
-                requiresToolingModels = true,
-                parallelProjectExecution = parallelProjectExecution,
-                configureOnDemand = configureOnDemand,
-                configurationCache = isolatedProjects,
-                isolatedProjects = isolatedProjects,
-                intermediateModelCache = isolatedProjects,
-                parallelToolingApiActions = parallelToolingActions,
-                invalidateCoupledProjects = invalidateCoupledProjects,
-                modelAsProjectDependency = modelAsProjectDependency
-            )
-        } else {
-            val configurationCache = isolatedProjects || startParameter.configurationCache.get()
-            val configureOnDemand =
-                if (isolatedProjects) options.getOption(isolatedProjectsTasksConfigureOnDemand).get()
-                else startParameter.isConfigureOnDemand
-
-            fun disabledConfigurationCacheBuildModelParameters(buildOptionReason: String): BuildModelParameters {
-                logger.log(configurationCacheLogLevel, "{} as configuration cache cannot be reused due to --{}", requirements.actionDisplayName.capitalizedDisplayName, buildOptionReason)
-                return DefaultBuildModelParameters(
-                    requiresToolingModels = false,
-                    parallelProjectExecution = parallelProjectExecution,
-                    configureOnDemand = configureOnDemand,
-                    configurationCache = false,
-                    isolatedProjects = false,
-                    intermediateModelCache = false,
-                    parallelToolingApiActions = parallelToolingActions,
-                    invalidateCoupledProjects = invalidateCoupledProjects,
-                    modelAsProjectDependency = modelAsProjectDependency
-                )
-            }
-
-            when {
-                configurationCache && startParameter.writeDependencyVerifications.isNotEmpty() -> disabledConfigurationCacheBuildModelParameters(StartParameterBuildOptions.DependencyVerificationWriteOption.LONG_OPTION)
-                configurationCache && startParameter.isExportKeys -> disabledConfigurationCacheBuildModelParameters(StartParameterBuildOptions.ExportKeysOption.LONG_OPTION)
-                // Disable configuration cache when generating a property upgrade report, since report is generated during configuration phase, and we currently don't reference it in cc cache
-                configurationCache && startParameter.isPropertyUpgradeReportEnabled -> disabledConfigurationCacheBuildModelParameters(StartParameterBuildOptions.PropertyUpgradeReportOption.LONG_OPTION)
-                else -> DefaultBuildModelParameters(
-                    requiresToolingModels = false,
-                    parallelProjectExecution = parallelProjectExecution,
-                    configureOnDemand = configureOnDemand,
-                    configurationCache = configurationCache,
-                    isolatedProjects = isolatedProjects,
-                    intermediateModelCache = false,
-                    parallelToolingApiActions = parallelToolingActions,
-                    invalidateCoupledProjects = invalidateCoupledProjects,
-                    modelAsProjectDependency = modelAsProjectDependency
-                )
-            }
-        }
-    }
-
     override fun servicesForNestedBuildTree(startParameter: StartParameterInternal): BuildTreeModelControllerServices.Supplier {
         val loggingParameters = ConfigurationCacheLoggingParameters(LogLevel.LIFECYCLE)
         return BuildTreeModelControllerServices.Supplier { registration ->
             registration.add(BuildType::class.java, BuildType.TASKS)
-            // Configuration cache is not supported for nested build trees
-            val buildModelParameters =
-                DefaultBuildModelParameters(
-                    requiresToolingModels = true,
-                    parallelProjectExecution = startParameter.isParallelProjectExecutionEnabled,
-                    configureOnDemand = startParameter.isConfigureOnDemand,
-                    configurationCache = false,
-                    isolatedProjects = false,
-                    intermediateModelCache = false,
-                    parallelToolingApiActions = false,
-                    invalidateCoupledProjects = false,
-                    modelAsProjectDependency = false
-                )
+            val buildModelParameters = BuildModelParametersProvider.parametersForNestedBuildTree(startParameter)
             val buildFeatures = DefaultBuildFeatures(startParameter, buildModelParameters)
             val requirements = RunTasksRequirements(startParameter)
             registerCommonBuildTreeServices(registration, buildModelParameters, buildFeatures, requirements, loggingParameters)
@@ -238,27 +141,55 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
         // This was originally only for the configuration cache, but now used for configuration cache and problems reporting
         registration.add(ProblemFactory::class.java, DefaultProblemFactory::class.java)
 
+        registration.add(ConfigurationCacheProblemsListener::class.java, DefaultConfigurationCacheProblemsListener::class.java)
+        // Set up CC problem reporting pipeline and promo, based on the build configuration
+        when {
+            // Collect and report problems. Don't suggest enabling CC if it is on, even if implicitly (e.g. enabled by isolated projects).
+            // Most likely, the user who tries IP is already aware of CC and nudging will be just noise.
+            modelParameters.isConfigurationCache -> registration.add(ConfigurationCacheProblems::class.java)
+            // Allow nudging to enable CC if it is off and there is no explicit decision. CC doesn't work for model building so do not nudge there.
+            !requirements.startParameter.configurationCache.isExplicit && !requirements.isCreatesModel -> registration.add(ConfigurationCachePromoHandler::class.java)
+            // Do not nudge if CC is explicitly disabled or if models are requested.
+            else -> registration.add(IgnoringProblemsListener::class.java, IgnoringProblemsListener)
+        }
+
         if (modelParameters.isConfigurationCache) {
+            registration.add(Environment::class.java, ConfigurationCacheEnvironment::class.java)
             registration.add(BuildTreeLifecycleControllerFactory::class.java, ConfigurationCacheBuildTreeLifecycleControllerFactory::class.java)
             registration.add(ConfigurationCacheStartParameter::class.java)
             registration.add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
             registration.add(InjectedClasspathInstrumentationStrategy::class.java, ConfigurationCacheInjectedClasspathInstrumentationStrategy::class.java)
-            registration.add(ConfigurationCacheEnvironmentChangeTracker::class.java)
-            registration.add(ConfigurationCacheProblemsListener::class.java, DefaultConfigurationCacheProblemsListener::class.java)
-            registration.add(ConfigurationCacheProblems::class.java)
             registration.add(BuildTreeConfigurationCache::class.java, DefaultConfigurationCache::class.java)
             registration.add(InstrumentedExecutionAccessListenerRegistry::class.java)
             registration.add(ConfigurationCacheFingerprintController::class.java)
+            registration.add(
+                ConfigurationCacheInputFileChecker.Host::class.java,
+                DefaultConfigurationCacheInputFileCheckerHost::class.java
+            )
+            if (modelParameters.isIsolatedProjects) {
+                registration.add(
+                    ClassLoaderScopesFingerprintController::class.java,
+                    IsolatedProjectsClassLoaderScopesFingerprintController::class.java
+                )
+            } else {
+                registration.add(
+                    ClassLoaderScopesFingerprintController::class.java,
+                    ConfigurationCacheClassLoaderScopesFingerprintController::class.java
+                )
+            }
             registration.addProvider(ConfigurationCacheBuildTreeProvider())
             registration.add(ConfigurationCacheBuildTreeModelSideEffectExecutor::class.java)
             registration.add(DefaultDeferredRootBuildGradle::class.java)
+            registration.add(ConfigurationCacheInputsListener::class.java, InstrumentedInputAccessListener::class.java)
         } else {
+            registration.add(Environment::class.java, DefaultEnvironment::class.java)
             registration.add(InjectedClasspathInstrumentationStrategy::class.java, VintageInjectedClasspathInstrumentationStrategy::class.java)
-            registration.add(BuildTreeLifecycleControllerFactory::class.java, VintageBuildTreeLifecycleControllerFactory::class.java)
-            registration.add(EnvironmentChangeTracker::class.java, VintageEnvironmentChangeTracker::class.java)
+            registration.add(BuildTreeLifecycleControllerFactory::class.java, BarrierAwareBuildTreeLifecycleControllerFactory::class.java)
+            registration.add(VintageConfigurationTimeActionRunner::class.java)
             registration.add(ProjectScopedScriptResolution::class.java, ProjectScopedScriptResolution.NO_OP)
             registration.addProvider(VintageBuildTreeProvider())
             registration.add(BuildTreeModelSideEffectExecutor::class.java, DefaultBuildTreeModelSideEffectExecutor::class.java)
+            registration.add(ConfigurationCacheInputsListener::class.java, PromoInputsListener::class.java)
         }
         if (modelParameters.isIntermediateModelCache) {
             registration.addProvider(ConfigurationCacheModelProvider())

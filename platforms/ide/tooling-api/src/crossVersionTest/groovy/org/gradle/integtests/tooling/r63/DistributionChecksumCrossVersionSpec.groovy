@@ -23,7 +23,7 @@ import org.gradle.tooling.ProjectConnection
 
 class DistributionChecksumCrossVersionSpec extends ToolingApiSpecification {
     // Newer clients no longer kill the JVM when a distribution is invalid.
-    @TargetGradleVersion(">=3.0 <6.3")
+    @TargetGradleVersion(">=4.0 <6.3")
     def "invalid Gradle distribution does not kill the TAPI client with older Gradle versions"() {
         given:
         toolingApi.requireDaemons()

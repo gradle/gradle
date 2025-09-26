@@ -30,7 +30,7 @@ public class CommonToolchainCustomizationIntegTest extends AbstractInstalledTool
         buildFile << """
 apply plugin: 'cpp'
 
-model {
+
     toolChains {
         ${toolChain.id} {
             eachPlatform {
@@ -43,6 +43,8 @@ model {
             }
         }
     }
+    
+model {
     components {
         main(NativeExecutableSpec) {
             binaries.all {

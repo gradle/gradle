@@ -98,7 +98,7 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Work graph is in an unexpected state: NotPrepared"
+        e.message == "Work graph is in an unexpected state: NotPrepared, expected: Preparing"
     }
 
     def "cannot schedule tasks when graph has been prepared for execution"() {
@@ -115,7 +115,7 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Work graph is in an unexpected state: ReadyToRun"
+        e.message == "Work graph is in an unexpected state: ReadyToRun, expected: Preparing"
     }
 
     def "cannot schedule tasks when graph has started task execution"() {
@@ -158,6 +158,6 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "Work graph is in an unexpected state: Finished"
+        e.message == "Work graph is in an unexpected state: Finished, expected: Preparing"
     }
 }

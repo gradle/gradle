@@ -1,9 +1,19 @@
 a = 1
-b = this
 c = null
 x = true
 a = f(7)
+a += "something"
 a = f.g.h(7)
+
+// 'to' infix function parsing
+a = b.to(c)
+a = 1 to "x"
+a = b to c
+d = e(f to g)
+d = e(f to g, h to k)
+h = i() to j.k.l.m(n)
+o = p.q(r) to s.t()
+u = v.w(x to y) to z
 
 rootProject.name = "something"
 
@@ -25,11 +35,20 @@ f(a = b, c = d)
 id("plugin").version("7")
 f(1).g(2).h(3)
 
+// things we would prefer to restrict, but aren't worth complicating the grammar over
+5
+a = f(1).g(2)
+a to 1
+1 to a
+a to b
+
 // errors
-// 5
+// b = this
 // a = (1)
-// a = f(1).g(2)
+// a = false(7)
+// a = null(8)
 // a = "foo".bar(1)
+// a -= 7
 // a.b.c = 1
 // d = a.b.c
 // a.b {d = 1}
@@ -43,3 +62,14 @@ f(1).g(2).h(3)
 // 1(2)
 // true(3)
 // null(4)
+
+// unsupported random infix function
+// a from b
+// a from 1
+// 1 from a
+// a = 1 from "x"
+// a = b from c
+// d = e(f from g)
+// h = i() from j.k.l.m(n)
+// o = p.q(r) from s.t()
+// u = v.w(x to y) from z

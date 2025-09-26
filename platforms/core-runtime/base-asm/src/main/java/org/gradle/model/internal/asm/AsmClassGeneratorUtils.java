@@ -17,6 +17,10 @@
 package org.gradle.model.internal.asm;
 
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
+import org.objectweb.asm.signature.SignatureVisitor;
+import org.objectweb.asm.signature.SignatureWriter;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.GenericArrayType;
@@ -29,6 +33,64 @@ import java.lang.reflect.WildcardType;
 import static org.objectweb.asm.Type.getType;
 
 public class AsmClassGeneratorUtils {
+    private static final String OBJECT_INTERNAL_NAME = Object.class.getName().replace('.', '/');
+
+    /**
+     * Take the type variables defined by {@code javaClass} and encode them into a signature string,
+     * appropriate for use as the signature of a subclass.
+     *
+     * <p>
+     * This allows us to refer to the same type variables in our method signatures without generating undefined type variables that are
+     * <a href="https://bugs.openjdk.org/browse/JDK-8337302">an error in JDK 24</a>.
+     * </p>
+     *
+     * @param javaClass the Java class to take the type variables from
+     */
+    @Nullable
+    public static String encodeTypeVariablesAsSignature(Class<?> javaClass) {
+        TypeVariable<? extends Class<?>>[] typeParameters = javaClass.getTypeParameters();
+        if (typeParameters.length == 0) {
+            return null;
+        }
+
+        SignatureWriter writer = new SignatureWriter();
+        copyTypeVariables(writer, typeParameters);
+
+        // Pass the variables to the supertype as well, for some amount of correctness
+        addSuperTypeGenericInfo(javaClass, writer, typeParameters);
+
+        return writer.toString();
+    }
+
+    private static void copyTypeVariables(SignatureWriter writer, TypeVariable<? extends Class<?>>[] typeParameters) {
+        for (TypeVariable<? extends Class<?>> typeParameter : typeParameters) {
+            writer.visitFormalTypeParameter(typeParameter.getName());
+            // For now, not copying the bounds as that is expensive and complex; and we probably don't need to be fully accurate here.
+            // We must still specify _some_ bound due to what I believe to be a bug in the signature parser of the JVM.
+            // Specifically, it requires <T:Ljava/lang/Object;> instead of just <T:> which is legal according to https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-4.html#jvms-4.7.9.1
+            SignatureVisitor typeParameterBoundWriter = writer.visitClassBound();
+            typeParameterBoundWriter.visitClassType(OBJECT_INTERNAL_NAME);
+            typeParameterBoundWriter.visitEnd();
+        }
+    }
+
+    private static void addSuperTypeGenericInfo(Class<?> type, SignatureWriter writer, TypeVariable<? extends Class<?>>[] typeParameters) {
+        SignatureVisitor superVisitor;
+        if (type.isInterface()) {
+            // We must visit the superclass first
+            SignatureVisitor superclassVisitor = writer.visitSuperclass();
+            superclassVisitor.visitClassType(OBJECT_INTERNAL_NAME);
+            superclassVisitor.visitEnd();
+            superVisitor = writer.visitInterface();
+        } else {
+            superVisitor = writer.visitSuperclass();
+        }
+        superVisitor.visitClassType(getType(type).getInternalName());
+        for (TypeVariable<? extends Class<?>> typeParameter : typeParameters) {
+            superVisitor.visitTypeArgument('=').visitTypeVariable(typeParameter.getName());
+        }
+        superVisitor.visitEnd();
+    }
 
     /**
      * Generates the signature for the given constructor, optionally adding a `name` parameter before all other parameters.

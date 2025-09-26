@@ -101,7 +101,7 @@ class ModelToDocumentMutationPlannerTest {
 
     @Test
     fun `setting property value when there is augmentation replaces the augmentation with assignment`() {
-        val newValue = DefaultValueFactoryNode("listOf", SyntheticallyProduced, emptyList())
+        val newValue = DefaultValueFactoryNode("listOf", SyntheticallyProduced, false, emptyList())
 
         val mutationPlan = planMutation(
             resolved,

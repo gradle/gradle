@@ -20,7 +20,7 @@ import groovy.lang.GroovyObject;
 import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
@@ -46,6 +46,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.internal.classpath.transforms.CommonTypes.OBJECT_TYPE;
+import static org.gradle.internal.classpath.transforms.CommonTypes.STRING_TYPE;
+
 /**
  * A ClassLoader that takes care of mixing-in some methods and types into various classes, for binary compatibility with older Gradle versions.
  *
@@ -57,9 +60,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
     private static final Type META_CLASS_REGISTRY_TYPE = Type.getType(MetaClassRegistry.class);
     private static final Type GROOVY_SYSTEM_TYPE = Type.getType(GroovySystem.class);
     private static final Type META_CLASS_TYPE = Type.getType(MetaClass.class);
-    private static final Type OBJECT_TYPE = Type.getType(Object.class);
     private static final Type CLASS_TYPE = Type.getType(Class.class);
-    private static final Type STRING_TYPE = Type.getType(String.class);
 
     private static final String RETURN_OBJECT_FROM_OBJECT_STRING_OBJECT = Type.getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
     private static final String RETURN_OBJECT_FROM_STRING_OBJECT = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
@@ -73,6 +74,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
     private static final String RETURN_CLASS = Type.getMethodDescriptor(CLASS_TYPE);
 
     private static final String META_CLASS_FIELD = "__meta_class__";
+    private static final String LEGACY_MIXIN_LOADER_NAME = "legacy-mixin-loader";
 
     private LegacyTypesSupport legacyTypesSupport;
 
@@ -85,12 +87,12 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
     }
 
     public MixInLegacyTypesClassLoader(ClassLoader parent, ClassPath classPath, LegacyTypesSupport legacyTypesSupport) {
-        super("legacy-mixin-loader", parent, classPath);
+        super(LEGACY_MIXIN_LOADER_NAME, parent, classPath);
         this.legacyTypesSupport = legacyTypesSupport;
     }
 
     public MixInLegacyTypesClassLoader(ClassLoader parent, Collection<URL> urls, LegacyTypesSupport legacyTypesSupport) {
-        super("legacy-mixin-loader", parent, urls);
+        super(LEGACY_MIXIN_LOADER_NAME, parent, urls);
         this.legacyTypesSupport = legacyTypesSupport;
     }
 

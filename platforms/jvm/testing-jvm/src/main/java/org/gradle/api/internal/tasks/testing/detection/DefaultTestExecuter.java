@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing.detection;
 
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
@@ -31,8 +30,9 @@ import org.gradle.api.internal.tasks.testing.processors.PatternMatchTestClassPro
 import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.RunPreviousFailedFirstTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
-import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
+import org.gradle.api.internal.tasks.testing.results.TestRetryShieldingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.worker.ForkedTestClasspath;
+import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
@@ -57,14 +57,13 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     private final WorkerLeaseService workerLeaseService;
     private final int maxWorkerCount;
     private final Clock clock;
-    private final DocumentationRegistry documentationRegistry;
     private final DefaultTestFilter testFilter;
     private TestClassProcessor processor;
 
     public DefaultTestExecuter(
         WorkerProcessFactory workerFactory, ActorFactory actorFactory, ModuleRegistry moduleRegistry,
         WorkerLeaseService workerLeaseService, int maxWorkerCount,
-        Clock clock, DocumentationRegistry documentationRegistry, DefaultTestFilter testFilter
+        Clock clock, DefaultTestFilter testFilter
     ) {
         this.workerFactory = workerFactory;
         this.actorFactory = actorFactory;
@@ -72,7 +71,6 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         this.workerLeaseService = workerLeaseService;
         this.maxWorkerCount = maxWorkerCount;
         this.clock = clock;
-        this.documentationRegistry = documentationRegistry;
         this.testFilter = testFilter;
     }
 
@@ -82,15 +80,15 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         final WorkerTestClassProcessorFactory testInstanceFactory = testFramework.getProcessorFactory();
 
         ForkedTestClasspath classpath = testClasspathFactory.create(
-            testExecutionSpec.getClasspath(), testExecutionSpec.getModulePath(),
-            testFramework, testExecutionSpec.getTestIsModule()
+            testExecutionSpec.getClasspath(),
+            testExecutionSpec.getModulePath()
         );
 
         final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
             @Override
             public TestClassProcessor create() {
                 return new ForkingTestClassProcessor(workerLeaseService, workerFactory, testInstanceFactory, testExecutionSpec.getJavaForkOptions(),
-                    classpath, testFramework.getWorkerConfigurationAction(), documentationRegistry);
+                    classpath, testFramework.getWorkerConfigurationAction());
             }
         };
         final Factory<TestClassProcessor> reforkingProcessorFactory = new Factory<TestClassProcessor>() {
@@ -106,7 +104,8 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
 
         final FileTree testClassFiles = testExecutionSpec.getCandidateClassFiles();
 
-        Runnable detector;
+        // TODO: this logic is incorrect - need to handle the ONLY test resources case properly
+        TestDetector detector;
         if (testExecutionSpec.isScanForTestClasses() && testFramework.getDetector() != null) {
             TestFrameworkDetector testFrameworkDetector = testFramework.getDetector();
             testFrameworkDetector.setTestClasses(new ArrayList<File>(testExecutionSpec.getTestClassesDirs().getFiles()));
@@ -116,6 +115,19 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
             detector = new DefaultTestClassScanner(testClassFiles, null, processor);
         }
 
+        // What is this?
+        // In some versions of the Gradle retry plugin, it would retry any test that had any kind of failure associated with it.
+        // We attempt to capture assumption violations as failures for skipped tests.
+        //
+        // This would cause any test that had been skipped to be executed multiple times. This could sometimes cause real failures.
+        // To workaround this, we shield the test retry result processor from seeing test assumption failures.
+        if (testResultProcessor != null) {
+            // KMP calls this code with a delegating test result processor that does not return sensible Class objects
+            String canonicalName = testResultProcessor.getClass().getCanonicalName();
+            if (canonicalName != null && canonicalName.endsWith("org.gradle.testretry.internal.executer.RetryTestResultProcessor")) {
+                testResultProcessor = new TestRetryShieldingTestResultProcessor(testResultProcessor);
+            }
+        }
         new TestMainAction(detector, processor, testResultProcessor, workerLeaseService, clock, testExecutionSpec.getPath(), "Gradle Test Run " + testExecutionSpec.getIdentityPath()).run();
     }
 

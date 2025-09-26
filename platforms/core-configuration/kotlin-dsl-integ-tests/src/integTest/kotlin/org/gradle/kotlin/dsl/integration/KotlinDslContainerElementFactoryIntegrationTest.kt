@@ -28,7 +28,7 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
     }
 
     @Test
-    fun `can use custom software type names for element factories`() {
+    fun `can use custom project type names for element factories`() {
         testKtsDefinitionWithDeclarativePlugin(withPluginsBlock = false, withCustomElementFactoryName = true)
     }
 
@@ -63,10 +63,10 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
         )
 
         buildAndFail("printNames") // no DCL support by default
-            .assertHasErrorOutput("Unresolved reference: $otherElementFactoryName")
+            .assertHasErrorOutput("Unresolved reference '$otherElementFactoryName'")
 
         with(build("printNames", enableDclCliFlag)) {
-            assertTaskExecuted(":printNames")
+            assertTaskScheduled(":printNames")
             assertOutputContains("[one, two, four, three]")
         }
 
@@ -74,7 +74,7 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
         enableDclInGradleProperties()
 
         with(build("printNames")) {
-            assertTaskExecuted(":printNames")
+            assertTaskScheduled(":printNames")
             assertOutputContains("[one, two, four, three]")
         }
     }

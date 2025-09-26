@@ -30,6 +30,7 @@ import org.gradle.declarative.dsl.schema.FunctionSemantics.Pure
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaItemMetadata
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.declarative.dsl.schema.ProjectFeatureOrigin
 import org.gradle.declarative.dsl.schema.VarargParameter
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 
@@ -42,6 +43,7 @@ data class DefaultAnalysisSchema(
     override val genericSignaturesByFqName: Map<FqName, DataType.ParameterizedTypeSignature>,
     override val genericInstantiationsByFqName: Map<FqName, Map<List<TypeArgument>, DataType.ClassDataType>>,
     override val externalFunctionsByFqName: Map<FqName, DataTopLevelFunction>,
+    override val infixFunctionsByFqName: Map<FqName, DataTopLevelFunction>,
     override val externalObjectsByFqName: Map<FqName, ExternalObjectProviderKey>, override val defaultImports: Set<FqName>,
     override val assignmentAugmentationsByTypeName: Map<FqName, List<AssignmentAugmentation>>,
 ) : AnalysisSchema
@@ -377,6 +379,17 @@ object SchemaItemMetadataInternal {
         @Serializable
         @SerialName("containerElementFactory")
         data class DefaultContainerElementFactory(override val elementType: DataTypeRef) : ContainerElementFactory
+
+        @Serializable
+        @SerialName("projectFeatureOrigin")
+        data class DefaultProjectFeatureOrigin(
+            override val featureName: String,
+            override val featurePluginClassName: String,
+            override val ecosystemPluginClassName: String,
+            override val ecosystemPluginId: String?,
+            override val targetDefinitionClassName: String?,
+            override val targetBuildModelClassName: String?
+        ) : ProjectFeatureOrigin
     }
 }
 

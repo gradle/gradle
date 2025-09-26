@@ -21,10 +21,18 @@ plugins {
 
 description = "Monotonic clock implementation"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
 
 dependencies {
     api(projects.stdlibJavaExtensions)
 
-    implementation(libs.jspecify)
+    compileOnly(libs.jspecify)
+}
+
+errorprone {
+    nullawayEnabled = true
 }

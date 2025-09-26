@@ -16,13 +16,12 @@
 
 package org.gradle.plugins.ide.tooling.r29
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
-    @TargetGradleVersion(">=3.0")
     def "applying plugins configure appropriate project natures"() {
         given:
         plugins.each { plugin -> buildFile << "apply plugin: '${plugin}'\n" }
@@ -46,7 +45,6 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         ['java', 'scala', 'groovy'] | ['org.eclipse.jdt.groovy.core.groovyNature', 'org.scala-ide.sdt.core.scalanature', 'org.eclipse.jdt.core.javanature']
     }
 
-    @TargetGradleVersion(">=3.0")
     def "multi-module build defines different natures for each modules"() {
         given:
         buildFile << """
@@ -54,10 +52,9 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
             project(':groovy-project') { apply plugin: 'groovy' }
             project(':scala-project') { apply plugin: 'scala' }
         """
-        createDirs("java-project", "groovy-project", "scala-project")
+        includeProjects("java-project", "groovy-project", "scala-project")
         settingsFile << """
             rootProject.name = 'root'
-            include 'java-project', 'groovy-project', 'scala-project'
         """
 
         when:
@@ -73,7 +70,6 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         scalaProject.projectNatures.collect{ it.id } == ['org.scala-ide.sdt.core.scalanature', 'org.eclipse.jdt.core.javanature']
     }
 
-    @TargetGradleVersion(">=3.0")
     def "custom added natures are returned"() {
         given:
         buildFile << """
@@ -93,7 +89,6 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         rootProject.projectNatures.collect{ it.id } == ['sample.nature.a', 'sample.nature.b']
     }
 
-    @TargetGradleVersion(">=3.0")
     def "Java project returns Java nature along with custom natures"() {
         given:
         buildFile << """
@@ -115,7 +110,6 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         rootProject.projectNatures.collect{ it.id } == ['org.eclipse.jdt.core.javanature', 'sample.nature.a', 'sample.nature.b']
     }
 
-    @TargetGradleVersion(">=3.0")
     def "applying plugins configure appropriate build commands"() {
         given:
         plugins.each { plugin -> buildFile << "apply plugin: '${plugin}'\n" }
@@ -138,7 +132,6 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         ['java', 'scala', 'groovy'] | ['org.scala-ide.sdt.core.scalabuilder']
     }
 
-    @TargetGradleVersion(">=3.0")
     def "multi-module build defines different build commands for each modules"(){
         given:
         buildFile << """
@@ -162,7 +155,6 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         scalaProject.buildCommands.collect{ it.name } == ['org.scala-ide.sdt.core.scalabuilder']
     }
 
-    @TargetGradleVersion(">=3.0")
     def "custom added build commands are returned"() {
         given:
         buildFile << """
@@ -190,7 +182,6 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         buildCommands[1].arguments['argumentTwoKey'] == 'argumentTwoValue'
     }
 
-    @TargetGradleVersion(">=3.0")
     def "Java project returns Java build command along with custom ones"() {
         given:
         buildFile << """

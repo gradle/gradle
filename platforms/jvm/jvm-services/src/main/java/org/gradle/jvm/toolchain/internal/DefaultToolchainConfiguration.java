@@ -19,6 +19,7 @@ package org.gradle.jvm.toolchain.internal;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.os.OperatingSystem;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -38,7 +39,11 @@ public class DefaultToolchainConfiguration implements ToolchainConfiguration {
 
     @Inject
     public DefaultToolchainConfiguration() {
-        this(OperatingSystem.current(), SystemProperties.getInstance(), System.getenv());
+        this(System.getenv());
+    }
+
+    public DefaultToolchainConfiguration(Map<String, String> environment) {
+        this(OperatingSystem.current(), SystemProperties.getInstance(), environment);
     }
 
     @VisibleForTesting
@@ -134,5 +139,11 @@ public class DefaultToolchainConfiguration implements ToolchainConfiguration {
             return new File(asdfEnvVar);
         }
         return new File(systemProperties.getUserHome(), ".sdkman/candidates");
+    }
+
+    @Override
+    @Nullable
+    public String getEnvironmentVariableValue(String variableName) {
+        return environment.get(variableName);
     }
 }

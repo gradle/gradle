@@ -22,12 +22,14 @@ import kotlin.reflect.KClass
 
 /**
  * Utility [TypeDiscovery] implementation that allows introducing [discoverClasses] as soon as [keyClass] is encountered in type discovery.
+ * If [keyClass] is null, discovers [discoverClasses] when the schema's top-level receiver type is inspected.
  */
 internal
-class FixedTypeDiscovery(private val keyClass: KClass<*>, private val discoverClasses: List<KClass<*>>) : TypeDiscovery {
+class FixedTypeDiscovery(private val keyClass: KClass<*>?, private val discoverClasses: List<KClass<*>>) : TypeDiscovery {
     override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
         when (kClass) {
             keyClass -> discoverClasses.distinct()
+            typeDiscoveryServices.host.topLevelReceiverClass -> if (keyClass == null) discoverClasses.distinct() else emptyList()
             else -> emptyList()
         }
 }

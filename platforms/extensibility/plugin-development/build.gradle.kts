@@ -4,12 +4,6 @@ plugins {
 
 description = "Gradle plugin development plugins"
 
-errorprone {
-    disabledChecks.addAll(
-        "DefaultCharset", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.core)
@@ -47,7 +41,6 @@ dependencies {
     implementation(projects.messaging)
     implementation(projects.modelCore)
     implementation(projects.modelGroovy)
-    implementation(projects.persistentCache)
     implementation(projects.pluginsGroovy)
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)
@@ -90,8 +83,6 @@ dependencies {
     testFixturesImplementation(libs.gson)
     testFixturesImplementation(projects.baseServices)
 }
-
-integTest.usesJavadocCodeSnippets = true
 
 strictCompile {
     ignoreDeprecations()

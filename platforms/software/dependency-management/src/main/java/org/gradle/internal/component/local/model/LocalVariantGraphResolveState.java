@@ -16,9 +16,10 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -29,20 +30,14 @@ public interface LocalVariantGraphResolveState extends VariantGraphResolveState 
     @Override
     LocalVariantGraphResolveMetadata getMetadata();
 
+    @Override
+    List<LocalOriginDependencyMetadata> getDependencies();
+
     /**
      * Returns the file dependencies attached to this variant, if any.
      * <p>
      * These should be represented as dependencies, but are currently represented as files as a migration step.
      */
     Set<LocalFileDependencyMetadata> getFiles();
-
-    /**
-     * Returns a copy of this variant, except with the given component identifier.
-     *
-     * @param overrideComponentId The new owning component identifier.
-     *
-     * @return A copy of this variant, with the given owning component identifier.
-     */
-    LocalVariantGraphResolveState copyWithComponentId(ComponentIdentifier overrideComponentId);
 
 }

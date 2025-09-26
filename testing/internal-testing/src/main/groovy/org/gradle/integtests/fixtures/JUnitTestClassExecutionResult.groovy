@@ -23,6 +23,7 @@ import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 
 import java.time.format.DateTimeFormatter
+import java.util.function.Consumer
 
 import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParentheses
 import static org.gradle.integtests.fixtures.TestExecutionResult.EXECUTION_FAILURE
@@ -158,6 +159,13 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         return assertTestSkipped(name)
     }
 
+    TestClassExecutionResult assertTestSkipped(String name, Consumer<SkippedExecutionResult> assertions) {
+        def skippedTest = findSkippedTests().get(name)
+        assert skippedTest
+        assertions.accept(new SkippedExecutionResult(skippedTest.skipped.@message.text(), skippedTest.skipped.@type.text(),skippedTest.skipped.text()))
+        this
+    }
+
     TestClassExecutionResult assertExecutionFailedWithCause(Matcher<? super String> causeMatcher) {
         Map<String, Node> testMethods = findTests()
         String failureMethodName = EXECUTION_FAILURE
@@ -180,12 +188,16 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     }
 
     TestClassExecutionResult assertTestsSkipped(String... testNames) {
+        Map<String, Node> testMethods = findSkippedTests()
+        assertThat(testMethods.keySet(), CoreMatchers.equalTo(testNames as Set))
+        this
+    }
+
+    private Map<String, Node> findSkippedTests() {
         Map<String, Node> testMethods = findTests().findAll { name, element ->
             element."skipped".size() > 0 // Include only skipped test.
         }
-
-        assertThat(testMethods.keySet(), CoreMatchers.equalTo(testNames as Set))
-        this
+        testMethods
     }
 
     @Override

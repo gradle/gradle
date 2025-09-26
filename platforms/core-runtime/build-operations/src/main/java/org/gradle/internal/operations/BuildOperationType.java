@@ -26,8 +26,8 @@ package org.gradle.internal.operations;
  * Over time, they will be evolved to enforce usage of correct types.
  * <p>
  * Currently, the only reason to use structured details/results objects is to expose
- * information to the build scan plugin.
- * The build scan plugin will use the details and result types,
+ * information to the Develocity plugin.
+ * The Develocity plugin will use the details and result types,
  * but will not link against the containing BuildOperationType type.
  * It is only used on the producer side.
  * <p>
@@ -55,7 +55,7 @@ package org.gradle.internal.operations;
  * Implementations can assume that their getters will be called at-most-once.
  * <p>
  * The lifecycle of details and result objects are effectively undetermined.
- * The build scan plugin will retain the objects for a short time after the operation has
+ * The Develocity plugin will retain the objects for a short time after the operation has
  * completed, in order to "process" them on a separate thread.
  * It can be assumed that this processing happens relatively quickly,
  * after which the objects are no longer retained.

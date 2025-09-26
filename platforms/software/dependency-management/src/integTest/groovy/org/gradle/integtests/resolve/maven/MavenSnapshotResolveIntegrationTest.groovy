@@ -524,10 +524,13 @@ task retrieve(type: Sync) {
 
             //imposing an artificial order so that the parallel build retrieves sequentially, GRADLE-2788
             retrieve.dependsOn ":a:retrieve"
-            tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
         """
 
-        file("a/build.gradle") << common
+        file("a/build.gradle") << """
+            $common
+            tasks.getByName("retrieve").dependsOn ":b:retrieve"
+        """
+
         file("b/build.gradle") << common
 
         when: "Module is requested once"
@@ -550,7 +553,7 @@ task retrieve(type: Sync) {
             }
 
             dependencies {
-                compile group: "group", name: "projectA", version: "1.1-SNAPSHOT"
+                compile("group:projectA:1.1-SNAPSHOT")
             }
 
             task retrieve(type: Copy) {

@@ -32,8 +32,8 @@ class NativeComponentReportOutputFormatter extends ComponentReportOutputFormatte
     }
 
     @Override
-    String transform(String original) {
-        return super.transform(
+    String apply(String original) {
+        return super.apply(
             original
             .replace("Tool chain 'clang' (Clang)", toolChain.instanceDisplayName)
             .replace("platform 'current'", "platform '${NativePlatformsTestFixture.defaultPlatformName}'")

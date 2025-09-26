@@ -16,28 +16,22 @@
 
 package org.gradle.internal.operations;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import com.google.common.collect.ImmutableList;
+
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultBuildOperationListenerManager implements BuildOperationListenerManager {
 
-    // This cannot be CopyOnWriteArrayList because we need to iterate it in reverse,
-    // which requires atomically getting an iterator and the size.
-    // Moreover, we iterate this list far more often that we mutate,
-    // making a (albeit home grown) copy-on-write strategy more appealing.
-    private List<ProgressShieldingBuildOperationListener> listeners = Collections.emptyList();
-    private final Lock listenersLock = new ReentrantLock();
+    // Imitation of CopyOnWriteArrayList, which supports safe iteration in reverse
+    private final AtomicReference<ImmutableList<ProgressShieldingBuildOperationListener>> listeners = new AtomicReference<>(ImmutableList.of());
 
     private final BuildOperationListener broadcaster = new BuildOperationListener() {
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            List<? extends BuildOperationListener> listeners = DefaultBuildOperationListenerManager.this.listeners;
+            List<? extends BuildOperationListener> listeners = DefaultBuildOperationListenerManager.this.listeners.get();
             //noinspection ForLoopReplaceableByForEach
             for (int i = 0; i < listeners.size(); ++i) {
                 listeners.get(i).started(buildOperation, startEvent);
@@ -46,7 +40,7 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
 
         @Override
         public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
-            List<? extends BuildOperationListener> listeners = DefaultBuildOperationListenerManager.this.listeners;
+            List<? extends BuildOperationListener> listeners = DefaultBuildOperationListenerManager.this.listeners.get();
             //noinspection ForLoopReplaceableByForEach
             for (int i = 0; i < listeners.size(); ++i) {
                 listeners.get(i).progress(operationIdentifier, progressEvent);
@@ -55,7 +49,7 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
 
         @Override
         public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-            List<? extends BuildOperationListener> listeners = DefaultBuildOperationListenerManager.this.listeners;
+            List<? extends BuildOperationListener> listeners = DefaultBuildOperationListenerManager.this.listeners.get();
             for (int i = listeners.size() - 1; i >= 0; --i) {
                 listeners.get(i).finished(buildOperation, finishEvent);
             }
@@ -64,31 +58,19 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
 
     @Override
     public void addListener(BuildOperationListener listener) {
-        listenersLock.lock();
-        try {
-            List<ProgressShieldingBuildOperationListener> listeners = new ArrayList<ProgressShieldingBuildOperationListener>(this.listeners);
-            listeners.add(new ProgressShieldingBuildOperationListener(listener));
-            this.listeners = listeners;
-        } finally {
-            listenersLock.unlock();
-        }
+        listeners.updateAndGet(current ->
+            ImmutableList.<ProgressShieldingBuildOperationListener>builderWithExpectedSize(current.size() + 1)
+                .addAll(current)
+                .add(new ProgressShieldingBuildOperationListener(listener))
+                .build());
     }
 
     @Override
     public void removeListener(BuildOperationListener listener) {
-        listenersLock.lock();
-        try {
-            List<ProgressShieldingBuildOperationListener> listeners = new ArrayList<ProgressShieldingBuildOperationListener>(this.listeners);
-            ListIterator<ProgressShieldingBuildOperationListener> listIterator = listeners.listIterator();
-            while (listIterator.hasNext()) {
-                if (listIterator.next().delegate.equals(listener)) {
-                    listIterator.remove();
-                }
-            }
-            this.listeners = listeners;
-        } finally {
-            listenersLock.unlock();
-        }
+        listeners.updateAndGet(current ->
+            current.stream()
+                .filter(l -> !l.delegate.equals(listener))
+                .collect(ImmutableList.toImmutableList()));
     }
 
     @Override

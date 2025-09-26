@@ -155,11 +155,9 @@ public abstract class Ear extends Jar {
         }
     }
 
-    @Inject
     @Override
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
 
     /**
      * Configures the deployment descriptor for this EAR archive.

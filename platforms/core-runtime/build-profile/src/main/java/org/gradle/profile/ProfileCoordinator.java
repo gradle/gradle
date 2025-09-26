@@ -20,6 +20,7 @@ import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Clock;
+import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.BuildTree.class)
 public class ProfileCoordinator implements RootBuildLifecycleListener {
@@ -34,11 +35,7 @@ public class ProfileCoordinator implements RootBuildLifecycleListener {
     }
 
     @Override
-    public void afterStart() {
-    }
-
-    @Override
-    public void beforeComplete() {
+    public void beforeComplete(@Nullable Throwable failure) {
         profile.setBuildFinished(clock.getCurrentTime());
         generator.buildFinished(profile);
     }

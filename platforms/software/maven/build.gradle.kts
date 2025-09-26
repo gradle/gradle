@@ -6,7 +6,6 @@ description = "Implementation of the Maven Publish Plugin that provides the abil
 
 errorprone {
     disabledChecks.addAll(
-        "DefaultCharset", // 1 occurrences
         "EqualsUnsafeCast", // 1 occurrences
     )
 }
@@ -82,7 +81,6 @@ packageCycles {
     excludePatterns.add("org/gradle/api/artifacts/maven/**")
 }
 
-integTest.usesJavadocCodeSnippets = true
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

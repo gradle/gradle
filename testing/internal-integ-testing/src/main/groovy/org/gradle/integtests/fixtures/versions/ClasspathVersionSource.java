@@ -16,8 +16,8 @@
 
 package org.gradle.integtests.fixtures.versions;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -59,7 +59,7 @@ public class ClasspathVersionSource implements Factory<Properties> {
             }
             return properties;
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

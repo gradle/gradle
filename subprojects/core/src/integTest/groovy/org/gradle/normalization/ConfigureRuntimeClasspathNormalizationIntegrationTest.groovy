@@ -355,7 +355,10 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         executedAndNotSkipped(project.customTask)
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(value = [
+        IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable,
+        IntegTestPreconditions.NotEmbeddedExecutor,
+    ], reason = "must run with different JDK")
     def "property ordering is consistent"() {
         def differentJdk = AvailableJavaHomes.differentJdk
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME)

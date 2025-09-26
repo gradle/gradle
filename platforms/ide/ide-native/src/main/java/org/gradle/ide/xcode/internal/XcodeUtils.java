@@ -16,7 +16,7 @@
 
 package org.gradle.ide.xcode.internal;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.io.File;

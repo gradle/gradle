@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.exceptions;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.jspecify.annotations.Nullable;
@@ -102,15 +102,6 @@ public class LocationAwareException extends ContextAwareException implements Fai
         if (getCause() instanceof FailureResolutionAware) {
             FailureResolutionAware resolutionAware = (FailureResolutionAware) getCause();
             resolutionAware.appendResolutions(context);
-        }
-    }
-
-    @Override
-    public void accept(ExceptionContextVisitor contextVisitor) {
-        super.accept(contextVisitor);
-        String location = getLocation();
-        if (location != null) {
-            contextVisitor.visitLocation(location);
         }
     }
 }

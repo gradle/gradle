@@ -31,10 +31,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
     def "caches creation of custom tooling model"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
-        settingsFile << """
-            include("a")
-            include("b")
-        """
+        includeProjects("a", "b")
         buildFile << """
             plugins.apply(my.MyPlugin)
         """
@@ -99,10 +96,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
     def "can cache models with tasks"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
-        settingsFile << """
-            include("a")
-            include("b")
-        """
+        includeProjects("a", "b")
         buildFile << """
             plugins.apply(my.MyPlugin)
 
@@ -145,10 +139,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
     def "can cache models with tasks using internal option"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
-        settingsFile << """
-            include("a")
-            include("b")
-        """
+        includeProjects("a", "b")
         buildFile << """
             plugins.apply(my.MyPlugin)
 
@@ -161,7 +152,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         """
 
         when: "requesting a model together with running a task"
-        withIsolatedProjects("-Dorg.gradle.internal.isolated-projects.configure-on-demand.tasks=true")
+        withIsolatedProjects("-Dorg.gradle.internal.isolated-projects.configure-on-demand=true")
         fetchModel(SomeToolingModel, ":dummyTask")
 
         then: "only relevant projects are configured, while work graph and the model are stored in cache"
@@ -174,7 +165,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         outputContains("Execution of dummyTask")
 
         when: "repeating the request"
-        withIsolatedProjects("-Dorg.gradle.internal.isolated-projects.configure-on-demand.tasks=true")
+        withIsolatedProjects("-Dorg.gradle.internal.isolated-projects.configure-on-demand=true")
         fetchModel(SomeToolingModel, ":dummyTask")
 
         then: "no projects are configured, work graph and the model are loaded, tasks are executed before the model is returned"
@@ -221,10 +212,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
 
     def "can ignore problems and cache custom model"() {
         given:
-        settingsFile << """
-            include('a')
-            include('b')
-        """
+        includeProjects("a", "b")
         withSomeToolingModelBuilderPluginInBuildSrc()
         buildFile << """
             allprojects {
@@ -256,9 +244,8 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
 
     def "caches calculation of GradleBuild model"() {
         given:
+        includeProjects("a", "b")
         settingsFile << """
-            include("a")
-            include("b")
             println("configuring build")
         """
         buildFile << """
@@ -377,10 +364,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
     def "can store fingerprint for reused projects"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
-        settingsFile << """
-            include("a")
-            include("b")
-        """
+        includeProjects("a", "b")
         // Materializing of `ValueSource` at configuration time is leading to serializing its `Class`
         file("a/build.gradle") << """
             import org.gradle.api.provider.ValueSourceParameters

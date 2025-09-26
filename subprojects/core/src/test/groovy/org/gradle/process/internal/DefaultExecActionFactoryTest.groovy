@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.process.ExecResult
+import org.gradle.process.ProcessExecutionException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
@@ -67,7 +68,7 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
         }
 
         then:
-        thrown(ExecException)
+        thrown(ProcessExecutionException)
     }
 
     def javaexecWithNonZeroExitValueAndIgnoreExitValueShouldNotThrowException() {
@@ -107,7 +108,7 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
         }
 
         then:
-        thrown(ExecException)
+        thrown(ProcessExecutionException)
     }
 
     @Requires(UnitTestPreconditions.NotWindows)

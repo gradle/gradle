@@ -104,3 +104,16 @@ ul.linkList li {
 .metadata .unrenderable {
     color: darkred;
 }
+
+.code {
+    position: relative;
+}
+
+.clipboard-copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px 8px;
+    font-size: 0.9em;
+    cursor: pointer;
+}

@@ -36,4 +36,32 @@ class FilePathUtilTest extends Specification {
         ""          | "oner"            | "one"
         "some/path" | "with/one/ending" | "without/two/different"
     }
+
+    def 'can remove trailing path segments from path'() {
+        expect:
+        FilePathUtil.maybeRemoveTrailingSegments(path, removalPath) == expectedPath
+
+        where:
+        path                            | removalPath                      | expectedPath
+        // should not change the path
+        'some/path/to'                  | 'foo/bar'                        | 'some/path/to'
+        'some/path/to/'                 | 'foo/bar'                        | 'some/path/to/'
+        '/some/path/to'                 | 'foo/bar'                        | '/some/path/to'
+        '//some//path//to'              | 'foo/bar'                        | '//some//path//to'
+        'some/path/to/foo.bar'          | 'foo/bar'                        | 'some/path/to/foo.bar'
+        'some/path/to/foo'              | 'foo/bar'                        | 'some/path/to/foo'
+        'some/path/to/bar'              | 'foo/bar'                        | 'some/path/to/bar'
+        'some/path/to/foo/baz/bar'      | 'foo/bar'                        | 'some/path/to/foo/baz/bar'
+        'some/path/to/../other'         | 'foo/bar'                        | 'some/path/to/../other'
+        // should strip the trailing removalPath from the path
+        'some/path/to/foo'              | 'foo'                            | 'some/path/to'
+        'some/path/to/foo/'             | 'foo'                            | 'some/path/to'
+        '/some/path/to/foo/'            | 'foo'                            | '/some/path/to'
+        '//some//path//to//foo/'        | 'foo'                            | '/some/path/to'
+        'some/path/to/../foo'           | 'foo'                            | 'some/path/to/..'
+        'some/path/to/foo/bar'          | 'foo/bar'                        | 'some/path/to'
+        'some/path/to/../foo/bar'       | 'foo/bar'                        | 'some/path/to/..'
+        'some/path/to/foo//bar'         | 'foo/bar'                        | 'some/path/to'
+        'some/path/to/foo/bar/baz/fizz' | 'foo/bar/baz/fizz'               | 'some/path/to'
+    }
 }

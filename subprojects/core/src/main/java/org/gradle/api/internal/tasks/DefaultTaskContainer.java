@@ -15,24 +15,21 @@
  */
 package org.gradle.api.internal.tasks;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
+import org.gradle.api.internal.project.CrossProjectModelAccess;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
@@ -90,7 +87,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     private final ITaskFactory taskFactory;
     private final NamedEntityInstantiator<Task> taskInstantiator;
     private final BuildOperationRunner buildOperationRunner;
-    private final ProjectRegistry<ProjectInternal> projectRegistry;
+    private final CrossProjectModelAccess crossProjectModelAccess;
 
     private final TaskStatistics statistics;
     private final boolean eagerlyCreateLazyTasks;
@@ -106,7 +103,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         BuildOperationRunner buildOperationRunner,
         CrossProjectConfigurator crossProjectConfigurator,
         CollectionCallbackActionDecorator callbackDecorator,
-        ProjectRegistry<ProjectInternal> projectRegistry
+        CrossProjectModelAccess crossProjectModelAccess
     ) {
         super(Task.class, instantiator, project, crossProjectConfigurator.getLazyBehaviorGuard(), callbackDecorator);
         this.taskIdentityFactory = taskIdentityFactory;
@@ -115,7 +112,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         this.statistics = statistics;
         this.eagerlyCreateLazyTasks = Boolean.getBoolean(EAGERLY_CREATE_LAZY_TASKS_PROPERTY);
         this.buildOperationRunner = buildOperationRunner;
-        this.projectRegistry = projectRegistry;
+        this.crossProjectModelAccess = crossProjectModelAccess;
     }
 
     @Deprecated
@@ -240,7 +237,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
                     final Action<? super T> onCreate;
                     if (!taskProvider.getType().isAssignableFrom(task.getClass())) {
-                        throw new IllegalStateException("Replacing an existing task with an incompatible type is not supported.  Use a different name for this task ('" + name + "') or use a compatible type (" + ((TaskInternal) task).getTaskIdentity().type.getName() + ")");
+                        throw new IllegalStateException("Replacing an existing task with an incompatible type is not supported.  Use a different name for this task ('" + name + "') or use a compatible type (" + ((TaskInternal) task).getTaskIdentity().getTaskType().getName() + ")");
                     } else {
                         onCreate = Cast.uncheckedCast(taskProvider.getOnCreateActions().mergeFrom(getEventRegister().getAddActions()));
                     }
@@ -308,13 +305,13 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
             public T call(BuildOperationContext context) {
                 try {
                     T task = createTask(identity, constructorArgs);
-                    statistics.eagerTask(identity.type);
+                    statistics.eagerTask(identity.getTaskType());
                     addTask(task, false);
                     configureAction.execute(task);
                     context.setResult(REALIZE_RESULT);
                     return task;
                 } catch (Throwable t) {
-                    throw taskCreationException(identity.name, t);
+                    throw taskCreationException(identity.getName(), t);
                 }
             }
 
@@ -329,7 +326,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (constructorArgs != null) {
             for (int i = 0; i < constructorArgs.length; i++) {
                 if (constructorArgs[i] == null) {
-                    throw new NullPointerException(String.format("Received null for %s constructor argument #%s", identity.type.getName(), i + 1));
+                    throw new NullPointerException(String.format("Received null for %s constructor argument #%s", identity.getTaskType().getName(), i + 1));
                 }
             }
         }
@@ -475,26 +472,50 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     @Override
-    public Task findByPath(String path) {
-        Path.validatePath(path);
-        if (!path.contains(Project.PATH_SEPARATOR)) {
-            return findByName(path);
+    public @Nullable Task findByPath(String pathStr) {
+        Path path = Path.path(pathStr);
+        if (!path.isAbsolute() && path.segmentCount() == 1) {
+            return findByName(pathStr);
         }
 
-        String projectPath = StringUtils.substringBeforeLast(path, Project.PATH_SEPARATOR);
-        String projectPathOrRoot = Strings.isNullOrEmpty(projectPath) ? Project.PATH_SEPARATOR : projectPath;
-        ProjectInternal project = projectRegistry.getProject(this.project.absoluteProjectPath(projectPathOrRoot));
-        if (project == null) {
-            return null;
-        }
-        project.getOwner().ensureTasksDiscovered();
+        Path projectPath = path.getParent();
+        Path targetProjectPath = projectPath != null
+            ? this.project.getProjectIdentity().getProjectPath().absolutePath(projectPath)
+            : Path.ROOT;
+        String targetTaskName = path.getName();
 
-        return project.getTasks().findByName(StringUtils.substringAfterLast(path, Project.PATH_SEPARATOR));
+        return findTaskInProject(targetProjectPath, targetTaskName);
     }
 
-    @Override
-    public Task resolveTask(String path) {
-        return getByPath(path);
+    /**
+     * Find a task with the given name in the project with the given path.
+     * <p>
+     * TODO #34939: A task container in one project has no business providing the tasks of
+     *  another project. We should identify the use case(s) of `findByPath`
+     *  and `getByPath`, and deprecate them if we have a suitable replacement.
+     *
+     * @param projectPath The absolute path to the target project, relative to the current build.
+     * @param taskName The name of the task to find.
+     *
+     * @return The requested task, or null if the target project or task within that project does not exist.
+     */
+    private @Nullable Task findTaskInProject(Path projectPath, String taskName) {
+        assert projectPath.isAbsolute();
+
+        if (projectPath.equals(this.project.getProjectIdentity().getProjectPath())) {
+            // The user requested a task from this project.
+            // Request the task from this container to avoid triggering an IP violation.
+            return findByName(taskName);
+        }
+
+        // Otherwise, the user is requesting a task from another project. This is IP incompatible.
+        // Obtain a wrapped Project instance that emits IP violations and use it to get the requested task.
+        ProjectInternal targetProject = crossProjectModelAccess.findProject(this.project, projectPath);
+        if (targetProject == null) {
+            return null;
+        }
+        targetProject.getOwner().ensureTasksDiscovered();
+        return targetProject.getTasks().findByName(taskName);
     }
 
     @Override
@@ -670,7 +691,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         private Object[] constructorArgs;
 
         public TaskCreatingProvider(TaskIdentity<I> identity, @Nullable Action<? super I> configureAction, Object... constructorArgs) {
-            super(identity.name, identity.type, configureAction);
+            super(identity.getName(), identity.getTaskType(), configureAction);
             this.identity = identity;
             this.constructorArgs = constructorArgs;
             statistics.lazyTask();
@@ -730,12 +751,12 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     private static BuildOperationDescriptor.Builder realizeDescriptor(TaskIdentity<?> identity, boolean replacement, boolean eager) {
-        return BuildOperationDescriptor.displayName("Realize task " + identity.identityPath)
+        return BuildOperationDescriptor.displayName("Realize task " + identity.getBuildTreePath().asString())
             .details(new RealizeDetails(identity, replacement, eager));
     }
 
     private static BuildOperationDescriptor.Builder registerDescriptor(TaskIdentity<?> identity) {
-        return BuildOperationDescriptor.displayName("Register task " + identity.identityPath)
+        return BuildOperationDescriptor.displayName("Register task " + identity.getBuildTreePath().asString())
             .details(new RegisterDetails(identity));
     }
 
@@ -807,17 +828,17 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         @Override
         public String getBuildPath() {
-            return identity.buildPath.toString();
+            return identity.getProjectIdentity().getBuildPath().asString();
         }
 
         @Override
         public String getTaskPath() {
-            return identity.projectPath.toString();
+            return identity.getPath().asString();
         }
 
         @Override
         public long getTaskId() {
-            return identity.uniqueId;
+            return identity.getId();
         }
 
         @Override
@@ -842,17 +863,17 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         @Override
         public String getBuildPath() {
-            return identity.buildPath.toString();
+            return identity.getProjectIdentity().getBuildPath().asString();
         }
 
         @Override
         public String getTaskPath() {
-            return identity.projectPath.toString();
+            return identity.getPath().asString();
         }
 
         @Override
         public long getTaskId() {
-            return identity.uniqueId;
+            return identity.getId();
         }
 
         @Override

@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -49,7 +48,6 @@ class EclipseJavaModulesIntegrationTest extends AbstractEclipseIntegrationSpec {
         """
     }
 
-    @ToBeFixedForConfigurationCache
     def "dependencies are not marked as modules if the project itself is not modular"() {
         when:
         succeeds "eclipse"
@@ -65,7 +63,6 @@ class EclipseJavaModulesIntegrationTest extends AbstractEclipseIntegrationSpec {
         libraries[2].assertHasNoAttribute('module', 'true')
     }
 
-    @ToBeFixedForConfigurationCache
     def "Marks modules on classpath as such"() {
         setup:
         file("src/main/java/module-info.java") << """

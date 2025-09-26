@@ -84,7 +84,7 @@ class CancellationIntegrationTest extends DaemonIntegrationSpec implements Direc
             apply plugin: 'java'
 
             @CacheableTask
-            class MyJavaExec extends JavaExec {
+            abstract class MyJavaExec extends JavaExec {
                 @Input
                 String getInput() { "input" }
 

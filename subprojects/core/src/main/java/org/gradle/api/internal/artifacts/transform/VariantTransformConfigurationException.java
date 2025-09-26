@@ -26,10 +26,7 @@ import java.util.List;
 
 /**
  * An exception to report a problem registering or configuring an Artifact Transform that also provides helpful resolutions.
- * <p>
- * Replacement for {@link org.gradle.api.artifacts.transform.VariantTransformConfigurationException}
  */
-@SuppressWarnings("deprecation")
 @Contextual
 public final class VariantTransformConfigurationException extends GradleException implements ResolutionProvider {
     private static final String RUN_REPORT_SUGGESTION = "Run the 'artifactTransforms' report task to view details about registered transforms.";

@@ -63,7 +63,7 @@ public class PropertyResourceBundleFallbackCharset extends Charset {
             .onUnmappableCharacter(CodingErrorAction.REPORT);
         private boolean utf8 = true;
 
-        protected FallbackDecoder(Charset charset) {
+        private FallbackDecoder(Charset charset) {
             super(charset, 1.0f, 1.0f);
         }
 

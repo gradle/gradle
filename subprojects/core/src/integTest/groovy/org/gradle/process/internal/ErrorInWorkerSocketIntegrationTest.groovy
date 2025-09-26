@@ -16,15 +16,9 @@
 
 package org.gradle.process.internal
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
-import spock.lang.Issue
 
-@Issue("https://github.com/gradle/gradle-private/issues/3247")
-@Requires(UnitTestPreconditions.NotJava8OnMacOs)
 @IntegrationTestTimeout(180)
 class ErrorInWorkerSocketIntegrationTest extends AbstractIntegrationSpec {
     private static final String MESSAGE = 'This breaks socket connection threads in worker process deliberately'

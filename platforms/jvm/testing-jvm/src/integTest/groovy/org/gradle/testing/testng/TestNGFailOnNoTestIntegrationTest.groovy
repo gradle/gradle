@@ -41,12 +41,9 @@ class TestNGFailOnNoTestIntegrationTest extends TestNGTestFrameworkIntegrationTe
             public class NotATest {}
         """
 
-        executer.expectDocumentedDeprecationWarning("No test executed. This behavior has been deprecated. " +
-            "This will fail with an error in Gradle 9.0. There are test sources present but no test was executed. Please check your test configuration. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_fail_on_no_test_executed")
-
         expect:
-        succeeds('test')
+        fails('test')
+        failure.assertHasCause("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration.")
     }
 
     def "test source and test task use different test frameworks"() {
@@ -65,11 +62,8 @@ class TestNGFailOnNoTestIntegrationTest extends TestNGTestFrameworkIntegrationTe
 
         createPassingFailingTest()
 
-        executer.expectDocumentedDeprecationWarning("No test executed. This behavior has been deprecated. " +
-            "This will fail with an error in Gradle 9.0. There are test sources present but no test was executed. Please check your test configuration. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_fail_on_no_test_executed")
-
         expect:
-        succeeds('test')
+        fails('test')
+        failure.assertHasCause("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration.")
     }
 }

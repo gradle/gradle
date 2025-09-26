@@ -26,6 +26,7 @@ import org.gradle.internal.build.event.types.DefaultTaskFailureResult
 import org.gradle.internal.build.event.types.DefaultTaskFinishedProgressEvent
 import org.gradle.internal.build.event.types.DefaultTaskSkippedResult
 import org.gradle.internal.build.event.types.DefaultTaskSuccessResult
+import org.gradle.internal.code.DefaultUserCodeApplicationContext
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationListener
@@ -50,7 +51,7 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
         isRootBuild() >> true
     }
     def buildResult = new BuildResult(gradle, null)
-    def registry = new DefaultBuildEventsListenerRegistry(factory, listenerManager, buildOperationListenerManager, executorFactory)
+    def registry = new DefaultBuildEventsListenerRegistry(new DefaultUserCodeApplicationContext(), factory, listenerManager, buildOperationListenerManager, executorFactory)
 
     def cleanup() {
         // Signal the end of the build, to stop everything

@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.plugins
 
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.model.Model
 import org.gradle.model.ModelMap
@@ -35,6 +36,10 @@ import org.gradle.nativeplatform.SharedLibraryBinarySpec
 import org.gradle.nativeplatform.StaticLibraryBinarySpec
 import org.gradle.nativeplatform.internal.DefaultFlavor
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
+import org.gradle.nativeplatform.tasks.CreateStaticLibrary
+import org.gradle.nativeplatform.tasks.InstallExecutable
+import org.gradle.nativeplatform.tasks.LinkExecutable
+import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry
 import org.gradle.nativeplatform.toolchain.internal.NativeLanguage
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
@@ -50,10 +55,7 @@ import static org.gradle.model.internal.type.ModelTypes.modelMap
 import static org.gradle.util.internal.CollectionUtils.single
 
 class NativeComponentModelPluginTest extends AbstractProjectBuilderSpec {
-    def registry
-
     def setup() {
-        registry = project.modelRegistry
         project.pluginManager.apply(NativeComponentModelPlugin)
     }
 
@@ -66,11 +68,11 @@ class NativeComponentModelPluginTest extends AbstractProjectBuilderSpec {
         project.plugins.hasPlugin(NativeComponentModelPlugin)
     }
 
-    public <T> T realizeModelElement(String path, Class<T> type) {
+    <T> T realizeModelElement(String path, Class<T> type) {
         realizeModelElement(path, ModelType.of(type))
     }
 
-    public <T> T realizeModelElement(String path, ModelType<T> type) {
+    <T> T realizeModelElement(String path, ModelType<T> type) {
         project.modelRegistry.realize(path, type)
     }
 
@@ -79,7 +81,7 @@ class NativeComponentModelPluginTest extends AbstractProjectBuilderSpec {
     }
 
     NativeToolChainRegistry getToolChains() {
-        realizeModelElement("toolChains", NativeToolChainRegistry)
+        project.toolChains
     }
 
     PlatformContainer getPlatforms() {
@@ -127,11 +129,11 @@ class NativeComponentModelPluginTest extends AbstractProjectBuilderSpec {
 
     def "behaves correctly for defaults when domain is explicitly configured"() {
         when:
-        registry
-            .mutate(NativeToolChainRegistry) { it.add toolChain("tc") }
+        project.modelRegistry
             .mutate(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
             .mutate(BuildTypeContainer) { it.add named(BuildType, "bt") }
             .mutate(FlavorContainer) { it.add named(Flavor, "flavor1") }
+        toolChains.add toolChain("tc")
 
         then:
         single(toolChains).name == 'tc'
@@ -143,11 +145,11 @@ class NativeComponentModelPluginTest extends AbstractProjectBuilderSpec {
     def "creates binaries for executable"() {
         when:
         project.pluginManager.apply(NativeComponentModelPlugin)
-        registry
-            .mutate(NativeToolChainRegistry) { it.add toolChain("tc") }
+        project.modelRegistry
             .mutate(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
             .mutate(BuildTypeContainer) { it.add named(BuildType, "bt") }
             .mutate(FlavorContainer) { it.add named(Flavor, "flavor1") }
+        toolChains.add toolChain("tc")
 
         project.model {
             components {
@@ -176,7 +178,7 @@ class NativeComponentModelPluginTest extends AbstractProjectBuilderSpec {
     def "creates binaries for library"() {
         when:
         project.pluginManager.apply(NativeComponentModelPlugin)
-        registry
+        project.modelRegistry
             .mutate(NativeToolChainRegistry) { it.add toolChain("tc") }
             .mutate(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
             .mutate(BuildTypeContainer) { it.add named(BuildType, "bt") }
@@ -282,6 +284,87 @@ class NativeComponentModelPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         getComponents()
+    }
+
+
+    def "creates link and install task for executable"() {
+        when:
+        project.model {
+            components {
+                test(NativeExecutableSpec)
+            }
+        }
+
+        realizeTasks()
+        def binaries = realizeBinaries()
+        project.bindAllModelRules()
+
+        then:
+        def testExecutable = binaries.testExecutable
+        with(project.tasks.linkTestExecutable) {
+            it instanceof LinkExecutable
+            it == testExecutable.tasks.link
+            it.toolChain.get() == testExecutable.toolChain
+            it.targetPlatform.get() == testExecutable.targetPlatform
+            it.linkerArgs.get() == testExecutable.linker.args
+        }
+
+        and:
+        def lifecycleTask = project.tasks.testExecutable
+        lifecycleTask TaskDependencyMatchers.dependsOn("linkTestExecutable")
+
+        and:
+        project.tasks.installTestExecutable instanceof InstallExecutable
+    }
+
+
+    ModelMap<BinarySpec> realizeBinaries() {
+        project.modelRegistry.find("binaries", modelMap(BinarySpec))
+    }
+
+    ModelMap<Task> realizeTasks() {
+        project.modelRegistry.find 'tasks', modelMap(Task)
+    }
+
+    def "creates link task and static archive task for library"() {
+        when:
+        project.model {
+            components {
+                test(NativeLibrarySpec)
+            }
+        }
+
+        realizeTasks()
+        def binaries = realizeBinaries()
+        project.bindAllModelRules()
+
+        then:
+        def sharedLibraryBinary = binaries.testSharedLibrary
+        with(project.tasks.linkTestSharedLibrary) {
+            it instanceof LinkSharedLibrary
+            it == sharedLibraryBinary.tasks.link
+            it.toolChain.get() == sharedLibraryBinary.toolChain
+            it.targetPlatform.get() == sharedLibraryBinary.targetPlatform
+            it.linkerArgs.get() == sharedLibraryBinary.linker.args
+        }
+
+        and:
+        def sharedLibTask = project.tasks.testSharedLibrary
+        sharedLibTask TaskDependencyMatchers.dependsOn("linkTestSharedLibrary")
+
+        and:
+        def staticLibraryBinary = binaries.testStaticLibrary
+        with(project.tasks.createTestStaticLibrary) {
+            it instanceof CreateStaticLibrary
+            it == staticLibraryBinary.tasks.createStaticLib
+            it.toolChain.get() == staticLibraryBinary.toolChain
+            it.targetPlatform.get() == staticLibraryBinary.targetPlatform
+            it.staticLibArgs.get() == staticLibraryBinary.staticLibArchiver.args
+        }
+
+        and:
+        def staticLibTask = project.tasks.testStaticLibrary
+        staticLibTask TaskDependencyMatchers.dependsOn("createTestStaticLibrary")
     }
 
     static class RootFileRules extends RuleSource {

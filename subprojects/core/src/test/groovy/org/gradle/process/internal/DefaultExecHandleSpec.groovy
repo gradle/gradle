@@ -20,11 +20,18 @@ package org.gradle.process.internal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.logging.CollectingTestOutputEventListener
+import org.gradle.internal.logging.ConfigureLogging
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecResult
+import org.gradle.process.ProcessExecutionException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.internal.GUtil
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.UsesNativeServices
+import org.gradle.util.internal.GUtil
+import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Timeout
@@ -37,6 +44,8 @@ import java.util.concurrent.Executor
 class DefaultExecHandleSpec extends ConcurrentSpec {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     private BuildCancellationToken buildCancellationToken = Mock(BuildCancellationToken)
+    private final CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
+    @Rule final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     void "forks process"() {
         given:
@@ -86,7 +95,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
     void "understands when application exits with non-zero"() {
         given:
-        def execHandle = handle().args(args(BrokenApp.class)).build()
+        def execHandle = handle().args(args(BrokenApp.class, "72")).build()
 
         when:
         def result = execHandle.start().waitForFinish()
@@ -99,8 +108,57 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         result.assertNormalExitValue()
 
         then:
-        def e = thrown(ExecException)
-        e.message.contains "finished with non-zero exit value 72"
+        def e = thrown(ProcessExecutionException)
+        e.message == "Process '${execHandle.displayName}' finished with non-zero exit value 72"
+    }
+
+    @Requires(UnitTestPreconditions.Unix)
+    void "provides detailed error message for processes terminated by a signal"() {
+        given:
+        def execHandle = handle().args(args(BrokenApp.class, exitCode.toString())).build()
+
+        when:
+        def result = execHandle.start().waitForFinish()
+
+        then:
+        execHandle.state == ExecHandleState.FAILED
+        result.exitValue == exitCode
+
+        when:
+        result.assertNormalExitValue()
+
+        then:
+        def e = thrown(ProcessExecutionException)
+        e.message == "Process '${execHandle.displayName}' finished with non-zero exit value $exitCode ($expectedMessage)"
+
+        where:
+        exitCode | expectedMessage
+        137      | "this value may indicate that the process was terminated with the SIGKILL signal, which is often caused by the system running out of memory"
+        143      | "this value may indicate that the process was terminated with the SIGTERM signal"
+    }
+
+    @Requires(UnitTestPreconditions.Windows)
+    void "provides detailed error message for processes terminated by the OS on Windows"() {
+        given:
+        def execHandle = handle().args(args(BrokenApp.class, exitCode.toString())).build()
+
+        when:
+        def result = execHandle.start().waitForFinish()
+
+        then:
+        execHandle.state == ExecHandleState.FAILED
+        result.exitValue == exitCode
+
+        when:
+        result.assertNormalExitValue()
+
+        then:
+        def e = thrown(ProcessExecutionException)
+        e.message == "Process '${execHandle.displayName}' finished with non-zero exit value $exitCode ($expectedMessage)"
+
+        where:
+        exitCode    | expectedMessage
+        -1073741823 | "NTSTATUS 0xC0000001"
     }
 
     void "start fails when process cannot be started"() {
@@ -110,7 +168,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.start()
 
         then:
-        def e = thrown(ExecException)
+        def e = thrown(ProcessExecutionException)
         e.message == "A problem occurred starting process 'awesome'"
     }
 
@@ -140,6 +198,27 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.waitForFinish().exitValue != 0
     }
 
+    void "abort destroys all child processes"() {
+        def execHandle = handle().args(args(AppWithChildWithGrandChild.class)).build()
+        // On Windows additional `conhost.exe` processes are spawned as children of java processes
+        def expectedDescendantProcesses = OperatingSystem.current().isWindows() ? 5 : 2
+
+        when:
+        execHandle.start()
+        // wait for child and grand child to start
+        while(childProcessHandles(execHandle).size() != expectedDescendantProcesses) {
+            Thread.sleep(10)
+        }
+        execHandle.abort()
+
+        then:
+        childProcessHandles(execHandle).isEmpty()
+        and:
+        execHandle.state == ExecHandleState.ABORTED
+        and:
+        execHandle.waitForFinish().exitValue != 0
+    }
+
     void "can abort after process has completed"() {
         given:
         def execHandle = handle().args(args(TestApp.class)).build()
@@ -157,7 +236,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
     void "can abort after process has failed"() {
         given:
-        def execHandle = handle().args(args(BrokenApp.class)).build()
+        def execHandle = handle().args(args(BrokenApp.class, "72")).build()
         execHandle.start().waitForFinish()
 
         when:
@@ -203,7 +282,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
     void "clients can listen to notifications when execution fails"() {
         ExecHandleListener listener = Mock()
-        def execHandle = handle().listener(listener).args(args(BrokenApp.class)).build()
+        def execHandle = handle().listener(listener).args(args(BrokenApp.class, "72")).build()
 
         when:
         execHandle.start()
@@ -234,7 +313,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         0 * listener._
 
         and:
-        def e = thrown(ExecException)
+        def e = thrown(ProcessExecutionException)
         e.cause == failure
     }
 
@@ -254,14 +333,14 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         0 * listener._
 
         and:
-        def e = thrown(ExecException)
+        def e = thrown(ProcessExecutionException)
         e.cause == failure
     }
 
     void "propagates listener finish notification failure after execution fails"() {
         def failure = new RuntimeException()
         ExecHandleListener listener = Mock()
-        def execHandle = handle().listener(listener).args(args(BrokenApp.class)).build()
+        def execHandle = handle().listener(listener).args(args(BrokenApp.class, "72")).build()
 
         when:
         execHandle.start()
@@ -274,7 +353,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         0 * listener._
 
         and:
-        def e = thrown(ExecException)
+        def e = thrown(ProcessExecutionException)
         e.cause == failure
     }
 
@@ -368,7 +447,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     @Ignore //not yet implemented
     //it may not be easily testable
     void "detach detects when process did not start or died prematurely"() {
-        def execHandle = handle().args(args(BrokenApp.class)).build()
+        def execHandle = handle().args(args(BrokenApp.class, "72")).build()
 
         when:
         execHandle.start()
@@ -453,6 +532,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
             .setTimeout(20000) //sanity timeout
             .setWorkingDir(tmpDir.getTestDirectory())
             .environment('CLASSPATH', mergeClasspath())
+            .environment('JAVA_EXE_PATH', TextUtil.normaliseFileSeparators(Jvm.current().getJavaExecutable().getAbsolutePath()))
     }
 
     private String mergeClasspath() {
@@ -467,9 +547,14 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         GUtil.flattenElements(mainClass.getName(), args)
     }
 
+    private List<String> childProcessHandles(ExecHandle execHandle) {
+        Process process = execHandle.execHandleRunner.process
+        process.descendants().map { it.toString() }.toList()
+    }
+
     public static class BrokenApp {
         public static void main(String[] args) {
-            System.exit(72)
+            System.exit(args[0].toInteger())
         }
     }
 
@@ -502,6 +587,20 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
             ObjectInputStream instr = new ObjectInputStream(System.in)
             Callable<?> main = (Callable<?>) instr.readObject()
             System.out.println(main.call())
+        }
+    }
+
+    static class AppWithChild {
+        static void main(String[] args) throws InterruptedException {
+            def java = System.getenv('JAVA_EXE_PATH')
+            "$java ${SlowApp.name}".execute().waitFor()
+        }
+    }
+
+    static class AppWithChildWithGrandChild {
+        static void main(String[] args) throws InterruptedException {
+            def java = System.getenv('JAVA_EXE_PATH')
+            "$java ${AppWithChild.name}".execute().waitFor()
         }
     }
 }

@@ -97,7 +97,7 @@ include::sample[dir="snippets/testing/test-suite-plugin/groovy",files="build.gra
 
 <1> Configure all test suites for this project.
 <2> Configure the built-in `test` suite.  This suite is automatically created for backwards compatibility.  You *must* specify a testing framework to use in order to run these tests (e.g. JUnit 4, JUnit Jupiter).  This suite is the only suite that will automatically have access to the production source's `implementation` dependencies, all other suites must explicitly declare these.
-<3> Declare this test suite uses JUnit Jupiter.  The framework's dependencies are automatically included.  It is always necessary to explicitly configure the built-in `test` suite even if JUnit4 is desired.
+<3> Declare this test suite uses JUnit Jupiter.  The framework's dependencies are automatically included.  It is always necessary to explicitly configure the built-in `test` suite even if JUnit 4 is desired.
 <4> Define a new suite called `integrationTest`.  Note that all suites other than the built-in `test` suite will by convention work as if `useJUnitJupiter()` was called.  You do *not* have to explicitly configure the testing framework on these additional suites, unless you wish to change to another framework.
 <5> Add a dependency on the production code of the project to the `integrationTest` suite targets.  By convention, only the built-in `test` suite will automatically have a dependency on the production code of the project.
 <6> Configure all targets of this suite.  By convention, test suite targets have no relationship to other `Test` tasks.  This example shows that the slower integration test suite targets should run after all targets of the `test` suite are complete.

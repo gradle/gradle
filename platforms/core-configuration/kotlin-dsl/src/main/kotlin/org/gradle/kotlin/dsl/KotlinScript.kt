@@ -27,9 +27,6 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
-import org.gradle.process.ExecResult
-import org.gradle.process.ExecSpec
-import org.gradle.process.JavaExecSpec
 import java.io.File
 import java.net.URI
 
@@ -289,26 +286,4 @@ interface KotlinScript {
      * @return `WorkResult` that can be used to check if delete did any work.
      */
     fun delete(configuration: Action<DeleteSpec>): WorkResult
-
-    /**
-     * Executes an external command.
-     *
-     * This method blocks until the process terminates, with its result being returned.
-     *
-     * @param configuration The block to use to configure the [ExecSpec].
-     * @return The result of the execution.
-     */
-    @Deprecated(message = "This method will be removed in Gradle 9.0. Use ExecOperations.exec(Action) or ProviderFactory.exec(Action) instead.")
-    fun exec(configuration: Action<ExecSpec>): ExecResult
-
-    /**
-     * Executes an external Java process.
-     *
-     * This method blocks until the process terminates, with its result being returned.
-     *
-     * @param configuration The block to use to configure the [JavaExecSpec].
-     * @return The result of the execution.
-     */
-    @Deprecated(message = "This method will be removed in Gradle 9.0. Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead.")
-    fun javaexec(configuration: Action<JavaExecSpec>): ExecResult
 }

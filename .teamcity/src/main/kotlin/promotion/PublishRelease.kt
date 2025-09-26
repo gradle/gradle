@@ -19,6 +19,10 @@ package promotion
 import common.VersionedSettingsBranch
 import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 
+const val FINAL_RELEASE_BUILD_CONFIGURATION_ID = "Promotion_FinalRelease"
+const val RELEASE_CANDIDATE_BUILD_CONFIGURATION_ID = "Promotion_ReleaseCandidate"
+const val MILESTONE_BUILD_CONFIGURATION_ID = "Promotion_Milestone"
+
 abstract class PublishRelease(
     prepTask: String,
     promoteTask: String,
@@ -78,7 +82,7 @@ class PublishFinalRelease(
         promoteTask = branch.promoteFinalReleaseTaskName(),
         requiredConfirmationCode = "final",
         init = {
-            id("Promotion_FinalRelease")
+            id(FINAL_RELEASE_BUILD_CONFIGURATION_ID)
             name = "Release - Final"
             description = "Promotes the latest successful change on 'release' as a new release"
         },
@@ -92,7 +96,7 @@ class PublishReleaseCandidate(
         promoteTask = "promoteRc",
         requiredConfirmationCode = "rc",
         init = {
-            id("Promotion_ReleaseCandidate")
+            id(RELEASE_CANDIDATE_BUILD_CONFIGURATION_ID)
             name = "Release - Release Candidate"
             description = "Promotes the latest successful change on 'release' as a new release candidate"
         },
@@ -106,7 +110,7 @@ class PublishMilestone(
         promoteTask = branch.promoteMilestoneTaskName(),
         requiredConfirmationCode = "milestone",
         init = {
-            id("Promotion_Milestone")
+            id(MILESTONE_BUILD_CONFIGURATION_ID)
             name = "Release - Milestone"
             description = "Promotes the latest successful change on '${branch.branchName}' as a new milestone"
         },

@@ -228,19 +228,17 @@ class ProjectSchemaTest : TestWithClassPath() {
 internal
 fun projectSchemaWith(
     extensions: TypedProjectSchemaEntryList = emptyList(),
-    conventions: TypedProjectSchemaEntryList = emptyList(),
     tasks: TypedProjectSchemaEntryList = emptyList(),
     containerElements: TypedProjectSchemaEntryList = emptyList(),
     configurations: List<String> = emptyList(),
     buildConventions: TypedProjectSchemaEntryList = emptyList()
 ) = TypedProjectSchema(
     extensions = extensions,
-    conventions = conventions,
     tasks = tasks,
     containerElements = containerElements,
     configurations = configurations.map { ConfigurationEntry(it) },
     modelDefaults = buildConventions,
-    softwareTypeEntries = listOf(),
+    projectFeatureEntries = listOf(),
     containerElementFactories = listOf()
 )
 

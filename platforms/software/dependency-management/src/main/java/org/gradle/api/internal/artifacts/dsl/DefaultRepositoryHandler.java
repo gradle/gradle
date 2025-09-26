@@ -33,7 +33,6 @@ import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.ConfigureUtil;
 
@@ -50,8 +49,6 @@ import static org.gradle.util.internal.CollectionUtils.flattenCollections;
 public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer implements RepositoryHandlerInternal {
 
     public static final String GRADLE_PLUGIN_PORTAL_REPO_NAME = "Gradle Central Plugin Repository";
-    public static final String DEFAULT_BINTRAY_JCENTER_REPO_NAME = "BintrayJCenter";
-    public static final String BINTRAY_JCENTER_URL = "https://jcenter.bintray.com/";
     public static final String GOOGLE_REPO_NAME = "Google";
 
     public static final String FLAT_DIR_DEFAULT_NAME = "flatDir";
@@ -106,29 +103,6 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     @Override
     public MavenArtifactRepository mavenCentral(Action<? super MavenArtifactRepository> action) {
         return addRepository(repositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME, action);
-    }
-
-    @Deprecated
-    @Override
-    public MavenArtifactRepository jcenter() {
-        deprecateJCenter("jcenter()", "mavenCentral()");
-        return addRepository(repositoryFactory.createJCenterRepository(), DEFAULT_BINTRAY_JCENTER_REPO_NAME);
-    }
-
-    @Deprecated
-    @Override
-    public MavenArtifactRepository jcenter(Action<? super MavenArtifactRepository> action) {
-        deprecateJCenter("jcenter(Action<MavenArtifactRepository>)", "mavenCentral(Action<MavenArtifactRepository>");
-        return addRepository(repositoryFactory.createJCenterRepository(), DEFAULT_BINTRAY_JCENTER_REPO_NAME, action);
-    }
-
-    private void deprecateJCenter(String method, String replacement) {
-        DeprecationLogger.deprecateMethod(RepositoryHandler.class, method)
-            .withAdvice("JFrog announced JCenter's sunset in February 2021. Use " + replacement + " instead.")
-            .withProblemId("repository-jcenter")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(6, "jcenter_deprecation")
-            .nagUser();
     }
 
     @Override

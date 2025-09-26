@@ -19,19 +19,21 @@ package org.gradle.workers.internal;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 
+import java.util.Set;
+
 public class SimpleActionExecutionSpec<T extends WorkParameters> {
     private final Class<? extends WorkAction<T>> implementationClass;
     private final T params;
-    private final boolean usesInternalServices;
+    private final Set<Class<?>> additionalWhitelistedServices;
 
-    public SimpleActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, T params, boolean usesInternalServices) {
+    public SimpleActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, T params, Set<Class<?>> additionalWhitelistedServices) {
         this.implementationClass = implementationClass;
         this.params = params;
-        this.usesInternalServices = usesInternalServices;
+        this.additionalWhitelistedServices = additionalWhitelistedServices;
     }
 
-    public boolean isInternalServicesRequired() {
-        return usesInternalServices;
+    public Set<Class<?>> getAdditionalWhitelistedServices() {
+        return additionalWhitelistedServices;
     }
 
     public Class<? extends WorkAction<T>> getImplementationClass() {

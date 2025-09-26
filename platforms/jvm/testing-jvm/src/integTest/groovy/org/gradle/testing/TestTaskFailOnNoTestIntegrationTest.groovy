@@ -37,19 +37,16 @@ class TestTaskFailOnNoTestIntegrationTest extends AbstractIntegrationSpec {
         succeeds("test")
     }
 
-    def "test succeeds with warning if no test was executed"() {
+    def "test fails when no test was executed"() {
         createBuildFileWithJUnitJupiter()
 
         file("src/test/java/NotATest.java") << """
             public class NotATest {}
         """
 
-        executer.expectDocumentedDeprecationWarning("No test executed. This behavior has been deprecated. " +
-            "This will fail with an error in Gradle 9.0. There are test sources present but no test was executed. Please check your test configuration. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_fail_on_no_test_executed")
-
         expect:
-        succeeds("test")
+        fails("test")
+        failure.assertHasCause("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/30315")
@@ -74,7 +71,18 @@ class TestTaskFailOnNoTestIntegrationTest extends AbstractIntegrationSpec {
         skipped(":test")
     }
 
-    def createBuildFileWithJUnitJupiter() {
+    def "test succeeds when no test was executed and shouldFailOnNoDiscoveredTests is false"() {
+        createBuildFileWithJUnitJupiter(false)
+
+        file("src/test/java/NotATest.java") << """
+            public class NotATest {}
+        """
+
+        expect:
+        succeeds("test")
+    }
+
+    def createBuildFileWithJUnitJupiter(boolean shouldFailOnNoDiscoveredTests = true) {
         buildFile << """
             plugins {
                 id 'java'
@@ -86,6 +94,11 @@ class TestTaskFailOnNoTestIntegrationTest extends AbstractIntegrationSpec {
             }
             testing.suites.test {
                 useJUnitJupiter()
+                targets.all {
+                    testTask.configure {
+                        ${shouldFailOnNoDiscoveredTests ? "" : "failOnNoDiscoveredTests = false"}
+                    }
+                }
             }
         """.stripIndent()
     }

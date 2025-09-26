@@ -26,10 +26,13 @@ import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.provider.AbstractProperty
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.internal.tasks.testing.TestExecuter
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec
 import org.gradle.api.internal.tasks.testing.TestFramework
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
+import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.api.internal.tasks.testing.report.TestReporter
@@ -62,6 +65,8 @@ class TestTest extends AbstractConventionTaskTest {
     def testExecuterMock = Mock(TestExecuter)
     def testFrameworkMock = Mock(TestFramework)
 
+
+
     private FileCollection classpathMock = TestFiles.fixed(new File("classpath"))
     private Test test
 
@@ -83,7 +88,7 @@ class TestTest extends AbstractConventionTaskTest {
     def "test default settings"() {
         expect:
         test.getTestFramework() instanceof JUnitTestFramework
-        test.getTestClassesDirs() == null
+        test.getTestClassesDirs().files.isEmpty()
         test.getClasspath().files.isEmpty()
         test.getReports().getJunitXml().outputLocation.getOrNull() == null
         test.getReports().getHtml().outputLocation.getOrNull() == null
@@ -101,7 +106,9 @@ class TestTest extends AbstractConventionTaskTest {
         test.executeTests()
 
         then:
-        1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor)
+        1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor) >> { TestExecutionSpec testExecutionSpec, TestResultProcessor processor ->
+            oneSuccessfulTest(processor)
+        }
     }
 
     def "calls test reporter if set"() {
@@ -115,7 +122,9 @@ class TestTest extends AbstractConventionTaskTest {
 
         then:
         1 * testReporter.generateReport(_ as TestResultsProvider, reportDir)
-        1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor)
+        1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor) >> { TestExecutionSpec testExecutionSpec, TestResultProcessor processor ->
+            oneSuccessfulTest(processor)
+        }
     }
 
     def "generates test report if no reporter set"() {
@@ -127,7 +136,9 @@ class TestTest extends AbstractConventionTaskTest {
 
         then:
         reportDir.assertContainsDescendants("index.html")
-        1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor)
+        1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor) >> { TestExecutionSpec testExecutionSpec, TestResultProcessor processor ->
+            oneSuccessfulTest(processor)
+        }
     }
 
     def "execute with test failures and ignore failures"() {
@@ -139,7 +150,9 @@ class TestTest extends AbstractConventionTaskTest {
         test.executeTests()
 
         then:
-        1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor)
+        1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor) >> { TestExecutionSpec testExecutionSpec, TestResultProcessor processor ->
+            oneSuccessfulTest(processor)
+        }
     }
 
     def "scans for test classes in the classes dir"() {
@@ -342,5 +355,36 @@ class TestTest extends AbstractConventionTaskTest {
         def e = thrown(AbstractProperty.PropertyQueryException)
         assertHasMatchingCause(e, m -> m.startsWith("Toolchain installation '${invalidJavac.parentFile.parentFile.absolutePath}' could not be probed:"))
         assertHasMatchingCause(e, m -> m ==~ /Cannot run program .*java.*/)
+    }
+
+    def oneSuccessfulTest(TestResultProcessor processor) {
+        def suiteDescriptor = Mock(TestDescriptorInternal)
+        def testDescriptor = Mock(TestDescriptorInternal)
+        suiteDescriptor.id >> "suite"
+        suiteDescriptor.parent >> null
+        suiteDescriptor.composite >> true
+
+        testDescriptor.id >> "test"
+        testDescriptor.parent >> suiteDescriptor
+        testDescriptor.composite >> false
+        testDescriptor.className >> "class"
+        testDescriptor.classDisplayName >> "class"
+        testDescriptor.name >> "method"
+        testDescriptor.displayName >> "method"
+
+        def suiteStartEvent = Stub(TestStartEvent) {
+            getParentId() >> null
+        }
+        def testStartEvent = Stub(TestStartEvent) {
+            getParentId() >> "suite"
+        }
+        def finishEvent = Stub(TestCompleteEvent) {
+            getResultType() >> TestResult.ResultType.SUCCESS
+        }
+
+        processor.started(suiteDescriptor, suiteStartEvent)
+        processor.started(testDescriptor, testStartEvent)
+        processor.completed("test", finishEvent)
+        processor.completed("suite", finishEvent)
     }
 }

@@ -65,19 +65,13 @@ public abstract class InstallXCTestBundle extends DefaultTask {
     }
 
     @Inject
-    protected SwiftStdlibToolLocator getSwiftStdlibToolLocator() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract SwiftStdlibToolLocator getSwiftStdlibToolLocator();
 
     @Inject
-    protected FileSystem getFileSystem() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileSystem getFileSystem();
 
     @Inject
-    protected FileSystemOperations getFileSystemOperations() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileSystemOperations getFileSystemOperations();
 
     @TaskAction
     protected void install() throws IOException {

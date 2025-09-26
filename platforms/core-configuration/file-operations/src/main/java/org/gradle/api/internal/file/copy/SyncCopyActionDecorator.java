@@ -26,12 +26,12 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -119,7 +119,7 @@ public class SyncCopyActionDecorator implements CopyAction {
                     try {
                         didWork = deleter.deleteRecursively(fileDetails.getFile());
                     } catch (IOException ex) {
-                        throw new UncheckedIOException(ex);
+                        throw UncheckedException.throwAsUncheckedException(ex);
                     }
                 }
             }

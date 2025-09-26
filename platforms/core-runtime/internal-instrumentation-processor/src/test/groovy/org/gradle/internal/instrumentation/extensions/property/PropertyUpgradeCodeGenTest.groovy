@@ -56,6 +56,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.test.Task;
 
             @Generated
+            @SuppressWarnings("deprecation")
             public final class Task_Adapter {
                 public static int access_get_getMaxErrors(Task self) {
                     ${getDefaultPropertyUpgradeDeprecation("Task", "maxErrors")}
@@ -119,6 +120,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.test.Task;
 
             @Generated
+            @SuppressWarnings("deprecation")
             public final class Task_Adapter {
                 public static boolean access_get_isIncremental(Task self) {
                     ${getDefaultPropertyUpgradeDeprecation("Task", "incremental")}
@@ -186,6 +188,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.test.Task;
 
             @Generated
+            @SuppressWarnings("deprecation")
             public final class Task_Adapter {
                 ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
                 public static $originalType access_get_${getterPrefix}Property(Task self) {
@@ -250,6 +253,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             import org.gradle.test.Task;
 
             @Generated
+            @SuppressWarnings("deprecation")
             public final class Task_Adapter {
                 ${hasSuppressWarnings ? '@SuppressWarnings({"unchecked", "rawtypes"})' : ''}
                 public static $originalType access_get_${getterPrefix}Property(Task self) {
@@ -460,5 +464,68 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         assertThat(compilation)
             .generatedSourceFile(fqName(groovyInterceptorClass))
             .containsElementsIn(groovyInterceptorClass)
+    }
+
+    def "should generate correct deprecation for removedIn = GRADLE9"() {
+        given:
+        def givenSource = source"""
+            package org.gradle.test;
+
+            import org.gradle.api.provider.*;
+            import org.gradle.api.file.*;
+            import org.gradle.internal.instrumentation.api.annotations.*;
+            import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+            import java.io.File;
+
+            public abstract class Task {
+                @ReplacesEagerProperty(
+                    replacedAccessors = {
+                        @ReplacedAccessor(value = AccessorType.GETTER, name = "getDestinationDir"),
+                        @ReplacedAccessor(value = AccessorType.SETTER, name = "setDestinationDir")
+                    },
+                    deprecation = @ReplacedDeprecation(removedIn = ReplacedDeprecation.RemovedIn.GRADLE9)
+                )
+                public abstract DirectoryProperty getDestinationDirectory();
+            }
+        """
+
+        when:
+        Compilation compilation = compile(givenSource)
+
+        then:
+        def generatedInterceptor = source """
+            package $GENERATED_CLASSES_PACKAGE_NAME;
+
+            import java.io.File;
+            import org.gradle.api.Generated;
+            import org.gradle.internal.deprecation.DeprecationLogger;
+            import org.gradle.test.Task;
+
+            @Generated
+            @SuppressWarnings("deprecation")
+            public final class Task_Adapter {
+                public static File access_get_getDestinationDir(Task self) {
+                    DeprecationLogger.deprecate("The usage of Task.destinationDir")
+                            .withContext("Property 'destinationDir' was removed and this compatibility shim will be removed in Gradle 10. Please use 'destinationDirectory' property instead.")
+                            .willBecomeAnErrorInGradle10()
+                            .undocumented()
+                            .nagUser();
+                    return self.getDestinationDirectory().getAsFile().getOrNull();
+                }
+
+                public static void access_set_setDestinationDir(Task self, File arg0) {
+                    DeprecationLogger.deprecate("The usage of Task.destinationDir")
+                            .withContext("Property 'destinationDir' was removed and this compatibility shim will be removed in Gradle 10. Please use 'destinationDirectory' property instead.")
+                            .willBecomeAnErrorInGradle10()
+                            .undocumented()
+                            .nagUser();
+                    self.getDestinationDirectory().fileValue(arg0);
+                }
+            }
+        """
+        assertThat(compilation).succeededWithoutWarnings()
+        assertThat(compilation)
+            .generatedSourceFile(fqName(generatedInterceptor))
+            .containsElementsIn(generatedInterceptor)
     }
 }

@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.tooling.r34
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
@@ -28,10 +27,9 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'root'"
     }
 
-    @TargetGradleVersion(">=3.4")
     def "jdkName property from idea module model is available in the tooling API"() {
         given:
-        settingsFile << "\ninclude 'root', 'child1', 'child2', 'child3'"
+        includeProjects("root", "child1", "child2", "child3")
         buildFile << """
             allprojects {
                 apply plugin: 'idea'
@@ -72,23 +70,12 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         ideaProject.modules.find { it.name == 'child3' }.jdkName == null
     }
 
-    @TargetGradleVersion(">=3.0 <3.4")
-    def "jdkName property from idea module model is not available in the tooling before 3.4"() {
-        when:
-        def ideaProject = withConnection { connection -> connection.getModel(IdeaProject) }
-        ideaProject.modules.find { it.name == 'root' }.jdkName
-
-        then:
-        UnsupportedMethodException e = thrown()
-        e.message.startsWith("Unsupported method: IdeaModule.getJdkName()")
-    }
-
-    @TargetGradleVersion(">=3.4 <4.5")
+    @TargetGradleVersion(">=4.0 <4.5")
     def "provides correct dependencies when using java-library plugin"() {
         given:
+        includeProjects("a", "b", "c", "d", "e", "f")
         settingsFile << """
             rootProject.name = 'root'
-            include 'a', 'b', 'c', 'd', 'e', 'f'
         """
 
         buildFile << """
@@ -137,8 +124,8 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         given:
         settingsFile << """
             rootProject.name = 'root'
-            include 'a', 'b', 'c', 'd', 'e', 'f'
         """
+        includeProjects("a", "b", "c", "d", "e", "f")
 
         buildFile << """
             allprojects {

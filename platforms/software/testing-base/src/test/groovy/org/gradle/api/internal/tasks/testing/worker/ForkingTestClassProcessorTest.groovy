@@ -18,14 +18,13 @@ package org.gradle.api.internal.tasks.testing.worker
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.Action
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.remote.ObjectConnection
 import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.process.JavaForkOptions
-import org.gradle.process.internal.ExecException
+import org.gradle.process.ProcessExecutionException
 import org.gradle.process.internal.JavaExecHandleBuilder
 import org.gradle.process.internal.worker.WorkerProcess
 import org.gradle.process.internal.worker.WorkerProcessBuilder
@@ -72,9 +71,8 @@ class ForkingTestClassProcessorTest extends Specification {
         def appClasspath = ImmutableList.of(new File("cls.jar"))
         def appModulepath = ImmutableList.of(new File("mod.jar"))
         def implClasspath = ImmutableList.of(new URL("file://cls.jar"))
-        def implModulepath = ImmutableList.of(new URL("file://mod.jar"))
         def processor = newProcessor(new ForkedTestClasspath(
-            appClasspath, appModulepath, implClasspath, implModulepath
+            appClasspath, appModulepath, implClasspath
         ))
 
         when:
@@ -84,7 +82,6 @@ class ForkingTestClassProcessorTest extends Specification {
         1 * workerProcessBuilder.applicationClasspath(_) >> { assert it[0] == appClasspath }
         1 * workerProcessBuilder.applicationModulePath(_) >> { assert it[0] == appModulepath}
         1 * workerProcessBuilder.setImplementationClasspath(_) >> { assert it[0] == implClasspath }
-        1 * workerProcessBuilder.setImplementationModulePath(_) >> { assert it[0] == implModulepath }
     }
 
     def "stopNow does nothing when no remote processor"() {
@@ -120,8 +117,8 @@ class ForkingTestClassProcessorTest extends Specification {
 
         then:
         1 * workerProcess.stopNow()
-        _ * workerProcess.waitForStop() >> { throw new ExecException("waitForStop can throw") }
-        notThrown(ExecException)
+        _ * workerProcess.waitForStop() >> { throw new ProcessExecutionException("waitForStop can throw") }
+        notThrown(ProcessExecutionException)
     }
 
     def "captures and rethrows unrecoverable exceptions thrown by the connection"() {
@@ -175,11 +172,11 @@ class ForkingTestClassProcessorTest extends Specification {
     }
 
     def newProcessor(
-        ForkedTestClasspath classpath = new ForkedTestClasspath(ImmutableList.of(), ImmutableList.of(), ImmutableList.of(), ImmutableList.of())
+        ForkedTestClasspath classpath = new ForkedTestClasspath(ImmutableList.of(), ImmutableList.of(), ImmutableList.of())
     ) {
         return new ForkingTestClassProcessor(
             workerLeaseRegistry, workerProcessFactory, Mock(WorkerTestClassProcessorFactory),
-            Stub(JavaForkOptions), classpath, Mock(Action), Mock(DocumentationRegistry)
+            Stub(JavaForkOptions), classpath, Mock(Action)
         )
     }
 }

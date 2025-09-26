@@ -61,7 +61,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         expect:
         fails(":resolve")
         failure.assertHasCause("Resolution of the configuration ':bar:bar' was attempted without an exclusive lock. This is unsafe and not allowed.")
-        failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
+        failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
     }
 
     private String declareRunInAnotherThread() {
@@ -120,18 +120,13 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         """
 
         when:
-        if (expression == "files { true }") {
-            executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
-        } else if (expression == "fileCollection { true }.files") {
-            executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
-        }
         fails(":resolve")
 
         then:
         failure.assertHasFailure("Execution failed for task ':resolve'.") {
             it.assertHasCause("Resolution of the configuration ':bar' was attempted without an exclusive lock. This is unsafe and not allowed.")
         }
-        failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
+        failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
 
         where:
         expression << [
@@ -146,8 +141,6 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
             "incoming.artifactView { }.artifacts.failures",
             "incoming.artifactView { }.artifacts.artifactFiles.files",
             "resolve()",
-            "files { true }",
-            "fileCollection { true }.files",
             "resolvedConfiguration.files",
             "resolvedConfiguration.resolvedArtifacts"
         ]
@@ -206,7 +199,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         then:
         if (shouldSucceed) {
-            result.assertTaskExecuted(":resolve")
+            result.assertTaskScheduled(":resolve")
         } else {
             result.assertHasErrorOutput(ccMessage as String)
         }
@@ -224,9 +217,6 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         "incoming.artifactView { }.artifacts.failures"                | _
         "incoming.artifactView { }.artifacts.artifactFiles.files"     | _
         "resolve()"                                                   | _
-        "files { true }"                                              | _
-        "fileCollection { true }.files"                               | _
-        "resolvedConfiguration.files"                                 | _
         "resolvedConfiguration.resolvedArtifacts"                     | "org.gradle.api.artifacts.ResolvedArtifact"
     }
 
@@ -403,7 +393,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         succeeds(":help")
     }
 
-    def "fails when configuration is resolved while evaluating lifecycle.beforeProject block"() {
+    def "no deprecation warning when configuration is resolved while evaluating lifecycle.beforeProject block"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
         settingsFile << """
@@ -430,8 +420,6 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         expect:
         executer.withArguments("--parallel", "-I", "init-script.gradle")
-        fails(":help")
-        failureDescriptionContains("Resolution of the configuration ':foo' was attempted without an exclusive lock. This is unsafe and not allowed.")
-        failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
+        succeeds(":help")
     }
 }

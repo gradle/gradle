@@ -22,16 +22,12 @@ import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.CloseableHttpClient
 import org.apache.http.impl.client.HttpClientBuilder
-import org.gradle.api.Plugin
-import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.daemon.DaemonClientFixture
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.TestExecHttpServer
 import org.gradle.process.TestJavaMain
-import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
@@ -44,7 +40,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".*javaexecProjectMethod")
     def 'can execute java with #task'() {
         given:
         buildFile << """
@@ -59,22 +54,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
                     assert testFile.exists()
                 }
                 assert delegate instanceof ExtensionAware
-            }
-
-            task javaexecProjectMethod() {
-                def testFile = file("${'$'}buildDir/${'$'}name")
-                dependsOn(sourceSets.main.output)
-                doFirst {
-                    project.javaexec {
-                        assert !(delegate instanceof ExtensionAware)
-                        classpath(sourceSets.main.output.classesDirs)
-                        mainClass = 'org.gradle.TestMain'
-                        args projectDir, testFile
-                    }
-                }
-                doLast {
-                    assert testFile.exists()
-                }
             }
 
             ${
@@ -93,17 +72,12 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         expect:
-        if (task == 'javaexecProjectMethod') {
-            expectExecMethodDeprecation("The Project.javaexec(Closure) method", "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)")
-            expectTaskProjectDeprecation()
-        }
         succeeds task
 
         where:
-        task << ['javaexecTask', 'javaexecProjectMethod', 'javaexecInjectedTaskAction']
+        task << ['javaexecTask', 'javaexecInjectedTaskAction']
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".*execProjectMethod")
     def 'can execute commands with #task'() {
         given:
         buildFile << """
@@ -122,21 +96,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
                 assert delegate instanceof ExtensionAware
             }
 
-            task execProjectMethod {
-                dependsOn sourceSets.main.runtimeClasspath
-                def testFile = file("${'$'}buildDir/${'$'}name")
-                doFirst {
-                    project.exec {
-                        executable Jvm.current().getJavaExecutable()
-                        args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', projectDir, testFile
-                        assert !(delegate instanceof ExtensionAware)
-                    }
-                }
-                doLast {
-                    assert testFile.exists()
-                }
-            }
-
             ${
             injectedTaskActionTask('execInjectedTaskAction', '''
                 File testFile = layout.buildDirectory.file(name).get().asFile
@@ -152,14 +111,10 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         expect:
-        if (task == 'execProjectMethod') {
-            expectExecMethodDeprecation("The Project.exec(Closure) method", "ExecOperations.exec(Action) or ProviderFactory.exec(Action)")
-            expectTaskProjectDeprecation()
-        }
         succeeds task
 
         where:
-        task << ['execTask', 'execProjectMethod', 'execInjectedTaskAction']
+        task << ['execTask', 'execInjectedTaskAction']
     }
 
     private static String injectedTaskActionTask(String taskName, String taskActionBody) {
@@ -285,7 +240,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ":run"
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = [".*Task", ".*ProjectMethod"])
+    @UnsupportedWithConfigurationCache(iterationMatchers = [".*Task"], because = "Uses ByteArrayOutputStream to capture task output")
     def "can capture output of #task"() {
 
         given:
@@ -309,22 +264,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
                     assert normaliseFileAndLineSeparators(output.toString()) == "Created file \${normaliseFileAndLineSeparators(testFile.canonicalPath)}\\n"
                 }
                 assert delegate instanceof ExtensionAware
-            }
-
-            task execProjectMethod {
-                dependsOn sourceSets.main.runtimeClasspath
-                def testFile = file("${'$'}buildDir/${'$'}name")
-                doLast {
-                    def output = new ByteArrayOutputStream()
-                    project.exec {
-                        executable Jvm.current().getJavaExecutable()
-                        args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', projectDir, testFile
-                        standardOutput = output
-                        assert !(delegate instanceof ExtensionAware)
-                    }
-                    assert testFile.exists()
-                    assert normaliseFileAndLineSeparators(output.toString()) == "Created file \${normaliseFileAndLineSeparators(testFile.canonicalPath)}\\n"
-                }
             }
 
             ${
@@ -359,23 +298,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
                 assert delegate instanceof ExtensionAware
             }
 
-            task javaexecProjectMethod() {
-                def testFile = file("${'$'}buildDir/${'$'}name")
-                dependsOn(sourceSets.main.output)
-                doLast {
-                    def output = new ByteArrayOutputStream()
-                    project.javaexec {
-                        assert !(delegate instanceof ExtensionAware)
-                        classpath(sourceSets.main.output.classesDirs)
-                        mainClass = 'org.gradle.TestMain'
-                        args projectDir, testFile
-                        standardOutput = output
-                    }
-                    assert testFile.exists()
-                    assert normaliseFileAndLineSeparators(output.toString()) == "Created file \${normaliseFileAndLineSeparators(testFile.canonicalPath)}\\n"
-                }
-            }
-
             ${
             injectedTaskActionTask('javaexecInjectedTaskAction', '''
                 File testFile = layout.buildDirectory.file(name).get().asFile
@@ -396,50 +318,13 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         expect:
-        if (task == 'execProjectMethod') {
-            expectExecMethodDeprecation("The Project.exec(Closure) method", "ExecOperations.exec(Action) or ProviderFactory.exec(Action)")
-            expectTaskProjectDeprecation()
-        } else if (task == 'javaexecProjectMethod') {
-            expectExecMethodDeprecation("The Project.javaexec(Closure) method", "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)")
-            expectTaskProjectDeprecation()
-        }
         succeeds task
 
         where:
         task << [
-            'execTask', 'execProjectMethod', 'execInjectedTaskAction',
-            'javaexecTask', 'javaexecProjectMethod', 'javaexecInjectedTaskAction'
+            'execTask', 'execInjectedTaskAction',
+            'javaexecTask','javaexecInjectedTaskAction'
         ]
-    }
-
-    @UnsupportedWithConfigurationCache(because = "Uses script or project at execution time")
-    def "#method is deprecated in Groovy at execution time"() {
-        buildFile """
-            tasks.register("run") {
-                doLast {
-                    $method {
-                        $args
-                    }
-                }
-            }
-        """
-
-        when:
-        expectExecMethodDeprecation(expectedDeprecatedMethod, replacements)
-        if (method.startsWith("project.")) {
-            expectTaskProjectDeprecation()
-        }
-        succeeds("run")
-
-        then:
-        outputContains("Hello")
-
-        where:
-        method             | args           | expectedDeprecatedMethod               | replacements
-        "project.exec"     | execSpec()     | "The Project.exec(Closure) method"     | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
-        "exec"             | execSpec()     | "Using method exec(Closure)"           | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
-        "project.javaexec" | javaExecSpec() | "The Project.javaexec(Closure) method" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
-        "javaexec"         | javaExecSpec() | "Using method javaexec(Closure)"       | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/31282")
@@ -472,304 +357,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds("run", "--max-workers=100", "--parallel")
     }
-
-    @UnsupportedWithConfigurationCache(because = "Runs external process at configuration time")
-    def "#method in #location is deprecated in Groovy at configuration time"() {
-        def initScript = groovyFile("init.gradle", "")
-
-        groovyFile(location, """
-            $method {
-                $args
-            }
-        """)
-
-        buildFile """
-            tasks.register("run") {}
-        """
-
-        when:
-        expectExecMethodDeprecation(expectedDeprecatedMethod, replacements)
-        succeeds("run", "-I${initScript.path}")
-
-        then:
-        outputContains("Hello")
-
-        where:
-        location          | method     | args           | expectedDeprecatedMethod         | replacements
-        "build.gradle"    | "exec"     | execSpec()     | "Using method exec(Closure)"     | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
-        "build.gradle"    | "javaexec" | javaExecSpec() | "Using method javaexec(Closure)" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
-        "settings.gradle" | "exec"     | execSpec()     | "Using method exec(Closure)"     | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
-        "settings.gradle" | "javaexec" | javaExecSpec() | "Using method javaexec(Closure)" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
-        "init.gradle"     | "exec"     | execSpec()     | "Using method exec(Closure)"     | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
-        "init.gradle"     | "javaexec" | javaExecSpec() | "Using method javaexec(Closure)" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
-    }
-
-    @UnsupportedWithConfigurationCache(because = "Runs external process at configuration time")
-    def "#method in precompiled #location plugin is deprecated in Groovy at configuration time"() {
-        createDir("included") {
-            groovyFile(file("build.gradle"), """
-                plugins {
-                    id("groovy-gradle-plugin")
-                }
-            """)
-            file("src/main/groovy/my.build.gradle").touch()
-            file("src/main/groovy/my.settings.gradle").touch()
-
-            file("src/main/groovy/my.${location}.gradle") << """
-                $method {
-                    $args
-                }
-            """
-        }
-
-        file("settings.gradle") << """
-            pluginManagement {
-                includeBuild("included")
-            }
-
-            plugins {
-                id("my")
-            }
-        """
-
-        buildFile """
-            plugins {
-                id("my.build")
-            }
-            tasks.register("run") {}
-        """
-
-        when:
-        expectExecMethodDeprecation(expectedDeprecatedMethod, replacements)
-        succeeds("run")
-
-        then:
-        outputContains("Hello")
-
-        where:
-        location   | method     | args           | expectedDeprecatedMethod        | replacements
-        "build"    | "exec"     | execSpec()     | "Using method exec(Closure)"     | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
-        "build"    | "javaexec" | javaExecSpec() | "Using method javaexec(Closure)" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
-        "settings" | "exec"     | execSpec()     | "Using method exec(Closure)"     | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
-        "settings" | "javaexec" | javaExecSpec() | "Using method javaexec(Closure)" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
-    }
-
-    @UnsupportedWithConfigurationCache(because = "Uses script or project at execution time")
-    def "#method is deprecated in Kotlin at execution time"() {
-        buildKotlinFile << """
-            tasks.register("run") {
-                doLast {
-                    $method {
-                        $args
-                    }
-                }
-            }
-        """
-
-        when:
-        expectExecMethodDeprecation(expectedDeprecatedMethod, replacements)
-        if (method.startsWith("project.")) {
-            expectTaskProjectDeprecation()
-        }
-        succeeds("run")
-
-        then:
-        outputContains("Hello")
-
-        where:
-        method             | args           | expectedDeprecatedMethod              | replacements
-        "project.exec"     | execSpec()     | "The Project.exec(Action) method"     | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
-        "exec"             | execSpec()     | "Using method exec(Action)"           | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
-        "project.javaexec" | javaExecSpec() | "The Project.javaexec(Action) method" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
-        "javaexec"         | javaExecSpec() | "Using method javaexec(Action)"       | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
-    }
-
-    @UnsupportedWithConfigurationCache(because = "Runs external process at configuration time")
-    def "#method in #location is deprecated in Kotlin at configuration time"() {
-        def initScript = file("init.gradle.kts").touch()
-
-        file(location) << """
-            $method {
-                $args
-            }
-        """
-
-        buildKotlinFile << """
-            tasks.register("run") {}
-        """
-
-        when:
-        expectExecMethodDeprecation(expectedDeprecatedMethod, replacements)
-        succeeds("run", "-I${initScript.path}")
-
-        then:
-        outputContains("Hello")
-
-        where:
-        location              | method     | args           | expectedDeprecatedMethod        | replacements
-        "build.gradle.kts"    | "exec"     | execSpec()     | "Using method exec(Action)"     | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
-        "build.gradle.kts"    | "javaexec" | javaExecSpec() | "Using method javaexec(Action)" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
-        "settings.gradle.kts" | "exec"     | execSpec()     | "Using method exec(Action)"     | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
-        "settings.gradle.kts" | "javaexec" | javaExecSpec() | "Using method javaexec(Action)" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
-        "init.gradle.kts"     | "exec"     | execSpec()     | "Using method exec(Action)"     | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
-        "init.gradle.kts"     | "javaexec" | javaExecSpec() | "Using method javaexec(Action)" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
-    }
-
-    @UnsupportedWithConfigurationCache(because = "Runs external process at configuration time")
-    def "#method in precompiled #location plugin is deprecated in Kotlin at configuration time"() {
-        createDir("included") {
-            file("build.gradle.kts") << """
-                plugins {
-                    `kotlin-dsl`
-                }
-
-                repositories {
-                    ${mavenCentralRepository(GradleDsl.KOTLIN)}
-                }
-            """
-            file("src/main/kotlin/my.build.gradle.kts").touch()
-            file("src/main/kotlin/my.settings.gradle.kts").touch()
-
-            file("src/main/kotlin/my.${location}.gradle.kts") << """
-                $method {
-                    $args
-                }
-            """
-        }
-
-        file("settings.gradle.kts") << """
-            pluginManagement {
-                includeBuild("included")
-            }
-
-            plugins {
-                id("my")
-            }
-        """
-
-        buildKotlinFile << """
-            plugins {
-                id("my.build")
-            }
-            tasks.register("run") {}
-        """
-        when:
-        expectExecMethodDeprecation(expectedDeprecatedMethod, replacements)
-        succeeds("run")
-
-        then:
-        outputContains("Hello")
-
-        where:
-        location   | method     | args           | expectedDeprecatedMethod        | replacements
-        "build"    | "exec"     | execSpec()     | "Using method exec(Action)"     | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
-        "build"    | "javaexec" | javaExecSpec() | "Using method javaexec(Action)" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
-        "settings" | "exec"     | execSpec()     | "Using method exec(Action)"     | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
-        "settings" | "javaexec" | javaExecSpec() | "Using method javaexec(Action)" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
-    }
-
-    @UnsupportedWithConfigurationCache(because = "Uses script or project at execution time")
-    def "project.#method is deprecated in Java at execution time"() {
-        createDir("buildSrc") {
-            javaFile(file("src/main/java/MyPlugin.java"), """
-                import ${Plugin.name};
-                import ${Project.name};
-
-                public abstract class MyPlugin implements Plugin<Project> {
-                    @Override public void apply(Project project) {
-                        project.getTasks().register("run", task -> {
-                           task.doLast(t -> {
-                              t.getProject().$method(spec -> {
-                                  $args
-                              });
-                           });
-                        });
-                    }
-                }
-            """)
-        }
-
-        buildFile """
-            apply plugin: MyPlugin
-        """
-
-        when:
-        expectExecMethodDeprecation(expectedDeprecatedMethod, replacements)
-        expectTaskProjectDeprecation()
-        succeeds("run")
-
-        then:
-        outputContains("Hello")
-
-        where:
-        method     | args                 | expectedDeprecatedMethod              | replacements
-        "exec"     | execSpec("spec")     | "The Project.exec(Action) method"     | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
-        "javaexec" | javaExecSpec("spec") | "The Project.javaexec(Action) method" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
-    }
-
-    @UnsupportedWithConfigurationCache(because = "Runs external process at configuration time")
-    def "project.#method is deprecated in Java at configuration time"() {
-        createDir("buildSrc") {
-            javaFile(file("src/main/java/MyPlugin.java"), """
-                import ${Plugin.name};
-                import ${Project.name};
-
-                public abstract class MyPlugin implements Plugin<Project> {
-                    @Override public void apply(Project project) {
-                        project.$method(spec -> {
-                            $args
-                        });
-                    }
-                }
-            """)
-        }
-
-        buildFile """
-            apply plugin: MyPlugin
-
-            tasks.register("run") {}
-        """
-
-        when:
-        expectExecMethodDeprecation(expectedDeprecatedMethod, replacements)
-        succeeds("run")
-
-        then:
-        outputContains("Hello")
-
-        where:
-        method     | args                 | expectedDeprecatedMethod              | replacements
-        "exec"     | execSpec("spec")     | "The Project.exec(Action) method"     | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
-        "javaexec" | javaExecSpec("spec") | "The Project.javaexec(Action) method" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/31942")
-    @UnsupportedWithConfigurationCache(because = "Uses script or project at execution time")
-    def "project.#method uses project dir as working dir by default"() {
-        settingsFile << "include 'a'"
-        file("a/build.gradle") << """
-            tasks.register("run") {
-                doLast {
-                    project.${method} {
-                        $configuration
-                    }
-                }
-            }
-        """
-
-        when:
-        executer.noDeprecationChecks()
-        succeeds("run")
-
-        then:
-        outputContains("user.dir=${testDirectory.file("a").absolutePath}")
-
-        where:
-        method     | configuration
-        "exec"     | execSpecWithJavaExecutable()
-        "javaexec" | javaExecSpec()
-    }
-
 
     @Issue("https://github.com/gradle/gradle/issues/31942")
     def "execOperations.#method uses project dir as working dir by default"() {
@@ -819,50 +406,38 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         "JavaExec" | javaExecSpec()
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/32213")
-    @UnsupportedWithConfigurationCache(because = "Uses script or project at execution time")
-    def "project.#method process is stopped when build is cancelled"() {
-        settingsFile << "include 'a'"
-        file("a/build.gradle") << """
-            tasks.register("appStart") {
-                doLast {
-                    // Using a new Thread is important to escape the task lifecycle and reproduce the issue
-                    Thread.start {
-                        project.${method} {
-                            ${configuration(getHttpServerInfoFile())}
-                        }
-                    }.join()
-                }
+    def "produces useful help message when working directory does not exist"() {
+        buildFile << """
+            task run(type: Exec) {
+                ${execSpecWithJavaExecutable()}
+                workingDir = file("does/not/exist")
             }
         """
 
         when:
-        executer
-            .requireDaemon()
-            .requireIsolatedDaemons()
-            .noDeprecationChecks()
-            .withStackTraceChecksDisabled()
-            // Needed to get client pid
-            .withArgument("--debug")
-            .withTasks("appStart")
-        def client = new DaemonClientFixture(executer.start())
+        fails("run")
 
         then:
-        long port = waitForHttpServerPort()
-        callGet("http://127.0.0.1:$port/test").statusLine.statusCode == 200
+        failure.assertHasDescription("Execution failed for task ':run'")
+            .assertHasCause("Working directory '${file("does/not/exist")}' does not exist.")
+            .assertHasNoCause("No such file or directory")
+    }
+
+    def "produces useful help message when working directory is not a directory"() {
+        file("is/not/dir").touch()
+        buildFile << """
+            task run(type: Exec) {
+                ${execSpecWithJavaExecutable()}
+                workingDir = file("is/not/dir")
+            }
+        """
 
         when:
-        client.kill()
-        callGet("http://127.0.0.1:$port/test")
+        fails("run")
 
         then:
-        def e = thrown(ConnectException)
-        e.message.contains("Connection refused")
-
-        where:
-        method     | configuration
-        "exec"     | { File serverInfoFile -> execSpecWithHttpServerExecutable(serverInfoFile) }
-        "javaexec" | { File serverInfoFile -> javaExecSpecWithHttpServer(serverInfoFile) }
+        failure.assertHasDescription("Execution failed for task ':run'")
+            .assertHasCause("Working directory '${file("is/not/dir")}' is not a directory.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/32213")
@@ -887,7 +462,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             .requireDaemon()
             .requireIsolatedDaemons()
             .withStackTraceChecksDisabled()
-            // Needed to get client pid
+        // Needed to get client pid
             .withArgument("--debug")
             .withTasks("appStart")
         def client = new DaemonClientFixture(executer.start())
@@ -910,10 +485,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         "javaexec" | { File serverInfoFile -> javaExecSpecWithHttpServer(serverInfoFile) }
     }
 
-    private static def execSpec(def owner = "") {
-        "${prop(owner, "commandLine")}(${echoCommandLineArgs("Hello")});"
-    }
-
     private static def execSpecWithJavaExecutable(def owner = "") {
         """
             ${prop(owner, "executable")}(org.gradle.internal.jvm.Jvm.current().getJavaExecutable())
@@ -926,13 +497,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             ${prop(owner, "executable")}(org.gradle.internal.jvm.Jvm.current().getJavaExecutable())
             ${prop(owner, "args")}('-cp',${javaExecHttpServerClasspath()}, '${TestExecHttpServer.name}', '${TextUtil.normaliseFileSeparators(serverInfoFile.absolutePath)}')
         """
-    }
-
-    private static def echoCommandLineArgs(String message) {
-        if (OperatingSystem.current().isWindows()) {
-            return """ "cmd.exe", "/d", "/c", "echo $message" """.trim()
-        }
-        return """ "echo", "$message" """.trim()
     }
 
     private static def javaExecSpec(def owner = "") {
@@ -961,20 +525,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
     private static def javaExecHttpServerClasspath() {
         """ "${TextUtil.escapeString(TestExecHttpServer.classLocation)}" """.trim()
-    }
-
-    private void expectExecMethodDeprecation(String deprecation, String replacements) {
-        executer.expectDocumentedDeprecationWarning("$deprecation has been deprecated. " +
-            "This is scheduled to be removed in Gradle 9.0. " +
-            "Use $replacements instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_project_exec")
-    }
-
-    private void expectTaskProjectDeprecation() {
-        executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. "+
-            "This will fail with an error in Gradle 10.0. " +
-            "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
     }
 
     private long waitForHttpServerPort(int waitTimeSeconds = 20) {

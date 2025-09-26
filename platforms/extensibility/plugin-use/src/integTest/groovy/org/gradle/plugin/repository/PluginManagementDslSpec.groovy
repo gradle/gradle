@@ -311,7 +311,6 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
             pluginManagement {
                 repositories {
                     gradlePluginPortal()
-                    jcenter()
                     google()
                     mavenCentral()
                     mavenLocal()
@@ -320,19 +319,7 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning "The RepositoryHandler.jcenter() method has been deprecated. " +
-            "This is scheduled to be removed in Gradle 9.0. JFrog announced JCenter's sunset in February 2021. Use mavenCentral() instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#jcenter_deprecation"
-
-        when:
-        succeeds "help"
-
-        then:
-        verifyAll(receivedProblem) {
-            fqid == 'deprecation:repository-jcenter'
-            contextualLabel == 'The RepositoryHandler.jcenter() method has been deprecated.'
-            solutions == [ 'JFrog announced JCenter\'s sunset in February 2021. Use mavenCentral() instead.' ]
-        }
+        succeeds("help")
     }
 
     void includesLinkToUserguide() {

@@ -16,14 +16,20 @@
 
 package org.gradle.api.reporting.components
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 
 class DiagnosticsComponentReportIntegrationTest extends AbstractNativeComponentReportIntegrationTest {
 
     @RequiresInstalledToolChain
-    @ToBeFixedForConfigurationCache(because = ":components")
     def "informs the user when project has no components defined"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'component-reporting-tasks'
+            }
+        """
+
         when:
         executer.withArgument("--no-problems-report")
         succeeds "components"
@@ -35,7 +41,6 @@ No components defined for this project.
     }
 
     @RequiresInstalledToolChain
-    @ToBeFixedForConfigurationCache(because = ":components")
     def "shows details of multiple components"() {
         given:
         buildFile << """
@@ -44,10 +49,11 @@ plugins {
     id 'c'
 }
 
-model {
+
     toolChains {
         ${toolChain.buildScriptConfig}
     }
+model {
     components {
         nativeLib(NativeLibrarySpec)
     }

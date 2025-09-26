@@ -21,6 +21,7 @@ import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 
 import java.io.File;
+import java.util.Set;
 
 public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> {
     private final Class<? extends WorkAction<T>> implementationClass;
@@ -28,11 +29,20 @@ public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> {
     private final Isolatable<T> isolatedParams;
     private final ClassLoaderStructure classLoaderStructure;
     private final File baseDir;
-    private final boolean usesInternalServices;
+    private final Set<Class<?>> additionalWhitelistedServices;
     private final String displayName;
     private final File projectCacheDir;
 
-    public IsolatedParametersActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, String displayName, String actionImplementationClassName, Isolatable<T> isolatedParams, ClassLoaderStructure classLoaderStructure, File baseDir, File projectCacheDir, boolean usesInternalServices) {
+    public IsolatedParametersActionExecutionSpec(
+        Class<? extends WorkAction<T>> implementationClass,
+        String displayName,
+        String actionImplementationClassName,
+        Isolatable<T> isolatedParams,
+        ClassLoaderStructure classLoaderStructure,
+        File baseDir,
+        File projectCacheDir,
+        Set<Class<?>> additionalWhitelistedServices
+    ) {
         this.implementationClass = implementationClass;
         this.displayName = displayName;
         this.actionImplementationClassName = actionImplementationClassName;
@@ -40,7 +50,7 @@ public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> {
         this.classLoaderStructure = classLoaderStructure;
         this.baseDir = baseDir;
         this.projectCacheDir = projectCacheDir;
-        this.usesInternalServices = usesInternalServices;
+        this.additionalWhitelistedServices = additionalWhitelistedServices;
     }
 
     public String getDisplayName() {
@@ -69,8 +79,8 @@ public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> {
         return actionImplementationClassName;
     }
 
-    public boolean isInternalServicesRequired() {
-        return usesInternalServices;
+    public Set<Class<?>> getAdditionalWhitelistedServices() {
+        return additionalWhitelistedServices;
     }
 
     public Isolatable<T> getIsolatedParams() {

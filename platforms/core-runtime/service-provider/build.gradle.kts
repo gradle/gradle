@@ -4,7 +4,11 @@ plugins {
 
 description = "Internal API to declare services provided by Gradle modules"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
 
 dependencies {
     api(projects.serviceLookup)
@@ -12,4 +16,8 @@ dependencies {
 
     api(libs.jspecify)
     api(libs.errorProneAnnotations)
+}
+
+errorprone {
+    nullawayEnabled = true
 }

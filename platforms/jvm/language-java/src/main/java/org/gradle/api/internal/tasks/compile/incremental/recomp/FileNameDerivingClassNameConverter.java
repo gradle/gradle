@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.Set;

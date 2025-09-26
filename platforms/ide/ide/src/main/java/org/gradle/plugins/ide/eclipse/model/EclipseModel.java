@@ -102,9 +102,7 @@ public abstract class EclipseModel {
      * @since 4.9
      */
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     /**
      * Configures eclipse project information

@@ -22,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Documents that the type or method is <em>not</em> referenced by the build scan plugin,
+ * Documents that the type or method is <em>not</em> referenced by the Develocity plugin,
  * and therefore can be changed or removed without breaking it.
  *
  * @since 5.1
@@ -32,7 +32,7 @@ import java.lang.annotation.Target;
 public @interface NotUsedByScanPlugin {
 
     /**
-     * Any clarifying comments about why it isn't used by the build scan plugin or how it is used instead.
+     * Any clarifying comments about why it isn't used by the Develocity plugin or how it is used instead.
      */
     String value() default "";
 

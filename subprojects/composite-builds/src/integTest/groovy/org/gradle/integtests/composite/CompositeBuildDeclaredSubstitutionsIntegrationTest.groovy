@@ -155,8 +155,8 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         execute(buildA, "assembleB")
 
         then:
-        result.assertTaskExecuted(":buildB:jar")
-        result.assertTaskExecuted(":buildC:jar")
+        result.assertTaskScheduled(":buildB:jar")
+        result.assertTaskScheduled(":buildC:jar")
     }
 
     def "can substitute arbitrary coordinates for included build"() {

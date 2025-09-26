@@ -16,11 +16,8 @@
 
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
 class EclipseLinkedResourceIntegrationTest extends AbstractEclipseIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache
     def "can reference linked resources as source folders"() {
         given:
         multiProjectWithSiblingSourceFolders()

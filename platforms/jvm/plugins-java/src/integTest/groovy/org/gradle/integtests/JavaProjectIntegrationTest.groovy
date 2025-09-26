@@ -55,30 +55,6 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void handlesTestSrcWhichDoesNotContainAnyTestCases() {
-        given:
-        testFile("build.gradle") << """
-            plugins {
-                id("java")
-            }
-
-            ${mavenCentralRepository()}
-
-            testing.suites.test.useJUnit()
-        """
-        testFile("src/test/java/org/gradle/NotATest.java") << """
-            package org.gradle;
-            public class NotATest {}
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("No test executed. This behavior has been deprecated. " +
-            "This will fail with an error in Gradle 9.0. There are test sources present but no test was executed. Please check your test configuration. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_fail_on_no_test_executed")
-        executer.withTasks("build").run()
-    }
-
-    @Test
     void javadocGenerationFailureBreaksBuild() throws IOException {
         TestFile buildFile = testFile("build.gradle")
         buildFile.write("apply plugin: 'java'")
@@ -170,7 +146,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         //when
         def result = executer.withTasks("classes").run()
         //then
-        result.assertTasksExecuted(":compileJava", ":generateResource", ":processResources", ":classes")
+        result.assertTasksScheduled(":compileJava", ":generateResource", ":processResources", ":classes")
 
         //when
         result = executer.withTasks("testClasses").run()
@@ -201,56 +177,56 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
         def result = inTestDirectory().withTasks('c:buildDependents').run()
 
-        assert result.assertTaskExecuted(':a:build')
-        assert result.assertTaskExecuted(':a:jar')
-        assert result.assertTaskExecuted(':b:build')
-        assert result.assertTaskExecuted(':b:jar')
-        assert result.assertTaskExecuted(':c:build')
-        assert result.assertTaskExecuted(':c:jar')
+        assert result.assertTaskScheduled(':a:build')
+        assert result.assertTaskScheduled(':a:jar')
+        assert result.assertTaskScheduled(':b:build')
+        assert result.assertTaskScheduled(':b:jar')
+        assert result.assertTaskScheduled(':c:build')
+        assert result.assertTaskScheduled(':c:jar')
 
         result = inTestDirectory().withTasks('b:buildDependents').run()
 
-        assert result.assertTaskExecuted(':a:build')
-        assert result.assertTaskExecuted(':a:jar')
-        assert result.assertTaskExecuted(':b:build')
-        assert result.assertTaskExecuted(':b:jar')
-        assert result.assertTaskNotExecuted(':c:build')
-        assert result.assertTaskExecuted(':c:jar')
+        assert result.assertTaskScheduled(':a:build')
+        assert result.assertTaskScheduled(':a:jar')
+        assert result.assertTaskScheduled(':b:build')
+        assert result.assertTaskScheduled(':b:jar')
+        assert result.assertTasksNotScheduled(':c:build')
+        assert result.assertTaskScheduled(':c:jar')
 
         result = inTestDirectory().withTasks('a:buildDependents').run()
 
-        assert result.assertTaskExecuted(':a:build')
-        assert result.assertTaskExecuted(':a:jar')
-        assert result.assertTaskNotExecuted(':b:build')
-        assert result.assertTaskExecuted(':b:jar')
-        assert result.assertTaskNotExecuted(':c:build')
-        assert result.assertTaskExecuted(':c:jar')
+        assert result.assertTaskScheduled(':a:build')
+        assert result.assertTaskScheduled(':a:jar')
+        assert result.assertTasksNotScheduled(':b:build')
+        assert result.assertTaskScheduled(':b:jar')
+        assert result.assertTasksNotScheduled(':c:build')
+        assert result.assertTaskScheduled(':c:jar')
 
         result = inTestDirectory().withTasks('a:buildNeeded').run()
 
-        assert result.assertTaskExecuted(':a:build')
-        assert result.assertTaskExecuted(':a:jar')
-        assert result.assertTaskExecuted(':b:build')
-        assert result.assertTaskExecuted(':b:jar')
-        assert result.assertTaskExecuted(':c:build')
-        assert result.assertTaskExecuted(':c:jar')
+        assert result.assertTaskScheduled(':a:build')
+        assert result.assertTaskScheduled(':a:jar')
+        assert result.assertTaskScheduled(':b:build')
+        assert result.assertTaskScheduled(':b:jar')
+        assert result.assertTaskScheduled(':c:build')
+        assert result.assertTaskScheduled(':c:jar')
 
         result = inTestDirectory().withTasks('b:buildNeeded').run()
 
-        assert result.assertTaskNotExecuted(':a:build')
-        assert result.assertTaskNotExecuted(':a:jar')
-        assert result.assertTaskExecuted(':b:build')
-        assert result.assertTaskExecuted(':b:jar')
-        assert result.assertTaskExecuted(':c:build')
-        assert result.assertTaskExecuted(':c:jar')
+        assert result.assertTasksNotScheduled(':a:build')
+        assert result.assertTasksNotScheduled(':a:jar')
+        assert result.assertTaskScheduled(':b:build')
+        assert result.assertTaskScheduled(':b:jar')
+        assert result.assertTaskScheduled(':c:build')
+        assert result.assertTaskScheduled(':c:jar')
 
         result = inTestDirectory().withTasks(':c:buildNeeded').run()
 
-        assert result.assertTaskNotExecuted(':a:build')
-        assert result.assertTaskNotExecuted(':a:jar')
-        assert result.assertTaskNotExecuted(':b:build')
-        assert result.assertTaskNotExecuted(':b:jar')
-        assert result.assertTaskExecuted(':c:build')
+        assert result.assertTasksNotScheduled(':a:build')
+        assert result.assertTasksNotScheduled(':a:jar')
+        assert result.assertTasksNotScheduled(':b:build')
+        assert result.assertTasksNotScheduled(':b:jar')
+        assert result.assertTaskScheduled(':c:build')
     }
 
     @Test
@@ -286,7 +262,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         """
 
         def result = inTestDirectory().withTasks("a:classes").run()
-        result.assertTasksExecuted(":b:compileJava", ":a:compileJava", ":a:processResources", ":a:classes")
+        result.assertTasksScheduled(":b:compileJava", ":a:compileJava", ":a:processResources", ":a:classes")
     }
 
 }

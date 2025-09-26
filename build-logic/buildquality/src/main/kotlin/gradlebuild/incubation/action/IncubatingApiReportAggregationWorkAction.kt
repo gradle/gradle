@@ -16,23 +16,35 @@
 
 package gradlebuild.incubation.action
 
+import org.gradle.api.logging.Logger
 import org.gradle.workers.WorkAction
+import org.slf4j.LoggerFactory
 
 
 abstract class IncubatingApiReportAggregationWorkAction : WorkAction<IncubatingApiReportAggregationParameter> {
+
+    companion object {
+        val LOGGER: Logger = LoggerFactory.getLogger(IncubatingApiReportAggregationWorkAction::class.java.name) as Logger
+        const val GITHUB_BASE_URL = "https://github.com/gradle/gradle/blob"
+    }
+
     override fun execute() {
-        val byCategory = mutableMapOf<String, ReportNameToProblems>()
+        val byCategory = mutableMapOf<String, ProjectNameToProblems>()
         parameters.reports.files.sorted().forEach { file ->
             file.forEachLine(Charsets.UTF_8) {
-                val (version, _, problem) = it.split(';')
+                val (version, _, problem, relativePath, lineNumber) = it.split(';')
                 byCategory.getOrPut(toCategory(version, file.nameWithoutExtension)) {
                     mutableMapOf()
                 }.getOrPut(file.nameWithoutExtension) {
                     mutableSetOf()
-                }.add(problem)
+                }.add(Problem(name = problem, relativePath = relativePath, lineNumber = lineNumber.toInt()))
             }
         }
-        generateReport(byCategory)
+        generateHtmlReport(byCategory)
+        LOGGER.lifecycle("Generated incubating html report report to file://${parameters.htmlReportFile.get().asFile.absolutePath}")
+
+        generateCsvReport(byCategory)
+        LOGGER.lifecycle("Generated incubating csv report to file://${parameters.csvReportFile.get().asFile.absolutePath}")
     }
 
     private
@@ -42,7 +54,7 @@ abstract class IncubatingApiReportAggregationWorkAction : WorkAction<IncubatingA
     }
 
     private
-    fun generateReport(data: Map<String, ReportNameToProblems>) {
+    fun generateHtmlReport(data: Map<String, ProjectNameToProblems>) {
         val outputFile = parameters.htmlReportFile.get().asFile
         outputFile.parentFile.mkdirs()
         outputFile.printWriter(Charsets.UTF_8).use { writer ->
@@ -67,14 +79,14 @@ abstract class IncubatingApiReportAggregationWorkAction : WorkAction<IncubatingA
                 writer.println("<li><a href=\"#$category\">$category</a><br></li>")
             }
             writer.println("</ul>")
-            data.toSortedMap().forEach { (category, problems) ->
+            data.toSortedMap().forEach { (category, projectsWithProblems) ->
                 writer.println("<a name=\"$category\"></a>")
                 writer.println("<h2>$category</h2>")
-                problems.forEach { (name, issues) ->
-                    writer.println("<h3>In $name</h3>")
+                projectsWithProblems.forEach { (project, problems) ->
+                    writer.println("<h3>In $project</h3>")
                     writer.println("<ul>")
-                    issues.forEach {
-                        writer.println("   <li>${it.escape()}</li>")
+                    problems.forEach {
+                        writer.println("   <li>${it.name.escape()}</li>")
                     }
                     writer.println("</ul>")
                 }
@@ -84,8 +96,34 @@ abstract class IncubatingApiReportAggregationWorkAction : WorkAction<IncubatingA
     }
 
     private
+    fun generateCsvReport(data: Map<String, ProjectNameToProblems>) {
+        val outputFile = parameters.csvReportFile.get().asFile
+        val currentCommit = parameters.currentCommit.get()
+        outputFile.parentFile.mkdirs()
+        outputFile.printWriter(Charsets.UTF_8).use { writer ->
+            writer.println("Link;Platform/Subproject;Incubating since")
+            data.toSortedMap().forEach { (category, projectsWithProblems) ->
+                projectsWithProblems.forEach { (project, problems) ->
+                    problems.forEach {
+                        val url = "$GITHUB_BASE_URL/$currentCommit/${it.relativePath}#L${it.lineNumber}".urlEncodeSpace()
+                        writer.println("=HYPERLINK(\"$url\",\"${it.name}\");$project;${category.removePrefix("Incubating since ")};")
+                    }
+                }
+            }
+        }
+    }
+
+    private
+    fun String.urlEncodeSpace() = replace(" ", "%20")
+
+    private
     fun String.escape() = replace("<", "&lt;").replace(">", "&gt;")
 }
 
+data class Problem(
+    val name: String,
+    val relativePath: String,
+    val lineNumber: Int
+)
 
-typealias ReportNameToProblems = MutableMap<String, MutableSet<String>>
+typealias ProjectNameToProblems = MutableMap<String, MutableSet<Problem>>

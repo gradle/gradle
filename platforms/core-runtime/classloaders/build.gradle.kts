@@ -22,9 +22,18 @@ plugins {
 
 description = "Tools to handle classloaders"
 
-gradlebuildJava{
-    usedInWorkers()
-    usesFutureStdlib = true
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
+
+jvmCompile {
+    compilations {
+        named("main") {
+            usesFutureStdlib = true
+        }
+    }
 }
 
 dependencies {

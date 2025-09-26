@@ -53,13 +53,19 @@ class IsolatedProjectsIdeSyncFixture {
     private void checkProblemsAgainstModel(HasConfigurationCacheProblemsInReportSpec spec, Map<String, Object> jsModel) {
         def problemsDiagnostics = jsModel.diagnostics.findAll { it['problem'] != null && it['trace'] != null }
 
-        def actualLocationsWithProblems = problemsDiagnostics.collect {
-            def message = configurationCacheProblemsFixture.formatStructuredMessage(it['problem'])
-            def location = configurationCacheProblemsFixture.formatTrace(it['trace'])
+        def actualLocationsWithProblems = problemsDiagnostics.collect { diagnostic ->
+            def problem = diagnostic['problem']
+            assert problem instanceof List && problem.every { it instanceof Map }
+            def message = configurationCacheProblemsFixture.formatStructuredMessage(problem)
+            def trace = diagnostic['trace']
+            assert trace instanceof Map
+            def location = configurationCacheProblemsFixture.formatTrace(trace)
             Pair.of(location, message)
         }.unique()
 
-        assert jsModel.totalProblemCount == spec.totalProblemsCount
+        if (!spec.ignoreTotalProblemsCount) {
+            assert jsModel.totalProblemCount == spec.totalProblemsCount
+        }
         assert actualLocationsWithProblems.size() == spec.locationsWithProblems.size()
         assert actualLocationsWithProblems.every { actualLocation ->
             spec.locationsWithProblems.any { expectedLocation ->
@@ -88,6 +94,7 @@ class IsolatedProjectsIdeSyncFixture {
 
     private static TestFile resolveSingleConfigurationCacheReportDir(TestFile rootDir) {
         TestFile reportsDir = rootDir.file("build/reports/configuration-cache")
+        assert reportsDir.exists() : "Configuration cache report directory"
         List<TestFile> reportDirs = []
         Files.walkFileTree(reportsDir.toPath(), new SimpleFileVisitor<Path>() {
             @Override

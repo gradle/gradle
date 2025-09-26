@@ -29,7 +29,7 @@ import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.joining;
-import static org.apache.commons.lang.StringUtils.repeat;
+import static org.apache.commons.lang3.StringUtils.repeat;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;

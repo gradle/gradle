@@ -35,14 +35,9 @@ import org.gradle.tooling.events.problems.LineInFileLocation
 import org.gradle.tooling.events.problems.Problem
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
-import org.junit.Assume
 
-import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
-import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk21
-import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
-import static org.gradle.integtests.tooling.r89.ProblemProgressEventCrossVersionTest.buildFileLocation
 
 @ToolingApiVersion(">=8.12")
 @TargetGradleVersion(">=8.9")
@@ -66,14 +61,10 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     def "Failing executions produce problems"() {
         setup:
         buildFile """
-            plugins {
-              id 'java-library'
-            }
-            repositories.jcenter()
             task bar {}
             task baz {}
         """
-
+        settingsFile << 'rootProject.name = "root"'
 
         when:
         def listener = new ProblemProgressListener()
@@ -89,14 +80,8 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-        listener.problems.size() == 2
-        verifyAll(listener.problems[0]) {
-            definition.id.displayName.contains("The RepositoryHandler.jcenter() method has been deprecated.")
-            definition.id.group.displayName in ["Deprecation", "deprecation", "repository-jcenter"]
-            definition.id.group.name in ["deprecation", "repository-jcenter", "deprecation-logger"]
-            definition.severity == Severity.WARNING
-            locations(it).find { l -> l instanceof LineInFileLocation && l.path == buildFileLocation(buildFile, targetVersion) }
-        }
+        listener.problems.size() == 1
+        listener.problems[0].contextualLabel.contextualLabel == "Cannot locate tasks that match ':ba' as task 'ba' is ambiguous in root project 'root'. Candidates are: 'bar', 'baz'."
     }
 
     @TargetGradleVersion(">=8.9 <8.13")
@@ -199,7 +184,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     def "Can use problems service in model builder and get failure objects"() {
         given:
-        Assume.assumeTrue(javaHome != null)
         buildFile getBuildScriptSampleContent(false, false, targetVersion)
         org.gradle.integtests.tooling.r87.ProblemProgressEventCrossVersionTest.ProblemProgressListener listener
         listener = new org.gradle.integtests.tooling.r87.ProblemProgressEventCrossVersionTest.ProblemProgressListener()
@@ -221,11 +205,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         failureMessage(problems[0].problem.failure) == 'test'
 
         where:
-        javaHome << [
-            jdk8,
-            jdk17,
-            jdk21
-        ]
+        javaHome << AvailableJavaHomes.getSupportedDaemonJdks()
     }
 
     static void validateCompilationProblem(List<SingleProblemEvent> problems, TestFile buildFile) {

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.testing.TestClassConsumer;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.actor.Actor;
@@ -25,7 +25,6 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 
 public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor {
-
     private final IdGenerator<?> idGenerator;
     private final JUnitSpec spec;
     private final Clock clock;
@@ -44,12 +43,26 @@ public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor {
     }
 
     @Override
-    protected Action<String> createTestExecutor(Actor resultProcessorActor) {
+    public void assertTestFrameworkAvailable() {
+        try {
+            Class.forName("org.junit.runner.notification.RunListener");
+        } catch (ClassNotFoundException e) {
+            throw new TestFrameworkNotAvailableException("Failed to load JUnit 4.  Please ensure that the JUnit 4 library is available on the test's runtime classpath.");
+        }
+    }
+
+    @Override
+    protected TestClassConsumer createTestExecutor(Actor resultProcessorActor) {
         TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
         TestClassExecutionListener threadSafeTestClassListener = resultProcessorActor.getProxy(TestClassExecutionListener.class);
 
-        JUnitTestEventAdapter junitEventAdapter = new JUnitTestEventAdapter(threadSafeResultProcessor, clock, idGenerator);
-        return new JUnitTestClassExecutor(Thread.currentThread().getContextClassLoader(), spec, junitEventAdapter, threadSafeTestClassListener);
+        return new JUnitTestClassExecutor(
+            Thread.currentThread().getContextClassLoader(),
+            spec,
+            clock,
+            idGenerator,
+            threadSafeTestClassListener,
+            threadSafeResultProcessor
+        );
     }
-
 }

@@ -16,45 +16,29 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 
 /**
  * A module representing a component with no unique identity.
  */
 public class AnonymousModule implements Module {
 
-    private static final ModuleComponentIdentifier ID = new DefaultModuleComponentIdentifier(
-        DefaultModuleIdentifier.newId(
-            "unspecified",
-            "unspecified"
-        ),
-        Project.DEFAULT_VERSION
-    );
-
     @Override
     public String getGroup() {
-        return ID.getGroup();
+        return "unspecified";
     }
 
     @Override
     public String getName() {
-        return ID.getModule();
+        return "unspecified";
     }
 
     @Override
     public String getVersion() {
-        return ID.getVersion();
+        return Project.DEFAULT_VERSION;
     }
 
     @Override
     public String getStatus() {
         return Project.DEFAULT_STATUS;
-    }
-
-    @Override
-    public ComponentIdentifier getComponentId() {
-        return ID;
     }
 }

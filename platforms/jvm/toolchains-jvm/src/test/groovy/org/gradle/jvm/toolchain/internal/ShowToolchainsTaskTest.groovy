@@ -65,7 +65,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
      | Auto-detection:     {description}Enabled{normal}
      | Auto-download:      {description}Enabled{normal}
 
-{identifier} + AdoptOpenJDK JRE 1.8.0_202-b01{normal}
+{identifier} + AdoptOpenJDK JRE 8 (1.8.0_202-b01){normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}
@@ -73,7 +73,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
-{identifier} + AdoptOpenJDK JRE 1.8.0_404-b01{normal}
+{identifier} + AdoptOpenJDK JRE 8 (1.8.0_404-b01){normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}8{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}
@@ -81,7 +81,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
-{identifier} + AdoptOpenJDK JRE 9+2{normal}
+{identifier} + AdoptOpenJDK JRE 9 (9+2){normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}9{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}
@@ -89,7 +89,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
-{identifier} + AdoptOpenJDK JRE 14+2{normal}
+{identifier} + AdoptOpenJDK JRE 14 (14+2){normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}14{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}
@@ -97,7 +97,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
-{identifier} + AdoptOpenJDK JRE 15-ea+2{normal}
+{identifier} + AdoptOpenJDK JRE 15 (15-ea+2){normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}15{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}
@@ -127,7 +127,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
      | Auto-detection:     {description}Enabled{normal}
      | Auto-download:      {description}Enabled{normal}
 
-{identifier} + AdoptOpenJDK JRE 14+1{normal}
+{identifier} + AdoptOpenJDK JRE 14 (14+1){normal}
      | Location:           {description}path{normal}
      | Language Version:   {description}14{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}

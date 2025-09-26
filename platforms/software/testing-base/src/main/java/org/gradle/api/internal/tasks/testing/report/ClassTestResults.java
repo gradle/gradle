@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.report;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.FileUtils;
 
 import java.util.Collection;
@@ -26,6 +26,9 @@ import java.util.TreeSet;
  * Test results for a given class.
  */
 public class ClassTestResults extends CompositeTestResults {
+    private static final String HTML_REPORT_PREFIX = "classes/";
+    private static final String HTML_EXTENSION = ".html";
+
     private final long id;
     private final String name;
     private final String displayName;
@@ -43,7 +46,7 @@ public class ClassTestResults extends CompositeTestResults {
         this.name = name;
         this.displayName = displayName;
         this.packageResults = packageResults;
-        baseUrl = "classes/" + FileUtils.toSafeFileName(name) + ".html";
+        baseUrl = HTML_REPORT_PREFIX + FileUtils.toSafeFileName(name) + HTML_EXTENSION;
     }
 
     public long getId() {

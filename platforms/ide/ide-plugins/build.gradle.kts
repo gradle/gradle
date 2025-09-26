@@ -20,12 +20,6 @@ plugins {
 
 description = "Plugins that add support for generating IDE project files used for importing Gradle projects into IDEs"
 
-errorprone {
-    disabledChecks.addAll(
-        "MixedMutabilityReturnType", // 2 occurrences
-    )
-}
-
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
@@ -101,7 +95,6 @@ packageCycles {
  */
 testFilesCleanup.reportOnly = true
 
-integTest.usesJavadocCodeSnippets = true
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

@@ -65,6 +65,29 @@
         }
     }
 
+    function initClipboardCopyButton() {
+        document.querySelectorAll(".clipboard-copy-btn").forEach((button) => {
+            const copyElementId = button.getAttribute("data-copy-element-id");
+            const elementWithCodeToSelect = document.getElementById(copyElementId);
+
+            button.addEventListener("click", () => {
+                const text = elementWithCodeToSelect.innerText.trim();
+                navigator.clipboard
+                    .writeText(text)
+                    .then(() => {
+                        button.textContent = "Copied!";
+                        setTimeout(() => {
+                            button.textContent = "Copy";
+                        }, 1500);
+                    })
+                    .catch((err) => {
+                        alert("Failed to copy to the clipboard: '" + err.message + "'. Check JavaScript console for more details.")
+                        console.warn("Failed to copy to the clipboard", err);
+                    });
+            });
+        });
+    }
+
     function initControls() {
         if (findCodeBlocks().length > 0) {
             const checkBox = getCheckBox();
@@ -75,6 +98,8 @@
 
             removeClass(label, "hidden");
          }
+
+         initClipboardCopyButton()
     }
 
     class TabManager {

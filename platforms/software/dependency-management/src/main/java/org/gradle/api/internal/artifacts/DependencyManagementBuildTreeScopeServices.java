@@ -52,9 +52,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.TwoStageModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultLocalVariantGraphResolveStateBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalVariantGraphResolveStateBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VariantArtifactSetCache;
@@ -74,7 +72,7 @@ import org.gradle.api.internal.filestore.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.api.internal.filestore.TwoStageArtifactIdentifierFileStore;
 import org.gradle.api.internal.project.HoldsProjectState;
-import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.initialization.layout.BuildTreeLocations;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.component.model.ComponentIdGenerator;
@@ -117,7 +115,6 @@ class DependencyManagementBuildTreeScopeServices implements ServiceRegistrationP
         registration.add(ThisBuildTreeOnlyComponentResultSerializer.class);
         registration.add(AdhocHandlingComponentResultSerializer.class);
         registration.add(ConnectionFailureRepositoryDisabler.class);
-        registration.add(LocalComponentProvider.class, DefaultProjectLocalComponentProvider.class);
         registration.add(ProjectPublicationRegistry.class, HoldsProjectState.class, DefaultProjectPublicationRegistry.class);
         registration.add(LocalVariantGraphResolveStateBuilder.class, DefaultLocalVariantGraphResolveStateBuilder.class);
         registration.add(ResolvedVariantCache.class);
@@ -180,9 +177,8 @@ class DependencyManagementBuildTreeScopeServices implements ServiceRegistrationP
     }
 
     @Provides
-    StartParameterResolutionOverride createStartParameterResolutionOverride(StartParameter startParameter, BuildLayout buildLayout) {
-        File rootDirectory = buildLayout.getRootDirectory();
-        File gradleDir = new File(rootDirectory, "gradle");
+    StartParameterResolutionOverride createStartParameterResolutionOverride(StartParameter startParameter, BuildTreeLocations buildTreeLocations) {
+        File gradleDir = new File(buildTreeLocations.getBuildTreeRootDirectory(), "gradle");
         return new StartParameterResolutionOverride(startParameter, gradleDir);
     }
 

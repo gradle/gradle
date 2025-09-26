@@ -47,11 +47,11 @@ TIP: Keep the old Maven build and new Gradle build side by side.
 You know the Maven build works, so you should keep it until you are confident that the Gradle build produces all the same artifacts.
 This also means that users can try the Gradle build without creating a new copy of the source tree.
 
- . link:https://scans.gradle.com[Create a build scan for the Maven build].
+ . link:https://scans.gradle.com[Create a Build Scan for the Maven build].
 +
-A build scan will make it easier to visualize what's happening in your existing Maven build.
+A Build Scan will make it easier to visualize what's happening in your existing Maven build.
 For Maven builds, you will be able to see the project structure, what plugins are being used, a timeline of the build steps, and more.
-Keep this handy so you can compare it to the Gradle build scans while converting the project.
+Keep this handy so you can compare it to the Build Scan while converting the project.
 +
 . Develop a mechanism to verify that the two builds produce the same artifacts.
 +
@@ -72,16 +72,16 @@ Most differences will be minor, but it's worth identifying them and verifying th
 This will create all the Gradle build files you need, even for <<migmvn:multimodule_builds,multi-module builds>>.
 For simpler Maven projects, the Gradle build will be ready to run!
 +
- . link:https://scans.gradle.com[Create a build scan for the Gradle build].
+ . link:https://scans.gradle.com[Create a Build Scan for the Gradle build].
 +
-A build scan will make it easier to visualize what's happening in the build.
+A Build Scan will make it easier to visualize what's happening in the build.
 For Gradle builds, you'll be able to see the project structure, the dependencies (regular and inter-project ones), what plugins are being used and the console output of the build.
 +
 Your build may fail at this point, but that's ok; the scan will still run.
-Compare the build scan for the Gradle build to the one for the Maven build and continue down this list to troubleshoot the failures.
+Compare the Build Scan for the Gradle build to the one for the Maven build and continue down this list to troubleshoot the failures.
 +
-We recommend that you regularly generate build scans during the migration to help you identify and troubleshoot problems.
-If you want, you can also use a Gradle build scan to identify opportunities to <<performance.adoc#performance_gradle,improve the performance of the build>>.
+We recommend that you regularly generate a Build Scan during the migration to help you identify and troubleshoot problems.
+If you want, you can also use a Build Scan to identify opportunities to <<performance.adoc#performance_gradle,improve the performance of the build>>.
 +
  . <<migmvn:migrating_deps,Verify your dependencies and fix any problems>>.
 +
@@ -102,7 +102,7 @@ The rest of this chapter looks in more detail at specific aspects of migrating a
 == Understanding the build lifecycle
 
 Maven builds are based around the concept of https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html[_build lifecycles_] that consist of a set of fixed phases.
-This can be a challenge for users migrating to Gradle because the build lifecycle is <<build_lifecycle#build_lifecycle,a new concept>>.
+This can be a challenge for users migrating to Gradle because the build lifecycle is <<build_lifecycle_intermediate.adoc#build_lifecycle,a new concept>>.
 Although it's important to understand how Gradle builds fit into the structure of *initialization*, *configuration*, and *execution* phases, Gradle provides a helper feature that can mimic Maven's phases: <<organizing_tasks.adoc#sec:lifecycle_tasks,_lifecycle tasks_>>.
 
 This feature allow you to define your own "lifecycles" by creating no-action tasks that simply depend on the tasks you're interested in.
@@ -449,7 +449,7 @@ Let's say you have different deployment settings depending on the environment: l
 To add profile-like behavior, you first create build scripts for each environment in the project root: `profile-default.gradle`, `profile-test.gradle`, and `profile-prod.gradle`.
 You can then conditionally apply one of those profile scripts based on a <<build_environment.adoc#sec:project_properties,project property>> of your own choice.
 
-The following example demonstrates the basic technique using a project property called `buildProfile` and profile scripts that simply initialize an <<writing_build_scripts#sec:extra_properties,extra project property>> called `message`:
+The following example demonstrates the basic technique using a project property called `buildProfile` and profile scripts that simply initialize an <<writing_build_scripts_intermediate.adoc#sec:extra_properties,extra project property>> called `message`:
 
 .Mimicking the behavior of Maven profiles in Gradle
 ====

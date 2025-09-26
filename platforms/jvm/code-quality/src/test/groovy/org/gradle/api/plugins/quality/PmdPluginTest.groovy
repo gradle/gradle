@@ -73,7 +73,6 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
 
         expect:
         config != null
-        !config.visible
         config.transitive
         config.description == 'The PMD libraries to be used for this project.'
     }
@@ -108,8 +107,8 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
     def "configures pmd targetjdk based on sourcecompatibilityLevel"() {
         project.pluginManager.apply(JavaBasePlugin)
         when:
-        project.setSourceCompatibility(sourceCompatibility)
-        project.sourceSets {
+        project.java.setSourceCompatibility(sourceCompatibility)
+        project.java.sourceSets {
             main
         }
         then:

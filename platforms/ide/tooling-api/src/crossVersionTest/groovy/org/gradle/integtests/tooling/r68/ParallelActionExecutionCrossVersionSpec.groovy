@@ -108,7 +108,7 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
         ]
     }
 
-    @TargetGradleVersion(">=3.4 <6.8")
+    @TargetGradleVersion(">=4.0 <6.8")
     def "nested actions do not run in parallel when target Gradle version does not support it"() {
         given:
         setupBuildWithDependencyResolution()
@@ -129,12 +129,12 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
         models.projects.path == [':', ':a', ':b']
     }
 
-    @TargetGradleVersion(">=3.4")
     def "nested action can run further nested actions"() {
         settingsFile << """
             rootProject.name = 'root'
-            include 'a', 'b'
         """
+        includeProjects("a", "b")
+
         buildFile << """
             allprojects {
                 apply plugin: CustomPlugin
@@ -174,8 +174,9 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
 
         settingsFile << """
             rootProject.name = 'root'
-            include 'a', 'b'
         """
+
+        includeProjects("a", "b")
         buildFile << """
             allprojects {
                 apply plugin: CustomPlugin

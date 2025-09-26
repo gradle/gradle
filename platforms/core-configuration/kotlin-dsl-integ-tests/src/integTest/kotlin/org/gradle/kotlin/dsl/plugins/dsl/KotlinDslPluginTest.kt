@@ -75,7 +75,7 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
 
         val result = build("classes")
 
-        result.assertTaskExecuted(":compileKotlin")
+        result.assertTaskScheduled(":compileKotlin")
     }
 
     @Test
@@ -280,7 +280,7 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
 
         val result = build("classes")
 
-        result.assertTaskExecuted(":compileKotlin")
+        result.assertTaskScheduled(":compileKotlin")
     }
 
     @Test
@@ -334,7 +334,7 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
 
         val result = build("classes")
 
-        result.assertTaskExecuted(":compileKotlin")
+        result.assertTaskScheduled(":compileKotlin")
     }
 
     private
@@ -365,19 +365,19 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
             fun <T : Any> applyActionTo(value: T, action: org.gradle.api.Action<T>) = action.execute(value)
 
             // NamedDomainObjectFactory<T> is a regular SAM
-            fun <T> create(name: String, factory: org.gradle.api.NamedDomainObjectFactory<T>): T = factory.create(name)
+            fun <T : Any> create(name: String, factory: org.gradle.api.NamedDomainObjectFactory<T>): T = factory.create(name)
 
             fun <T : Any> createK(type: kotlin.reflect.KClass<T>, factory: org.gradle.api.NamedDomainObjectFactory<T>): T = factory.create(type.simpleName!!)
 
             fun test() {
 
                 // Implicit SAM conversion in regular source
-                println(createK(String::class) { it.toUpperCase() })
-                println(create("FOO") { it.toLowerCase() })
+                println(createK(String::class) { it.uppercase() })
+                println(create("FOO") { it.lowercase() })
 
                 // Implicit SAM with receiver conversion in regular source
                 applyActionTo("BAR") {
-                    println(toLowerCase())
+                    println(lowercase())
                 }
             }
             """

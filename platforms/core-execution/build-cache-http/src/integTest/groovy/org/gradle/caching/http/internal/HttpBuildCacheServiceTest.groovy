@@ -18,13 +18,13 @@ package org.gradle.caching.http.internal
 
 import org.apache.http.HttpHeaders
 import org.apache.http.HttpStatus
-import org.gradle.api.UncheckedIOException
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.http.HttpBuildCache
-import org.gradle.caching.internal.TestBuildCacheKey
+import org.gradle.caching.internal.SimpleBuildCacheKey
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.resource.transport.http.DefaultSslContextFactory
 import org.gradle.internal.resource.transport.http.HttpClientHelper
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -58,7 +58,7 @@ class HttpBuildCacheServiceTest extends Specification {
     BuildCacheServiceFactory.Describer buildCacheDescriber
     HttpClientHelper.Factory httpClientHelperFactory = HttpClientHelper.Factory.createFactory(new DocumentationRegistry())
 
-    def key = new TestBuildCacheKey(0x01234567abcdef)
+    def key = new SimpleBuildCacheKey(TestHashCodes.hashCodeFrom(0x01234567abcdef))
     def objectFactory = TestUtil.objectFactory()
     private config = TestUtil.newInstance(HttpBuildCache.class)
 

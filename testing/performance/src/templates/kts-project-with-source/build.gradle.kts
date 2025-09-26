@@ -32,7 +32,7 @@ dependencies {
     implementation("commons-lang:commons-lang:2.5")
     implementation("org.apache.httpcomponents:httpclient:4.0")
     implementation("commons-codec:commons-codec:1.2")
-    implementation("org.slf4j:jcl-over-slf4j:1.7.10")
+    implementation("org.slf4j:jcl-over-slf4j:2.0.17")
     implementation("org.codehaus.groovy:groovy:2.4.15")
     testImplementation("junit:junit:4.13")
     runtimeOnly("com.googlecode:reflectasm:1.01")

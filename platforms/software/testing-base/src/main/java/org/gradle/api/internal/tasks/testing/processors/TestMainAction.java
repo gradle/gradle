@@ -16,18 +16,20 @@
 
 package org.gradle.api.internal.tasks.testing.processors;
 
+import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.internal.tasks.testing.detection.TestDetector;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
 
 public class TestMainAction implements Runnable {
-    private final Runnable detector;
+    private final TestDetector detector;
     private final TestClassProcessor processor;
     private final TestResultProcessor resultProcessor;
     private final WorkerLeaseService workerLeaseService;
@@ -35,7 +37,7 @@ public class TestMainAction implements Runnable {
     private final Object rootTestSuiteId;
     private final String displayName;
 
-    public TestMainAction(Runnable detector, TestClassProcessor processor, TestResultProcessor resultProcessor, WorkerLeaseService workerLeaseService, Clock clock, Object rootTestSuiteId, String displayName) {
+    public TestMainAction(TestDetector detector, TestClassProcessor processor, TestResultProcessor resultProcessor, WorkerLeaseService workerLeaseService, Clock clock, Object rootTestSuiteId, String displayName) {
         this.detector = detector;
         this.processor = processor;
         this.resultProcessor = new AttachParentTestResultProcessor(resultProcessor);
@@ -49,10 +51,12 @@ public class TestMainAction implements Runnable {
     public void run() {
         TestDescriptorInternal suite = new RootTestSuiteDescriptor(rootTestSuiteId, displayName);
         resultProcessor.started(suite, new TestStartEvent(clock.getCurrentTime()));
+
         try {
             processor.startProcessing(resultProcessor);
+
             try {
-                detector.run();
+                detector.detect();
             } finally {
                 // Release worker lease while waiting for tests to complete
                 workerLeaseService.blocking(new Runnable() {
@@ -62,6 +66,8 @@ public class TestMainAction implements Runnable {
                     }
                 });
             }
+        } catch (Throwable ex) {
+            resultProcessor.failure(suite.getId(), DefaultTestFailure.fromTestFrameworkStartupFailure(ex));
         } finally {
             resultProcessor.completed(suite.getId(), new TestCompleteEvent(clock.getCurrentTime()));
         }

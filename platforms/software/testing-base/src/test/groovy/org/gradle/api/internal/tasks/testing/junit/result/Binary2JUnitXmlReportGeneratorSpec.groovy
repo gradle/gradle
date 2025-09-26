@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.Action
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationExecutorSupport
 import org.gradle.internal.operations.BuildOperationRunner
@@ -96,5 +97,39 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
         ex.causes.size() == 1
         ex.causes[0].message.startsWith('Could not write XML test results for FooTest')
         ex.causes[0].cause.message == "Boo!"
+    }
+
+    def "generates actual files with correct unicode names"() {
+        given:
+        generator = generatorWithMaxThreads(1)
+
+        def testMethodResult = new TestMethodResult(1, "testMethod", TestResult.ResultType.SUCCESS, 100, 200)
+
+        def testClassResult = new TestClassResult(1, className, 100)
+            .add(testMethodResult)
+
+        resultsProvider.visitClasses(_) >> { Action action ->
+            action.execute(testClassResult)
+        }
+
+        when:
+        generator.generate()
+
+        then:
+        def xmlFiles = temp.testDirectory.listFiles()?.findAll { it.name.endsWith('.xml') } ?: []
+        xmlFiles.size() == 1
+
+        def actualFile = xmlFiles[0]
+        actualFile.name == expectedFileName
+        !actualFile.name.contains('#')
+        actualFile.isFile()
+
+        where:
+        description                           | className                           | expectedFileName
+        "Korean class name"                   | "한글테스트클래스"                      | "TEST-한글테스트클래스.xml"
+        "Chinese class name"                  | "中文测试类"                           | "TEST-中文测试类.xml"
+        "path separator (illegal)"           | "com/example/TestClass"             | "TEST-com-example-TestClass.xml"
+        "colon (illegal)"                     | "com:example:TestClass"             | "TEST-com-example-TestClass.xml"
+        "standard ASCII class name"           | "StandardTest"                      | "TEST-StandardTest.xml"
     }
 }

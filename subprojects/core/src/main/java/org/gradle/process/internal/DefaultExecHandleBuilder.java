@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * Deprecated. Use {@link ClientExecHandleBuilder} instead. Kept for now since it's used by the Kotlin plugin.
  *
- * Can be merged with {@link ClientExecHandleBuilder} in Gradle 9.0.
+ * Can be merged with {@link ClientExecHandleBuilder} in Gradle 10.
  */
 @SuppressWarnings("DeprecatedIsStillUsed")
 @Deprecated

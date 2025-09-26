@@ -23,13 +23,10 @@ import org.gradle.api.internal.artifacts.LegacyResolutionParameters;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements;
 import org.gradle.api.internal.artifacts.ivyservice.ResolutionParameters;
-import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.CachingDependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyMetadataFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
@@ -40,11 +37,11 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.ImmutableActionSet;
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.service.scopes.Scope;
@@ -60,31 +57,29 @@ import static org.gradle.api.internal.artifacts.ivyservice.dependencysubstitutio
  */
 @ServiceScope(Scope.Project.class)
 public class DependencyGraphResolver {
-    private final DependencyMetadataFactory dependencyMetadataFactory;
+
     private final VersionComparator versionComparator;
     private final VersionParser versionParser;
     private final InstantiatorFactory instantiatorFactory;
     private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
-    private final ModuleComponentGraphResolveStateFactory moduleResolveStateFactory;
     private final DependencyGraphBuilder dependencyGraphBuilder;
+    private final InMemoryCacheFactory cacheFactory;
 
     @Inject
     public DependencyGraphResolver(
-        DependencyMetadataFactory dependencyMetadataFactory,
         VersionComparator versionComparator,
         VersionParser versionParser,
         InstantiatorFactory instantiatorFactory,
         ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-        ModuleComponentGraphResolveStateFactory moduleResolveStateFactory,
-        DependencyGraphBuilder dependencyGraphBuilder
+        DependencyGraphBuilder dependencyGraphBuilder,
+        InMemoryCacheFactory cacheFactory
     ) {
-        this.dependencyMetadataFactory = dependencyMetadataFactory;
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
         this.instantiatorFactory = instantiatorFactory;
         this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
-        this.moduleResolveStateFactory = moduleResolveStateFactory;
         this.dependencyGraphBuilder = dependencyGraphBuilder;
+        this.cacheFactory = cacheFactory;
     }
 
     /**
@@ -112,12 +107,6 @@ public class DependencyGraphResolver {
         ResolutionParameters.FailureResolutions failureResolutions,
         DependencyGraphVisitor modelVisitor
     ) {
-        ComponentMetaDataResolver clientModuleResolver = new ClientModuleResolver(
-            componentMetaDataResolver,
-            dependencyMetadataFactory,
-            moduleResolveStateFactory
-        );
-
         DependencySubstitutionApplicator substitutionApplicator = createDependencySubstitutionApplicator(dependencySubstitutionRule);
         ModuleConflictResolver<ComponentState> moduleConflictResolver = createModuleConflictResolver(conflictResolution);
         List<CapabilitiesConflictHandler.Resolver> capabilityConflictResolvers = createCapabilityConflictResolvers(capabilitiesResolutionRules);
@@ -129,7 +118,7 @@ public class DependencyGraphResolver {
             edgeFilter,
             componentSelectorConverter,
             componentIdResolver,
-            clientModuleResolver,
+            componentMetaDataResolver,
             moduleReplacements,
             substitutionApplicator,
             moduleConflictResolver,
@@ -147,7 +136,12 @@ public class DependencyGraphResolver {
             return NO_OP;
         }
 
-        return new CachingDependencySubstitutionApplicator(new DefaultDependencySubstitutionApplicator(componentSelectionDescriptorFactory, dependencySubstitutionRule, instantiatorFactory));
+        return new DefaultDependencySubstitutionApplicator(
+            componentSelectionDescriptorFactory,
+            dependencySubstitutionRule,
+            instantiatorFactory,
+            cacheFactory
+        );
     }
 
     private ModuleConflictResolver<ComponentState> createModuleConflictResolver(ConflictResolution conflictResolution) {

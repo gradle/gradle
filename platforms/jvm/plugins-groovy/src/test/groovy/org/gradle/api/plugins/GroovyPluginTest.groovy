@@ -17,7 +17,6 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.internal.tasks.JvmConstants
-import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.javadoc.Groovydoc
@@ -47,7 +46,6 @@ class GroovyPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         implementation.extendsFrom == [] as Set
-        !implementation.visible
         !implementation.canBeConsumed
         !implementation.canBeResolved
     }
@@ -146,9 +144,7 @@ class GroovyPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         task instanceof Groovydoc
-        task.destinationDir == new File(project.docsDir, 'groovydoc')
+        task.destinationDir == project.java.docsDir.file('groovydoc').get().asFile
         task.source.files == project.sourceSets.main.groovy.files
-        task.docTitle == project.extensions.getByType(ReportingExtension).apiDocTitle
-        task.windowTitle == project.extensions.getByType(ReportingExtension).apiDocTitle
     }
 }

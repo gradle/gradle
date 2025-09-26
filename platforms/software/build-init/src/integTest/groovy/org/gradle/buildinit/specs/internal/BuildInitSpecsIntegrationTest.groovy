@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 
 @Requires(UnitTestPreconditions.Jdk17OrLater)
@@ -251,7 +252,11 @@ class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implemen
     }
 
     @LeaksFileHandles
-    @Requires(UnitTestPreconditions.Jdk17OrLater)
+    @Requires(value = [
+        IntegTestPreconditions.Java17HomeAvailable,
+        IntegTestPreconditions.Java21HomeAvailable,
+        IntegTestPreconditions.NotEmbeddedExecutor,
+    ], reason = "must run with specific JDK version")
     def "can generate declarative project type using argument to init"() {
         when:
         executer.withJvm(AvailableJavaHomes.getJdk21())

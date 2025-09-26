@@ -23,6 +23,8 @@ import org.gradle.integtests.fixtures.TestClassExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.testing.fixture.MultiJvmTestCompatibility
 import org.hamcrest.CoreMatchers
@@ -292,27 +294,6 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
             containsString('VM START TIME =')).get(0))))
     }
 
-    def "tries to execute unparseable test classes"() {
-        given:
-        file('build/classes/java/test/com/example/Foo.class').text = "invalid class file"
-        buildFile << """
-            apply plugin: 'java'
-            ${mavenCentralRepository()}
-            dependencies {
-                ${testFrameworkDependencies}
-            }
-            test.${configureTestFramework}
-        """
-
-        when:
-        fails('test', '-x', 'compileTestJava')
-
-        then:
-        failureCauseContains("There were failing tests")
-        DefaultTestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
-        assertFailedToExecute(testResult, 'com.example.Foo').assertTestCount(1, 1, 0)
-    }
-
     @Issue("https://issues.gradle.org/browse/GRADLE-1948")
     def "test interrupting its own thread does not kill test execution"() {
         given:
@@ -344,6 +325,7 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2962")
+    @Requires(IntegTestPreconditions.Java11HomeAvailable)
     def "incompatible user versions of classes that we also use don't affect test execution"() {
 
         // These dependencies are quite particular.
@@ -362,7 +344,7 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
 
         when:
         executer
-            .withArgument("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
+            .withArgument("-Dorg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
             .withToolchainDetectionEnabled()
         buildFile << """
             plugins {
@@ -464,6 +446,7 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5305")
+    @Requires(IntegTestPreconditions.Java11HomeAvailable)
     def "test can install an irreplaceable SecurityManager"() {
         given:
         executer

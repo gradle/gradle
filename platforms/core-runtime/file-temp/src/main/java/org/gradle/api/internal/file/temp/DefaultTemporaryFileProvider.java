@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.file.temp;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -53,7 +53,6 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
     @Override
     public Factory<File> temporaryDirectoryFactory(final String... path) {
         return new Factory<File>() {
-            @Nullable
             @Override
             public File create() {
                 return newTemporaryDirectory(path);
@@ -68,7 +67,7 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
         try {
             return TempFiles.createTempFile(prefix, suffix, dir);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -88,13 +87,13 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
             }
             return tmpDir;
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
     private static File forceMkdir(File directory) {
         if (!directory.mkdirs() && !directory.isDirectory()) {
-            throw new UncheckedIOException("Cannot create directory '" + directory + "'.");
+            throw UncheckedException.throwAsUncheckedException(new IOException("Cannot create directory '" + directory + "'."), true);
         } else {
             return directory;
         }

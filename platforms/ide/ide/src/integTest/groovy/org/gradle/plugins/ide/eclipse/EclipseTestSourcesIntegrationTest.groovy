@@ -15,11 +15,8 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
 class EclipseTestSourcesIntegrationTest extends AbstractEclipseTestSourcesIntegrationTest {
 
-    @ToBeFixedForConfigurationCache
     def "source directories from main source sets are not marked with test classpath attribute"() {
         buildFile << """
             plugins {
@@ -36,7 +33,6 @@ class EclipseTestSourcesIntegrationTest extends AbstractEclipseTestSourcesIntegr
         assertSourceDirectoryDoesNotHaveTestAttribute('src/main/java')
     }
 
-    @ToBeFixedForConfigurationCache
     def "source directories from test source sets are marked with test classpath attribute"() {
         buildFile << """
             plugins {
@@ -53,7 +49,6 @@ class EclipseTestSourcesIntegrationTest extends AbstractEclipseTestSourcesIntegr
         assertSourceDirectoryHasTestAttribute('src/test/java')
     }
 
-    @ToBeFixedForConfigurationCache
     def "source directories defined in custom source sets are marked with test classpath attribute if source set name contains 'test' substring"() {
         buildFile << """
             plugins {
@@ -77,7 +72,6 @@ class EclipseTestSourcesIntegrationTest extends AbstractEclipseTestSourcesIntegr
         assertSourceDirectoryDoesNotHaveTestAttribute('src/integration/java')
     }
 
-    @ToBeFixedForConfigurationCache
     def "source directories defined in jvm test suites are marked with test classpath attribute"() {
         settingsFile << "rootProject.name = 'eclipse-jvm-test-suites-integration-test'"
         buildFile << """
@@ -107,7 +101,6 @@ class EclipseTestSourcesIntegrationTest extends AbstractEclipseTestSourcesIntegr
         assertSourceDirectoryHasTestAttribute('src/integration/java')
     }
 
-    @ToBeFixedForConfigurationCache
     def "can configure which source directories are marked with test classpath attribute"() {
         setup:
         buildFile << """

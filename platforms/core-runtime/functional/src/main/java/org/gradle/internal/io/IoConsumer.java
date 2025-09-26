@@ -16,10 +16,10 @@
 
 package org.gradle.internal.io;
 
+import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.function.Consumer;
 
 /**
@@ -34,7 +34,7 @@ public interface IoConsumer<T> {
             try {
                 consumer.accept(payload);
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         };
     }

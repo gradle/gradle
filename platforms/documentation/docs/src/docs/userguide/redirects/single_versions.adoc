@@ -1,3 +1,21 @@
 ++++
-<meta http-equiv="refresh" content="0;URL=dependency_versions.html#sec:single-version-declarations">
+<script>
+const currentAnchor = window.location.hash.substring(1); // Remove the '#' symbol
+
+const redirectionRules = {
+  "sec:declaring_without_version": "dependency_versions.html#sec:declaring-without-version",
+  "version_ordering": "dependency_versions.html#sec:version-ordering",
+  "single-version-declarations": "dependency_versions.html#sec:single-version-declarations"
+};
+
+const defaultRedirect = "dependency_versions.html#sec:single-version-declarations";
+
+if (currentAnchor) {
+  if (redirectionRules[currentAnchor]) {
+    window.location.href = redirectionRules[currentAnchor];
+  }
+} else {
+  window.location.href = defaultRedirect;
+}
+</script>
 ++++

@@ -16,8 +16,7 @@
 
 package org.gradle.kotlin.dsl.fixtures
 
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
+import org.gradle.api.internal.classpath.RuntimeApiInfo
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
@@ -42,6 +41,8 @@ import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.plugin.management.internal.PluginRequests
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import java.io.File
 import java.net.URLClassLoader
 
@@ -204,7 +205,7 @@ class SimplifiedKotlinScriptEvaluator(
         override fun onScriptClassLoaded(scriptSource: ScriptSource, specializedProgram: Class<*>) = Unit
 
         override val implicitImports: List<String>
-            get() = ImplicitImports(DefaultImportsReader()).list
+            get() = ImplicitImports(DefaultImportsReader(RuntimeApiInfo(InterpreterHost::class.java.classLoader))).list
 
         override val compilerOptions: KotlinCompilerOptions
             get() = KotlinCompilerOptions()

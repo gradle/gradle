@@ -1,0 +1,68 @@
+plugins {
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    create("customConfig") {
+        canBeConsumed = false
+        canBeResolved = true
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+        }
+    }
+}
+
+def kindAttr = Attribute.of("kind", String)
+
+dependencies {
+    add("customConfig", project(":lib"))
+    attributesSchema {
+        attribute(kindAttr) {
+            disambiguationRules.add(MyCustomDisambiguationRule)
+        }
+    }
+}
+
+tasks.register("resolveCustom") {
+    doLast {
+        println "Resolved: ${configurations."customConfig".files}"
+    }
+}
+
+abstract class MyCustomDisambiguationRule implements AttributeDisambiguationRule<String> {
+    @Override
+    void execute(MultipleCandidatesDetails<String> details) {
+        // Prefer "api" kind over others
+        details.closestMatch("api")
+    }
+}
+
+
+// tag::disambiguation_rule[]
+dependencies {
+    attributesSchema {
+        attribute(Usage.USAGE_ATTRIBUTE) {  // <1>
+            disambiguationRules.add(CustomDisambiguationRule)  // <2>
+        }
+    }
+}
+
+abstract class CustomDisambiguationRule implements AttributeDisambiguationRule<Usage> {
+    private final ObjectFactory objects
+
+    @Inject
+    CustomDisambiguationRule(ObjectFactory objects) {
+        this.objects = objects
+    }
+
+    @Override
+    void execute(MultipleCandidatesDetails<Usage> details) {
+        // Prefer the JAVA_API usage over others (e.g., JAVA_RUNTIME) when multiple candidates exist
+        details.closestMatch(objects.named(Usage, Usage.JAVA_API))  // <3>
+    }
+}
+// end::disambiguation_rule[]

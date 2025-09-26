@@ -100,11 +100,4 @@ Defaults to `distsDirectory` for non-JAR archives and `libsDirectory` for JARs a
 Defaults to `$project.version` or 'unspecified' if the project has no version.
 
 `archiveBaseName`::
-Defaults to `$archivesBaseName`.
-
-[[sec:base_plugin_conventions]]
-== Conventions (deprecated)
-
-The Base Plugin also adds conventions related to the creation of archives, such as ZIPs, TARs and JARs.
-These are *deprecated* and superseded by the extension described above.
-See the link:{groovyDslPath}/org.gradle.api.plugins.BasePluginConvention.html[BasePluginConvention] DSL documentation for information on them.
+Defaults to `archivesName`.

@@ -18,11 +18,9 @@ package org.gradle.integtests.tooling.r76
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildLauncher
 import org.gradle.util.GradleVersion
 
-@ToolingApiVersion('>=7.6')
 @TargetGradleVersion('>=7.6')
 class SystemPropertyPropagationCrossVersionTest extends ToolingApiSpecification {
 
@@ -42,7 +40,7 @@ class SystemPropertyPropagationCrossVersionTest extends ToolingApiSpecification 
         '''
     }
 
-    @TargetGradleVersion(">=3.0 <7.6")
+    @TargetGradleVersion(">=4.0 <7.6")
     def "Custom system properties are ignored in older Gradle versions"() {
         setup:
         if (targetDist.version < GradleVersion.version('4.9') ) {

@@ -19,6 +19,7 @@ package org.gradle.internal.declarativedsl.common
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
@@ -131,7 +132,7 @@ class PropertyReturnTypeDiscovery : TypeDiscovery {
 
 
 private
-val handledPropertyTypes = setOf(Property::class, DirectoryProperty::class, RegularFileProperty::class, ListProperty::class)
+val handledPropertyTypes = setOf(Property::class, DirectoryProperty::class, RegularFileProperty::class, ListProperty::class, MapProperty::class)
 
 
 private
@@ -142,6 +143,10 @@ private
 fun propertyValueType(type: KType): KType {
     if (type.classifier == ListProperty::class) {
         return List::class.createType(type.arguments)
+    }
+
+    if (type.classifier == MapProperty::class) {
+        return Map::class.createType(type.arguments)
     }
 
     fun searchClassHierarchyForPropertyType(type: KType): KType? {

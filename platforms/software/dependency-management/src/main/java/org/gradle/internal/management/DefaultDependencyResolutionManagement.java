@@ -194,6 +194,8 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
             case PREFER_SETTINGS:
                 LOGGER.warn(message);
                 break;
+            default:
+                break;
         }
     }
 
@@ -209,6 +211,8 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
                 throw new InvalidUserCodeException(message);
             case PREFER_SETTINGS:
                 LOGGER.warn(message);
+                break;
+            default:
                 break;
         }
     }
@@ -234,6 +238,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         }
 
         @Override
+        @Deprecated
         public ComponentMetadataHandler all(Object ruleSource) {
             components(h -> h.all(ruleSource));
             return this;
@@ -264,6 +269,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         }
 
         @Override
+        @Deprecated
         public ComponentMetadataHandler withModule(Object id, Object ruleSource) {
             components(h -> h.withModule(id, ruleSource));
             return this;

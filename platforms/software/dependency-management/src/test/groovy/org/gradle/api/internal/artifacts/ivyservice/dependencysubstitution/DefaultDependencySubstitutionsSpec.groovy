@@ -18,11 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
 
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
@@ -49,8 +49,9 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         getProjects() >> Mock(BuildProjectRegistry) {
             getProject(_ as Path) >> { args ->
                 Path path = args[0]
+                ProjectIdentity id = path.name != null ? ProjectIdentity.forSubproject(Path.ROOT, path) : ProjectIdentity.forRootProject(Path.ROOT, "root")
                 return Mock(ProjectState) {
-                    getIdentity() >> new ProjectIdentity(Mock(BuildIdentifier), path, path, path.getName())
+                    getIdentity() >> id
                 }
             }
         }
@@ -107,24 +108,24 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         substitutions.allWithDependencyResolveDetails(action, componentSelectorConverter)
 
         def mid = DefaultModuleIdentifier.newId("org.utils", "api")
-        def moduleOldRequested = DefaultModuleVersionSelector.newSelector(mid, "1.5")
-        def moduleTarget = DefaultModuleComponentSelector.newSelector(moduleOldRequested)
+        def moduleOldRequested = DefaultModuleVersionIdentifier.newId(mid, "1.5")
+        def moduleTarget = DefaultModuleComponentSelector.newSelector(moduleOldRequested.module, moduleOldRequested.version)
         def moduleDetails = Mock(DependencySubstitutionInternal)
 
         when:
         substitutions.ruleAction.execute(moduleDetails)
 
         then:
-        _ * moduleDetails.target >> moduleTarget
+        _ * moduleDetails.configuredTargetSelector >> moduleTarget
         _ * moduleDetails.requested >> moduleTarget
-        1 * componentSelectorConverter.getSelector(moduleTarget) >> moduleOldRequested
+        1 * componentSelectorConverter.getModuleVersionId(moduleTarget) >> moduleOldRequested
         1 * action.execute({ DefaultDependencyResolveDetails details ->
-            details.requested == moduleOldRequested
+            details.requested == DefaultModuleVersionSelector.newSelector(moduleOldRequested)
         })
         1 * moduleDetails.artifactSelection(Actions.doNothing())
         0 * _
 
-        def projectOldRequested = DefaultModuleVersionSelector.newSelector(mid, "1.5")
+        def projectOldRequested = DefaultModuleVersionIdentifier.newId(mid, "1.5")
         def projectTarget = TestComponentIdentifiers.newSelector(":api")
         def projectDetails = Mock(DependencySubstitutionInternal)
 
@@ -132,11 +133,11 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         substitutions.ruleAction.execute(projectDetails)
 
         then:
-        _ * projectDetails.target >> projectTarget
+        _ * projectDetails.configuredTargetSelector >> projectTarget
         _ * projectDetails.requested >> projectTarget
-        1 * componentSelectorConverter.getSelector(projectTarget) >> projectOldRequested
+        1 * componentSelectorConverter.getModuleVersionId(projectTarget) >> projectOldRequested
         1 * action.execute({ DefaultDependencyResolveDetails details ->
-            details.requested == projectOldRequested
+            details.requested.module == projectOldRequested.module && details.requested.version == projectOldRequested.version
         })
         1 * projectDetails.artifactSelection(Actions.doNothing())
         0 * _
@@ -180,7 +181,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
     def "cannot substitute with unversioned module selector"() {
         when:
         substitutions.with {
-            substitute project("foo") using module('group:name')
+            substitute project(":foo") using module('group:name')
         }
 
         then:

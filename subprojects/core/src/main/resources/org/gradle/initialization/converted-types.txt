@@ -1,10 +1,6 @@
 org.gradle.api.distribution.plugins.DistributionPlugin
 org.gradle.api.plugins.ApplicationPlugin
-org.gradle.api.plugins.ApplicationPluginConvention
-org.gradle.api.plugins.BasePluginConvention
 org.gradle.api.plugins.JavaLibraryDistributionPlugin
-org.gradle.api.plugins.JavaPluginConvention
-org.gradle.api.plugins.ProjectReportsPluginConvention
 org.gradle.api.plugins.quality.Checkstyle
 org.gradle.api.plugins.quality.CheckstylePlugin
 org.gradle.api.plugins.quality.CheckstyleExtension
@@ -30,7 +26,6 @@ org.gradle.nativeplatform.tasks.InstallExecutable
 org.gradle.nativeplatform.tasks.LinkExecutable
 org.gradle.nativeplatform.tasks.LinkSharedLibrary
 org.gradle.plugins.ear.Ear
-org.gradle.plugins.ear.EarPluginConvention
 org.gradle.plugins.ide.api.FileContentMerger
 org.gradle.plugins.ide.eclipse.EclipsePlugin
 org.gradle.plugins.ide.eclipse.EclipseWtpPlugin

@@ -1,31 +1,30 @@
 package org.gradle.kotlin.dsl
 
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.doAnswer
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.eq
-import com.nhaarman.mockito_kotlin.inOrder
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.verify
-
 import groovy.lang.Closure
 import groovy.lang.GroovyObject
 import groovy.lang.MetaBeanProperty
 import groovy.lang.MetaClass
-
-import org.gradle.util.internal.ConfigureUtil
-
 import org.gradle.kotlin.dsl.support.uncheckedCast
-
+import org.gradle.util.internal.ConfigureUtil
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
-
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.mockito.MockMakers
+import org.mockito.Mockito
+import org.mockito.kotlin.KStubbing
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.stub
+import org.mockito.kotlin.verify
 import java.util.Locale
 
 
@@ -195,17 +194,15 @@ class GroovyInteroperabilityTest {
     fun `#withGroovyBuilder can dispatch keyword arguments against GroovyObject`() {
 
         val expectedInvokeResult = Any()
-        val delegate = mock<GroovyObject> {
+        val delegate = groovyObjectMock {
             on { invokeMethod(any(), any()) } doReturn expectedInvokeResult
         }
 
-        @Suppress("UnnecessaryVariable")
-        val expectedDelegate = delegate
         val expectedBuilderResult = Any()
         val builderResult = delegate.withGroovyBuilder {
             val invokeResult = "withKeywordArguments"("string" to "42", "int" to 42)
             assertThat(invokeResult, sameInstance(expectedInvokeResult))
-            assertThat(this.delegate, sameInstance(expectedDelegate))
+            assertThat(this.delegate, sameInstance(delegate))
             expectedBuilderResult
         }
         assertThat(builderResult, sameInstance(expectedBuilderResult))
@@ -218,12 +215,12 @@ class GroovyInteroperabilityTest {
     fun `#withGroovyBuilder allow nested invocations against GroovyObject`() {
 
         val expectedNestedInvokeResult = Any()
-        val nestedDelegate = mock<GroovyObject> {
+        val nestedDelegate = groovyObjectMock {
             on { invokeMethod(any(), any()) } doReturn expectedNestedInvokeResult
         }
 
         val expectedInvokeResult = Any()
-        val delegate = mock<GroovyObject> {
+        val delegate = groovyObjectMock {
             on { invokeMethod(eq("nest"), any()) }.thenAnswer {
                 val varargs = uncheckedCast<Array<Any?>>(it.getArgument(1))
                 val closure = uncheckedCast<Closure<Any>?>(varargs[0])
@@ -234,8 +231,6 @@ class GroovyInteroperabilityTest {
             }
         }
 
-        @Suppress("UnnecessaryVariable")
-        val expectedDelegate = delegate
         val expectedBuilderResult = Any()
         val builderResult = delegate.withGroovyBuilder {
             val invokeResult = "nest" {
@@ -244,7 +239,7 @@ class GroovyInteroperabilityTest {
                 assertThat(nestedInvokeResult, sameInstance(expectedNestedInvokeResult))
             }
             assertThat(invokeResult, sameInstance(expectedInvokeResult))
-            assertThat(this.delegate, sameInstance(expectedDelegate))
+            assertThat(this.delegate, sameInstance(delegate))
             expectedBuilderResult
         }
         assertThat(builderResult, sameInstance(expectedBuilderResult))
@@ -254,6 +249,7 @@ class GroovyInteroperabilityTest {
     }
 
     interface NonGroovyObject {
+        @Suppress("unused")
         val existingProperty: String
         fun withKeywordArguments(args: Map<String, Any?>): Any?
     }
@@ -266,13 +262,11 @@ class GroovyInteroperabilityTest {
             on { withKeywordArguments(any()) } doReturn expectedInvokeResult
         }
 
-        @Suppress("UnnecessaryVariable")
-        val expectedDelegate = delegate
         val expectedBuilderResult = Any()
         val builderResult = delegate.withGroovyBuilder {
             val invokeResult = "withKeywordArguments"("string" to "42", "int" to 42)
             assertThat(invokeResult, sameInstance(expectedInvokeResult))
-            assertThat(this.delegate, sameInstance<Any>(expectedDelegate))
+            assertThat(this.delegate, sameInstance(delegate))
             expectedBuilderResult
         }
         assertThat(builderResult, sameInstance(expectedBuilderResult))
@@ -327,4 +321,18 @@ class GroovyInteroperabilityTest {
             delegate.withGroovyBuilder { hasProperty("absentProperty") }
         )
     }
+
+    /**
+     * Sets up a [GroovyObject] mock that can intercept and verify calls to [GroovyObject.invokeMethod]
+     * by using a [proxy mock][MockMakers.PROXY].
+     *
+     * Regular mocks (i.e. those produced by `mock<GroovyObject>()`) don't intercept calls to
+     * default interface methods.
+     */
+    private
+    fun groovyObjectMock(stubbing: KStubbing<GroovyObject>.(GroovyObject) -> Unit): GroovyObject =
+        Mockito.mock<GroovyObject>(
+            // Must use MockMackers.PROXY to properly intercept default interface methods in GroovyObject
+            Mockito.withSettings().mockMaker(MockMakers.PROXY)
+        ).stub(stubbing)
 }

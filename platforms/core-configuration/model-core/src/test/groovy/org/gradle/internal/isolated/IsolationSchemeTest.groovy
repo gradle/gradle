@@ -66,7 +66,7 @@ class IsolationSchemeTest extends Specification {
         def service = Stub(serviceType)
         _ * allServices.find(serviceType) >> service
 
-        def injectedServices = scheme.servicesForImplementation(params, allServices)
+        def injectedServices = scheme.servicesForImplementation(params, allServices, [])
 
         when:
         def result = injectedServices.find(serviceType)
@@ -89,7 +89,7 @@ class IsolationSchemeTest extends Specification {
         def params = Stub(SomeParams)
         _ * allServices.find(serviceType) >> null
 
-        def injectedServices = scheme.servicesForImplementation(params, allServices)
+        def injectedServices = scheme.servicesForImplementation(params, allServices, [])
 
         when:
         def result = injectedServices.find(serviceType)
@@ -112,7 +112,7 @@ class IsolationSchemeTest extends Specification {
         def allServices = Mock(ServiceLookup)
         def params = Stub(SomeParams)
 
-        def injectedServices = scheme.servicesForImplementation(params, allServices)
+        def injectedServices = scheme.servicesForImplementation(params, allServices, [])
 
         when:
         def result = injectedServices.find(Instantiator)
@@ -132,7 +132,7 @@ class IsolationSchemeTest extends Specification {
         def allServices = Mock(ServiceLookup)
         def params = Stub(SomeParams)
 
-        def injectedServices = scheme.servicesForImplementation(params, allServices)
+        def injectedServices = scheme.servicesForImplementation(params, allServices, [])
 
         when:
         def result = injectedServices.find(SomeParams)
@@ -150,7 +150,7 @@ class IsolationSchemeTest extends Specification {
     def "cannot query parameters when parameters are null"() {
         def allServices = Mock(ServiceLookup)
 
-        def injectedServices = scheme.servicesForImplementation(null, allServices)
+        def injectedServices = scheme.servicesForImplementation(null, allServices, [])
 
         when:
         injectedServices.find(SomeParams)

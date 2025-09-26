@@ -368,7 +368,7 @@ class GrammarToTree(
                         propertyAccess(tree, node, checked(receiver!!), checked(referenceSelector!!), referenceSourceData!!)
                     } else {
                         val functionCall = checked(functionCallSelector!!)
-                        Element(FunctionCall(checked(receiver!!), functionCall.name, functionCall.args, functionCall.sourceData))
+                        Element(FunctionCall(checked(receiver!!), functionCall.name, functionCall.args, isInfix = false, functionCall.sourceData))
                     }
                 }
             }
@@ -477,7 +477,7 @@ class GrammarToTree(
 
                 val arguments = valueArguments.flatMap { valueArguments(tree, it) }.map { checkForFailure(it) }
                 elementIfNoFailures {
-                    Element(FunctionCall(null, name!!, arguments.map(::checked), tree.sourceData(node)))
+                    Element(FunctionCall(null, name!!, arguments.map(::checked), isInfix = false, tree.sourceData(node)))
                 }
             }
         }
@@ -590,7 +590,7 @@ class GrammarToTree(
     private
     fun unaryExpression(tree: CachingLightTree, node: LighterASTNode): ElementResult<Expr> =
         elementOrFailure {
-            var operationTokenName: String? = null
+            var operationToken: LighterASTNode? = null
             var argument: LighterASTNode? = null
 
             val children = childrenWithParsingErrorCollection(tree, node)
@@ -600,18 +600,18 @@ class GrammarToTree(
                     .forEach {
                         when (it.tokenType) {
                             OPERATION_REFERENCE -> {
-                                operationTokenName = it.asText
+                                operationToken = it
                             }
                             else -> if (it.isExpression()) argument = it
                         }
                     }
 
                 elementIfNoFailures {
-                    if (operationTokenName == null) collectingFailure(tree.parsingError(node, "Missing operation token in unary expression"))
+                    if (operationToken == null) collectingFailure(tree.parsingError(node, "Missing operation token in unary expression"))
                     if (argument == null) collectingFailure(tree.parsingError(node, "Missing argument in unary expression"))
 
                     elementIfNoFailures {
-                        when (operationTokenName!!.getOperationSymbol()) {
+                        when (operationToken?.getOperationSymbol(tree)) {
                             MINUS -> {
                                 val constantExpression = checkForFailure(constantExpression(tree, argument!!))
                                 elementIfNoFailures {
@@ -626,7 +626,7 @@ class GrammarToTree(
                                     }
                                 }
                             }
-                            else -> tree.parsingError(node, "Unsupported operation in unary expression: $operationTokenName")
+                            else -> tree.parsingError(node, "Unsupported operation in unary expression: $operationToken")
                         }
                     }
                 }
@@ -675,7 +675,7 @@ class GrammarToTree(
                     if (rightArg == null) collectingFailure(tree.parsingError(node, "Missing right hand side in binary expression"))
 
                     elementIfNoFailures {
-                        val operationToken = operation!!.asText.getOperationSymbol()
+                        val operationToken = operation?.getOperationSymbol(tree)
                         when (operationToken) {
                             EQ, KtTokens.PLUSEQ -> {
                                 val lhs = checkForFailure(
@@ -696,7 +696,31 @@ class GrammarToTree(
                                 }
                             }
 
-                            IDENTIFIER -> tree.unsupported(node, operation!!, UnsupportedLanguageFeature.InfixFunctionCall)
+                            IDENTIFIER -> {
+                                val infixFunctionName = checkNotNull(operation)
+                                if (infixFunctionName.asText != "to") {
+                                    tree.unsupported(node, infixFunctionName, UnsupportedLanguageFeature.InfixFunctionCall)
+                                } else run {
+                                    val receiver = checkForFailure(expression(tree, leftArg!!))
+                                    val argument = checkForFailure(expression(tree, rightArg!!))
+                                    elementIfNoFailures {
+                                        val args = listOf(leftArg to checked(receiver), rightArg to checked(argument))
+                                            .map { (ast, parsed) -> ast to FunctionArgument.Positional(parsed, parsed.sourceData) }
+
+                                        args.find { (_, parsed) -> parsed.expr is FunctionCall && parsed.expr.isInfix }
+                                            ?.let { (ast, _) -> tree.unsupported(node, checkNotNull(ast), UnsupportedLanguageFeature.InfixFunctionCallChain) }
+                                            ?: Element(
+                                                FunctionCall(
+                                                    receiver = null,
+                                                    infixFunctionName.asText,
+                                                    args.map { (_, parsed) -> parsed },
+                                                    isInfix = true,
+                                                    tree.sourceData(node)
+                                                )
+                                            )
+                                    }
+                                }
+                            }
 
                             else -> tree.unsupported(node, operation!!, UnsupportedLanguageFeature.UnsupportedOperationInBinaryExpression)
                         }

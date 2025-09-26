@@ -18,7 +18,7 @@ package org.gradle.process.internal.worker
 import  org.gradle.internal.remote.ConnectionAcceptor
 import org.gradle.internal.remote.ObjectConnection
 import org.gradle.process.ExecResult
-import org.gradle.process.internal.ExecException
+import org.gradle.process.ProcessExecutionException
 import org.gradle.process.internal.ExecHandle
 import org.gradle.process.internal.ExecHandleListener
 import org.gradle.process.internal.ExecHandleState
@@ -76,7 +76,7 @@ class DefaultWorkerProcessSpec extends Specification {
             try {
                 workerProcess.start()
                 fail()
-            } catch (ExecException e) {
+            } catch (ProcessExecutionException e) {
                 assertThat(e.message, equalTo(String.format("Unable to connect to the child process 'ExecHandle'.\n"
                     + "It is likely that the child process have crashed - please find the stack trace in the build log.\n"
                     + "This exception might occur when the build machine is extremely loaded.\n"
@@ -110,7 +110,7 @@ class DefaultWorkerProcessSpec extends Specification {
             try {
                 workerProcess.start()
                 fail()
-            } catch (ExecException e) {
+            } catch (ProcessExecutionException e) {
                 assertThat(e.message, equalTo("Never received a connection from $execHandle." as String))
             }
         }

@@ -16,10 +16,8 @@
 
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class EclipseWtpWebAndJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
-    @ToBeFixedForConfigurationCache
     def "generates configuration files for web project and java project it depends on"() {
         settingsFile << "include 'web', 'java'"
 

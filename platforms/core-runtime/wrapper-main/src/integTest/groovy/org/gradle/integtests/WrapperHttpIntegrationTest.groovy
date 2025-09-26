@@ -64,6 +64,23 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         prepareWrapper(new URI("${baseUrl}/$TEST_DISTRIBUTION_URL"))
     }
 
+    private boolean verifyDistributionDownloaded() {
+        // The wrapper downloads to user-home/wrapper/dists directory
+        def userHomeDists = file("user-home/wrapper/dists")
+        if (!userHomeDists.exists() || !userHomeDists.isDirectory()) {
+            return false
+        }
+        
+        // Check if there's an actual distribution file (zip or extracted directory with marker)
+        def foundDistribution = false
+        userHomeDists.eachFileRecurse { file ->
+            if (file.name.endsWith('.zip') || file.name.endsWith('.ok')) {
+                foundDistribution = true
+            }
+        }
+        return foundDistribution
+    }
+
     @Issue('https://github.com/gradle/gradle-private/issues/1537')
     def "downloads wrapper from http server and caches"() {
         given:
@@ -76,6 +93,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         then:
         assertThat(result.output, containsString('hello'))
+        verifyDistributionDownloaded()
 
         when:
         result = wrapperExecuter.withTasks('hello').run()
@@ -106,6 +124,22 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         then:
         noExceptionThrown()
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/6557')
+    def "fails fast when server returns 404 Not Found"() {
+        given:
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        prepareWrapper(getDefaultBaseUrl())
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").missing())
+
+        when:
+        wrapperExecuter.withStackTraceChecksDisabled()
+        def failure = wrapperExecuter.runWithFailure()
+
+        then:
+        failure.error.contains('Server returned HTTP response code: 404')
+        !verifyDistributionDownloaded()
     }
 
     @Issue('https://github.com/gradle/gradle-private/issues/3032')

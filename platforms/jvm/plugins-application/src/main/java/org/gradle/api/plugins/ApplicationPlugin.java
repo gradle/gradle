@@ -21,14 +21,12 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.plugins.DistributionPlugin;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.provider.PropertyFactory;
-import org.gradle.api.plugins.internal.DefaultApplicationPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaApplication;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
@@ -42,12 +40,13 @@ import org.gradle.api.tasks.application.CreateStartScripts;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
-import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.UncheckedException;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 
@@ -118,7 +117,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
             if (destinationDir.isDirectory()) {
                 String[] children = destinationDir.list();
                 if (children == null) {
-                    throw new UncheckedIOException("Could not list directory " + destinationDir);
+                    throw UncheckedException.throwAsUncheckedException(new IOException("Could not list directory " + destinationDir), true);
                 }
                 if (children.length > 0) {
                     if (!new File(destinationDir, "lib").isDirectory() || !new File(destinationDir, executableDir.get()).isDirectory()) {
@@ -135,12 +134,10 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
         }
     }
 
-    @SuppressWarnings("deprecation")
     private JavaApplication addExtension(Project project) {
-        @SuppressWarnings("deprecation") ApplicationPluginConvention pluginConvention = project.getObjects().newInstance(DefaultApplicationPluginConvention.class, project);
-        DeprecationLogger.whileDisabled(() -> pluginConvention.setApplicationName(project.getName()));
-        DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("application", pluginConvention));
-        return project.getExtensions().create(JavaApplication.class, "application", DefaultJavaApplication.class, pluginConvention);
+        JavaApplication javaApplication = project.getExtensions().create(JavaApplication.class, "application", DefaultJavaApplication.class);
+        javaApplication.setApplicationName(project.getName());
+        return javaApplication;
     }
 
     private void addRunTask(Project project, JvmFeatureInternal mainFeature, JavaApplication pluginExtension) {
@@ -242,7 +239,5 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
     }
 
     @Inject
-    protected PropertyFactory getPropertyFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract PropertyFactory getPropertyFactory();
 }

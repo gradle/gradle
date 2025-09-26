@@ -25,18 +25,18 @@ import japicmp.model.JApiCompatibility;
 import japicmp.model.JApiMethod;
 import me.champeau.gradle.japicmp.report.Violation;
 import me.champeau.gradle.japicmp.report.ViolationCheckContext;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import static gradlebuild.binarycompatibility.rules.SinceAnnotationMissingRule.SINCE_ERROR_MESSAGE;
+import static gradlebuild.binarycompatibility.rules.SinceAnnotationRule.SINCE_ERROR_MESSAGE;
 import static japicmp.model.JApiCompatibilityChange.METHOD_ADDED_TO_INTERFACE;
 import static japicmp.model.JApiCompatibilityChange.METHOD_ADDED_TO_PUBLIC_CLASS;
 import static japicmp.model.JApiCompatibilityChange.METHOD_NEW_DEFAULT;
@@ -64,7 +64,7 @@ public class UpgradedProperties {
                 .distinct()
                 .collect(ImmutableList.toImmutableList());
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

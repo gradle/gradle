@@ -30,4 +30,10 @@ class InProcessJavaCompilerIntegrationTest extends AbstractJavaCompilerIntegrati
     String logStatement() {
         "Java compiler API"
     }
+
+    @Override
+    void releaseFlagAssertions() {
+        failureHasCause("Java compilation initialization error")
+        failureCauseContains('Cannot specify --release via `CompileOptions.compilerArgs` when using `CompileOptions.release`.')
+    }
 }

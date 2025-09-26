@@ -1,3 +1,0 @@
-moduleName=test-extension-module
-moduleVersion=1.0.0
-extensionClasses=groovy.servlet.ServletCategory

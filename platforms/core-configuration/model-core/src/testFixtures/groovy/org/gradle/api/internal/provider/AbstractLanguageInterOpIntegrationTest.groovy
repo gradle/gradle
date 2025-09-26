@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.provider
 
-import groovy.ant.FileNameFinder
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
 import org.gradle.test.fixtures.file.TestFile
@@ -24,6 +23,9 @@ import org.gradle.test.fixtures.file.TestFile
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.regex.Pattern
 
 class AbstractLanguageInterOpIntegrationTest extends AbstractIntegrationSpec {
     TestFile pluginDir = file("buildSrc/plugin")
@@ -49,15 +51,23 @@ class AbstractLanguageInterOpIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def cleanup() {
+        if (!failed) {
+            return
+        }
+
         // Let's copy the Kotlin compiler logs in case of failure
-        if (failed) {
-            def pattern = "kotlin-daemon.${new Date().format("yyyy-MM-dd")}.*.log"
-            def kotlinCompilerLogFiles = new FileNameFinder().getFileNames(System.getenv("TMPDIR"), pattern)
-            def target = buildContext.gradleUserHomeDir.createDir("kotlin-compiler-daemon").toPath()
-            kotlinCompilerLogFiles.each {
+        def today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+        Pattern pattern = ~/kotlin-daemon\.${today}\..*\.log/
+
+        def target = buildContext.gradleUserHomeDir.createDir("kotlin-compiler-daemon").toPath()
+
+        Files.walk(Paths.get(System.getenv("TMPDIR")))
+            .filter { Files.isRegularFile(it) }
+            .filter { path -> path.fileName.toString() =~ pattern }
+            .map { it.toString() }
+            .forEach {
                 def source = Paths.get(it)
                 Files.copy(source, target.resolve(source.fileName), StandardCopyOption.REPLACE_EXISTING)
             }
-        }
     }
 }

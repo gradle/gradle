@@ -25,4 +25,58 @@ class MavenPublishPluginIntegTest extends WellBehavedPluginTest {
         "publish"
     }
 
+    def "can publish configurations without realizing them eagerly"() {
+        given:
+        settingsKotlinFile << """
+            rootProject.name = "test"
+        """
+        buildKotlinFile << """
+            plugins {
+                id("base")
+                id("maven-publish")
+            }
+
+            group = "org.example"
+            version = "1.0"
+
+            val myTask = tasks.register<Jar>("myTask")
+            val variantDependencies = configurations.dependencyScope("variantDependencies")
+            val myNewVariant: NamedDomainObjectProvider<ConsumableConfiguration> = configurations.consumable("myNewVariant") {
+                extendsFrom(variantDependencies.get())
+                outgoing {
+                    artifact(myTask)
+                }
+                attributes {
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("foo"))
+                }
+            }
+
+
+            publishing {
+                val component = softwareComponentFactory.adhoc("component")
+                // This new overload now accepts a lazy provider of consumable configuration
+                component.addVariantsFromConfiguration(myNewVariant) {}
+
+                repositories {
+                    maven {
+                        url = uri("${mavenRepo.uri}")
+                    }
+                }
+                publications {
+                    create<MavenPublication>("myPublication") {
+                        from(component)
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds("publish")
+
+        then:
+        mavenRepo.rootDir.file("org/example/test/1.0/test-1.0.pom").assertExists()
+        mavenRepo.rootDir.file("org/example/test/1.0/test-1.0.module").assertExists()
+        mavenRepo.rootDir.file("org/example/test/1.0/test-1.0.jar").assertExists()
+    }
+
 }

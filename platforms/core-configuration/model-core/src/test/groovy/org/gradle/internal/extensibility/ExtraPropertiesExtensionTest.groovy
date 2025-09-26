@@ -19,6 +19,7 @@ package org.gradle.internal.extensibility
 import org.gradle.api.Project
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.testfixtures.ProjectBuilder
+import spock.lang.Issue
 import spock.lang.Specification
 
 /**
@@ -119,14 +120,14 @@ abstract class ExtraPropertiesExtensionTest<T extends ExtraPropertiesExtension> 
         thrown(MissingMethodException)
     }
 
-    def "can get properties as a detached map"() {
+    def "can get properties as a mutable detached map"() {
         given:
         extension.p1 = 1
         extension.p2 = 2
         extension.p3 = 3
 
         and:
-        def props = extension.properties.sort()
+        def props = extension.properties
 
         expect:
         props == [p1: 1, p2: 2, p3: 3]
@@ -188,6 +189,26 @@ abstract class ExtraPropertiesExtensionTest<T extends ExtraPropertiesExtension> 
 
         then:
         notThrown(Exception)
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/33074')
+    def "can add null properties using ext block notation"() {
+        given:
+        Project project = ProjectBuilder.builder().build()
+
+        when:
+        project.ext {
+            aProperty = null as Integer
+        }
+
+        then:
+        notThrown(Exception)
+
+        and:
+        project.ext.has 'aProperty'
+
+        and:
+        project.ext.properties.containsKey('aProperty')
     }
 
     def "can use [] notation to get and set"() {

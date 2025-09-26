@@ -51,7 +51,7 @@ public abstract class AbstractTestDescriptor implements TestDescriptorInternal {
     /**
      * Returns the method name for this test, if any.
      * It should be in TestDescriptor, but moved here for backward compatibility
-     *  TODO: move it to TestDescriptor interface with 9.0
+     *  TODO: move it to TestDescriptor interface in Gradle 10
      *
      * @return The method name. May return null.
      * @since 8.8

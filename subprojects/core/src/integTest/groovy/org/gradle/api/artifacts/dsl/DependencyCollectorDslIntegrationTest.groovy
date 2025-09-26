@@ -133,6 +133,9 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
         """
 
         when:
+        if (expression.contains("module(")) {
+            executer.expectDocumentedDeprecationWarning("Declaring dependencies using multi-string notation has been deprecated. This will fail with an error in Gradle 10. Please use single-string notation instead: \"org.example:foo:1.0\". Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_multi_string_notation")
+        }
         succeeds("help")
 
         then:
@@ -306,6 +309,9 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
         """
 
         when:
+        if (expression.contains("module(")) {
+            executer.expectDocumentedDeprecationWarning("Declaring dependencies using multi-string notation has been deprecated. This will fail with an error in Gradle 10. Please use single-string notation instead: \"org.example:foo:1.0\". Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_multi_string_notation")
+        }
         succeeds("help")
 
         then:
@@ -474,7 +480,7 @@ class DependencyCollectorKotlinDslIntegrationTest extends DependencyCollectorDsl
         fails("dependencies")
 
         then:
-        result.assertHasErrorOutput("""None of the following functions can be called with the arguments supplied:${' '}
-public operator fun DependencyCollector.invoke""") // Don't care what the other options are, just that it's the right name
+        result.assertHasErrorOutput("""None of the following candidates is applicable:
+fun DependencyCollector.invoke""") // Don't care what the other options are, just that it's the right name
     }
 }

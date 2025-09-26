@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
+import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.SourceSet;
@@ -37,7 +38,9 @@ import org.gradle.testing.base.TestSuite;
  * </ul>
  * <p>
  * Based on the testing framework declared, Gradle will automatically add the appropriate dependencies and configure the underlying test task.
- * </p>
+ * <p>
+ * The default test suite (named {@link JvmTestSuitePlugin#DEFAULT_TEST_SUITE_NAME}) will default to using the
+ * JUnit 4 test framework for backwards compatibility.  Any other test suite will default to using the JUnit Jupiter test framework.
  *
  * @since 7.3
  */
@@ -123,7 +126,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     /**
      * Use the <a href="https://spockframework.org/">Spock Framework</a> testing framework.
      * <p>
-     *     Gradle will provide the version of Spock to use. Defaults to version {@code 2.2-groovy-3.0}
+     *     Gradle will provide the version of Spock to use. Defaults to version {@code 2.3-groovy-4.0}
      * </p>
      */
     void useSpock();

@@ -71,6 +71,10 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         return state.isFinalized();
     }
 
+    public boolean isDisallowChanges() {
+        return state.isDisallowChanges();
+    }
+
     protected boolean isExplicit() {
         return state.isExplicit();
     }

@@ -75,7 +75,7 @@ public class SampleIde {
         }
     }
 
-    // start::problems-tapi-additional-data-type[]
+    // tag::problems-tapi-additional-data-type[]
     interface SomeDataView {
         String getName();
 
@@ -119,7 +119,7 @@ public class SampleIde {
             }
         }
 
-        // start::problems-tapi-additional-data-read[]
+        // tag::problems-tapi-additional-data-read[]
         AdditionalData data = problem.getAdditionalData();
         if (data instanceof CustomAdditionalData) {
             System.out.println(" - additional data: " + ((CustomAdditionalData) data).get(SomeDataView.class).getName());

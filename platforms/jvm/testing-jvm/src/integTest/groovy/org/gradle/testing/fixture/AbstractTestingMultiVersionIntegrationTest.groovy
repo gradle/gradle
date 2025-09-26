@@ -67,6 +67,10 @@ abstract class AbstractTestingMultiVersionIntegrationTest extends MultiVersionIn
         return "${buildScriptConfiguration.excludeCategoryOrTagConfigurationElement} '${categoryOrTag}'"
     }
 
+    boolean supportsJavaVersion(int javaVersion) {
+        return buildScriptConfiguration.supportsJavaVersion(javaVersion)
+    }
+
     String getTestFrameworkImports() {
         return testSourceConfiguration.testFrameworkImports
     }
@@ -115,6 +119,7 @@ abstract class AbstractTestingMultiVersionIntegrationTest extends MultiVersionIn
         String getConfigureTestFramework()
         String getIncludeCategoryOrTagConfigurationElement()
         String getExcludeCategoryOrTagConfigurationElement()
+        boolean supportsJavaVersion(int javaVersion)
 
         default configurationFor(String sourceSet, String configurationName) {
             if (sourceSet == 'main') {

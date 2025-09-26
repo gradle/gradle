@@ -19,12 +19,12 @@ package org.gradle.execution.plan.edges;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.execution.plan.Node;
 
-import java.util.NavigableSet;
+import java.util.Set;
 
 public interface DependencyNodesSet {
     DependencyNodesSet EMPTY = new DependencyNodesSet() {
         @Override
-        public NavigableSet<Node> getDependencySuccessors() {
+        public Set<Node> getDependencySuccessors() {
             return ImmutableSortedSet.of();
         }
 
@@ -34,7 +34,7 @@ public interface DependencyNodesSet {
         }
 
         @Override
-        public NavigableSet<Node> getMustSuccessors() {
+        public Set<Node> getMustSuccessors() {
             return ImmutableSortedSet.of();
         }
 
@@ -58,11 +58,11 @@ public interface DependencyNodesSet {
         }
     };
 
-    NavigableSet<Node> getDependencySuccessors();
+    Set<Node> getDependencySuccessors();
 
     DependencyNodesSet addDependency(Node toNode);
 
-    NavigableSet<Node> getMustSuccessors();
+    Set<Node> getMustSuccessors();
 
     DependencyNodesSet addMustSuccessor(Node toNode);
 

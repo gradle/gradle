@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[upgrading_version_4]]
-= Upgrading your build from Gradle 4.x to 5.0
+= Upgrading from Gradle 4.x to 5.0
 
 This chapter provides the information you need to migrate your older Gradle 4.x builds to Gradle 5.0.
 In most cases, you will need to apply the changes from all versions that come after the one you're upgrading from.
@@ -26,7 +26,7 @@ TIP: If you are using Gradle for Android, you need to move to version 3.3 or hig
  . If you are not already on the latest 4.10.x release, read the sections <<#changes_4.10,below>> for help upgrading your project to the latest 4.10.x release.
 We recommend upgrading to the latest 4.10.x release to get the most useful warnings and deprecations information before moving to 5.0.
 Avoid upgrading Gradle and migrating to Kotlin DSL at the same time in order to ease troubleshooting in case of potential issues.
- . Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated build scan.
+ . Try running `gradle help --scan` and view the https://docs.gradle.com/develocity/get-started/#identifying_deprecated_gradle_functionality[deprecations view] of the generated Build Scan.
 If there are no warnings, the Deprecations tab will not appear.
 +
 image::deprecations.png[Deprecations View of a Gradle Build Scan]
@@ -136,7 +136,7 @@ Java builds::
  * The `classesDir` property has been removed from both the _JDepend_ task and link:{groovyDslPath}/org.gradle.api.tasks.SourceSetOutput.html[SourceSetOutput]. Use the _JDepend.classesDirs_ and link:{groovyDslPath}/org.gradle.api.tasks.SourceSetOutput.html#org.gradle.api.tasks.SourceSetOutput:classesDirs[SourceSetOutput.classesDirs] properties instead.
  * The `JavaLibrary(PublishArtifact, DependencySet)` constructor has been removed — this was used by the https://plugins.gradle.org/plugin/com.gradleup.shadow[Shadow Plugin], so make sure you upgrade to at least version 2.x of that plugin.
  * The `JavaBasePlugin.configureForSourceSet()` method has been removed.
- * You can no longer create your own instances of link:{javadocPath}/org/gradle/api/plugins/JavaPluginConvention.html[JavaPluginConvention], link:{javadocPath}/org/gradle/api/plugins/ApplicationPluginConvention.html[ApplicationPluginConvention], `WarPluginConvention`, link:{javadocPath}/org/gradle/plugins/ear/EarPluginConvention.html[EarPluginConvention], link:{javadocPath}/org/gradle/api/plugins/BasePluginConvention.html[BasePluginConvention], and link:{javadocPath}/org/gradle/api/plugins/ProjectReportsPluginConvention.html[ProjectReportsPluginConvention].
+ * You can no longer create your own instances of `JavaPluginConvention`, `ApplicationPluginConvention`, `WarPluginConvention`, `EarPluginConvention`, `BasePluginConvention`, and `ProjectReportsPluginConvention`.
  * The `Maven` Plugin used to publish the highly outdated Maven 2 metadata format. This has been changed and it will now publish Maven 3 metadata, just like the `Maven Publish` Plugin.
 +
 With the removal of Maven 2 support, the methods that configure unique snapshot behavior have also been removed. Maven 3 only supports unique snapshots, so we decided to remove them.
@@ -333,7 +333,7 @@ You can bypass the toolchain discovery by specifying the installation directory 
 [[changes_4.3]]
 == Upgrading from 4.2 and earlier
 
- * The `plugins {}` block can now be <<plugins.adoc#sec:subprojects_plugins_dsl,used in subprojects>> and for <<plugins.adoc#sec:buildsrc_plugins_dsl,plugins in the _buildSrc_ directory>>.
+ * The `plugins {}` block can now be <<plugins_intermediate.adoc#sec:subprojects_plugins_dsl,used in subprojects>> and for <<plugins_intermediate.adoc#sec:buildsrc_plugins_dsl,plugins in the _buildSrc_ directory>>.
 
 === Other deprecations
 
@@ -485,22 +485,6 @@ For example, you could previously use the following syntax and have both outputF
 ====
 [.multi-language-sample]
 =====
-.build.gradle
-[source,groovy]
-----
-class MyTask extends DefaultTask {
-    // note: no annotation here
-    final RegularFileProperty outputFile = newOutputFile()
-}
-
-task myOtherTask {
-    def outputFile = newOutputFile()
-    doLast { ... }
-}
-----
-=====
-[.multi-language-sample]
-=====
 .build.gradle.kts
 [source,kotlin]
 ----
@@ -515,28 +499,27 @@ task("myOtherTask") {
 }
 ----
 =====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+class MyTask extends DefaultTask {
+    // note: no annotation here
+    final RegularFileProperty outputFile = newOutputFile()
+}
+
+task myOtherTask {
+    def outputFile = newOutputFile()
+    doLast { ... }
+}
+----
+=====
 ====
 
 Now you have to explicitly register `outputFile`, like this:
 
 ====
-[.multi-language-sample]
-=====
-.build.gradle
-[source, groovy]
-----
-class MyTask extends DefaultTask {
-    @OutputFile // property needs an annotation
-    final RegularFileProperty outputFile = project.objects.fileProperty()
-}
-
-task myOtherTask {
-    def outputFile = project.objects.fileProperty()
-    outputs.file(outputFile) // or to be registered using the runtime API
-    doLast { ... }
-}
-----
-=====
 [.multi-language-sample]
 =====
 .build.gradle.kts
@@ -549,6 +532,23 @@ open class MyTask : DefaultTask() {
 
 task("myOtherTask") {
     val outputFile = project.objects.fileProperty()
+    outputs.file(outputFile) // or to be registered using the runtime API
+    doLast { ... }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
+----
+class MyTask extends DefaultTask {
+    @OutputFile // property needs an annotation
+    final RegularFileProperty outputFile = project.objects.fileProperty()
+}
+
+task myOtherTask {
+    def outputFile = project.objects.fileProperty()
     outputs.file(outputFile) // or to be registered using the runtime API
     doLast { ... }
 }
@@ -578,13 +578,13 @@ If you are stuck with a bad plugin, you can work around by re-enabling JARs as m
 ====
 [.multi-language-sample]
 =====
-.settings.gradle
-[source,groovy]
+.settings.gradle.kts
+[source,kotlin]
 ----
 pluginManagement {
     repositories {
-        gradlePluginPortal().tap {
-            metadataSources {
+        gradlePluginPortal().apply {
+            (this as MavenArtifactRepository).metadataSources {
                 mavenPom()
                 artifact()
             }
@@ -593,16 +593,15 @@ pluginManagement {
 }
 ----
 =====
-
 [.multi-language-sample]
 =====
-.settings.gradle.kts
-[source,kotlin]
+.settings.gradle
+[source,groovy]
 ----
 pluginManagement {
     repositories {
-        gradlePluginPortal().apply {
-            (this as MavenArtifactRepository).metadataSources {
+        gradlePluginPortal().tap {
+            metadataSources {
                 mavenPom()
                 artifact()
             }
@@ -631,8 +630,8 @@ With the existing API, this example adds two tasks (`foo` and `bar`):
 ====
 [.multi-language-sample]
 =====
-.build.gradle
-[source, groovy]
+.build.gradle.kts
+[source,kotlin]
 ----
 tasks.create("foo") {
     tasks.create("bar")
@@ -641,8 +640,8 @@ tasks.create("foo") {
 =====
 [.multi-language-sample]
 =====
-.build.gradle.kts
-[source,kotlin]
+.build.gradle
+[source, groovy]
 ----
 tasks.create("foo") {
     tasks.create("bar")
@@ -658,8 +657,8 @@ so the `register()` for task `bar` only executes when `foo` is configured.
 ====
 [.multi-language-sample]
 =====
-.build.gradle
-[source, groovy]
+.build.gradle.kts
+[source,kotlin]
 ----
 tasks.register("foo") {
     tasks.register("bar") // WRONG
@@ -668,8 +667,8 @@ tasks.register("foo") {
 =====
 [.multi-language-sample]
 =====
-.build.gradle.kts
-[source,kotlin]
+.build.gradle
+[source, groovy]
 ----
 tasks.register("foo") {
     tasks.register("bar") // WRONG
@@ -745,18 +744,18 @@ The new, stable behavior can be switched on by adding the following to your sett
 ====
 [.multi-language-sample]
 =====
-.settings.gradle
-[source, groovy]
-----
-enableFeaturePreview('STABLE_PUBLISHING')
-----
-=====
-[.multi-language-sample]
-=====
 .settings.gradle.kts
 [source,kotlin]
 ----
 enableFeaturePreview("STABLE_PUBLISHING")
+----
+=====
+[.multi-language-sample]
+=====
+.settings.gradle
+[source, groovy]
+----
+enableFeaturePreview('STABLE_PUBLISHING')
 ----
 =====
 ====
@@ -768,23 +767,6 @@ However, your publishing block may rely on the implicit deferred configuration, 
 For example, under the new behavior, the following logic assumes that `jar.archiveBaseName` doesn't change after `artifactId` is set:
 
 ====
-[.multi-language-sample]
-=====
-.build.gradle
-[source, groovy]
-----
-subprojects {
-    publishing {
-        publications {
-            mavenJava {
-                from components.java
-                artifactId = jar.archiveBaseName
-            }
-        }
-    }
-}
-----
-=====
 [.multi-language-sample]
 =====
 .build.gradle.kts
@@ -802,11 +784,6 @@ subprojects {
 }
 ----
 =====
-====
-
-If that assumption is incorrect or might possibly be incorrect in the future, the `artifactId` must be set within an `afterEvaluate {}` block, like so:
-
-====
 [.multi-language-sample]
 =====
 .build.gradle
@@ -817,15 +794,18 @@ subprojects {
         publications {
             mavenJava {
                 from components.java
-                afterEvaluate {
-                    artifactId = jar.archiveBaseName
-                }
+                artifactId = jar.archiveBaseName
             }
         }
     }
 }
 ----
 =====
+====
+
+If that assumption is incorrect or might possibly be incorrect in the future, the `artifactId` must be set within an `afterEvaluate {}` block, like so:
+
+====
 [.multi-language-sample]
 =====
 .build.gradle.kts
@@ -845,6 +825,25 @@ subprojects {
 }
 ----
 =====
+[.multi-language-sample]
+=====
+.build.gradle
+[source, groovy]
+----
+subprojects {
+    publishing {
+        publications {
+            mavenJava {
+                from components.java
+                afterEvaluate {
+                    artifactId = jar.archiveBaseName
+                }
+            }
+        }
+    }
+}
+----
+=====
 ====
 
 [[rel4.8:configure_internal_tasks]]
@@ -855,20 +854,20 @@ You should no longer define your own `wrapper` and `init` tasks. Configure the e
 ====
 [.multi-language-sample]
 =====
-.build.gradle
-[source, groovy]
+.build.gradle.kts
+[source,kotlin]
 ----
-task wrapper(type: Wrapper) {
+task<Wrapper>("wrapper") {
     ...
 }
 ----
 =====
 [.multi-language-sample]
 =====
-.build.gradle.kts
-[source,kotlin]
+.build.gradle
+[source, groovy]
 ----
-task<Wrapper>("wrapper") {
+task wrapper(type: Wrapper) {
     ...
 }
 ----
@@ -880,20 +879,20 @@ to this:
 ====
 [.multi-language-sample]
 =====
-.build.gradle
-[source, groovy]
+.build.gradle.kts
+[source,kotlin]
 ----
-wrapper {
+tasks.wrapper {
     ...
 }
 ----
 =====
 [.multi-language-sample]
 =====
-.build.gradle.kts
-[source,kotlin]
+.build.gradle
+[source, groovy]
 ----
-tasks.wrapper {
+wrapper {
     ...
 }
 ----

@@ -42,6 +42,7 @@ import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.problems.failure.DefaultFailureFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.BasicGlobalScopeServices;
@@ -88,7 +89,12 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             args,
             loggingConfiguration,
             new ParseAndBuildAction(loggingServices, args),
-            new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData()));
+            new BuildExceptionReporter(
+                loggingServices.get(StyledTextOutputFactory.class),
+                loggingConfiguration,
+                clientMetaData(),
+                DefaultFailureFactory.withDefaultClassifier()
+            ));
     }
 
     private static BuildClientMetaData clientMetaData() {

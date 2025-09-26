@@ -106,7 +106,8 @@ object GradleDistributionSpecs {
                 "build-logic-commons", "build-logic-commons/*",
                 "build-logic", "build-logic/*",
                 "build-logic-settings", "build-logic-settings/*",
-                "subprojects/*", "platforms/*/*", "packaging/*"
+                "subprojects/*", "platforms/*/*", "packaging/*",
+                "testing/*",
             ).forEach {
                 include("$it/*.gradle")
                 include("$it/*.gradle.kts")

@@ -131,11 +131,10 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
         } else {
             javaPluginConfig + """
                 configurations {
-                    $configurationName
-                }
-
-                artifacts {
-                    $configurationName sourcesJar, javadocJar
+                    $configurationName {
+                        outgoing.artifact(tasks.named("sourcesJar"))
+                        outgoing.artifact(tasks.named("javadocJar"))
+                    }
                 }
             """
         }

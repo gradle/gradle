@@ -25,25 +25,23 @@ public class MultiLineBuildProgressArea implements BuildProgressArea {
     private final List<DefaultRedrawableLabel> entries = new ArrayList<DefaultRedrawableLabel>(2);
     private final DefaultRedrawableLabel progressBarLabel;
 
-    private final List<StyledLabel> buildProgressLabels = new ArrayList<StyledLabel>();
+    private final List<StyledLabel> buildProgressLabels = new ArrayList<>();
     private final DefaultRedrawableLabel parkingLabel;
     private final Cursor statusAreaPos = new Cursor();
     private boolean isVisible;
     private boolean isPreviouslyVisible;
 
     public MultiLineBuildProgressArea() {
-        int row = 0;
-
-        progressBarLabel = newLabel(row--);
+        progressBarLabel = newLabel(0);
         entries.add(progressBarLabel);
 
         // Parking space for the write cursor
-        parkingLabel = newLabel(row--);
+        parkingLabel = newLabel(-1);
         entries.add(parkingLabel);
     }
 
-    private DefaultRedrawableLabel newLabel(int row) {
-        return new DefaultRedrawableLabel(Cursor.at(row--, 0));
+    private static DefaultRedrawableLabel newLabel(int row) {
+        return new DefaultRedrawableLabel(Cursor.at(row, 0));
     }
 
     @Override
@@ -54,6 +52,11 @@ public class MultiLineBuildProgressArea implements BuildProgressArea {
     @Override
     public StyledLabel getProgressBar() {
         return progressBarLabel;
+    }
+
+    @Override
+    public StyledLabel getCursorParkLine() {
+        return parkingLabel;
     }
 
     /**

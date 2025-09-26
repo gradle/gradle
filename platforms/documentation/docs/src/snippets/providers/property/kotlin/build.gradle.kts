@@ -27,7 +27,7 @@ abstract class MyIntroTask : DefaultTask() {
 val configurationProvider: Provider<String> = project.provider { "Hello, Gradle!" }
 
 tasks.register("myIntroTask", MyIntroTask::class) {
-    configuration.set(configurationProvider)
+    configuration = configurationProvider
 }
 // end::introduction[]
 
@@ -44,14 +44,14 @@ abstract class MyPropertyTask : DefaultTask() {
 }
 
 tasks.register<MyPropertyTask>("myPropertyTask") {
-    messageProperty.set("Hello, Gradle!")
+    messageProperty.convention("Hello, Gradle!")
 }
 // end::prop-managed[]
 
 // Provider
 // tag::prov-managed[]
 abstract class MyProviderTask : DefaultTask() {
-    final val messageProvider: Provider<String> = project.providers.provider { "Hello, Gradle!" } // message provider
+    val messageProvider: Provider<String> = project.providers.provider { "Hello, Gradle!" } // message provider
 
     @TaskAction
     fun printMessage() {
@@ -66,16 +66,24 @@ tasks.register<MyProviderTask>("MyProviderTask") {
 
 // Named managed type
 // tag::named[]
-interface MyNamedType {
-    val name: String
+interface MyNamedType : Named {
+    
 }
 
-class MyNamedTypeImpl(override val name: String) : MyNamedType
+abstract class MyPluginExtension {
+    abstract val myNamedContainer: NamedDomainObjectContainer<MyNamedType>
 
-class MyPluginExtension(project: Project) {
-    val myNamedContainer: NamedDomainObjectContainer<MyNamedType> =
-        project.container(MyNamedType::class.java) { name ->
-            project.objects.newInstance(MyNamedTypeImpl::class.java, name)
-        }
+    fun myNamedContainer(configurationAction: Action<in NamedDomainObjectContainer<MyNamedType>>) = configurationAction.execute(myNamedContainer)
 }
+
+val pluginExtension = extensions.create<MyPluginExtension>("pluginExtension")
+
+pluginExtension.apply {
+    myNamedContainer {
+        val myName by registering
+    }
+}
+
 // end::named[]
+
+require(pluginExtension.myNamedContainer.size == 1)

@@ -77,14 +77,12 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
         configurations.detachedConfiguration(dependency)
 
     private
-    fun gradleSourceDependency() = dependencies.create(
-        group = "gradle",
-        name = "gradle",
-        version = dependencyVersion(gradleVersion),
-        configuration = null,
-        classifier = "src",
-        ext = "zip"
-    )
+    fun gradleSourceDependency() = dependencies.create("gradle:gradle:${dependencyVersion(gradleVersion)}") {
+        artifact {
+            classifier = "src"
+            type = "zip"
+        }
+    }
 
     private
     fun createSourceRepository() = ivy {

@@ -17,14 +17,10 @@
 package org.gradle.initialization.buildsrc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.GradleVersion
-
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class BuildSrcGradlePluginApiVersionAttributeIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "buildSrc applies Gradle plugin API version attribute to source set classpath configurations"() {
         file("buildSrc/settings.gradle") << "include('sub')"
 
@@ -32,12 +28,16 @@ class BuildSrcGradlePluginApiVersionAttributeIntegrationTest extends AbstractInt
             apply plugin: 'java-base'
 
             tasks.register('checkConfigurations') {
-                doFirst {
-                    configurations.each {
+                def attributes = provider {
+                    configurations.collect {
                         def attributeValue = it.attributes.getAttribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE)
-                        if (attributeValue != null) {
-                            throw new GradleException('Not expected the attribute to be set in subprojects, got: ' + attribute.value)
-                        }
+                        attributeValue != null ? "\${it.name}=\${attributeValue}" : null
+                    }.findAll { it }
+                }
+
+                doFirst {
+                    if (!attributes.get().isEmpty()) {
+                        throw new GradleException('Not expected the attribute to be set in subprojects, got: ' + attributes.get())
                     }
                 }
             }
@@ -49,12 +49,13 @@ class BuildSrcGradlePluginApiVersionAttributeIntegrationTest extends AbstractInt
             java.sourceSets.register('other')
 
             def task = tasks.register('findConfigurationsWithAttribute') {
+                def getAttribute = { configuration -> configuration.attributes.getAttribute(
+                    GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE
+                )}
+
+                def lines = provider { configurations.matching { getAttribute(it) != null }.collect { it.name + '=' + getAttribute(it).name } }
                 doFirst {
-                    def getAttribute = { configuration -> configuration.attributes.getAttribute(
-                        GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE
-                    )}
-                    def lines = configurations.matching { getAttribute(it) != null }.collect { it.name + '=' + getAttribute(it).name }
-                    lines.each { println('>>> ' + it) }
+                    lines.get().each { println('>>> ' + it) }
                 }
             }
 

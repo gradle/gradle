@@ -8,7 +8,6 @@ val codec = configurations.create("codec") {
     attributes {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
     }
-    isVisible = false
     isCanBeConsumed = false
 }
 

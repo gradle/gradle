@@ -9,7 +9,7 @@ Root project 'basic-rule-source-plugin'
       | Type:   	Person
       | Creator: 	PersonRules#person(Person)
       | Rules:
-         ⤷ person { ... } @ build.gradle line 97, column 3
+         ⤷ person { ... } @ build.gradle line 101, column 3
          ⤷ PersonRules#setFirstName(Person)
     + age
           | Type:   	int

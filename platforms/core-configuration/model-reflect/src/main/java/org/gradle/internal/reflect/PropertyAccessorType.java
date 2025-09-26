@@ -16,7 +16,6 @@
 
 package org.gradle.internal.reflect;
 
-import groovy.lang.GroovySystem;
 import org.jspecify.annotations.Nullable;
 
 import java.beans.Introspector;
@@ -106,23 +105,22 @@ public enum PropertyAccessorType {
             if (isGetGetterName(methodName)) {
                 return GET_GETTER;
             }
-            // is method that returns Boolean is not a getter according to JavaBeans, but include it for compatibility with Groovy 3
-            if (isIsGetterName(methodName) && (method.getReturnType().equals(Boolean.TYPE) || (isGroovy3() && method.getReturnType().equals(Boolean.class)))) {
-                return IS_GETTER;
+            if (isIsGetterName(methodName)) {
+                if (method.getReturnType().equals(Boolean.TYPE)) {
+                    return IS_GETTER;
+                } else if (method.getReturnType().equals(Boolean.class)) {
+                    // TODO: This should be removed in Gradle 10 along with special handling in
+                    // BeanDynamicObject and AbstractClassGenerator
+                    // is method that returns Boolean is not a getter according to JavaBeans,
+                    // but Gradle includes it for compatibility with previously released plugins
+                    return IS_GETTER;
+                }
             }
         }
         if (takesSingleParameter(method) && isSetterName(methodName)) {
             return SETTER;
         }
         return null;
-    }
-
-    /**
-     * Convenience method org.gradle.util.internal.VersionNumber#parse(String) is not available, therefore check {@link GroovySystem#getVersion()} directly.
-     * @return true if Groovy 3 is bundled, false otherwise
-     */
-    private static boolean isGroovy3() {
-        return GroovySystem.getVersion().startsWith("3.");
     }
 
     public static PropertyAccessorType fromName(String methodName) {

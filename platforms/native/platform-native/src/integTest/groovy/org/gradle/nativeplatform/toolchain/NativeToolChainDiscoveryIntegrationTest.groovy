@@ -37,7 +37,7 @@ class NativeToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChain
         and:
         buildFile << """
 apply plugin: 'cpp'
-model {
+
     toolChains {
         tc(${toolChain.implementationClass}) {
             // For software model builds, windows defaults to 32-bit target, so if we discard the toolchain init script,
@@ -45,6 +45,7 @@ model {
             ${toolChain.platformSpecificToolChainConfiguration()}
         }
     }
+model {
     components {
         main(NativeExecutableSpec)
     }
@@ -71,10 +72,10 @@ model {
         buildFile << """
 apply plugin: 'cpp'
 
-model {
     toolChains {
         ${toolChain.buildScriptConfig}
     }
+model {
     components {
         main(NativeExecutableSpec)
     }

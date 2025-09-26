@@ -15,8 +15,10 @@
  */
 package org.gradle.cache.internal.filelock;
 
+import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
+
 public class LockInfo {
-    public int port = -1;
+    public int port = FileLockContentionHandler.INVALID_PORT;
     public long lockId;
     public String pid = "unknown";
     public String operation = "unknown";

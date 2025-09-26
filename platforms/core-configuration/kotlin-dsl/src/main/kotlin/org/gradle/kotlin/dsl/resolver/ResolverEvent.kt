@@ -27,6 +27,7 @@ internal
 sealed class ResolverEvent
 
 
+@ConsistentCopyVisibility
 internal
 data class ResolutionRequest internal constructor(
     val correlationId: String,
@@ -36,6 +37,7 @@ data class ResolutionRequest internal constructor(
 ) : ResolverEvent()
 
 
+@ConsistentCopyVisibility
 internal
 data class ResolutionFailure internal constructor(
     val correlationId: String,
@@ -44,6 +46,7 @@ data class ResolutionFailure internal constructor(
 ) : ResolverEvent()
 
 
+@ConsistentCopyVisibility
 internal
 data class SubmittedModelRequest internal constructor(
     val correlationId: String,
@@ -60,6 +63,7 @@ data class RequestCancelled(
 ) : ResolverEvent()
 
 
+@ConsistentCopyVisibility
 internal
 data class ReceivedModelResponse internal constructor(
     val correlationId: String,
@@ -68,6 +72,7 @@ data class ReceivedModelResponse internal constructor(
 ) : ResolverEvent()
 
 
+@ConsistentCopyVisibility
 internal
 data class ResolvedDependencies internal constructor(
     val correlationId: String,
@@ -76,6 +81,7 @@ data class ResolvedDependencies internal constructor(
 ) : ResolverEvent()
 
 
+@ConsistentCopyVisibility
 internal
 data class ResolvedDependenciesWithErrors internal constructor(
     val correlationId: String,

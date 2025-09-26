@@ -17,7 +17,7 @@
 package org.gradle.util.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 import static org.junit.Assume.assumeFalse
@@ -26,7 +26,7 @@ import static org.junit.Assume.assumeFalse
 class VersionNumberIntegrationTest extends AbstractIntegrationSpec {
 
     def "nullability with Kotlin jsr-305 strict"() {
-        assumeFalse(GradleContextualExecuter.embedded)
+        assumeFalse(IntegrationTestBuildContext.embedded)
 
         given:
         file("src/main/kotlin/Test.kt") << """

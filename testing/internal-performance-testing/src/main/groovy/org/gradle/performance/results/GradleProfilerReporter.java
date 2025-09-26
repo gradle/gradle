@@ -17,6 +17,7 @@
 package org.gradle.performance.results;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.UncheckedException;
 import org.gradle.profiler.BenchmarkResultCollector;
 import org.gradle.profiler.InvocationSettings;
 import org.gradle.profiler.report.AbstractGenerator;
@@ -28,7 +29,6 @@ import org.gradle.profiler.report.HtmlGenerator;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -62,7 +62,7 @@ public class GradleProfilerReporter implements DataReporter<PerformanceTestResul
                 .build();
             resultCollector.write(settings);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

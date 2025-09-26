@@ -16,15 +16,11 @@
 
 package org.gradle.smoketests
 
-
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-@Requires(UnitTestPreconditions.Jdk11OrLater)
 class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Issue('https://plugins.gradle.org/plugin/com.gradleup.shadow')
@@ -46,6 +42,7 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
             shadowJar {
                 transform(ServiceFileTransformer)
+                relocate("org.apache.commons.collections", "shadow.org.apache.commons.collections")
 
                 manifest {
                     attributes 'Test-Entry': 'PASSED'
@@ -53,6 +50,41 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             }
             """.stripIndent()
 
+        file("src/main/java/org/example/ExampleAnnotation.java").java """
+            package org.example;
+            public @interface ExampleAnnotation {
+                String value() default "default";
+                int otherValue() default 42;
+            }
+        """
+        file("src/main/java/org/example/BidiMapExample.java").java """
+            package org.example;
+
+            import org.apache.commons.collections.BidiMap;
+            import org.apache.commons.collections.MapIterator;
+            import org.apache.commons.collections.bidimap.DualHashBidiMap;
+
+            public class BidiMapExample {
+                public static void main(String[] args) {
+                    BidiMap bidi = new DualHashBidiMap();
+                    bidi.put("key1", 1);
+                    bidi.put("key2", 2);
+
+                    // Get value by key
+                    System.out.println("Value for key2: " + bidi.get("key2")); // Output: 2
+
+                    // Get key by value
+                    System.out.println("Key for value 1: " + bidi.getKey(1)); // Output: key1
+
+                    // Iterate through the map
+                    MapIterator it = bidi.mapIterator();
+                    while (it.hasNext()) {
+                        it.next();
+                        System.out.println("Key: " + it.getKey() + ", Value: " + it.getValue());
+                    }
+                }
+            }
+            """
 
         when:
 

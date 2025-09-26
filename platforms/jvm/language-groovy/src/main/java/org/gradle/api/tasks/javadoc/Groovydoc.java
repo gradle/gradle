@@ -17,12 +17,10 @@
 package org.gradle.api.tasks.javadoc;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.tasks.GroovydocAntAction;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
@@ -35,6 +33,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.workers.WorkerExecutor;
@@ -85,18 +84,6 @@ public abstract class Groovydoc extends SourceTask {
 
     private Set<Link> links = new LinkedHashSet<Link>();
 
-    private final Property<GroovydocAccess> access = getProject().getObjects().property(GroovydocAccess.class);
-
-    private final Property<Boolean> includeAuthor = getProject().getObjects().property(Boolean.class);
-
-    private final Property<Boolean> processScripts = getProject().getObjects().property(Boolean.class);
-
-    private final Property<Boolean> includeMainForScripts = getProject().getObjects().property(Boolean.class);
-
-    public Groovydoc() {
-        getLogging().captureStandardOutput(LogLevel.INFO);
-    }
-
     @Inject
     protected abstract WorkerExecutor getWorkerExecutor();
 
@@ -107,7 +94,7 @@ public abstract class Groovydoc extends SourceTask {
         try {
             getDeleter().ensureEmptyDirectory(destinationDir);
         } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
+            throw UncheckedException.throwAsUncheckedException(ex);
         }
         FileSystemOperations fsOperations = getServices().get(FileSystemOperations.class);
 
@@ -375,9 +362,7 @@ public abstract class Groovydoc extends SourceTask {
      * @since 7.5
      */
     @Input
-    public Property<GroovydocAccess> getAccess() {
-        return access;
-    }
+    public abstract Property<GroovydocAccess> getAccess();
 
     /**
      * Whether to include author paragraphs.
@@ -385,9 +370,7 @@ public abstract class Groovydoc extends SourceTask {
      * @since 7.5
      */
     @Input
-    public Property<Boolean> getIncludeAuthor() {
-        return includeAuthor;
-    }
+    public abstract Property<Boolean> getIncludeAuthor();
 
     /**
      * Whether to process scripts.
@@ -395,9 +378,7 @@ public abstract class Groovydoc extends SourceTask {
      * @since 7.5
      */
     @Input
-    public Property<Boolean> getProcessScripts() {
-        return processScripts;
-    }
+    public abstract Property<Boolean> getProcessScripts();
 
     /**
      * Whether to include main method for scripts.
@@ -405,9 +386,7 @@ public abstract class Groovydoc extends SourceTask {
      * @since 7.5
      */
     @Input
-    public Property<Boolean> getIncludeMainForScripts() {
-        return includeMainForScripts;
-    }
+    public abstract Property<Boolean> getIncludeMainForScripts();
 
     /**
      * Returns the links to groovydoc/javadoc output at the given URL.
@@ -513,7 +492,5 @@ public abstract class Groovydoc extends SourceTask {
     }
 
     @Inject
-    protected Deleter getDeleter() {
-        throw new UnsupportedOperationException("Decorator takes care of injection");
-    }
+    protected abstract Deleter getDeleter();
 }

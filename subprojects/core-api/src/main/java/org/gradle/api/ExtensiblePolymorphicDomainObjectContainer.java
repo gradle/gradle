@@ -17,15 +17,18 @@ package org.gradle.api;
 
 import groovy.lang.Closure;
 import org.gradle.api.internal.rules.NamedDomainObjectFactoryRegistry;
+import org.gradle.api.model.ManagedType;
 
 /**
  * A {@link org.gradle.api.PolymorphicDomainObjectContainer} that can be extended at runtime to
  * create elements of new types.
  *
- * <p>You can create an instance of this type using the factory method {@link org.gradle.api.model.ObjectFactory#polymorphicDomainObjectContainer(Class)}.</p>
- *
  * @param <T> the (base) container element type
+ *
+ * @see ManagedType Create an instance of this as a managed property (preferred).
+ * @see org.gradle.api.model.ObjectFactory#polymorphicDomainObjectContainer(Class) Create an instance of this manually.
  */
+@ManagedType
 public interface ExtensiblePolymorphicDomainObjectContainer<T> extends PolymorphicDomainObjectContainer<T>, NamedDomainObjectFactoryRegistry<T> {
     /**
      * Registers a factory for creating elements of the specified type. Typically, the specified type

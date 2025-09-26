@@ -43,7 +43,7 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
         configurationCacheRun(":transformer")
 
         then:
-        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        result.assertTasksExecuted(":producer", ":transformer")
         output.text == "24"
 
         when:
@@ -52,7 +52,7 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
 
         then:
         configurationCache.assertStateLoaded()
-        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        result.assertTasksExecuted(":producer", ":transformer")
         output.text == "16"
 
         when:
@@ -61,7 +61,7 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
 
         then:
         configurationCache.assertStateLoaded()
-        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        result.assertTasksExecuted(":producer", ":transformer")
         output.text == "22"
 
         when:
@@ -95,7 +95,7 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
         configurationCacheRun(":transformer")
 
         then:
-        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        result.assertTasksExecuted(":producer", ":transformer")
         output.text == "24"
 
         when:
@@ -104,7 +104,7 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
 
         then:
         configurationCache.assertStateLoaded()
-        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        result.assertTasksExecuted(":producer", ":transformer")
         output.text == "16"
 
         when:
@@ -113,7 +113,7 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
 
         then:
         configurationCache.assertStateLoaded()
-        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        result.assertTasksExecuted(":producer", ":transformer")
         output.text == "22"
 
         when:
@@ -152,7 +152,7 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
         configurationCacheRun(":transformer")
 
         then:
-        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        result.assertTasksExecuted(":producer", ":transformer")
         output.text == "24"
 
         when:
@@ -161,7 +161,7 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
 
         then:
         configurationCache.assertStateLoaded()
-        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        result.assertTasksExecuted(":producer", ":transformer")
         output.text == "16"
 
         when:
@@ -170,7 +170,7 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
 
         then:
         configurationCache.assertStateLoaded()
-        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        result.assertTasksExecuted(":producer", ":transformer")
         output.text == "22"
 
         when:
@@ -210,7 +210,7 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
         configurationCacheRun(":transformer")
 
         then:
-        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        result.assertTasksExecuted(":producer", ":transformer")
         output.text == "22,24"
 
         when:
@@ -219,7 +219,7 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
 
         then:
         configurationCache.assertStateLoaded()
-        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        result.assertTasksExecuted(":producer", ":transformer")
         output.text == "14,16"
 
         when:
@@ -228,7 +228,7 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
 
         then:
         configurationCache.assertStateLoaded()
-        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        result.assertTasksExecuted(":producer", ":transformer")
         output.text == "20,22"
 
         when:
@@ -262,7 +262,7 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
         configurationCacheRun(":transformer")
 
         then:
-        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        result.assertTasksExecuted(":producer", ":transformer")
         output.text == "a=22,b=24"
 
         when:
@@ -271,7 +271,7 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
 
         then:
         configurationCache.assertStateLoaded()
-        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        result.assertTasksExecuted(":producer", ":transformer")
         output.text == "a=14,b=16"
 
         when:
@@ -280,7 +280,7 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
 
         then:
         configurationCache.assertStateLoaded()
-        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        result.assertTasksExecuted(":producer", ":transformer")
         output.text == "a=20,b=22"
 
         when:

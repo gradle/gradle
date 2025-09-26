@@ -10,18 +10,17 @@ description = "API extraction for Java"
 errorprone {
     disabledChecks.addAll(
         "NonApiType", // 1 occurrences
-        "ProtectedMembersInFinalClass", // 1 occurrences
     )
 }
 
 dependencies {
     api(projects.hashing)
     api(projects.files)
+    api(projects.javaApiExtractor)
     api(projects.snapshots)
 
     api(libs.jspecify)
     api(libs.guava)
-    api("org.gradle:java-api-extractor")
 
     implementation(projects.functional)
 

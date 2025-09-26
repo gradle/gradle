@@ -15,7 +15,7 @@
  */
 
 import gradlebuild.basics.repoRoot
-import gradlebuild.basics.testJavaVersion
+import gradlebuild.basics.util.getSingleFileProvider
 import gradlebuild.cleanup.services.CachesCleaner
 import gradlebuild.integrationtests.extension.IntegrationTestExtension
 import gradlebuild.integrationtests.setSystemPropertiesOfTestJVM
@@ -29,7 +29,7 @@ plugins {
 val intTestHomeDir = repoRoot().dir("intTestHomeDir")
 
 val cachesCleanerService = gradle.sharedServices.registerIfAbsent("cachesCleaner", CachesCleaner::class) {
-    parameters.gradleVersion = moduleIdentity.version.map { it.version }
+    parameters.gradleVersion = gradleModule.identity.version.map { it.version }
     parameters.homeDir = intTestHomeDir
 }
 
@@ -43,9 +43,6 @@ tasks.withType<DistributionTest>().configureEach {
     configureGradleTestEnvironment()
     addSetUpAndTearDownActions()
 }
-
-fun executerRequiresDistribution(taskName: String) =
-    !taskName.startsWith("embedded") || taskName.contains("CrossVersion") // <- Tooling API [other-version]->[current]
 
 fun executerRequiresFullDistribution(taskName: String) =
     taskName.startsWith("noDaemon")
@@ -61,13 +58,13 @@ fun DistributionTest.configureGradleTestEnvironment() {
     val taskName = name
 
     gradleInstallationForTest.apply {
-        if (executerRequiresDistribution(taskName)) {
-            gradleHomeDir = if (executerRequiresFullDistribution(taskName)) {
-                configurations["${prefix}TestFullDistributionRuntimeClasspath"]
+        gradleDistribution.homeDir.fileProvider(
+            if (executerRequiresFullDistribution(taskName)) {
+                configurations["${prefix}TestFullDistributionRuntimeClasspath"].getSingleFileProvider()
             } else {
-                configurations["${prefix}TestDistributionRuntimeClasspath"]
+                configurations["${prefix}TestDistributionRuntimeClasspath"].getSingleFileProvider()
             }
-        }
+        )
         // Set the base user home dir to be share by integration tests.
         // The actual user home dir will be a subfolder using the name of the distribution.
         gradleUserHomeDir = intTestHomeDir
@@ -75,6 +72,7 @@ fun DistributionTest.configureGradleTestEnvironment() {
         // The actual daemon registry dir will be a subfolder using the name of the distribution.
         daemonRegistry = repoRoot().dir("build/daemon")
         gradleSnippetsDir = repoRoot().dir("platforms/documentation/docs/src/snippets") // TODO use dependency management
+        distZipVersion = project.version.toString()
     }
 
     // Wire the different inputs for local distributions and repos that are declared by dependencies in the build scripts
@@ -88,9 +86,4 @@ fun DistributionTest.configureGradleTestEnvironment() {
 
 fun DistributionTest.setJvmArgsOfTestJvm() {
     jvmArgs("-Xmx${project.the<IntegrationTestExtension>().testJvmXmx.get()}", "-XX:+HeapDumpOnOutOfMemoryError")
-
-    val testJavaVersion = JavaLanguageVersion.of(project.testJavaVersion)
-    if (!testJavaVersion.canCompileOrRun(8)) {
-        jvmArgs("-XX:MaxPermSize=768m")
-    }
 }

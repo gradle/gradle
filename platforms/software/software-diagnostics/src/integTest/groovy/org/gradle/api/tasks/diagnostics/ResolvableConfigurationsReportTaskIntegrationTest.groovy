@@ -75,7 +75,7 @@ class ResolvableConfigurationsReportTaskIntegrationTest extends AbstractIntegrat
         """
 
         when:
-        executer.expectDeprecationWarning('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.')
+        executer.expectExternalDeprecatedMessage('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.')
         run ':resolvableConfigurations', '--all'
 
         then:
@@ -340,7 +340,7 @@ Extended Configurations
         """
 
         when:
-        executer.expectDeprecationWarning('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.')
+        executer.expectExternalDeprecatedMessage('(l) Legacy or deprecated configuration. Those are variants created for backwards compatibility which are both resolvable and consumable.')
         run ':resolvableConfigurations', '--all'
 
         then:

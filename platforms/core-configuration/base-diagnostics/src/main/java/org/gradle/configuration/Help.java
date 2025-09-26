@@ -50,39 +50,25 @@ public abstract class Help extends DefaultTask {
     }
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     @Inject
-    protected StyledTextOutputFactory getTextOutputFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract StyledTextOutputFactory getTextOutputFactory();
 
     @Inject
-    protected BuildClientMetaData getClientMetaData() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract BuildClientMetaData getClientMetaData();
 
     @Inject
-    protected BuildTaskSelector.BuildSpecificSelector getTaskSelector() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract BuildTaskSelector.BuildSpecificSelector getTaskSelector();
 
     @Inject
-    protected OptionReader getOptionReader() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract OptionReader getOptionReader();
 
     @Inject
-    protected ResolvedBuildLayout getResolvedBuildLayout() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ResolvedBuildLayout getResolvedBuildLayout();
 
     @Inject
-    protected DocumentationRegistry getDocumentationRegistry() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract DocumentationRegistry getDocumentationRegistry();
 
     @TaskAction
     void displayHelp() {

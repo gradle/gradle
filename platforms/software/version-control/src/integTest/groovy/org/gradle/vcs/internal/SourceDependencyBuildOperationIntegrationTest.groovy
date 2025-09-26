@@ -23,7 +23,6 @@ import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
@@ -38,7 +37,6 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
     GitFileRepository repo = new GitFileRepository('buildB', temporaryFolder.getTestDirectory())
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    @ToBeFixedForConfigurationCache
     def "generates configure, task graph and run tasks operations for source dependency build with #display"() {
         given:
         repo.file("settings.gradle") << """

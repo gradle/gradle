@@ -16,7 +16,10 @@
 
 package org.gradle.internal.enterprise.core;
 
+import org.gradle.internal.problems.failure.Failure;
 import org.jspecify.annotations.Nullable;
+
+import java.util.List;
 
 public interface GradleEnterprisePluginAdapter {
 
@@ -24,6 +27,6 @@ public interface GradleEnterprisePluginAdapter {
 
     void onLoadFromConfigurationCache();
 
-    void buildFinished(@Nullable Throwable buildFailure);
+    void buildFinished(@Nullable Throwable buildFailure, @Nullable List<Failure> richBuildFailures);
 
 }

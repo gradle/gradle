@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
-import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.testing.TestClassConsumer;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -64,7 +64,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     private final IdGenerator<?> idGenerator;
     private final Clock clock;
 
-    private CollectAllTestClassesExecutor testClassExecutor;
+    private CollectThenExecuteTestClassConsumer testClassExecutor;
     private BackwardsCompatibleLauncherSession launcherSession;
     private ClassLoader junitClassLoader;
 
@@ -81,31 +81,42 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     }
 
     @Override
-    protected Action<String> createTestExecutor(Actor resultProcessorActor) {
+    public void assertTestFrameworkAvailable() {
+        try {
+            Class.forName("org.junit.platform.launcher.core.LauncherFactory");
+        } catch (ClassNotFoundException e) {
+            throw new TestFrameworkNotAvailableException("Failed to load JUnit Platform.  Please ensure that all JUnit Platform dependencies are available on the test's runtime classpath, including the JUnit Platform launcher.");
+        }
+    }
+
+    @Override
+    protected TestClassConsumer createTestExecutor(Actor resultProcessorActor) {
         TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
         launcherSession = BackwardsCompatibleLauncherSession.open();
         junitClassLoader = Thread.currentThread().getContextClassLoader();
-        testClassExecutor = new CollectAllTestClassesExecutor(threadSafeResultProcessor);
+        testClassExecutor = new CollectThenExecuteTestClassConsumer(threadSafeResultProcessor);
         return testClassExecutor;
     }
 
     @Override
     public void stop() {
-        testClassExecutor.processAllTestClasses();
-        launcherSession.close();
-        super.stop();
+        if (startedProcessing) {
+            testClassExecutor.processAllTestClasses();
+            launcherSession.close();
+            super.stop();
+        }
     }
 
-    private class CollectAllTestClassesExecutor implements Action<String> {
+    private class CollectThenExecuteTestClassConsumer implements TestClassConsumer {
         private final List<Class<?>> testClasses = new ArrayList<>();
         private final TestResultProcessor resultProcessor;
 
-        CollectAllTestClassesExecutor(TestResultProcessor resultProcessor) {
+        CollectThenExecuteTestClassConsumer(TestResultProcessor resultProcessor) {
             this.resultProcessor = resultProcessor;
         }
 
         @Override
-        public void execute(@NonNull String testClassName) {
+        public void consumeClass(@NonNull String testClassName) {
             Class<?> klass = loadClass(testClassName);
             if (isInnerClass(klass) || (supportsVintageTests() && isNestedClassInsideEnclosedRunner(klass))) {
                 return;
@@ -295,15 +306,28 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
 
         private boolean classMatch(TestDescriptor descriptor) {
+            TestDescriptor current = descriptor;
+            String methodName = null;
             while (true) {
-                Optional<TestDescriptor> parent = descriptor.getParent();
+
+                Optional<TestDescriptor> parent = current.getParent();
                 if (!parent.isPresent()) {
                     break;
                 }
-                if (className(descriptor).filter(className -> matcher.matchesTest(className, null)).isPresent()) {
+
+                // If the current descriptor is a class, check if it matches the test selection criteria
+                Optional<String> className = className(current);
+                if (className.isPresent() && matcher.matchesTest(className.get(), methodName)) {
                     return true;
                 }
-                descriptor = parent.get();
+
+                // If the descriptor is a MethodSource, capture the method name to use when checking against parent class names
+                // (for instance, if the method is in a nested class).
+                if (current.getSource().isPresent() && current.getSource().get() instanceof MethodSource) {
+                    methodName = ((MethodSource) current.getSource().get()).getMethodName();
+                }
+
+                current = parent.get();
             }
             return false;
         }

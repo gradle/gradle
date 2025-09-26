@@ -22,10 +22,7 @@ import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.ConfigureUtil;
-
-import java.io.File;
 
 public abstract class SimpleReport implements ConfigurableReport {
     private final String name;
@@ -56,17 +53,6 @@ public abstract class SimpleReport implements ConfigurableReport {
     @Override
     public abstract FileSystemLocationProperty<? extends FileSystemLocation> getOutputLocation();
 
-    @Deprecated
-    @Override
-    public void setDestination(File file) {
-        DeprecationLogger.deprecateProperty(Report.class, "destination")
-                .replaceWith("outputLocation")
-                .willBeRemovedInGradle9()
-                .withDslReference()
-                .nagUser();
-
-        getOutputLocation().fileValue(file);
-    }
     @Override
     public OutputType getOutputType() {
         return outputType;

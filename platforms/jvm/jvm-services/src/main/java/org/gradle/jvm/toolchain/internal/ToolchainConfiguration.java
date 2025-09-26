@@ -53,4 +53,6 @@ public interface ToolchainConfiguration {
     @Nullable File getJabbaHomeDirectory();
 
     File getSdkmanCandidatesDirectory();
+
+    @Nullable String getEnvironmentVariableValue(String variableName);
 }

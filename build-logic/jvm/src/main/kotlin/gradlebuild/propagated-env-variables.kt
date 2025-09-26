@@ -117,8 +117,8 @@ fun Test.filterEnvironmentVariables() {
 
 
 private
-fun makePropagatedEnvironment(): Map<String, String?> {
-    val result = HashMap<String, String?>()
+fun makePropagatedEnvironment(): Map<String, String> {
+    val result = HashMap<String, String>()
     for (key in propagatedEnvironmentVariables) {
         val value = System.getenv(key)
         if (value != null) {

@@ -38,7 +38,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
 
         expect:
         succeeds taskNameToAssembleDevelopmentBinary
-        result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
+        result.assertTasksScheduled(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
         assertComponentUnderTestWasBuilt()
     }
 
@@ -93,7 +93,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         succeeds taskNameToAssembleDevelopmentBinary
 
         then:
-        result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
+        result.assertTasksScheduled(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
@@ -114,7 +114,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         succeeds taskNameToAssembleDevelopmentBinary
 
         then:
-        result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
+        result.assertTasksScheduled(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_3)
@@ -218,7 +218,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         succeeds taskNameToAssembleDevelopmentBinary
 
         then:
-        result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
+        result.assertTasksScheduled(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
@@ -234,7 +234,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         succeeds taskNameToAssembleDevelopmentBinary
 
         then:
-        result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
+        result.assertTasksScheduled(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
@@ -250,7 +250,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         succeeds taskNameToAssembleDevelopmentBinary
 
         then:
-        result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
+        result.assertTasksScheduled(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_6)
@@ -266,7 +266,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         succeeds taskNameToAssembleDevelopmentBinary
 
         then:
-        result.assertTasksExecuted(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
+        result.assertTasksScheduled(tasksToAssembleDevelopmentBinaryOfComponentUnderTest, ":$taskNameToAssembleDevelopmentBinary")
     }
 
     def "assemble task warns when current operating system family is excluded"() {

@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.tasks.testing.TestFramework;
-import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.testing.Test;
@@ -36,7 +35,7 @@ abstract public class TestNGTestToolchain implements JvmTestToolchain<TestNGTool
     /**
      * The default version of TestNG to use for compiling and executing tests.
      */
-    public static final String DEFAULT_VERSION = "7.5";
+    public static final String DEFAULT_VERSION = "7.11.0";
     private static final String GROUP_NAME = "org.testng:testng";
 
     @Inject
@@ -47,7 +46,7 @@ abstract public class TestNGTestToolchain implements JvmTestToolchain<TestNGTool
 
     @Override
     public TestFramework createTestFramework(Test task) {
-        return new TestNGTestFramework(task, (DefaultTestFilter) task.getFilter(), getObjectFactory());
+        return getObjectFactory().newInstance(TestNGTestFramework.class, task.getFilter(), task.getTemporaryDirFactory(), task.getDryRun(), task.getReports().getHtml());
     }
 
     @Override

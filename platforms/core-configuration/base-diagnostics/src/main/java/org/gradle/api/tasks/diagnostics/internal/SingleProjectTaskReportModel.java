@@ -15,29 +15,15 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
-import com.google.common.collect.SetMultimap;
-import com.google.common.collect.TreeMultimap;
-import org.gradle.api.Task;
-import org.gradle.util.internal.GUtil;
+import com.google.common.collect.ImmutableSetMultimap;
 
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.Set;
 
 public class SingleProjectTaskReportModel implements TaskReportModel {
 
-    public static SingleProjectTaskReportModel forTasks(Collection<? extends Task> tasks, TaskDetailsFactory factory) {
-        final SetMultimap<String, TaskDetails> groups = TreeMultimap.create(String::compareToIgnoreCase, Comparator.comparing(TaskDetails::getPath));
-        for (Task task : tasks) {
-            String group = GUtil.isTrue(task.getGroup()) ? task.getGroup() : DEFAULT_GROUP;
-            groups.put(group, factory.create(task));
-        }
-        return new SingleProjectTaskReportModel(groups);
-    }
+    private final ImmutableSetMultimap<String, TaskDetails> groups;
 
-    private final SetMultimap<String, TaskDetails> groups;
-
-    private SingleProjectTaskReportModel(SetMultimap<String, TaskDetails> groups) {
+    public SingleProjectTaskReportModel(ImmutableSetMultimap<String, TaskDetails> groups) {
         this.groups = groups;
     }
 
@@ -53,4 +39,5 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
         }
         return groups.get(group);
     }
+
 }

@@ -51,13 +51,14 @@ class PotentialEdge {
     }
 
     static PotentialEdge of(ResolveState resolveState, NodeState from, ModuleComponentIdentifier toComponent, ModuleComponentSelector toSelector, ComponentIdentifier owner, boolean force, boolean transitive) {
-        DependencyState dependencyState = new DependencyState(new LenientPlatformDependencyMetadata(resolveState, from, toSelector, toComponent, owner, force || hasStrongOpinion(from), transitive), resolveState.getComponentSelectorConverter());
-        dependencyState = NodeState.maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
+        LenientPlatformDependencyMetadata dependencyMetadata = new LenientPlatformDependencyMetadata(resolveState, from, toSelector, toComponent, owner, force || hasStrongOpinion(from), transitive);
+        DependencyState dependencyState = resolveState.getDependencySubstitutionApplicator().applySubstitutions(dependencyMetadata);
         ExcludeSpec exclusions = from.previousTraversalExclusions;
         if (exclusions == null) {
             exclusions = resolveState.getModuleExclusions().nothing();
         }
-        EdgeState edge = new EdgeState(from, dependencyState, exclusions, resolveState);
+        EdgeState edge = new EdgeState(from, dependencyState, resolveState);
+        edge.updateTransitiveExcludes(exclusions);
         edge.computeSelector();
         ModuleVersionIdentifier toModuleVersionId = DefaultModuleVersionIdentifier.newId(toSelector.getModuleIdentifier(), toSelector.getVersion());
         ComponentState version = resolveState.getModule(toSelector.getModuleIdentifier()).getVersion(toModuleVersionId, toComponent);

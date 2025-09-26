@@ -172,6 +172,47 @@ class ReceivedProblem implements InternalProblem {
     }
 
     @Override
+    String toString() {
+        String originLocationsStr = originLocations.collect { formatLocation(it) }.join(", ")
+        String contextualLocationsStr = contextualLocations.collect { formatLocation(it) }.join(", ")
+        String solutionsStr = solutions.collect { "'${it}'" }.join(", ")
+
+        return "ReceivedProblem{" +
+            "id=${definition.id.fqid}" +
+            ", severity=${severity}" +
+            ", label='${contextualLabel}'" +
+            ", details='${details}'" +
+            ", originLocations=[${originLocationsStr}]" +
+            ", contextualLocations=[${contextualLocationsStr}]" +
+            ", solutions=[${solutionsStr}]" +
+            "}"
+    }
+
+    private String formatLocation(ProblemLocation location) {
+        if (location instanceof FileLocation) {
+            String result = "File(" + ((FileLocation) location).path
+            if (location instanceof LineInFileLocation) {
+                LineInFileLocation lineLocation = (LineInFileLocation) location
+                result += ", line=" + lineLocation.line + ", column=" + lineLocation.column
+            } else if (location instanceof OffsetInFileLocation) {
+                OffsetInFileLocation offsetLocation = (OffsetInFileLocation) location
+                result += ", offset=" + offsetLocation.offset
+            }
+            result += ")"
+            return result
+        } else if (location instanceof PluginIdLocation) {
+            return "Plugin(" + ((PluginIdLocation) location).pluginId + ")"
+        } else if (location instanceof TaskLocation) {
+            return "Task(" + ((TaskLocation) location).buildTreePath + ")"
+        } else if (location instanceof StackTraceLocation) {
+            StackTraceLocation stackLocation = (StackTraceLocation) location
+            return "StackTrace(elements=" + stackLocation.stackTrace.size() + ")"
+        } else {
+            return location.toString()
+        }
+    }
+
+    @Override
     InternalProblemBuilder toBuilder(ProblemsInfrastructure infrastructure) {
         throw new UnsupportedOperationException("Not implemented")
     }

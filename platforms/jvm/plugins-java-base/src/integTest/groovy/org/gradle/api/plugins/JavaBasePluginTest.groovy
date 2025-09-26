@@ -21,7 +21,6 @@ import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport
-import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
@@ -54,8 +53,6 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         project.plugins.hasPlugin(ReportingBasePlugin)
         project.plugins.hasPlugin(BasePlugin)
         project.plugins.hasPlugin(JvmEcosystemPlugin)
-        project.convention.plugins.java instanceof JavaPluginConvention
-        project.extensions.sourceSets.is(project.convention.plugins.java.sourceSets)
         project.extensions.java instanceof JavaPluginExtension
     }
 
@@ -73,17 +70,17 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def ext = project.extensions.java
-        project.sourceCompatibility == JavaVersion.current()
-        project.targetCompatibility == JavaVersion.current()
+        project.java.sourceCompatibility == JavaVersion.current()
+        project.java.targetCompatibility == JavaVersion.current()
         ext.sourceCompatibility == JavaVersion.current()
         ext.targetCompatibility == JavaVersion.current()
 
         when:
-        project.sourceCompatibility = JavaVersion.VERSION_1_6
+        project.java.sourceCompatibility = JavaVersion.VERSION_1_6
 
         then:
-        project.sourceCompatibility == JavaVersion.VERSION_1_6
-        project.targetCompatibility == JavaVersion.VERSION_1_6
+        project.java.sourceCompatibility == JavaVersion.VERSION_1_6
+        project.java.targetCompatibility == JavaVersion.VERSION_1_6
         ext.sourceCompatibility == JavaVersion.VERSION_1_6
         ext.targetCompatibility == JavaVersion.VERSION_1_6
 
@@ -91,17 +88,17 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         ext.sourceCompatibility = JavaVersion.VERSION_1_8
 
         then:
-        project.sourceCompatibility == JavaVersion.VERSION_1_8
-        project.targetCompatibility == JavaVersion.VERSION_1_8
+        project.java.sourceCompatibility == JavaVersion.VERSION_1_8
+        project.java.targetCompatibility == JavaVersion.VERSION_1_8
         ext.sourceCompatibility == JavaVersion.VERSION_1_8
         ext.targetCompatibility == JavaVersion.VERSION_1_8
 
         when:
-        project.targetCompatibility = JavaVersion.VERSION_1_7
+        project.java.targetCompatibility = JavaVersion.VERSION_1_7
 
         then:
-        project.sourceCompatibility == JavaVersion.VERSION_1_8
-        project.targetCompatibility == JavaVersion.VERSION_1_7
+        project.java.sourceCompatibility == JavaVersion.VERSION_1_8
+        project.java.targetCompatibility == JavaVersion.VERSION_1_7
         ext.sourceCompatibility == JavaVersion.VERSION_1_8
         ext.targetCompatibility == JavaVersion.VERSION_1_7
 
@@ -109,8 +106,8 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         ext.targetCompatibility = JavaVersion.VERSION_1_6
 
         then:
-        project.sourceCompatibility == JavaVersion.VERSION_1_8
-        project.targetCompatibility == JavaVersion.VERSION_1_6
+        project.java.sourceCompatibility == JavaVersion.VERSION_1_8
+        project.java.targetCompatibility == JavaVersion.VERSION_1_6
         ext.sourceCompatibility == JavaVersion.VERSION_1_8
         ext.targetCompatibility == JavaVersion.VERSION_1_6
     }
@@ -143,7 +140,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         compileJava instanceof JavaCompile
         TaskDependencyMatchers.dependsOn().matches(compileJava)
         compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
-        compileJava.destinationDir == new File(project.buildDir, 'classes/java/custom')
+        compileJava.destinationDirectory.asFile.get() == new File(project.buildDir, 'classes/java/custom')
 
         def sources = compileJava.source
         sources.files == project.sourceSets.custom.java.files
@@ -220,7 +217,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets.create('custom')
         def compileJava = project.tasks['compileCustomJava'] as JavaCompile
-        compileJava.options.annotationProcessorGeneratedSourcesDirectory = generatedSourcesDir
+        compileJava.options.generatedSourceOutputDirectory.set(generatedSourcesDir)
 
         then:
         project.sourceSets.custom.output.generatedSourcesDirs.files == toLinkedSet(generatedSourcesDir)
@@ -233,7 +230,6 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def implementation = project.configurations.customImplementation
-        !implementation.visible
         implementation.extendsFrom == [] as Set
         implementation.description == "Implementation only dependencies for source set 'custom'."
         !implementation.canBeConsumed
@@ -242,7 +238,6 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         and:
         def runtimeOnly = project.configurations.customRuntimeOnly
         runtimeOnly.transitive
-        !runtimeOnly.visible
         !runtimeOnly.canBeConsumed
         !runtimeOnly.canBeResolved
         runtimeOnly.extendsFrom == [] as Set
@@ -251,7 +246,6 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         and:
         def runtimeClasspath = project.configurations.customRuntimeClasspath
         runtimeClasspath.transitive
-        !runtimeClasspath.visible
         !runtimeClasspath.canBeConsumed
         runtimeClasspath.canBeResolved
         runtimeClasspath.extendsFrom == [runtimeOnly, implementation] as Set
@@ -260,14 +254,12 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         and:
         def compileOnly = project.configurations.customCompileOnly
         compileOnly.transitive
-        !compileOnly.visible
         compileOnly.extendsFrom == [] as Set
         compileOnly.description == "Compile only dependencies for source set 'custom'."
 
         and:
         def compileClasspath = project.configurations.customCompileClasspath
         compileClasspath.transitive
-        !compileClasspath.visible
         compileClasspath.extendsFrom == [compileOnly, implementation] as Set
         compileClasspath.description == "Compile classpath for source set 'custom'."
 
@@ -281,21 +273,22 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     def "applies mappings to tasks defined by build script"() {
         when:
         project.pluginManager.apply(JavaBasePlugin)
+        project.version = "1.0"
 
         then:
         def compile = project.task('customCompile', type: JavaCompile)
-        compile.sourceCompatibility == project.sourceCompatibility.toString()
+        compile.sourceCompatibility == project.java.sourceCompatibility.toString()
 
         def test = project.task('customTest', type: Test.class)
         test.workingDir == project.projectDir
-        test.reports.junitXml.outputLocation.get().asFile == new File(project.testResultsDir, 'customTest')
-        test.reports.html.outputLocation.get().asFile == new File(project.testReportDir, 'customTest')
+        test.reports.junitXml.outputLocation.get().asFile == new File(project.java.testResultsDir.getAsFile().get(), 'customTest')
+        test.reports.html.outputLocation.get().asFile == new File(project.java.testReportDir.getAsFile().get(), 'customTest')
         test.reports.junitXml.required.get()
         test.reports.html.required.get()
 
         def javadoc = project.task('customJavadoc', type: Javadoc)
-        javadoc.destinationDir == project.file("$project.docsDir/javadoc")
-        javadoc.title == project.extensions.getByType(ReportingExtension).apiDocTitle
+        javadoc.destinationDir == project.java.docsDir.file("javadoc").get().asFile
+        javadoc.title == "test-project 1.0 API"
     }
 
     def "applies mappings to custom jar tasks"() {
@@ -305,7 +298,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         TaskDependencyMatchers.dependsOn().matches(task)
-        task.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
+        task.destinationDirectory.get().asFile == project.base.libsDirectory.get().asFile
     }
 
     def "creates lifecycle build tasks"() {
@@ -359,7 +352,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def someJar = project.tasks.create('someJar', Jar)
-        someJar.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
+        someJar.destinationDirectory.get().asFile == project.base.libsDirectory.get().asFile
     }
 
     @Issue("gradle/gradle#8700")

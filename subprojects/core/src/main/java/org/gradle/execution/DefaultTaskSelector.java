@@ -35,28 +35,27 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public class DefaultTaskSelector implements TaskSelector {
+public abstract class DefaultTaskSelector implements TaskSelector {
     private static final Logger LOGGER = Logging.getLogger(DefaultTaskSelector.class);
 
     private final TaskNameResolver taskNameResolver;
-    private final ProjectConfigurer configurer;
 
     @Inject
-    public DefaultTaskSelector(TaskNameResolver taskNameResolver, ProjectConfigurer configurer) {
+    public DefaultTaskSelector(TaskNameResolver taskNameResolver) {
         this.taskNameResolver = taskNameResolver;
-        this.configurer = configurer;
     }
 
     @Inject
-    protected InternalProblems getProblemsService() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProjectConfigurer getConfigurer();
+
+    @Inject
+    protected abstract InternalProblems getProblemsService();
 
     @Override
     public Spec<Task> getFilter(SelectionContext context, ProjectState project, String taskName, boolean includeSubprojects) {
         if (includeSubprojects) {
             // Try to delay configuring all the subprojects
-            configurer.configure(project.getMutableModel());
+            getConfigurer().configure(project.getMutableModel());
             if (taskNameResolver.tryFindUnqualifiedTaskCheaply(taskName, project.getMutableModel())) {
                 // An exact match in the target project - can just filter tasks by path to avoid configuring subprojects at this point
                 return new TaskPathSpec(project.getMutableModel(), taskName);
@@ -70,18 +69,18 @@ public class DefaultTaskSelector implements TaskSelector {
     @Override
     public TaskSelection getSelection(SelectionContext context, ProjectState targetProject, String taskName, boolean includeSubprojects) {
         if (!includeSubprojects) {
-            configurer.configure(targetProject.getMutableModel());
+            getConfigurer().configure(targetProject.getMutableModel());
         } else {
-            configurer.configureHierarchy(targetProject.getMutableModel());
+            getConfigurer().configureHierarchy(targetProject.getMutableModel());
         }
 
-        TaskSelectionResult tasks = taskNameResolver.selectWithName(taskName, targetProject.getMutableModel(), includeSubprojects);
+        TaskSelectionResult tasks = taskNameResolver.selectWithName(taskName, targetProject, includeSubprojects);
         if (tasks != null) {
             LOGGER.info("Task name matched '{}'", taskName);
-            return new TaskSelection(targetProject.getProjectPath().getPath(), taskName, tasks);
+            return new TaskSelection(targetProject.getProjectPath().asString(), taskName, tasks);
         }
 
-        Map<String, TaskSelectionResult> tasksByName = taskNameResolver.selectAll(targetProject.getMutableModel(), includeSubprojects);
+        Map<String, TaskSelectionResult> tasksByName = taskNameResolver.selectAll(targetProject, includeSubprojects);
         NameMatcher matcher = new NameMatcher();
         String actualName = matcher.find(taskName, tasksByName.keySet());
 
@@ -89,13 +88,13 @@ public class DefaultTaskSelector implements TaskSelector {
             throw throwTaskSelectionException(context, targetProject, taskName, includeSubprojects, matcher);
         }
         LOGGER.info("Abbreviated task name '{}' matched '{}'", taskName, actualName);
-        return new TaskSelection(targetProject.getProjectPath().getPath(), taskName, tasksByName.get(actualName));
+        return new TaskSelection(targetProject.getProjectPath().asString(), taskName, tasksByName.get(actualName));
     }
 
     private RuntimeException throwTaskSelectionException(SelectionContext context, ProjectState targetProject, String taskName, boolean includeSubprojects, NameMatcher matcher) {
         String searchContext = getSearchContext(targetProject, includeSubprojects);
 
-        if (context.getOriginalPath().getPath().equals(taskName)) {
+        if (context.getOriginalPath().asString().equals(taskName)) {
             String message = matcher.formatErrorMessage("Task", searchContext);
             throw getProblemsService().getInternalReporter().throwing(new TaskSelectionException(message), matcher.problemId(), spec -> {
                 configureProblem(spec, context);
@@ -107,12 +106,12 @@ public class DefaultTaskSelector implements TaskSelector {
 
         throw getProblemsService().getInternalReporter().throwing(new TaskSelectionException(message) /* this instead of cause */, matcher.problemId(), spec ->
             configureProblem(spec, context)
-              .contextualLabel(message)
+                .contextualLabel(message)
         );
     }
 
     private static ProblemSpec configureProblem(ProblemSpec spec, SelectionContext context) {
-        ((InternalProblemSpec) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(context.getOriginalPath().getPath())));
+        ((InternalProblemSpec) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(context.getOriginalPath().asString())));
         spec.severity(Severity.ERROR);
         return spec;
     }

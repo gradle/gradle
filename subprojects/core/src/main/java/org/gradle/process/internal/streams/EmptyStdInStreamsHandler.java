@@ -16,7 +16,7 @@
 
 package org.gradle.process.internal.streams;
 
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.process.internal.StreamsHandler;
 
 import java.io.IOException;
@@ -31,7 +31,7 @@ public class EmptyStdInStreamsHandler implements StreamsHandler {
         try {
             process.getOutputStream().close();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

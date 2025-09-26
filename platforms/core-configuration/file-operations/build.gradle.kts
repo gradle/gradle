@@ -20,14 +20,14 @@ plugins {
 
 description = "Operations on files, such as archiving, copying, deleting"
 
-// TODO: ensure code is compliant with requirements for workers
-// This project was part of :core and similarly is included in the Worker runtime classpath (see WorkerProcessClassPathProvider)
-// So it should either be compliant or split into parts that are used and not used for workers.
-//gradlebuildJava.usedInWorkers()
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
 
 errorprone {
     disabledChecks.addAll(
-        "InlineMeSuggester", // 1 occurrences
         "ReferenceEquality", // 2 occurrences
     )
 }
@@ -52,6 +52,7 @@ dependencies {
     api(projects.native)
     api(projects.persistentCache)
     api(projects.resources)
+    api(projects.scopedPersistentCache)
     api(projects.serviceLookup)
 
     api(libs.commonsCompress)
@@ -59,8 +60,6 @@ dependencies {
     api(libs.guava)
     api(libs.inject)
     api(libs.jspecify)
-
-    implementation(projects.wrapperShared)
 
     implementation(libs.ant)
     implementation(libs.commonsIo)

@@ -80,6 +80,8 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         this.calculatedValueFactory = calculatedValueFactory;
         this.execOperations = execOperations;
         // TODO - dedupe logic copied from DefaultBuildServicesRegistry
+        // TODO: Is it intentional we use a service registry that allows all services, even internal ones, to be injected?
+        //       All other usages of `IsolationScheme` use a specially crafted service registry only allowing certain services to be injected.
         this.paramsInstantiator = instantiatorFactory.decorateScheme().withServices(services).instantiator();
         this.specInstantiator = instantiatorFactory.decorateLenient(services);
     }

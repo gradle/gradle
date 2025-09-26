@@ -29,11 +29,11 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification imp
 
     def "can build the eclipse model for a java project"() {
 
-        projectDir.file('build.gradle').text = '''
+        buildFile << '''
 apply plugin: 'java'
 description = 'this is a project'
 '''
-        projectDir.file('settings.gradle').text = 'rootProject.name = \"test project\"'
+        settingsFile << 'rootProject.name = \"test project\"'
 
         when:
         HierarchicalEclipseProject minimalProject = loadToolingModel(HierarchicalEclipseProject)
@@ -85,7 +85,7 @@ description = 'this is a project'
 
     def "does not run any tasks when fetching model"() {
         when:
-        projectDir.file('build.gradle').text = '''
+        buildFile << '''
 apply plugin: 'java'
 gradle.taskGraph.beforeTask { throw new RuntimeException() }
 '''
@@ -147,11 +147,11 @@ gradle.taskGraph.beforeTask { throw new RuntimeException() }
 
     def "can build the eclipse external dependencies for a java project"() {
 
-        projectDir.file('settings.gradle').text = '''
-include "a"
+        includeProjects("a")
+        settingsFile <<'''
 rootProject.name = 'root'
 '''
-        projectDir.file('build.gradle').text = """
+        buildFile <<"""
 allprojects { apply plugin: 'java' }
 ${mavenCentralRepository()}
 dependencies {
@@ -196,8 +196,8 @@ dependencies {
         projectDir.file("gradle.properties") << """
             org.gradle.parallel=$parallel
         """
-        projectDir.file('settings.gradle').text = '''
-include "a", "a:b"
+        includeProjects("a", "a:b")
+        settingsFile << '''
 rootProject.name = 'root'
 '''
         projectDir.file('build.gradle').text = """
@@ -240,11 +240,11 @@ project(':a') {
 
     def "can build project dependencies with targetProject references for complex scenarios"() {
 
-        projectDir.file('settings.gradle').text = '''
-include "c", "a", "a:b"
+        includeProjects("a", "a:b", "c")
+        settingsFile << '''
 rootProject.name = 'root'
 '''
-        projectDir.file('build.gradle').text = """
+        buildFile << """
 allprojects {
     apply plugin: 'java'
 }
@@ -278,8 +278,8 @@ project(':c') {
 
     def "can build the eclipse project hierarchy for a multi-project build"() {
 
-        projectDir.file('settings.gradle').text = '''
-            include "child1", "child2", "child1:grandChild1"
+        includeProjects("child1", "child2", "child1:grandChild1")
+        settingsFile << '''
             rootProject.name = 'root'
 '''
         projectDir.file('child1').mkdirs()
@@ -312,9 +312,8 @@ project(':c') {
     }
 
     def "can build the eclipse project hierarchy for a multi-project build and access child projects directly"() {
-
-        projectDir.file('settings.gradle').text = '''
-            include "child1", "child2", "child1:grandChild1"
+        includeProjects("child1", "child2", "child1:grandChild1")
+        settingsFile << '''
             rootProject.name = 'root'
 '''
         projectDir.file('child1').mkdirs()
@@ -334,7 +333,7 @@ project(':c') {
     }
 
     def "respects customized eclipse project name"() {
-        settingsFile.text = "include ':foo', ':bar'"
+        includeProjects("foo", "bar")
         buildFile.text = """
 allprojects {
     apply plugin:'java'

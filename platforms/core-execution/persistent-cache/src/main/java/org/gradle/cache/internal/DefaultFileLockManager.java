@@ -32,6 +32,7 @@ import org.gradle.cache.internal.filelock.LockStateAccess;
 import org.gradle.cache.internal.filelock.LockStateSerializer;
 import org.gradle.cache.internal.filelock.Version1LockStateSerializer;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.time.ExponentialBackoff;
@@ -41,7 +42,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
@@ -108,14 +108,14 @@ public class DefaultFileLockManager implements FileLockManager {
 
     @Override
     public FileLock lock(File target, LockOptions options, String targetDisplayName, String operationDisplayName, @Nullable Consumer<FileLockReleasedSignal> whenContended) {
-        if (options.getMode() == LockMode.OnDemand) {
+        if (!isSupportedMode(options.getMode())) {
             throw new UnsupportedOperationException(String.format("No %s mode lock implementation available.", options));
         }
         File canonicalTarget;
         try {
             canonicalTarget = target.getCanonicalFile();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         if (!lockedFiles.add(canonicalTarget)) {
             throw new IllegalStateException(String.format("Cannot lock %s as it has already been locked by this process.", targetDisplayName));
@@ -152,8 +152,9 @@ public class DefaultFileLockManager implements FileLockManager {
         public DefaultFileLock(File target, LockOptions options, String displayName, String operationDisplayName, int port, @Nullable Consumer<FileLockReleasedSignal> whenContended) throws Throwable {
             this.port = port;
             this.lockId = generator.getAsLong();
-            if (options.getMode() == LockMode.OnDemand) {
-                throw new UnsupportedOperationException("Locking mode OnDemand is not supported.");
+            LockMode requestedLockMode = options.getMode();
+            if (!isSupportedMode(requestedLockMode)) {
+                throw new UnsupportedOperationException("Locking mode " + requestedLockMode + " is not supported.");
             }
 
             this.target = target;
@@ -176,7 +177,7 @@ public class DefaultFileLockManager implements FileLockManager {
                 if (whenContended != null) {
                     fileLockContentionHandler.start(lockId, whenContended);
                 }
-                lockState = lock(options.getMode());
+                lockState = lock(requestedLockMode);
             } catch (Throwable t) {
                 // Also releases any locks
                 lockFileAccess.close();
@@ -370,10 +371,10 @@ public class DefaultFileLockManager implements FileLockManager {
 
         private LockTimeoutException timeoutException(String lockDisplayName, String thisOperation, File lockFile, String thisProcessPid, FileLockOutcome fileLockOutcome, LockInfo lockInfo) {
             if (fileLockOutcome == FileLockOutcome.LOCKED_BY_ANOTHER_PROCESS) {
-                String message = String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nOwner PID: %s%nOur PID: %s%nOwner Operation: %s%nOur operation: %s%nLock file: %s", lockDisplayName, lockInfo.pid, thisProcessPid, lockInfo.operation, thisOperation, lockFile);
+                String message = String.format("Timeout waiting to lock %s. It is currently in use by another process.%nOwner PID: %s%nOur PID: %s%nOwner Operation: %s%nOur operation: %s%nLock file: %s", lockDisplayName, lockInfo.pid, thisProcessPid, lockInfo.operation, thisOperation, lockFile);
                 return new LockTimeoutException(message, lockFile);
             } else if (fileLockOutcome == FileLockOutcome.LOCKED_BY_THIS_PROCESS){
-                String message = String.format("Timeout waiting to lock %s. It is currently in use by this Gradle process.Owner Operation: %s%nOur operation: %s%nLock file: %s", lockDisplayName, lockInfo.operation, thisOperation, lockFile);
+                String message = String.format("Timeout waiting to lock %s. It is currently in use by this process. Owner Operation: %s%nOur operation: %s%nLock file: %s", lockDisplayName, lockInfo.operation, thisOperation, lockFile);
                 return new LockTimeoutException(message, lockFile);
             } else {
                 throw new IllegalArgumentException("Unexpected lock outcome: " + fileLockOutcome);
@@ -416,9 +417,9 @@ public class DefaultFileLockManager implements FileLockManager {
                     if (lockOutcome.isLockWasAcquired()) {
                         return ExponentialBackoff.Result.successful(lockOutcome);
                     }
-                    if (port != -1) { //we don't like the assumption about the port very much
+                    if (port != FileLockContentionHandler.INVALID_PORT) { //we don't like the assumption about the port very much
                         LockInfo lockInfo = readInformationRegion(backoff);
-                        if (lockInfo.port != -1) {
+                        if (lockInfo.port != FileLockContentionHandler.INVALID_PORT) {
                             if (lockInfo.port != lastLockHolderPort) {
                                 backoff.restartTimer();
                                 lastLockHolderPort = lockInfo.port;
@@ -426,10 +427,10 @@ public class DefaultFileLockManager implements FileLockManager {
                             }
                             if (fileLockContentionHandler.maybePingOwner(lockInfo.port, lockInfo.lockId, displayName, backoff.getTimer().getElapsedMillis() - lastPingTime, backoff.getSignal())) {
                                 lastPingTime = backoff.getTimer().getElapsedMillis();
-                                LOGGER.debug("The file lock for {} is held by a different Gradle process (pid: {}, lockId: {}). Pinged owner at port {}", displayName, lockInfo.pid, lockInfo.lockId, lockInfo.port);
+                                LOGGER.debug("The file lock for {} is held by a different process (pid: {}, lockId: {}). Pinged owner at port {}", displayName, lockInfo.pid, lockInfo.lockId, lockInfo.port);
                             }
                         } else {
-                            LOGGER.debug("The file lock for {} is held by a different Gradle process. I was unable to read on which port the owner listens for lock access requests.", displayName);
+                            LOGGER.debug("The file lock for {} is held by a different process. I was unable to read on which port the owner listens for lock access requests.", displayName);
                         }
                     }
                     return ExponentialBackoff.Result.notSuccessful(lockOutcome);
@@ -447,6 +448,10 @@ public class DefaultFileLockManager implements FileLockManager {
                 }
             });
         }
+    }
+
+    private boolean isSupportedMode(LockMode requestedLockMode) {
+        return requestedLockMode != LockMode.OnDemand && requestedLockMode != LockMode.OnDemandEagerRelease;
     }
 
     private ExponentialBackoff<AwaitableFileLockReleasedSignal> newExponentialBackoff(int shortTimeoutMs) {

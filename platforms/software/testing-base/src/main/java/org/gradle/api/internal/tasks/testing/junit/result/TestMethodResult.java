@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.tasks.testing.TestResult;
 
+import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +31,8 @@ public class TestMethodResult {
     private long duration;
     private long endTime;
     private final List<SerializableFailure> failures = new ArrayList<SerializableFailure>();
+
+    private SerializableFailure assumptionFailure = null;
 
     public TestMethodResult(long id, String name) {
         this(id, name, name);
@@ -69,6 +72,11 @@ public class TestMethodResult {
         return this;
     }
 
+    public TestMethodResult setAssumptionFailure(@Nullable String message, String stackTrace, String exceptionType) {
+        this.assumptionFailure = new SerializableFailure(message == null ? "(no message)" : message, stackTrace, exceptionType);
+        return this;
+    }
+
     public long getId() {
         return id;
     }
@@ -83,6 +91,11 @@ public class TestMethodResult {
 
     public List<SerializableFailure> getFailures() {
         return failures;
+    }
+
+    @Nullable
+    public SerializableFailure getAssumptionFailure() {
+        return assumptionFailure;
     }
 
     public TestResult.ResultType getResultType() {

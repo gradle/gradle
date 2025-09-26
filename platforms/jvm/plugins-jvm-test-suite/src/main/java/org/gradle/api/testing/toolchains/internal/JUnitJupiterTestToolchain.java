@@ -29,7 +29,7 @@ abstract public class JUnitJupiterTestToolchain extends JUnitPlatformTestToolcha
     /**
      * The default version of JUnit Jupiter to use for compiling and executing tests.
      */
-    public static final String DEFAULT_VERSION = "5.8.2";
+    public static final String DEFAULT_VERSION = "5.12.2";
     private static final String GROUP_NAME = "org.junit.jupiter:junit-jupiter";
 
     @Override

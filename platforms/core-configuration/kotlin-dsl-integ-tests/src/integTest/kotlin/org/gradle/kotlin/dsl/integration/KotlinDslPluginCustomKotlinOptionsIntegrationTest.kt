@@ -30,22 +30,38 @@ class KotlinDslPluginCustomKotlinOptionsIntegrationTest : AbstractKotlinIntegrat
 
         withDefaultSettingsIn("buildSrc")
         val buildSrcBuildScript = withKotlinDslPluginIn("buildSrc")
-        withFile("buildSrc/src/main/kotlin/MyDataObject.kt", "data object MyDataObject")
-        withBuildScript("println(MyDataObject)")
+        buildSrcBuildScript.appendText("""
+            tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+                compilerOptions {
+                    apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_1)
+                    languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_1)
+                }
+            }
+        """)
+        withFile(
+            "buildSrc/src/main/kotlin/MyDataObject.kt",
+            """
+            data object MyDataObject {
+                val some = "content"
+                val other: String = ${'$'}${'$'}""${'"'}${'$'}some = ${'$'}${'$'}some""${'"'}
+            }
+            """.trimIndent()
+        )
+        withBuildScript("println(MyDataObject.other)")
         buildAndFail("help").apply {
-            assertHasErrorOutput("""The feature "data objects" is only available since language version 1.9""")
+            assertHasErrorOutput("""The feature "multi dollar interpolation" is only available since language version 2.2""")
         }
 
         buildSrcBuildScript.appendText("""
             tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
                 compilerOptions {
-                    apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9)
-                    languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9)
+                    apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
+                    languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
                 }
             }
         """)
         build("help").apply {
-            assertOutputContains("MyDataObject")
+            assertOutputContains("${'$'}some = content")
         }
     }
 }

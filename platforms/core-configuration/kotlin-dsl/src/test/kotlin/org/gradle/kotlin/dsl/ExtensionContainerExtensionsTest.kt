@@ -19,15 +19,13 @@ package org.gradle.kotlin.dsl
 import org.gradle.api.Action
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.reflect.TypeOf
-
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.anyVararg
-import com.nhaarman.mockito_kotlin.doNothing
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.inOrder
-import com.nhaarman.mockito_kotlin.mock
-
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.anyVararg
+import org.mockito.kotlin.doNothing
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
 
 
 class ExtensionContainerExtensionsTest {

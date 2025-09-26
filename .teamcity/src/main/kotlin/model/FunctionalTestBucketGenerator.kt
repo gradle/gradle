@@ -1,15 +1,14 @@
 package model
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import common.Arch
 import common.Os
 import common.VersionedSettingsBranch
 import configurations.ParallelizationMethod
 import java.io.File
 import java.util.LinkedList
-import java.util.SortedSet
 
 const val MASTER_CHECK_CONFIGURATION = "Gradle_Master_Check"
 const val MAX_PROJECT_NUMBER_IN_BUCKET = 11
@@ -34,59 +33,11 @@ fun main() {
     FunctionalTestBucketGenerator(model, testClassDataJson).generate(generatedBucketsJson)
 }
 
-class TestClassTime(
-    val testClassAndSourceSet: TestClassAndSourceSet,
-    val buildTimeMs: Int,
-) {
-    constructor(jsonObject: Map<String, Any>) : this(
-        TestClassAndSourceSet(
-            jsonObject["testClass"] as String,
-            jsonObject["sourceSet"] as String,
-        ),
-        (jsonObject["buildTimeMs"] as Number).toInt(),
-    )
-}
-
-data class TestCoverageAndBucketSplits(
-    val testCoverageUuid: Int,
-    val buckets: List<FunctionalTestBucket>,
-)
-
-data class FunctionalTestBucket(
-    val subprojects: SortedSet<String>,
-    val parallelizationMethod: ParallelizationMethod,
-) {
-    constructor(subprojectList: List<String>, parallelizationMethod: ParallelizationMethod) : this(
-        subprojectList.toSortedSet(),
-        parallelizationMethod,
-    )
-
-    constructor(jsonObject: Map<String, Any>) : this(
-        (jsonObject["subprojects"] as List<*>).map { it.toString() },
-        ParallelizationMethod.fromJson(jsonObject),
-    )
-
-    fun toBuildTypeBucket(gradleSubprojectProvider: GradleSubprojectProvider): SmallSubprojectBucket =
-        SmallSubprojectBucket(
-            subprojects.map { gradleSubprojectProvider.getSubprojectByName(it)!! },
-            parallelizationMethod,
-        )
-}
-
-class SubprojectTestClassTime(
-    val subProject: GradleSubproject,
-    testClassTimes: List<TestClassTime> = emptyList(),
-) {
-    val totalTime: Int = testClassTimes.sumOf { it.buildTimeMs }
-
-    override fun toString(): String = "SubprojectTestClassTime(subProject=${subProject.name}, totalTime=$totalTime)"
-}
-
 class FunctionalTestBucketGenerator(
     private val model: CIBuildModel,
     testTimeDataJson: File,
 ) {
-    private val objectMapper = ObjectMapper().registerKotlinModule()
+    private val gson: Gson = GsonBuilder().setPrettyPrinting().create()
     private val buckets: Map<TestCoverage, List<SmallSubprojectBucket>> = buildBuckets(testTimeDataJson, model)
 
     fun generate(jsonFile: File) {
@@ -94,20 +45,15 @@ class FunctionalTestBucketGenerator(
             buckets.map {
                 TestCoverageAndBucketSplits(it.key.uuid, it.value.map { it.toJsonBucket() })
             }
-        jsonFile.writeText(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(output))
+        jsonFile.writeText(gson.toJson(output))
     }
 
     private fun buildBuckets(
         buildClassTimeJson: File,
         model: CIBuildModel,
     ): Map<TestCoverage, List<SmallSubprojectBucket>> {
-        val jsonObj: Map<String, Map<String, List<Map<String, Any>>>> = objectMapper.readValue(buildClassTimeJson.readText())
-        val buildProjectClassTimes: BuildProjectToSubprojectTestClassTimes =
-            jsonObj.mapValues { (_, subprojectMap) ->
-                subprojectMap.mapValues { (_, testClassTimes) ->
-                    testClassTimes.map { TestClassTime(it) }
-                }
-            }
+        val sType = object : TypeToken<BuildProjectToSubprojectTestClassTimes>() {}.type
+        val buildProjectClassTimes = gson.fromJson<BuildProjectToSubprojectTestClassTimes>(buildClassTimeJson.readText(), sType)
 
         val result = mutableMapOf<TestCoverage, List<SmallSubprojectBucket>>()
         for (stage in model.stages) {
@@ -147,9 +93,8 @@ class FunctionalTestBucketGenerator(
                 .map {
                     SubprojectTestClassTime(
                         model.subprojects.getSubprojectByName(it.key)!!,
-                        it.value.filter {
-                            it.testClassAndSourceSet.sourceSet !=
-                                "test"
+                        it.value.filter { tct ->
+                            tct.sourceSet != "test"
                         },
                     )
                 }.sortedBy { -it.totalTime }

@@ -22,7 +22,6 @@ import java.util.List;
 
 /**
  * A dependency that is defined locally in a build script, not resolved from a repository.
- * This has a simplified model of a dependency, that maps from a single module configuration to a single target configuration.
  */
 public interface LocalOriginDependencyMetadata extends ForcingDependencyMetadata {
 

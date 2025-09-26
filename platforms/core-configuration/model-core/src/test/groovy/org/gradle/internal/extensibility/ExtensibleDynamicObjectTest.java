@@ -20,10 +20,9 @@ import groovy.lang.GroovyRuntimeException;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
-import org.gradle.api.plugins.Convention;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
@@ -34,8 +33,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.CoreMatchers.sameInstance;
-import static org.junit.Assert.assertFalse;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -182,35 +181,6 @@ public class ExtensibleDynamicObjectTest {
     }
 
     @Test
-    public void hasPropertyDefinedByConventionObject() {
-        Bean bean = new Bean();
-        Convention convention = bean.extensibleDynamicObject.getConvention();
-
-        assertFalse(bean.hasProperty("conventionProperty"));
-        assertFalse(bean.hasProperty("conventionProperty"));
-
-        convention.getPlugins().put("test", new ConventionBean());
-        assertTrue(bean.hasProperty("conventionProperty"));
-    }
-
-    @Test
-    public void canGetAndSetPropertyDefinedByConventionObject() {
-        Bean bean = new Bean();
-        Convention convention = bean.extensibleDynamicObject.getConvention();
-        ConventionBean conventionBean = new ConventionBean();
-        convention.getPlugins().put("test", conventionBean);
-
-        conventionBean.setConventionProperty("value");
-
-        assertThat(bean.getProperty("conventionProperty"), equalTo((Object) "value"));
-
-        bean.setProperty("conventionProperty", "new value");
-
-        assertThat(bean.getProperty("conventionProperty"), equalTo((Object) "new value"));
-        assertThat(conventionBean.getConventionProperty(), equalTo((Object) "new value"));
-    }
-
-    @Test
     public void hasPropertyDefinedByParent() {
         Bean parent = new Bean();
         parent.defineProperty("parentProperty", "value");
@@ -299,57 +269,19 @@ public class ExtensibleDynamicObjectTest {
     }
 
     @Test
-    public void extraPropertyTakesPrecedenceOverConventionProperty() {
-        Bean bean = new Bean();
-        bean.defineProperty("conventionProperty", "value");
-
-        Convention convention = bean.extensibleDynamicObject.getConvention();
-        ConventionBean conventionBean = new ConventionBean();
-        convention.getPlugins().put("test", conventionBean);
-
-        assertThat(bean.getProperty("conventionProperty"), equalTo((Object) "value"));
-
-        bean.setProperty("conventionProperty", "new value");
-
-        assertThat(bean.getProperty("conventionProperty"), equalTo((Object) "new value"));
-        assertThat(bean.extensibleDynamicObject.getDynamicProperties().get("conventionProperty"), equalTo((Object) "new value"));
-        assertThat(conventionBean.getConventionProperty(), nullValue());
-    }
-
-    @Test
-    public void conventionPropertyTakesPrecedenceOverParentProperty() {
-        Bean parent = new Bean();
-        parent.defineProperty("conventionProperty", "parent");
-
-        Bean bean = new Bean();
-        bean.setParent(parent.getAsDynamicObject());
-
-        Convention convention = bean.extensibleDynamicObject.getConvention();
-        ConventionBean conventionBean = new ConventionBean();
-        conventionBean.setConventionProperty("value");
-        convention.getPlugins().put("test", conventionBean);
-
-        assertThat(bean.getProperty("conventionProperty"), equalTo((Object) "value"));
-    }
-
-    @Test
     public void canGetAllProperties() {
         Bean parent = new Bean();
         parent.defineProperty("parentProperty", "parentProperty");
         parent.setReadWriteProperty("ignore me");
         parent.doSetReadOnlyProperty("ignore me");
-        Convention parentConvention = parent.extensibleDynamicObject.getConvention();
-        parentConvention.getPlugins().put("parent", new ConventionBean());
 
         GroovyBean bean = new GroovyBean();
         bean.defineProperty("additional", "additional");
         bean.setReadWriteProperty("readWriteProperty");
         bean.doSetReadOnlyProperty("readOnlyProperty");
         bean.setGroovyProperty("groovyProperty");
-        Convention convention = bean.extensibleDynamicObject.getConvention();
         ConventionBean conventionBean = new ConventionBean();
         conventionBean.setConventionProperty("conventionProperty");
-        convention.getPlugins().put("bean", conventionBean);
         bean.setParent(parent.getAsDynamicObject());
 
         Map<String, Object> properties = bean.getProperties();
@@ -360,7 +292,6 @@ public class ExtensibleDynamicObjectTest {
         assertThat(properties.get("additional"), equalTo((Object) "additional"));
         assertThat(properties.get("groovyProperty"), equalTo((Object) "groovyProperty"));
         assertThat(properties.get("groovyDynamicProperty"), equalTo(null));
-        assertThat(properties.get("conventionProperty"), equalTo((Object) "conventionProperty"));
     }
 
     @Test
@@ -469,18 +400,6 @@ public class ExtensibleDynamicObjectTest {
     }
 
     @Test
-    public void canInvokeMethodDefinedByConvention() {
-        Bean bean = new Bean();
-        Convention convention = bean.extensibleDynamicObject.getConvention();
-
-        assertFalse(bean.hasMethod("conventionMethod", "a", "b"));
-
-        convention.getPlugins().put("bean", new ConventionBean());
-        assertTrue(bean.hasMethod("conventionMethod", "a", "b"));
-        assertThat(bean.getAsDynamicObject().invokeMethod("conventionMethod", "a", "b"), equalTo((Object) "convention:a.b"));
-    }
-
-    @Test
     public void canInvokeMethodDefinedByParent() {
         Bean parent = new Bean() {
             public String parentMethod(String a, String b) {
@@ -495,38 +414,6 @@ public class ExtensibleDynamicObjectTest {
 
         assertTrue(bean.hasMethod("parentMethod", "a", "b"));
         assertThat(bean.getAsDynamicObject().invokeMethod("parentMethod", "a", "b"), equalTo((Object) "parent:a.b"));
-    }
-
-    @Test
-    public void canInvokeMethodsOnJavaObjectFromGroovy() {
-        Bean bean = new Bean();
-        Convention convention = bean.extensibleDynamicObject.getConvention();
-        convention.getPlugins().put("bean", new ConventionBean());
-        new ExtensibleDynamicObjectTestHelper().assertCanCallMethods(bean);
-    }
-
-    @Test
-    public void canInvokeMethodsOnGroovyObjectFromGroovy() {
-        GroovyBean bean = new GroovyBean();
-        Convention convention = bean.extensibleDynamicObject.getConvention();
-        convention.getPlugins().put("bean", new ConventionBean());
-        new ExtensibleDynamicObjectTestHelper().assertCanCallMethods(bean);
-    }
-
-    @Test
-    public void canInvokeMethodsOnJavaSubClassOfGroovyObjectFromGroovy() {
-        // This doesn't work.
-        // It used to because at the bottom of the hierarchy chain the object implemented methodMissing().
-        // However, our normal "decorated" classes do not do this so it is not realistic.
-
-        // Groovy does something very strange here.
-        // For some reason (probably because the class is Java), it won't employ any dynamism.
-        // Even implementing invokeMethod at the Java level has no effect.
-
-        DynamicJavaBean javaBean = new DynamicJavaBean();
-        Convention convention = javaBean.extensibleDynamicObject.getConvention();
-        convention.getPlugins().put("bean", new ConventionBean());
-        new ExtensibleDynamicObjectTestHelper().assertCanCallMethods(javaBean);
     }
 
     @Test
@@ -661,36 +548,6 @@ public class ExtensibleDynamicObjectTest {
     }
 
     @Test
-    public void conventionPropertiesAreInherited() {
-        Bean bean = new Bean();
-        Convention convention = bean.extensibleDynamicObject.getConvention();
-        ConventionBean conventionBean = new ConventionBean();
-        conventionBean.setConventionProperty("value");
-        convention.getPlugins().put("convention", conventionBean);
-
-        DynamicObject inherited = bean.getInheritable();
-        assertTrue(inherited.hasProperty("conventionProperty"));
-        assertThat(inherited.getProperty("conventionProperty"), equalTo((Object) "value"));
-        assertThat(inherited.getProperties().get("conventionProperty"), equalTo((Object) "value"));
-    }
-
-    @Test
-    public void inheritedConventionPropertiesTrackChanges() {
-        Bean bean = new Bean();
-
-        DynamicObject inherited = bean.getInheritable();
-        assertFalse(inherited.hasProperty("conventionProperty"));
-
-        Convention convention = bean.extensibleDynamicObject.getConvention();
-        ConventionBean conventionBean = new ConventionBean();
-        conventionBean.setConventionProperty("value");
-        convention.getPlugins().put("convention", conventionBean);
-
-        assertTrue(inherited.hasProperty("conventionProperty"));
-        assertThat(inherited.getProperty("conventionProperty"), equalTo((Object) "value"));
-    }
-
-    @Test
     public void parentPropertiesAreInherited() {
         Bean parent = new Bean();
         parent.defineProperty("parentProperty", "value");
@@ -725,44 +582,6 @@ public class ExtensibleDynamicObjectTest {
         } catch (MissingPropertyException e) {
             assertThat(e.getMessage(), equalTo("Could not find property 'additional' inherited from <bean>."));
         }
-    }
-
-    @Test
-    public void conventionMethodsAreInherited() {
-        Bean bean = new Bean();
-        Convention convention = bean.extensibleDynamicObject.getConvention();
-        convention.getPlugins().put("convention", new ConventionBean());
-
-        DynamicObject inherited = bean.getInheritable();
-        assertTrue(inherited.hasMethod("conventionMethod", "a", "b"));
-        assertThat(inherited.invokeMethod("conventionMethod", "a", "b"), equalTo((Object) "convention:a.b"));
-    }
-
-    @Test
-    public void additionalObjectMethodsAreInherited() {
-        Bean other = new Bean();
-        Convention convention = other.extensibleDynamicObject.getConvention();
-        convention.getPlugins().put("convention", new ConventionBean());
-
-        Bean bean = new Bean();
-        bean.extensibleDynamicObject.addObject(other.getAsDynamicObject(), ExtensibleDynamicObject.Location.BeforeConvention);
-
-        DynamicObject inherited = bean.getInheritable();
-        assertTrue(inherited.hasMethod("conventionMethod", "a", "b"));
-        assertThat(inherited.invokeMethod("conventionMethod", "a", "b"), equalTo((Object) "convention:a.b"));
-    }
-
-    @Test
-    public void parentMethodsAreInherited() {
-        Bean parent = new Bean();
-        Convention convention = parent.extensibleDynamicObject.getConvention();
-        convention.getPlugins().put("convention", new ConventionBean());
-        Bean bean = new Bean();
-        bean.setParent(parent.getAsDynamicObject());
-
-        DynamicObject inherited = bean.getInheritable();
-        assertTrue(inherited.hasMethod("conventionMethod", "a", "b"));
-        assertThat(inherited.invokeMethod("conventionMethod", "a", "b"), equalTo((Object) "convention:a.b"));
     }
 
     @Test
@@ -886,7 +705,7 @@ public class ExtensibleDynamicObjectTest {
         }
 
         public void defineProperty(String name, Object value) {
-            extensibleDynamicObject.getConvention().getExtraProperties().set(name, value);
+            extensibleDynamicObject.getExtensions().getExtraProperties().set(name, value);
         }
     }
 

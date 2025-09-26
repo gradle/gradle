@@ -19,8 +19,10 @@ package org.gradle.workers.internal
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
-
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 abstract class AbstractDaemonWorkerExecutorIntegrationSpec extends AbstractWorkerExecutorIntegrationTest {
     def setup() {
         executer.requireDaemon()

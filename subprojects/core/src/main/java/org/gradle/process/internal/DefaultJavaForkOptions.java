@@ -20,12 +20,14 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JvmDebugSpec.JavaDebugOptionsBackedSpec;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -65,7 +67,13 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     @Override
+    @Deprecated
     public void setAllJvmArgs(List<String> arguments) {
+        DeprecationLogger.deprecateMethod(DefaultJavaForkOptions.class, "setAllJvmArgs")
+            .withAdvice("Use `jvmArgs()`, `setJvmArgs()`, or `getJvmArgumentProviders()` instead to set JVM arguments.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "set-all-jvm-args")
+            .nagUser();
         options.setAllJvmArgs(arguments);
         if (hasJvmArgumentProviders(this)) {
             jvmArgumentProviders.clear();
@@ -73,7 +81,13 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     @Override
+    @Deprecated
     public void setAllJvmArgs(Iterable<?> arguments) {
+        DeprecationLogger.deprecateMethod(DefaultJavaForkOptions.class, "setAllJvmArgs")
+            .withAdvice("Use `jvmArgs()`, `setJvmArgs()`, or `getJvmArgumentProviders()` instead to set JVM arguments.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "set-all-jvm-args")
+            .nagUser();
         options.setAllJvmArgs(arguments);
         if (hasJvmArgumentProviders(this)) {
             jvmArgumentProviders.clear();
@@ -116,23 +130,23 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     @Override
-    public Map<String, Object> getSystemProperties() {
+    public Map<String, @Nullable Object> getSystemProperties() {
         return options.getMutableSystemProperties();
     }
 
     @Override
-    public void setSystemProperties(Map<String, ?> properties) {
+    public void setSystemProperties(Map<String, ? extends @Nullable Object> properties) {
         options.setSystemProperties(properties);
     }
 
     @Override
-    public JavaForkOptions systemProperties(Map<String, ?> properties) {
+    public JavaForkOptions systemProperties(Map<String, ? extends @Nullable Object> properties) {
         options.systemProperties(properties);
         return this;
     }
 
     @Override
-    public JavaForkOptions systemProperty(String name, Object value) {
+    public JavaForkOptions systemProperty(String name, @Nullable Object value) {
         options.systemProperty(name, value);
         return this;
     }

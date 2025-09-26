@@ -9,8 +9,6 @@ dependency management types should be included here."""
 
 errorprone {
     disabledChecks.addAll(
-        "InlineMeInliner", // 1 occurrences
-        "MixedMutabilityReturnType", // 1 occurrences
         "NonApiType" // 1 occurrences
     )
 }
@@ -41,8 +39,8 @@ dependencies {
     implementation(projects.loggingApi)
 
     implementation(libs.commonsLang)
-    implementation(libs.groovyJson)
     implementation(libs.guava)
+    implementation(libs.gson)
     implementation(libs.jatl)
 
     testFixturesApi(testFixtures(projects.platformNative))

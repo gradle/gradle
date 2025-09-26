@@ -15,7 +15,9 @@
  */
 
 /**
- * Types to extend build cache functionality.
+ * Classes for build caches and for types to extend build cache functionality.
+ *
+ * @since 3.3
  */
 @NullMarked
 package org.gradle.caching;

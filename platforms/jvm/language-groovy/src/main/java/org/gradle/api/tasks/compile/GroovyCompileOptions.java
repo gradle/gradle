@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2007 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.jspecify.annotations.Nullable;
 
@@ -58,8 +57,6 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     private List<String> fileExtensions = ImmutableList.of("java", "groovy");
 
-    private GroovyForkOptions forkOptions = getObjectFactory().newInstance(GroovyForkOptions.class);
-
     private Map<String, Boolean> optimizationOptions = new HashMap<>();
 
     private File stubDir;
@@ -70,12 +67,8 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     private boolean parameters;
 
-    private final SetProperty<String> disabledGlobalASTTransformations = getObjectFactory().setProperty(String.class);
-
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     /**
      * Tells whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
@@ -191,6 +184,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * <p>
      * <b>This feature is only available if compiling with Groovy 2.1 or later.</b>
      * </p>
+     *
      * @see <a href="https://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfiguration.html">CompilerConfiguration</a>
      * @see <a href="https://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/customizers/builder/CompilerCustomizationBuilder.html">CompilerCustomizationBuilder</a>
      */
@@ -265,26 +259,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * if {@code fork} is set to {@code true}.
      */
     @Nested
-    public GroovyForkOptions getForkOptions() {
-        return forkOptions;
-    }
-
-    /**
-     * Sets options for running the Groovy compiler in a separate process. These options only take effect
-     * if {@code fork} is set to {@code true}.
-     *
-     * @deprecated Setting a new instance of this property is unnecessary. This method will be removed in Gradle 9.0. Use {@link #forkOptions(Action)} instead.
-     */
-    @Deprecated
-    public void setForkOptions(GroovyForkOptions forkOptions) {
-        DeprecationLogger.deprecateMethod(GroovyCompileOptions.class, "setForkOptions(GroovyForkOptions)")
-            .replaceWith("forkOptions(Action)")
-            .withContext("Setting a new instance of forkOptions is unnecessary.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_nested_properties_setters")
-            .nagUser();
-        this.forkOptions = forkOptions;
-    }
+    public abstract GroovyForkOptions getForkOptions();
 
     /**
      * Execute the given action against {@link #getForkOptions()}.
@@ -292,7 +267,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * @since 8.11
      */
     public void forkOptions(Action<? super GroovyForkOptions> action) {
-        action.execute(forkOptions);
+        action.execute(getForkOptions());
     }
 
     /**
@@ -311,7 +286,9 @@ public abstract class GroovyCompileOptions implements Serializable {
      * </dl>
      */
     @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public Map<String, Boolean> getOptimizationOptions() {
         return optimizationOptions;
     }
@@ -331,9 +308,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * @since 7.4
      */
     @Input
-    public SetProperty<String> getDisabledGlobalASTTransformations() {
-        return disabledGlobalASTTransformations;
-    }
+    public abstract SetProperty<String> getDisabledGlobalASTTransformations();
 
     /**
      * Returns the directory where Java stubs for Groovy classes will be stored during Java/Groovy joint

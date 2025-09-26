@@ -20,9 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.language.cpp.CppBinary;
@@ -31,7 +28,6 @@ import org.gradle.language.internal.DefaultBinaryCollection;
 import org.gradle.language.nativeplatform.internal.ComponentWithNames;
 import org.gradle.language.nativeplatform.internal.DefaultNativeComponent;
 import org.gradle.language.nativeplatform.internal.Names;
-import org.gradle.nativeplatform.TargetMachine;
 
 import javax.inject.Inject;
 import java.util.Arrays;
@@ -40,24 +36,17 @@ import java.util.concurrent.Callable;
 public abstract class DefaultCppComponent extends DefaultNativeComponent implements CppComponent, ComponentWithNames {
     private final FileCollection cppSource;
     private final String name;
-    private final ConfigurableFileCollection privateHeaders;
     private final FileCollection privateHeadersWithConvention;
-    private final Property<String> baseName;
     private final Names names;
     private final DefaultBinaryCollection<CppBinary> binaries;
-    private final SetProperty<TargetMachine> targetMachines;
 
     @Inject
-    public DefaultCppComponent(String name, ObjectFactory objectFactory) {
-        super(objectFactory);
+    public DefaultCppComponent(String name) {
         this.name = name;
         cppSource = createSourceView("src/" + name + "/cpp", Arrays.asList("cpp", "c++", "cc"));
-        privateHeaders = objectFactory.fileCollection();
-        privateHeadersWithConvention = createDirView(privateHeaders, "src/" + name + "/headers");
-        baseName = objectFactory.property(String.class);
+        privateHeadersWithConvention = createDirView(getPrivateHeaders(), "src/" + name + "/headers");
         names = Names.of(name);
-        binaries = Cast.uncheckedCast(objectFactory.newInstance(DefaultBinaryCollection.class, CppBinary.class));
-        targetMachines = objectFactory.setProperty(TargetMachine.class);
+        binaries = Cast.uncheckedCast(getObjectFactory().newInstance(DefaultBinaryCollection.class, CppBinary.class));
     }
 
     @Override
@@ -83,23 +72,13 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     }
 
     @Override
-    public Property<String> getBaseName() {
-        return baseName;
-    }
-
-    @Override
     public FileCollection getCppSource() {
         return cppSource;
     }
 
     @Override
-    public ConfigurableFileCollection getPrivateHeaders() {
-        return privateHeaders;
-    }
-
-    @Override
     public void privateHeaders(Action<? super ConfigurableFileCollection> action) {
-        action.execute(privateHeaders);
+        action.execute(getPrivateHeaders());
     }
 
     @Override
@@ -129,10 +108,5 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     @Override
     public DefaultBinaryCollection<CppBinary> getBinaries() {
         return binaries;
-    }
-
-    @Override
-    public SetProperty<TargetMachine> getTargetMachines() {
-        return targetMachines;
     }
 }

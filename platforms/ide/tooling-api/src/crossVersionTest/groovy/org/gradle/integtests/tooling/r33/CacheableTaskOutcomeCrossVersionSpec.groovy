@@ -17,7 +17,6 @@
 package org.gradle.integtests.tooling.r33
 
 import org.gradle.integtests.tooling.fixture.ProgressEvents
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
@@ -52,7 +51,6 @@ class CacheableTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
         file("input").text = "input file"
     }
 
-    @TargetGradleVersion('>=3.5')
     def "cacheable task is reported as FROM_CACHE"() {
         when:
         def pushToCacheEvents = ProgressEvents.create()

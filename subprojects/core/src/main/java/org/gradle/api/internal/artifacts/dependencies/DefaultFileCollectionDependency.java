@@ -15,20 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
-import java.util.Set;
+public class DefaultFileCollectionDependency implements SelfResolvingDependencyInternal, FileCollectionDependency {
 
-public class DefaultFileCollectionDependency extends AbstractDependency implements SelfResolvingDependencyInternal, FileCollectionDependency {
-    private final ComponentIdentifier targetComponentId;
+    private @Nullable String reason;
+    private final @Nullable ComponentIdentifier targetComponentId;
     private final FileCollectionInternal source;
 
     public DefaultFileCollectionDependency(FileCollectionInternal source) {
@@ -41,21 +37,15 @@ public class DefaultFileCollectionDependency extends AbstractDependency implemen
         this.source = source;
     }
 
+    @Nullable
     @Override
-    @Deprecated
-    public boolean contentEquals(Dependency dependency) {
+    public String getReason() {
+        return reason;
+    }
 
-        DeprecationLogger.deprecateMethod(Dependency.class, "contentEquals(Dependency)")
-            .withAdvice("Use Object.equals(Object) instead")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_content_equals")
-            .nagUser();
-
-        if (!(dependency instanceof DefaultFileCollectionDependency)) {
-            return false;
-        }
-        DefaultFileCollectionDependency selfResolvingDependency = (DefaultFileCollectionDependency) dependency;
-        return source.equals(selfResolvingDependency.source);
+    @Override
+    public void because(@Nullable String reason) {
+        this.reason = reason;
     }
 
     @Override
@@ -82,49 +72,6 @@ public class DefaultFileCollectionDependency extends AbstractDependency implemen
     @Override
     public String getVersion() {
         return null;
-    }
-
-    @Override
-    @Deprecated
-    @SuppressWarnings("deprecation")
-    public void resolve(org.gradle.api.internal.artifacts.CachingDependencyResolveContext context) {
-        context.add(source);
-    }
-
-    @Override
-    @Deprecated
-    public Set<File> resolve() {
-        DeprecationLogger.deprecate("Directly resolving a file collection dependency's files")
-            .withAdvice("Add the dependency to a resolvable configuration and resolve the configuration.")
-            .willBecomeAnErrorInGradle9()
-            .withUpgradeGuideSection(8, "deprecate_self_resolving_dependency")
-            .nagUser();
-
-        return source.getFiles();
-    }
-
-    @Override
-    @Deprecated
-    public Set<File> resolve(boolean transitive) {
-        DeprecationLogger.deprecate("Directly resolving a file collection dependency's files")
-            .withAdvice("Add the dependency to a resolvable configuration and resolve the configuration.")
-            .willBecomeAnErrorInGradle9()
-            .withUpgradeGuideSection(8, "deprecate_self_resolving_dependency")
-            .nagUser();
-
-        return source.getFiles();
-    }
-
-    @Override
-    @Deprecated
-    public TaskDependency getBuildDependencies() {
-        DeprecationLogger.deprecate("Accessing the build dependencies of a file collection dependency")
-            .withAdvice("Add the dependency to a resolvable configuration use the configuration to track task dependencies.")
-            .willBecomeAnErrorInGradle9()
-            .withUpgradeGuideSection(8, "deprecate_self_resolving_dependency")
-            .nagUser();
-
-        return source.getBuildDependencies();
     }
 
     @Override

@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.integration
 
-import com.nhaarman.mockito_kotlin.mock
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
@@ -27,6 +26,7 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
 import org.junit.Test
+import org.mockito.kotlin.mock
 import java.io.File
 
 

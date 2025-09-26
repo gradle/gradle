@@ -118,7 +118,7 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
      * This is a workaround to preserve backward compatibility with IntelliJ IDEA.
      * The problem only occurs in IntelliJ IDEA because it parses {@link OperationDescriptor#getDisplayName()} to get the test display name.
      * Once its code is updated to use {@link org.gradle.tooling.events.test.TestOperationDescriptor#getTestDisplayName()}, the workaround can be removed as well.
-     * Alternatively, it can be removed in Gradle 9.0.
+     * Alternatively, it can be removed in Gradle 10.
      * See <a href="https://github.com/gradle/gradle/issues/24538">this issue</a> for more details.
      */
     private String adjustOperationDisplayNameForIntelliJ(String operationDisplayName, AbstractTestDescriptor descriptor) {
@@ -135,7 +135,7 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
      * This is a workaround for Kotlin Gradle Plugin <a href="https://github.com/JetBrains/kotlin/blob/1d38040a6bef2dba31d447bf28c220b81665a710/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/plugin/internal/MppTestReportHelper.kt#L55-L64">overriding TestDescriptor</a>.
      * The problem only occurs in IntelliJ IDEA with multiplatform projects.
      * Once this code is removed, the workaround can be removed as well and {@link org.gradle.api.internal.tasks.testing.AbstractTestDescriptor#getMethodName()} can be moved to {@link TestDescriptor}.
-     * Alternatively, it can be removed in Gradle 9.0.
+     * Alternatively, it can be removed in Gradle 10.
      */
     private static String getLegacyOperationDisplayName(String operationDisplayName, TestDescriptor testDescriptor) {
         // if toString() is not overridden, use the display name for test operation

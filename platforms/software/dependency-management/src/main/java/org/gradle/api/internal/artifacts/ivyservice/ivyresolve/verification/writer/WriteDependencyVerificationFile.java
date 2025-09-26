@@ -23,7 +23,6 @@ import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -287,7 +286,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                 try {
                     DependencyVerificationsXmlReader.readFromXml(new FileInputStream(previous), verificationsBuilder);
                 } catch (FileNotFoundException e) {
-                    throw new UncheckedIOException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
                 return;
             }
@@ -297,7 +296,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             try {
                 DependencyVerificationsXmlReader.readFromXml(new FileInputStream(verificationFile), verificationsBuilder);
             } catch (FileNotFoundException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
     }

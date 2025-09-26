@@ -177,20 +177,20 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return jvmArguments;
     }
 
-    public Map<String, Object> getSystemProperties() {
+    public Map<String, @Nullable Object> getSystemProperties() {
         return javaOptions.getSystemProperties();
     }
 
-    public void setSystemProperties(Map<String, ?> properties) {
+    public void setSystemProperties(Map<String, ? extends @Nullable Object> properties) {
         javaOptions.setSystemProperties(properties);
     }
 
-    public JavaExecHandleBuilder systemProperties(Map<String, ?> properties) {
+    public JavaExecHandleBuilder systemProperties(Map<String, ? extends @Nullable Object> properties) {
         javaOptions.systemProperties(properties);
         return this;
     }
 
-    public JavaExecHandleBuilder systemProperty(String name, Object value) {
+    public JavaExecHandleBuilder systemProperty(String name, @Nullable Object value) {
         javaOptions.systemProperty(name, value);
         return this;
     }
@@ -442,33 +442,25 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return arguments;
     }
 
-    private File writePathingJarFile(FileCollection classPath) throws IOException {
+    private File writePathingJarFile(FileCollection classpath) throws IOException {
         File pathingJarFile = temporaryFileProvider.createTemporaryFile("gradle-javaexec-classpath", ".jar");
         try (FileOutputStream fileOutputStream = new FileOutputStream(pathingJarFile);
-             JarOutputStream jarOutputStream = new JarOutputStream(fileOutputStream, toManifest(classPath))) {
+             JarOutputStream jarOutputStream = new JarOutputStream(fileOutputStream, toManifest(classpath))) {
             jarOutputStream.putNextEntry(new ZipEntry("META-INF/"));
         }
         return pathingJarFile;
     }
 
-    private static Manifest toManifest(FileCollection classPath) {
+    private static Manifest toManifest(FileCollection classpath) {
         Manifest manifest = new Manifest();
         Attributes attributes = manifest.getMainAttributes();
         attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
-        attributes.putValue("Class-Path", classPath.getFiles().stream().map(File::toURI).map(URI::toString).collect(Collectors.joining(" ")));
+        attributes.putValue("Class-Path", classpath.getFiles().stream().map(File::toURI).map(URI::toString).collect(Collectors.joining(" ")));
         return manifest;
     }
 
     public JavaExecHandleBuilder redirectErrorStream() {
         execHandleBuilder.redirectErrorStream();
-        return this;
-    }
-
-    /**
-     * Kept just for binary compatibility
-     */
-    @Deprecated
-    public JavaExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
         return this;
     }
 

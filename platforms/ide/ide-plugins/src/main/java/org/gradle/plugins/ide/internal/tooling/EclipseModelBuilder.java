@@ -17,11 +17,13 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.api.invocation.Gradle;
@@ -85,8 +87,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
-
 public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<EclipseRuntime> {
     private final GradleProjectBuilderInternal gradleProjectBuilder;
     private final EclipseModelAwareUniqueProjectNameProvider uniqueProjectNameProvider;
@@ -96,7 +96,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
     private List<DefaultEclipseProject> eclipseProjects;
     private TasksFactory tasksFactory;
     private DefaultGradleProject rootGradleProject;
-    private Project currentProject;
+    private ProjectIdentity currentProjectId;
     private EclipseRuntime eclipseRuntime;
     private Map<String, Boolean> projectOpenStatus = new HashMap<>();
 
@@ -146,15 +146,16 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         boolean includeTasks = modelName.equals("org.gradle.tooling.model.eclipse.EclipseProject");
         tasksFactory = new TasksFactory(includeTasks);
         projectDependenciesOnly = modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
-        currentProject = project;
+        currentProjectId = ((ProjectInternal) project).getProjectIdentity();
         eclipseProjects = new ArrayList<>();
         ProjectInternal root = (ProjectInternal) project.getRootProject();
+        ProjectState rootProjectState = root.getOwner();
         rootGradleProject = gradleProjectBuilder.buildForRoot(project);
         tasksFactory.collectTasks(root);
         applyEclipsePlugin(root, new ArrayList<>());
         deduplicateProjectNames(root);
-        buildHierarchy(root);
-        populate(root);
+        buildHierarchy(rootProjectState);
+        populate(rootProjectState);
         return result;
     }
 
@@ -186,34 +187,37 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         }
     }
 
-    private DefaultEclipseProject buildHierarchy(Project project) {
+    private DefaultEclipseProject buildHierarchy(ProjectState projectState) {
         List<DefaultEclipseProject> children = new ArrayList<>();
-        for (Project child : getChildProjectsForInternalUse(project)) {
+        for (ProjectState child : projectState.getChildProjects()) {
             children.add(buildHierarchy(child));
         }
 
-        EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class);
+        EclipseModel eclipseModel = projectState.getMutableModel().getExtensions().getByType(EclipseModel.class);
         org.gradle.plugins.ide.eclipse.model.EclipseProject internalProject = eclipseModel.getProject();
+
         String name = internalProject.getName();
+        String path = projectState.getIdentity().getProjectPath().asString();
         String description = GUtil.elvis(internalProject.getComment(), null);
-        DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, project.getPath(), description, project.getProjectDir(), children).setGradleProject(rootGradleProject.findByPath(project.getPath()));
+        File projectDir = projectState.getProjectDir();
+        DefaultEclipseProject eclipseProject = new DefaultEclipseProject(name, path, description, projectDir, children).setGradleProject(rootGradleProject.findByPath(path));
 
         for (DefaultEclipseProject child : children) {
             child.setParent(eclipseProject);
         }
-        addProject(project, eclipseProject);
+        addProject(projectState, eclipseProject);
         return eclipseProject;
     }
 
-    private void addProject(Project project, DefaultEclipseProject eclipseProject) {
-        if (project == currentProject) {
+    private void addProject(ProjectState project, DefaultEclipseProject eclipseProject) {
+        if (project.getIdentity().equals(currentProjectId)) {
             result = eclipseProject;
         }
         eclipseProjects.add(eclipseProject);
     }
 
-    private void populate(Project project) {
-        ((ProjectInternal) project).getModel().applyToMutableState(state -> {
+    private void populate(ProjectState p) {
+        p.applyToMutableState(project -> {
             EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class);
 
             boolean projectDependenciesOnly = this.projectDependenciesOnly;
@@ -243,7 +247,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
             populateEclipseProjectJdt(eclipseProject, eclipseModel.getJdt());
         });
 
-        for (Project childProject : getChildProjectsForInternalUse(project)) {
+        for (ProjectState childProject : p.getChildProjects()) {
             populate(childProject);
         }
     }
@@ -417,6 +421,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         return gradle.getParent();
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType")
     private List<String> calculateReservedProjectNames(ProjectInternal rootProject, EclipseRuntime parameter) {
         if (parameter == null) {
             return Collections.emptyList();

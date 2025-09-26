@@ -21,6 +21,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
@@ -28,12 +29,10 @@ import org.gradle.api.tasks.IgnoreEmptyDirectories
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.gradle.initialization.GradlePropertiesController
 import org.gradle.jvm.toolchain.JavaLauncher
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledPluginsBlock
 import org.gradle.kotlin.dsl.support.ImplicitImports
@@ -54,7 +53,7 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
     val implicitImports: ImplicitImports,
 
     private
-    val gradleProperties: GradlePropertiesController
+    val gradleProperties: GradleProperties
 
 ) : DefaultTask(), SharedAccessorsPackageAware {
 
@@ -84,12 +83,6 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
     internal
     abstract val javaLauncher: Property<JavaLauncher>
 
-    @get:Optional
-    @get:Input
-    @Deprecated("Configure a Java Toolchain instead")
-    internal
-    abstract val jvmTarget: Property<JavaVersion>
-
     @get:Input
     protected
     val compilerOptions: Provider<KotlinCompilerOptions> = project.provider {
@@ -116,9 +109,7 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
         }
     }
 
-    @Suppress("DEPRECATION")
     private
     fun resolveJvmTarget(): JavaVersion =
-        if (jvmTarget.isPresent) jvmTarget.get()
-        else JavaVersion.toVersion(javaLauncher.get().metadata.languageVersion.asInt())
+        JavaVersion.toVersion(javaLauncher.get().metadata.languageVersion.asInt())
 }

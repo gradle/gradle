@@ -16,9 +16,9 @@
 
 package org.gradle.internal.logging;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NullMarked;
 
-@Nonnull
+@NullMarked
 public interface LoggingManagerFactory {
 
     LoggingManagerInternal getRoot();

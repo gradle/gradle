@@ -1,0 +1,41 @@
+plugins {
+    id 'base'
+}
+
+repositories {
+    mavenCentral()
+}
+
+def kindAttr = Attribute.of("kind", String)
+
+def v1Jar = tasks.register("v1Jar", Jar) {
+    archiveBaseName.set("v1")
+    destinationDirectory.set(layout.buildDirectory.dir("libs"))
+    from("src/v1")
+}
+
+def v2Jar = tasks.register("v2Jar", Jar) {
+    archiveBaseName.set("v2")
+    destinationDirectory.set(layout.buildDirectory.dir("libs"))
+    from("src/v2")
+}
+
+def v1 = configurations.create("v1") {
+    canBeConsumed = true
+    canBeResolved = false
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+        attribute(kindAttr, "api")
+    }
+    outgoing.artifact(v1Jar)
+}
+
+def v2 = configurations.create("v2") {
+    canBeConsumed = true
+    canBeResolved = false
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+        attribute(kindAttr, "secret api")
+    }
+    outgoing.artifact(v2Jar)
+}

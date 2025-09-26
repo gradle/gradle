@@ -20,6 +20,7 @@ import org.gradle.cache.CacheBuilder
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.extensions.stdlib.useToRun
+import org.gradle.internal.file.FileSystem
 import java.io.File
 import java.security.KeyStore
 import javax.crypto.KeyGenerator
@@ -31,7 +32,8 @@ class KeyStoreKeySource(
     val encryptionAlgorithm: String,
     val customKeyStoreDir: File?,
     val keyAlias: String,
-    val cacheBuilderFactory: GlobalScopedCacheBuilderFactory
+    val cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
+    val fileSystem: FileSystem
 ) : SecretKeySource {
 
     private
@@ -39,12 +41,12 @@ class KeyStoreKeySource(
 
     private
     val keyStore by lazy {
-        KeyStore.getInstance(KEYSTORE_TYPE)
+        KeyStore.getInstance(DEFAULT_KEYSTORE_TYPE)
     }
 
     override val sourceDescription: String
-        get() = customKeyStoreDir?.let { "custom Java keystore at $it" }
-            ?: "default Gradle configuration cache keystore"
+        get() = customKeyStoreDir?.let { "custom Gradle keystore (${keyStore.type}) at $it" }
+            ?: "default Gradle keystore (${keyStore.type})"
 
     private
     fun createKeyStoreAndGenerateKey(keyStoreFile: File): SecretKey {
@@ -83,6 +85,7 @@ class KeyStoreKeySource(
         val entry = KeyStore.SecretKeyEntry(newKey)
         keyStore.setEntry(alias, entry, keyProtection)
         keyStoreFile.outputStream().use { fos ->
+            fileSystem.chmod(keyStoreFile, KEYSTORE_FILE_PERMISSIONS)
             keyStore.store(fos, KEYSTORE_PASSWORD)
         }
         return newKey
@@ -119,9 +122,16 @@ class KeyStoreKeySource(
     fun PersistentCache.keyStoreFile(): File =
         File(baseDir, "gradle.keystore")
 
+    private
     companion object {
-        // JKS does not support non-PrivateKeys
-        const val KEYSTORE_TYPE = "pkcs12"
+        // the known type we should fall back to if the JVM's default is unsupported
+        const val FALLBACK_TYPE = "pkcs12"
+        // these known types do not support symmetric keys
+        val UNSUPPORTED_TYPES = arrayOf("jks", "dks")
+        // this may differ from the JVM's default if the JVM's default is not supported
+        val DEFAULT_KEYSTORE_TYPE = KeyStore.getDefaultType().takeUnless(UNSUPPORTED_TYPES::contains) ?: FALLBACK_TYPE
         val KEYSTORE_PASSWORD = charArrayOf('c', 'c')
+        // Keystore should only be readable by owner
+        val KEYSTORE_FILE_PERMISSIONS = "0600".toInt(8)
     }
 }

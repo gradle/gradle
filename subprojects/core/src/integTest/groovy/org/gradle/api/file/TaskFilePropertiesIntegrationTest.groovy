@@ -72,7 +72,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         run("transform")
 
         then:
-        result.assertTasksNotSkipped(":transform")
+        result.assertTasksExecuted(":transform")
 
         when:
         run("transform")
@@ -85,7 +85,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         run("transform")
 
         then:
-        result.assertTasksNotSkipped(":transform")
+        result.assertTasksExecuted(":transform")
     }
 
     def "task can use Path to represent input and output locations on ad hoc properties"() {
@@ -131,7 +131,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         run("transform")
 
         then:
-        result.assertTasksNotSkipped(":transform")
+        result.assertTasksExecuted(":transform")
 
         when:
         run("transform")
@@ -144,7 +144,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         run("transform")
 
         then:
-        result.assertTasksNotSkipped(":transform")
+        result.assertTasksExecuted(":transform")
     }
 
     def "task dependencies are inferred from contents of input FileCollection"() {
@@ -153,7 +153,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile('a/build.gradle', '''
             configurations.create("compile")
-            dependencies { compile project(path: ':b', configuration: 'archives') }
+            dependencies { compile project(path: ':b', configuration: 'producer') }
 
             task doStuff(type: InputTask) {
                 src = configurations.compile + fileTree('src/java')
@@ -179,19 +179,19 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
 
             configurations {
                 create("deps")
-                archives {
+                consumable("producer") {
                     extendsFrom deps
+                    outgoing.artifact(otherJar)
                 }
             }
             dependencies { deps files('b.jar') { builtBy jar } }
-            artifacts { archives otherJar }
         ''')
 
         when:
         run("doStuff")
 
         then:
-        result.assertTasksExecutedInOrder(any(':b:jar', ':b:otherJar'), ':a:doStuff')
+        result.assertTasksScheduledInOrder(any(':b:jar', ':b:otherJar'), ':a:doStuff')
     }
 
 }

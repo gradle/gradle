@@ -246,10 +246,7 @@ class ValidatingMavenPublisherTest extends Specification {
     }
 
     private def createPomFile(MavenPublicationCoordinates coordinates, Action<XmlProvider> withXmlAction = null, boolean marker = false) {
-        MavenPomInternal pom = TestUtil.objectFactory().newInstance(
-            DefaultMavenPom.class,
-            TestUtil.objectFactory()
-        )
+        MavenPomInternal pom = TestUtil.objectFactory().newInstance(DefaultMavenPom.class)
 
         pom.coordinates.artifactId.set(coordinates.getArtifactId())
         pom.coordinates.groupId.set(coordinates.getGroupId())

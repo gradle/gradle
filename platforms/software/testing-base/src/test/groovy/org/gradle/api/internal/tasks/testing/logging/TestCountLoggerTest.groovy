@@ -16,19 +16,24 @@
 
 package org.gradle.api.internal.tasks.testing.logging
 
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
-import org.gradle.internal.logging.progress.ProgressLogger
+import org.gradle.api.internal.tasks.testing.TestWorkerFailureException
+import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
 import org.gradle.api.tasks.testing.TestDescriptor
+import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.api.tasks.testing.TestResult
-import org.slf4j.Logger
-
-import spock.lang.Specification
+import org.gradle.internal.logging.progress.ProgressLogger
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.util.internal.TextUtil
+import org.slf4j.Logger
+import spock.lang.Specification
 
 class TestCountLoggerTest extends Specification {
     private final ProgressLoggerFactory factory = Mock()
     private final ProgressLogger progressLogger = Mock()
-    private final TestDescriptor rootSuite = suite(true)
+    private final TestDescriptor rootSuite = Stub() {
+        getParent() >> null
+        getClassName() >> null
+    }
     private final Logger errorLogger = Mock()
     private final TestCountLogger logger = new TestCountLogger(factory, errorLogger)
     private final String sep = TextUtil.platformLineSeparator
@@ -97,7 +102,10 @@ class TestCountLoggerTest extends Specification {
     }
 
     def ignoresSuitesOtherThanTheRootSuite() {
-        TestDescriptor suite = suite()
+        TestDescriptor suite = Stub() {
+            getParent() >> rootSuite
+            getClassName() >> 'not-root'
+        }
 
         logger.beforeSuite(rootSuite)
 
@@ -137,16 +145,31 @@ class TestCountLoggerTest extends Specification {
         logger.totalTests == 2
     }
 
+    def "discover worker failures"() {
+        when:
+        logger.beforeSuite(rootSuite)
+        logger.afterSuite(rootSuite, result(true, 5))
+
+        then:
+        logger.hadFailures()
+        logger.hasWorkerFailures()
+
+        when:
+        logger.handleWorkerFailures()
+        then:
+        def e = thrown(TestWorkerFailureException)
+        e.getCauses().size() == 5
+    }
+
     private test() {
         [:] as TestDescriptor
     }
 
-    private suite(boolean root = false) {
-        [getParent: {root ? null : [:] as TestDescriptor}, getClassName: {root ? null : ''}] as TestDescriptor
-    }
-
-    private result(boolean failed = false) {
-        [getTestCount: { 1L }, getFailedTestCount: { failed ? 1L : 0L }, getSkippedTestCount: { 0L },
-                getResultType: { failed ? TestResult.ResultType.FAILURE : TestResult.ResultType.SUCCESS }] as TestResult
+    private result(boolean failed = false, int failureCount = 1) {
+        if (failed) {
+            List<TestFailure> failures = (1..failureCount).collect {Mock(TestFailure) }
+            return new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 1, 0, 1, failures, null)
+        }
+        return new DefaultTestResult(TestResult.ResultType.SUCCESS, 0, 0, 1, 1, 0, [], null)
     }
 }

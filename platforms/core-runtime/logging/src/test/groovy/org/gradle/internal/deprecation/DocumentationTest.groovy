@@ -38,7 +38,7 @@ class DocumentationTest extends Specification {
 
     def "creates upgrade guide reference"() {
         when:
-        def documentationReference = Documentation.upgradeGuide(11, "section")
+        def documentationReference = Documentation.upgradeMinorGuide(11, "section")
 
         then:
         def expectedUrl = DOCUMENTATION_REGISTRY.getDocumentationFor("upgrading_version_11", "section")

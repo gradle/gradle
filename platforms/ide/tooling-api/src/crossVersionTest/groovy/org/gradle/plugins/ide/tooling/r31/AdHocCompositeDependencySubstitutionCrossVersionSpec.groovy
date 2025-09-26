@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.ide.tooling.r31
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.file.TestFile
@@ -27,7 +27,6 @@ import org.gradle.tooling.model.idea.IdeaProject
 /**
  * Dependency substitution is performed for models in a composite build
  */
-@TargetGradleVersion(">=3.1")
 class AdHocCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     TestFile buildA
     TestFile buildB

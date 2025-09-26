@@ -80,7 +80,7 @@ class DefaultDependencyCoordinateResolverFactoryTest extends AbstractProjectBuil
         }
     }
 
-    def "returns resolution-backed resolver if dependency version mapping is enabled with default configuration and variant is not resolution-backed"() {
+    def "returns legacy resolver if dependency version mapping is enabled with default configuration and variant is not resolution-backed"() {
         given:
         def conf = project.configurations.create("conf")
         def variant = nonResolutionBacked()
@@ -88,12 +88,12 @@ class DefaultDependencyCoordinateResolverFactoryTest extends AbstractProjectBuil
 
         expect:
         with(factory.createCoordinateResolvers(variant, versionMappingStrategy).get()) {
-            componentResolver instanceof ResolutionBackedPublicationDependencyResolver
+            componentResolver instanceof VersionMappingComponentDependencyResolver
             variantResolver.delegate == componentResolver
         }
     }
 
-    def "returns resolution-backed resolver if dependency version mapping is enabled with explicit configuration and variant is not resolution-backed"() {
+    def "returns legacy resolver if dependency version mapping is enabled with explicit configuration and variant is not resolution-backed"() {
         given:
         def conf = project.configurations.create("conf")
         def variant = nonResolutionBacked()
@@ -101,12 +101,12 @@ class DefaultDependencyCoordinateResolverFactoryTest extends AbstractProjectBuil
 
         expect:
         with(factory.createCoordinateResolvers(variant, versionMappingStrategy).get()) {
-            componentResolver instanceof ResolutionBackedPublicationDependencyResolver
+            componentResolver instanceof VersionMappingComponentDependencyResolver
             variantResolver.delegate == componentResolver
         }
     }
 
-    def "returns resolution-backed resolver if version mapping is enabled with default configuration and dependency mapping is disabled with resolution configuration"() {
+    def "returns legacy resolver if version mapping is enabled with default configuration and dependency mapping is disabled with resolution configuration"() {
         given:
         def dependencyMappingConf = project.configurations.create("conf1")
         def versionMappingConf = project.configurations.create("conf2")
@@ -115,12 +115,12 @@ class DefaultDependencyCoordinateResolverFactoryTest extends AbstractProjectBuil
 
         expect:
         with(factory.createCoordinateResolvers(variant, versionMappingStrategy).get()) {
-            componentResolver instanceof ResolutionBackedPublicationDependencyResolver
+            componentResolver instanceof VersionMappingComponentDependencyResolver
             variantResolver.delegate == componentResolver
         }
     }
 
-    def "returns resolution-backed resolver if version mapping is enabled with user configuration and dependency mapping is disabled with resolution configuration"() {
+    def "returns legacy resolver if version mapping is enabled with user configuration and dependency mapping is disabled with resolution configuration"() {
         given:
         def dependencyMappingConf = project.configurations.create("conf1")
         def versionMappingConf = project.configurations.create("conf2")
@@ -129,7 +129,7 @@ class DefaultDependencyCoordinateResolverFactoryTest extends AbstractProjectBuil
 
         expect:
         with(factory.createCoordinateResolvers(variant, versionMappingStrategy).get()) {
-            componentResolver instanceof ResolutionBackedPublicationDependencyResolver
+            componentResolver instanceof VersionMappingComponentDependencyResolver
             variantResolver.delegate == componentResolver
         }
     }

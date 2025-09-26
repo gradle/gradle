@@ -376,7 +376,7 @@ class PromotionProjectTests {
     private fun setupModelFor(branchName: String): PromotionProject {
         // Set the project id here, so we can use methods on the DslContext
         DslContext.projectId = AbsoluteId("Gradle_${branchName.toCapitalized()}")
-        DslContext.addParameters("Branch" to branchName)
+        DslContext.addParameters("branch" to branchName)
         return PromotionProject(VersionedSettingsBranch(branchName))
     }
 

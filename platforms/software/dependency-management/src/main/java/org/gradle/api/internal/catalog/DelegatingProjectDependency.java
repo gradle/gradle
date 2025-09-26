@@ -17,8 +17,6 @@ package org.gradle.api.internal.catalog;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Project;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -29,10 +27,8 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.project.ProjectIdentity;
-import org.gradle.api.tasks.TaskDependency;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,12 +59,6 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     @Override
     public String getPath() {
         return delegate.getPath();
-    }
-
-    @Override
-    @Deprecated
-    public Project getDependencyProject() {
-        return delegate.getDependencyProject();
     }
 
     @Override
@@ -186,12 +176,6 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     }
 
     @Override
-    @Deprecated
-    public boolean contentEquals(Dependency dependency) {
-        return delegate.contentEquals(dependency);
-    }
-
-    @Override
     @Nullable
     public String getReason() {
         return delegate.getReason();
@@ -200,24 +184,6 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     @Override
     public void because(@Nullable String reason) {
         delegate.because(reason);
-    }
-
-    @Override
-    @Deprecated
-    public Set<File> resolve() {
-        return delegate.resolve();
-    }
-
-    @Override
-    @Deprecated
-    public Set<File> resolve(boolean transitive) {
-        return delegate.resolve(transitive);
-    }
-
-    @Override
-    @Deprecated
-    public TaskDependency getBuildDependencies() {
-        return delegate.getBuildDependencies();
     }
 
     @Override

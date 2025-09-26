@@ -15,9 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.report;
 
-import org.apache.commons.lang.StringEscapeUtils;
 import org.bouncycastle.openpgp.PGPPublicKey;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.RepositoryAwareVerificationFailure;
 import org.gradle.api.internal.artifacts.verification.verifier.ChecksumVerificationFailure;
@@ -27,6 +25,7 @@ import org.gradle.api.internal.artifacts.verification.verifier.MissingSignature;
 import org.gradle.api.internal.artifacts.verification.verifier.OnlyIgnoredKeys;
 import org.gradle.api.internal.artifacts.verification.verifier.SignatureVerificationFailure;
 import org.gradle.api.internal.artifacts.verification.verifier.VerificationFailure;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 
 import java.io.File;
@@ -56,12 +55,15 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     private final File verificationFile;
     private final List<String> writeFlags;
     private final File htmlReportOutputDirectory;
+    private boolean hasMissingKeys = false;
+    private boolean useKeyServers;
 
-    HtmlDependencyVerificationReportRenderer(DocumentationRegistry documentationRegistry, File verificationFile, List<String> writeFlags, File htmlReportOutputDirectory) {
+    HtmlDependencyVerificationReportRenderer(DocumentationRegistry documentationRegistry, File verificationFile, List<String> writeFlags, File htmlReportOutputDirectory, boolean useKeyServers) {
         this.documentationRegistry = documentationRegistry;
         this.verificationFile = verificationFile;
         this.writeFlags = writeFlags;
         this.htmlReportOutputDirectory = htmlReportOutputDirectory;
+        this.useKeyServers = useKeyServers;
     }
 
     @Override
@@ -154,7 +156,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
         try (Writer prn = new OutputStreamWriter(new FileOutputStream(reportFile, false), StandardCharsets.UTF_8)) {
             prn.write(contents.toString());
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         return reportFile;
     }
@@ -188,10 +190,17 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
             .append("            <p>Please review the errors reported above carefully.")
             .append("            Click on the icons near to the error descriptions for information about how to fix a particular problem.")
             .append("            It is recommended that you edit the ").append(verificationFileLink()).append(" manually. ")
-            .append("            However, if you are confident that those are false positives, Gradle can help you by generating the missing verification metadata.")
-            .append("            In this case, you can run with the following command-line:</p>")
-            .append("            <pre>gradle --write-verification-metadata ").append(verificationOptions()).append(" help</pre>")
-            .append("            <p>In any case you <b>must review the result</b> of this operation.")
+            .append("            However, if you are confident that those are false positives, Gradle can help you by generating the missing verification metadata.");
+
+            if (!useKeyServers && hasMissingKeys) {
+                contents.append("            In this case, you can ask Gradle to export all keys it used for verification of this build to the keyring with the following command-line:</p>")
+                        .append("            <pre>./gradlew --write-verification-metadata ").append(verificationOptions()).append(" --export-keys help</pre>");
+            } else {
+                contents.append("            In this case, you can run with the following command-line:</p>")
+                        .append("            <pre>./gradlew --write-verification-metadata ").append(verificationOptions()).append(" help</pre>");
+            }
+
+            contents.append("            <p>In any case you <b>must review the result</b> of this operation.")
             .append("            <p>Please refer to the <a href=\"").append(documentationRegistry.getDocumentationFor("dependency_verification")).append("\" target=\"_blank\">documentation</a> for more information.</p>\n")
             .append("        </div>\n")
             .append("    </div>\n");
@@ -260,7 +269,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
         try (InputStream in = getClass().getResourceAsStream(name)) {
             Files.copy(in, outputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -341,22 +350,22 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     }
 
     private static String expected(String text) {
-        return emphatize(text, "blue");
+        return emphasize(text, "blue");
     }
 
     private static String actual(String text) {
-        return emphatize(text, "#ee442f");
+        return emphasize(text, "#ee442f");
     }
 
     private static String warning(String text) {
-        return emphatize(text, "#c59434");
+        return emphasize(text, "#c59434");
     }
 
     private static String grey(String text) {
-        return emphatize(text, "#cccccc");
+        return emphasize(text, "#cccccc");
     }
 
-    private static String emphatize(String text, String color) {
+    private static String emphasize(String text, String color) {
         return "<span style=\"font-weight:bold; color: " + color + "\">" + text + "</span>";
     }
 
@@ -374,7 +383,8 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
                 } else {
                     sb.append("(not found)");
                 }
-                String keyDetails = StringEscapeUtils.escapeHtml(sb.toString());
+                @SuppressWarnings("deprecation")
+                String keyDetails = org.apache.commons.lang3.StringEscapeUtils.escapeHtml4(sb.toString());
                 String keyInfo = "<b>" + keyId + " " + keyDetails + "</b>";
                 switch (error.getKind()) {
                     case PASSED_NOT_TRUSTED:
@@ -392,6 +402,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
                     case MISSING_KEY:
                         reason = warning("Key " + keyInfo + " couldn't be found in any key server so verification couldn't be performed");
                         reportItem(reason, "missing-key", "warning");
+                        hasMissingKeys = true;
                         break;
                 }
             });

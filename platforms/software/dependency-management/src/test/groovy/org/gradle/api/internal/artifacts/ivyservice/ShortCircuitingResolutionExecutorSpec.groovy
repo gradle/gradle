@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.LegacyResolutionParameters
 import org.gradle.api.internal.artifacts.ResolverResults
@@ -26,7 +25,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
-import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState
 import org.gradle.internal.component.model.DependencyMetadata
@@ -101,7 +99,6 @@ class ShortCircuitingResolutionExecutorSpec extends Specification {
         !resolvedConfig.hasError()
         resolvedConfig.rethrowFailure()
 
-        resolvedConfig.getFiles(Specs.<Dependency> satisfyAll()).isEmpty()
         resolvedConfig.getFirstLevelModuleDependencies().isEmpty()
         resolvedConfig.getResolvedArtifacts().isEmpty()
 

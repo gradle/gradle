@@ -21,9 +21,9 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.os.OperatingSystem;
@@ -166,7 +166,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
         }
     }
 
-    private static class OutputFileMap {
+    static class OutputFileMap {
         private Map<String, Entry> entries = new HashMap<String, Entry>();
 
         public Builder root() {
@@ -192,7 +192,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
             try (Writer writer = new PrintWriter(outputFile)) {
                 toJson(writer);
             } catch (IOException ex) {
-                throw new UncheckedIOException(ex);
+                throw UncheckedException.throwAsUncheckedException(ex);
             }
         }
 
@@ -228,6 +228,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
             }
         }
 
+        @SuppressWarnings("unused") // Used by Gson
         private static class Entry {
             private String dependencies;
             private String object;

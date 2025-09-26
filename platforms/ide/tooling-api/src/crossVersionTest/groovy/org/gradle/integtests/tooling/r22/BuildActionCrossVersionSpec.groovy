@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.tooling.r22
 
-import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
-import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
@@ -30,25 +28,18 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         // Make sure we reuse the same daemon
         toolingApi.requireIsolatedDaemons()
 
-        disableJarCachingWhenUsingOldGradleVersion()
-
-        def workDir = temporaryFolder.file("work")
-        def implJar = workDir.file("action-impl.jar")
-        def builder = new GradleBackedArtifactBuilder(new NoDaemonGradleExecuter(dist, temporaryFolder).withWarningMode(null), workDir)
-
         given:
-        builder.sourceFile('ActionImpl.java') << """
-public class ActionImpl implements ${BuildAction.name}<java.io.File> {
-    public java.io.File execute(${BuildController.name} controller) {
-        try {
-            return new java.io.File(getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
-        } catch (java.net.URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
-    }
-}
-"""
-        builder.buildJar(implJar)
+        File implJar = buildActionJar("""
+            public class ActionImpl implements ${BuildAction.name}<java.io.File> {
+                public java.io.File execute(${BuildController.name} controller) {
+                    try {
+                        return new java.io.File(getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
+                    } catch (java.net.URISyntaxException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        """)
 
         def cl1 = new URLClassLoader([implJar.toURI().toURL()] as URL[], getClass().classLoader)
         def action1 = cl1.loadClass("ActionImpl").getConstructor().newInstance()
@@ -65,14 +56,14 @@ public class ActionImpl implements ${BuildAction.name}<java.io.File> {
         actualJar1.name == implJar.name
 
         when:
-        builder.sourceFile('ActionImpl.java').text = """
-public class ActionImpl implements ${BuildAction.name}<String> {
-    public String execute(${BuildController.name} controller) {
-        return getClass().getProtectionDomain().getCodeSource().getLocation().toString();
-    }
-}
-"""
-        builder.buildJar(implJar)
+        implJar = buildActionJar("""
+            public class ActionImpl implements ${BuildAction.name}<String> {
+                public String execute(${BuildController.name} controller) {
+                    return getClass().getProtectionDomain().getCodeSource().getLocation().toString();
+                }
+            }
+        """)
+
         def cl2 = new URLClassLoader([implJar.toURI().toURL()] as URL[], getClass().classLoader)
         def action2 = cl2.loadClass("ActionImpl").getConstructor().newInstance()
 
@@ -93,11 +84,26 @@ public class ActionImpl implements ${BuildAction.name}<String> {
         cl2?.close()
     }
 
-    private void disableJarCachingWhenUsingOldGradleVersion() {
-        if (targetDist.toolingApiLocksBuildActionClasses) {
-            // Tooling api providers from older Gradle would use the Jar URL cache, leaving Jar files open. Disable URL caching for these versions
-            // sun.net.www.protocol.jar.JarURLConnection leaves the JarFile instance open if URLConnection caching is enabled.
-            new URL("jar:file://valid_jar_url_syntax.jar!/").openConnection().setDefaultUseCaches(false)
-        }
+    private File buildActionJar(String actionContent) {
+        file("other/settings.gradle").text = """
+            rootProject.name = 'other'
+        """
+        file("other/build.gradle").text = """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation(gradleApi())
+            }
+        """
+        file('other/src/main/java/ActionImpl.java').text = actionContent
+
+        connector(file("other"))
+            .connect()
+            .newBuild()
+            .forTasks("jar")
+            .run()
+
+        return file("other/build/libs/other.jar")
     }
 }

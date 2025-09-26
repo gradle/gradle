@@ -107,7 +107,7 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             dependencies {
-                implementation (group: 'org', name: 'foo', version:'1.4.4')
+                implementation("org:foo:1.4.4")
             }
         """
 
@@ -116,7 +116,7 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
                 id("java-library")
             }
             dependencies {
-                implementation (group: 'org', name: 'foo', version:'1.3.3')
+                implementation("org:foo:1.3.3")
             }
         """
 
@@ -164,7 +164,7 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
             version = '1.0'
 
             dependencies {
-                implementation (group: 'org', name: 'foo', version:'1.4.4')
+                implementation("org:foo:1.4.4")
             }
         """
 
@@ -177,7 +177,7 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
             version = '1.0'
 
             dependencies {
-                implementation (group: 'org', name: 'foo', version:'1.3.3')
+                implementation("org:foo:1.3.3")
             }
         """
 
@@ -240,7 +240,7 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                implementation (group: 'org', name: 'foo', version:'1.3.3')
+                implementation("org:foo:1.3.3")
             }
         """
 
@@ -250,7 +250,7 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                implementation (group: 'org', name: 'foo', version:'1.4.4')
+                implementation("org:foo:1.4.4")
             }
         """
 

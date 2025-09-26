@@ -17,10 +17,13 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 class TestTaskLocaleIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/2661")
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires specific language and country configuration")
     def "test logging can be configured on turkish locale"() {
         given:
         buildFile << """

@@ -21,8 +21,10 @@ dependencies {
     api(projects.logging)
     api(projects.modelCore)
     api(projects.reportRendering)
+    api(projects.projectFeatures)
     api(projects.stdlibJavaExtensions)
 
+    api(libs.guava)
     api(libs.inject)
     api(libs.jspecify)
 
@@ -31,7 +33,6 @@ dependencies {
     implementation(projects.loggingApi)
 
     implementation(libs.commonsLang)
-    implementation(libs.guava)
 
     testFixturesApi(testFixtures(projects.platformNative))
     testFixturesApi(testFixtures(projects.logging))
@@ -57,8 +58,4 @@ dependencies {
 
 packageCycles {
     excludePatterns.add("org/gradle/api/reporting/model/internal/*")
-}
-
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

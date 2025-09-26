@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.impldeps
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 
 abstract class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -73,7 +74,7 @@ abstract class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec
             testing {
                 suites {
                     test {
-                        useJUnit()
+                        useJUnitJupiter()
                     }
                 }
             }
@@ -100,5 +101,10 @@ abstract class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec
         def pattern = /\b${regex}\b/
         def matcher = output =~ pattern
         assert matcher.count == 0
+    }
+
+    void assertTestExecuted(String testClass, String testMethod) {
+        def results = new JUnitXmlTestExecutionResult(testDirectory, 'build/test-results/test')
+        results.testClass(testClass).assertTestPassed(testMethod)
     }
 }

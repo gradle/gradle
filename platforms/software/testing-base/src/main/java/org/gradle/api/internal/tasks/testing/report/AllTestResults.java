@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.report;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 

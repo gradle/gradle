@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
+import org.gradle.test.fixtures.Flaky
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
@@ -39,9 +40,14 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
         when:
         def result = kgpRunner(false, kotlinVersionNumber, ':tasks')
-            .expectDeprecationWarning(
+            .expectLegacyDeprecationWarningIf(
+                kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_1_21,
                 "Declaring an 'is-' property with a Boolean type has been deprecated. Starting with Gradle 9.0, this property will be ignored by Gradle. The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy. Add a method named 'getMpp' with the same behavior and mark the old one with @Deprecated, or change the type of 'org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget.isMpp' (and the setter) to 'boolean'. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_boolean_properties",
-                "https://youtrack.jetbrains.com/issue/KT-71879"
+            )
+            .expectDeprecationWarningIf(
+                kotlinVersionNumber.baseVersion > KotlinGradlePluginVersions.KOTLIN_2_1_20,
+                "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration",
+                "https://youtrack.jetbrains.com/issue/KT-78620"
             )
             .build()
 
@@ -52,6 +58,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4643")
     def 'can run tests with kotlin multiplatform with js project (kotlin=#kotlinVersion)'() {
         given:
         withKotlinBuildFile()
@@ -63,9 +70,9 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
         when:
         def result = kgpRunner(false, kotlinVersionNumber, ':allTests', '-s')
-            .expectDeprecationWarning(
+            .expectLegacyDeprecationWarningIf(
+                kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_1_21,
                 "Declaring an 'is-' property with a Boolean type has been deprecated. Starting with Gradle 9.0, this property will be ignored by Gradle. The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy. Add a method named 'getMpp' with the same behavior and mark the old one with @Deprecated, or change the type of 'org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget.isMpp' (and the setter) to 'boolean'. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_boolean_properties",
-                "https://youtrack.jetbrains.com/issue/KT-71879"
             )
             .expectDeprecationWarningIf(
                 kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_0_20,
@@ -74,7 +81,12 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
             )
             .expectLegacyDeprecationWarningIf(
                 GradleContextualExecuter.notConfigCache && kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_1_20,
-                "Invocation of Task.project at execution time has been deprecated. This will fail with an error in Gradle 10.0. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#task_project"
+                "Invocation of Task.project at execution time has been deprecated. This will fail with an error in Gradle 10. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#task_project"
+            )
+            .expectDeprecationWarningIf(
+                kotlinVersionNumber.baseVersion > KotlinGradlePluginVersions.KOTLIN_2_1_20,
+                "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration",
+                "https://youtrack.jetbrains.com/issue/KT-78620"
             )
             .build()
 
@@ -82,7 +94,10 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         result.task(':allTests').outcome == SUCCESS
 
         where:
-        kotlinVersion << TestedVersions.kotlin.versions
+        kotlinVersion << TestedVersions.kotlin.versions.findAll {
+            // versions prior to 2.0.20 use deprecated APIs removed in Gradle 9.0
+            VersionNumber.parse(it) >= KotlinGradlePluginVersions.KOTLIN_2_0_20
+        }
     }
 
     /**
@@ -109,7 +124,13 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         def kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
 
         when:
-        def result = kgpRunner(false, kotlinVersionNumber, ':tasks').build()
+        def result = kgpRunner(false, kotlinVersionNumber, ':tasks')
+            .expectDeprecationWarningIf(
+                kotlinVersionNumber.baseVersion > KotlinGradlePluginVersions.KOTLIN_2_1_20,
+                "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration",
+                "https://youtrack.jetbrains.com/issue/KT-78620"
+            )
+            .build()
 
         then:
         result.task(':tasks').outcome == SUCCESS
@@ -161,6 +182,11 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
         when:
         def testRunner = kgpRunner(false, kotlinVersionNumber, ':resolve', '--stacktrace')
+            .expectDeprecationWarningIf(
+                kotlinVersionNumber.baseVersion > KotlinGradlePluginVersions.KOTLIN_2_1_20,
+                "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration",
+                "https://youtrack.jetbrains.com/issue/KT-78620"
+            )
         def result = testRunner.build()
 
         then:

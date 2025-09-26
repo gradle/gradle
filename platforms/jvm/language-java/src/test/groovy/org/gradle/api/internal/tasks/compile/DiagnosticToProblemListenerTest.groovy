@@ -27,7 +27,7 @@ import static javax.tools.Diagnostic.NOPOS
 
 class DiagnosticToProblemListenerTest extends Specification {
 
-    private static final String DIAGNOSTIC_DETAIL = "Error detail line 1\nerror detail line 2"
+    private static final String DIAGNOSTIC_DETAIL = "Error detail line 1${System.lineSeparator()}error detail line 2"
 
     def spec = Mock(InternalProblemSpec)
 

@@ -23,6 +23,8 @@ import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
 import org.gradle.internal.instrumentation.api.annotations.SpecificGroovyCallInterceptors;
 import org.gradle.internal.instrumentation.api.annotations.SpecificJvmCallInterceptors;
 
+import java.util.Map;
+
 @SuppressWarnings("NewMethodNamingConvention")
 @SpecificJvmCallInterceptors(generatedClassName = BasicCallInterceptionTestInterceptorsDeclaration.JVM_BYTECODE_GENERATED_CLASS)
 @SpecificGroovyCallInterceptors(generatedClassName = BasicCallInterceptionTestInterceptorsDeclaration.GROOVY_GENERATED_CLASS)
@@ -131,5 +133,26 @@ public class BasicCallInterceptionTestInterceptorsDeclaration {
         String value
     ) {
         self.intercepted = "setNonExistentProperty(String)-non-existent";
+    }
+
+    @SuppressWarnings("unused")
+    @InterceptGroovyCalls
+    @CallableKind.GroovyPropertyGetter
+    public static String intercept_richProperty(
+        @ParameterKind.Receiver InterceptorTestReceiver.ControllingObject self
+    ) {
+        self.intercepted = "getRichProperty()";
+        return "richProperty";
+    }
+
+    @SuppressWarnings("unused")
+    @InterceptGroovyCalls
+    @CallableKind.GroovyPropertySetter
+    public static void intercept_richProperty(
+        @ParameterKind.Receiver InterceptorTestReceiver.ControllingObject self,
+        Map<String, String> newValue
+    ) {
+        self.intercepted = "setRichProperty(Map<String, String>)";
+        self.getRichProperty().set(newValue);
     }
 }

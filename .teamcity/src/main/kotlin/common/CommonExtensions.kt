@@ -211,8 +211,8 @@ fun BuildType.paramsForBuildToolBuild(
         param("env.ANDROID_HOME", os.androidHome)
         param("env.ANDROID_SDK_ROOT", os.androidHome)
         param("env.GRADLE_INTERNAL_REPO_URL", "%gradle.internal.repository.url%")
-        if (os == Os.MACOS) {
-            // Use fewer parallel forks on macOs, since the agents are not very powerful.
+        if (os == Os.MACOS && arch == Arch.AMD64) {
+            // Use fewer parallel forks only on Intel macOS builds, since they are not very powerful.
             param("maxParallelForks", "2")
         }
         if (os == Os.LINUX || os == Os.MACOS) {
@@ -276,6 +276,7 @@ fun buildToolGradleParameters(
         "-Dorg.gradle.workers.max=$maxParallelForks",
         "-PmaxParallelForks=$maxParallelForks",
         PLUGINS_PORTAL_URL_OVERRIDE,
+        buildScanCustomValueParam("tcPipeline", VersionedSettingsBranch.fromDslContext().branchName),
         "-s",
         "%additional.gradle.parameters%",
         if (isContinue) "--continue" else "",
@@ -331,10 +332,11 @@ fun functionalTestParameters(
 ): List<String> =
     listOf(
         "-PteamCityBuildId=%teamcity.build.id%",
-        os.javaInstallationLocations(arch),
+        "-Dorg.gradle.java.installations.auto-download=false",
         "-Porg.gradle.java.installations.auto-download=false",
+        "-Dorg.gradle.java.installations.auto-detect=false",
         "-Porg.gradle.java.installations.auto-detect=false",
-    )
+    ) + os.javaInstallationLocations(arch)
 
 fun promotionBuildParameters(
     dependencyBuildId: RelativeId,
@@ -379,7 +381,13 @@ fun BuildSteps.killProcessStep(
                     arch,
                 )
             }/bin/java\" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java $mode" +
-            if (os == Os.WINDOWS) "\nwmic Path win32_process Where \"name='java.exe'\"" else ""
+            if (os ==
+                Os.WINDOWS
+            ) {
+                "\npowershell -Command \"Get-CimInstance -ClassName Win32_Process -Filter \\\"Name = 'java.exe'\\\" | Select-Object ProcessId, Name, CommandLine | Format-List\""
+            } else {
+                ""
+            }
         skipConditionally(buildType)
         if (mode == KILL_ALL_GRADLE_PROCESSES && buildType is FunctionalTest) {
             onlyRunOnGitHubMergeQueueBranch()

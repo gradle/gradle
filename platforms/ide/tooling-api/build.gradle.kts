@@ -6,10 +6,23 @@ plugins {
 
 description = "Gradle Tooling API - the programmatic API to invoke Gradle"
 
-gradlebuildJava {
-    usedInToolingApi()
-    // JSpecify annotations on static inner type return types
-    usesJdkInternals = true
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+    }
+}
+
+jvmCompile {
+    compilations {
+        named("main") {
+            // JSpecify annotations on static inner type return types
+            usesJdkInternals = true
+        }
+        named("crossVersionTest") {
+            // The TAPI tests must be able to run the TAPI client, which is still JVM 8 compatible
+            targetJvmVersion = 8
+        }
+    }
 }
 
 tasks.named<Jar>("sourcesJar") {
@@ -28,30 +41,16 @@ errorprone {
     disabledChecks.addAll(
         "EqualsUnsafeCast", // 1 occurrences
         "FutureReturnValueIgnored", // 1 occurrences
-        "LockNotBeforeTry", // 1 occurrences
         "ThreadLocalUsage", // 2 occurrences
     )
 }
 
 dependencies {
-    shadedImplementation(libs.slf4jApi)
-
-    runtimeOnly(projects.coreApi)
-
-    implementation(projects.core)
-    implementation(projects.buildProcessServices)
-    implementation(projects.serviceProvider)
-    implementation(projects.serviceRegistryBuilder)
-
-    implementation(libs.guava)
-    implementation(libs.jsr305)
-
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.classloaders)
     api(projects.concurrent)
     api(projects.enterpriseLogging)
-    api(projects.logging)
     api(projects.messaging)
     api(projects.stdlibJavaExtensions)
     api(projects.time)
@@ -59,22 +58,42 @@ dependencies {
 
     api(libs.jspecify)
 
-    testFixturesImplementation(projects.coreApi)
-    testFixturesImplementation(projects.core)
-    testFixturesImplementation(projects.logging)
-    testFixturesImplementation(projects.modelCore)
+    implementation(projects.core)
+    implementation(projects.buildProcessServices)
+    implementation(projects.logging)
+    implementation(projects.serviceProvider)
+    implementation(projects.serviceRegistryBuilder)
+
+    implementation(libs.guava)
+    implementation(libs.jsr305)
+
+    shadedImplementation(libs.slf4jApi)
+
+    runtimeOnly(projects.coreApi)
+
+    testImplementation(projects.internalIntegTesting)
+
     testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.baseServicesGroovy)
-    testFixturesImplementation(projects.internalTesting)
+    testFixturesImplementation(projects.core)
+    testFixturesImplementation(projects.coreApi)
     testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.internalTesting)
+    testFixturesImplementation(projects.logging)
+    testFixturesImplementation(projects.modelCore)
+    testFixturesImplementation(testFixtures(projects.buildProcessServices))
+    testFixturesImplementation(testFixtures(projects.enterpriseLogging))
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.slf4jApi)
 
     integTestImplementation(projects.jvmServices)
     integTestImplementation(projects.persistentCache)
+    integTestImplementation(projects.kotlinDslToolingModels)
+    integTestImplementation(testFixtures(projects.buildProcessServices))
 
     crossVersionTestImplementation(projects.jvmServices)
-    crossVersionTestImplementation(projects.problems)
+    crossVersionTestImplementation(projects.internalTesting)
+    crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
     crossVersionTestImplementation(testFixtures(projects.problemsApi))
     crossVersionTestImplementation(libs.jettyWebApp)
     crossVersionTestImplementation(libs.commonsIo)
@@ -95,6 +114,7 @@ dependencies {
         because("Used by ToolingApiRemoteIntegrationTest")
     }
 
+
     integTestDistributionRuntimeOnly(projects.distributionsFull)
     integTestLocalRepository(project(path)) {
         because("ToolingApiResolveIntegrationTest and ToolingApiClasspathIntegrationTest use the Tooling API Jar")
@@ -114,19 +134,12 @@ packageCycles {
     excludePatterns.add("org/gradle/tooling/**")
 }
 
-tasks.named("toolingApiShadedJar") {
-    // TODO: Remove this workaround once issue is fixed for configuration cache
-    // We don't add tasks that complete at configuration time
-    // to the resulting work graph, and then prune projects that have no tasks in the graph.
-    // This happens to java-api-extractor, since it's built with rest of build-logic.
-    // Could be related to https://github.com/gradle/gradle/issues/24273
-    dependsOn(gradle.includedBuild("build-logic").task(":java-api-extractor:assemble"))
-}
-
-integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
 
 apply(from = "buildship.gradle")
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }
+
+// AutoTestedSamplesToolingApiTest includes customized test logic, so automatic auto testing samples generation is not needed (and would fail) in this project
+integTest.generateDefaultAutoTestedSamplesTest = false

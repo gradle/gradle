@@ -17,12 +17,8 @@
 package org.gradle.buildconfiguration.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.ProblemReporter;
-import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
@@ -36,14 +32,11 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesModifier;
-import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 import org.gradle.platform.BuildPlatform;
-import org.gradle.util.internal.IncubationLogger;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
@@ -60,7 +53,6 @@ import java.util.stream.Collectors;
  * @since 8.8
  */
 @DisableCachingByDefault(because = "Not worth caching")
-@Incubating
 public abstract class UpdateDaemonJvm extends DefaultTask {
 
     /**
@@ -71,8 +63,6 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     public static final ProblemId TASK_CONFIGURATION_PROBLEM_ID = ProblemId.create("task-configuration", "Invalid task configuration", GradleCoreProblemGroup.daemonToolchain().configurationGeneration());
 
     private final DaemonJvmPropertiesModifier daemonJvmPropertiesModifier;
-    private final Property<String> jvmVendorDeprecated;
-    private final ProblemReporter problemsReporter;
 
     /**
      * Constructor.
@@ -80,18 +70,12 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      * @since 8.8
      */
     @Inject
-    public UpdateDaemonJvm(DaemonJvmPropertiesModifier daemonJvmPropertiesModifier, PropertyFactory propertyFactory, Problems problems) {
+    public UpdateDaemonJvm(DaemonJvmPropertiesModifier daemonJvmPropertiesModifier) {
         this.daemonJvmPropertiesModifier = daemonJvmPropertiesModifier;
-        jvmVendorDeprecated = propertyFactory.property(String.class);
-        problemsReporter = problems.getReporter();
     }
 
     @TaskAction
     void generate() {
-        IncubationLogger.incubatingFeatureUsed("Daemon JVM criteria");
-
-        handleDeprecatedJvmVendor();
-
         final String jvmVendorCriteria;
         if (getVendor().isPresent()) {
             jvmVendorCriteria = getVendor().map(v -> ((DefaultJvmVendorSpec)v).toCriteria()).get();
@@ -102,22 +86,9 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
             getPropertiesFile().get().getAsFile(),
             getLanguageVersion().get(),
             jvmVendorCriteria,
+            getNativeImageCapable().getOrElse(false),
             getToolchainDownloadUrls().get()
         );
-    }
-
-    @SuppressWarnings("Deprecated")
-    private void handleDeprecatedJvmVendor() {
-        if (jvmVendorDeprecated.isPresent()) {
-            String message = "Configuring 'jvmVendor' is no longer supported.";
-            throw problemsReporter.throwing(new IllegalStateException(message),
-                TASK_CONFIGURATION_PROBLEM_ID,
-                problemSpec -> {
-                    problemSpec.documentedAt(Documentation.upgradeGuide(8, "deprecated_update_daemon_jvm").getUrl());
-                    problemSpec.solution("Replace the usage of `UpdateDaemonJvm.jvmVendor` with 'vendor'");
-                    problemSpec.contextualLabel(message);
-                });
-        }
     }
 
     /**
@@ -128,25 +99,7 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      * @since 8.8
      */
     @OutputFile
-    @Incubating
     public abstract RegularFileProperty getPropertiesFile();
-
-    /**
-     * Deprecated
-     *
-     * @since 8.8
-     * @see #getLanguageVersion()
-     * @deprecated Use getLanguageVersion instead
-     */
-    @Internal
-    @Deprecated
-    public final Property<JavaLanguageVersion> getJvmVersion() {
-        DeprecationLogger.deprecateProperty(UpdateDaemonJvm.class, "jvmVersion").replaceWith("languageVersion")
-            .willBeRemovedInGradle9()
-            .withDslReference()
-            .nagUser();
-        return getLanguageVersion();
-    }
 
     /**
      * The version of the JVM required to run the Gradle Daemon.
@@ -158,26 +111,7 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     @Input
     @Optional
     @Option(option = "jvm-version", description = "The version of the JVM required to run the Gradle Daemon.")
-    @Incubating
     public abstract Property<JavaLanguageVersion> getLanguageVersion();
-
-    /**
-     * Deprecated and a no-op
-     *
-     * @since 8.10
-     * @see #getVendor()
-     * @deprecated use {@link #getVendor()} instead
-     */
-    @Internal
-    @Deprecated
-    public Property<String> getJvmVendor() {
-        DeprecationLogger.deprecateProperty(UpdateDaemonJvm.class, "jvmVendor").replaceWith("vendor")
-            .withContext("Executing the 'updateDaemonJvm' task will fail with this usage present")
-            .willBeRemovedInGradle9()
-            .withDslReference()
-            .nagUser();
-        return jvmVendorDeprecated;
-    };
 
     /**
      * Configures the vendor spec for the daemon toolchain properties generation.
@@ -186,7 +120,6 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      */
     @Input
     @Optional
-    @Incubating
     @Option(option = "jvm-vendor", description = "The vendor of the JVM required to run the Gradle Daemon.")
     public abstract Property<JvmVendorSpec> getVendor();
 
@@ -202,6 +135,16 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     }
 
     /**
+     * Indicates it the native-image capability is required.
+     *
+     * @since 8.14
+     */
+    @Input
+    @Optional
+    @Option(option = "native-image-capable", description = "Indicates if the native-image capability is required.")
+    public abstract Property<Boolean> getNativeImageCapable();
+
+    /**
      * The set of {@link BuildPlatform} for which download links should be generated.
      * <p>
      * By convention, for the task created on the root project, Gradle sources those from the combination of all supported {@link org.gradle.platform.OperatingSystem}
@@ -210,13 +153,12 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      * @since 8.13
      */
     @Internal
-    @Incubating
     public abstract SetProperty<BuildPlatform> getToolchainPlatforms();
 
     /**
      * The download URLs for the toolchains for the given platforms.
      * <p>
-     * By convention, for the task created on the root project, Gradle will combine the {@link #getToolchainPlatforms() build platforms}, {@link #getJvmVersion() JVM version} and {@link #getJvmVendor()}
+     * By convention, for the task created on the root project, Gradle will combine the {@link #getToolchainPlatforms() build platforms}, {@link #getLanguageVersion() JVM version} and {@link #getVendor()}
      * to resolve download URLs using the configured {@link org.gradle.jvm.toolchain.JavaToolchainRepository Java toolchain repositories}.
      * <p>
      * If the convention applies and no toolchain repositories are defined, an exception will be thrown.
@@ -224,6 +166,5 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      * @since 8.13
      */
     @Input
-    @Incubating
     public abstract MapProperty<BuildPlatform, URI> getToolchainDownloadUrls();
 }

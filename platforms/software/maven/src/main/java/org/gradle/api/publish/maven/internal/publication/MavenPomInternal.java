@@ -30,6 +30,7 @@ import org.gradle.api.publish.maven.MavenPomOrganization;
 import org.gradle.api.publish.maven.MavenPomScm;
 import org.gradle.api.publish.maven.internal.dependencies.MavenPomDependencies;
 import org.gradle.api.publish.maven.internal.publisher.MavenPublicationCoordinates;
+import org.gradle.api.tasks.Nested;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -61,6 +62,7 @@ public interface MavenPomInternal extends MavenPom {
 
     List<MavenPomMailingList> getMailingLists();
 
+    @Nested
     MavenPublicationCoordinates getCoordinates();
 
     Property<MavenPomDependencies> getDependencies();

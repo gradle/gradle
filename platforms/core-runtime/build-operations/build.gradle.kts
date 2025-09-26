@@ -5,7 +5,11 @@ plugins {
 
 description = "Build operations are our way to inspect the process of executing a build"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
 
 dependencies {
     api(projects.stdlibJavaExtensions)
@@ -14,6 +18,7 @@ dependencies {
     api(libs.jspecify)
 
     implementation(libs.slf4jApi)
+    implementation(libs.guava)
 
     testFixturesImplementation(libs.guava)
 

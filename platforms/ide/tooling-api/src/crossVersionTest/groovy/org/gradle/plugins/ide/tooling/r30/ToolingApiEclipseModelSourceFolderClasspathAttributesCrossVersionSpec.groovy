@@ -22,7 +22,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 
 class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec extends ToolingApiSpecification {
 
-    @TargetGradleVersion(">=3.0 <4.4")
+    @TargetGradleVersion(">=4.0 <4.4")
     def "Source folder doesn't define classpath attributes"() {
         setup:
         settingsFile << 'rootProject.name = "root"'
@@ -36,7 +36,7 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
         project.sourceDirectories.find {it.path == 'src/main/java' }.classpathAttributes.isEmpty()
     }
 
-    @TargetGradleVersion(">=3.0 <4.4")
+    @TargetGradleVersion(">=4.0 <4.4")
     def "Source folder defines one classpath attribute"() {
         settingsFile << 'rootProject.name = "root"'
         buildFile <<
@@ -64,7 +64,7 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
         project.sourceDirectories[0].classpathAttributes[0].value == 'customValue'
     }
 
-    @TargetGradleVersion(">=3.0 <4.4")
+    @TargetGradleVersion(">=4.0 <4.4")
     def "Source folder defines multiple classpath attributes"() {
         settingsFile << 'rootProject.name = "root"'
         buildFile <<

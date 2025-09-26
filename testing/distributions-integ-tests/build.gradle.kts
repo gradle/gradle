@@ -34,3 +34,7 @@ tasks.forkingIntegTest {
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }
+
+errorprone {
+    nullawayEnabled = true
+}

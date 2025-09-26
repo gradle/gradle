@@ -17,7 +17,7 @@ package org.gradle.integtests.resolve.alignment
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.junit.Assume
 import spock.lang.Issue
@@ -45,7 +45,7 @@ class ForcingPlatformAlignmentMavenWithoutGradleMetadataTest extends ForcingPlat
 abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
 
     def setup() {
-        Assume.assumeTrue(GradleContextualExecuter.embedded)
+        Assume.assumeTrue(IntegrationTestBuildContext.embedded)
         repoSpec.metaClass.platform = this.&platform.curry(repoSpec)
     }
 
@@ -813,9 +813,6 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                 allowAll()
             }
         }
-        if (forceNotation.contains("force = ")) {
-            executer.expectDeprecationWarning()
-        }
         run ':checkDeps'
 
         then:
@@ -880,9 +877,6 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
             "com.amazonaws:aws-java-sdk-core:1.11.438" {
                 allowAll()
             }
-        }
-        if (forceNotation.contains("force =")) {
-            executer.expectDeprecationWarning()
         }
 
         run ':checkDeps'

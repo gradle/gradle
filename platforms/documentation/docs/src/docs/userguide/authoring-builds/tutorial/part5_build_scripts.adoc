@@ -329,7 +329,7 @@ gradlePlugin {
 ----
 =====
 
-== Step 3. Apply the Plugin
+== Step 4. Apply the Plugin
 
 Let's apply our `license` plugin to the `app` subproject:
 
@@ -356,7 +356,7 @@ plugins {
 ----
 =====
 
-== Step 4. View Plugin Task
+== Step 5. View Plugin Task
 
 Build init creates a "hello world" plugin when generating a Gradle plugin project.
 Inside `LicensePlugin` is simply a task that prints a greeting to the console, the task name is `greeting`:
@@ -397,7 +397,7 @@ class LicensePlugin implements Plugin<Project> {
 
 As we can see, the `license` plugin, when applied, exposes a `greeting` task with a simple print statement.
 
-== Step 5. View Plugin Tasks
+== Step 6. View Plugin Tasks
 
 When the `license` plugin is applied to the `app` project, the `greeting` task becomes available:
 

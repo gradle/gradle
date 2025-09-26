@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import kotlinx.metadata.jvm.JvmMethodSignature
 import org.gradle.api.Project
 import org.gradle.api.internal.catalog.ExternalModuleDependencyFactory
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -56,6 +55,7 @@ import org.gradle.kotlin.dsl.support.useToRun
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import java.io.BufferedWriter
 import java.io.File
+import kotlin.metadata.jvm.JvmMethodSignature
 import kotlin.reflect.KClass
 
 

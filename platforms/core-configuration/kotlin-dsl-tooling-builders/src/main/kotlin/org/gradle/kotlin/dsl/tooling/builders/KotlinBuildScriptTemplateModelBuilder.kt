@@ -13,23 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:Suppress("DEPRECATION")
+
 package org.gradle.kotlin.dsl.tooling.builders
 
-import org.gradle.tooling.provider.model.ToolingModelBuilder
-import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel
-
-import org.gradle.api.Project
-
 import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.kotlin.dsl.support.serviceOf
-
+import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel
+import org.gradle.tooling.model.dsl.GradleDslBaseScriptModel
+import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
 import java.io.File
 import java.io.Serializable
 
 
+@Deprecated("Will be removed in Gradle 10, use GradleDslBaseScriptModel instead")
 internal
-object KotlinBuildScriptTemplateModelBuilder : ToolingModelBuilder {
+object KotlinBuildScriptTemplateModelBuilder : BuildScopeModelBuilder {
 
     private
     val gradleModules = listOf("gradle-core", "gradle-tooling-api")
@@ -37,8 +39,8 @@ object KotlinBuildScriptTemplateModelBuilder : ToolingModelBuilder {
     override fun canBuild(modelName: String): Boolean =
         modelName == "org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel"
 
-    override fun buildAll(modelName: String, project: Project): KotlinBuildScriptTemplateModel =
-        project.serviceOf<ModuleRegistry>().run {
+    override fun create(target: BuildState): KotlinBuildScriptTemplateModel =
+        target.mutableModel.serviceOf<ModuleRegistry>().run {
             StandardKotlinBuildScriptTemplateModel(
                 gradleModules
                     .map { getModule(it) }
@@ -46,10 +48,17 @@ object KotlinBuildScriptTemplateModelBuilder : ToolingModelBuilder {
                     .fold(ClassPath.EMPTY) { classPath, module -> classPath + module.classpath }
                     .asFiles
             )
+        }.also {
+            DeprecationLogger.deprecateType(KotlinBuildScriptTemplateModel::class.java)
+                .replaceWith(GradleDslBaseScriptModel::class.java.name)
+                .willBecomeAnErrorInGradle10()
+                .undocumented()
+                .nagUser()
         }
 }
 
 
+@Deprecated("Will be removed in Gradle 10, use GradleDslBaseScriptModel instead")
 internal
 data class StandardKotlinBuildScriptTemplateModel(
     private val classPath: List<File>

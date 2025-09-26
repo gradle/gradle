@@ -17,11 +17,10 @@
 package org.gradle.composite.internal;
 
 import org.gradle.BuildResult;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.RootBuildLifecycleListener;
@@ -82,11 +81,6 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     }
 
     @Override
-    public BuildIdentifier getBuildIdentifier() {
-        return DefaultBuildIdentifier.ROOT;
-    }
-
-    @Override
     public Path getIdentityPath() {
         return Path.ROOT;
     }
@@ -107,7 +101,8 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
 
     @Override
     public IncludedBuildInternal getModel() {
-        return new IncludedRootBuild(this);
+        TaskDependencyFactory taskDependencyFactory = getBuildServices().get(TaskDependencyFactory.class);
+        return new IncludedRootBuild(this, taskDependencyFactory);
     }
 
     @Override
@@ -118,6 +113,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
         try {
             RootBuildLifecycleListener buildLifecycleListener = listenerManager.getBroadcaster(RootBuildLifecycleListener.class);
             buildLifecycleListener.afterStart();
+            Throwable failure = null;
             try {
                 GradleInternal gradle = getBuildController().getGradle();
                 DefaultDeploymentRegistry deploymentRegistry = gradle.getServices().get(DefaultDeploymentRegistry.class);
@@ -128,8 +124,11 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
                     }
                 });
                 return action.apply(buildTreeLifecycleController);
+            } catch (RuntimeException | Error e) {
+                failure = e;
+                throw e;
             } finally {
-                buildLifecycleListener.beforeComplete();
+                buildLifecycleListener.beforeComplete(failure);
             }
         } finally {
             completed = true;
@@ -139,11 +138,6 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     @Override
     public StartParameterInternal getStartParameter() {
         return getBuildController().getGradle().getStartParameter();
-    }
-
-    @Override
-    public Path calculateIdentityPathForProject(Path path) {
-        return path;
     }
 
     @Override

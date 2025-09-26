@@ -16,8 +16,6 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.StartParameter;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildCancellationToken;
@@ -28,7 +26,6 @@ import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.NestedBuildTree;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
@@ -68,8 +65,8 @@ public class BuildStateFactory {
         return new DefaultRootBuildState(buildDefinition, buildTreeState, listenerManager);
     }
 
-    public StandAloneNestedBuild createNestedBuild(BuildIdentifier buildIdentifier, Path identityPath, BuildDefinition buildDefinition, BuildState owner) {
-        DefaultNestedBuild build = new DefaultNestedBuild(buildIdentifier, identityPath, buildDefinition, owner, buildTreeState);
+    public StandAloneNestedBuild createNestedBuild(Path identityPath, BuildDefinition buildDefinition, BuildState owner) {
+        DefaultNestedBuild build = new DefaultNestedBuild(identityPath, buildDefinition, owner, buildTreeState);
         // Expose any contributions from the parent's settings
         build.getMutableModel().setClassLoaderScope(() -> owner.getMutableModel().getSettings().getClassLoaderScope());
         return build;
@@ -78,11 +75,10 @@ public class BuildStateFactory {
     public NestedBuildTree createNestedTree(
         BuildInvocationScopeId buildInvocationScopeId,
         BuildDefinition buildDefinition,
-        BuildIdentifier buildIdentifier,
         Path identityPath,
         BuildState owner
     ) {
-        return new DefaultNestedBuildTree(buildInvocationScopeId, buildDefinition, buildIdentifier, identityPath, owner, userHomeDirServiceRegistry, crossBuildSessionState, buildCancellationToken);
+        return new DefaultNestedBuildTree(buildInvocationScopeId, buildDefinition, identityPath, owner, userHomeDirServiceRegistry, crossBuildSessionState, buildCancellationToken);
     }
 
     public BuildDefinition buildDefinitionFor(File buildSrcDir, BuildState owner) {
@@ -97,16 +93,13 @@ public class BuildStateFactory {
             publicBuildPath,
             true
         );
-        @SuppressWarnings("deprecation")
-        File customBuildFile = DeprecationLogger.whileDisabled(buildSrcStartParameter::getBuildFile);
-        assert customBuildFile == null;
         return buildDefinition;
     }
 
-    private static StartParameterInternal buildSrcStartParameterFor(File buildSrcDir, StartParameter containingBuildParameters) {
-        final StartParameterInternal buildSrcStartParameter = (StartParameterInternal) containingBuildParameters.newBuild();
+    private static StartParameterInternal buildSrcStartParameterFor(File buildSrcDir, StartParameterInternal containingBuildParameters) {
+        final StartParameterInternal buildSrcStartParameter = containingBuildParameters.newBuild();
         buildSrcStartParameter.setCurrentDir(buildSrcDir);
-        buildSrcStartParameter.setProjectProperties(containingBuildParameters.getProjectProperties());
+        buildSrcStartParameter.setProjectProperties(containingBuildParameters.getProjectPropertiesUntracked());
         buildSrcStartParameter.doNotSearchUpwards();
         buildSrcStartParameter.setInitScripts(containingBuildParameters.getInitScripts());
         return buildSrcStartParameter;

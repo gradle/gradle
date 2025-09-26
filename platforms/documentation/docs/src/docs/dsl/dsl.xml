@@ -110,9 +110,6 @@
                 <td>repositories</td>
             </tr>
             <tr>
-                <td>sourceSets</td>
-            </tr>
-            <tr>
                 <td>subprojects</td>
             </tr>
             <tr>

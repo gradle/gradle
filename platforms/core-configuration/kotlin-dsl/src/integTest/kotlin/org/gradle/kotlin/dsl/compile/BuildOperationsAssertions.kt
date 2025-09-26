@@ -74,8 +74,8 @@ class BuildOperationsAssertions(buildOperationsFixture: BuildOperationsFixture, 
         return this
     }
 
-    fun assertContainsCompileAvoidanceWarning(end: String): BuildOperationsAssertions {
-        MatcherAssert.assertThat(compileAvoidanceWarnings, CoreMatchers.hasItem(CoreMatchers.endsWith(end)))
+    fun assertContainsCompileAvoidanceWarning(warning: String): BuildOperationsAssertions {
+        MatcherAssert.assertThat(compileAvoidanceWarnings, CoreMatchers.hasItem(CoreMatchers.containsString(warning)))
         return this
     }
 }

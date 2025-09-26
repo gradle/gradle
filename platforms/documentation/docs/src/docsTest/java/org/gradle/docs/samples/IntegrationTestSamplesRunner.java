@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,15 @@ import org.gradle.exemplar.model.Sample;
 import org.gradle.exemplar.test.runner.SamplesRunner;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
+import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
+import org.junit.runner.notification.StoppedByUserException;
 import org.junit.runners.model.InitializationError;
 
 import java.io.File;
 import java.nio.file.Paths;
+import java.util.List;
 
 @NullMarked
 class IntegrationTestSamplesRunner extends SamplesRunner {
@@ -53,21 +56,46 @@ class IntegrationTestSamplesRunner extends SamplesRunner {
         return Paths.get(samplesDir).toFile();
     }
 
-    @Override
-    protected void runChild(final Sample sample, final RunNotifier notifier) {
-        super.runChild(sample, new RunNotifierWrapper(notifier) {
-            @Override
-            public void fireTestFailure(Failure failure) {
-                String extraParameter = "configCache".equals(System.getProperty("org.gradle.integtest.executer")) ?
-                    "-PenableConfigurationCacheForDocsTests=true" : "";
-                super.fireTestFailure(new Failure(failure.getDescription(), new GradleException(
-                    "Sample test run failed.\nTo understand how docsTest works, See:\n" +
-                        "  https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/README.md#testing-docs\n" +
-                        "To reproduce this failure, run:\n" +
-                        "  ./gradlew docs:docsTest --tests '*" + sample.getId() + "*' " + extraParameter,
-                    failure.getException()
-                )));
+    public List<Sample> getAllSamples() {
+        return getChildren();
+    }
+
+    private class RunNotifierAdapter extends RunNotifier {
+        @Override
+        public void fireTestFailure(Failure failure) {
+            Throwable t = failure.getException();
+            if (t instanceof RuntimeException) {
+                throw (RuntimeException) t;
+            } else {
+                throw new RuntimeException(t);
             }
-        });
+        }
+
+        @Override
+        public void fireTestIgnored(final Description description) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void fireTestStarted(final Description description) throws StoppedByUserException {
+        }
+
+        @Override
+        public void fireTestFinished(final Description description) {
+        }
+    }
+
+    public void runSample(Sample sample) {
+        try {
+            runChild(sample, new RunNotifierAdapter());
+        } catch (Throwable e) {
+            String extraParameter = "configCache".equals(System.getProperty("org.gradle.integtest.executer")) ?
+                "-PenableConfigurationCacheForDocsTests=true" : "";
+            throw new GradleException(
+                "Sample test run failed.\nTo understand how docsTest works, See:\n" +
+                    "  https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/README.md#testing-docs\n" +
+                    "To reproduce this failure, run:\n" +
+                    "  ./gradlew docs:docsTest --tests '*" + sample.getId() + "*' " + extraParameter, e);
+        }
     }
 }

@@ -58,7 +58,6 @@ strictCompile {
     ignoreDeprecations() // most of this project has been deprecated
 }
 
-integTest.usesJavadocCodeSnippets = true
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

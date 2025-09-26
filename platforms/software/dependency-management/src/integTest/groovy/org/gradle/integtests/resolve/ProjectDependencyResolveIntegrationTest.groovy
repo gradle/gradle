@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -28,7 +27,6 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
     private ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compile")
 
     def setup() {
-        resolve.addDefaultVariantDerivationStrategy()
         settingsFile << """
             rootProject.name = 'test'
         """
@@ -123,6 +121,9 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         """
 
         file("b/build.gradle") << """
+            plugins {
+                id("jvm-ecosystem")
+            }
             configurations {
                 compile
             }
@@ -583,12 +584,10 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         """
 
         expect:
-        succeeds ':a:assertCanResolve'
+        succeeds(":a:assertCanResolve")
 
         and:
-        executer.expectDocumentedDeprecationWarning("The resCopy configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
-        executer.expectDocumentedDeprecationWarning("While resolving configuration 'resCopy', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Depending on the resolved configuration in this manner has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration")
-        succeeds ':a:assertCanResolveRecursiveCopy'
+        succeeds(":a:assertCanResolveRecursiveCopy")
     }
 
     // this test is largely covered by other tests, but does ensure that there is nothing special about
@@ -632,7 +631,6 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         file("b/build/copied/a-1.0.zip").exists()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "resolving configuration with project dependency marks dependency's configuration as observed"() {
         settingsFile << """
             include 'api'
@@ -656,29 +654,23 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
                 conf project(":api")
             }
 
-            task check {
-                doLast {
-                    assert configurations.conf.state == Configuration.State.UNRESOLVED
-                    assert project(":api").configurations.conf.state == Configuration.State.UNRESOLVED
+            assert configurations.conf.state == Configuration.State.UNRESOLVED
+            assert project(":api").configurations.conf.state == Configuration.State.UNRESOLVED
 
-                    configurations.conf.resolve()
+            configurations.conf.resolve()
 
-                    assert configurations.conf.state == Configuration.State.RESOLVED
-                    assert project(":api").configurations.conf.state == Configuration.State.UNRESOLVED
+            assert configurations.conf.state == Configuration.State.RESOLVED
+            assert project(":api").configurations.conf.state == Configuration.State.UNRESOLVED
 
-                    // Attempt to change the configuration, to demonstrate that is has been observed
-                    project(":api").configurations.conf.dependencies.add(null)
-                }
-            }
-
+            // Attempt to change the configuration, to demonstrate that is has been observed
+            project(":api").configurations.conf.dependencies.add(null)
         """
 
         when:
-        expectTaskGetProjectDeprecations(3)
-        fails("impl:check")
+        fails("help")
 
         then:
-        failure.assertHasCause "Cannot change dependencies of dependency configuration ':api:conf' after it has been included in dependency resolution"
+        failure.assertHasCause("Cannot mutate the dependencies of configuration ':api:conf' after the configuration was consumed as a variant. After a configuration has been observed, it should not be modified.")
     }
 
     @Issue(["GRADLE-3330", "GRADLE-3362"])
@@ -861,21 +853,43 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         "'org:included:1.0'" | "project :included" | ":included:outgoingVariants"
     }
 
-    def "getDependencyProject is deprecated"() {
+    def "can resolve a variant of a child project during configuration from a parent project when the child project resolves a configuration during configuration time"() {
+        mavenRepo.module("org", "foo").publish()
+
+        settingsFile << """
+            include 'a'
+        """
+
         buildFile << """
-            configurations {
-                dependencyScope("foo")
+            plugins {
+                id("java-library")
             }
 
             dependencies {
-                foo(project)
+                implementation(project(':a'))
             }
 
-            configurations.foo.dependencies.iterator().next().getDependencyProject()
+            // Execute resolution at configuration time, causing
+            // project :a to be resolved on-demand at configuration time.
+            assert configurations.compileClasspath.incoming.files*.name == ["main"]
+        """
+
+        file("a/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("org:foo:1.0")
+            }
+
+            // Execute resolution at configuration time
+            assert configurations.compileClasspath.incoming.files*.name == ["foo-1.0.jar"]
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("The ProjectDependency.getDependencyProject() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_get_dependency_project")
         succeeds("help")
     }
 }

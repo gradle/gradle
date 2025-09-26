@@ -302,7 +302,8 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             it.rootMetaData.expectGet()
             it.artifact.expectGet()
         }
-        publishLib("lib-core", "1.1")
+        // This module will not be resolved at all
+        mavenHttpRepo.module("org.gradle.test", "lib-core", "1.1").withModuleMetadata().publish()
         publishLib("lib-ext", "1.0").with {
             it.rootMetaData.expectGet()
             it.artifact.expectGet()
@@ -368,7 +369,8 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             it.rootMetaData.expectGet()
             it.artifact.expectGet()
         }
-        publishLib("lib-core", "1.1")
+        // This module will not be resolved at all
+        mavenHttpRepo.module("org.gradle.test", "lib-core", "1.1").withModuleMetadata().publish()
         publishLib("lib-ext", "1.0").with {
             it.rootMetaData.expectGet()
             it.artifact.expectGet()

@@ -43,7 +43,7 @@ public class ExtraPropertiesDynamicObjectAdapter extends AbstractDynamicObject {
     }
 
     @Override
-    public Map<String, ?> getProperties() {
+    public Map<String, ? extends @Nullable Object> getProperties() {
         return extension.getProperties();
     }
 
@@ -62,5 +62,10 @@ public class ExtraPropertiesDynamicObjectAdapter extends AbstractDynamicObject {
             return DynamicInvokeResult.found();
         }
         return DynamicInvokeResult.notFound();
+    }
+
+    @Override
+    public DynamicInvokeResult trySetPropertyWithoutInstrumentation(String name, @Nullable Object value) {
+        return trySetProperty(name, value);
     }
 }

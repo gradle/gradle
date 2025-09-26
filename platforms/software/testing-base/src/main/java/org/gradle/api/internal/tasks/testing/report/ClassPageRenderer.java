@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.tasks.testing.report;
 
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
-import org.gradle.internal.ErroringAction;
-import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.gradle.internal.ErroringAction;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.internal.xml.SimpleMarkupWriter;
 import org.gradle.reporting.CodePanelRenderer;
 import org.gradle.util.internal.GUtil;
@@ -28,6 +28,8 @@ import org.gradle.util.internal.GUtil;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+
+import static org.gradle.reporting.HtmlWriterTools.addClipboardCopyButton;
 
 class ClassPageRenderer extends PageRenderer<ClassTestResults> {
     private final CodePanelRenderer codePanelRenderer = new CodePanelRenderer();
@@ -97,8 +99,9 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
     @Override
     protected void renderFailures(SimpleHtmlWriter htmlWriter) throws IOException {
         for (TestResult test : getResults().getFailures()) {
+            String testId = test.getId().toString();
             htmlWriter.startElement("div").attribute("class", "test")
-                .startElement("a").attribute("name", test.getId().toString()).characters("").endElement() //browsers dont understand <a name="..."/>
+                .startElement("a").attribute("name", testId).characters("").endElement() //browsers dont understand <a name="..."/>
                 .startElement("h3").attribute("class", test.getStatusClass()).characters(test.getDisplayName()).endElement();
             for (SerializableFailure failure : test.getFailures()) {
                 String message;
@@ -107,7 +110,24 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
                 } else {
                     message = failure.getStackTrace();
                 }
-                codePanelRenderer.render(message, htmlWriter);
+                codePanelRenderer.render(new CodePanelRenderer.Data(message, "test-message-" + testId), htmlWriter);
+            }
+            htmlWriter.endElement();
+        }
+    }
+
+    @Override
+    protected void renderIgnoredTests(SimpleHtmlWriter htmlWriter) throws IOException {
+        for (TestResult test : getResults().getIgnored()) {
+            String testId = test.getId().toString();
+            htmlWriter.startElement("div").attribute("class", "test")
+                .startElement("a").attribute("name", testId).characters("").endElement() //browsers dont understand <a name="..."/>
+                .startElement("h3").attribute("class", test.getStatusClass()).characters(test.getDisplayName()).endElement();
+
+            String whitespace = SystemProperties.getInstance().getLineSeparator() + SystemProperties.getInstance().getLineSeparator();
+            for (SerializableFailure failure : test.getFailures()) {
+                String message = failure.getMessage() + whitespace + failure.getStackTrace();
+                codePanelRenderer.render(new CodePanelRenderer.Data(message, "test-message-" + testId), htmlWriter);
             }
             htmlWriter.endElement();
         }
@@ -116,6 +136,7 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
     @Override
     protected void registerTabs() {
         addFailuresTab();
+        addIgnoredTab();
         addTab("Tests", new ErroringAction<SimpleHtmlWriter>() {
             @Override
             public void doExecute(SimpleHtmlWriter writer) throws IOException {
@@ -127,12 +148,15 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
             addTab("Standard output", new ErroringAction<SimpleHtmlWriter>() {
                 @Override
                 protected void doExecute(SimpleHtmlWriter htmlWriter) throws IOException {
+                    String codeId = "class-stdout";
                     htmlWriter.startElement("span").attribute("class", "code")
                         .startElement("pre")
+                        .attribute("id", codeId)
                         .characters("");
                     resultsProvider.writeAllOutput(classId, TestOutputEvent.Destination.StdOut, htmlWriter);
-                        htmlWriter.endElement()
-                    .endElement();
+                        htmlWriter.endElement();
+                    addClipboardCopyButton(htmlWriter, codeId);
+                    htmlWriter.endElement();
                 }
             });
         }
@@ -140,12 +164,15 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
             addTab("Standard error", new ErroringAction<SimpleHtmlWriter>() {
                 @Override
                 protected void doExecute(SimpleHtmlWriter element) throws Exception {
+                    String codeId = "class-stderr";
                     element.startElement("span").attribute("class", "code")
-                    .startElement("pre")
+                        .startElement("pre")
+                        .attribute("id", codeId)
                         .characters("");
                     resultsProvider.writeAllOutput(classId, TestOutputEvent.Destination.StdErr, element);
-                    element.endElement()
-                    .endElement();
+                    element.endElement();
+                    addClipboardCopyButton(element, codeId);
+                    element.endElement();
                 }
             });
         }

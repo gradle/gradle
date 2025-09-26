@@ -571,6 +571,7 @@ public class PomReader implements PomParent {
         }
 
         @Override
+        @SuppressWarnings("MixedMutabilityReturnType")
         public List<ModuleIdentifier> getExcludedModules() {
             Element exclusionsElement = getFirstChildElement(depElement, EXCLUSIONS);
             if (exclusionsElement != null) {

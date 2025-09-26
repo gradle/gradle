@@ -87,11 +87,11 @@ public class DefaultFileLockCommunicator implements FileLockCommunicator {
         byte[] bytes = FileLockPacketPayload.encode(lockId, UNLOCK_REQUEST_CONFIRMATION);
         DatagramPacket packet = new DatagramPacket(bytes, bytes.length);
         packet.setSocketAddress(requesterAddress);
-        LOGGER.debug("Confirming unlock request to Gradle process at port {} for lock with id {}.", packet.getPort(), lockId);
+        LOGGER.debug("Confirming unlock request to process at port {} for lock with id {}.", packet.getPort(), lockId);
         try {
             socket.send(packet);
         } catch (IOException e) {
-            LOGGER.debug("Failed to confirm unlock request to Gradle process at port {} for lock with id {}.", packet.getPort(), lockId);
+            LOGGER.debug("Failed to confirm unlock request to process at port {} for lock with id {}.", packet.getPort(), lockId);
         }
     }
 
@@ -101,11 +101,11 @@ public class DefaultFileLockCommunicator implements FileLockCommunicator {
         for (SocketAddress requesterAddress : requesterAddresses) {
             DatagramPacket packet = new DatagramPacket(bytes, bytes.length);
             packet.setSocketAddress(requesterAddress);
-            LOGGER.debug("Confirming lock release to Gradle process at port {} for lock with id {}.", packet.getPort(), lockId);
+            LOGGER.debug("Confirming lock release to process at port {} for lock with id {}.", packet.getPort(), lockId);
             try {
                 socket.send(packet);
             } catch (IOException e) {
-                LOGGER.debug("Failed to confirm lock release to Gradle process at port {} for lock with id {}.", packet.getPort(), lockId);
+                LOGGER.debug("Failed to confirm lock release to process at port {} for lock with id {}.", packet.getPort(), lockId);
             }
         }
     }

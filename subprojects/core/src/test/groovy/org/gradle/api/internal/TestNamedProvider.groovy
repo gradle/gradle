@@ -73,11 +73,6 @@ class TestNamedProvider<T> implements ProviderInternal<T>, Named {
     }
 
     @Override
-    Provider<T> forUseAtConfigurationTime() {
-        throw new UnsupportedOperationException()
-    }
-
-    @Override
     <U, R> Provider<R> zip(Provider<U> right, BiFunction<? super T, ? super U, ? extends R> combiner) {
         throw new UnsupportedOperationException()
     }

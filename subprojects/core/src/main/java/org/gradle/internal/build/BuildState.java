@@ -18,12 +18,14 @@ package org.gradle.internal.build;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.function.Function;
@@ -35,17 +37,27 @@ import java.util.function.Function;
  */
 @ServiceScope(Scope.Build.class)
 public interface BuildState {
+
     DisplayName getDisplayName();
 
     /**
      * Returns the identifier for this build. The identifier is fixed for the lifetime of the build.
+     * <p>
+     * Prefer {@link #getIdentityPath()}.
      */
-    BuildIdentifier getBuildIdentifier();
+    default BuildIdentifier getBuildIdentifier() {
+        return new DefaultBuildIdentifier(getIdentityPath());
+    }
 
     /**
      * Returns an identifying path for this build in the build tree. This path is fixed for the lifetime of the build.
      */
     Path getIdentityPath();
+
+    /**
+     * Get the parent build of this build, if any.
+     */
+    @Nullable BuildState getParent();
 
     /**
      * Is this an implicit build? An implicit build is one that is managed by Gradle and which is not addressable by user build logic.
@@ -56,11 +68,6 @@ public interface BuildState {
      * Should this build be imported into an IDE? Some implicit builds, such as source dependency builds, are not intended to be imported into the IDE or editable by users.
      */
     boolean isImportableBuild();
-
-    /**
-     * Calculates the identity path for a project in this build.
-     */
-    Path calculateIdentityPathForProject(Path projectPath) throws IllegalStateException;
 
     /**
      * Loads the projects for this build so that {@link #getProjects()} can be used, if not already done.
@@ -129,4 +136,5 @@ public interface BuildState {
      * Runs whatever work is required prior to discarding the model for this build. Called at the end of the build.
      */
     ExecutionResult<Void> beforeModelDiscarded(boolean failed);
+
 }

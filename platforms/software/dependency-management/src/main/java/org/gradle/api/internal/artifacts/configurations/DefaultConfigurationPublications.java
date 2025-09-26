@@ -35,11 +35,12 @@ import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -54,7 +55,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     private final AttributeContainerInternal parentAttributes;
 
     // Services
-    private final Instantiator instantiator;
+    private final ObjectFactory objectFactory;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
     private final FileCollectionFactory fileCollectionFactory;
@@ -69,12 +70,13 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     private DomainObjectSet<Capability> capabilities;
     private Supplier<String> observationReason;
 
+    @Inject
     public DefaultConfigurationPublications(
         DisplayName displayName,
         PublishArtifactSet artifacts,
         PublishArtifactSetProvider allArtifacts,
         AttributeContainerInternal parentAttributes,
-        Instantiator instantiator,
+        ObjectFactory objectFactory,
         NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
         NotationParser<Object, Capability> capabilityNotationParser,
         FileCollectionFactory fileCollectionFactory,
@@ -86,7 +88,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         this.artifacts = artifacts;
         this.allArtifacts = allArtifacts;
         this.parentAttributes = parentAttributes;
-        this.instantiator = instantiator;
+        this.objectFactory = objectFactory;
         this.artifactNotationParser = artifactNotationParser;
         this.capabilityNotationParser = capabilityNotationParser;
         this.fileCollectionFactory = fileCollectionFactory;
@@ -213,7 +215,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     }
 
     private DefaultVariant createVariant(String name) {
-        return instantiator.newInstance(
+        return objectFactory.newInstance(
             DefaultVariant.class,
             displayName,
             name,

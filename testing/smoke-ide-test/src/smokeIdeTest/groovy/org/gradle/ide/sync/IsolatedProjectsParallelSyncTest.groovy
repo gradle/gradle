@@ -16,9 +16,11 @@
 
 package org.gradle.ide.sync
 
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/4661")
 class IsolatedProjectsParallelSyncTest extends AbstractIdeSyncTest {
 
     @Rule

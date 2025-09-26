@@ -340,7 +340,6 @@ int main (int argc, char *argv[]) {
         installation.exec("foo", "bar").out == "[foo] [bar] \n"
     }
 
-    @ToBeFixedForConfigurationCache(because = ":model")
     def "model report should display configured components"() {
         given:
         buildFile << """

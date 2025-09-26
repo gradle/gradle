@@ -20,7 +20,6 @@ import org.eclipse.jetty.http.HttpStatus
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.credentials.Credentials
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.ivy.IvyFileRepository
@@ -159,7 +158,6 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
         authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST, AuthScheme.NTLM]
     }
 
-    @UnsupportedWithConfigurationCache(because = "inline credentials")
     def "can publish to authenticated repository using inline credentials and #authScheme auth"() {
         given:
         PasswordCredentials credentials = TestCredentialUtil.defaultPasswordCredentials('testuser', 'password')

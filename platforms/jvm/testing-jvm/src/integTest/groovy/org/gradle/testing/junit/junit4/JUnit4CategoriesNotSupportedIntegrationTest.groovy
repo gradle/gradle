@@ -17,9 +17,8 @@
 package org.gradle.testing.junit.junit4
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
-import static org.hamcrest.CoreMatchers.startsWith
+import static org.gradle.util.Matchers.matchesRegexp
 
 class JUnit4CategoriesNotSupportedIntegrationTest extends AbstractSampleIntegrationTest {
 
@@ -60,7 +59,6 @@ class JUnit4CategoriesNotSupportedIntegrationTest extends AbstractSampleIntegrat
         fails('test')
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass("org.gradle.SomeTest").assertTestFailed("initializationError", startsWith("org.gradle.api.GradleException: JUnit Categories defined but declared JUnit version does not support Categories."))
+        failure.assertThatCause(matchesRegexp(/Could not start Gradle Test Executor \d+: JUnit Categories defined but declared JUnit version does not support Categories\./))
     }
 }

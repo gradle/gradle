@@ -17,16 +17,17 @@
 package org.gradle.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.util.function.Function;
 
 /**
  * Various utilities for dealing with IO actions.
@@ -81,10 +82,10 @@ public abstract class IoActions {
         uncheckedClose(resource);
     }
 
-    public static <T extends Closeable, R> R withResource(T resource, InternalTransformer<R, ? super T> action) {
+    public static <T extends Closeable, R> R withResource(T resource, Function<? super T, R> action) {
         R result;
         try {
-            result = action.transform(resource);
+            result = action.apply(resource);
         } catch (Throwable t) {
             closeQuietly(resource);
             throw UncheckedException.throwAsUncheckedException(t);
@@ -104,7 +105,7 @@ public abstract class IoActions {
                 resource.close();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -141,13 +142,10 @@ public abstract class IoActions {
                         throw new IOException(String.format("Unable to create directory '%s'", parentFile));
                     }
                 }
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), encoding));
-                try {
+                try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(file.toPath()), encoding))) {
                     action.execute(writer);
-                } finally {
-                    writer.close();
                 }
-            } catch (Exception e) {
+            } catch (IOException e) {
                 throw new UncheckedIOException(String.format("Could not write to file '%s'.", file), e);
             }
         }

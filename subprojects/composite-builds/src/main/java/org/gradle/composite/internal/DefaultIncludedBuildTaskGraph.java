@@ -22,6 +22,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.plan.QueryableExecutionPlan;
+import org.gradle.execution.plan.TaskNode;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -49,6 +50,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 
+@SuppressWarnings("SameNameButDifferent")
 public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphController, Closeable {
     private enum State {
         NotPrepared, Preparing, ReadyToRun, Running, Finished
@@ -247,12 +249,8 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
 
         private void expectInState(State expectedState) {
             if (state != expectedState) {
-                throw unexpectedState();
+                throw new IllegalStateException("Work graph is in an unexpected state: " + state + ", expected: " + expectedState);
             }
-        }
-
-        private IllegalStateException unexpectedState() {
-            return new IllegalStateException("Work graph is in an unexpected state: " + state);
         }
 
         private void assertIsOwner() {
@@ -296,6 +294,11 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         @Override
         public String healthDiagnostics() {
             return taskNode.healthDiagnostics();
+        }
+
+        @Override
+        public TaskNode getTaskNode() {
+            return taskNode.getTaskNode();
         }
     }
 }

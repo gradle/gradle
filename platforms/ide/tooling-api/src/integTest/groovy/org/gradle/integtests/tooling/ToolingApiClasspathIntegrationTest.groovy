@@ -17,25 +17,74 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.tooling.fixture.ToolingApiDistribution
-import org.gradle.integtests.tooling.fixture.ToolingApiDistributionResolver
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.util.internal.TextUtil
 
 class ToolingApiClasspathIntegrationTest extends AbstractIntegrationSpec {
 
-    def "tooling api classpath contains only tooling-api jar and slf4j"() {
+    def "tooling api classpath contains only slf4j and shaded tooling-api jar of expected size"() {
+        IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            // For the current tooling API jar
+            repositories {
+                maven {
+                    url = uri(file("${TextUtil.escapeString(buildContext.localRepository)}"))
+                }
+            }
+
+            // For SFL4J
+            repositories {
+                ${RepoScriptBlockUtil.gradleRepositoryDefinition()}
+            }
+
+            dependencies {
+                implementation("org.gradle:gradle-tooling-api:${distribution.getVersion().baseVersion.version}")
+            }
+
+            tasks.register("resolve") {
+                def files = configurations.runtimeClasspath.incoming.files
+                doLast {
+                    // If either of these expectations change,
+                    // `ToolingApiDistributionResolver` must be updated.
+                    assert files.size() == 2
+                    assert files.find { it.name ==~ /slf4j-api-.*\\.jar/ } != null
+
+                    def shadedTapiJar = files.find { it.name ==~ /gradle-tooling-api.*\\.jar/ }
+                    assert shadedTapiJar != null
+                    println "SHADED_TAPI_JAR_SIZE: " + shadedTapiJar.size() + " bytes"
+                }
+            }
+        """
+
         when:
-        ToolingApiDistribution resolve = ToolingApiDistributionResolver.use {
-            it.withDefaultRepository().withExternalToolingApiDistribution()
-                .resolve(distribution.getVersion().baseVersion.version)
-        }
+        succeeds("resolve")
 
         then:
-        resolve.classpath.size() == 2
-        resolve.classpath.any {it.name ==~ /slf4j-api-.*\.jar/}
-        // If this suddenly fails without an obvious reason, you likely have added some code
-        // that references types that were previously eliminated from gradle-tooling-api.jar.
+        def actualSize = extractShadedTapiJarSize(output)
+        def actualSizeKB = (int) Math.ceil((double) actualSize / 1024)
 
-        def size = resolve.classpath.find { it.name ==~ /gradle-tooling-api.*\.jar/ }.size()
-        size < 3_450_000
+        def expectedSizeKB = 3200
+        def marginKB = 50
+
+        def message = { smaller ->
+            def changed = smaller == "smaller" ? "added" : "removed"
+            "Shaded TAPI jar is unexpectedly ${smaller} and needs to be verified." +
+                "\nCurrent size: ${actualSizeKB} KiB. Expected size: ${expectedSizeKB} ± ${marginKB} KiB." +
+                "\nThe shaded jar is produced via tree-shaking. If this suddenly fails without an obvious reason, you likely have ${changed} some dependencies between classes."
+        }
+
+        assert actualSizeKB >= (expectedSizeKB - marginKB): message("smaller")
+        assert actualSizeKB <= (expectedSizeKB + marginKB): message("larger")
+    }
+
+    private static long extractShadedTapiJarSize(String output) {
+        def matcher = output =~ /SHADED_TAPI_JAR_SIZE: (\d+) bytes/
+        assert matcher.find(): "Could not find shaded TAPI jar size in output"
+        return matcher.group(1) as long
     }
 }

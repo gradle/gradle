@@ -29,7 +29,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -44,8 +43,7 @@ class PublishArtifactNotationParserFactoryTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final DependencyMetaDataProvider provider = Mock()
-    final Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
-    final PublishArtifactNotationParserFactory publishArtifactNotationParserFactory = new PublishArtifactNotationParserFactory(instantiator, provider, TestFiles.resolver(tmpDir.getTestDirectory()), TestFiles.taskDependencyFactory())
+    final PublishArtifactNotationParserFactory publishArtifactNotationParserFactory = new PublishArtifactNotationParserFactory(TestUtil.objectFactory(), provider, TestFiles.resolver(tmpDir.getTestDirectory()), TestFiles.taskDependencyFactory())
     final NotationParser<Object, PublishArtifact> publishArtifactNotationParser = publishArtifactNotationParserFactory.create();
 
     def setup() {

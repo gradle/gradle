@@ -16,9 +16,6 @@
 
 package org.gradle.internal.cc.impl
 
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verify
 import org.gradle.configurationcache.WorkGraphLoadResult
 import org.gradle.configurationcache.WorkGraphStoreResult
 import org.gradle.configurationcache.withWorkGraphLoadOperation
@@ -34,6 +31,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import java.util.UUID
 
 

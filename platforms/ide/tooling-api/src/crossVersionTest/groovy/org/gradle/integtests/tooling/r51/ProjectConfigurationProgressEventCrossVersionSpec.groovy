@@ -46,6 +46,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
     public BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {
+        createProjectSubDirs("buildSrc/a", "b", "included/c")
         file("buildSrc/settings.gradle") << """
             include 'a'
         """
@@ -198,7 +199,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         file("script.gradle") << """
             apply plugin: 'java'
         """
-        file("build.gradle") << """
+        buildFile << """
             apply from: "script.gradle"
         """
 

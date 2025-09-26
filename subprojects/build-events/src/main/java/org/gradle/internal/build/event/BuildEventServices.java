@@ -27,7 +27,6 @@ import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 public class BuildEventServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.add(BuildEventListenerRegistryInternal.class, DefaultBuildEventsListenerRegistry.class);
         registration.addProvider(new ServiceRegistrationProvider() {
             @Provides
             BuildOperationAncestryTracker createBuildOperationAncestryTracker(BuildOperationListenerManager listenerManager) {
@@ -36,5 +35,10 @@ public class BuildEventServices extends AbstractGradleModuleServices {
                 return tracker;
             }
         });
+    }
+
+    @Override
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+        registration.add(BuildEventListenerRegistryInternal.class, DefaultBuildEventsListenerRegistry.class);
     }
 }

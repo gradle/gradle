@@ -65,6 +65,7 @@ abstract class PackageListGenerator : DefaultTask() {
             "org/apache/tools/ant",
             "org/apache/commons/logging",
             "org/jetbrains/annotations",
+            "org/jspecify/annotations",
             "org/slf4j",
             "org/apache/log4j",
             "org/apache/xerces",

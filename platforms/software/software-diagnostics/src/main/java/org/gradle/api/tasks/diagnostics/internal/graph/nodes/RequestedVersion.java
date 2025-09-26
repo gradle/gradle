@@ -20,13 +20,12 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class RequestedVersion extends AbstractRenderableDependencyResult implements HasAttributes {
+public class RequestedVersion extends AbstractRenderableDependencyResult {
     private final ComponentSelector requested;
     private final ComponentIdentifier actual;
     private final boolean resolvable;
@@ -62,7 +61,6 @@ public class RequestedVersion extends AbstractRenderableDependencyResult impleme
         return children;
     }
 
-    @Override
     public AttributeContainer getAttributes() {
         return requested instanceof ModuleComponentSelector
             ? requested.getAttributes()

@@ -20,7 +20,6 @@ import com.google.common.base.Joiner;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.ConventionTask;
@@ -51,9 +50,13 @@ import org.gradle.api.internal.tasks.testing.report.TestReporter;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Reporting;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
@@ -64,8 +67,8 @@ import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -172,7 +175,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private final BroadcastSubscriptions<TestListener> testListenerSubscriptions;
     private final BroadcastSubscriptions<TestOutputListener> testOutputListenerSubscriptions;
     private final TestLoggingContainer testLogging;
-    private final DirectoryProperty binaryResultsDirectory;
     private TestReporter testReporter;
     private boolean ignoreFailures;
     private boolean failFast;
@@ -182,54 +184,41 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
         testListenerSubscriptions = new BroadcastSubscriptions<TestListener>(TestListener.class);
         testOutputListenerSubscriptions = new BroadcastSubscriptions<TestOutputListener>(TestOutputListener.class);
-        binaryResultsDirectory = getProject().getObjects().directoryProperty();
 
-        reports = getProject().getObjects().newInstance(DefaultTestTaskReports.class, Describables.quoted("Task", getIdentityPath()));
+        reports = getObjectFactory().newInstance(DefaultTestTaskReports.class, Describables.quoted("Task", getIdentityPath()));
         reports.getJunitXml().getRequired().set(true);
         reports.getHtml().getRequired().set(true);
 
         filter = instantiator.newInstance(DefaultTestFilter.class);
+        getFailOnNoDiscoveredTests().convention(true);
     }
 
     @Inject
-    protected ProgressLoggerFactory getProgressLoggerFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProgressLoggerFactory getProgressLoggerFactory();
 
     @Inject
-    protected StyledTextOutputFactory getTextOutputFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract StyledTextOutputFactory getTextOutputFactory();
 
     @Inject
-    protected HostnameLookup getHostnameLookup() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract HostnameLookup getHostnameLookup();
 
     @Inject
-    protected BuildOperationRunner getBuildOperationRunner() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract BuildOperationRunner getBuildOperationRunner();
 
     @Inject
-    protected BuildOperationExecutor getBuildOperationExecutor() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract BuildOperationExecutor getBuildOperationExecutor();
 
     @Inject
-    protected Instantiator getInstantiator() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract Instantiator getInstantiator();
 
     @Inject
-    protected ListenerManager getListenerManager() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ListenerManager getListenerManager();
 
     @Inject
-    protected FileSystemOperations getFileSystemOperations() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileSystemOperations getFileSystemOperations();
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
 
     /**
      * Creates test executer. For internal use only.
@@ -265,14 +254,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @since 4.4
      */
     @OutputDirectory
-    public DirectoryProperty getBinaryResultsDirectory() {
-        return binaryResultsDirectory;
-    }
+    public abstract DirectoryProperty getBinaryResultsDirectory();
 
     /**
-     * Registers a test listener with this task. Consider also the following handy methods for quicker hooking into test execution: {@link #beforeTest(groovy.lang.Closure)}, {@link
-     * #afterTest(groovy.lang.Closure)}, {@link #beforeSuite(groovy.lang.Closure)}, {@link #afterSuite(groovy.lang.Closure)} <p> This listener will NOT be notified of tests executed by other tasks. To
-     * get that behavior, use {@link org.gradle.api.invocation.Gradle#addListener(Object)}.
+     * Registers a test listener with this task. Consider also the following handy methods for quicker hooking into test execution: {@link #beforeTest(Closure)}, {@link
+     * #afterTest(Closure)}, {@link #beforeSuite(Closure)}, {@link #afterSuite(Closure)} <p> This listener will NOT be notified of tests executed by other tasks. To
+     * get that behavior, use {@link Gradle#addListener(Object)}.
      *
      * @param listener The listener to add.
      */
@@ -285,7 +272,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     /**
-     * Registers a output listener with this task. Quicker way of hooking into output events is using the {@link #onOutput(groovy.lang.Closure)} method.
+     * Registers a output listener with this task. Quicker way of hooking into output events is using the {@link #onOutput(Closure)} method.
      *
      * @param listener The listener to add.
      */
@@ -299,8 +286,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     /**
      * Unregisters a test listener with this task.  This method will only remove listeners that were added by calling {@link #addTestListener(TestListener)} on this task. If the listener was
-     * registered with Gradle using {@link org.gradle.api.invocation.Gradle#addListener(Object)} this method will not do anything. Instead, use {@link
-     * org.gradle.api.invocation.Gradle#removeListener(Object)}.
+     * registered with Gradle using {@link Gradle#addListener(Object)} this method will not do anything. Instead, use {@link
+     * Gradle#removeListener(Object)}.
      *
      * @param listener The listener to remove.
      */
@@ -310,8 +297,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     /**
      * Unregisters a test output listener with this task.  This method will only remove listeners that were added by calling {@link #addTestOutputListener(TestOutputListener)} on this task.  If the
-     * listener was registered with Gradle using {@link org.gradle.api.invocation.Gradle#addListener(Object)} this method will not do anything. Instead, use {@link
-     * org.gradle.api.invocation.Gradle#removeListener(Object)}.
+     * listener was registered with Gradle using {@link Gradle#addListener(Object)} this method will not do anything. Instead, use {@link
+     * Gradle#removeListener(Object)}.
      *
      * @param listener The listener to remove.
      */
@@ -486,7 +473,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         try {
             Files.createDirectories(binaryResultsDir.toPath());
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         // Record test events to `results`, and test outputs to `testOutputStore`
@@ -542,15 +529,19 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     private void handleCollectedResults(TestCountLogger testCountLogger) {
         if (testCountLogger.hadFailures()) {
-            handleTestFailures();
+            if (testCountLogger.hasWorkerFailures()) {
+                testCountLogger.handleWorkerFailures();
+            } else {
+                handleTestFailures();
+            }
         } else if (testCountLogger.getTotalTests() == 0) {
             // No tests were executed, the following rules apply:
-            // - If there are no filters, and no tests or test suites were discovered, emit a deprecation warning
+            // - If there are no filters, and no tests or test suites were discovered, fail
             // - If there are filters and the task is configured to fail when no tests match the filters, throw an exception
             // - Otherwise, this is fine - the task should succeed with no warnings or errors
             if (testsAreNotFiltered()) {
-                if (testCountLogger.getTotalDiscoveredItems() == 0) {
-                    emitDeprecationMessage();
+                if (testCountLogger.getTotalDiscoveredItems() == 0 && getFailOnNoDiscoveredTests().get()) {
+                    throw new TestExecutionException("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.");
                 }
             } else if (shouldFailOnNoMatchingTests()) {
                 throw new TestExecutionException(createNoMatchingTestErrorMessage());
@@ -560,14 +551,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     private boolean shouldFailOnNoMatchingTests() {
         return patternFiltersSpecified() && filter.isFailOnNoMatchingTests();
-    }
-
-    private void emitDeprecationMessage() {
-        DeprecationLogger.deprecateBehaviour("No test executed.")
-            .withAdvice("There are test sources present but no test was executed. Please check your test configuration.")
-            .willBecomeAnErrorInGradle9()
-            .withUpgradeGuideSection(8, "test_task_fail_on_no_test_executed")
-            .nagUser();
     }
 
     boolean testsAreNotFiltered() {
@@ -731,4 +714,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     public TestFilter getFilter() {
         return filter;
     }
+
+    /**
+     * Whether the task should fail if test sources are present, but no tests are discovered during test execution.  Defaults to true.
+     *
+     * @since 9.0.0
+     */
+    @Input
+    abstract public Property<Boolean> getFailOnNoDiscoveredTests();
 }

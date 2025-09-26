@@ -16,7 +16,7 @@
 
 package org.gradle.execution.selection;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.problems.ProblemId;
@@ -177,7 +177,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
 
         String message = String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(), nameMatcher.formatErrorMessage("project", project.getDisplayName()));
         throw problemsService.getInternalReporter().throwing(new ProjectSelectionException(message), nameMatcher.problemId(), spec -> {
-            configureProblem(spec, message, context.getOriginalPath().getPath());
+            configureProblem(spec, message, context.getOriginalPath().asString());
         });
     }
 

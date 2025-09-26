@@ -20,11 +20,16 @@ import org.gradle.exemplar.executor.ExecutionMetadata
 import org.gradle.exemplar.test.normalizer.OutputNormalizer
 
 class ConfigurationCacheOutputNormalizer implements OutputNormalizer {
+    public static final String PROMO_PREFIX = "Consider enabling configuration cache to speed up this build: "
+
     @Override
     String normalize(String output, ExecutionMetadata executionMetadata) {
         return output.replaceAll(
             "configuration-cache/.*/configuration-cache-report",
             "configuration-cache/<hash>/configuration-cache-report"
+        ).replaceAll(
+            "(?m)^${PROMO_PREFIX}.*\$\n?", // Remove CC Promo Line from the output. Note the multiline flag to match line boundaries within a multiline string.
+            ""
         )
     }
 }

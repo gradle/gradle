@@ -51,7 +51,7 @@ JetBrains supports building https://blog.jetbrains.com/clion/2018/05/clion-start
 
 == Continuous integration
 
-We have link:https://community.gradle.org/cookbook/ci/[dedicated guides] showing you how to integrate a Gradle project with several CI platforms.
+We have link:https://cookbook.gradle.org/ci/[dedicated guides] showing you how to integrate a Gradle project with several CI platforms.
 
 == How to integrate with Gradle
 
@@ -60,7 +60,7 @@ There are two main ways to integrate a tool with Gradle:
  * The Gradle build uses the tool
  * The tool executes the Gradle build
 
-The former case is typically <<custom_plugins.adoc#custom_plugins,implemented as a Gradle plugin>>.
+The former case is typically <<plugins.adoc#custom_plugins,implemented as a Gradle plugin>>.
 The latter can be accomplished by embedding Gradle through the <<tooling_api.adoc#tooling_api,Tooling API>>.
 
 == Test integration

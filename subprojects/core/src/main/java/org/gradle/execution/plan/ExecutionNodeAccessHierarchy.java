@@ -88,13 +88,11 @@ public class ExecutionNodeAccessHierarchy {
     }
 
     /**
-     * Records that a node accesses the given locations.
+     * Records that a node accesses the given location.
      */
-    public synchronized void recordNodeAccessingLocations(Node node, Iterable<String> accessedLocations) {
-        for (String location : accessedLocations) {
-            VfsRelativePath relativePath = VfsRelativePath.of(location);
-            root = root.recordValue(relativePath, new DefaultNodeAccess(node));
-        }
+    public synchronized void recordNodeAccessingLocation(Node node, String accessedLocation) {
+        VfsRelativePath relativePath = VfsRelativePath.of(accessedLocation);
+        root = root.recordValue(relativePath, new DefaultNodeAccess(node));
     }
 
     /**

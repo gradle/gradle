@@ -67,7 +67,7 @@ public class CompilationFailedException extends RuntimeException implements Comp
     }
 
     /*
-     * Build Scans do not consume Problems API reports to render compilation errors yet. To keep the error message in scans consistent with the console, we need to render the problems in the exception message.
+     * A Build Scan does not consume Problems API reports to render compilation errors yet. To keep the error message in scans consistent with the console, we need to render the problems in the exception message.
      */
     private static String exceptionMessage(String prefix, List<InternalProblem> problems, String diagnosticCounts) {
         StringWriter result = new StringWriter();

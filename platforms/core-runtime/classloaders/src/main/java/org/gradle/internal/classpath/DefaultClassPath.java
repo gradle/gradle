@@ -62,11 +62,11 @@ public class DefaultClassPath implements ClassPath, Serializable {
         }
     }
 
-    public static ClassPath of(@Nullable File... files) {
+    public static ClassPath of(File... files) {
         if (files == null || files.length == 0) {
             return EMPTY;
         } else {
-            return of(Arrays.asList(files));
+            return new DefaultClassPath(ImmutableUniqueList.of(Arrays.asList(files)));
         }
     }
 

@@ -18,12 +18,11 @@
 package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 @FluidDependenciesResolveTest
-abstract class AbstractConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec implements ConfigurationUsageChangingFixture {
+abstract class AbstractConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec {
 
     abstract String getTypeDefs()
 
@@ -95,13 +94,13 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:fooJar', ':a:checkDebug')
 
         when:
         run ':a:checkRelease'
 
         then:
-        result.assertTasksExecuted(':b:barJar', ':a:checkRelease')
+        result.assertTasksScheduled(':b:barJar', ':a:checkRelease')
     }
 
     def "selects configuration in target project which matches the configuration attributes when dependency is set on a parent configuration"() {
@@ -153,7 +152,7 @@ include 'a', 'b'
         run ':a:checkDeps'
 
         then:
-        result.assertTasksExecuted(':b:barJar', ':a:checkDeps')
+        result.assertTasksScheduled(':b:barJar', ':a:checkDeps')
         resolveRelease.expectGraph {
             root(":a", "test:a:") {
                 project(':b', 'test:b:') {
@@ -169,7 +168,7 @@ include 'a', 'b'
         run ':a:checkDeps'
 
         then:
-        result.assertTasksExecuted(':b:fooJar', ':a:checkDeps')
+        result.assertTasksScheduled(':b:fooJar', ':a:checkDeps')
         resolveDebug.expectGraph {
             root(":a", "test:a:") {
                 project(':b', 'test:b:') {
@@ -233,13 +232,13 @@ include 'a', 'b'
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:fooJar', ':a:checkDebug')
 
         when:
         run ':a:checkRelease'
 
         then:
-        result.assertTasksExecuted(':b:barJar', ':a:checkRelease')
+        result.assertTasksScheduled(':b:barJar', ':a:checkRelease')
     }
 
     def "explicit configuration selection should take precedence"() {
@@ -309,7 +308,7 @@ include 'a', 'b'
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:barJar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:barJar', ':a:checkDebug')
     }
 
     def "explicit configuration selection can be used when no configurations in target have attributes"() {
@@ -361,7 +360,7 @@ include 'a', 'b'
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:barJar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:barJar', ':a:checkDebug')
     }
 
     def "fails when explicitly selected configuration is not compatible with requested"() {
@@ -425,7 +424,7 @@ Configuration 'bar' declares attribute 'flavor' with value 'free':
         run ':a:checkRelease'
 
         then:
-        result.assertTasksExecuted(':b:barJar', ':a:checkRelease')
+        result.assertTasksScheduled(':b:barJar', ':a:checkRelease')
     }
 
     def "selects default configuration when it matches configuration attributes"() {
@@ -465,7 +464,7 @@ Configuration 'bar' declares attribute 'flavor' with value 'free':
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':a:checkDebug')
+        result.assertTasksScheduled(':a:checkDebug')
     }
 
     def "selects default configuration when target has no configurations with attributes"() {
@@ -515,7 +514,7 @@ Configuration 'bar' declares attribute 'flavor' with value 'free':
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:barJar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:barJar', ':a:checkDebug')
     }
 
     def "does not select default configuration when no match is found and configurations with attributes"() {
@@ -645,7 +644,6 @@ All of them match the consumer attributes:
         file("b/build.gradle") << """
             $typeDefs
 
-            apply plugin: 'base'
             configurations {
                 foo
                 bar
@@ -656,7 +654,6 @@ All of them match the consumer attributes:
         """
 
         when:
-        expectConsumableChanging(':b:default', false)
         fails ':a:checkDebug'
 
         then:
@@ -735,7 +732,6 @@ All of them match the consumer attributes:
 
         then:
         failure.assertHasCause "A dependency was declared on configuration 'someConf' of 'project :b' but no variant with that configuration name exists."
-
     }
 
     def "gives details about failing matches when it cannot select default configuration when no match is found and default configuration is not consumable"() {
@@ -744,7 +740,6 @@ All of them match the consumer attributes:
 
         file("a/build.gradle") << """
             $typeDefs
-
             configurations {
                 _compileFreeDebug.attributes { $freeDebug }
             }
@@ -760,9 +755,6 @@ All of them match the consumer attributes:
 
         file("b/build.gradle") << """
             $typeDefs
-
-            apply plugin: 'base'
-
             configurations {
                 foo.attributes { $freeRelease }
                 bar.attributes { $paid; $release }
@@ -770,12 +762,10 @@ All of them match the consumer attributes:
                     canBeConsumed = false
                 }
             }
-
             ${fooAndBarJars()}
         """
 
         when:
-        expectConsumableChanging(':b:default', false)
         fails ':a:checkDebug'
 
         then:
@@ -784,7 +774,6 @@ All of them match the consumer attributes:
       - Incompatible because this component declares attribute 'buildType' with value 'release', attribute 'flavor' with value 'paid' and the consumer needed attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'
   - Variant 'foo' declares attribute 'flavor' with value 'free':
       - Incompatible because this component declares attribute 'buildType' with value 'release' and the consumer needed attribute 'buildType' with value 'debug'"""
-
     }
 
     def "chooses a configuration when partial match is found"() {
@@ -844,7 +833,7 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:fooJar', ':a:checkDebug')
     }
 
     def "cannot choose a configuration when multiple partial matches are found"() {
@@ -961,7 +950,7 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:fooJar', ':a:checkDebug')
     }
 
     /**
@@ -1207,13 +1196,13 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:fooJar', ':a:checkDebug')
 
         when:
         run ':a:checkRelease'
 
         then:
-        result.assertTasksExecuted(':b:barJar', ':a:checkRelease')
+        result.assertTasksScheduled(':b:barJar', ':a:checkRelease')
     }
 
     def "context travels down to transitive dependencies"() {
@@ -1283,13 +1272,13 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':c:fooJar', ':a:checkDebug')
+        result.assertTasksScheduled(':c:fooJar', ':a:checkDebug')
 
         when:
         run ':a:checkRelease'
 
         then:
-        result.assertTasksExecuted(':c:barJar', ':a:checkRelease')
+        result.assertTasksScheduled(':c:barJar', ':a:checkRelease')
     }
 
     def "context travels down to transitive dependencies with dependency substitution"() {
@@ -1364,13 +1353,13 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':c:fooJar', ':a:checkDebug')
+        result.assertTasksScheduled(':c:fooJar', ':a:checkDebug')
 
         when:
         run ':a:checkRelease'
 
         then:
-        result.assertTasksExecuted(':c:barJar', ':a:checkRelease')
+        result.assertTasksScheduled(':c:barJar', ':a:checkRelease')
     }
 
     def "transitive dependencies selection uses the source configuration attributes"() {
@@ -1535,13 +1524,13 @@ The only attribute distinguishing these variants is 'extra'. Add this attribute 
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':c:fooJar', ':a:checkDebug')
+        result.assertTasksScheduled(':c:fooJar', ':a:checkDebug')
 
         when:
         run ':a:checkRelease'
 
         then:
-        result.assertTasksExecuted(':c:barJar', ':a:checkRelease')
+        result.assertTasksScheduled(':c:barJar', ':a:checkRelease')
     }
 
     def "two configurations can have the same attributes but for different roles"() {
@@ -1625,13 +1614,13 @@ The only attribute distinguishing these variants is 'extra'. Add this attribute 
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:fooJar', ':a:checkDebug')
 
         when:
         run ':a:checkRelease'
 
         then:
-        result.assertTasksExecuted(':b:barJar', ':a:checkRelease')
+        result.assertTasksScheduled(':b:barJar', ':a:checkRelease')
     }
 
     def "Library project with flavors depends on a library project that does not"() {
@@ -1677,7 +1666,7 @@ The only attribute distinguishing these variants is 'extra'. Add this attribute 
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:fooJar', ':a:checkDebug')
     }
 
     def "Library project without flavors depends on a library project with flavors"() {
@@ -1725,7 +1714,7 @@ The only attribute distinguishing these variants is 'extra'. Add this attribute 
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:fooJar', ':a:checkDebug')
     }
 
     def "Library project with flavors depends on library project that does not which depends on library project with flavors"() {
@@ -1796,7 +1785,7 @@ The only attribute distinguishing these variants is 'extra'. Add this attribute 
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:fooJar', ':c:fooJar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:fooJar', ':c:fooJar', ':a:checkDebug')
     }
 
     def "selects configuration with superset of matching attributes"() {
@@ -1858,7 +1847,7 @@ The only attribute distinguishing these variants is 'extra'. Add this attribute 
         run ':a:checkDebug'
 
         then:
-        result.assertTasksExecuted(':b:fooJar', ':a:checkDebug')
+        result.assertTasksScheduled(':b:fooJar', ':a:checkDebug')
     }
 
     private String fooAndBarJars() {

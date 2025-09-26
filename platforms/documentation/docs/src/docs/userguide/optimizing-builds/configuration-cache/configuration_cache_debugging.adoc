@@ -1,0 +1,298 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[config_cache_debugging]]
+= Debugging and Troubleshooting the Configuration Cache
+
+This section provides general guidelines for resolving issues with the Configuration Cache, whether in your build logic or Gradle plugins.
+
+[[config_cache:troubleshooting]]
+== Use the Configuration Report
+
+When Gradle encounters a problem serializing the necessary state to execute tasks, it generates an HTML report detailing the detected issues.
+The console output includes a clickable link to this report, allowing you to investigate the root causes.
+
+Consider the following build script, which contains two issues:
+
+====
+include::sample[dir="snippets/configurationCache/problemsKotlin/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/configurationCache/problemsGroovy/groovy",files="build.gradle[]"]
+====
+<1> <<configuration_cache_requirements.adoc#config_cache:requirements:reading_sys_props_and_env_vars, A system property read at configuration time>>
+<2> <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution, Using the `Project` object at execution time>>
+
+Running the task fails with the following output:
+
+[soure,text]
+----
+❯ ./gradlew --configuration-cache someTask -DsomeDestination=dest
+...
+include::{snippetsPath}/configurationCache/problemsGroovy/tests/fail.out[]
+Configuration Cache entry discarded with 1 problem.
+----
+
+Since a problem was detected, Gradle discards the Configuration Cache entry, preventing reuse in future builds.
+
+The linked HTML report provides details about the detected problems:
+
+image::configuration-cache/problems-report.png[]
+
+The report presents issues in two ways:
+
+- *Grouped by message* → Quickly identify recurring problem types.
+- *Grouped by task* → Identify which tasks are causing problems.
+
+Expanding the problem tree helps locate the root cause within the object graph.
+
+Additionally, the report lists detected build configuration inputs, such as system properties, environment variables, and value suppliers accessed during configuration:
+
+image::configuration-cache/inputs-report.png[]
+
+[TIP]
+====
+Each problem entry in the report includes links to relevant <<configuration_cache_requirements.adoc#config_cache:requirements, Configuration Cache requirements>> for guidance on resolving the issue, as well as any related <<configuration_cache_status.adoc#config_cache:not_yet_implemented, Not Yet Implemented features>>.
+
+When modifying your build or plugin, consider <<configuration_cache_debugging.adoc#config_cache:testing, Testing your Build Logic with TestKit>> to verify changes.
+====
+
+At this stage, you can either ignore the problems (<<configuration_cache_enabling.adoc#config_cache:usage:ignore_problems,turn them into warnings>>) to continue exploring Configuration Cache behavior, or fix the issues immediately.
+
+To continue using the Configuration Cache while observing problems, run:
+
+[source,text]
+----
+❯ ./gradlew --configuration-cache --configuration-cache-problems=warn someTask -DsomeDestination=dest
+include::{snippetsPath}/configurationCache/problemsGroovy/tests/store.out[]
+Configuration Cache entry stored with 1 problem.
+❯ ./gradlew --configuration-cache --configuration-cache-problems=warn someTask -DsomeDestination=dest
+include::{snippetsPath}/configurationCache/problemsGroovy/tests/load.out[]
+Configuration Cache entry reused with 1 problem.
+----
+
+Gradle will successfully store and reuse the Configuration Cache while continuing to report the problem.
+
+The report and console logs provide links to guidance on resolving detected issues.
+
+Here’s a corrected version of the example build script:
+
+====
+include::sample[dir="snippets/configurationCache/problemsFixed/kotlin",files="build.gradle.kts[tags=fixed]"]
+include::sample[dir="snippets/configurationCache/problemsFixed/groovy",files="build.gradle[tags=fixed]"]
+====
+<1> We turned our ad-hoc task into a proper task class,
+<2> with inputs and outputs declaration,
+<3> and injected with the `FileSystemOperations` service, a supported replacement for <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution, `project.copy {}`>>.
+
+After fixing these issues, running the task twice successfully reuses the Configuration Cache:
+
+[source,text]
+----
+❯ ./gradlew --configuration-cache someTask -DsomeDestination=dest
+include::{snippetsPath}/configurationCache/problemsFixed/tests/store.out[]
+Configuration Cache entry stored.
+❯ ./gradlew --configuration-cache someTask -DsomeDestination=dest
+include::{snippetsPath}/configurationCache/problemsFixed/tests/load.out[]
+Configuration Cache entry reused.
+----
+
+If a build input changes (e.g., a system property value), the Configuration Cache entry becomes invalid, requiring a new configuration phase:
+
+----
+❯ ./gradlew --configuration-cache someTask -DsomeDestination=another
+include::{snippetsPath}/configurationCache/problemsFixed/tests/store-another.out[]
+Configuration Cache entry stored.
+----
+
+The cache entry was invalidated because the system property was read at configuration time, forcing Gradle to re-run configuration when its value changed.
+
+A better approach is to use a provider to defer reading the system property until execution time:
+
+====
+include::sample[dir="snippets/configurationCache/problemsFixedReuse/kotlin",files="build.gradle.kts[tags=fixed-reuse]"]
+include::sample[dir="snippets/configurationCache/problemsFixedReuse/groovy",files="build.gradle[tags=fixed-reuse]"]
+====
+<1> We wired the system property provider directly, without reading it at configuration time.
+
+Now, the cache entry remains reusable even when changing the system property:
+
+----
+❯ ./gradlew --configuration-cache someTask -DsomeDestination=dest
+include::{snippetsPath}/configurationCache/problemsFixedReuse/tests/store.out[]
+Configuration Cache entry stored.
+❯ ./gradlew --configuration-cache someTask -DsomeDestination=another
+include::{snippetsPath}/configurationCache/problemsFixedReuse/tests/load-another.out[]
+Configuration Cache entry reused.
+----
+
+With these fixes in place, this task is fully compatible with the Configuration Cache.
+
+== Enable Warning Mode
+
+To ease migration, you can treat configuration cache problems as warnings instead of failures:
+
+[source,text]
+----
+$ ./gradlew --configuration-cache-problems=warn
+----
+
+Or set it in `gradle.properties`:
+
+[source,properties]
+----
+org.gradle.configuration-cache.problems=warn
+----
+
+[WARNING]
+====
+The warning mode is a migration and troubleshooting aid and not intended as a persistent way of ignoring incompatibilities.
+It will also not prevent new incompatibilities being accidentally added to your build later.
+
+Instead, we recommend explicitly marking problematic tasks as <<configuration_cache_debugging.adoc#config_cache:task_opt_out,incompatible>>.
+====
+
+By default, Gradle allows up to 512 warnings before failing the build.
+You can lower this limit:
+
+[source,text]
+----
+$ ./gradlew -Dorg.gradle.configuration-cache.max-problems=5
+----
+
+[[config_cache:task_opt_out]]
+== Declare Incompatible Tasks
+
+You can explicitly mark a task as incompatible with the Configuration Cache using the link:{javadocPath}/org/gradle/api/Task.html#notCompatibleWithConfigurationCache-java.lang.String-[`Task.notCompatibleWithConfigurationCache()`] method:
+
+====
+include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllConfigurations/kotlin",files="build.gradle.kts[tags=resolve-all]"]
+include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllConfigurations/groovy",files="build.gradle[tags=resolve-all]"]
+====
+
+When a task is marked as incompatible:
+
+- Configuration Cache problems *in that task* will no longer cause the build to fail.
+- Gradle discards the configuration state at the end of the build if an incompatible task is executed.
+
+This mechanism can be useful during migration, allowing you to temporarily opt out tasks that require more extensive changes to become Configuration Cache-compatible.
+
+For more details, refer to the link:{javadocPath}/org/gradle/api/Task.html#notCompatibleWithConfigurationCache-java.lang.String-[method] documentation.
+
+[[config_cache:integrity_check]]
+== Use Integrity Checks
+
+To reduce entry size and improve performance, Gradle performs minimal integrity checks when writing and reading data.
+However, this approach can make troubleshooting issues more difficult, especially when dealing with concurrency problems or serialization errors.
+An incorrectly stored object may not be detected immediately but could lead to misleading or misattributed errors when reading cached data later.
+
+To make debugging easier, Gradle provides an option to enable stricter integrity checks.
+This setting helps identify inconsistencies earlier but may slow down cache operations and significantly increase the cache entry size.
+To enable stricter integrity checks, add the following line to your `gradle.properties` file:
+
+[source,properties]
+.gradle.properties
+----
+org.gradle.configuration-cache.integrity-check=true
+----
+
+For example, let's look at a type that implements a custom serialization protocol incorrectly:
+
+[source,java]
+----
+include::{snippetsPath}/configurationCache/integrityChecks/common/buildSrc/src/main/java/User.java[tags=broken-type]
+----
+<1> `writeObject` serializes both fields.
+<2> `readObject` reads only the first field, leaving the remaining data in the stream.
+
+Such a type will cause problems when used as part of a task state, because the configuration cache will try to interpret the remaining unread part of the object as some new value:
+
+[source,java]
+----
+include::{snippetsPath}/configurationCache/integrityChecks/common/buildSrc/src/main/java/GreetTask.java[tags=task-with-broken-type]
+----
+
+When running without the integrity check, you may encounter cryptic failure messages, possibly accompanied by induced configuration cache problems:
+
+----
+❯ gradle --configuration-cache greet
+...
+* What went wrong:
+Index 4 out of bounds for length 3
+----
+
+These errors might not immediately point to the root cause, making debugging more challenging.
+It might be really hard to connect an invalid index error to a serialization issue, for example.
+
+Rerunning the build with the integrity check enabled provides a much more precise diagnostic, helping you pinpoint the source of the issue faster:
+
+----
+❯ gradle --configuration-cache -Dorg.gradle.configuration-cache.integrity-check=true greet
+...
+include::{snippetsPath}/configurationCache/integrityChecks/tests/fail.out[]
+----
+
+You can immediately see the name of the offending task and the field that contains the broken data.
+
+Keep in mind that this attribution is best-effort: it should be accurate in most cases, but in rare instances, it may be confused by certain byte patterns.
+
+[WARNING]
+====
+The integrity check relies on additional metadata stored within the cache. Therefore, it cannot be used to diagnose entries already corrupted prior to enabling the integrity check.
+====
+
+The current integrity checks primarily focus on identifying serialization protocol issues rather than general data corruption.
+Consequently, they are less effective against hardware-related problems, such as bit rot or damaged storage sectors.
+Due to these limitations and the performance overhead introduced by integrity checks, we recommend enabling them selectively as a troubleshooting measure rather than leaving them permanently enabled.
+
+== Inspecting Cache Entries
+
+The link:https://github.com/gradle/gcc2speedscope[`gcc2speedscope` tool], developed by Gradle, analyzes the space usage of the Gradle Configuration Cache by converting debug logs into interactive flamegraphs compatible with link:https://www.speedscope.app/[speedscope.app].
+
+This visualization helps identify large or unnecessary objects within the cache.
+
+== Debugging the Configuration Phase
+
+The link:https://github.com/gradle/gradle-trace-converter[`gradle-trace-converter`] is a command-line tool developed by Gradle to analyze and convert Build Operation traces into formats like Chrome's Perfetto trace and CSV timelines.
+
+This visualization depicts the steps taken during Gradle's configuration phase.
+
+[[config_cache:testing]]
+== Test your Build Logic
+
+Gradle TestKit is a library designed to facilitate testing Gradle plugins and build logic.
+For general guidance on using TestKit, refer to the <<test_kit.adoc#test_kit, dedicated chapter>>.
+
+To test your build logic with the Configuration Cache enabled, pass the `--configuration-cache` argument to link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html[`GradleRunner`], or use one of the other methods described in <<configuration_cache_enabling.adoc#config_cache:usage:enable, Enabling the Configuration Cache>>.
+
+To properly test Configuration Cache behavior, tasks must be executed twice:
+
+====
+include::sample[dir="snippets/configurationCache/testKit/kotlin",files="src/test/kotlin/org/example/BuildLogicFunctionalTest.kt[tags=functional-test-configuration-cache]"]
+include::sample[dir="snippets/configurationCache/testKit/groovy",files="src/test/groovy/org/example/BuildLogicFunctionalTest.groovy[tags=functional-test-configuration-cache]"]
+====
+<1> First run primes the Configuration Cache.
+<2> Second run reuses the Configuration Cache.
+<3> Assert that the Configuration Cache gets reused.
+
+If Gradle encounters problems with the Configuration Cache, it will fail the build and report the issues, causing the test to fail.
+
+[TIP]
+====
+A recommended approach for Gradle plugin authors is to run the entire test suite with the Configuration Cache enabled.
+This ensures compatibility with a supported Gradle version.
+
+- If your plugin already supports multiple Gradle versions and has version-specific tests, enable Configuration Cache testing starting with the first supported version.
+- If immediate full support is not feasible, consider writing tests that:
+** Run all plugin-contributed tasks multiple times.
+** Assert expected task states, such as `UP_TO_DATE` and `FROM_CACHE` behavior.
+====

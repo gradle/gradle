@@ -1243,8 +1243,8 @@ class PartialEvaluatorTest {
 
     @Test
     fun `Stage1 only Program is unsupported`() {
-        ProgramTarget.values().forEach { programTarget ->
-            ProgramKind.values().forEach { programKind ->
+        ProgramTarget.entries.forEach { programTarget ->
+            ProgramKind.entries.forEach { programKind ->
                 try {
                     partialEvaluationOf(object : Program.Stage1() {}, programKind, programTarget)
                     fail("Should have failed")

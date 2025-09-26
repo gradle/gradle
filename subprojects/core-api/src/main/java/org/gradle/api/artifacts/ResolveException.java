@@ -16,9 +16,7 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
@@ -32,49 +30,10 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 public class ResolveException extends DefaultMultiCauseException {
 
     /**
-     * Do not call this constructor.
-     *
-     * @deprecated This constructor will be removed in 9.0
+     * Should not be called except from Gradle internal code.
      */
-    @Deprecated
-    public ResolveException(String message, Throwable cause) {
-        super(message, cause);
-
-        DeprecationLogger.deprecateAction("Directly instantiating a ResolveException")
-            .withContext("Instantiating this exception is reserved for Gradle internal use only.")
-            .willBeRemovedInGradle9()
-            .undocumented()
-            .nagUser();
-    }
-
-    /**
-     * Do not call this constructor.
-     *
-     * @deprecated This constructor will be made protected in 9.0
-     */
-    @Deprecated
-    public ResolveException(String message, Iterable<? extends Throwable> causes) {
-        super(message, causes);
-
-        DeprecationLogger.deprecateAction("Directly instantiating a ResolveException")
-            .withContext("Instantiating this exception is reserved for Gradle internal use only.")
-            .willBeRemovedInGradle9()
-            .undocumented()
-            .nagUser();
-    }
-
-    /**
-     * The actual constructor called by concrete resolve exception implementations. Should not be
-     * called except from Gradle internal code.
-     *
-     * <p>This constructor accepts a dummy parameter since we cannot call the constructor without it,
-     * as that emits a deprecation warning. In 9.0, we can change the above constructor to protected
-     * and remove this constructor.</p>
-     *
-     * @since 8.9
-     */
-    @Incubating
-    protected ResolveException(String message, Iterable<? extends Throwable> causes, @SuppressWarnings("unused") boolean dummy) {
+    protected ResolveException(String message, Iterable<? extends Throwable> causes) {
         super(message, causes);
     }
+
 }

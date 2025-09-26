@@ -73,16 +73,6 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
     override fun create(dependencyNotation: Any, configureClosure: Closure<Any>): Dependency =
         delegate.create(dependencyNotation, configureClosure)
 
-    @Suppress("DEPRECATION")
-    @Deprecated("Will be removed in Gradle 9.0")
-    override fun module(notation: Any): Dependency =
-        delegate.module(notation)
-
-    @Suppress("DEPRECATION")
-    @Deprecated("Will be removed in Gradle 9.0")
-    override fun module(notation: Any, configureClosure: Closure<Any>): Dependency =
-        delegate.module(notation, configureClosure)
-
     override fun project(notation: Map<String, *>): Dependency =
         delegate.project(notation)
 

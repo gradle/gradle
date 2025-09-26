@@ -141,7 +141,7 @@ public final class ConfigurationReportModelFactory {
             .sorted(Comparator.comparing(ReportArtifact::getName))
             .collect(Collectors.toList()));
 
-        return new ReportSecondaryVariant(variant.getName(), variant.getDescription().orElse(null), attributes, artifacts);
+        return new ReportSecondaryVariant(variant.getName(), variant.getDescription().getOrNull(), attributes, artifacts);
     }
 
     private ReportAttribute convertAttributeInContainer(Attribute<?> attribute, AttributeContainer container, AttributesSchema attributesSchema) {

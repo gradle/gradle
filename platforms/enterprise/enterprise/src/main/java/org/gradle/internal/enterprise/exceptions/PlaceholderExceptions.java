@@ -16,13 +16,16 @@
 
 package org.gradle.internal.enterprise.exceptions;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.serialize.PlaceholderAssertionError;
 import org.gradle.internal.serialize.PlaceholderException;
 import org.gradle.internal.serialize.PlaceholderExceptionSupport;
 import org.jspecify.annotations.Nullable;
 
+@UsedByScanPlugin
 public class PlaceholderExceptions {
 
+    @UsedByScanPlugin
     public static String getExceptionClassName(Throwable t) {
         if (t instanceof PlaceholderExceptionSupport) {
             return ((PlaceholderExceptionSupport) t).getExceptionClassName();
@@ -31,6 +34,7 @@ public class PlaceholderExceptions {
         }
     }
 
+    @UsedByScanPlugin
     public static Throwable createException(
         String originalClassName,
         @Nullable String message,
@@ -42,6 +46,7 @@ public class PlaceholderExceptions {
         return new PlaceholderException(originalClassName, message, getMessageException, toString, toStringException, cause);
     }
 
+    @UsedByScanPlugin
     public static Throwable createAssertionError(
         String originalClassName,
         @Nullable String message,

@@ -279,8 +279,8 @@ project.status = 'foo'
                     project.getConfigurations().configureEach(conf -> {
                         conf.defaultDependencies(deps -> {
                             DeprecationLogger.deprecate("foo")
-                                .willBecomeAnErrorInGradle10()
-                                .undocumented()
+                                .willBecomeAnErrorInNextMajorGradleVersion()
+                                .withUserManual("feature_lifecycle", "sec:deprecated")
                                 .nagUser();
                         });
                     });
@@ -345,7 +345,7 @@ task broken {
         fails "broken"
 
         then:
-        failure.assertHasCause "Cannot change dependencies of dependency configuration ':conf' after it has been included in dependency resolution."
+        failure.assertHasCause("Cannot mutate the dependencies of configuration ':conf' after the configuration's child configuration ':child' was resolved. After a configuration has been observed, it should not be modified.")
     }
 
     @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
@@ -415,22 +415,5 @@ task check {
             """
         expect:
         succeeds ":check"
-    }
-
-    def "configuration getAll is deprecated"() {
-        given:
-        buildFile << """
-            configurations {
-                conf {
-                    getAll()
-                }
-            }
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning("The Configuration.getAll() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use the configurations container to access the set of configurations instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configuration_get_all")
-
-        then:
-        succeeds "help"
     }
 }

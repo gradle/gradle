@@ -94,7 +94,7 @@ class JavaPlatformPluginTest extends AbstractProjectBuilderSpec {
         then:
         !classpath.canBeConsumed
         classpath.canBeResolved
-        classpath.extendsFrom == [runtimeElements] as Set
+        classpath.extendsFrom == [runtime] as Set
         def attributes = classpath.attributes.keySet()
         attributes.size() == 2
         def usage = classpath.attributes.getAttribute(Usage.USAGE_ATTRIBUTE)

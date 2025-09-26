@@ -60,18 +60,24 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
                 task.setDescription("Generates or updates the Gradle Daemon JVM criteria.");
                 task.getPropertiesFile().convention(project.getLayout().getProjectDirectory().file(DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE));
                 task.getLanguageVersion().convention(JavaLanguageVersion.of(Jvm.current().getJavaVersionMajor()));
+                task.getNativeImageCapable().convention(false);
                 task.getToolchainPlatforms().convention(
                     Stream.of(Architecture.X86_64, Architecture.AARCH64).flatMap(arch ->
                             Stream.of(OperatingSystem.values()).map(os -> BuildPlatformFactory.of(arch, os)))
                         .collect(Collectors.toSet()));
                 task.getToolchainDownloadUrls().convention(task.getToolchainPlatforms()
-                    .zip(task.getLanguageVersion().zip(task.getVendor().orElse(DefaultJvmVendorSpec.any()), Pair::of),
-                        (platforms, versionVendor) -> {
-                            JvmVendorSpec vendor = versionVendor.getRight();
+                    .zip(task.getLanguageVersion()
+                            .zip(task.getVendor().orElse(DefaultJvmVendorSpec.any()), Pair::of)
+                            .zip(task.getNativeImageCapable(), Pair::of),
+                        (platforms, versionVendorNative) -> {
+                            JvmVendorSpec vendor = versionVendorNative.getLeft().getRight();
                             JavaToolchainSpec toolchainSpec = project.getObjects().newInstance(DefaultToolchainSpec.class);
-                            toolchainSpec.getLanguageVersion().set(versionVendor.getLeft());
+                            toolchainSpec.getLanguageVersion().set(versionVendorNative.getLeft().getLeft());
                             if (!vendor.equals(DefaultJvmVendorSpec.any())) {
                                 toolchainSpec.getVendor().set(vendor);
+                            }
+                            if (versionVendorNative.getRight()) {
+                                toolchainSpec.getNativeImageCapable().set(true);
                             }
                             if (platforms.isEmpty()) {
                                 return emptyMap();
@@ -82,8 +88,7 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
                                 UnconfiguredToolchainRepositoriesResolver exception = new UnconfiguredToolchainRepositoriesResolver();
                                 throw reporter.throwing(exception, UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID,
                                     problemSpec -> {
-                                        problemSpec.contextualLabel(exception.getLocalizedMessage());
-                                        exception.getResolutions().forEach(problemSpec::solution);
+                                        problemSpec.solution("Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".");
                                     });
                             }
                             Map<BuildPlatform, Optional<URI>> buildPlatformOptionalUriMap = platforms.stream()
@@ -93,10 +98,9 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
                                 .filter(e -> e.getValue().isPresent())
                                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get()));
                             if (platformToDownloadUri.isEmpty()) {
-                                String message = "Toolchain resolvers did not return download URLs providing a JDK matching " + toolchainSpec + " for any of the requested platforms " + platforms;
-                                throw reporter.throwing(new IllegalStateException(message), UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID,
+                                throw reporter.throwing(new IllegalStateException("Toolchain resolvers did not return download URLs providing a JDK matching " + toolchainSpec + " for any of the requested platforms " + platforms),
+                                    UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID,
                                     problemSpec -> {
-                                        problemSpec.contextualLabel(message);
                                         problemSpec.solution("Use a toolchain download repository capable of resolving the toolchain spec for the given platforms");
                                         problemSpec.documentedAt(Documentation.userManual("gradle_daemon", "sec:daemon_jvm_provisioning").getUrl());
                                     });

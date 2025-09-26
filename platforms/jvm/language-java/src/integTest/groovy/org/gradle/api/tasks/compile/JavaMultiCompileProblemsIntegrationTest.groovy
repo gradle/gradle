@@ -59,14 +59,14 @@ class JavaMultiCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasFailures(2)
         collectedProblems.size() == 2
         verifyAll(receivedProblem(0)) {
-            fqid == 'compilation:java:compiler-err-expected'
+            fqid == 'compilation:java:compiler.err.expected'
             contextualLabel == '\';\' expected'
             // The formatted information is checked deeper in JavaCompileProblemsIntegrationTest,
             // we are just interested if the file is correct
             details.concat("Project1.java")
         }
         verifyAll(receivedProblem(1)) {
-            fqid == 'compilation:java:compiler-err-expected'
+            fqid == 'compilation:java:compiler.err.expected'
             contextualLabel == '\';\' expected'
             // The formatted information is checked deeper in JavaCompileProblemsIntegrationTest,
             // we are just interested if the file is correct

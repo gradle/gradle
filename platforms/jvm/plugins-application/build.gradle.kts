@@ -33,7 +33,6 @@ dependencies {
     implementation(projects.fileOperations)
     implementation(projects.languageJava)
     implementation(projects.languageJvm)
-    implementation(projects.logging)
     implementation(projects.platformJvm)
     implementation(projects.pluginsDistribution)
     implementation(projects.pluginsJava)
@@ -68,5 +67,4 @@ packageCycles {
     excludePatterns.add("org/gradle/api/plugins/**")
 }
 
-integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true

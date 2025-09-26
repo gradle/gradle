@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.file.nio;
 
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileMetadataAccessor;
@@ -51,7 +51,7 @@ public class NioFileMetadataAccessor implements FileMetadataAccessor {
             return DefaultFileMetadata.directory(accessType);
         }
         if (attributes.isOther()) {
-            throw new UncheckedIOException("Unsupported file type for " + file.getAbsolutePath());
+            throw UncheckedException.throwAsUncheckedException(new IOException("Unsupported file type for " + file.getAbsolutePath()), true);
         }
         return DefaultFileMetadata.file(attributes.lastModifiedTime().toMillis(), attributes.size(), accessType);
     }

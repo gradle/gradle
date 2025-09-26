@@ -18,6 +18,7 @@ package org.gradle.internal.classpath
 
 import org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorFactoryProvider
 import org.gradle.internal.metaobject.BeanDynamicObject
+import spock.lang.Issue
 
 import java.lang.reflect.Constructor
 import java.util.function.Predicate
@@ -202,5 +203,27 @@ class GroovyDynamicDispatchingInterceptingTest extends AbstractCallInterceptionT
 
         then:
         receiver.intercepted == "test()"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/35049")
+    def 'safe navigation works with intercepted calls'() {
+        given:
+        def receiver = new InterceptorTestReceiver()
+        def transformedClosure = instrumentedClasses.instrumentedClosure { delegate?.test() }
+        transformedClosure.delegate = receiver
+
+        when: "typical non-null call"
+        transformedClosure()
+
+        then:
+        receiver.intercepted == "test()"
+
+        when: "null delegate that should be safe"
+        receiver.intercepted = null
+        transformedClosure.delegate = null
+        transformedClosure()
+
+        then:
+        receiver.intercepted == null
     }
 }

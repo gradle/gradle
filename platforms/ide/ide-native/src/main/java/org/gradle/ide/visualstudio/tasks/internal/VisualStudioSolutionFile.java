@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.ide.visualstudio.TextProvider;
+import org.gradle.internal.UncheckedException;
 import org.gradle.plugins.ide.internal.generator.AbstractPersistableConfigurationObject;
 import org.gradle.util.internal.TextUtil;
 
@@ -29,7 +30,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -91,7 +91,7 @@ public class VisualStudioSolutionFile extends AbstractPersistableConfigurationOb
             writer.write(text);
             writer.flush();
         } catch (IOException e) {
-            throw new UncheckedIOException(e.getMessage(), e);
+            throw UncheckedException.throwAsUncheckedException(e, true);
         }
     }
 

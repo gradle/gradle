@@ -1,11 +1,13 @@
 package org.gradle.kotlin.dsl.support
 
-import org.gradle.kotlin.dsl.embeddedKotlinVersion
+import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.test.fixtures.Flaky
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import org.junit.experimental.categories.Category
 
 
 class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
@@ -41,25 +43,27 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    @Category(Flaky::class) // https://github.com/gradle/gradle-private/issues/4723
     fun `stdlib and reflect are pinned to the embedded kotlin version for requested plugins`() {
+        val requestedKotlinVersion = "2.0.0"
         withBuildScript(
             """
             buildscript {
                 $repositoriesBlock
                 dependencies {
-                    classpath("org.jetbrains.kotlin:kotlin-stdlib:1.9.21")
-                    classpath("org.jetbrains.kotlin:kotlin-reflect:1.9.21")
+                    classpath("org.jetbrains.kotlin:kotlin-stdlib:$requestedKotlinVersion")
+                    classpath("org.jetbrains.kotlin:kotlin-reflect:$requestedKotlinVersion")
                 }
             }
             plugins {
-                kotlin("jvm") version "1.9.21"
+                kotlin("jvm") version "$requestedKotlinVersion"
             }
             """
         )
 
         val result = build("buildEnvironment")
         listOf("stdlib", "reflect").forEach { module ->
-            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:1.9.21 -> $embeddedKotlinVersion"))
+            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:$requestedKotlinVersion -> $embeddedKotlinVersion"))
         }
     }
 

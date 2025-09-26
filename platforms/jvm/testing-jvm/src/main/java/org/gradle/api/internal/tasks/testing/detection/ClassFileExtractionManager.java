@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.detection;
 
-import org.apache.commons.lang.text.StrBuilder;
+import org.apache.commons.lang3.text.StrBuilder;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;

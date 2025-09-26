@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.classpath;
 
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.io.File;
@@ -58,7 +58,7 @@ public class ManifestUtil {
                 uri = jarFile.toURI().resolve(uri);
                 manifestClasspath.add(uri);
             } catch (URISyntaxException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
         return manifestClasspath;
@@ -76,7 +76,7 @@ public class ManifestUtil {
             }
             return classpathEntry.split(" ");
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

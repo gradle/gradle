@@ -15,7 +15,7 @@
  */
 package org.gradle.plugins.signing.type;
 
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.plugins.signing.signatory.Signatory;
 
 import java.io.BufferedInputStream;
@@ -39,7 +39,7 @@ public abstract class AbstractSignatureType implements SignatureType {
              OutputStream signatureFileStream = new BufferedOutputStream(new FileOutputStream(signatureFile))) {
             sign(signatory, toSignStream, signatureFileStream);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         return signatureFile;
     }

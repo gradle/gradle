@@ -100,6 +100,27 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
         failureHasCause("Required keys [path] are missing from map")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/34692")
+    def "throws UnknownProjectException when creating project dependency from map with unknown project"() {
+        buildFile("""
+            configurations.dependencyScope("deps")
+            dependencies {
+                try {
+                    deps(project(path: "unknown"))
+                } catch (Exception e) {
+                    assert e instanceof UnknownProjectException
+                    throw e
+                }
+            }
+        """)
+
+        when:
+        fails("help")
+
+        then:
+        failure.assertHasCause("Project with path ':unknown' could not be found.")
+    }
+
     def "can add constraint on root project"() {
         given:
         mavenRepo.module("org", "foo").publish()

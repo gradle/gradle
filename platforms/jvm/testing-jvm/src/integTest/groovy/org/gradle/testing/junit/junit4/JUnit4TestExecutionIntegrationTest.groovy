@@ -38,6 +38,27 @@ class JUnit4TestExecutionIntegrationTest extends AbstractJUnitTestExecutionInteg
             .assertTestFailed("initializationError", containsString('ClassFormatError'))
     }
 
+    def "tries to execute unparseable test classes"() {
+        given:
+        file('build/classes/java/test/com/example/Foo.class').text = "invalid class file"
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
+        """
+
+        when:
+        executer.withStacktraceEnabled()
+        fails('test', '-x', 'compileTestJava')
+
+        then:
+        failure.assertHasCause("Could not execute test class 'com.example.Foo'.")
+        failure.getError().contains("Caused by: java.lang.ClassFormatError: Incompatible magic value 1768846945 in class file com/example/Foo")
+    }
+
     def "test thread name is reset after test execution"() {
         when:
         buildFile << """

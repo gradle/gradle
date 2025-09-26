@@ -27,6 +27,8 @@ object MergeReleaseIntoMaster : BasePromotionBuildType() {
         name = "Merge Release into Master"
         description = "Merge Release into Master"
 
+        val vcsBranch = VersionedSettingsBranch.fromDslContext()
+
         steps {
             gradleWrapper {
                 name = "Merge Release into Master"
@@ -41,17 +43,20 @@ object MergeReleaseIntoMaster : BasePromotionBuildType() {
             }
         }
 
-        triggers {
-            finishBuildTrigger {
-                buildType = "Gradle_${VersionedSettingsBranch.fromDslContext().branchName.uppercase()}_${NIGHTLY_SNAPSHOT_BUILD_ID}"
-                successfulOnly = true
-                branchFilter = "+:*"
+        if (vcsBranch.isRelease) {
+            triggers {
+                finishBuildTrigger {
+                    buildType =
+                        "Gradle_${vcsBranch.branchName.uppercase()}_${NIGHTLY_SNAPSHOT_BUILD_ID}"
+                    successfulOnly = true
+                    branchFilter = "+:*"
+                }
             }
         }
 
         dependencies {
             dependency(
-                AbsoluteId("Gradle_${VersionedSettingsBranch.fromDslContext().branchName.uppercase()}_${NIGHTLY_SNAPSHOT_BUILD_ID}"),
+                AbsoluteId("Gradle_${vcsBranch.branchName.uppercase()}_${NIGHTLY_SNAPSHOT_BUILD_ID}"),
             ) {
                 artifacts {
                     buildRule = lastSuccessful()

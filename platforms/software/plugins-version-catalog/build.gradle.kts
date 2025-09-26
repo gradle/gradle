@@ -29,12 +29,13 @@ dependencies {
     api(libs.guava)
     api(libs.inject)
 
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.loggingApi)
+    implementation(projects.modelCore)
     implementation(projects.platformBase)
     implementation(projects.platformJvm)
+    implementation(projects.stdlibJavaExtensions)
 
-    implementation(libs.jspecify)
+    compileOnly(libs.jspecify)
 
     runtimeOnly(libs.groovy)
 

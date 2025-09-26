@@ -18,7 +18,8 @@ package org.gradle.api.internal.project;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.initialization.DefaultProjectDescriptor;
+import org.gradle.initialization.ProjectDescriptorInternal;
+import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
@@ -57,6 +58,11 @@ public interface ProjectStateRegistry {
     ProjectState stateFor(Path identityPath) throws IllegalArgumentException;
 
     /**
+     * Locates the state object that owns the project with the given identity path, or null if this project is not present.
+     */
+    @Nullable ProjectState findProjectState(Path identityPath);
+
+    /**
      * Locates the state objects for all projects of the given build.
      */
     BuildProjectRegistry projectsFor(BuildIdentifier buildIdentifier) throws IllegalArgumentException;
@@ -70,12 +76,12 @@ public interface ProjectStateRegistry {
     /**
      * Registers the projects of a build.
      */
-    void registerProjects(BuildState owner, ProjectRegistry<DefaultProjectDescriptor> projectRegistry);
+    void registerProjects(BuildState owner, ProjectDescriptorRegistry projectRegistry);
 
     /**
      * Registers a single project.
      */
-    ProjectState registerProject(BuildState owner, DefaultProjectDescriptor projectDescriptor);
+    ProjectState registerProject(BuildState owner, ProjectDescriptorInternal projectDescriptor);
 
     /**
      * Allows the given code to access the mutable state of any project in the tree, regardless of which other threads may be accessing the project.

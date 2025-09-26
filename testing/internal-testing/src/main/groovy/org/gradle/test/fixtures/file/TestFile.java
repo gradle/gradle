@@ -16,14 +16,17 @@
 
 package org.gradle.test.fixtures.file;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.file.PathUtils;
+import org.apache.commons.io.file.StandardDeleteOption;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Zip;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.testing.internal.util.RetryUtil;
@@ -45,9 +48,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -328,7 +333,7 @@ public class TestFile extends File {
                 try {
                     FileUtils.copyURLToFile(resource, testFile);
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         });
@@ -501,7 +506,7 @@ public class TestFile extends File {
         try {
             return Hashing.hashFile(file);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -514,14 +519,14 @@ public class TestFile extends File {
             try {
                 Files.delete(toPath());
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
         try {
             getParentFile().mkdirs();
             Files.createSymbolicLink(this.toPath(), target.toPath());
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         clearCanonCaches();
         return this;
@@ -535,7 +540,7 @@ public class TestFile extends File {
             assert mkfifo.waitFor() == 0; // assert the exit value signals success
             return this;
         } catch (IOException | InterruptedException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -543,7 +548,7 @@ public class TestFile extends File {
         try {
             File.createTempFile("doesnt", "matter").delete();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -709,50 +714,48 @@ public class TestFile extends File {
         return this;
     }
 
+    private static final Set<PosixFilePermission> ALLOW_ALL = ImmutableSet.copyOf(EnumSet.allOf(PosixFilePermission.class));
+
     /**
      * Recursively delete this directory, reporting all failed paths.
      */
     public TestFile forceDeleteDir() throws IOException {
-        if (isDirectory()) {
-            if (FileUtils.isSymlink(this)) {
-                if (!delete()) {
-                    throw new IOException("Unable to delete symlink: " + getCanonicalPath());
+        Path path = toPath();
+        if (!Files.exists(path, LinkOption.NOFOLLOW_LINKS)) {
+            return this;
+        }
+        if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
+            List<IOException> errors = new ArrayList<>();
+            Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                    try {
+                        PathUtils.deleteFile(file, StandardDeleteOption.OVERRIDE_READ_ONLY);
+                    } catch (IOException e) {
+                        errors.add(e);
+                    }
+                    return FileVisitResult.CONTINUE;
                 }
-            } else {
-                List<String> errorPaths = new ArrayList<>();
-                Files.walkFileTree(toPath(), new SimpleFileVisitor<Path>() {
 
-                    @Override
-                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        if (!file.toFile().delete()) {
-                            errorPaths.add(file.toFile().getCanonicalPath());
-                        }
-                        return FileVisitResult.CONTINUE;
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
+                    try {
+                        PathUtils.deleteDirectory(dir, StandardDeleteOption.OVERRIDE_READ_ONLY);
+                    } catch (IOException e) {
+                        errors.add(e);
                     }
-
-                    @Override
-                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                        if (!dir.toFile().delete()) {
-                            errorPaths.add(dir.toFile().getCanonicalPath());
-                        }
-                        return FileVisitResult.CONTINUE;
-                    }
-                });
-                if (!errorPaths.isEmpty()) {
-                    StringBuilder builder = new StringBuilder()
-                        .append("Unable to recursively delete directory ")
-                        .append(getCanonicalPath())
-                        .append(", failed paths:\n");
-                    for (String errorPath : errorPaths) {
-                        builder.append("\t- ").append(errorPath).append("\n");
-                    }
-                    throw new IOException(builder.toString());
+                    return FileVisitResult.CONTINUE;
                 }
+            });
+            if (!errors.isEmpty()) {
+                IOException ex = new IOException("Unable to recursively delete directory " + getCanonicalPath());
+                for (IOException error : errors) {
+                    ex.addSuppressed(error);
+                }
+                throw ex;
             }
-        } else if (exists()) {
-            if (!delete()) {
-                throw new IOException("Unable to delete file: " + getCanonicalPath());
-            }
+        } else {
+            PathUtils.deleteFile(path, StandardDeleteOption.OVERRIDE_READ_ONLY);
         }
         return this;
     }

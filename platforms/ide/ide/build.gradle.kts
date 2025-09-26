@@ -24,6 +24,8 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.baseServicesGroovy)
+    implementation(projects.buildProcessServices)
+    implementation(projects.classloaders)
     implementation(projects.ear)
     implementation(projects.languageJava)
     implementation(projects.loggingApi)
@@ -36,7 +38,7 @@ dependencies {
     implementation(libs.groovyXml)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
-    implementation(libs.commonsLang3)
+    implementation(libs.commonsLang)
 
     runtimeOnly(projects.languageJvm)
     runtimeOnly(projects.testingBase)
@@ -68,7 +70,6 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
-    crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
 strictCompile {
@@ -83,7 +84,6 @@ packageCycles {
     excludePatterns.add("org/gradle/plugins/ide/idea/model/internal/*")
 }
 
-integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
 tasks.isolatedProjectsIntegTest {
     enabled = false

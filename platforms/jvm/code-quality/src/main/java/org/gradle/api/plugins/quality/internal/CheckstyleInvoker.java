@@ -32,6 +32,7 @@ import org.gradle.api.internal.exceptions.MarkedVerificationException;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
 import org.gradle.api.plugins.quality.Checkstyle;
 import org.gradle.api.provider.Property;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.GFileUtils;
@@ -45,7 +46,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -255,7 +255,7 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
         try {
             return IOUtils.toString(stream, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

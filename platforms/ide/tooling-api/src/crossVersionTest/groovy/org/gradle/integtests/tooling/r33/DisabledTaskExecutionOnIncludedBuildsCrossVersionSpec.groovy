@@ -21,10 +21,9 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.model.gradle.BuildInvocations
 
-@TargetGradleVersion('>=3.3')
 class DisabledTaskExecutionOnIncludedBuildsCrossVersionSpec extends ToolingApiSpecification {
 
-    @TargetGradleVersion('>=3.3 <6.8')
+    @TargetGradleVersion('>=4.0 <6.8')
     def "Can't launch tasks from included builds via launchables obtained from GradleProject model"() {
         setup:
         singleProjectBuildInRootFolder("root") {
@@ -48,7 +47,7 @@ class DisabledTaskExecutionOnIncludedBuildsCrossVersionSpec extends ToolingApiSp
         thrown(BuildException)
     }
 
-    @TargetGradleVersion('>=3.3 <6.8')
+    @TargetGradleVersion('>=4.0 <6.8')
     def "Can't launch tasks from included builds via launchables obtained from BuildInvocations model"() {
         setup:
         singleProjectBuildInRootFolder("root") {

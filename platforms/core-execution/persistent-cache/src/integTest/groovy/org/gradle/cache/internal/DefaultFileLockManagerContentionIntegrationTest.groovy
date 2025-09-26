@@ -31,12 +31,15 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.internal.time.Time
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 import java.util.function.Consumer
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 import static org.gradle.util.internal.TextUtil.escapeString
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requires a daemon")
 class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegrationSpec {
     def addressFactory = new InetAddressFactory()
 
@@ -242,6 +245,8 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             import org.gradle.workers.WorkAction
             import org.gradle.internal.instrumentation.agent.AgentStatus
             import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
+            import org.gradle.internal.classpath.ClassPath
+            import org.gradle.internal.installation.CurrentGradleInstallation
 
             abstract class WorkerTask extends DefaultTask {
                 @Inject
@@ -288,7 +293,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
                     super(NativeServices.getInstance())
 
                     add(OutputEventListener.class, OutputEventListener.NO_OP)
-                    addProvider(new GlobalScopeServices(true, AgentStatus.disabled()))
+                    addProvider(new GlobalScopeServices(true, AgentStatus.disabled(), ClassPath.EMPTY, new CurrentGradleInstallation(null)))
                 }
 
                  static def getInstance(File gradleUserHome) {
@@ -313,7 +318,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
     }
 
     void assertConfirmationCount(GradleHandle build, FileLock lock = receivingLock) {
-        assert (build.standardOutput =~ "Gradle process at port ${communicator.port} confirmed unlock request for lock with id ${lock.lockId}.").count == 1
+        assert (build.standardOutput =~ "Process at port ${communicator.port} confirmed unlock request for lock with id ${lock.lockId}.").count == 1
     }
 
     void assertReleaseSignalTriggered(GradleHandle build, FileLock lock = receivingLock) {

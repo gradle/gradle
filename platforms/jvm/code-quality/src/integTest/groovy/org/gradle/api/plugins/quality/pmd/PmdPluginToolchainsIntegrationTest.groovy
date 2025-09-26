@@ -19,6 +19,7 @@ package org.gradle.api.plugins.quality.pmd
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
+import org.gradle.quality.integtest.fixtures.PmdCoverage
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
 
@@ -34,9 +35,11 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
 
     def "uses jdk from toolchains set through java plugin"() {
         Assume.assumeTrue(fileLockingIssuesSolved())
+        Assume.assumeTrue(PmdCoverage.supportsJdkVersion(versionNumber, jdk.javaVersionMajor))
+
         given:
         goodCode()
-        def jdk = setupExecutorForToolchains()
+        withInstallations(jdk)
         writeBuildFileWithToolchainsFromJavaPlugin(jdk)
 
         when:
@@ -44,13 +47,18 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
 
         then:
         outputContains("Running pmd with toolchain '${jdk.javaHome.absolutePath}'.")
+
+        where:
+        jdk << AvailableJavaHomes.getSupportedWorkerJdks()
     }
 
     def "uses jdk from toolchains set through pmd task"() {
         Assume.assumeTrue(fileLockingIssuesSolved())
+        Assume.assumeTrue(PmdCoverage.supportsJdkVersion(versionNumber, jdk.javaVersionMajor))
+
         given:
         goodCode()
-        def jdk = setupExecutorForToolchains()
+        withInstallations(jdk)
         writeBuildFileWithToolchainsFromCheckstyleTask(jdk)
 
         when:
@@ -58,6 +66,9 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
 
         then:
         outputContains("Running pmd with toolchain '${jdk.javaHome.absolutePath}'.")
+
+        where:
+        jdk << AvailableJavaHomes.getSupportedWorkerJdks()
     }
 
     def "uses current jdk if not specified otherwise"() {
@@ -76,7 +87,6 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
     def "uses current jdk if pmd plugin is not applied"() {
         given:
         goodCode()
-        setupExecutorForToolchains()
         writeBuildFileWithoutApplyingPmdPlugin()
         buildFile << """
             Map<String, String> excludeProperties(String group, String module) {
@@ -114,12 +124,6 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
 
         then:
         outputContains("Running pmd with toolchain '${Jvm.current().javaHome.absolutePath}'.")
-    }
-
-    Jvm setupExecutorForToolchains() {
-        Jvm jdk = AvailableJavaHomes.getDifferentVersion()
-        withInstallations(jdk)
-        return jdk
     }
 
     private void writeBuildFile() {

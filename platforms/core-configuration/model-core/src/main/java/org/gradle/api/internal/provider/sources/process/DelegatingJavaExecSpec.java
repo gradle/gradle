@@ -41,7 +41,6 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
         return getDelegate().getMainClass();
     }
 
-    @Nullable
     @Override
     default List<String> getArgs() {
         return getDelegate().getArgs();
@@ -60,13 +59,13 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
     }
 
     @Override
-    default JavaExecSpec setArgs(@Nullable List<String> args) {
+    default JavaExecSpec setArgs(List<String> args) {
         getDelegate().setArgs(args);
         return this;
     }
 
     @Override
-    default JavaExecSpec setArgs(@Nullable Iterable<?> args) {
+    default JavaExecSpec setArgs(Iterable<?> args) {
         getDelegate().setArgs(args);
         return this;
     }
@@ -99,23 +98,23 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
     }
 
     @Override
-    default Map<String, Object> getSystemProperties() {
+    default Map<String, @Nullable Object> getSystemProperties() {
         return getDelegate().getSystemProperties();
     }
 
     @Override
-    default void setSystemProperties(Map<String, ?> properties) {
+    default void setSystemProperties(Map<String, ? extends @Nullable Object> properties) {
         getDelegate().setSystemProperties(properties);
     }
 
     @Override
-    default JavaForkOptions systemProperties(Map<String, ?> properties) {
+    default JavaForkOptions systemProperties(Map<String, ? extends @Nullable Object> properties) {
         getDelegate().systemProperties(properties);
         return this;
     }
 
     @Override
-    default JavaForkOptions systemProperty(String name, Object value) {
+    default JavaForkOptions systemProperty(String name, @Nullable Object value) {
         getDelegate().systemProperty(name, value);
         return this;
     }
@@ -153,19 +152,18 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
         getDelegate().setMaxHeapSize(heapSize);
     }
 
-    @Nullable
     @Override
     default List<String> getJvmArgs() {
         return getDelegate().getJvmArgs();
     }
 
     @Override
-    default void setJvmArgs(@Nullable List<String> arguments) {
+    default void setJvmArgs(List<String> arguments) {
         getDelegate().setJvmArgs(arguments);
     }
 
     @Override
-    default void setJvmArgs(@Nullable Iterable<?> arguments) {
+    default void setJvmArgs(Iterable<?> arguments) {
         getDelegate().setJvmArgs(arguments);
     }
 
@@ -238,11 +236,13 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     default void setAllJvmArgs(List<String> arguments) {
         getDelegate().setAllJvmArgs(arguments);
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     default void setAllJvmArgs(Iterable<?> arguments) {
         getDelegate().setAllJvmArgs(arguments);
     }

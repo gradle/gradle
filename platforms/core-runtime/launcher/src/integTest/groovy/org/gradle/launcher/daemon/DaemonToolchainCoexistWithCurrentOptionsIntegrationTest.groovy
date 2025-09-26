@@ -24,6 +24,10 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
+@Requires(
+    value = IntegTestPreconditions.NotEmbeddedExecutor,
+    reason = "Prevent addition of Java 9 JPMS args to the launcher and potentially daemon process which could be Java 8"
+)
 class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
     def setup() {
         executer.requireDaemon().requireIsolatedDaemons() // Prevent addition of Java 9 JPMS args to the launcher and potentially daemon process which could be Java 8
@@ -35,7 +39,7 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIn
         def otherJvm = AvailableJavaHomes.differentVersion
         writeJvmCriteria(otherJvm)
         captureJavaHome()
-        executer.withArgument("-Porg.gradle.java.installations.auto-detect=false")
+        executer.withArgument("-Dorg.gradle.java.installations.auto-detect=false")
 
         expect:
         withInstallations(otherJvm).succeeds("help")

@@ -152,7 +152,7 @@ fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
             }
 
             is FunctionCall -> {
-                append("FunctionCall [${source()}] (\n")
+                append("FunctionCall ${if (current.isInfix) "<infix> " else ""}[${source()}] (\n")
                 appendNextIndented("name = ${current.name}\n")
                 current.receiver?.let {
                     appendNextIndented("receiver = ")

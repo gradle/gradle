@@ -27,7 +27,7 @@ import org.gradle.tooling.ProjectConnection
 import spock.lang.Issue
 
 @Issue('https://github.com/gradle/gradle/issues/3317')
-@TargetGradleVersion(">=3.0 <4.2.1")
+@TargetGradleVersion(">=4.0 <4.2.1")
 class JavaVersionCrossVersionTest extends ToolingApiSpecification {
     def configureJava8() {
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk8.javaHome.absolutePath)

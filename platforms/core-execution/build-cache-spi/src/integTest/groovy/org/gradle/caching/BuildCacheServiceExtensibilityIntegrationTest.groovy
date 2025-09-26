@@ -35,23 +35,6 @@ class BuildCacheServiceExtensibilityIntegrationTest extends AbstractIntegrationS
         outputContains "Storing "
     }
 
-    def "produces deprecation message when BuildCacheKey.getDisplayName() is called"() {
-        settingsFile << configureCustomBuildCacheService("println \"Dosplay name: \${key.displayName}\"")
-        buildFile << """
-            apply plugin: "java"
-        """
-        file("src/main/java/Main.java") << """
-            public class Main {}
-        """
-
-        when:
-        executer.expectDeprecationWarning("The BuildCacheKey.getDisplayName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getHashCode() method instead.")
-        executer.expectDeprecationWarning("The BuildCacheKey.getDisplayName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the getHashCode() method instead.")
-        withBuildCache().run "assemble"
-        then:
-        noExceptionThrown()
-    }
-
     private static String configureCustomBuildCacheService(String additionalLogic = "") {
         """
             class CustomBuildCache extends AbstractBuildCache {

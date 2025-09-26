@@ -2,6 +2,7 @@ import gradlebuild.basics.configurationCacheEnabledForDocsTests
 import gradlebuild.basics.googleApisJs
 import gradlebuild.basics.repoRoot
 import gradlebuild.basics.runBrokenForConfigurationCacheDocsTests
+import gradlebuild.basics.util.getSingleFileProvider
 import gradlebuild.integrationtests.model.GradleDistribution
 import org.asciidoctor.gradle.jvm.AsciidoctorTask
 import org.gradle.docs.internal.tasks.CheckLinks
@@ -16,7 +17,6 @@ plugins {
     id("org.asciidoctor.jvm.convert")
     id("gradlebuild.documentation")
     id("gradlebuild.generate-samples")
-    id("gradlebuild.split-docs")
 }
 
 repositories {
@@ -30,7 +30,6 @@ configurations {
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
             attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("gradle-documentation"))
         }
-        isVisible = false
     }
 }
 
@@ -45,6 +44,12 @@ configurations.docsTestImplementation {
     // Because this is done directly by the plugin application logic, we can't use a ComponentMetadataRule to exclude it.
     // See: https://github.com/gradle/guides/blob/ba018cec535d90f75876bfcca29381d213a956cc/subprojects/gradle-guides-plugin/src/main/java/org/gradle/docs/samples/internal/SamplesDocumentationPlugin.java#L335
     exclude("org.slf4j", "slf4j-simple")
+}
+
+dependencyAnalysis {
+    issues {
+        ignoreSourceSet(sourceSets.docsTest.name)
+    }
 }
 
 dependencies {
@@ -62,7 +67,6 @@ dependencies {
     testImplementation(project(":base-services"))
     testImplementation(project(":core"))
     testImplementation(libs.jsoup)
-    testImplementation("org.gebish:geb-spock:2.2")
     testImplementation("org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2")
     testImplementation(libs.commonsHttpclient)
     testImplementation(libs.httpmime)
@@ -71,10 +75,18 @@ dependencies {
     docsTestImplementation(project(":internal-integ-testing"))
     docsTestImplementation(project(":base-services"))
     docsTestImplementation(project(":logging"))
-    docsTestImplementation(libs.junit5Vintage)
     docsTestImplementation(libs.junit)
+    docsTestRuntimeOnly(libs.junitPlatform)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
+}
+
+jvmCompile {
+    compilations {
+        named("main") {
+            targetJvmVersion = 17
+        }
+    }
 }
 
 java {
@@ -94,24 +106,20 @@ asciidoctorj {
 }
 
 tasks.withType<AsciidoctorTask>().configureEach {
-    val task = this
     val doctorj = extensions.getByType<org.asciidoctor.gradle.jvm.AsciidoctorJExtension>()
-    if (task.name == "userguideSinglePagePdf") {
-        doctorj.docExtensions(
-            project.dependencies.create(project(":docs-asciidoctor-extensions-base"))
-        )
-    } else {
-        doctorj.docExtensions(
-            project.dependencies.create(project(":docs-asciidoctor-extensions")),
-            project.dependencies.create(files("src/main/resources"))
-        )
-    }
+    doctorj.docExtensions(
+        project.dependencies.create(project(":docs-asciidoctor-extensions")),
+        project.dependencies.create(files("src/main/resources"))
+    )
 }
 
 gradleDocumentation {
     javadocs {
-        javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
+        val jvmVersion = jvmCompile.compilations.named("main").flatMap { it.targetJvmVersion }
+        javaApi = jvmVersion.map { v -> uri("https://docs.oracle.com/en/java/javase/$v/docs/api/") }
+        javaPackageListLoc = jvmVersion.map { v -> project.layout.projectDirectory.dir("src/docs/javaPackageList/$v/") }
         groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-${libs.groovyVersion}/html/gapi")
+        groovyPackageListSrc = "org.apache.groovy:groovy-all:${libs.groovyVersion}:groovydoc"
     }
 }
 
@@ -616,14 +624,17 @@ tasks.named("quickTest") {
 
 // TODO add some kind of test precondition support in sample test conf
 tasks.named<Test>("docsTest") {
-    maxParallelForks = 2
+    useJUnitPlatform()
+
     // The org.gradle.samples plugin uses Exemplar to execute integration tests on the samples.
     // Exemplar doesn't know about that it's running in the context of the gradle/gradle build
     // so it uses the Gradle distribution from the running build. This is not correct, because
     // we want to verify that the samples work with the Gradle distribution being built.
-    val installationEnvProvider = objects.newInstance<GradleInstallationForTestEnvironmentProvider>(project, this)
-    installationEnvProvider.gradleHomeDir.from(configurations.integTestDistributionRuntimeClasspath)
-    installationEnvProvider.samplesdir = project.layout.buildDirectory.dir("working/samples/testing")
+    val installationEnvProvider = objects.newInstance<GradleInstallationForTestEnvironmentProvider>().apply {
+        gradleDistribution.homeDir.fileProvider(configurations.integTestDistributionRuntimeClasspath.getSingleFileProvider())
+        samplesdir = project.layout.buildDirectory.dir("working/samples/testing")
+        repoRoot = project.repoRoot()
+    }
     jvmArgumentProviders.add(installationEnvProvider)
 
     // For unknown reason, this is set to 'sourceSet.getRuntimeClasspath()' in the 'org.gradle.samples' plugin
@@ -632,8 +643,6 @@ tasks.named<Test>("docsTest") {
     systemProperties.clear()
 
     filter {
-        // workaround for https://github.com/gradle/dotcom/issues/5958
-        isFailOnNoMatchingTests = false
         // Only execute C++ sample tests on Linux because it is the configured target
         if (!OperatingSystem.current().isLinux) {
             excludeTestsMatching("org.gradle.docs.samples.*.building-cpp-*.sample")
@@ -642,16 +651,10 @@ tasks.named<Test>("docsTest") {
         if (!OperatingSystem.current().isMacOsX) {
             excludeTestsMatching("org.gradle.docs.samples.*.building-swift-*.sample")
         }
-        // We don't maintain Java 7 on Windows and Mac
-        if (OperatingSystem.current().isWindows || OperatingSystem.current().isMacOsX) {
-            excludeTestsMatching("*java7CrossCompilation.sample")
-        }
         // Only execute Groovy sample tests on Java < 9 to avoid warnings in output
         if (javaVersion.isJava9Compatible) {
             excludeTestsMatching("org.gradle.docs.samples.*.building-groovy-*.sample")
         }
-        // disable sanityCheck of 'structuring-software-projects' in any case due to deprecation warning in Android project
-        excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects*_sanityCheck.sample")
 
         if (OperatingSystem.current().isWindows && javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
             // Disable tests that suffer from charset issues under JDK 18 for now
@@ -662,6 +665,11 @@ tasks.named<Test>("docsTest") {
         if (!javaVersion.isJava11Compatible) {
             // This test sets source and target compatibility to 11
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-kotlin-dsl-accessors_*.sample")
+        }
+
+        if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_17)) {
+            // Spring Boot requires Java 17+
+            excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects_*_build-server-application.sample")
         }
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_12)) {
@@ -696,6 +704,11 @@ tasks.named<Test>("docsTest") {
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-code-quality-code-quality*")
         }
 
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
+            // Kotlin does not yet support 24 JDK target
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-best-practices-kotlin-std-lib*")
+        }
+
         if (OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64") {
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-native*.sample")
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-swift*.sample")
@@ -703,16 +716,6 @@ tasks.named<Test>("docsTest") {
             // We don't have Android SDK installed on Mac M1 now
             excludeTestsMatching("org.gradle.docs.samples.*.building-android-*.sample")
             excludeTestsMatching("org.gradle.docs.samples.*.structuring-software-projects*android-app.sample")
-        }
-
-        // filter tests which won't run on Groovy 4 without updating the Spock version
-        if (System.getProperty("bundleGroovy4", "false") == "true") {
-            excludeTestsMatching("org.gradle.docs.samples.*.convention-plugins*check.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.convention-plugins*sanityCheck.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.incubating-publishing-convention-plugins*publish.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.publishing-convention-plugins*publish.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-configuration-cache-test-kit*configurationCacheTestKit.sample")
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-developing-plugins-testing-plugins*testPlugin.sample")
         }
     }
 
@@ -873,33 +876,23 @@ tasks.named("check") {
 }
 
 // TODO there is some duplication with DistributionTest.kt here - https://github.com/gradle/gradle-private/issues/3126
-abstract class GradleInstallationForTestEnvironmentProvider
-@Inject constructor(project: Project, testTask: Test) : CommandLineArgumentProvider {
-    @Internal
-    val gradleHomeDir: ConfigurableFileCollection = project.objects.fileCollection()
+abstract class GradleInstallationForTestEnvironmentProvider : CommandLineArgumentProvider {
 
-    @PathSensitive(PathSensitivity.RELATIVE)
-    @InputDirectory
-    val samplesdir: DirectoryProperty = project.objects.directoryProperty()
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:InputDirectory
+    abstract val samplesdir: DirectoryProperty
 
-    @Nested
-    val gradleDistribution: GradleDistribution = GradleDistribution(gradleHomeDir)
+    @get:Nested
+    abstract val gradleDistribution: GradleDistribution
 
-    private val testTaskClasspath: FileCollection = testTask.classpath
-    private val repoRoot: Directory = project.repoRoot()
+    @get:Internal
+    abstract val repoRoot: DirectoryProperty
 
     override fun asArguments(): Iterable<String> {
-        val distributionName = testTaskClasspath
-            .filter { it.name.startsWith("gradle-runtime-api-info") }
-            .singleFile
-            .parentFile
-            .parentFile
-            .parentFile
-            .name
         return listOf(
-            "-DintegTest.gradleHomeDir=${gradleHomeDir.singleFile}",
+            "-DintegTest.gradleHomeDir=${gradleDistribution.homeDir.get().asFile}",
             "-DintegTest.samplesdir=${samplesdir.get().asFile}",
-            "-DintegTest.gradleUserHomeDir=${repoRoot.dir("intTestHomeDir/$distributionName")}"
+            "-DintegTest.gradleUserHomeDir=${repoRoot.dir("intTestHomeDir/${gradleDistribution.name.get()}").get().asFile}"
         )
     }
 }
@@ -910,4 +903,8 @@ tasks.withType<CheckLinks>().configureEach {
 
 tasks.register("checkLinks") {
     dependsOn(tasks.withType<CheckLinks>())
+}
+
+errorprone {
+    nullawayEnabled = true
 }

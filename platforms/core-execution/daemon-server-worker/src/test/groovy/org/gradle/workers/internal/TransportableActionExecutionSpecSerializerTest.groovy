@@ -27,10 +27,9 @@ class TransportableActionExecutionSpecSerializerTest extends Specification {
     def outputStream = new ByteArrayOutputStream()
     def encoder = new KryoBackedEncoder(outputStream)
     def bytes = [ (byte) 1, (byte) 2, (byte) 3 ] as byte[]
-    def usesInternalServices = true
 
     def "can serialize and deserialize a spec with a hierarchical classloader structure"() {
-        def spec = new TransportableActionExecutionSpec(Runnable.class.name, bytes, classLoaderStructure(), new File("/foo"), new File("/project-cache"), usesInternalServices)
+        def spec = new TransportableActionExecutionSpec(Runnable.class.name, bytes, classLoaderStructure(), new File("/foo"), new File("/project-cache"), ["foo"] as Set)
 
         when:
         serializer.write(encoder, spec)
@@ -46,11 +45,11 @@ class TransportableActionExecutionSpecSerializerTest extends Specification {
         decodedSpec.classLoaderStructure == spec.classLoaderStructure
         decodedSpec.baseDir.canonicalPath == spec.baseDir.canonicalPath
         decodedSpec.projectCacheDir.canonicalPath == spec.projectCacheDir.canonicalPath
-        decodedSpec.internalServicesRequired
+        decodedSpec.additionalWhitelistedServicesClassNames == (["foo"] as Set)
     }
 
     def "can serialize and deserialize a spec with a flat classloader structure"() {
-        def spec = new TransportableActionExecutionSpec(Runnable.class.name, bytes, flatClassLoaderStructure(), new File("/foo"), new File("/project-cache"), usesInternalServices)
+        def spec = new TransportableActionExecutionSpec(Runnable.class.name, bytes, flatClassLoaderStructure(), new File("/foo"), new File("/project-cache"), ["foo"] as Set)
 
         when:
         serializer.write(encoder, spec)
@@ -67,7 +66,7 @@ class TransportableActionExecutionSpecSerializerTest extends Specification {
         decodedSpec.classLoaderStructure.spec == null
         decodedSpec.baseDir.canonicalPath == spec.baseDir.canonicalPath
         decodedSpec.projectCacheDir.canonicalPath == spec.projectCacheDir.canonicalPath
-        decodedSpec.internalServicesRequired
+        decodedSpec.additionalWhitelistedServicesClassNames == (["foo"] as Set)
     }
 
     def filteringClassloaderSpec() {

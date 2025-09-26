@@ -55,7 +55,7 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
 
     @Test
     fun `can handle anonymous enum subtypes`() {
-        EnumSuperType.values().forEach {
+        EnumSuperType.entries.forEach {
             assertThat(
                 configurationCacheRoundtripOf(it),
                 sameInstance(it)

@@ -100,7 +100,9 @@ class MavenScopesIntegrationTest extends AbstractDependencyResolutionTest {
 
         buildFile << """
             dependencies {
-                conf group: 'test', name: 'target', version: '1.0', configuration: 'compile'
+                conf("test:target:1.0") {
+                    targetConfiguration = "compile"
+                }
             }
         """
 
@@ -108,7 +110,7 @@ class MavenScopesIntegrationTest extends AbstractDependencyResolutionTest {
         fails('checkDep')
 
         then:
-        failure.assertHasCause("Could not resolve test:target:1.0.\nRequired by:\n    root project :")
+        failure.assertHasCause("Could not resolve test:target:1.0.\nRequired by:\n    root project 'testproject'")
         failure.assertHasCause("Cannot select a variant by configuration name from 'test:target:1.0'.")
 
         where:
@@ -120,7 +122,9 @@ class MavenScopesIntegrationTest extends AbstractDependencyResolutionTest {
 
         buildFile << """
             dependencies {
-                conf group: 'test', name: 'target', version: '1.0', configuration: 'x86_windows'
+                conf("test:target:1.0") {
+                    targetConfiguration = "x86_windows"
+                }
             }
         """
 
@@ -128,7 +132,7 @@ class MavenScopesIntegrationTest extends AbstractDependencyResolutionTest {
         fails('checkDep')
 
         then:
-        failure.assertHasCause("Could not resolve test:target:1.0.\nRequired by:\n    root project :")
+        failure.assertHasCause("Could not resolve test:target:1.0.\nRequired by:\n    root project 'testproject'")
         failure.assertHasCause("Cannot select a variant by configuration name from 'test:target:1.0'.")
     }
 

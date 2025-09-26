@@ -34,7 +34,8 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
-    protected static final THIRD_PARTY_LIB_COUNT = 141
+    protected static final NATIVE_PLATFORM_BINARIES = 16
+    protected static final THIRD_PARTY_LIB_COUNT = 113
 
     @Shared
     String baseVersion = GradleVersion.current().baseVersion.version
@@ -65,6 +66,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "configuration-problems-base",
         "core",
         "core-api",
+        "core-flow-services-api",
         "core-kotlin-extensions",
         "daemon-main",
         "daemon-protocol",
@@ -88,6 +90,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "functional",
         "gradle-cli",
         "gradle-cli-main",
+        "groovy-loader",
         "hashing",
         "input-tracking",
         "installation-beacon",
@@ -112,11 +115,14 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "problems-rendering",
         "process-memory-services",
         "process-services",
+        "project-features",
+        "project-features-api",
         "report-rendering",
         "request-handler-worker",
         "resources",
         "resources-http",
         "runtime-api-info",
+        "scoped-persistent-cache",
         "serialization",
         "service-lookup",
         "service-provider",
@@ -134,9 +140,22 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "wrapper-shared",
     ]
 
+    def forbiddenLibraries = [
+        // Testing libraries are provided by the user during runtime
+        // and should not be included as part of the distribution.
+        "junit",
+        "hamcrest",
+        "ant-junit",
+        "testng",
+        "bsh",
+        "junit-platform-launcher",
+        "junit-platform-engine",
+        "junit-platform-commons",
+    ]
+
     abstract String getDistributionLabel()
 
-    abstract int getMaxDistributionSizeBytes()
+    abstract int getDistributionSizeMiB()
 
     /**
      * Change this whenever you add or remove subprojects for distribution core modules (lib/).
@@ -149,7 +168,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        78
+        80
     }
 
     /**
@@ -167,14 +186,19 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     int getLibJarsCount() {
-        coreLibJarsCount + packagedPluginsJarCount + agentJarsCount + thirdPartyLibJarsCount
+        coreLibJarsCount + packagedPluginsJarCount + agentJarsCount + thirdPartyLibJarsCount + NATIVE_PLATFORM_BINARIES
     }
 
-    def "distribution size should not exceed a certain number"() {
+    def "distribution size should not change too much"() {
         expect:
-        def size = getZip().size()
+        def actualKB = (int) Math.ceil((double) getZip().size() / 1024)
+        def expectedKB = getDistributionSizeMiB() * 1024
 
-        assert size <= getMaxDistributionSizeBytes() : "Distribution content needs to be verified. If the increase is expected, raise the size by ${Math.ceil((size - getMaxDistributionSizeBytes()) / 1024 / 1024)}"
+        int margin = buildContext.version.isSnapshot() ? 1024 : 2048 // Allow 1 MiB margin for current dev, 2 MiB for more stable releases (promotion builds)
+        def message = "content needs to be verified. Current size: ${(int) (actualKB / 1024)} MiB (${actualKB} KiB). Expected size: ${getDistributionSizeMiB()} ± ${margin / 1024} MiB."
+
+        assert actualKB <= expectedKB + margin: "Distribution is unexpectedly larger, $message"
+        assert actualKB >= expectedKB - margin: "Distribution is unexpectedly smaller, $message"
     }
 
     def "no duplicate jar entries in distribution"() {
@@ -211,6 +235,21 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
             Please review the jar entries and update the expectation in the getPackagedPluginsJarCount() method.
             Jar entries found:
             ${jarLibEntries.collect { it.name }}
+        """
+    }
+
+    def "does not contain forbidden libs"() {
+        when:
+        def jarLibEntries = libZipEntries.findAll { it.name.endsWith(".jar") }
+
+        then:
+        def forbiddenLibs = jarLibEntries.findAll { entry ->
+            def name = entry.name.substring(entry.name.lastIndexOf('/') + 1)
+            forbiddenLibraries.any { name.startsWith(it) }
+        }
+        assert forbiddenLibs.isEmpty() : """
+            Found forbidden libraries in the distribution:
+            ${forbiddenLibs.collect { it.name }}
         """
     }
 
@@ -291,7 +330,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${baseVersion}.jar")
         toolingApiJar.assertIsFile()
-        assert toolingApiJar.length() < 512 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
+        assert toolingApiJar.length() < 515 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
 
         // Kotlin DSL
         assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-${baseVersion}.jar"))
@@ -345,7 +384,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         contentsDir.file('docs/userguide/userguide.html').assertContents(containsString("Gradle User Manual</h1>"))
         contentsDir.file('docs/userguide/userguide_single.html').assertIsFile()
         contentsDir.file('docs/userguide/userguide_single.html').assertContents(containsString("<h1>Gradle User Manual: Version ${version}</h1>"))
-        contentsDir.file('docs/userguide/userguide.pdf').assertIsFile()
 
         // DSL reference
         contentsDir.file('docs/dsl/index.html').assertIsFile()

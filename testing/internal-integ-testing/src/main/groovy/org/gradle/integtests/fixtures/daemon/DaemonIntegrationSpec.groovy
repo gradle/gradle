@@ -19,7 +19,10 @@ package org.gradle.integtests.fixtures.daemon
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 abstract class DaemonIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
         executer.requireDaemon()

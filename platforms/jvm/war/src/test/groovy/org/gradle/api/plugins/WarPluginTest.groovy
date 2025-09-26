@@ -43,7 +43,6 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         providedCompileConfiguration.extendsFrom  == [] as Set
-        !providedCompileConfiguration.visible
         providedCompileConfiguration.transitive
 
         when:
@@ -51,7 +50,6 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         providedRuntimeConfiguration.extendsFrom == [providedCompileConfiguration] as Set
-        !providedRuntimeConfiguration.visible
         providedRuntimeConfiguration.transitive
 
     }
@@ -64,7 +62,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
         def task = project.tasks[WarPlugin.WAR_TASK_NAME]
         task instanceof War
         dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME).matches(task)
-        task.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
+        task.destinationDirectory.get().asFile == project.base.libsDirectory.get().asFile
 
         when:
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
@@ -122,7 +120,7 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME).matches(task)
-        task.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
+        task.destinationDirectory.get().asFile == project.base.libsDirectory.get().asFile
     }
 
     def "adds to jar as publication"() {

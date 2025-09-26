@@ -27,6 +27,12 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
 class IvyBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     public final static String REPOSITORY_HINT = repositoryHint("ivy.xml")
 
+    def setup() {
+        settingsFile << """
+            rootProject.name = "root"
+        """
+    }
+
     @ToBeFixedForConfigurationCache
     void "reports and recovers from missing module"() {
         given:
@@ -55,7 +61,7 @@ task showMissing { doLast { println configurations.missing.files } }
 Searched in the following locations:
   - ${module.ivy.uri}
 Required by:
-    root project :""")
+    root project 'root'""")
 
         when:
         module.ivy.expectGetMissing()
@@ -68,7 +74,7 @@ Required by:
 Searched in the following locations:
   - ${module.ivy.uri}
 Required by:
-    root project :""")
+    root project 'root'""")
         failure.assertHasResolutions(REPOSITORY_HINT,
             STACKTRACE_MESSAGE,
             INFO_DEBUG,
@@ -122,12 +128,12 @@ task showMissing { doLast { println configurations.missing.files } }
 Searched in the following locations:
   - ${moduleA.ivy.uri}
 Required by:
-    root project :""")
+    root project 'root'""")
             .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
 Searched in the following locations:
   - ${moduleB.ivy.uri}
 Required by:
-    root project :""")
+    root project 'root'""")
         failure.assertHasResolutions(REPOSITORY_HINT,
             STACKTRACE_MESSAGE,
             INFO_DEBUG,
@@ -153,7 +159,9 @@ Required by:
 
     @ToBeFixedForConfigurationCache
     void "reports and recovers from multiple missing transitive modules"() {
-        settingsFile << "include 'child1'"
+        settingsFile << """
+            include 'child1'
+        """
 
         given:
         def repo = ivyHttpRepo("repo1")
@@ -215,13 +223,13 @@ Required by:
 Searched in the following locations:
   - ${moduleA.ivy.uri}
 Required by:
-    root project : > group:projectC:0.99
-    root project : > project :child1 > group:projectD:1.0GA""")
+    root project 'root' > group:projectC:0.99
+    root project 'root' > project :child1 > group:projectD:1.0GA""")
             .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
 Searched in the following locations:
   - ${moduleB.ivy.uri}
 Required by:
-    root project : > project :child1 > group:projectD:1.0GA""")
+    root project 'root' > project :child1 > group:projectD:1.0GA""")
         failure.assertHasResolutions(REPOSITORY_HINT,
             STACKTRACE_MESSAGE,
             INFO_DEBUG,

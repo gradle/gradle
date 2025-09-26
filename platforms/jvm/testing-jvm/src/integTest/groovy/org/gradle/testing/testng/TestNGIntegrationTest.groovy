@@ -302,7 +302,8 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
         fails('test', '-x', 'compileTestJava')
 
         then:
-        failureCauseContains("There were failing tests")
+        failure.assertHasCause("Test process encountered an unexpected problem.")
+        failure.assertHasCause("Could not execute test class 'com.example.Foo'.")
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.testClassStartsWith('Gradle Test Executor')
             .assertTestCount(1, 1, 0)

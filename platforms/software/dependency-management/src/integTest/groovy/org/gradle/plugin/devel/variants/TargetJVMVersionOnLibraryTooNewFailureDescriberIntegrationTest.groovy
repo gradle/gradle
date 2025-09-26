@@ -61,7 +61,7 @@ class TargetJVMVersionOnLibraryTooNewFailureDescriberIntegrationTest extends Abs
         failure.assertHasErrorOutput("""> Could not resolve all dependencies for configuration ':consumer:compileClasspath'.
    > Could not resolve project :producer.
      Required by:
-         project :consumer
+         project ':consumer'
       > Dependency resolution is looking for a library compatible with JVM runtime version $currentJava, but 'project :producer' is only compatible with JVM runtime version $tooHighJava or newer.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionByAttributesException.class.getName())
         failure.assertHasResolution("Change the dependency on 'project :producer' to an earlier version that supports JVM runtime version $currentJava.")
@@ -112,7 +112,7 @@ class TargetJVMVersionOnLibraryTooNewFailureDescriberIntegrationTest extends Abs
         failure.assertHasErrorOutput("""> Could not resolve all dependencies for configuration ':consumer:compileClasspath'.
    > Could not resolve project :producer.
      Required by:
-         project :consumer
+         project ':consumer'
       > Dependency resolution is looking for a library compatible with JVM runtime version $currentJava, but 'project :producer' is only compatible with JVM runtime version $tooHighJava or newer.""")
         failure.assertHasErrorOutput("Caused by: " + VariantSelectionByAttributesException.class.getName())
         failure.assertHasResolution("Change the dependency on 'project :producer' to an earlier version that supports JVM runtime version $currentJava.")

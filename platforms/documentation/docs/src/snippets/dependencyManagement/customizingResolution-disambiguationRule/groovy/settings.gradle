@@ -1,0 +1,3 @@
+rootProject.name = 'isambiguation-rule'
+
+include 'lib', 'consumer'
