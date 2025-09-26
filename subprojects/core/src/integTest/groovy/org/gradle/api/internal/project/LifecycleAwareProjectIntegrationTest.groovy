@@ -101,11 +101,11 @@ class LifecycleAwareProjectIntegrationTest extends AbstractIntegrationSpec imple
 
     def 'LifecycleAwareProject instances are ephemeral'() {
         given:
-        file("buildSrc/build.gradle", """
+        file("buildSrc/build.gradle") << """
             plugins {
                 id 'groovy'
             }
-        """)
+        """
         file("buildSrc/src/main/groovy/GlobalWeakStorage.groovy") << """
             import java.util.WeakHashMap
             import ${BuildService.name}
