@@ -41,6 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static java.util.Collections.unmodifiableList;
+
 public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private static final MissingIncludeFile MISSING_INCLUDE_FILE = new MissingIncludeFile();
     private final FileSystemAccess fileSystemAccess;
@@ -179,7 +181,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             return Collections.emptyList();
         }
 
-        List<Expression> expressions = new ArrayList<Expression>(leftValues.size() * rightValues.size());
+        List<Expression> expressions = new ArrayList<>(leftValues.size() * rightValues.size());
         for (Expression leftValue : leftValues) {
             if (leftValue.getType() != IncludeType.IDENTIFIER) {
                 if (rightValues.size() == 1) {
@@ -212,7 +214,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
                 visitor.visitUnresolved();
             }
         }
-        return expressions;
+        return unmodifiableList(expressions);
     }
 
     private void resolveMacro(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {

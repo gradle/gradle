@@ -25,6 +25,7 @@ import java.util.Set;
  *
  * @since 4.6
  */
+@SuppressWarnings("JavaLangClash")
 @HasInternalProtocol
 public interface Package {
     /**

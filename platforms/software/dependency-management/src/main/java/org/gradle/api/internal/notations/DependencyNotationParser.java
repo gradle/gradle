@@ -56,7 +56,7 @@ public class DependencyNotationParser {
         NotationConverter<MinimalExternalModuleDependency, ? extends MinimalExternalModuleDependency> minimalExternalDependencyNotationConverter =
             new MinimalExternalDependencyNotationConverter(instantiator);
         MapNotationConverter<? extends ExternalModuleDependency> mapNotationConverter =
-            new DependencyMapNotationConverter<>(instantiator, DefaultExternalModuleDependency.class);
+            new DependencyMapNotationConverter<>();
         NotationConverter<FileCollection, ? extends FileCollectionDependency> filesNotationConverter =
             new DependencyFilesNotationConverter(instantiator);
         NotationConverter<Project, ? extends ProjectDependency> projectNotationConverter =

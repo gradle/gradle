@@ -60,8 +60,6 @@ class DependencyManagementProjectScopeServices implements ServiceRegistrationPro
         CapabilityNotationParser capabilityNotationParser,
         ObjectFactory objectFactory
     ) {
-        ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
-
         DependencyNotationParser dependencyNotationParser = DependencyNotationParser.create(
             instantiator,
             factory,
@@ -76,7 +74,7 @@ class DependencyManagementProjectScopeServices implements ServiceRegistrationPro
             dependencyNotationParser,
             capabilityNotationParser,
             objectFactory,
-            projectDependencyFactory,
+            new ProjectDependencyFactory(),
             attributesFactory
         );
     }

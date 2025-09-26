@@ -32,14 +32,11 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
-import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -166,13 +163,6 @@ public abstract class JacocoPluginExtension {
 
         public JacocoAgent(JacocoTaskExtension jacoco) {
             this.jacoco = jacoco;
-        }
-
-        @Nullable
-        @Optional
-        @Nested
-        public JacocoTaskExtension getJacoco() {
-            return jacoco.isEnabled() ? jacoco : null;
         }
 
         @Override

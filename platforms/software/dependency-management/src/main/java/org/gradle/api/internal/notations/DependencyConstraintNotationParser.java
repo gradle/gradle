@@ -49,7 +49,7 @@ public class DependencyConstraintNotationParser {
             .toType(DependencyConstraint.class)
             .fromType(MinimalExternalModuleDependency.class, minimalExternalDependencyNotationConverter)
             .fromCharSequence(stringNotationConverter)
-            .converter(new DependencyMapNotationConverter<>(instantiator, DefaultDependencyConstraint.class))
+            .converter(new DependencyMapNotationConverter<>())
             .fromType(Project.class, new DependencyConstraintProjectNotationConverter(instantiator, dependencyFactory))
             .converter(projectDependencyNotationConverter)
             .invalidNotationMessage("Comprehensive documentation on dependency notations is available in DSL reference for DependencyConstraintHandler type.")

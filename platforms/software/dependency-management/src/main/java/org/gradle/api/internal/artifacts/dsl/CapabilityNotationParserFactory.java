@@ -21,13 +21,11 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.internal.typeconversion.TypedNotationConverter;
-import org.jspecify.annotations.Nullable;
 
 public class CapabilityNotationParserFactory implements Factory<NotationParser<Object, Capability>> {
     private final static CapabilityNotationParser STRICT_CONVERTER = createSingletonConverter(true);
@@ -101,24 +99,12 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
         public void describe(DiagnosticsVisitor visitor) {
             visitor.candidate("Maps").example("[group: 'org.group', name: 'capability', version: '1.0']");
         }
-
-        protected Capability parseMap(@MapKey("group") String group,
-                                      @MapKey("name") String name,
-                                      @MapKey("version") String version) {
-            return new DefaultImmutableCapability(group, name, version);
-        }
     }
 
     private static class LenientCapabilityMapNotationParser extends MapNotationConverter<Capability> {
         @Override
         public void describe(DiagnosticsVisitor visitor) {
             visitor.candidate("Maps").example("[group: 'org.group', name: 'capability', version: '1.0']");
-        }
-
-        protected Capability parseMap(@MapKey("group") String group,
-                                      @MapKey("name") String name,
-                                      @MapKey("version") @Nullable String version) {
-            return new DefaultImmutableCapability(group, name, version);
         }
     }
 }

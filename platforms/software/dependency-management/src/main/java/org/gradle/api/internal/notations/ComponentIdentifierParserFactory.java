@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
@@ -40,16 +39,6 @@ public class ComponentIdentifierParserFactory implements Factory<NotationParser<
     }
 
     static class ComponentIdentifierMapNotationConverter extends MapNotationConverter<ModuleComponentIdentifier> {
-        protected ModuleComponentIdentifier parseMap(
-            @MapKey("group") String group,
-            @MapKey("name") String name,
-            @MapKey("version") String version) {
-
-            return DefaultModuleComponentIdentifier.newId(
-                DefaultModuleIdentifier.newId(validate(group.trim()), validate(name.trim())),
-                validate(version.trim())
-            );
-        }
     }
 
     static class StringNotationConverter extends TypedNotationConverter<String, ModuleComponentIdentifier> {

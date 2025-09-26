@@ -26,7 +26,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
 import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
@@ -63,9 +62,6 @@ public class ModuleComponentSelectorParsers {
             visitor.candidate("Maps").example("[group: 'org.gradle', name:'gradle-core', version: '1.0']");
         }
 
-        protected ModuleComponentSelector parseMap(@MapKey("group") String group, @MapKey("name") String name, @MapKey("version") String version) {
-            return DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, name), version);
-        }
     }
 
     static class StringConverter implements NotationConverter<String, ModuleComponentSelector> {

@@ -27,37 +27,13 @@ import org.jspecify.annotations.Nullable;
 import java.util.Map;
 
 public class ProjectDependencyFactory {
-    private final DefaultProjectDependencyFactory factory;
 
-    public ProjectDependencyFactory(DefaultProjectDependencyFactory factory) {
-        this.factory = factory;
-    }
-
-    public ProjectDependency createFromMap(ProjectFinder projectFinder, Map<? extends String, ?> map) {
+    public ProjectDependency createFromMap(Map<? extends String, ?> map) {
         return NotationParserBuilder.toType(ProjectDependency.class)
-                .converter(new ProjectDependencyMapNotationConverter(projectFinder, factory)).toComposite().parseNotation(map);
+                .converter(new ProjectDependencyMapNotationConverter()).toComposite().parseNotation(map);
     }
 
     static class ProjectDependencyMapNotationConverter extends MapNotationConverter<ProjectDependency> {
-
-        private final ProjectFinder projectFinder;
-        private final DefaultProjectDependencyFactory factory;
-
-        public ProjectDependencyMapNotationConverter(ProjectFinder projectFinder, DefaultProjectDependencyFactory factory) {
-            this.projectFinder = projectFinder;
-            this.factory = factory;
-        }
-
-        protected ProjectDependency parseMap(
-            @MapKey("path") String path,
-            @MapKey("configuration") @Nullable String configuration
-        ) {
-            ProjectDependency defaultProjectDependency = factory.create(projectFinder.resolveIdentityPath(path));
-            if (configuration != null) {
-                defaultProjectDependency.setTargetConfiguration(configuration);
-            }
-            return defaultProjectDependency;
-        }
 
         @Override
         public void describe(DiagnosticsVisitor visitor) {
