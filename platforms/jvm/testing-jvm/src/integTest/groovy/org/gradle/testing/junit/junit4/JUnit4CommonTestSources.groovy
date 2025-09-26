@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.junit4
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 import static org.gradle.util.internal.VersionNumber.*
@@ -26,6 +27,11 @@ trait JUnit4CommonTestSources {
 
         JUnit4TestSourceConfiguration(String version) {
             this.version = version
+        }
+
+        @Override
+        GenericTestExecutionResult.TestFramework getTestFramework() {
+            return GenericTestExecutionResult.TestFramework.JUNIT4
         }
 
         @Override
