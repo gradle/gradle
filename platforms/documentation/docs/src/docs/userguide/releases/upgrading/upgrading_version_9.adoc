@@ -137,7 +137,7 @@ The following bundled plugins apply the Java plugin automatically:
 [[deprecated_wrapper_get_available_distribution_types]]
 ==== Deprecated `Wrapper.getAvailableDistributionTypes()`
 
-The method on the link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.html[Wrapper] task has been deprecated and is scheduled for removal in Gradle 10.0.
+The method on the link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.html[Wrapper] task has been deprecated and is scheduled for removal in Gradle 10.0.0.
 
 To obtain the available distribution types, use link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.DistributionType.html#values()[Wrapper.DistributionType.values()] instead.
 
