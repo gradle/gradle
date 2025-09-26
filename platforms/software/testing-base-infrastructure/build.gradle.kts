@@ -36,6 +36,7 @@ dependencies {
     testImplementation(testFixtures(projects.time))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+    integTestImplementation(testFixtures(projects.testingBase))
 }
 
 packageCycles {
