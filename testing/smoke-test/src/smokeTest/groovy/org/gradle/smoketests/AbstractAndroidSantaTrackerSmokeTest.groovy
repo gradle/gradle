@@ -92,6 +92,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements 
             "-DkotlinVersion=$kotlinVersion",
             "-DjavaVersion=${AGP_VERSIONS.getMinimumJavaVersionFor(agpVersion).majorVersion}",
             "-DbuildToolsVersion=${AGP_VERSIONS.getBuildToolsVersionFor(agpVersion)}",
+            "-Dscan.tag.SantaTrackerSmokeTest",
             "--stacktrace"
         ] + tasks.toList()
 
