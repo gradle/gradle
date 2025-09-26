@@ -20,7 +20,6 @@ import org.gradle.api.JavaVersion;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +89,7 @@ class ExceptionPlaceholder implements Serializable {
             causes = Collections.emptyList();
             suppressed = Collections.emptyList();
         } else {
-            causes = extractCauses(throwable);
+            causes = ExceptionSerializationUtil.extractCauses(throwable);
             suppressed = extractSuppressed(throwable);
         }
 
@@ -257,26 +256,6 @@ class ExceptionPlaceholder implements Serializable {
                 //noinspection Since15
                 reconstructed.addSuppressed(throwable);
             }
-        }
-    }
-
-    private static List<? extends Throwable> extractCauses(Throwable throwable) {
-        if (throwable instanceof MultiCauseException) {
-            return ((MultiCauseException) throwable).getCauses();
-        } else {
-            List<? extends Throwable> causes = ExceptionSerializationUtil.tryExtractMultiCauses(throwable);
-            if (causes != null) {
-                return causes;
-            }
-            Throwable causeTmp;
-            try {
-                causeTmp = throwable.getCause();
-            } catch (Throwable ignored) {
-                // TODO:ADAM - switch the logging back on.
-                //                LOGGER.debug("Ignoring failure to extract throwable cause.", ignored);
-                causeTmp = null;
-            }
-            return causeTmp == null ? Collections.<Throwable>emptyList() : Collections.singletonList(causeTmp);
         }
     }
 
