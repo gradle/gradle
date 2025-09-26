@@ -23,7 +23,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * Resilient version of {@link KotlinDslScriptsModel} that can handle missing or incomplete script models.
  *
- * @since 9.2.0
+ * @since 9.3.0
  */
 @Incubating
 public interface ResilientKotlinDslScriptsModel {
@@ -31,7 +31,7 @@ public interface ResilientKotlinDslScriptsModel {
     /**
      * Returns the model for Kotlin DSL scripts.
      *
-     * @since 9.2.0
+     * @since 9.3.0
      */
     @Incubating
     KotlinDslScriptsModel getModel();
@@ -39,7 +39,7 @@ public interface ResilientKotlinDslScriptsModel {
     /**
      * Returns the failure that occurred while trying to retrieve the model.
      *
-     * @since 9.2.0
+     * @since 9.3.0
      */
     @Incubating
     @Nullable
