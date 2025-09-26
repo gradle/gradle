@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project;
 
+import com.google.common.collect.Streams;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
@@ -65,7 +66,7 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
 
     @Override
     public Map<String, Project> getChildProjects(ProjectInternal referrer, ProjectInternal target) {
-        return target.getOwner().getChildProjects().stream().collect(
+        return Streams.stream(target.getOwner().getChildProjects()).collect(
             Collectors.toMap(
                 ProjectState::getName,
                 projectState -> LifecycleAwareProject.wrap(projectState.getMutableModel(), referrer, instantiator, gradleLifecycleActionExecutor)

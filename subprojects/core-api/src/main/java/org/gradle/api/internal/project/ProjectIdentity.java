@@ -97,7 +97,7 @@ public final class ProjectIdentity implements DisplayName {
         Path projectPath
     ) {
         if (projectPath.equals(Path.ROOT)) {
-            throw new IllegalStateException("Use ProjectIdentity.forRootProject() for the root project.");
+            throw new IllegalArgumentException("Use ProjectIdentity.forRootProject() for the root project.");
         } else if (!projectPath.isAbsolute()) {
             throw new IllegalArgumentException("Project path must be absolute: " + projectPath);
         }
@@ -114,6 +114,9 @@ public final class ProjectIdentity implements DisplayName {
         Path projectPath,
         String projectName
     ) {
+        assert buildPath.isAbsolute();
+        assert projectPath.isAbsolute();
+
         this.buildPath = buildPath;
         this.projectPath = projectPath;
         this.projectName = projectName;
