@@ -30,6 +30,7 @@ val keepPatterns = mapOf(
         "it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap",
         "it.unimi.dsi.fastutil.longs.Long2ObjectArrayMap",
         "it.unimi.dsi.fastutil.longs.Long2IntArrayMap",
+        "it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet",
         // For Java compilation incremental analysis
         "it.unimi.dsi.fastutil.ints.IntOpenHashSet",
         "it.unimi.dsi.fastutil.ints.IntSets",

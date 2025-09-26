@@ -20,6 +20,7 @@ import it.unimi.dsi.fastutil.longs.Long2IntArrayMap;
 import it.unimi.dsi.fastutil.longs.Long2IntMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectArrayMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;
 import org.gradle.cache.FileLockReleasedSignal;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -29,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.DatagramPacket;
 import java.net.SocketAddress;
-import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
@@ -309,7 +309,7 @@ public class DefaultFileLockContentionHandler implements FileLockContentionHandl
         private final Lock lock = new ReentrantLock();
         private final long lockId;
         private final Consumer<FileLockReleasedSignal> action;
-        private Set<SocketAddress> requesters = new LinkedHashSet<>();
+        private Set<SocketAddress> requesters = new ObjectLinkedOpenHashSet<>();
         private boolean running;
 
         private ContendedAction(long lockId, Consumer<FileLockReleasedSignal> action) {
