@@ -537,13 +537,13 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
                 resolvable("res") {
                     extendsFrom(implementation)
                     attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "foo"))
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "foo"))
                     }
                 }
                 consumable("cons") {
                     extendsFrom(implementation)
                     attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "foo"))
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "foo"))
                     }
                     outgoing.artifact(jar)
                 }

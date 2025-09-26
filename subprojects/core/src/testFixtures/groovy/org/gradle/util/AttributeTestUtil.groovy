@@ -39,7 +39,7 @@ class AttributeTestUtil {
     }
 
     static DefaultAttributesFactory attributesFactory() {
-        return new DefaultAttributesFactory(attributeValueIsolator(), SnapshotTestUtil.isolatableFactory(), TestUtil.objectInstantiator(), TestUtil.propertyFactory())
+        return new DefaultAttributesFactory(attributeValueIsolator(), SnapshotTestUtil.isolatableFactory(), TestUtil.objectInstantiator(), TestUtil.propertyFactory(), TestUtil.objectFactory())
     }
 
     static JavaEcosystemVariantDerivationStrategy javaEcosystemVariantDerivationStrategy() {

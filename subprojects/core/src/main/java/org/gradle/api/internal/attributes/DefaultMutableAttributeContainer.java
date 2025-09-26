@@ -16,16 +16,19 @@
 
 package org.gradle.api.internal.attributes;
 
+import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.provider.DelegatingProviderWithValue;
 import org.gradle.api.internal.provider.MappingProvider;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
@@ -39,6 +42,7 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
     // Services
     private final AttributesFactory attributesFactory;
     private final AttributeValueIsolator attributeValueIsolator;
+    private final ObjectFactory objectFactory;
 
     // Mutable State
     private final MapProperty<Attribute<?>, AttributeEntry<?>> state;
@@ -52,11 +56,13 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
     public DefaultMutableAttributeContainer(
         AttributesFactory attributesFactory,
         AttributeValueIsolator attributeValueIsolator,
-        PropertyFactory propertyFactory
+        PropertyFactory propertyFactory,
+        ObjectFactory objectFactory
     ) {
         this.attributesFactory = attributesFactory;
         this.attributeValueIsolator = attributeValueIsolator;
         this.state = Cast.uncheckedNonnullCast(propertyFactory.mapProperty(Attribute.class, AttributeEntry.class));
+        this.objectFactory = objectFactory;
     }
 
     @Override
@@ -193,6 +199,12 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
         Map<Attribute<?>, AttributeEntry<?>> realizedState = doRealize(Provider::get);
         assertNoDuplicateNames(realizedState.keySet());
         return attributesFactory.fromEntries(realizedState.values());
+    }
+
+    @NonNull
+    @Override
+    public <T extends Named> T named(Class<T> type, String name) {
+        return objectFactory.named(type, name);
     }
 
     @Override

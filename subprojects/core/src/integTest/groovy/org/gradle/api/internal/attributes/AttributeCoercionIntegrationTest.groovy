@@ -47,7 +47,7 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 consumable("myVariant") {
                     attributes {
-                        attribute(ATTRIBUTE_TYPE, project.objects.named(MyAttributeType.class, 'myValue'))
+                        attribute(ATTRIBUTE_TYPE, named(MyAttributeType.class, 'myValue'))
                     }
                     outgoing.artifact(file("output.txt"))
                 }
@@ -84,7 +84,7 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         attributeCreationLogic << [
-            "attribute(ATTRIBUTE_TYPE, project.objects.named(MyAttributeType.class, 'myValue'))",
+            "attribute(ATTRIBUTE_TYPE, named(MyAttributeType.class, 'myValue'))",
             "attribute(Attribute.of('myAttribute', String), 'myValue')",
         ]
     }
@@ -107,7 +107,7 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 consumable("myVariant") {
                     attributes {
-                        attribute(ATTRIBUTE_TYPE, objects.named(MyAttributeType.class, 'myValue'))
+                        attribute(ATTRIBUTE_TYPE, named(MyAttributeType.class, 'myValue'))
                     }
                     outgoing.artifact(file("output.txt"))
                 }
@@ -147,7 +147,7 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         attributeCreationLogic << [
-            "attribute(ATTRIBUTE_TYPE, objects.named(MyAttributeType.class, 'myValue'))",
+            "attribute(ATTRIBUTE_TYPE, named(MyAttributeType.class, 'myValue'))",
             "attribute(Attribute.of('myAttribute', String), 'myValue')",
         ]
     }
@@ -202,7 +202,7 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         attributeCreationLogic << [
-            "attribute(ATTRIBUTE_TYPE, project.objects.named(MyAttributeType.class, 'myValue'))",
+            "attribute(ATTRIBUTE_TYPE, named(MyAttributeType.class, 'myValue'))",
             "attribute(Attribute.of('myAttribute', String), 'myValue')",
         ]
     }
@@ -273,7 +273,7 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
                 resolvable("myResolver") {
                     extendsFrom(configurations.getByName("myDeps"))
                     attributes {
-                        attribute(ATTRIBUTE_TYPE, objects.named(MyAttributeType.class, 'myValue'))
+                        attribute(ATTRIBUTE_TYPE, named(MyAttributeType.class, 'myValue'))
                     }
                 }
             }
@@ -321,7 +321,7 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
 
                 public void apply(Project project) {
                     project.getConfigurations().consumable("myVariant", c -> {
-                        c.getAttributes().attribute(ATTRIBUTE_TYPE, project.getObjects().named(MyAttributeType.class, "myValue"));
+                        c.getAttributes().attribute(ATTRIBUTE_TYPE, c.getAttributes().named(MyAttributeType.class, "myValue"));
                         c.getOutgoing().artifact(project.file("output.txt"));
                     });
 
@@ -329,7 +329,7 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
 
                     project.getConfigurations().resolvable("myResolver", c -> {
                         c.extendsFrom(myDeps.get());
-                        c.getAttributes().attribute(ATTRIBUTE_TYPE, project.getObjects().named(MyAttributeType.class, "myValue"));
+                        c.getAttributes().attribute(ATTRIBUTE_TYPE, c.getAttributes().named(MyAttributeType.class, "myValue"));
                     });
                 }
             }
