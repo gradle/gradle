@@ -94,6 +94,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
 
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
 
+    @Deprecated
     static final String API_CONFIGURATION = JvmConstants.API_CONFIGURATION_NAME;
     static final String JAR_TASK = "jar";
     static final String PROCESS_RESOURCES_TASK = "processResources";
@@ -175,7 +176,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
             return;
         }
         DependencyHandler dependencies = project.getDependencies();
-        dependencies.add(API_CONFIGURATION, dependencies.gradleApi());
+        dependencies.add(JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME, dependencies.gradleApi());
     }
 
     private void configureJarTask(Project project, GradlePluginDevelopmentExtension extension) {
@@ -458,6 +459,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
             for (SourceSet testSourceSet : testSourceSets) {
                 String implementationConfigurationName = testSourceSet.getImplementationConfigurationName();
                 dependencies.add(implementationConfigurationName, dependencies.gradleTestKit());
+                dependencies.add(implementationConfigurationName, dependencies.gradleApi());
                 String runtimeOnlyConfigurationName = testSourceSet.getRuntimeOnlyConfigurationName();
                 dependencies.add(runtimeOnlyConfigurationName, project.getLayout().files(pluginClasspathTask));
             }
