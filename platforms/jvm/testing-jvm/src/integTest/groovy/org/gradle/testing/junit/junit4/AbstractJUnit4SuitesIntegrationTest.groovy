@@ -18,7 +18,6 @@ package org.gradle.testing.junit.junit4
 
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.testing.junit.AbstractJUnitSuitesIntegrationTest
 import org.junit.Assume
 
@@ -48,6 +47,11 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
     @Override
     String getTestFrameworkSuiteDependencies() {
         return ""
+    }
+
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.JUNIT4
     }
 
     def "suite output is visible"() {
@@ -240,20 +244,17 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
         executer.withTasks('test').run()
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.SomeTest1', 'org.gradle.SomeTest2', 'org.gradle.SomeSuite')
-        result.testClass("org.gradle.SomeTest1").assertTestCount(1, 0)
-        result.testClass("org.gradle.SomeTest1").assertTestsExecuted("testOk1")
-        result.testClass("org.gradle.SomeTest2").assertTestCount(1, 0)
-        result.testClass("org.gradle.SomeTest2").assertTestsExecuted("testOk2")
-        result.testClass("org.gradle.SomeSuite").assertTestCount(0, 0)
+        GenericTestExecutionResult result = resultsFor('tests/test', testFramework)
+        result.assertTestPathsExecuted(
+            ':org.gradle.SomeSuite:org.gradle.SomeTest1:testOk1',
+            ':org.gradle.SomeSuite:org.gradle.SomeTest2:testOk2'
+        )
         if (supportsSuiteOutput()) {
-            result.testClass("org.gradle.SomeSuite").assertStdout(containsString("stdout in TestSetup#setup"))
-            result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#setup"))
-            // JUnit3 suite teardown output does not seem to get captured with Vintage (even with 5.9.0)
-            // TODO need to investigate whether this is a bug in JUnit or in Gradle testing or what
-            //result.testClass("org.gradle.SomeSuite").assertStdout(containsString("stdout in TestSetup#teardown"))
-            //result.testClass("org.gradle.SomeSuite").assertStderr(containsString("stderr in TestSetup#teardown"))
+            result.testPath(":org.gradle.SomeSuite").onlyRoot().assertStdout(containsString("stdout in TestSetup#setup"))
+            result.testPath(":org.gradle.SomeSuite").onlyRoot().assertStderr(containsString("stderr in TestSetup#setup"))
+            // Due to the way JUnit 3 suites work, we cannot associate the output correctly, even in recent JUnit 4 and Vintage.
+            result.testPath("org.gradle.SomeSuite:org.gradle.SomeTest2").onlyRoot().assertStdout(containsString("stdout in TestSetup#teardown"))
+            result.testPath("org.gradle.SomeSuite:org.gradle.SomeTest2").onlyRoot().assertStderr(containsString("stderr in TestSetup#teardown"))
         }
     }
 }

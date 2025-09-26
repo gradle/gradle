@@ -53,7 +53,7 @@ abstract class AbstractJUnitAssumptionsIntegrationTest extends AbstractTestingMu
         run('check')
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory, testFramework)
         result.assertTestClassesExecuted('org.gradle.TestWithAssumptions')
         result.testClass('org.gradle.TestWithAssumptions')
                 .assertTestCount(2, 0)
