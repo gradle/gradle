@@ -149,7 +149,7 @@ class DependencyHandlerExtensionsTest {
             dependency
         }
         val projectPath: Path = Path.path(":project")
-        whenever(dependency.path).thenReturn(projectPath.path)
+        whenever(dependency.path).thenReturn(projectPath.asString())
 
         dependencies {
 
@@ -157,7 +157,7 @@ class DependencyHandlerExtensionsTest {
                 events.add("configured")
                 assertThat(
                     path,
-                    sameInstance(projectPath.path)
+                    sameInstance(projectPath.asString())
                 )
             }
         }

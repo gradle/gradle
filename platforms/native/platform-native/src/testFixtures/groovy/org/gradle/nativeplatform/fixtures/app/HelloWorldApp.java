@@ -17,11 +17,11 @@
 package org.gradle.nativeplatform.fixtures.app;
 
 import org.apache.commons.io.FilenameUtils;
-import org.gradle.internal.InternalTransformer;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 public abstract class HelloWorldApp extends TestApp {
     public static final String HELLO_WORLD = "Hello, World!";
@@ -113,9 +113,9 @@ public abstract class HelloWorldApp extends TestApp {
         return null;
     }
 
-    private static class SingleQuotingTransformer implements InternalTransformer<Object, String> {
+    private static class SingleQuotingTransformer implements Function<String, Object> {
         @Override
-        public Object transform(String original) {
+        public Object apply(String original) {
             return "'" + original + "'";
         }
     }

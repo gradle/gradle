@@ -23,7 +23,7 @@ import org.gradle.util.Path;
  * Resolves potentially relative string-typed project paths to build-tree project identity {@link Path}s,
  * relative to some base project.
  */
-@ServiceScope({Scope.Gradle.class, Scope.Project.class})
+@ServiceScope(Scope.Project.class)
 public interface ProjectFinder {
 
     /**

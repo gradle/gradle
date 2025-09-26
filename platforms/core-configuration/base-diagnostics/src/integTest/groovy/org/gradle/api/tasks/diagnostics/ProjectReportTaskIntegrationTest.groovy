@@ -19,11 +19,11 @@ import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
-import org.gradle.internal.declarativedsl.settings.SoftwareTypeFixture
+import org.gradle.internal.declarativedsl.settings.ProjectTypeFixture
 import org.gradle.util.internal.TextUtil
 
 /**
- * Integration tests for the `:projects` task, which reports the project structure and software types.
+ * Integration tests for the `:projects` task, which reports the project structure and project types.
  * <p>
  * This test suite covers various scenarios including:
  * <ul>
@@ -31,10 +31,10 @@ import org.gradle.util.internal.TextUtil
  *   <li>Transitive composites</li>
  *   <li>Non-standard project directories</li>
  *   <li>Long project descriptions</li>
- *   <li>Software types registered via declarative DSL</li>
+ *   <li>Project types registered via declarative DSL</li>
  * </ul>
  */
-class ProjectReportTaskIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture {
+class ProjectReportTaskIntegrationTest extends AbstractIntegrationSpec implements ProjectTypeFixture {
     def "reports project structure with single composite"() {
         given:
         createDirs("p1", "p2", "p2/p22", "another")
@@ -220,8 +220,8 @@ Root project 'my-root-project'
     }
 
     @ToBeFixedForIsolatedProjects(because = "Accesses project.description for another project")
-    def "project project structure and software types for multi-project build using declarative dcl"() {
-        given: "a build-logic build registering an ecosystem plugin defining several software types via several plugins"
+    def "project project structure and project types for multi-project build using declarative dcl"() {
+        given: "a build-logic build registering an ecosystem plugin defining several project types via several plugins"
         file("build-logic/src/main/java/com/example/restricted/LibraryExtension.java") << """
             package com.example.restricted;
 
@@ -334,7 +334,7 @@ Root project 'my-root-project'
             }
         """
 
-        and: "a build that applies that ecosystem plugin to a multi-project build, with each project using a different software type"
+        and: "a build that applies that ecosystem plugin to a multi-project build, with each project using a different project type"
         settingsFile << """
             pluginManagement {
                 includeBuild("build-logic")
@@ -383,7 +383,7 @@ Root project 'my-root-project'
 
         outputContains("""
 
-Available software types:
+Available project types:
 
 application (com.example.restricted.ApplicationExtension)
         Defined in: com.example.restricted.ApplicationPlugin

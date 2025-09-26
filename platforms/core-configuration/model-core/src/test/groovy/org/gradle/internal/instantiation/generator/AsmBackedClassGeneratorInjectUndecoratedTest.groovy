@@ -55,6 +55,7 @@ class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGenerato
         bean.a == "a"
 
         bean instanceof GeneratedSubclass
+        bean.class.simpleName.startsWith("AsmBackedClassGeneratorTest\$AbstractBean\$Inject_")
         bean.publicType() == AbstractBean
 
         bean instanceof ModelObject

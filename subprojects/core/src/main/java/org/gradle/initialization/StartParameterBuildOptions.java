@@ -82,6 +82,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigurationCacheQuietOption(),
         new ConfigurationCacheIntegrityCheckOption(),
         new ConfigurationCacheEntriesPerKeyOption(),
+        new ConfigurationCacheHeapDumpDir(),
+        new ConfigurationCacheFineGrainedPropertyTracking(),
         new IsolatedProjectsOption(),
         new ProblemReportGenerationOption(),
         new PropertyUpgradeReportOption(),
@@ -342,7 +344,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         public BuildScanOption() {
             super(null, BooleanCommandLineOptionConfiguration.create(LONG_OPTION,
-                "Generate a Build Scan (Powered by Develocity).\n" +
+                "Generate a Build Scan (powered by Develocity).\n" +
                     "                                   Build Scan and Develocity are registered trademarks of Gradle, Inc.\n" +
                     "                                   For more information, please visit https://gradle.com/develocity/product/build-scan/.",
                 "Disables the creation of a Build Scan."));
@@ -689,6 +691,46 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheIntegrityCheckEnabled(value);
+        }
+    }
+
+    /**
+     * When set, tells Gradle to emit heap dumps in the given directory after loading the work graph on a Configuration Cache hit,
+     * after storing and loading the work graph on a Configuration Cache miss.
+     */
+    public static class ConfigurationCacheHeapDumpDir extends StringBuildOption<StartParameterInternal> {
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.heap-dump-dir";
+
+        public ConfigurationCacheHeapDumpDir() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(String value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheHeapDumpDir(value);
+        }
+    }
+
+    /**
+     * Whether [project property accesses][org.gradle.api.internal.properties.GradleProperties] are tracked individually
+     * to increase cache hit rates.
+     *
+     * Increases memory usage proportionally to the number of projects and property accesses.
+     *
+     * It can be disabled to save on memory.
+     *
+     * The default is `true`.
+     */
+    public static class ConfigurationCacheFineGrainedPropertyTracking extends BooleanBuildOption<StartParameterInternal> {
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.fine-grained-property-tracking";
+
+        public ConfigurationCacheFineGrainedPropertyTracking() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheFineGrainedPropertyTracking(value);
         }
     }
 

@@ -65,11 +65,11 @@ enum class Os(
     fun escapeKeyValuePair(
         key: String,
         value: String,
-    ) = if (this == WINDOWS) """$key="$value"""" else """"$key=$value""""
+    ) = """"$key=$value""""
 
     fun asName() = name.lowercase().toCapitalized()
 
-    fun javaInstallationLocations(arch: Arch = Arch.AMD64): String {
+    fun javaInstallationLocations(arch: Arch = Arch.AMD64): List<String> {
         val paths =
             when {
                 this == LINUX ->
@@ -99,6 +99,9 @@ enum class Os(
                         DefaultJvm(JvmVersion.JAVA_25, JvmVendor.OPENJDK),
                     )
             }.joinToString(",") { javaHome(it, this, arch) }
-        return """"-Porg.gradle.java.installations.paths=$paths""""
+        return listOf(
+            """"-Dorg.gradle.java.installations.paths=$paths"""",
+            """"-Porg.gradle.java.installations.paths=$paths"""",
+        )
     }
 }

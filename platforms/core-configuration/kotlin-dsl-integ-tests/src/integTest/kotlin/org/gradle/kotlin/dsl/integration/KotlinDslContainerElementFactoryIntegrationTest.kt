@@ -28,7 +28,7 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
     }
 
     @Test
-    fun `can use custom software type names for element factories`() {
+    fun `can use custom project type names for element factories`() {
         testKtsDefinitionWithDeclarativePlugin(withPluginsBlock = false, withCustomElementFactoryName = true)
     }
 

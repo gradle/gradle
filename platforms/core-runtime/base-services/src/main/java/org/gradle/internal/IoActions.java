@@ -27,6 +27,7 @@ import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.util.function.Function;
 
 /**
  * Various utilities for dealing with IO actions.
@@ -81,10 +82,10 @@ public abstract class IoActions {
         uncheckedClose(resource);
     }
 
-    public static <T extends Closeable, R> R withResource(T resource, InternalTransformer<R, ? super T> action) {
+    public static <T extends Closeable, R> R withResource(T resource, Function<? super T, R> action) {
         R result;
         try {
-            result = action.transform(resource);
+            result = action.apply(resource);
         } catch (Throwable t) {
             closeQuietly(resource);
             throw UncheckedException.throwAsUncheckedException(t);

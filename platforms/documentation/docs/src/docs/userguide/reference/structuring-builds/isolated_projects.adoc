@@ -48,7 +48,7 @@ Isolated Projects is a pre-alpha feature, and as such, the current implementatio
 These will be addressed in future Gradle releases:
 
 * Gradle, IntelliJ IDEA, Android Studio, and Kotlin plugins are not yet 100% compatible with Isolated Projects, so you should expect to see some violations reported. The teams are actively working on fixing these incompatibilities.
-* Parallel configuration does not support <<multi_project_configuration_and_execution.adoc#sec:configuration_on_demand, Configuration on Demand>>. All projects will be configured, even if they aren't running tasks.
+* Parallel configuration does not support <<configuration_on_demand.adoc#sec:configuration_on_demand, Configuration on Demand>>. All projects will be configured, even if they aren't running tasks.
 * Changes to included builds invalidate all cached results, even when the change would not affect the cached results.
 * The implementation does not exploit the isolation to limit peak memory consumption. Currently, peak memory consumption is a function of how many projects must be configured.
 * All caching, including the configuration cache, is done on the local machine. Remote caching is not supported yet.
@@ -108,8 +108,6 @@ These constraints are not final and can change at any time.
 When building from the command line (i.e. for task execution) with Isolated Projects enabled, projects are now configured in parallel.
 
 Parallel configuration does not yet support Configuration on Demand. All projects will be configured, even those which have no tasks to run.
-If this tradeoff is undesirable and you want projects to configure serially with Configure on Demand, set the
-`org.gradle.internal.isolated-projects.configure-on-demand.tasks` system property to `true`.
 
 === Gradle 8.9
 
@@ -146,7 +144,7 @@ This will allow Gradle to perform additional performance optimizations and will 
 
 While the existing callbacks continue to work, we encourage everyone to adopt the new API and provide us with early feedback.
 
-The example below shows how this new API could be used in a settings script or <<custom_plugins.adoc#project_vs_settings_vs_init_plugins, settings plugins>> to apply configuration to all projects,
+The example below shows how this new API could be used in a settings script or <<plugins.adoc#project_vs_settings_vs_init_plugins, settings plugins>> to apply configuration to all projects,
 while avoiding <<sharing_build_logic_between_subprojects.adoc#sec:convention_plugins_vs_cross_configuration, cross-project configuration>>:
 
 [source,kotlin]

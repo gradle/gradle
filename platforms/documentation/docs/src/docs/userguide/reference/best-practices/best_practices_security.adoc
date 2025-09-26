@@ -38,7 +38,7 @@ The official SHA-256 checksums can be found on the link:https://gradle.org/relea
 === References
 
 - link:https://gradle.org/releases/[Gradle Releases with Checksums]
-- <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper Reference>>
+- <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper Reference>>
 
 === Tags
 

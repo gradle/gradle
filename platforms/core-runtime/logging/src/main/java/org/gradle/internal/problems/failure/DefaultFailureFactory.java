@@ -21,7 +21,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.ProblemLocator;
-import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
@@ -31,6 +30,7 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 public class DefaultFailureFactory implements FailureFactory {
 
@@ -66,12 +66,7 @@ public class DefaultFailureFactory implements FailureFactory {
 
         private final Set<Throwable> seen;
 
-        private final InternalTransformer<Failure, Throwable> recursiveConverter = new InternalTransformer<Failure, Throwable>() {
-            @Override
-            public Failure transform(Throwable throwable) {
-                return convertRecursively(throwable);
-            }
-        };
+        private final Function<Throwable, Failure> recursiveConverter = this::convertRecursively;
 
         private Job(StackTraceClassifier stackTraceClassifier, ProblemLocator problemLocator) {
             this(stackTraceClassifier, problemLocator, null);
@@ -171,22 +166,17 @@ public class DefaultFailureFactory implements FailureFactory {
             );
         }
 
-        private InternalTransformer<Failure, Throwable> determineRecursiveConverter(int size) {
+        private Function<Throwable, Failure> determineRecursiveConverter(int size) {
             if (size <= 1) {
                 return recursiveConverter;
             } else {
                 // when we branch, we need to have separate seen sets on each branch, since we there cannot be cycles between branches
-                return multiChildTransformer();
+                return this::multiChildTransformer;
             }
         }
 
-        private InternalTransformer<Failure, Throwable> multiChildTransformer() {
-            return new InternalTransformer<Failure, Throwable>() {
-                @Override
-                public Failure transform(Throwable throwable) {
-                    return new Job(stackTraceClassifier, problemLocator, seen).convert(throwable);
-                }
-            };
+        private Failure multiChildTransformer(Throwable throwable) {
+            return new Job(stackTraceClassifier, problemLocator, seen).convert(throwable);
         }
 
         private static class SuppressedAndCauses {

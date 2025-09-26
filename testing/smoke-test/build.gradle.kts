@@ -192,3 +192,7 @@ plugins.withType<IdeaPlugin>().configureEach {
         scopes["TEST"]!!["plus"]!!.add(smokeTestRuntimeClasspath)
     }
 }
+
+errorprone {
+    nullawayEnabled = true
+}

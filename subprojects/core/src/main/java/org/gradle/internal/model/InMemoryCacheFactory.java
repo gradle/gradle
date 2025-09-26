@@ -61,7 +61,7 @@ public class InMemoryCacheFactory {
 
     /**
      * Create a loading cache similar to that created by {@link #create(Function)}, but which bypasses
-     * the equals and hashcode methods of the key and intead compares object identity. Caches
+     * the equals and hashcode methods of the key and instead compares object identity. Caches
      * created by this method should be used only with keys that are known to be interned.
      * <p>
      * This is likely a more performant alternative to {@code Collections.synchronizedMap(new IdentityHashMap<>())}

@@ -22,7 +22,7 @@ image::gradle-basic-2.png[]
 The Gradle CLI is the primary way to interact with a Gradle build from the terminal.
 You can use it to run tasks, inspect the build, manage dependencies, and control logging, all through flexible and powerful command-line options.
 
-TIP: Use of the <<gradle_wrapper.adoc#gradle_wrapper_reference, Gradle Wrapper>> is highly encouraged. Substitute `./gradlew` (in macOS / Linux) or `gradlew.bat` (in Windows) for `gradle` in the following examples.
+TIP: Use of the <<gradle_wrapper.adoc#gradle_wrapper, Gradle Wrapper>> is highly encouraged. Substitute `./gradlew` (in macOS / Linux) or `gradlew.bat` (in Windows) for `gradle` in the following examples.
 
 == Running commands
 

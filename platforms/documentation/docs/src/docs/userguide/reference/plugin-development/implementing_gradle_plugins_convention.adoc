@@ -1,0 +1,104 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[implementing_convention_plugins]]
+= Convention Plugins
+:keywords: convention, plugin
+
+A *convention plugin* is a type of <<implementing_gradle_plugins_precompiled.adoc#implementing_precompiled_plugins,*pre-compiled script plugin*>>.
+
+A *convention plugin* is a plugin that normally configures existing core and community plugins with your own conventions (i.e. default values) such as setting the Java version by using `java.toolchain.languageVersion = JavaLanguageVersion.of(17)`.
+
+Convention plugins are also used to enforce project standards and help streamline the build process.
+They can apply and configure plugins, create new tasks and extensions, set dependencies, and much more.
+
+Convention plugins are preferred over `allprojects {}` / `subprojects {}` blocks.
+
+== Creating a convention plugin
+
+Convention plugins are typically placed in either:
+
+* `buildSrc/` — simplest approach, automatically on the classpath of the build.
+* an included build (commonly named `build-logic/`) — more scalable, especially for multi-project builds or organizations.
+
+Any `.gradle.kts` (or `.gradle`) script file in `src/main/kotlin/` or `src/main/groovy/` of that plugin build becomes a precompiled script plugin, and its file name defines the plugin ID.
+
+== Example of a convention plugin
+
+Convention plugins really shine when you want to capture *organization-wide defaults* once, and apply them consistently across many subprojects.
+
+Imagine you want every module that publishes artifacts to use the same Maven configuration.
+Instead of copy–pasting `publishing { … }` blocks into every `build.gradle(.kts)`, you can extract them into a convention plugin.
+
+The project layout is as follows:
+
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+.
+├── core/
+├── utils/
+├── platform/
+└── buildSrc/
+    ├── build.gradle.kts
+    └── src/
+        └── main/
+            └── kotlin/
+                └── java-conventions.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── core/
+├── utils/
+├── platform/
+└── buildSrc/
+    ├── build.gradle
+    └── src/
+        └── main/
+            └── groovy/
+                └── java-conventions.gradle
+----
+=====
+
+Here’s a precompiled script plugin that standardizes publishing.
+Notice how it sets the `group` and `version` from the root project and configures a local Maven repository in `build/repo`:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignmentWithPlatform">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignmentWithPlatform/kotlin",files="buildSrc/src/main/kotlin/myproject.publishing-conventions.gradle.kts[]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignmentWithPlatform/groovy",files="buildSrc/src/main/groovy/myproject.publishing-conventions.gradle[]"]
+====
+
+With this in place, any subproject can opt in simply by applying `id("myproject.publishing-conventions")`.
+
+Our `platform` subproject applies the convention plugin alongside the `java-platform` plugin.
+It declares dependency constraints and sets up a publication for the BOM:
+
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignmentWithPlatform/kotlin",files="platform/build.gradle.kts[tags=convention]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignmentWithPlatform/groovy",files="platform/build.gradle[tags=convention]"]
+====
+

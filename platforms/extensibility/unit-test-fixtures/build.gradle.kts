@@ -23,7 +23,6 @@ description = "Public types for unit testing plugins"
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
-    api(projects.buildProcessServices)
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
@@ -35,6 +34,7 @@ dependencies {
 
     api(libs.jspecify)
 
+    implementation(projects.buildProcessServices)
     implementation(projects.buildState)
     implementation(projects.classloaders)
     implementation(projects.daemonServices)
@@ -47,6 +47,7 @@ dependencies {
     implementation(projects.native)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.stdlibJavaExtensions)
+    implementation(projects.problemsApi)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(projects.testingBase)
@@ -56,11 +57,9 @@ dependencies {
     }
 
     integTestImplementation(testFixtures(projects.buildProcessServices))
+    integTestCompileOnly(libs.jetbrainsAnnotations)
 
-    integTestRuntimeOnly(projects.distributionsCore) {
-        because("ProjectBuilder loads services from a Gradle distribution.")
-    }
-    integTestDistributionRuntimeClasspath(projects.distributionsFull)
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 tasks.isolatedProjectsIntegTest {
     enabled = false

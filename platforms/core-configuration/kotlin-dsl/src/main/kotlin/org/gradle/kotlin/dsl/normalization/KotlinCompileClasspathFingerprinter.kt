@@ -30,6 +30,7 @@ import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprin
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.FileSystemSnapshot
+import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotVisitResult
 import org.jetbrains.kotlin.buildtools.api.CompilationService
@@ -53,6 +54,11 @@ class KotlinCompileClasspathFingerprinter(
         val fingerprints: MutableMap<String, HashCode> = mutableMapOf()
 
         fileSystemSnapshot.accept { snapshot ->
+            // if it doesn't exist, we ignore it
+            if (snapshot is MissingFileSnapshot) {
+                return@accept SnapshotVisitResult.CONTINUE
+            }
+
             // if not jar file or class directory, we ignore it
             if (snapshot is RegularFileSnapshot && !snapshot.absolutePath.endsWith(".jar", ignoreCase = true)) {
                 return@accept SnapshotVisitResult.CONTINUE

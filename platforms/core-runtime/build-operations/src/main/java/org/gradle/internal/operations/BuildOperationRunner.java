@@ -18,7 +18,6 @@ package org.gradle.internal.operations;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Runs build operations: the pieces of work that make up a build.
@@ -54,7 +53,7 @@ public interface BuildOperationRunner {
     /**
      * Executes the given build operation with the given worker, returns the result.
      */
-    <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent);
+    <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker);
 
     /**
      * Returns the state of the build operation currently running on this thread. Can be used as parent of a new build operation

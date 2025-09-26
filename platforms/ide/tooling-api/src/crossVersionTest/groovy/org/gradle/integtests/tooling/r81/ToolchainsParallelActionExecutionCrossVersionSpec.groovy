@@ -70,6 +70,7 @@ class ToolchainsParallelActionExecutionCrossVersionSpec extends ToolingApiSpecif
     @TargetGradleVersion(">=8.1")
     def "nested actions that query a project model which leverages toolchain information do not cause Property evaluation to be in unexpected state"() {
         given:
+        System.setProperty("org.gradle.java.installations.auto-download", "true")
         setupBuildWithToolchainsResolution()
 
         when:

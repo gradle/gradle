@@ -18,6 +18,7 @@ package org.gradle.internal.hash;
 
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -279,7 +280,7 @@ public class Hashing {
 
     private static class MessageDigestHasher implements PrimitiveHasher {
         private final ByteBuffer buffer = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN);
-        private MessageDigest digest;
+        private @Nullable MessageDigest digest;
 
         public MessageDigestHasher(MessageDigest digest) {
             this.digest = digest;

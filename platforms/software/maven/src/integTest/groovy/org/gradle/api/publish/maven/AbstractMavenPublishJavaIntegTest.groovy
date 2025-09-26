@@ -1290,17 +1290,26 @@ include(':platform')
 
     def "fails when attempting to modify a published variant that does not exist"() {
         given:
-        createBuildScripts """
+        createBuildScripts("""
             components.java.withVariantsFromConfiguration(configurations.annotationProcessor) {
                 skip()
             }
-        """
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """)
 
         when:
-        fails "publish"
+        fails("publish")
 
         then:
-        failure.assertHasCause("Variant for configuration annotationProcessor does not exist in component java")
+        failure.assertHasCause("Variant for configuration 'annotationProcessor' does not exist in component 'java'. " +
+            "For a given configuration, 'addVariantsFromConfiguration' must be called before 'withVariantsFromConfiguration'."
+        )
     }
 
     def "fails if trying to publish a component with all variants filtered"() {

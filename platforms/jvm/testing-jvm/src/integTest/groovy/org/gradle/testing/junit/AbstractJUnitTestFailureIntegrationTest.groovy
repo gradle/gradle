@@ -21,6 +21,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
+import org.gradle.util.internal.VersionNumber
 import org.hamcrest.Matcher
 import spock.lang.Issue
 
@@ -253,40 +254,49 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMu
         """.stripIndent()
 
         when:
-        executer.withTasks('build').runWithFailure().assertTestsFailed()
+        def failure = executer.withTasks('build').runWithFailure()
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted(
-            'org.gradle.ClassWithBrokenRunnerOrExtension',
-            'org.gradle.CustomException',
-            'org.gradle.BrokenTest',
-            'org.gradle.BrokenBefore',
-            'org.gradle.BrokenAfter',
-            'org.gradle.BrokenBeforeClass',
-            'org.gradle.BrokenAfterClass',
-            'org.gradle.BrokenBeforeAndAfter',
-            'org.gradle.BrokenConstructor',
-            'org.gradle.BrokenException',
-            'org.gradle.Unloadable',
-            'org.gradle.UnserializableException')
-        result.testClass('org.gradle.ClassWithBrokenRunnerOrExtension').assertTestFailed(initializationErrorTestName, equalTo('java.lang.UnsupportedOperationException: broken'))
-        result.testClass('org.gradle.BrokenTest')
-            .assertTestCount(2, 2, 0)
-            .assertTestFailed('failure', equalTo(failureAssertionError('failed')))
-            .assertTestFailed('broken', equalTo('java.lang.IllegalStateException: html: <> cdata: ]]>'))
-        result.testClass('org.gradle.BrokenBeforeClass').assertTestFailed(beforeClassErrorTestName, equalTo(failureAssertionError('failed')))
-        result.testClass('org.gradle.BrokenAfterClass').assertTestFailed(afterClassErrorTestName, equalTo(failureAssertionError('failed')))
-        result.testClass('org.gradle.BrokenBefore').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
-        result.testClass('org.gradle.BrokenAfter').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
-        result.testClass('org.gradle.BrokenBeforeAndAfter').assertTestFailed('ok', brokenBeforeAndAfterMatchers)
-        result.testClass('org.gradle.BrokenException').assertTestFailed('broken', startsWith('Could not determine failure message for exception of type org.gradle.BrokenException$BrokenRuntimeException: java.lang.UnsupportedOperationException'))
-        result.testClass('org.gradle.CustomException').assertTestFailed('custom', startsWith('Exception with a custom toString implementation'))
-        result.testClass('org.gradle.UnserializableException').assertTestFailed('unserialized', equalTo('org.gradle.UnserializableException$UnserializableRuntimeException: whatever'))
-        if (hasStableInitializationErrors()) {
-            result.testClass('org.gradle.Unloadable').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
-            result.testClass('org.gradle.Unloadable').assertTestFailed('ok2', startsWith('java.lang.NoClassDefFoundError'))
-            result.testClass('org.gradle.BrokenConstructor').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
+        if (VersionNumber.parse(version) > VersionNumber.parse("4.4")) {
+            failure.assertTestsFailed()
+            DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
+            result.assertTestClassesExecuted(
+                'org.gradle.ClassWithBrokenRunnerOrExtension',
+                'org.gradle.CustomException',
+                'org.gradle.BrokenTest',
+                'org.gradle.BrokenBefore',
+                'org.gradle.BrokenAfter',
+                'org.gradle.BrokenBeforeClass',
+                'org.gradle.BrokenAfterClass',
+                'org.gradle.BrokenBeforeAndAfter',
+                'org.gradle.BrokenConstructor',
+                'org.gradle.BrokenException',
+                'org.gradle.Unloadable',
+                'org.gradle.UnserializableException')
+
+            result.testClass('org.gradle.ClassWithBrokenRunnerOrExtension').assertTestFailed(initializationErrorTestName, equalTo('java.lang.UnsupportedOperationException: broken'))
+            result.testClass('org.gradle.BrokenTest')
+                .assertTestCount(2, 2, 0)
+                .assertTestFailed('failure', equalTo(failureAssertionError('failed')))
+                .assertTestFailed('broken', equalTo('java.lang.IllegalStateException: html: <> cdata: ]]>'))
+            result.testClass('org.gradle.BrokenBeforeClass').assertTestFailed(beforeClassErrorTestName, equalTo(failureAssertionError('failed')))
+            result.testClass('org.gradle.BrokenAfterClass').assertTestFailed(afterClassErrorTestName, equalTo(failureAssertionError('failed')))
+            result.testClass('org.gradle.BrokenBefore').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
+            result.testClass('org.gradle.BrokenAfter').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
+            result.testClass('org.gradle.BrokenBeforeAndAfter').assertTestFailed('ok', brokenBeforeAndAfterMatchers)
+            result.testClass('org.gradle.BrokenException').assertTestFailed('broken', startsWith('Could not determine failure message for exception of type org.gradle.BrokenException$BrokenRuntimeException: java.lang.UnsupportedOperationException'))
+            result.testClass('org.gradle.CustomException').assertTestFailed('custom', startsWith('Exception with a custom toString implementation'))
+            result.testClass('org.gradle.UnserializableException').assertTestFailed('unserialized', equalTo('org.gradle.UnserializableException$UnserializableRuntimeException: whatever'))
+            if (hasStableInitializationErrors()) {
+                result.testClass('org.gradle.Unloadable').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
+                result.testClass('org.gradle.Unloadable').assertTestFailed('ok2', startsWith('java.lang.NoClassDefFoundError'))
+                result.testClass('org.gradle.BrokenConstructor').assertTestFailed('ok', equalTo(failureAssertionError('failed')))
+            }
+        } else {
+            // In JUnit 4.0 to 4.4, a test class with an initialization error results in a test process failure; not a test execution failure,
+            // so we cannot assert on test results. From 4.5 onwards, we get proper test execution failures.
+            failure.assertHasDescription("Execution failed for task ':test'.");
+            failure.assertThatCause(startsWith("Could not execute test class 'org.gradle.Unloadable'."));
         }
     }
 

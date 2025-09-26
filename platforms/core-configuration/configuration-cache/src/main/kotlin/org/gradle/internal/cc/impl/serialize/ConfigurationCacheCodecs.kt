@@ -41,7 +41,7 @@ import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.tasks.util.internal.PatternSetFactory
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.instantiation.InstantiatorFactory
@@ -139,6 +139,7 @@ import org.gradle.internal.serialize.graph.codecs.BindingsBuilder
 import org.gradle.internal.serialize.graph.codecs.DelegatingCodec
 import org.gradle.internal.serialize.graph.codecs.NotImplementedCodec
 import org.gradle.internal.serialize.graph.codecs.ServicesCodec
+import org.gradle.internal.serialize.graph.codecs.ValueObjectCodec
 import org.gradle.internal.serialize.graph.reentrant
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
@@ -162,7 +163,7 @@ interface ConfigurationCacheCodecs {
 @Suppress("LongParameterList")
 internal
 class DefaultConfigurationCacheCodecs(
-    configurationCacheStartParameter: ConfigurationCacheStartParameter,
+    modelParameters: BuildModelParameters,
     directoryFileTreeFactory: DirectoryFileTreeFactory,
     fileCollectionFactory: FileCollectionFactory,
     artifactSetConverter: ArtifactSetToFileCollectionFactory,
@@ -197,10 +198,10 @@ class DefaultConfigurationCacheCodecs(
 ) : ConfigurationCacheCodecs {
 
     private
-    val parallelStore: Boolean = configurationCacheStartParameter.isParallelStore
+    val parallelStore: Boolean = modelParameters.isConfigurationCacheParallelStore
 
     private
-    val parallelLoad: Boolean = configurationCacheStartParameter.isParallelLoad
+    val parallelLoad: Boolean = modelParameters.isConfigurationCacheParallelLoad
 
     private
     val userTypesBindings: Bindings
@@ -309,6 +310,7 @@ class DefaultConfigurationCacheCodecs(
     fun Bindings.completeWithStatefulCodecs() = append {
         bind(ExternalizableCodec)
         bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup))
+        bind(ValueObjectCodec)
 
         // This protects the BeanCodec against StackOverflowErrors, but
         // we can still get them for the other codecs, for instance,

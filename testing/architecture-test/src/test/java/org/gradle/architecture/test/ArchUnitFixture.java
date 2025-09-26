@@ -84,24 +84,10 @@ import static java.util.stream.Collectors.toSet;
 
 @NullMarked
 public interface ArchUnitFixture {
-    DescribedPredicate<JavaClass> classes_not_written_in_kotlin = resideOutsideOfPackages(
-        "org.gradle.internal.cc..",
-        "org.gradle.configurationcache..",
-        "org.gradle.internal.configuration.problems..",
-        "org.gradle.internal.encryption..",
-        "org.gradle.internal.extensions.core..",
-        "org.gradle.internal.extensions.stdlib..",
-        "org.gradle.internal.flow.services..",
-        "org.gradle.internal.serialize.beans..",
-        "org.gradle.internal.serialize.codecs..",
-        "org.gradle.internal.serialize.graph..",
-        "org.gradle.internal.isolate.graph..",
-        "org.gradle.internal.isolate.actions..",
-        "org.gradle.kotlin..",
-        "org.gradle.internal.declarativedsl..",
-        "org.gradle.declarative.dsl..",
-        "org.gradle.problems.internal.impl.."
-    ).as("classes written in Java or Groovy");
+    DescribedPredicate<JavaClass> classes_not_written_in_kotlin =
+        not(annotatedOrInPackageAnnotatedWith(kotlin.Metadata.class))
+            .and(resideOutsideOfPackages("org.gradle.kotlin..")) // a few relocated kotlinx-metadata classes violate the nullability annotation rules
+            .as("classes written in Java or Groovy");
 
     DescribedPredicate<JavaClass> not_synthetic_classes = new DescribedPredicate<JavaClass>("not synthetic classes") {
         @Override

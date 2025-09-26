@@ -39,36 +39,6 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ## New features and usability improvements
 
-### Publishing improvements
-
-#### New `PublishingExtension.getSoftwareComponentFactory()` method
-
-This release introduces a new method that exposes the [`SoftwareComponentFactory`](javadoc/org/gradle/api/component/SoftwareComponentFactory.html) service via the `publishing` extension, simplifying the creation of publishable components.
-In many cases, a component is already present. 
-For example, the bundled Java plugins already provide the `java` component by default.
-This new method is especially useful for plugin authors who want to create and publish custom components without needing to depend on the Java plugins.
-
-The following example shows how to use this new method to publish a custom component:
-
-```kotlin
-plugins {
-    id("maven-publish")
-}
-
-val consumableConfiguration: Configuration = getAConfiguration()
-
-publishing {
-    val myCustomComponent = softwareComponentFactory.adhoc("myCustomComponent")
-    myCustomComponent.addVariantsFromConfiguration(consumableConfiguration) {}
-    
-    publications {
-        create<MavenPublication>("maven") {
-            from(myCustomComponent)
-        }
-    }
-}
-```
-
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
 <!--
@@ -118,11 +88,9 @@ See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecy
 
 The following are the features that have been promoted in this Gradle release.
 
-### Daemon toolchain is now stable
-
-Gradle introduced the [Daemon toolchain](userguide/gradle_daemon.html#sec:daemon_jvm_criteria) in Gradle 8.8 as an incubating feature.
-Since then the feature has been improved and stabilized.
-It is now considered stable and will no longer print an incubation warning when used.
+<!--
+### Example promoted
+-->
 
 ## Fixed issues
 

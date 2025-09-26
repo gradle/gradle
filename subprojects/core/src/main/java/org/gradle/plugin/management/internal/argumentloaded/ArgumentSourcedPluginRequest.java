@@ -18,6 +18,7 @@ package org.gradle.plugin.management.internal.argumentloaded;
 
 import com.google.common.base.Strings;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.management.internal.PluginCoordinates;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
@@ -98,6 +99,11 @@ public final class ArgumentSourcedPluginRequest implements PluginRequestInternal
     @Override
     public String getVersion() {
         return version;
+    }
+
+    @Override
+    public @Nullable ComponentSelector getSelector() {
+        return null;
     }
 
     @Nullable

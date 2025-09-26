@@ -22,6 +22,7 @@
 
 Gradle's Build Tool source code is open-source and licensed under the link:https://github.com/gradle/gradle/blob/master/LICENSE[Apache License 2.0].
 
+[[licences]]
 Gradle's User Manual and DSL Reference Manual are licensed under link:http://creativecommons.org/licenses/by-nc-sa/4.0/[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License].
 
 [[licenses:build_scan_plugin]]

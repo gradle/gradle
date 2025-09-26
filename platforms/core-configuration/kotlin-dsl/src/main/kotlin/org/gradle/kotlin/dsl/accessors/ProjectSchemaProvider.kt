@@ -53,7 +53,7 @@ data class ProjectSchema<out T>(
     val configurations: List<ConfigurationEntry<String>>,
     val modelDefaults: List<ProjectSchemaEntry<T>>,
     val containerElementFactories: List<ContainerElementFactoryEntry<T>>,
-    val softwareTypeEntries: List<SoftwareTypeEntry<T>>,
+    val projectFeatureEntries: List<ProjectFeatureEntry<T>>,
     val scriptTarget: Any? = null
 ) {
 
@@ -64,7 +64,7 @@ data class ProjectSchema<out T>(
         configurations,
         modelDefaults.map { it.map(f) },
         containerElementFactories.map { it.map(f) },
-        softwareTypeEntries.map { it.map(f) },
+        projectFeatureEntries.map { it.map(f) },
         scriptTarget
     )
 
@@ -111,11 +111,12 @@ data class ContainerElementFactoryEntry<out T>(
         ContainerElementFactoryEntry(factoryName, f(containerReceiverType), f(publicType))
 }
 
-data class SoftwareTypeEntry<out T>(
-    val softwareTypeName: String,
-    val modelType: T,
+data class ProjectFeatureEntry<out T>(
+    val featureName: String,
+    val ownDefinitionType: T,
+    val targetDefinitionType: T,
 ) : Serializable {
 
     fun <U> map(f: (T) -> U) =
-        SoftwareTypeEntry(softwareTypeName, f(modelType))
+        ProjectFeatureEntry(featureName, f(ownDefinitionType), f(targetDefinitionType))
 }

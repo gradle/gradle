@@ -75,6 +75,7 @@ import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.TestBuildOperationRunner
+import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
@@ -618,8 +619,34 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     void "deprecations are passed to copies when corresponding role is #baseRole"() {
-        TestUtil.initDeprecationLogger("conf configuration emits a deprecation warning")
+        expect:
+        deprecationsArePassedToCopies(baseRole)
 
+        where:
+        baseRole << [
+            ConfigurationRoles.ALL,
+            ConfigurationRoles.RESOLVABLE,
+            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
+        ] + ConfigurationRolesForMigration.ALL - ConfigurationRolesForMigration.CONSUMABLE_TO_RETIRED - deprecatedRoles
+    }
+
+    @ExpectDeprecation("The conf configuration has been deprecated for dependency declaration")
+    void "deprecations are passed to copies when corresponding role is #baseRole (deprecated)"() {
+        expect:
+        deprecationsArePassedToCopies(baseRole)
+
+        where:
+        baseRole << deprecatedRoles
+    }
+
+    private static deprecatedRoles = [
+        ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
+        ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE,
+        ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE
+    ]
+
+    private void deprecationsArePassedToCopies(ConfigurationRole baseRole) {
+        // given:
         ConfigurationRole role = new DefaultConfigurationRole("test", baseRole.consumable, baseRole.resolvable, baseRole.declarable, baseRole.consumptionDeprecated, baseRole.resolutionDeprecated, baseRole.declarationAgainstDeprecated)
         def configuration = prepareConfigurationForCopyTest(conf("conf", ":", ":", role))
         def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
@@ -627,28 +654,21 @@ class DefaultConfigurationSpec extends Specification {
         configuration.addDeclarationAlternatives("declaration")
         configuration.addResolutionAlternatives("resolution")
 
-        when:
+        // when:
         def copy = configuration.copy()
 
-        then:
+        // then:
         // This is not desired behavior. Ideally the copy method should copy the role of the original.
         // Instead, the role of copies are currently always set to RESOLVABLE_DEPENDENCY_SCOPE, as
         // currently copies are detached configurations, and this is the role of all detached configurations.
-        copy.canBeDeclared
-        copy.canBeResolved
-        !copy.canBeConsumed
-        copy.declarationAlternatives == ["declaration"]
-        copy.resolutionAlternatives == ["resolution"]
-        !copy.deprecatedForConsumption
-        !copy.deprecatedForResolution
-        !copy.deprecatedForDeclarationAgainst
-
-        where:
-        baseRole << [
-            ConfigurationRoles.ALL,
-            ConfigurationRoles.RESOLVABLE,
-            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
-        ] + ConfigurationRolesForMigration.ALL - ConfigurationRolesForMigration.CONSUMABLE_TO_RETIRED
+        assert copy.canBeDeclared
+        assert copy.canBeResolved
+        assert !copy.canBeConsumed
+        assert copy.declarationAlternatives == ["declaration"]
+        assert copy.resolutionAlternatives == ["resolution"]
+        assert !copy.deprecatedForConsumption
+        assert !copy.deprecatedForResolution
+        assert !copy.deprecatedForDeclarationAgainst
     }
 
     void "fails to copy non-resolvable configuration (#role)"() {
@@ -1650,7 +1670,9 @@ This method is only meant to be called on configurations which allow the (non-de
             attributesFactory,
             TestUtil.domainObjectCollectionFactory(),
             CollectionCallbackActionDecorator.NOOP,
-            TestUtil.problemsService()
+            TestUtil.problemsService(),
+            new AttributeDesugaring(attributesFactory),
+            new ResolveExceptionMapper(domainObjectContext, new DocumentationRegistry())
         )
 
         new DefaultConfigurationFactory(
@@ -1658,8 +1680,6 @@ This method is only meant to be called on configurations which allow the (non-de
             listenerManager,
             domainObjectContext,
             publishArtifactNotationParserFactory,
-            new ResolveExceptionMapper(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
-            new AttributeDesugaring(configurationServices.getAttributesFactory()),
             userCodeApplicationContext
         )
     }

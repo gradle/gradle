@@ -49,7 +49,7 @@ class TaskForTestEventTracker implements BuildOperationTracker {
         Object details = buildOperation.getDetails();
         if (details instanceof ExecuteTaskBuildOperationDetails) {
             TaskInternal task = ((ExecuteTaskBuildOperationDetails) details).getTask();
-            String previous = runningTasks.put(buildOperation.getId(), task.getIdentityPath().getPath());
+            String previous = runningTasks.put(buildOperation.getId(), task.getIdentityPath().asString());
             if (previous != null) {
                 throw new IllegalStateException("Build operation " + buildOperation.getId() + " already started.");
             }

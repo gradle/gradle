@@ -15,6 +15,8 @@
  */
 package org.gradle.cli;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,7 +24,7 @@ import java.util.Set;
 public class CommandLineOption {
     private final Set<String> options = new HashSet<String>();
     private Class<?> argumentType = Void.TYPE;
-    private String description;
+    private @Nullable String description;
     private boolean incubating;
     private final Set<CommandLineOption> groupWith = new HashSet<CommandLineOption>();
     private boolean deprecated;

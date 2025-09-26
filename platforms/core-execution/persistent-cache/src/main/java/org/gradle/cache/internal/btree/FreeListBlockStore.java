@@ -103,28 +103,6 @@ public class FreeListBlockStore implements BlockStore {
         store.flush();
     }
 
-    private void verify(FreeListBlock block, int maxValue) {
-        if (block.largestInNextBlock > maxValue) {
-            throw new RuntimeException("corrupt free list");
-        }
-        int current = 0;
-        for (FreeListEntry entry : block.entries) {
-            if (entry.size > maxValue) {
-                throw new RuntimeException("corrupt free list");
-            }
-            if (entry.size < block.largestInNextBlock) {
-                throw new RuntimeException("corrupt free list");
-            }
-            if (entry.size < current) {
-                throw new RuntimeException("corrupt free list");
-            }
-            current = entry.size;
-        }
-        if (!block.nextBlock.isNull()) {
-            verify(store.read(block.nextBlock, FreeListBlock.class), block.largestInNextBlock);
-        }
-    }
-
     public class FreeListBlock extends BlockPayload {
         private List<FreeListEntry> entries = new ArrayList<FreeListEntry>();
         private int largestInNextBlock;
