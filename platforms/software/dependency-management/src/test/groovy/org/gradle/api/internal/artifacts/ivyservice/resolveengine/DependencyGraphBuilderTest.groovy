@@ -176,7 +176,7 @@ class DependencyGraphBuilderTest extends Specification {
             moduleReplacements,
             dependencySubstitutionApplicator,
             conflictResolver,
-            [],
+            ImmutableList.of(),
             ConflictResolution.latest,
             false,
             false,
