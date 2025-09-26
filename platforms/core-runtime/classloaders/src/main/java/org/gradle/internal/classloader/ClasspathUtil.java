@@ -21,6 +21,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.JavaMethod;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -77,7 +78,7 @@ public class ClasspathUtil {
         }.visit(classLoader);
     }
 
-    public static File getClasspathForClass(String targetClassName) {
+    public static @Nullable File getClasspathForClass(String targetClassName) {
         try {
             Class<?> clazz = Class.forName(targetClassName);
             if (clazz.getClassLoader() == null) {

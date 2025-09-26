@@ -18,6 +18,7 @@ package org.gradle.internal.operations;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Runs build operations: the pieces of work that make up a build.
@@ -41,7 +42,7 @@ public interface BuildOperationRunner {
      * Runtime exceptions are rethrown as is.
      * Checked exceptions are wrapped in {@link BuildOperationInvocationException}.</p>
      */
-    <T> T call(CallableBuildOperation<T> buildOperation);
+    <T extends @Nullable Object> T call(CallableBuildOperation<T> buildOperation);
 
     /**
      * Starts an operation that can be finished later.

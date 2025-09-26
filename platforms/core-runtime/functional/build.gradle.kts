@@ -13,3 +13,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.fastutil)
 }
+
+errorprone {
+    nullawayEnabled = true
+}
