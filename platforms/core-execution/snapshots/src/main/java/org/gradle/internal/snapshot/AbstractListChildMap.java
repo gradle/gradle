@@ -112,8 +112,13 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
     }
 
     protected ChildMap<T> withNewChild(int insertBefore, String path, T newChild) {
-        List<Entry<T>> newChildren = new ArrayList<>(entries);
-        newChildren.add(insertBefore, new Entry<>(path, newChild));
+        List<Entry<T>> newChildren = new ArrayList<>(entries.size() + 1);
+        for (int i = 0; i < entries.size(); i++) {
+            if (i == insertBefore) {
+                newChildren.add(new Entry<>(path, newChild));
+            }
+            newChildren.add(entries.get(i));
+        }
         return ChildMapFactory.childMapFromSorted(newChildren);
     }
 
@@ -128,8 +133,12 @@ public abstract class AbstractListChildMap<T> implements ChildMap<T> {
     }
 
     protected ChildMap<T> withRemovedChild(int childIndex) {
-        List<Entry<T>> newChildren = new ArrayList<>(entries);
-        newChildren.remove(childIndex);
+        List<Entry<T>> newChildren = new ArrayList<>(entries.size() - 1);
+        for (int i = 0; i < entries.size(); i++) {
+            if (i != childIndex) {
+                newChildren.add(entries.get(i));
+            }
+        }
         return ChildMapFactory.childMapFromSorted(newChildren);
     }
 
