@@ -53,7 +53,7 @@ public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
         try {
             if (seenArtifacts.add(artifact.getId())) {
                 File file = artifact.getFile();
-                this.artifacts.add(new DefaultResolvedArtifactResult(artifact.getId(), attributeDesugaring.desugar(attributes), capabilities, artifactSetName, Artifact.class, file));
+                this.artifacts.add(new DefaultResolvedArtifactResult(artifact.getId(), sourceVariantId, attributeDesugaring.desugar(attributes), capabilities, artifactSetName, Artifact.class, file));
             }
         } catch (Exception t) {
             failures.add(t);

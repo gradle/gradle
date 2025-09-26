@@ -41,7 +41,6 @@ import java.util.Set;
 public class DefaultResolvedComponentResult implements ResolvedComponentResultInternal {
 
     private final ModuleVersionIdentifier moduleVersion;
-    private ImmutableSet<DependencyResult> dependencies = ImmutableSet.of();
     private Set<ResolvedDependencyResult> dependents = new LinkedHashSet<>();
     private final ComponentSelectionReason selectionReason;
     private final ComponentIdentifier componentId;
@@ -87,23 +86,12 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
 
     @Override
     public Set<DependencyResult> getDependencies() {
-        return dependencies;
+        return ImmutableSet.copyOf(variantDependencies.values());
     }
 
     @Override
     public Set<ResolvedDependencyResult> getDependents() {
         return Collections.unmodifiableSet(dependents);
-    }
-
-    public void addDependencies(ImmutableSet<DependencyResult> dependencies) {
-        if (this.dependencies.isEmpty()) {
-            this.dependencies = dependencies;
-        } else {
-            this.dependencies = ImmutableSet.<DependencyResult>builder()
-                .addAll(this.dependencies)
-                .addAll(dependencies)
-                .build();
-        }
     }
 
     public DefaultResolvedComponentResult addDependent(ResolvedDependencyResult dependent) {
@@ -142,7 +130,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         if (!selectedVariants.contains(variant)) {
             reportInvalidVariant(variant);
         }
-        return ImmutableList.copyOf(variantDependencies.get(variant));
+        return variantDependencies.get(variant).asList();
     }
 
     private void reportInvalidVariant(ResolvedVariantResult variant) {

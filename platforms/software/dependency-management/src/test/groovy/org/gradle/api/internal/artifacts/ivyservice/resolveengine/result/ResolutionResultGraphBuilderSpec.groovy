@@ -16,22 +16,17 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.result.ComponentSelectionReason
-import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
 import static org.gradle.util.internal.CollectionUtils.first
 
@@ -60,7 +55,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         resolvedConf("leaf4", [])
 
         when:
-        def result = builder.getRoot(id("root"))
+        def result = builder.getResolvedGraph(id("root"), id("root"))
 
         then:
         printGraph(result) == """x:root:1
@@ -87,7 +82,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         resolvedConf("b3", [])
 
         when:
-        def result = builder.getRoot(id("a"))
+        def result = builder.getResolvedGraph(id("a"), id("a"))
 
         then:
         printGraph(result) == """x:a:1
@@ -110,7 +105,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         resolvedConf("c", [dep("c", "a")])
 
         when:
-        def result = builder.getRoot(id("a"))
+        def result = builder.getResolvedGraph(id("a"), id("a"))
 
         then:
         printGraph(result) == """x:a:1
@@ -132,7 +127,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         resolvedConf("d", [])
 
         when:
-        def deps = builder.getRoot(id("a")).dependencies
+        def deps = builder.getResolvedGraph(id("a"), id("a")).rootComponent.dependencies
 
         then:
         def b = deps.find { it.selected.id.module == 'b' }
@@ -152,7 +147,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         resolvedConf("c", [dep("c", "a")])
 
         when:
-        def a = builder.getRoot(id("a"))
+        def a = builder.getResolvedGraph(id("a"), id("a")).rootComponent
 
         then:
         def b  = first(a.dependencies).selected
@@ -170,54 +165,6 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         first(a.dependents).from.is(c)
     }
 
-    def "accumulates and avoids duplicate dependencies"() {
-        given:
-        node("root")
-        node("mid1")
-        node("leaf1")
-        node("leaf2")
-
-        resolvedConf("root", [dep("root", "mid1")])
-
-        resolvedConf("mid1", [dep("mid1", "leaf1")])
-        resolvedConf("mid1", [dep("mid1", "leaf1")]) //dupe
-        resolvedConf("mid1", [dep("mid1", "leaf2")])
-
-        resolvedConf("leaf1", [])
-        resolvedConf("leaf2", [])
-
-        when:
-        def result = builder.getRoot(id("root"))
-
-        then:
-        printGraph(result) == """x:root:1
-  x:mid1:1 [root]
-    x:leaf1:1 [mid1]
-    x:leaf2:1 [mid1]
-"""
-    }
-
-    def "accumulates and avoids duplicate unresolved dependencies"() {
-        given:
-        node("root")
-        node("mid1")
-        node("leaf1")
-        node("leaf2")
-        resolvedConf("root", [dep("root", "mid1")])
-
-        resolvedConf("mid1", [dep("mid1", "leaf1", new RuntimeException("foo!"))])
-        resolvedConf("mid1", [dep("mid1", "leaf1", new RuntimeException("bar!"))]) //dupe
-        resolvedConf("mid1", [dep("mid1", "leaf2", new RuntimeException("baz!"))])
-
-        when:
-        def result = builder.getRoot(id("root"))
-
-        then:
-        def mid1 = first(result.dependencies) as ResolvedDependencyResult
-        mid1.selected.dependencies.size() == 2
-        mid1.selected.dependencies*.requested.module == ['leaf1', 'leaf2']
-    }
-
     def "graph includes unresolved deps"() {
         given:
         node("a")
@@ -228,7 +175,7 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         resolvedConf("c", [])
 
         when:
-        def result = builder.getRoot(id("a"))
+        def result = builder.getResolvedGraph(id("a"), id("a"))
 
         then:
         printGraph(result) == """x:a:1
@@ -239,17 +186,14 @@ class ResolutionResultGraphBuilderSpec extends Specification {
     }
 
     private void node(String module, ComponentSelectionReason reason = ComponentSelectionReasons.requested()) {
-        DummyModuleVersionSelection moduleVersion = comp(module, reason)
-        builder.startVisitComponent(moduleVersion.resultId, moduleVersion.selectionReason, "repo")
-        builder.visitComponentDetails(moduleVersion.componentId, moduleVersion.moduleVersion)
-        builder.visitSelectedVariant(moduleVersion.resultId, Stub(ResolvedVariantResult))
+        def resultId = id(module)
+        def componentId = new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId("x", module), "1")
+        def moduleVersionId = DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId("x", module), "1")
+
+        builder.startVisitComponent(resultId, reason, "repo", componentId, moduleVersionId)
+        builder.visitSelectedVariant(resultId, Stub(ResolvedVariantResult))
         builder.visitComponentVariants([])
         builder.endVisitComponent()
-    }
-
-    private DummyModuleVersionSelection comp(String module, ComponentSelectionReason reason = ComponentSelectionReasons.requested()) {
-        def moduleVersion = new DummyModuleVersionSelection(resultId: id(module), moduleVersion: newId(DefaultModuleIdentifier.newId("x", module), "1"), selectionReason: reason, componentId: new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId("x", module), "1"))
-        moduleVersion
     }
 
     private void resolvedConf(String module, List<ResolvedGraphDependency> deps) {
@@ -272,17 +216,4 @@ class ResolutionResultGraphBuilderSpec extends Specification {
         return module.hashCode()
     }
 
-    class DummyModuleVersionSelection implements ResolvedGraphComponent {
-        long resultId
-        ModuleVersionIdentifier moduleVersion
-        ComponentSelectionReason selectionReason
-        ComponentIdentifier componentId
-        List<ResolvedVariantResult> selectedVariants = []
-        String repositoryName
-
-        @Override
-        ComponentGraphResolveState getResolveState() {
-            throw new UnsupportedOperationException()
-        }
-    }
 }
