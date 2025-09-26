@@ -56,7 +56,7 @@ class AbstractVirtualFileSystemTest extends ConcurrentSpec implements TestSnapsh
         def location = '/my/location/new'
         when:
         start {
-            vfs.storeAsyncWithAction(location) { vfsStore ->
+            vfs.storeWithAction(location) { vfsStore ->
                 instant.snapshottingStarted
                 vfsStore.store(regularFile("${location}/some/child"))
                 vfsStore.store(regularFile("${location}/other/child"))
@@ -73,7 +73,6 @@ class AbstractVirtualFileSystemTest extends ConcurrentSpec implements TestSnapsh
             vfs.invalidate(["${location}/some".toString()])
             instant.invalidated
         }
-
         then:
         instant.snapshottingStarted < instant.partialSnapshotsStored
         instant.partialSnapshotsStored < instant.invalidated

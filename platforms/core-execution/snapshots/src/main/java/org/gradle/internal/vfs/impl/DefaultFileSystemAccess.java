@@ -95,7 +95,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
                 }
                 return Optional.empty();
             })
-            .orElseGet(() -> virtualFileSystem.storeAsyncWithAction(location, vfsStorer -> {
+            .orElseGet(() -> virtualFileSystem.storeWithAction(location, vfsStorer -> {
                 File file = new File(location);
                 FileMetadata fileMetadata = this.stat.stat(file);
                 switch (fileMetadata.getType()) {
@@ -178,7 +178,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
      * Takes a snapshot of the given location and filters it according to the given filter, reusing previously known snapshots.
      */
     private Optional<FileSystemLocationSnapshot> snapshotAndReuse(String location, SnapshottingFilter filter, ImmutableMap<String, FileSystemLocationSnapshot> previouslyKnownSnapshots) {
-        return virtualFileSystem.storeAsyncWithAction(location, vfsStorer -> {
+        return virtualFileSystem.storeWithAction(location, vfsStorer -> {
             File file = new File(location);
             FileMetadata fileMetadata = this.stat.stat(file);
             FileSystemLocationSnapshot unfilteredSnapshot;
