@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.junit4
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
@@ -67,7 +68,7 @@ class JUnit4AssumptionFailureIntegrationTest extends AbstractIntegrationSpec {
         succeeds("test")
         then:
         outputContains("Assumption failure: skipped reason")
-        def testResult = new DefaultTestExecutionResult(testDirectory)
+        def testResult = new DefaultTestExecutionResult(testDirectory, GenericTestExecutionResult.TestFramework.JUNIT4)
         testResult.testClass("com.example.MyTest").assertTestSkipped("theTest") {
             assert it.message == "skipped reason"
             assert it.type == "org.junit.AssumptionViolatedException"
@@ -124,7 +125,7 @@ class JUnit4AssumptionFailureIntegrationTest extends AbstractIntegrationSpec {
         succeeds("test")
         then:
         outputContains("No assumption failure")
-        def testResult = new DefaultTestExecutionResult(testDirectory)
+        def testResult = new DefaultTestExecutionResult(testDirectory, GenericTestExecutionResult.TestFramework.JUNIT4)
         testResult.testClass("com.example.MyTest").assertTestSkipped("theTest") {
             assert it.message.isEmpty()
             assert it.type.isEmpty()
