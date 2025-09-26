@@ -33,8 +33,6 @@ import org.gradle.internal.UncheckedException;
 
 import java.util.Set;
 
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflictFactory.potentialConflict;
-
 public class DefaultModuleConflictHandler implements ModuleConflictHandler {
 
     private final static Logger LOGGER = Logging.getLogger(DefaultModuleConflictHandler.class);
@@ -55,14 +53,20 @@ public class DefaultModuleConflictHandler implements ModuleConflictHandler {
         return resolver;
     }
 
-    /**
-     * Registers new newModule and returns an instance of a conflict if conflict exists.
-     */
     @Override
-    public PotentialConflict registerCandidate(CandidateModule candidate) {
+    public boolean registerCandidate(CandidateModule candidate) {
         ImmutableModuleReplacements.Replacement replacement = moduleReplacements.getReplacementFor(candidate.getId());
         ModuleIdentifier replacedBy = replacement == null ? null : replacement.getTarget();
-        return potentialConflict(conflicts.newElement(candidate.getId(), candidate.getVersions(), replacedBy));
+        ConflictContainer<ModuleIdentifier, ComponentState>.Conflict conflict = conflicts.newElement(candidate.getId(), candidate.getVersions(), replacedBy);
+        if (conflict != null) {
+            // For each module participating in the conflict, deselect the currently selection, and remove all outgoing edges from the version.
+            // This will propagate through the graph and prune configurations that are no longer required.
+            for (ModuleIdentifier participant : conflict.participants) {
+                resolveState.getModule(participant).clearSelection();
+            }
+            return true;
+        }
+        return false;
     }
 
     /**

@@ -87,7 +87,6 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     private final ImmutableAttributes consumerAttributes;
     private final ImmutableAttributesSchema consumerSchema;
     private final ModuleExclusions moduleExclusions;
-    private final DeselectVersionAction deselectVersionAction = new DeselectVersionAction(this);
     private final ComponentSelectorConverter componentSelectorConverter;
     private final AttributesFactory attributesFactory;
     private final AttributeSchemaServices attributeSchemaServices;
@@ -189,6 +188,10 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         return modules.values();
     }
 
+    public @Nullable ModuleResolveState findModule(ModuleIdentifier moduleId) {
+        return modules.get(moduleId);
+    }
+
     Spec<? super DependencyMetadata> getEdgeFilter() {
         return edgeFilter;
     }
@@ -285,10 +288,6 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
 
     public ModuleExclusions getModuleExclusions() {
         return moduleExclusions;
-    }
-
-    public DeselectVersionAction getDeselectVersionAction() {
-        return deselectVersionAction;
     }
 
     public ComponentSelectorConverter getComponentSelectorConverter() {

@@ -16,16 +16,16 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
-import org.gradle.api.internal.capabilities.CapabilityInternal;
-
-import java.util.Collection;
 
 public interface CapabilitiesConflictHandler {
 
     /**
-     * Registers new module and returns information about any potential conflict
+     * Detect and register capability conflicts for the given node, deselecting the given node
+     * and any conflicting nodes if a conflict is detected.
+     *
+     * @return true iff a conflict was detected.
      */
-    PotentialConflict registerCandidate(Candidate candidate);
+    boolean registerCandidate(NodeState node);
 
     /**
      * Informs whether there is any conflict at present
@@ -38,17 +38,5 @@ public interface CapabilitiesConflictHandler {
      * Must be called only if {@link #hasConflicts()} returns true.
      */
     void resolveNextConflict();
-
-    /**
-     * Has the given capability been seen as a non-default capability on a node?
-     * This is needed to determine if default capabilities need to enter conflict detection.
-     */
-    boolean hasSeenNonDefaultCapabilityExplicitly(CapabilityInternal capability);
-
-    interface Candidate {
-        NodeState getNode();
-        CapabilityInternal getCapability();
-        Collection<NodeState> getImplicitCapabilityProviders();
-    }
 
 }
