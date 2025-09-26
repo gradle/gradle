@@ -117,7 +117,8 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         // The root node will be "JUnit Jupiter" which isn't expected
         // to be seen as a "real" test suite in many tests, so this
         // test is to make sure we're at least under this event
-        if (testIdentifier.getParentId().isPresent()) {
+        // Also give the same treatment to the "engine" segments
+        if (testIdentifier.getParentId().isPresent() && !"engine".equals(testIdentifier.getUniqueIdObject().getLastSegment().getType())) {
             reportStartedUnlessAlreadyStarted(testIdentifier);
         }
     }

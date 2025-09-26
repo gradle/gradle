@@ -63,7 +63,7 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         then:
         new DefaultTestExecutionResult(testDirectory)
             .assertTestClassesExecuted('org.gradle.IgnoredTest')
-            .testClass('org.gradle.IgnoredTest').assertTestCount(1, 0, 0).assertTestsSkipped("testIgnored1()")
+            .testClass('org.gradle.IgnoredTest').assertTestCount(1, 0).assertTestsSkipped("testIgnored1()")
     }
 
     def 'can handle class-level error in #location method'() {
@@ -98,7 +98,7 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         new DefaultTestExecutionResult(testDirectory)
             .assertTestClassesExecuted('org.gradle.ClassErrorTest')
             .testClass('org.gradle.ClassErrorTest')
-            .assertTestCount(successCount + 1, 1, 0)
+            .assertTestCount(successCount + 1, 1)
             .assertTestFailed(failedTestName, containsString(location))
 
         where:
@@ -131,7 +131,7 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         succeeds('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory).testClass('org.gradle.ClassAssumeTest').assertTestCount(1, 0, 0)
+        new DefaultTestExecutionResult(testDirectory).testClass('org.gradle.ClassAssumeTest').assertTestCount(1, 0)
     }
 
     def 'can handle repeated tests'() {
@@ -170,7 +170,7 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         new DefaultTestExecutionResult(testDirectory)
             .assertTestClassesExecutedJudgementByHtml('org.gradle.RepeatTest')
             .testClassByHtml('org.gradle.RepeatTest')
-            .assertTestCount(9, 1, 0)
+            .assertTestCount(9, 1)
             .assertTestPassed('ok()[1]', 'ok 1/3')
             .assertTestPassed('ok()[2]', 'ok 2/3')
             .assertTestPassed('ok()[3]', 'ok 3/3')
@@ -242,11 +242,14 @@ public class StaticInnerTest {
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.StaticInnerTest', 'org.gradle.StaticInnerTest$Nested', 'org.gradle.StaticInnerTest$Nested$Nested2')
-        result.testClass('org.gradle.StaticInnerTest').assertTestCount(1, 0, 0)
+        result.testClass('org.gradle.StaticInnerTest')
+            .assertTestCount(1, 0)
             .assertTestPassed('outside')
-        result.testClass('org.gradle.StaticInnerTest$Nested').assertTestCount(1, 0, 0)
+        result.testClass('org.gradle.StaticInnerTest$Nested')
+            .assertTestCount(1, 0)
             .assertTestPassed('inside')
-        result.testClass('org.gradle.StaticInnerTest$Nested$Nested2').assertTestCount(1, 0, 0)
+        result.testClass('org.gradle.StaticInnerTest$Nested$Nested2')
+            .assertTestCount(1, 0)
             .assertTestPassed('inside')
     }
 
@@ -333,7 +336,7 @@ public class StaticInnerTest {
         then:
         with(new DefaultTestExecutionResult(testDirectory)) {
             (1..numTestClasses).every { classNumber ->
-                testClass("org.gradle.Test$classNumber").assertTestCount(1, 0, 0)
+                testClass("org.gradle.Test$classNumber").assertTestCount(1, 0)
             }
         }
     }
