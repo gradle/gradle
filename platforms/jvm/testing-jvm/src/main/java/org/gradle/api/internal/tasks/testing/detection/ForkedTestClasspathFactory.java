@@ -91,6 +91,8 @@ public class ForkedTestClasspathFactory {
             moduleRegistry.getExternalModule("kryo").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("commons-lang3").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("javax.inject").getImplementationClasspath().getAsURLs(),
+            // Used by :serialization project classes
+            moduleRegistry.getExternalModule("guava").getImplementationClasspath().getAsURLs(),
             additionalImplementationClasspath
         ));
     }

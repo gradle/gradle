@@ -16,6 +16,10 @@
 
 package org.gradle.internal.serialize;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
@@ -23,6 +27,7 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.io.StreamByteBuffer;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,24 +39,17 @@ import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
 class ExceptionPlaceholder implements Serializable {
-    @SuppressWarnings("DoubleBraceInitialization")
-    // TODO Use Guava's immutable collections here
-    private static final Set<String> CANDIDATE_GET_CAUSES = Collections.unmodifiableSet(
-        new HashSet<String>() {{
-            add("getCauses");
-            add("getFailures");
-        }}
-    );
+    private static final Set<String> CANDIDATE_GET_CAUSES = ImmutableSet.of("getCauses", "getFailures");
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionPlaceholder.class);
     private final String type;
@@ -73,7 +71,7 @@ class ExceptionPlaceholder implements Serializable {
         contextual = throwable.getClass().getAnnotation(Contextual.class) != null;
         assertionError = throwable instanceof AssertionError;
         try {
-            stackTrace = throwable.getStackTrace() == null ? Collections.<StackTraceElementPlaceholder>emptyList() : convertStackTrace(throwable.getStackTrace());
+            stackTrace = throwable.getStackTrace() == null ? Collections.emptyList() : convertStackTrace(throwable.getStackTrace());
         } catch (Throwable ignored) {
 // TODO:ADAM - switch the logging back on. Need to make sending messages from daemon to client async wrt log event generation
 //                LOGGER.debug("Ignoring failure to extract throwable stack trace.", ignored);
@@ -104,7 +102,7 @@ class ExceptionPlaceholder implements Serializable {
             suppressed = Collections.emptyList();
         } else {
             causes = extractCauses(throwable);
-            suppressed = extractSuppressed(throwable);
+            suppressed = ImmutableList.copyOf(throwable.getSuppressed());
         }
 
         StreamByteBuffer buffer = new StreamByteBuffer();
@@ -146,7 +144,7 @@ class ExceptionPlaceholder implements Serializable {
     }
 
     private List<StackTraceElementPlaceholder> convertStackTrace(StackTraceElement[] stackTrace) {
-        List<StackTraceElementPlaceholder> placeholders = new ArrayList<StackTraceElementPlaceholder>(stackTrace.length);
+        List<StackTraceElementPlaceholder> placeholders = new ArrayList<>(stackTrace.length);
         for (StackTraceElement stackTraceElement : stackTrace) {
             placeholders.add(new StackTraceElementPlaceholder(stackTraceElement));
         }
@@ -161,32 +159,18 @@ class ExceptionPlaceholder implements Serializable {
         return stackTrace;
     }
 
-    @SuppressWarnings("Since15")
-    private static List<? extends Throwable> extractSuppressed(Throwable throwable) {
-        if (isJava7()) {
-            return Arrays.asList(throwable.getSuppressed());
-        }
-        return Collections.emptyList();
-    }
-
-    @SuppressWarnings("MixedMutabilityReturnType")
-    // TODO Use only immutable collections
-    private static List<ExceptionPlaceholder> convertToExceptionPlaceholderList(List<? extends Throwable> throwables, Function<OutputStream, ExceptionReplacingObjectOutputStream> objectOutputStreamCreator, Set<Throwable> dejaVu) {
+    private static ImmutableList<ExceptionPlaceholder> convertToExceptionPlaceholderList(List<? extends Throwable> throwables, Function<OutputStream, ExceptionReplacingObjectOutputStream> objectOutputStreamCreator, Set<Throwable> dejaVu) {
         if (throwables.isEmpty()) {
-            return Collections.emptyList();
+            return ImmutableList.of();
         } else if (throwables.size() == 1) {
-            return Collections.singletonList(new ExceptionPlaceholder(throwables.get(0), objectOutputStreamCreator, dejaVu));
+            return ImmutableList.of(new ExceptionPlaceholder(throwables.get(0), objectOutputStreamCreator, dejaVu));
         } else {
-            List<ExceptionPlaceholder> placeholders = new ArrayList<ExceptionPlaceholder>(throwables.size());
+            ImmutableList.Builder<ExceptionPlaceholder> placeholders = ImmutableList.builderWithExpectedSize(throwables.size());
             for (Throwable cause : throwables) {
                 placeholders.add(new ExceptionPlaceholder(cause, objectOutputStreamCreator, dejaVu));
             }
-            return placeholders;
+            return placeholders.build();
         }
-    }
-
-    private static boolean isJava7() {
-        return JavaVersion.current().isJava7Compatible();
     }
 
     private static boolean isJava14() {
@@ -236,12 +220,10 @@ class ExceptionPlaceholder implements Serializable {
                 registerSuppressedExceptions(suppressed, reconstructed);
                 return reconstructed;
             }
-        } catch (UncheckedException ignore) {
+        } catch (UncheckedException | NoSuchMethodException ignored) {
             // Don't log
-        } catch (NoSuchMethodException ignored) {
-            // Don't log
-        } catch (Throwable ignored) {
-            LOGGER.debug("Ignoring failure to recreate throwable.", ignored);
+        } catch (Throwable t) {
+            LOGGER.debug("Ignoring failure to recreate throwable.", t);
         }
 
         Throwable placeholder;
@@ -267,7 +249,6 @@ class ExceptionPlaceholder implements Serializable {
     private static void registerSuppressedExceptions(List<Throwable> suppressed, Throwable reconstructed) {
         if (!suppressed.isEmpty()) {
             for (Throwable throwable : suppressed) {
-                //noinspection Since15
                 reconstructed.addSuppressed(throwable);
             }
         }
@@ -277,10 +258,6 @@ class ExceptionPlaceholder implements Serializable {
         if (throwable instanceof MultiCauseException) {
             return ((MultiCauseException) throwable).getCauses();
         } else {
-            List<? extends Throwable> causes = tryExtractMultiCauses(throwable);
-            if (causes != null) {
-                return causes;
-            }
             Throwable causeTmp;
             try {
                 causeTmp = throwable.getCause();
@@ -289,16 +266,29 @@ class ExceptionPlaceholder implements Serializable {
                 //                LOGGER.debug("Ignoring failure to extract throwable cause.", ignored);
                 causeTmp = null;
             }
-            return causeTmp == null ? Collections.<Throwable>emptyList() : Collections.singletonList(causeTmp);
+            List<? extends Throwable> causes = tryExtractMultiCauses(throwable, causeTmp);
+            if (causes != null) {
+                return causes;
+            }
+            return causeTmp == null ? Collections.emptyList() : Collections.singletonList(causeTmp);
         }
     }
 
-    private static Method findCandidateGetCausesMethod(Throwable throwable) {
-        Method[] declaredMethods = throwable.getClass().getDeclaredMethods();
+    private static final Type THROWABLE_COLLECTION_TYPE = new TypeToken<Collection<? extends Throwable>>() {}.getType();
+
+    @VisibleForTesting
+    static Method findCandidateGetCausesMethod(Class<? extends Throwable> clazz) {
+        Method[] declaredMethods = clazz.getDeclaredMethods();
         for (Method method : declaredMethods) {
             if (CANDIDATE_GET_CAUSES.contains(method.getName())) {
                 Class<?> returnType = method.getReturnType();
                 if (Collection.class.isAssignableFrom(returnType)) {
+                    // Try to ensure the method returns Collection<Throwable>
+                    // If there's no generic information, we assume it is fine
+                    TypeToken<?> returnTypeToken = TypeToken.of(clazz).method(method).getReturnType();
+                    if (returnTypeToken.getType() instanceof ParameterizedType && !returnTypeToken.isSubtypeOf(THROWABLE_COLLECTION_TYPE)) {
+                        continue;
+                    }
                     return method;
                 }
             }
@@ -312,47 +302,51 @@ class ExceptionPlaceholder implements Serializable {
      * something similar to what we do in Gradle with {@link DefaultMultiCauseException}.
      * It is, in particular, the case for opentest4j.
      */
-    private static List<? extends Throwable> tryExtractMultiCauses(Throwable throwable) {
-        Method causesMethod = findCandidateGetCausesMethod(throwable);
+    private static List<? extends Throwable> tryExtractMultiCauses(Throwable throwable, @Nullable Throwable singleCause) {
+        Method causesMethod = findCandidateGetCausesMethod(throwable.getClass());
         if (causesMethod != null) {
             Collection<?> causes;
             try {
                 causes = Cast.uncheckedCast(causesMethod.invoke(throwable));
-            } catch (IllegalAccessException e) {
-                return null;
-            } catch (InvocationTargetException e) {
+            } catch (IllegalAccessException | InvocationTargetException e) {
                 return null;
             }
             if (causes == null) {
                 return null;
             }
+            boolean hasSingleCauseInList = false;
             for (Object cause : causes) {
                 if (!(cause instanceof Throwable)) {
                     return null;
                 }
+                if (cause == singleCause) {
+                    hasSingleCauseInList = true;
+                }
             }
-            List<Throwable> result = new ArrayList<Throwable>(causes.size());
+            boolean shouldAddSingleCause = !hasSingleCauseInList && singleCause != null;
+            List<Throwable> result = new ArrayList<>(causes.size() + (shouldAddSingleCause ? 1 : 0));
+            if (shouldAddSingleCause) {
+                result.add(singleCause);
+            }
             for (Object cause : causes) {
-                result.add(Cast.<Throwable>uncheckedCast(cause));
+                result.add((Throwable) cause);
             }
             return result;
         }
         return null;
     }
 
-    @SuppressWarnings("MixedMutabilityReturnType")
-    // TODO Use only immutable collections
-    private static List<Throwable> recreateExceptions(List<ExceptionPlaceholder> exceptions, Function<String, Class<?>> classNameTransformer, Function<InputStream, ExceptionReplacingObjectInputStream> objectInputStreamCreator) throws IOException {
+    private static ImmutableList<Throwable> recreateExceptions(List<ExceptionPlaceholder> exceptions, Function<String, Class<?>> classNameTransformer, Function<InputStream, ExceptionReplacingObjectInputStream> objectInputStreamCreator) throws IOException {
         if (exceptions.isEmpty()) {
-            return Collections.emptyList();
+            return ImmutableList.of();
         } else if (exceptions.size() == 1) {
-            return Collections.singletonList(exceptions.get(0).read(classNameTransformer, objectInputStreamCreator));
+            return ImmutableList.of(exceptions.get(0).read(classNameTransformer, objectInputStreamCreator));
         }
-        List<Throwable> result = new ArrayList<Throwable>();
+        ImmutableList.Builder<Throwable> result = ImmutableList.builderWithExpectedSize(exceptions.size());
         for (ExceptionPlaceholder placeholder : exceptions) {
             result.add(placeholder.read(classNameTransformer, objectInputStreamCreator));
         }
-        return result;
+        return result.build();
     }
 
     /**
