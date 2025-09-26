@@ -434,11 +434,11 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         }
     }
 
-    ImmutableCapability getImplicitCapability() {
+    public ImmutableCapability getImplicitCapability() {
         return resolveState.getDefaultCapability();
     }
 
-    boolean hasMoreThanOneSelectedNodeUsingVariantAwareResolution() {
+    public boolean hasMoreThanOneSelectedNodeUsingVariantAwareResolution() {
         int count = 0;
         for (NodeState node : nodes) {
             if (node.isSelectedByVariantAwareResolution()) {

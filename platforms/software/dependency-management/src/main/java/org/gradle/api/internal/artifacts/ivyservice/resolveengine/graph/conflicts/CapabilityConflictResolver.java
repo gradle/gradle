@@ -20,13 +20,12 @@ import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.CapabilityResolutionDetails;
 import org.gradle.api.artifacts.ComponentVariantIdentifier;
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ModuleResolveState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory;
@@ -47,15 +46,12 @@ import java.util.stream.Collectors;
  */
 public class CapabilityConflictResolver {
 
-    private final ResolveState resolveState;
     private final ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> rules;
     private final NotationParser<Object, ComponentIdentifier> componentNotationParser;
 
     public CapabilityConflictResolver(
-        ResolveState resolveState,
         ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> rules
     ) {
-        this.resolveState = resolveState;
         this.rules = rules;
         this.componentNotationParser = new ComponentIdentifierParserFactory().create();
     }
@@ -88,8 +84,7 @@ public class CapabilityConflictResolver {
         // If there is only one candidate at the beginning of conflict resolution, select that candidate.
         if (nodes.size() == 1) {
             NodeState onlyNode = nodes.iterator().next();
-            ModuleIdentifier winningModule = onlyNode.getComponent().getModule().getId();
-            resolveState.getModule(winningModule).replaceWith(onlyNode.getComponent());
+            onlyNode.getComponent().getModule().replaceWith(onlyNode.getComponent());
             return;
         }
 
@@ -108,16 +103,16 @@ public class CapabilityConflictResolver {
 
             // Visit the winning module first so that when we visit unattached dependencies of
             // losing modules, the winning module always has a selected component.
-            Set<ModuleIdentifier> seen = new HashSet<>();
-            ModuleIdentifier winningModule = winner.node.getComponent().getModule().getId();
-            resolveState.getModule(winningModule).replaceWith(winner.node.getComponent());
+            Set<ModuleResolveState> seen = new HashSet<>();
+            ModuleResolveState winningModule = winner.node.getComponent().getModule();
+            winningModule.replaceWith(winner.node.getComponent());
             winner.node.getComponent().addCause(ComponentSelectionReasons.CONFLICT_RESOLUTION.withDescription(winner.reason));
             seen.add(winningModule);
 
             for (Candidate losingCandidate : candidates) {
-                ModuleIdentifier losingModule = losingCandidate.node.getComponent().getModule().getId();
+                ModuleResolveState losingModule = losingCandidate.node.getComponent().getModule();
                 if (seen.add(losingModule)) {
-                    resolveState.getModule(losingModule).replaceWith(winner.node.getComponent());
+                    losingModule.replaceWith(winner.node.getComponent());
                 }
             }
         } else {

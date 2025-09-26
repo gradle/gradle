@@ -22,6 +22,7 @@ import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 
 /**
@@ -72,6 +73,10 @@ public class ImmutableCapabilities implements Iterable<ImmutableCapability> {
 
     @Override
     public Iterator<ImmutableCapability> iterator() {
+        if (capabilities.isEmpty()) {
+            // Avoid allocating an iterator object for the empty set
+            return Collections.emptyIterator();
+        }
         return capabilities.iterator();
     }
 

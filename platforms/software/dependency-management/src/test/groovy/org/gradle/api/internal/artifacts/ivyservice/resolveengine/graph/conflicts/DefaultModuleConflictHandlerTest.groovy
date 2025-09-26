@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts
 
+import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver
@@ -29,7 +30,18 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.n
 
 class DefaultModuleConflictHandlerTest extends Specification {
 
-    def resolveState = Mock(ResolveState)
+    Map<ModuleIdentifier, ModuleResolveState> allModules = [:]
+    ResolveState resolveState = Mock(ResolveState) {
+        getModules() >> allModules.values()
+        getModule(_ as ModuleIdentifier) >> { ModuleIdentifier id ->
+            allModules.computeIfAbsent(id, {
+                Mock(ModuleResolveState) {
+                    getId() >> id
+                }
+            })
+        }
+    }
+
     def resolver = Mock(ModuleConflictResolver)
     def replacements = Mock(ImmutableModuleReplacements)
     @Subject handler = new DefaultModuleConflictHandler(resolver, replacements, resolveState)
@@ -39,8 +51,8 @@ class DefaultModuleConflictHandlerTest extends Specification {
         def b = candidate("org", "b")
 
         expect:
-        !handler.registerCandidate(a).conflictExists()
-        !handler.registerCandidate(b).conflictExists()
+        !handler.registerCandidate(a)
+        !handler.registerCandidate(b)
         !handler.hasConflicts()
     }
 
@@ -53,9 +65,12 @@ class DefaultModuleConflictHandlerTest extends Specification {
         def bX = handler.registerCandidate(b)
 
         then:
-        aX.conflictExists()
-        !bX.conflictExists()
+        aX
+        !bX
         handler.hasConflicts()
+
+        and:
+        1 * resolveState.getModule(a.id).clearSelection()
     }
 
     def "registers module with module conflict"() {
@@ -69,9 +84,13 @@ class DefaultModuleConflictHandlerTest extends Specification {
         def bX = handler.registerCandidate(b)
 
         then:
-        aX.conflictExists()
-        bX.conflictExists()
+        aX
+        bX
         handler.hasConflicts()
+
+        and:
+        2 * resolveState.getModule(a.id).clearSelection()
+        1 * resolveState.getModule(b.id).clearSelection()
     }
 
     def "resolves conflict"() {
@@ -105,9 +124,7 @@ class DefaultModuleConflictHandlerTest extends Specification {
             getVersions() >> versions.collect { String version ->
                 Stub(ComponentState) {
                     getId() >> newId(group, name, version)
-                    getModule() >> Mock(ModuleResolveState) {
-                        getId() >> moduleId
-                    }
+                    getModule() >> resolveState.getModule(moduleId)
                 }
             }
         }
