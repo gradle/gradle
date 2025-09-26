@@ -30,6 +30,10 @@ class DefaultTestExecutionResult implements TestExecutionResult {
     HtmlTestExecutionResult htmlResult
     JUnitXmlTestExecutionResult xmlResult
 
+    DefaultTestExecutionResult(TestFile projectDir, TestFramework testFramework) {
+        this(projectDir, 'build', '', '', 'test', testFramework)
+    }
+
     DefaultTestExecutionResult(TestFile projectDir, String buildDirName = 'build', String binary='', String testedBinary = '', String testTaskName = 'test', TestFramework testFramework = TestFramework.JUNIT_JUPITER) {
         String binaryPath = binary?"/$binary":''
         binaryPath = testedBinary?"$binaryPath/$testedBinary":"$binaryPath";
