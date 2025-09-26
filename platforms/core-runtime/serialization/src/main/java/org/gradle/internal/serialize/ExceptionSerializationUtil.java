@@ -18,6 +18,7 @@ package org.gradle.internal.serialize;
 
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.exceptions.MultiCauseException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -40,13 +41,33 @@ public final class ExceptionSerializationUtil {
         // Can't instantiate static util class
     }
 
+    public static List<? extends Throwable> extractCauses(Throwable throwable) {
+        if (throwable instanceof MultiCauseException) {
+            return ((MultiCauseException) throwable).getCauses();
+        } else {
+            List<? extends Throwable> causes = tryExtractMultiCauses(throwable);
+            if (causes != null) {
+                return causes;
+            }
+            Throwable causeTmp;
+            try {
+                causeTmp = throwable.getCause();
+            } catch (Throwable ignored) {
+                // TODO:ADAM - switch the logging back on.
+                //                LOGGER.debug("Ignoring failure to extract throwable cause.", ignored);
+                causeTmp = null;
+            }
+            return causeTmp == null ? Collections.emptyList() : Collections.singletonList(causeTmp);
+        }
+    }
+
     /**
      * Does best effort to find a method which potentially returns multiple causes
      * for an exception. This is for classes of external projects which actually do
      * something similar to what we do in Gradle with {@link DefaultMultiCauseException}.
      * It is, in particular, the case for opentest4j.
      */
-    public static List<? extends Throwable> tryExtractMultiCauses(Throwable throwable) {
+    private static List<? extends Throwable> tryExtractMultiCauses(Throwable throwable) {
         Method causesMethod = findCandidateGetCausesMethod(throwable);
         if (causesMethod != null) {
             Collection<?> causes;

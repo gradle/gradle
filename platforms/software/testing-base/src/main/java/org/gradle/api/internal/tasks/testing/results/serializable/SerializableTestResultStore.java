@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.results.serializable;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.commons.io.input.NullReader;
@@ -50,13 +51,11 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -269,11 +268,9 @@ public final class SerializableTestResultStore {
                 // Matching Throwable.toString() behavior, use the class name if no message is provided
                 message = failure.getDetails().getClassName();
             }
-            List<String> convertedCauses = Objects.requireNonNull(ExceptionSerializationUtil.tryExtractMultiCauses(failure.getRawFailure())).stream()
-                .map(cause -> {
-                    String convertedStackTrace = Arrays.stream(cause.getStackTrace()).map(StackTraceElement::toString).map(s -> "\t at " + s + "\n").collect(Collectors.joining());
-                    return cause.getClass().getName() + ": " + cause.getMessage() + "\n" + convertedStackTrace;
-                }).collect(Collectors.toList());
+            List<String> convertedCauses = ExceptionSerializationUtil.extractCauses(failure.getRawFailure()).stream()
+                .map(Throwables::getStackTraceAsString)
+                .collect(Collectors.toList());
 
             return new SerializableFailure(
                 message,
