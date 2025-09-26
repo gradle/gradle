@@ -140,7 +140,17 @@ class ProblemReportingCrossProjectModelAccess(
         access: CrossProjectModelAccessInstance,
         instantiator: Instantiator
     ): ProjectInternal = MutableStateAccessAwareProject.wrap(this, referrer) {
-        instantiator.newInstance(ProblemReportingProject::class.java, this, referrer, access, problems, coupledProjectsListener, problemFactory, buildModelParameters, dynamicCallProblemReporting)
+        instantiator.newInstance(
+            ProblemReportingProject::class.java,
+            this,
+            referrer,
+            access,
+            problems,
+            coupledProjectsListener,
+            problemFactory,
+            buildModelParameters,
+            dynamicCallProblemReporting
+        )
     }
 
     @Suppress("LargeClass")

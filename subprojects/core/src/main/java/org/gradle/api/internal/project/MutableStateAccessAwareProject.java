@@ -90,7 +90,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Wrapper for {@link ProjectInternal}, that declares some API methods as access to a mutable state of the project.
@@ -110,11 +110,9 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     public static <T extends MutableStateAccessAwareProject> ProjectInternal wrap(
         ProjectInternal target,
         ProjectInternal referrer,
-        Function<ProjectInternal, T> wrapper
+        Supplier<T> wrapperSupplier
     ) {
-        return target == referrer
-            ? target
-            : wrapper.apply(target);
+        return target == referrer ? target : wrapperSupplier.get();
     }
 
     protected final ProjectInternal delegate;
