@@ -28,6 +28,8 @@ val keepPatterns = mapOf(
     "fastutil" to setOf(
         // For persistence cache
         "it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap",
+        "it.unimi.dsi.fastutil.longs.Long2ObjectArrayMap",
+        "it.unimi.dsi.fastutil.longs.Long2IntArrayMap",
         // For Java compilation incremental analysis
         "it.unimi.dsi.fastutil.ints.IntOpenHashSet",
         "it.unimi.dsi.fastutil.ints.IntSets",
