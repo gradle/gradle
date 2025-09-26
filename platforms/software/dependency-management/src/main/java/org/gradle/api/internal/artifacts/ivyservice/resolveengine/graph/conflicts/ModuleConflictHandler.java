@@ -21,9 +21,12 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.
 public interface ModuleConflictHandler {
 
     /**
-     * Registers new module and returns information about any potential conflict
+     * Registers new module, de-selecting it and any other conflicting module if it is in
+     * conflict with another registered module.
+     *
+     * @return true if a conflict was detected
      */
-    PotentialConflict registerCandidate(CandidateModule candidate);
+    boolean registerCandidate(CandidateModule candidate);
 
     /**
      * Informs whether there is any conflict at present
