@@ -18,12 +18,16 @@ package org.gradle.internal.enterprise;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Information eagerly conveyed about the plugin from Gradle to the plugin.
  */
 @ServiceScope(Scope.BuildTree.class)
 public interface GradleEnterprisePluginConfig {
+
+    @Nullable
+    String getDevelocityUrl();
 
     enum BuildScanRequest {
         NONE, // no explicit request
