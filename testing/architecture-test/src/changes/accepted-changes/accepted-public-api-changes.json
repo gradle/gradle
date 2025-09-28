@@ -1,6 +1,14 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.tasks.javadoc.Groovydoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.setJavaVersion(java.lang.String)",
+            "acceptation": "No need to incubate",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
             "type": "org.gradle.plugin.management.PluginRequest",
             "member": "Method org.gradle.plugin.management.PluginRequest.getSelector()",
             "acceptation": "No need to incubate",
