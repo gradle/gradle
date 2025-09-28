@@ -19,5 +19,5 @@ package org.gradle.api.internal.plugins;
 /**
  * A marker interface for definition objects that have a build model.
  */
-public interface HasBuildModel<T extends BuildModel> {
+public interface Definition<T extends BuildModel> {
 }

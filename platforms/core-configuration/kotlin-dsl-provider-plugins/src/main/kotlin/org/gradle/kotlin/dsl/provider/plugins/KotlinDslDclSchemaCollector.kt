@@ -20,7 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.plugins.HasBuildModel
+import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.TargetTypeInformation
 import org.gradle.api.reflect.TypeOf
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
@@ -144,7 +144,7 @@ internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector 
             val targetType = when (val target = implementation.targetDefinitionType) {
                 is TargetTypeInformation.DefinitionTargetTypeInformation ->  TypeOf.typeOf(target.definitionType)
                 is TargetTypeInformation.BuildModelTargetTypeInformation<*> ->
-                    parameterizedTypeOfRawGenericClass(listOf(TypeProjection(target.buildModelType, TypeProjectionKind.OUT)), HasBuildModel::class.java)
+                    parameterizedTypeOfRawGenericClass(listOf(TypeProjection(target.buildModelType, TypeProjectionKind.OUT)), Definition::class.java)
                 else -> error("Unexpected target type $target")
             }
             ProjectFeatureEntry(name, TypeOf.typeOf(implementation.definitionPublicType), targetType)
