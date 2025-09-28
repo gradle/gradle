@@ -18,7 +18,7 @@ package org.gradle.api.internal.plugins;
 
 import java.util.Optional;
 
-public interface ProjectFeatureBinding<T extends HasBuildModel<V>, V extends BuildModel> {
+public interface ProjectFeatureBinding<T extends Definition<V>, V extends BuildModel> {
     TargetTypeInformation<?> targetDefinitionType();
     Class<T> getDslType();
     Optional<Class<? extends T>> getDslImplementationType();

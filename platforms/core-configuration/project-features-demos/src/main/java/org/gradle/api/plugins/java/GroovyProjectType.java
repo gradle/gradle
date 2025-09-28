@@ -16,8 +16,8 @@
 
 package org.gradle.api.plugins.java;
 
-import org.gradle.api.internal.plugins.HasBuildModel;
+import org.gradle.api.internal.plugins.Definition;
 import org.jspecify.annotations.NonNull;
 
-public interface GroovyProjectType extends HasToolChain, HasGroovySources, HasJavaTarget, HasLibraryDependencies, HasBuildModel<@NonNull GroovyLibraryModel> {
+public interface GroovyProjectType extends HasToolChain, HasGroovySources, HasJavaTarget, HasLibraryDependencies, Definition<@NonNull GroovyLibraryModel> {
 }
