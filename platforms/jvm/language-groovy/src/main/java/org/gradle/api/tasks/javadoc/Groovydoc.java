@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.javadoc;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
@@ -36,6 +37,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.workers.WorkerExecutor;
 import org.jspecify.annotations.Nullable;
 
@@ -115,6 +117,9 @@ public abstract class Groovydoc extends SourceTask {
             parameters.getDocTitle().convention(getDocTitle());
             parameters.getHeader().convention(getHeader());
             parameters.getFooter().convention(getFooter());
+            if (getJavaVersion() != null) {
+                parameters.getJavaVersion().convention("JAVA_" + getJavaVersion().toString());
+            }
             parameters.getOverview().convention(getPathToOverview());
             parameters.getAccess().convention(getAccess());
             parameters.getLinks().convention(getLinks());
@@ -330,6 +335,31 @@ public abstract class Groovydoc extends SourceTask {
      */
     public void setFooter(@Nullable String footer) {
         this.footer = footer;
+    }
+
+    /**
+     * Returns the Java version used when creating Groovydoc for Java source files. Set to {@code null} when there is no specific Java version.
+     *
+     * @since 9.3.0
+     */
+    @Nullable
+    @Optional
+    @Input
+    @Incubating
+    public abstract Property<JavaLanguageVersion> getJavaVersion();
+
+    /**
+     * Sets Java version (optional).
+     *
+     * @since 9.3.0
+     *
+     * @param javaVersion the Java version to use when processing Java source files
+     */
+    @Incubating
+    public void setJavaVersion(@Nullable JavaLanguageVersion javaVersion) {
+        if (javaVersion != null) {
+            getJavaVersion().set(javaVersion);
+        }
     }
 
     /**

@@ -40,6 +40,8 @@ public interface GroovydocParameters extends AntWorkParameters {
 
     Property<String> getFooter();
 
+    Property<String> getJavaVersion();
+
     Property<String> getOverview();
 
     Property<GroovydocAccess> getAccess();
