@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.plugins.precompiled
 
-import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -51,7 +50,6 @@ object KotlinParser {
     val Project.psiManager
         get() = PsiManager.getInstance(this)
 
-    @OptIn(K1Deprecation::class)
     fun <T> withProject(f: Project.() -> T): T {
         val parentDisposable = Disposer.newDisposable()
         try {
