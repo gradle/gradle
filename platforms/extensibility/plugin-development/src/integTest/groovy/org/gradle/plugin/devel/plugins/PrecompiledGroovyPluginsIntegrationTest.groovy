@@ -22,7 +22,6 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
@@ -1036,7 +1035,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(IntegTestPreconditions.NotConfigCached)
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/23267")
+    @Issue("https://github.com/gradle/gradle/issues/23267")
     def "hits configuration cache when no changes are present"() {
         given:
         enablePrecompiledPluginsInBuildSrc()
@@ -1066,10 +1065,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         run("help")
 
         then:
-        // The state should be loaded here
-        configurationCacheFixture.assertStateRecreated {
-            pluginInputChanged("org.gradle.groovy-gradle-plugin")
-        }
+        configurationCacheFixture.assertStateLoaded()
     }
 
     private String packagePrecompiledPlugin(String pluginFile, String pluginContent = REGISTER_SAMPLE_TASK) {
