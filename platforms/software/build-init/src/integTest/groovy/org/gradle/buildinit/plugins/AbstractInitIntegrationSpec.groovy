@@ -102,8 +102,8 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec imple
     }
 
     protected void assertTestPassed(String className, String name, TestFramework testFramework) {
-        GenericTestExecutionResult testResults = resultsFor(subprojectDir, "tests/test")
-        testResults.testPath(className, name, testFramework).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        GenericTestExecutionResult testResults = resultsFor(subprojectDir, "tests/test", testFramework)
+        testResults.testPath(className, name).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     protected void assertFunctionalTestPassed(String className, String name) {
@@ -111,8 +111,8 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec imple
     }
 
     protected void assertFunctionalTestPassed(String className, String name, TestFramework testFramework) {
-        GenericTestExecutionResult testResults = resultsFor(subprojectDir, "tests/functionalTest")
-        testResults.testPath(className, name, testFramework).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        GenericTestExecutionResult testResults = resultsFor(subprojectDir, "tests/functionalTest", testFramework)
+        testResults.testPath(className, name).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     protected void assertWrapperGenerated() {
