@@ -41,10 +41,6 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
-==== Upgrade to Kotlin 2.2.20
-
-The embedded Kotlin has been updated from 2.2.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.20[Kotlin 2.2.20].
-
 ==== Removed incubating method `ObjectFactory#dependencyCollector()`
 
 The incubating `ObjectFactory#dependencyCollector()` method has been removed.
@@ -286,62 +282,13 @@ There is no direct replacement for this method.
 [[set-all-jvm-args]]
 ==== Deprecation of `JavaForkOptions.setAllJvmArgs()`
 
-The link:{javadocPath}/org/gradle/process/JavaForkOptions.html#setAllJvmArgs(java.util.List)[`setAllJvmArgs()` method] on `JavaForkOptions` and, by inheritance, on `JavaExecSpec` has been deprecated and will be removed in Gradle 10.0.0.
+The link:{javadocPath}/org/gradle/process/JavaForkOptions.html#setAllJvmArgs(java.util.List)[`setAllJvmArgs()` method] on `JavaForkOptions` has been deprecated and will be removed in Gradle 10.0.0.
 
-Instead, to overwrite existing JVM arguments, use:
+Instead, use one of the following:
 
 * `JavaForkOptions.jvmArgs()`
 * `JavaForkOptions.setJvmArgs()`
-* Provide a <<incremental_build.adoc#sec:task_input_nested_inputs,`CommandLineArgumentProvider`>> to add arguments via `JavaForkOptions.getJvmArgumentProviders()`
-
-Note that link:{javadocPath}/org/gradle/process/JavaForkOptions.html#setAllJvmArgs(java.util.List)[`setAllJvmArgs()` method] on `JavaForkOptions` cleared all fork options before setting `jvmArgs`.
-The properties cleared included:
-
-* System properties configured via `JavaForkOptions.systemProperties`
-* JVM argument providers configured via `JavaForkOptions.jvmArgumentProviders`
-* Argument providers configured via `JavaExecSpec.argumentProviders`
-* Memory settings configured via `JavaForkOptions.minHeapSize` and `JavaForkOptions.maxHeapSize`
-* All other JVM arguments configured via `JavaForkOptions.jvmArgs`
-* The assertion and debug flags configured via `JavaForkOptions.enableAssertions` and `JavaForkOptions.debug`
-
-If the arguments you provide to `setJvmArgs()` or `jvmArgs()` depend on any of the above properties being cleared, you will need to manually clear them.
-
-Consider the following snippets for examples of how to implement this change:
-
-====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source, kotlin]
-----
-plugins {
-    id("java")
-}
-
-tasks.register<JavaExec>("myRunTask") {
-    jvmArgumentProviders.clear() // Clear existing JVM argument providers
-    maxHeapSize = null // Clear max heap size
-    jvmArgs = listOf("-Dfoo", "-Dbar") // Set new JVM arguments
-}
-----
-=====
-[.multi-language-sample]
-=====
-.build.gradle
-[source, groovy]
-----
-plugins {
-    id("java")
-}
-
-tasks.named('myRunTask', JavaExec) {
-    jvmArgumentProviders.clear() // Clear existing JVM argument providers
-    maxHeapSize = null // Clear max heap size
-    jvmArgs = ["-Dfoo", "-Dbar"] // Set new JVM arguments
-}
-----
-=====
-====
+* Provide a <<incremental_build.adoc#sec:task_input_nested_inputs,`CommandLineArgumentProvider`>> to add arguments via `JavaForkOptions.getJvmArgumentProviders()`.
 
 [[archives-configuration]]
 ==== Deprecation of `archives` configuration

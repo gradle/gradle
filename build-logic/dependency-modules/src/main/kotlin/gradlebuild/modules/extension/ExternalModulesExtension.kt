@@ -28,7 +28,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
 
     val configurationCacheReportVersion = "1.27"
     val gradleIdeStarterVersion = "0.8.1"
-    val kotlinVersion = "2.2.20"
+    val kotlinVersion = "2.2.0"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
@@ -219,6 +219,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val sshdSftp = "org.apache.sshd:sshd-sftp"
     val testcontainers = "org.testcontainers:testcontainers"
     val testcontainersSpock = "org.testcontainers:spock"
+    val typesafeConfig = "com.typesafe:config"
     val xerces = "xerces:xercesImpl"
     val xmlunit = "xmlunit:xmlunit"
 

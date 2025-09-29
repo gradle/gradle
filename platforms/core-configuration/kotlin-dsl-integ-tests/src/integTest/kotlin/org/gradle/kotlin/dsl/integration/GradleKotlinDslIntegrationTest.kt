@@ -236,13 +236,13 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
             tasks.withType<KotlinCompile> {
                 // can configure the Kotlin compiler
-                compilerOptions.suppressWarnings = true
+                kotlinOptions.suppressWarnings = true
             }
 
             tasks.register("print-kotlin-version") {
                 val kotlinCompilerVersion = KotlinCompilerVersion.VERSION
                 val compileOptions = tasks.filterIsInstance<KotlinCompile>().joinToString(prefix="[", postfix="]") {
-                    it.name + "=" + it.compilerOptions.suppressWarnings.get()
+                    it.name + "=" + it.kotlinOptions.suppressWarnings
                 }
                 doLast {
                     println(kotlinCompilerVersion + compileOptions)
