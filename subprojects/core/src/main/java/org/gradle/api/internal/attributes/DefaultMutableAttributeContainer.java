@@ -19,11 +19,11 @@ package org.gradle.api.internal.attributes;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.provider.DelegatingProviderWithValue;
 import org.gradle.api.internal.provider.MappingProvider;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.provider.ProviderInternal;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -42,7 +42,7 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
     // Services
     private final AttributesFactory attributesFactory;
     private final AttributeValueIsolator attributeValueIsolator;
-    private final ObjectFactory objectFactory;
+    private final NamedObjectInstantiator namedObjectInstantiator;
 
     // Mutable State
     private final MapProperty<Attribute<?>, AttributeEntry<?>> state;
@@ -57,12 +57,12 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
         AttributesFactory attributesFactory,
         AttributeValueIsolator attributeValueIsolator,
         PropertyFactory propertyFactory,
-        ObjectFactory objectFactory
+        NamedObjectInstantiator namedObjectInstantiator
     ) {
         this.attributesFactory = attributesFactory;
         this.attributeValueIsolator = attributeValueIsolator;
         this.state = Cast.uncheckedNonnullCast(propertyFactory.mapProperty(Attribute.class, AttributeEntry.class));
-        this.objectFactory = objectFactory;
+        this.namedObjectInstantiator = namedObjectInstantiator;
     }
 
     @Override
@@ -204,7 +204,7 @@ public final class DefaultMutableAttributeContainer extends AbstractAttributeCon
     @NonNull
     @Override
     public <T extends Named> T named(Class<T> type, String name) {
-        return objectFactory.named(type, name);
+        return namedObjectInstantiator.named(type, name);
     }
 
     @Override

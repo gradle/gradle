@@ -45,7 +45,7 @@ final class HierarchicalMutableAttributeContainerTest extends BaseAttributeConta
         given:
         def fallback = createContainer()
         def primary = createContainer()
-        def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary, TestUtil.objectFactory())
+        def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary, TestUtil.objectInstantiator())
 
         when:
         fallback.attribute(one, "fallback")
@@ -61,7 +61,7 @@ final class HierarchicalMutableAttributeContainerTest extends BaseAttributeConta
         given:
         def fallback = createContainer()
         def primary = createContainer()
-        def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary, TestUtil.objectFactory())
+        def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary, TestUtil.objectInstantiator())
 
         fallback.attributeProvider(one, Providers.of("fallback"))
         fallback.attribute(two, "fallback")
@@ -98,7 +98,7 @@ final class HierarchicalMutableAttributeContainerTest extends BaseAttributeConta
         given:
         def fallback = createContainer()
         def primary = createContainer()
-        def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary, TestUtil.objectFactory())
+        def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary, TestUtil.objectInstantiator())
 
         when:
         fallback.attribute(one, "fallback")
@@ -129,7 +129,7 @@ final class HierarchicalMutableAttributeContainerTest extends BaseAttributeConta
         given:
         def fallback = createContainer()
         def primary = createContainer()
-        def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary, TestUtil.objectFactory())
+        def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary, TestUtil.objectInstantiator())
 
         when:
         joined.attribute(one, "joined")
@@ -154,7 +154,7 @@ final class HierarchicalMutableAttributeContainerTest extends BaseAttributeConta
         def middle = createContainer()
         def primary = createContainer()
         def chain = new HierarchicalMutableAttributeContainer(attributesFactory, fallback,
-            new HierarchicalMutableAttributeContainer(attributesFactory, middle, primary, TestUtil.objectFactory()), TestUtil.objectFactory())
+            new HierarchicalMutableAttributeContainer(attributesFactory, middle, primary, TestUtil.objectInstantiator()), TestUtil.objectInstantiator())
 
         when:
         fallback.attribute(one, "fallback")
@@ -186,23 +186,23 @@ final class HierarchicalMutableAttributeContainerTest extends BaseAttributeConta
         hasBoth.attribute(one, "one").attribute(two, "two")
 
         expect:
-        new HierarchicalMutableAttributeContainer(attributesFactory, hasOne, hasTwo, TestUtil.objectFactory()) == new HierarchicalMutableAttributeContainer(attributesFactory, hasOne, hasTwo, TestUtil.objectFactory())
-        new HierarchicalMutableAttributeContainer(attributesFactory, hasBoth, hasNone, TestUtil.objectFactory()) != new HierarchicalMutableAttributeContainer(attributesFactory, hasNone, hasBoth, TestUtil.objectFactory())
-        new HierarchicalMutableAttributeContainer(attributesFactory, hasBoth, hasNone, TestUtil.objectFactory()) != new HierarchicalMutableAttributeContainer(attributesFactory, hasBoth, hasOne, TestUtil.objectFactory())
-        new HierarchicalMutableAttributeContainer(attributesFactory, hasNone, hasBoth, TestUtil.objectFactory()) != new HierarchicalMutableAttributeContainer(attributesFactory, hasOne, hasBoth, TestUtil.objectFactory())
+        new HierarchicalMutableAttributeContainer(attributesFactory, hasOne, hasTwo, TestUtil.objectInstantiator()) == new HierarchicalMutableAttributeContainer(attributesFactory, hasOne, hasTwo, TestUtil.objectInstantiator())
+        new HierarchicalMutableAttributeContainer(attributesFactory, hasBoth, hasNone, TestUtil.objectInstantiator()) != new HierarchicalMutableAttributeContainer(attributesFactory, hasNone, hasBoth, TestUtil.objectInstantiator())
+        new HierarchicalMutableAttributeContainer(attributesFactory, hasBoth, hasNone, TestUtil.objectInstantiator()) != new HierarchicalMutableAttributeContainer(attributesFactory, hasBoth, hasOne, TestUtil.objectInstantiator())
+        new HierarchicalMutableAttributeContainer(attributesFactory, hasNone, hasBoth, TestUtil.objectInstantiator()) != new HierarchicalMutableAttributeContainer(attributesFactory, hasOne, hasBoth, TestUtil.objectInstantiator())
 
         // Same as above, but checking hash code
-        new HierarchicalMutableAttributeContainer(attributesFactory, hasOne, hasTwo, TestUtil.objectFactory()).hashCode() == new HierarchicalMutableAttributeContainer(attributesFactory, hasOne, hasTwo, TestUtil.objectFactory()).hashCode()
-        new HierarchicalMutableAttributeContainer(attributesFactory, hasBoth, hasNone, TestUtil.objectFactory()).hashCode() != new HierarchicalMutableAttributeContainer(attributesFactory, hasNone, hasBoth, TestUtil.objectFactory()).hashCode()
-        new HierarchicalMutableAttributeContainer(attributesFactory, hasBoth, hasNone, TestUtil.objectFactory()).hashCode() != new HierarchicalMutableAttributeContainer(attributesFactory, hasBoth, hasOne, TestUtil.objectFactory()).hashCode()
-        new HierarchicalMutableAttributeContainer(attributesFactory, hasNone, hasBoth, TestUtil.objectFactory()).hashCode() != new HierarchicalMutableAttributeContainer(attributesFactory, hasOne, hasBoth, TestUtil.objectFactory()).hashCode()
+        new HierarchicalMutableAttributeContainer(attributesFactory, hasOne, hasTwo, TestUtil.objectInstantiator()).hashCode() == new HierarchicalMutableAttributeContainer(attributesFactory, hasOne, hasTwo, TestUtil.objectInstantiator()).hashCode()
+        new HierarchicalMutableAttributeContainer(attributesFactory, hasBoth, hasNone, TestUtil.objectInstantiator()).hashCode() != new HierarchicalMutableAttributeContainer(attributesFactory, hasNone, hasBoth, TestUtil.objectInstantiator()).hashCode()
+        new HierarchicalMutableAttributeContainer(attributesFactory, hasBoth, hasNone, TestUtil.objectInstantiator()).hashCode() != new HierarchicalMutableAttributeContainer(attributesFactory, hasBoth, hasOne, TestUtil.objectInstantiator()).hashCode()
+        new HierarchicalMutableAttributeContainer(attributesFactory, hasNone, hasBoth, TestUtil.objectInstantiator()).hashCode() != new HierarchicalMutableAttributeContainer(attributesFactory, hasOne, hasBoth, TestUtil.objectInstantiator()).hashCode()
     }
 
     def "has useful toString"() {
         given:
         def fallback = createContainer()
         def primary = createContainer()
-        def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary, TestUtil.objectFactory())
+        def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary, TestUtil.objectInstantiator())
 
         when:
         fallback.attribute(one, "fallback")
@@ -217,7 +217,7 @@ final class HierarchicalMutableAttributeContainerTest extends BaseAttributeConta
         given:
         def fallback = createContainer()
         def primary = createContainer()
-        def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary, TestUtil.objectFactory())
+        def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary, TestUtil.objectInstantiator())
 
         expect:
         joined.empty
@@ -256,7 +256,7 @@ final class HierarchicalMutableAttributeContainerTest extends BaseAttributeConta
 
         when:
         def primary2 = createContainer()
-        def joined2 = new HierarchicalMutableAttributeContainer(attributesFactory, createContainer(), primary2, TestUtil.objectFactory())
+        def joined2 = new HierarchicalMutableAttributeContainer(attributesFactory, createContainer(), primary2, TestUtil.objectInstantiator())
         primary2.attribute(one, "primary")
 
         then:
