@@ -72,6 +72,7 @@ import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -565,12 +566,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         }
     }
 
-    private TestEventReporterFactoryInternal.FailureReportResult handleCollectedResults(TestCountLogger testCountLogger) {
+    private TestEventReporterFactoryInternal.TestReportResult handleCollectedResults(TestCountLogger testCountLogger) {
         if (testCountLogger.hadFailures()) {
             if (testCountLogger.hasWorkerFailures()) {
                 return testCountLogger.handleWorkerFailures();
             } else {
-                return TestEventReporterFactoryInternal.FailureReportResult.testFailureDetected("There were failing tests.");
+                return handleTestFailures();
             }
         } else if (testCountLogger.getTotalTests() == 0) {
             // No tests were executed, the following rules apply:
@@ -579,13 +580,13 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             // - Otherwise, this is fine - the task should succeed with no warnings or errors
             if (testsAreNotFiltered()) {
                 if (testCountLogger.getTotalDiscoveredItems() == 0 && getFailOnNoDiscoveredTests().get()) {
-                    return TestEventReporterFactoryInternal.FailureReportResult.noTestsRun("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.");
+                    return TestEventReporterFactoryInternal.TestReportResult.noTestsRun("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.");
                 }
             } else if (shouldFailOnNoMatchingTests()) {
-                return TestEventReporterFactoryInternal.FailureReportResult.noTestsRun(createNoMatchingTestErrorMessage());
+                return TestEventReporterFactoryInternal.TestReportResult.noTestsRun(createNoMatchingTestErrorMessage());
             }
         }
-        return TestEventReporterFactoryInternal.FailureReportResult.noAction();
+        return TestEventReporterFactoryInternal.TestReportResult.noAction();
     }
 
     private boolean shouldFailOnNoMatchingTests() {
@@ -698,6 +699,34 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     @Input
     abstract public Property<Boolean> getFailOnNoDiscoveredTests();
+
+    /**
+     * Handles test failures based on the {@link #getIgnoreFailures()} property.
+     *
+     * @return the result of handling test failures
+     */
+    private TestEventReporterFactoryInternal.TestReportResult handleTestFailures() {
+        String message = "There were failing tests";
+
+        if (getIgnoreFailures()) {
+            DirectoryReport htmlReport = getReports().getHtml();
+            if (htmlReport.getRequired().get()) {
+                String reportUrl = new ConsoleRenderer().asClickableFileUrl(htmlReport.getEntryPoint());
+                message = message.concat(". See the report at: " + reportUrl);
+            } else {
+                DirectoryReport junitXmlReport = getReports().getJunitXml();
+                if (junitXmlReport.getRequired().get()) {
+                    String resultsUrl = new ConsoleRenderer().asClickableFileUrl(junitXmlReport.getEntryPoint());
+                    message = message.concat(". See the results at: " + resultsUrl);
+                }
+            }
+
+            getLogger().warn(message);
+            return TestEventReporterFactoryInternal.TestReportResult.failuresIgnored();
+        } else {
+            return TestEventReporterFactoryInternal.TestReportResult.testFailureDetected(message);
+        }
+    }
 
     /**
      * Internal {@link TestReportGenerator} implementation that wires results to the provided {@link TestReporter}.

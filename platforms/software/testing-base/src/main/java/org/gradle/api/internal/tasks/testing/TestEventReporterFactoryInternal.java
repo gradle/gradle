@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
+import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.TestEventReporterFactory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.jspecify.annotations.NullMarked;
@@ -27,8 +28,8 @@ import java.util.function.Supplier;
 
 @NullMarked
 public interface TestEventReporterFactoryInternal extends TestEventReporterFactory {
-    interface FailureReportResult {
-        final class FailureReported implements FailureReportResult {
+    interface TestReportResult {
+        final class FailureReported implements TestReportResult {
             private static final FailureReported INSTANCE = new FailureReported();
 
             private FailureReported() {
@@ -40,7 +41,7 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
             }
         }
 
-        final class NoAction implements FailureReportResult {
+        final class NoAction implements TestReportResult {
             private static final NoAction INSTANCE = new NoAction();
 
             private NoAction() {
@@ -52,7 +53,7 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
             }
         }
 
-        final class TestFailureDetected implements FailureReportResult {
+        final class TestFailureDetected implements TestReportResult {
             private final String failureMessage;
 
             private TestFailureDetected(String failureMessage) {
@@ -73,7 +74,7 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
         }
 
         @NullMarked
-        final class NoTestsRun implements FailureReportResult {
+        final class NoTestsRun implements TestReportResult {
             private final String failureMessage;
 
             private NoTestsRun(String failureMessage) {
@@ -93,10 +94,23 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
             }
         }
 
+        @NullMarked
+        final class FailuresIgnored implements TestReportResult {
+            private static final FailuresIgnored INSTANCE = new FailuresIgnored();
+
+            private FailuresIgnored() {
+            }
+
+            @Override
+            public String toString() {
+                return "FAILURES_IGNORED";
+            }
+        }
+
         /**
          * A failure was reported, and no further reporting should be done.
          */
-        static FailureReportResult failureReported() {
+        static TestReportResult failureReported() {
             return FailureReported.INSTANCE;
         }
 
@@ -106,7 +120,7 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
          *
          * @param failureMessage the message describing the test failure
          */
-        static FailureReportResult testFailureDetected(String failureMessage) {
+        static TestReportResult testFailureDetected(String failureMessage) {
             return new TestFailureDetected(failureMessage);
         }
 
@@ -114,8 +128,15 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
          * No failure was detected or reported.
          * The default reporting for failure should be triggered if necessary.
          */
-        static FailureReportResult noAction() {
+        static TestReportResult noAction() {
             return NoAction.INSTANCE;
+        }
+
+        /**
+         * There <em>were</em> test failures, but the {@link AbstractTestTask#getIgnoreFailures()} flag was set.
+         */
+        static TestReportResult failuresIgnored() {
+            return FailuresIgnored.INSTANCE;
         }
 
         /**
@@ -123,7 +144,7 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
          *
          * @param failureMessage the message describing the reason no tests running is a failure
          */
-        static FailureReportResult noTestsRun(String failureMessage) {
+        static TestReportResult noTestsRun(String failureMessage) {
             return new NoTestsRun(failureMessage);
         }
     }
@@ -168,6 +189,6 @@ public interface TestEventReporterFactoryInternal extends TestEventReporterFacto
         TestReportGenerator reportGenerator,
         ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster,
         boolean skipFirstLevelOnDisk,
-        Supplier<FailureReportResult> detectOtherFailures
+        Supplier<TestReportResult> detectOtherFailures
     );
 }
