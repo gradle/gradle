@@ -17,10 +17,12 @@
 package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
@@ -1031,6 +1033,43 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         pluginName << ["org.gradle.my-plugin", "org.gradle"]
+    }
+
+    @Requires(IntegTestPreconditions.NotConfigCached)
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/23267")
+    def "hits configuration cache when no changes are present"() {
+        given:
+        enablePrecompiledPluginsInBuildSrc()
+
+        buildFile("buildSrc/src/main/groovy/plugins/foo.gradle", """
+            plugins {
+                id("java")
+            }
+        """)
+
+        buildFile """
+            plugins {
+                id("foo")
+            }
+        """
+        def configurationCacheFixture = new ConfigurationCacheFixture(this)
+
+        when:
+        executer.withConfigurationCacheEnabled()
+        run("help")
+
+        then:
+        configurationCacheFixture.assertStateStored()
+
+        when:
+        executer.withConfigurationCacheEnabled()
+        run("help")
+
+        then:
+        // The state should be loaded here
+        configurationCacheFixture.assertStateRecreated {
+            pluginInputChanged("org.gradle.groovy-gradle-plugin")
+        }
     }
 
     private String packagePrecompiledPlugin(String pluginFile, String pluginContent = REGISTER_SAMPLE_TASK) {
