@@ -20,7 +20,6 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.provider.PropertyFactory;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.jspecify.annotations.Nullable;
@@ -37,7 +36,7 @@ public final class DefaultAttributesFactory implements AttributesFactory {
     private final AttributeValueIsolator attributeValueIsolator;
     private final PropertyFactory propertyFactory;
     private final UsageCompatibilityHandler usageCompatibilityHandler;
-    private final ObjectFactory objectFactory;
+    private final NamedObjectInstantiator instantiator;
 
     /**
      * A map from parent attribute containers to the set of containers that have
@@ -49,30 +48,29 @@ public final class DefaultAttributesFactory implements AttributesFactory {
         AttributeValueIsolator attributeValueIsolator,
         IsolatableFactory isolatableFactory,
         NamedObjectInstantiator instantiator,
-        PropertyFactory propertyFactory,
-        ObjectFactory objectFactory
+        PropertyFactory propertyFactory
     ) {
         this.attributeValueIsolator = attributeValueIsolator;
         this.propertyFactory = propertyFactory;
         this.usageCompatibilityHandler = new UsageCompatibilityHandler(isolatableFactory, instantiator);
 
         this.concatCache = new ConcurrentHashMap<>();
-        this.objectFactory = objectFactory;
+        this.instantiator = instantiator;
     }
 
     @Override
     public AttributeContainerInternal mutable() {
-        return new DefaultMutableAttributeContainer(this, attributeValueIsolator, propertyFactory, objectFactory);
+        return new DefaultMutableAttributeContainer(this, attributeValueIsolator, propertyFactory, instantiator);
     }
 
     @Override
     public AttributeContainerInternal mutable(AttributeContainerInternal fallback) {
-        return join(fallback, new DefaultMutableAttributeContainer(this, attributeValueIsolator, propertyFactory, objectFactory));
+        return join(fallback, new DefaultMutableAttributeContainer(this, attributeValueIsolator, propertyFactory, instantiator));
     }
 
     @Override
     public AttributeContainerInternal join(AttributeContainerInternal fallback, AttributeContainerInternal primary) {
-        return new HierarchicalMutableAttributeContainer(this, fallback, primary, objectFactory);
+        return new HierarchicalMutableAttributeContainer(this, fallback, primary, instantiator);
     }
 
     @Override

@@ -38,7 +38,7 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
 
     @Override
     protected DefaultMutableAttributeContainer createContainer(Map<Attribute<?>, ?> attributes = [:], Map<Attribute<?>, ?> moreAttributes = [:]) {
-        DefaultMutableAttributeContainer container = new DefaultMutableAttributeContainer(attributesFactory, AttributeTestUtil.attributeValueIsolator(), TestUtil.propertyFactory(), TestUtil.objectFactory())
+        DefaultMutableAttributeContainer container = new DefaultMutableAttributeContainer(attributesFactory, AttributeTestUtil.attributeValueIsolator(), TestUtil.propertyFactory(), TestUtil.objectInstantiator())
         attributes.forEach {key, value ->
             container.attribute(key, value)
         }

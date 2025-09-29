@@ -21,7 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.provider.Provider;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -41,13 +41,13 @@ import java.util.TreeMap;
     private final AttributesFactory attributesFactory;
     private final AttributeContainerInternal fallback;
     private final AttributeContainerInternal primary;
-    private final ObjectFactory objectFactory;
+    private final NamedObjectInstantiator namedObjectInstantiator;
 
-    HierarchicalMutableAttributeContainer(AttributesFactory attributesFactory, AttributeContainerInternal fallback, AttributeContainerInternal primary, ObjectFactory objectFactory) {
+    HierarchicalMutableAttributeContainer(AttributesFactory attributesFactory, AttributeContainerInternal fallback, AttributeContainerInternal primary, NamedObjectInstantiator namedObjectInstantiator) {
         this.attributesFactory = attributesFactory;
         this.fallback = fallback;
         this.primary = primary;
-        this.objectFactory = objectFactory;
+        this.namedObjectInstantiator = namedObjectInstantiator;
     }
 
     @Override
@@ -111,7 +111,7 @@ import java.util.TreeMap;
     @NonNull
     @Override
     public <T extends Named> T named(Class<T> type, String name) {
-        return objectFactory.named(type, name);
+        return namedObjectInstantiator.named(type, name);
     }
 
     @Override
