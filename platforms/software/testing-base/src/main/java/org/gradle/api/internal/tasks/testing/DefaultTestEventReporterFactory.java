@@ -20,6 +20,7 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.testing.logging.SimpleTestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestEventProgressListener;
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReportGenerator;
+import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry;
 import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListener;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
@@ -30,6 +31,8 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.jspecify.annotations.NullMarked;
 
@@ -46,18 +49,27 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
     private final StyledTextOutputFactory textOutputFactory;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final Instantiator instantiator;
+    private final BuildOperationRunner buildOperationRunner;
+    private final BuildOperationExecutor buildOperationExecutor;
+    private final MetadataRendererRegistry metadataRendererRegistry;
 
     @Inject
     public DefaultTestEventReporterFactory(
         ListenerManager listenerManager,
         StyledTextOutputFactory textOutputFactory,
         ProgressLoggerFactory progressLoggerFactory,
-        Instantiator instantiator
+        Instantiator instantiator,
+        BuildOperationRunner buildOperationRunner,
+        BuildOperationExecutor buildOperationExecutor,
+        MetadataRendererRegistry metadataRendererRegistry
     ) {
         this.listenerManager = listenerManager;
         this.textOutputFactory = textOutputFactory;
         this.progressLoggerFactory = progressLoggerFactory;
         this.instantiator = instantiator;
+        this.buildOperationRunner = buildOperationRunner;
+        this.buildOperationExecutor = buildOperationExecutor;
+        this.metadataRendererRegistry = metadataRendererRegistry;
     }
 
     @Override
@@ -70,7 +82,7 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         // Emits progress logger events
         testListenerInternalBroadcaster.add(new TestEventProgressListener(progressLoggerFactory));
 
-        GenericHtmlTestReportGenerator reportGenerator = instantiator.newInstance(GenericHtmlTestReportGenerator.class, htmlReportDirectory.getAsFile().toPath());
+        GenericHtmlTestReportGenerator reportGenerator = instantiator.newInstance(GenericHtmlTestReportGenerator.class, buildOperationRunner, buildOperationExecutor, metadataRendererRegistry, htmlReportDirectory.getAsFile().toPath());
         return createInternalTestEventReporter(
             id -> new DefaultTestSuiteDescriptor(id, rootName),
             binaryResultsDirectory,
