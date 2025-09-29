@@ -44,7 +44,6 @@ val testInterceptorsImplementation: Configuration by configurations.getting {
 
 errorprone {
     disabledChecks.addAll(
-        "ModifyCollectionInEnhancedForLoop", // 1 occurrences
         "NonApiType", // 1 occurrences
         "NonCanonicalType", // 16 occurrences
         "ReferenceEquality", // 2 occurrences
@@ -105,7 +104,7 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.snapshots)
-    api(projects.softwareFeatures)
+    api(projects.projectFeatures)
     api(projects.stdlibJavaExtensions)
     api(projects.time)
     api(projects.versionedCache)
@@ -131,7 +130,7 @@ dependencies {
     implementation(projects.coreFlowServicesApi) {
         because("DefaultBuildServicesRegistry has ordering dependency with FlowScope")
     }
-    implementation(projects.softwareFeaturesApi)
+    implementation(projects.projectFeaturesApi)
 
     implementation(libs.asmCommons)
     implementation(libs.commonsCompress)

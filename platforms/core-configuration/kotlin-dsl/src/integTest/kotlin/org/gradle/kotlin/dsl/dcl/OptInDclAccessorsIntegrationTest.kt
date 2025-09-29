@@ -35,7 +35,7 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
             defaults {
                 @OptIn(SomeExperimentalApi::class)
-                mySoftwareType { }
+                myProjectType { }
             }
         """.trimIndent()
         )
@@ -45,7 +45,7 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
             import com.example.SomeExperimentalApi
 
             @OptIn(SomeExperimentalApi::class)
-            mySoftwareType {
+            myProjectType {
                 myElements {
                     myElement("foo") { }
                 }
@@ -53,7 +53,7 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
         """.trimIndent()
         )
 
-        //TODO: DCL cannot expose the software type accessors to a KTS precompiled script plugin yet, as it needs an ecosystem plugin to
+        //TODO: DCL cannot expose the project type accessors to a KTS precompiled script plugin yet, as it needs an ecosystem plugin to
         // register the models; so far we cannot test that the sources generated for the DCL accessors are valid by actually building against them.
         build("kotlinDslAccessorsReport").apply {
             assertNotOutput("w:")
@@ -67,7 +67,7 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
             assertOutputContains(
                 """
                 |    @com.example.SomeExperimentalApi
-                |    fun org.gradle.api.Project.`mySoftwareType`(configure: Action<in com.example.MyExtension>) {
+                |    fun org.gradle.api.Project.`myProjectType`(configure: Action<in com.example.MyExtension>) {
                 """.trimMargin()
             )
         }
@@ -167,8 +167,8 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 @OptIn(SomeExperimentalApi::class)
                 @Suppress("deprecation")
                 abstract class MyPlugin @Inject constructor(private val project: Project) : Plugin<Project> {
-                    @get:SoftwareType(name = "mySoftwareType")
-                    abstract val mySoftwareType: MyExtension
+                    @get:SoftwareType(name = "myProjectType")
+                    abstract val myProjectType: MyExtension
 
                     override fun apply(project: Project) = Unit
                 }

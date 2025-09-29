@@ -21,8 +21,8 @@ import org.jspecify.annotations.Nullable;
 public final class OperationFinishEvent {
     private final long startTime;
     private final long endTime;
-    private final Throwable failure;
-    private final Object result;
+    private final @Nullable Throwable failure;
+    private final @Nullable Object result;
 
     /**
      *

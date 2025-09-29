@@ -143,4 +143,4 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
-      - run: ./gradlew :native:test -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}
+      - run: ./gradlew :native:test --% -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}

@@ -24,7 +24,7 @@ import org.gradle.internal.declarativedsl.dom.operations.overlay.DocumentOverlay
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
 import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsDocumentTransformation
-import org.gradle.internal.declarativedsl.evaluator.defaults.findUsedSoftwareFeatureNames
+import org.gradle.internal.declarativedsl.evaluator.defaults.findUsedProjectFeatureNames
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepResult
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
 import org.gradle.internal.declarativedsl.evaluator.runner.stepResultOrPartialResult
@@ -32,7 +32,7 @@ import org.gradle.internal.declarativedsl.evaluator.runner.stepResultOrPartialRe
 
 object AnalysisDocumentUtils {
     fun documentWithModelDefaults(modelDefaultsSequenceResult: AnalysisSequenceResult, mainSequenceResult: AnalysisSequenceResult): DocumentOverlayResult? {
-        val usedModelDefaults = mainSequenceResult.modelDefaultsConsumingStep()?.stepResultOrPartialResult?.usedSoftwareTypeNames()
+        val usedModelDefaults = mainSequenceResult.modelDefaultsConsumingStep()?.stepResultOrPartialResult?.usedProjectTypeNames()
             ?: return null
 
         val modelDefaults = modelDefaultsSequenceResult.extractModelDefaultsDocument(usedModelDefaults) ?: return null
@@ -48,8 +48,8 @@ object AnalysisDocumentUtils {
         return DocumentWithResolution(document, resolutionContainer)
     }
 
-    fun AnalysisStepResult.usedSoftwareTypeNames(): Set<String> =
-        findUsedSoftwareFeatureNames(resolutionResult)
+    fun AnalysisStepResult.usedProjectTypeNames(): Set<String> =
+        findUsedProjectFeatureNames(resolutionResult)
 
     fun AnalysisSequenceResult.extractModelDefaultsDocument(forSoftwareTypes: Set<String>): DocumentWithResolution? {
         val modelDefaultsStep = stepResults.entries.singleOrNull { (step, _) -> step.features.any { it is DefineModelDefaults } }

@@ -26,7 +26,7 @@ dependencies {
     api(projects.declarativeDslEvaluator)
     api(projects.declarativeDslToolingModels)
     api(projects.serviceProvider)
-    api(projects.softwareFeatures)
+    api(projects.projectFeatures)
     api(projects.stdlibJavaExtensions)
 
     api(libs.kotlinStdlib)
