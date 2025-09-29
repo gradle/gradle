@@ -218,6 +218,7 @@ Unexpected paths: ${unexpectedPaths}""")
             case TestFramework.SPOCK:
             case TestFramework.JUNIT4:
             case TestFramework.SCALA_TEST:
+            case TestFramework.XC_TEST:
                 def prefix = Strings.isNullOrEmpty(basePrefix) ? "" : ":" + basePrefix
                 def suffix = Strings.isNullOrEmpty(baseSuffix) ? "" : ":" + baseSuffix
                 result = prefix + suffix
