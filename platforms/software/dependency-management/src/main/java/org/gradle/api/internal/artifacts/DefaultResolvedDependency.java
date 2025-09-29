@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.ListMultimap;
 import org.apache.commons.lang3.ObjectUtils;
 import org.gradle.api.InvalidUserDataException;
@@ -32,6 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Compo
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -39,7 +41,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.TreeSet;
 
 public class DefaultResolvedDependency implements ResolvedDependency {
     private final Set<DefaultResolvedDependency> children = new LinkedHashSet<>();
@@ -51,7 +52,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     private final ResolutionHost resolutionHost;
     private final Set<ResolvedArtifactSet> moduleArtifacts;
     private final Map<ResolvedDependency, Set<ResolvedArtifact>> allArtifactsCache = new HashMap<>();
-    private Set<ResolvedArtifact> allModuleArtifactsCache;
+    private @Nullable Set<ResolvedArtifact> allModuleArtifactsCache;
 
     public DefaultResolvedDependency(
         String variantName,
@@ -124,12 +125,13 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     }
 
     private Set<ResolvedArtifact> sort(ResolvedArtifactSet artifacts) {
-        ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor(new TreeSet<>(new ResolvedArtifactComparator()));
+        ImmutableSortedSet.Builder<ResolvedArtifact> builder = ImmutableSortedSet.orderedBy(new ResolvedArtifactComparator());
+        ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor(builder);
         ParallelResolveArtifactSet.wrap(artifacts, buildOperationExecutor).visit(visitor);
         if (!visitor.getFailures().isEmpty()) {
             resolutionHost.rethrowFailuresAndReportProblems("artifacts", visitor.getFailures());
         }
-        return visitor.getArtifacts();
+        return builder.build();
     }
 
     private ResolvedArtifactSet getArtifactsForIncomingEdge(ResolvedDependency parent) {

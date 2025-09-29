@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalDependencyFiles;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -26,22 +26,18 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.model.VariantIdentifier;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 public class ArtifactCollectingVisitor implements ArtifactVisitor {
-    private final Set<ResolvedArtifact> artifacts;
-    private List<Throwable> failures;
+    private final ImmutableSet.Builder<ResolvedArtifact> artifacts;
+    private @Nullable List<Throwable> failures;
 
-    public ArtifactCollectingVisitor() {
-        this(new LinkedHashSet<>());
-    }
-
-    public ArtifactCollectingVisitor(Set<ResolvedArtifact> artifacts) {
+    public ArtifactCollectingVisitor(ImmutableSet.Builder<ResolvedArtifact> artifacts) {
         this.artifacts = artifacts;
     }
 
@@ -69,10 +65,6 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
     @Override
     public boolean requireArtifactFiles() {
         return false;
-    }
-
-    public Set<ResolvedArtifact> getArtifacts() {
-        return artifacts;
     }
 
     public List<Throwable> getFailures() {
