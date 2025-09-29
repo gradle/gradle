@@ -16,6 +16,7 @@
 package org.gradle.api.internal;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
@@ -69,7 +70,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCollection<T> implements NamedDomainObjectCollection<T>, MethodMixIn, PropertyMixIn {
 
@@ -284,9 +284,10 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         if (pendingNames.isEmpty()) {
             return realizedNames;
         }
-        TreeSet<String> allNames = new TreeSet<String>(realizedNames);
-        allNames.addAll(pendingNames);
-        return allNames;
+        return ImmutableSortedSet.<String>naturalOrder()
+            .addAll(realizedNames)
+            .addAll(pendingNames)
+            .build();
     }
 
     @Override
