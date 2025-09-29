@@ -172,22 +172,22 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
                         getLayout().getBuildDirectory().dir("test-results/${name}").get(),
                         getLayout().getBuildDirectory().dir("reports/tests/${name}").get()
                     )) {
-                       reporter.started(java.time.Instant.now())
+                       reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("${name} suite")) {
-                            mySuite.started(java.time.Instant.now())
+                            mySuite.started(Instant.now())
                             mySuite.metadata(Instant.now(), 'suitekey', 'suitevalue')
                             try (def myTest = mySuite.reportTest("${name} test", "failing test")) {
-                                 myTest.started(java.time.Instant.now())
+                                 myTest.started(Instant.now())
                                  myTest.metadata(Instant.now(), 'testkey', 'testvalue')
                                  myTest.metadata(Instant.now(), 'testkey2', 1)
                                  myTest.metadata(Instant.now(), 'testkey3', ['a', 'b', 'c'])
                                  myTest.metadata(Instant.now(), 'testkey4', new TestValue("Bob", "123 Main St"))
                                  myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
-                                 myTest.failed(java.time.Instant.now(), "failure message")
+                                 myTest.failed(Instant.now(), "failure message")
                             }
-                            mySuite.failed(java.time.Instant.now())
+                            mySuite.failed(Instant.now())
                        }
-                       reporter.failed(java.time.Instant.now())
+                       reporter.failed(Instant.now())
                    }
                 }
             }
@@ -213,18 +213,18 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
                         getLayout().getBuildDirectory().dir("test-results/${name}").get(),
                         getLayout().getBuildDirectory().dir("reports/tests/${name}").get()
                     )) {
-                       reporter.started(java.time.Instant.now())
+                       reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("${name} suite")) {
-                            mySuite.started(java.time.Instant.now())
+                            mySuite.started(Instant.now())
                             try (def myTest = mySuite.reportTest("${name} test", "failing test")) {
-                                 myTest.started(java.time.Instant.now())
+                                 myTest.started(Instant.now())
                                  myTest.metadata(Instant.now(), ['group1key1': 'group1value1', 'group1key2': 'group1value2'])
                                  myTest.metadata(Instant.now(), ['group2key1': 'group2value1', 'group2key2': 'group2value2'])
-                                 myTest.failed(java.time.Instant.now(), "failure message")
+                                 myTest.failed(Instant.now(), "failure message")
                             }
-                            mySuite.failed(java.time.Instant.now())
+                            mySuite.failed(Instant.now())
                        }
-                       reporter.failed(java.time.Instant.now())
+                       reporter.failed(Instant.now())
                    }
                 }
             }
@@ -250,11 +250,11 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
                         getLayout().getBuildDirectory().dir("test-results/${name}").get(),
                         getLayout().getBuildDirectory().dir("reports/tests/${name}").get()
                     )) {
-                       reporter.started(java.time.Instant.now())
+                       reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("${name} suite")) {
-                            mySuite.started(java.time.Instant.now())
+                            mySuite.started(Instant.now())
                             try (def myTest = mySuite.reportTest("${name} test", "failing test")) {
-                                 myTest.started(java.time.Instant.now())
+                                 myTest.started(Instant.now())
                                  myTest.metadata(Instant.now(), ['stringKey': 'This is a string', 'stringKey2': 'This is another string'])
                                  myTest.metadata(Instant.now(), ['booleanKey1': true, 'booleanKey2': false])
                                  myTest.metadata(Instant.now(), 'fileKey', layout.projectDirectory.file('somefile.txt'))
@@ -263,11 +263,11 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
                                  myTest.metadata(Instant.now(), 'longKey', 5000000000000000L)
                                  myTest.metadata(Instant.now(), 'uriKey', new URI('https://www.google.com'))
                                  myTest.metadata(Instant.now(), 'unknownKey', Instant.now())
-                                 myTest.failed(java.time.Instant.now(), "failure message")
+                                 myTest.failed(Instant.now(), "failure message")
                             }
-                            mySuite.failed(java.time.Instant.now())
+                            mySuite.failed(Instant.now())
                        }
-                       reporter.failed(java.time.Instant.now())
+                       reporter.failed(Instant.now())
                    }
                 }
             }
@@ -295,25 +295,25 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
                         getLayout().getBuildDirectory().dir("test-results/unit-tests").get(),
                         getLayout().getBuildDirectory().dir("reports/tests/unit-tests").get()
                     )) {
-                       reporter.started(java.time.Instant.now())
+                       reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("Unit Tests Suite")) {
-                            mySuite.started(java.time.Instant.now())
+                            mySuite.started(Instant.now())
                             mySuite.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is suite output on stdout")
                             try (def myTest = mySuite.reportTest("test1", "successful test")) {
-                                 myTest.started(java.time.Instant.now())
+                                 myTest.started(Instant.now())
                                  myTest.metadata(Instant.now(), 'key1', 'value1')
                                  myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
-                                 myTest.succeeded(java.time.Instant.now())
+                                 myTest.succeeded(Instant.now())
                             }
                             try (def myTest = mySuite.reportTest("test2", "successful test 2")) {
-                                 myTest.started(java.time.Instant.now())
+                                 myTest.started(Instant.now())
                                  myTest.metadata(Instant.now(), 'key2', 'value2')
                                  myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is another test output on stdout")
-                                 myTest.succeeded(java.time.Instant.now())
+                                 myTest.succeeded(Instant.now())
                             }
-                            mySuite.succeeded(java.time.Instant.now())
+                            mySuite.succeeded(Instant.now())
                        }
-                       reporter.succeeded(java.time.Instant.now())
+                       reporter.succeeded(Instant.now())
                     }
 
                     // Run failing tests last, else the task exits after the first group fails and this doesn't execute
@@ -322,37 +322,37 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
                         getLayout().getBuildDirectory().dir("test-results/integration-tests").get(),
                         getLayout().getBuildDirectory().dir("reports/tests/integration-tests").get()
                     )) {
-                       reporter.started(java.time.Instant.now())
+                       reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("Slow Integration Tests Suite")) {
-                            mySuite.started(java.time.Instant.now())
+                            mySuite.started(Instant.now())
                             mySuite.metadata(Instant.now(), 'suitekey1', 'suitevalue1')
                             try (def myTest = mySuite.reportTest("intTest1", "successful integration test")) {
-                                 myTest.started(java.time.Instant.now())
+                                 myTest.started(Instant.now())
                                  myTest.metadata(Instant.now(), 'ikey1', 'ivalue1')
-                                 myTest.succeeded(java.time.Instant.now())
+                                 myTest.succeeded(Instant.now())
                             }
-                            mySuite.succeeded(java.time.Instant.now())
+                            mySuite.succeeded(Instant.now())
                        }
 
                        try (def mySuite = reporter.reportTestGroup("Slower Integration Tests Suite")) {
-                            mySuite.started(java.time.Instant.now())
+                            mySuite.started(Instant.now())
                             mySuite.metadata(Instant.now(), 'suitekey2', 'suitevalue2')
                             mySuite.metadata(Instant.now(), 'suitekey2-another', 'suitevalue2-another')
                             try (def myTest = mySuite.reportTest("intTest2", "successful integration test 2")) {
-                                 myTest.started(java.time.Instant.now())
+                                 myTest.started(Instant.now())
                                  myTest.metadata(Instant.now(), 'ikey2', 'ivalue2')
                                  myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is another test output on stdout")
-                                 myTest.succeeded(java.time.Instant.now())
+                                 myTest.succeeded(Instant.now())
                             }
                             try (def myTest = mySuite.reportTest("intTest3", "failing integration test")) {
-                                 myTest.started(java.time.Instant.now())
+                                 myTest.started(Instant.now())
                                  myTest.metadata(Instant.now(), 'ikey3', 'ivalue3')
                                  myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
-                                 myTest.failed(java.time.Instant.now(), "failure message")
+                                 myTest.failed(Instant.now(), "failure message")
                             }
-                            mySuite.failed(java.time.Instant.now())
+                            mySuite.failed(Instant.now())
                        }
-                       reporter.failed(java.time.Instant.now())
+                       reporter.failed(Instant.now())
                    }
                 }
             }
