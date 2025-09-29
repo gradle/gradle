@@ -42,7 +42,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
     @Nullable
     private final TestReportGenerator testReportGenerator;
     private final TestExecutionResultsListener executionResultsListener;
-    private final Supplier<TestEventReporterFactoryInternal.FailureReportResult> tryReportFailures;
+    private final Supplier<TestEventReporterFactoryInternal.TestReportResult> tryReportFailures;
 
     // Mutable state
     @Nullable
@@ -56,7 +56,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
         SerializableTestResultStore.Writer testResultWriter,
         @Nullable TestReportGenerator testReportGenerator,
         TestExecutionResultsListener executionResultsListener,
-        Supplier<TestEventReporterFactoryInternal.FailureReportResult> tryReportFailures
+        Supplier<TestEventReporterFactoryInternal.TestReportResult> tryReportFailures
     ) {
         super(
             listener,
@@ -97,14 +97,14 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
             ? null
             : testReportGenerator.generate(Collections.singletonList(binaryResultsDir));
 
-        TestEventReporterFactoryInternal.FailureReportResult reportResult = tryReportFailures.get();
+        TestEventReporterFactoryInternal.TestReportResult reportResult = tryReportFailures.get();
         String failureMessage = getFailureMessage(reportResult);
         boolean hasTestFailures = failureMessage != null;
 
         // Notify aggregate listener of final results
         executionResultsListener.executionResultsAvailable(testDescriptor, binaryResultsDir, hasTestFailures);
 
-        if (reportResult instanceof TestEventReporterFactoryInternal.FailureReportResult.FailureReported) {
+        if (reportResult instanceof TestEventReporterFactoryInternal.TestReportResult.FailureReported) {
             // Failures were reported by the tryReportFailures handler, so we don't need to throw an exception here.
             return;
         }
@@ -121,12 +121,12 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
     }
 
     @Nullable
-    private String getFailureMessage(TestEventReporterFactoryInternal.FailureReportResult reportResult) {
+    private String getFailureMessage(TestEventReporterFactoryInternal.TestReportResult reportResult) {
         String failureMessage;
-        if (reportResult instanceof TestEventReporterFactoryInternal.FailureReportResult.TestFailureDetected) {
-            failureMessage = ((TestEventReporterFactoryInternal.FailureReportResult.TestFailureDetected) reportResult).getFailureMessage();
-        } else if (reportResult instanceof TestEventReporterFactoryInternal.FailureReportResult.NoTestsRun) {
-            failureMessage = ((TestEventReporterFactoryInternal.FailureReportResult.NoTestsRun) reportResult).getFailureMessage();
+        if (reportResult instanceof TestEventReporterFactoryInternal.TestReportResult.TestFailureDetected) {
+            failureMessage = ((TestEventReporterFactoryInternal.TestReportResult.TestFailureDetected) reportResult).getFailureMessage();
+        } else if (reportResult instanceof TestEventReporterFactoryInternal.TestReportResult.NoTestsRun) {
+            failureMessage = ((TestEventReporterFactoryInternal.TestReportResult.NoTestsRun) reportResult).getFailureMessage();
         } else {
             failureMessage = this.failureMessage;
         }
