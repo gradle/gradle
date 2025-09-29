@@ -75,7 +75,7 @@ public interface ImmutableAttributes extends AttributeContainerInternal {
     @NonNull
     @Override
     public default <T extends Named> T named(Class<T> type, String name) {
-        throw new UnsupportedOperationException("This container is immutable and cannot be mutated, so creating an Attribute is not supported.");
+        throw new UnsupportedOperationException("This container is immutable and cannot be mutated, so creating a value for an Attribute is not supported.");
     }
 
 }

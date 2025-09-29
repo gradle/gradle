@@ -145,7 +145,7 @@ public interface AttributeContainer extends HasAttributes {
     boolean contains(Attribute<?> key);
 
     /**
-     * Creates an Attribute of the given type and name.
+     * Creates a value of the given type for an Attribute.
      *
      * @since 9.3.0
      */
