@@ -218,16 +218,16 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
                         getLayout().getBuildDirectory().dir("test-results/\${getChangingString().get()}").get(),
                         getLayout().getBuildDirectory().dir("reports/tests/\${getChangingString().get()}").get()
                     )) {
-                       reporter.started(java.time.Instant.now())
+                       reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("TheSameName suite")) {
-                            mySuite.started(java.time.Instant.now())
+                            mySuite.started(Instant.now())
                             try (def myTest = mySuite.reportTest("\${getChangingString().get()} test", "\${getChangingString().get()} test")) {
-                                 myTest.started(java.time.Instant.now())
-                                 myTest.succeeded(java.time.Instant.now())
+                                 myTest.started(Instant.now())
+                                 myTest.succeeded(Instant.now())
                             }
-                            mySuite.succeeded(java.time.Instant.now())
+                            mySuite.succeeded(Instant.now())
                        }
-                       reporter.succeeded(java.time.Instant.now())
+                       reporter.succeeded(Instant.now())
                    }
                 }
             }
@@ -276,18 +276,18 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
                         getLayout().getBuildDirectory().dir("test-results/${name}").get(),
                         getLayout().getBuildDirectory().dir("reports/tests/${name}").get()
                     )) {
-                       reporter.started(java.time.Instant.now())
+                       reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("${name} suite")) {
-                            mySuite.started(java.time.Instant.now())
+                            mySuite.started(Instant.now())
                             try (def myTest = mySuite.reportTest("${name} test", "passing test")) {
-                                 myTest.started(java.time.Instant.now())
-                                 ${print ? 'myTest.output(java.time.Instant.now(), org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut, "standard out text")' : ""}
-                                 ${print ? 'myTest.output(java.time.Instant.now(), org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr, "standard error text")' : ""}
-                                 myTest.succeeded(java.time.Instant.now())
+                                 myTest.started(Instant.now())
+                                 ${print ? 'myTest.output(Instant.now(), org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut, "standard out text")' : ""}
+                                 ${print ? 'myTest.output(Instant.now(), org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr, "standard error text")' : ""}
+                                 myTest.succeeded(Instant.now())
                             }
-                            mySuite.succeeded(java.time.Instant.now())
+                            mySuite.succeeded(Instant.now())
                        }
-                       reporter.succeeded(java.time.Instant.now())
+                       reporter.succeeded(Instant.now())
                    }
                 }
             }
@@ -314,16 +314,16 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
                         getLayout().getBuildDirectory().dir("test-results/${name}").get(),
                         getLayout().getBuildDirectory().dir("reports/tests/${name}").get()
                     )) {
-                       reporter.started(java.time.Instant.now())
+                       reporter.started(Instant.now())
                        try (def mySuite = reporter.reportTestGroup("${name} suite")) {
-                            mySuite.started(java.time.Instant.now())
+                            mySuite.started(Instant.now())
                             try (def myTest = mySuite.reportTest("${name} test", "failing test")) {
-                                 myTest.started(java.time.Instant.now())
-                                 myTest.failed(java.time.Instant.now(), "failure message")
+                                 myTest.started(Instant.now())
+                                 myTest.failed(Instant.now(), "failure message")
                             }
-                            mySuite.failed(java.time.Instant.now())
+                            mySuite.failed(Instant.now())
                        }
-                       reporter.failed(java.time.Instant.now())
+                       reporter.failed(Instant.now())
                    }
                 }
             }
