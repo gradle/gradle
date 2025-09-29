@@ -706,18 +706,18 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @return the result of handling test failures
      */
     private TestEventReporterFactoryInternal.TestReportResult handleTestFailures() {
-        String message = "There were failing tests";
+        String message = "There were failing tests.";
 
         if (getIgnoreFailures()) {
             DirectoryReport htmlReport = getReports().getHtml();
             if (htmlReport.getRequired().get()) {
                 String reportUrl = new ConsoleRenderer().asClickableFileUrl(htmlReport.getEntryPoint());
-                message = message.concat(". See the report at: " + reportUrl);
+                message = message.concat(" See the report at: " + reportUrl);
             } else {
                 DirectoryReport junitXmlReport = getReports().getJunitXml();
                 if (junitXmlReport.getRequired().get()) {
                     String resultsUrl = new ConsoleRenderer().asClickableFileUrl(junitXmlReport.getEntryPoint());
-                    message = message.concat(". See the results at: " + resultsUrl);
+                    message = message.concat(" See the results at: " + resultsUrl);
                 }
             }
 
