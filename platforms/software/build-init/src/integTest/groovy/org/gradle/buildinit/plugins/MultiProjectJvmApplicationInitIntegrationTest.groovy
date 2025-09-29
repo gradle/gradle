@@ -112,8 +112,8 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
     }
 
     protected void assertTestPassed(String projectName, String className, String name) {
-        GenericTestExecutionResult testResults = resultsFor(targetDir.file(projectName), "tests/test")
-        testResults.testPath(className, name, getTestFramework()).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        GenericTestExecutionResult testResults = resultsFor(targetDir.file(projectName), "tests/test", getTestFramework())
+        testResults.testPath(className, name).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     String packageToDir(String packageName) {
