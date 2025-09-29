@@ -90,7 +90,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
 
         then:
         failure.assertHasCause("Test(s) failed.")
-        failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing"))
+        failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("failing"))
         resultsFor("tests/failing")
             .testPath(":failing suite")
             .onlyRoot()
@@ -113,7 +113,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         fails("passing", "failing", "--continue")
 
         then:
-        failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing"))
+        failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("failing"))
 
         // Aggregate results are still emitted even if we don't print the URL to console
         outputDoesNotContain("Aggregate test results")
@@ -136,14 +136,14 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
 
         then:
         failure.assertHasDescription("Execution failed for task ':failing1'.")
-        failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing1"))
+        failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("failing1"))
         resultsFor("tests/failing1")
             .testPath("failing1 suite")
             .onlyRoot()
             .assertChildCount(1, 1)
 
         failure.assertHasDescription("Execution failed for task ':failing2'.")
-        failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing2"))
+        failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("failing2"))
         resultsFor("tests/failing2")
             .testPath("failing2 suite")
             .onlyRoot()

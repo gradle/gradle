@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -53,6 +54,11 @@ allprojects { p ->
         buildFile << """
             apply plugin: 'xctest'
         """
+    }
+
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.XC_TEST
     }
 
     @Override
@@ -101,14 +107,14 @@ allprojects { p ->
         List<XCTestSourceFileElement> testSuites = [
             new XCTestSourceFileElement("SomeTest") {
                 List<XCTestCaseElement> testCases = [
-                    testCase(failingTestCaseName, FAILING_TEST, true),
-                    passingTestCase(passingTestCaseName)
+                    testCase(failingTestMethodName, FAILING_TEST, true),
+                    passingTestCase(passingTestMethodName)
                 ]
             }.withImport(libcModuleName),
 
             new XCTestSourceFileElement("SomeOtherTest") {
                 List<XCTestCaseElement> testCases = [
-                    passingTestCase(passingTestCaseName)
+                    passingTestCase(passingTestMethodName)
                 ]
             },
         ]

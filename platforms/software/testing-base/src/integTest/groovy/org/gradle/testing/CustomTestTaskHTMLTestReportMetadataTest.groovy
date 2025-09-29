@@ -34,7 +34,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
 
         then:
         failure.assertHasCause("Test(s) failed.")
-        failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing"))
+        failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("failing"))
 
         and: "Verify the metadata is present in the single test report for the suite"
         def results = resultsFor("tests/failing")
@@ -64,7 +64,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
 
         then:
         failure.assertHasCause("Test(s) failed.")
-        failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing"))
+        failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("failing"))
 
         and:
         def results = resultsFor("tests/failing")
@@ -82,7 +82,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
 
         then:
         failure.assertHasCause("Test(s) failed.")
-        failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("integration-tests"))
+        failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("integration-tests"))
 
         and: "Verify the metadata is present in the aggregate report"
         def aggregateResults = aggregateResults()
@@ -126,7 +126,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
 
         then:
         failure.assertHasCause("Test(s) failed.")
-        failure.assertHasErrorOutput("See the test results for more details: " + resultsUrlFor("failing"))
+        failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("failing"))
 
         and:
         def results = resultsFor("tests/failing")
