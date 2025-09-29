@@ -70,7 +70,8 @@ public interface GenericTestExecutionResult {
         SPOCK,
         JUNIT4,
         KOTLIN_TEST,
-        SCALA_TEST
+        SCALA_TEST,
+        XC_TEST
     }
 
     /**

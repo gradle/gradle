@@ -116,7 +116,7 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
                 throw new MarkedVerificationException(failureMessage);
             }
             String testResultsUrl = new ConsoleRenderer().asClickableFileUrl(reportIndexFile.toFile());
-            throw new MarkedVerificationException(failureMessage + " See the test results for more details: " + testResultsUrl);
+            throw new MarkedVerificationException(failureMessage + " See the report at: " + testResultsUrl);
         }
     }
 
