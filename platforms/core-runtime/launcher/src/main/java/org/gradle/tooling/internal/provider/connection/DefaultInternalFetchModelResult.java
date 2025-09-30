@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.provider.connection;
 import com.google.common.collect.ImmutableList;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalFetchModelResult;
-import org.gradle.tooling.model.Model;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -28,11 +27,11 @@ import java.util.Collection;
 @NullMarked
 public class DefaultInternalFetchModelResult<T, M> implements InternalFetchModelResult<T, M> {
 
-    public static <T extends Model, M> InternalFetchModelResult<T, M> ofModel(M model) {
+    public static <T, M> InternalFetchModelResult<T, M> ofModel(M model) {
         return new DefaultInternalFetchModelResult<>(null, model, ImmutableList.of());
     }
 
-    public static <T extends Model, M> InternalFetchModelResult<T, M> ofFailure(InternalFailure failure) {
+    public static <T, M> InternalFetchModelResult<T, M> ofFailure(InternalFailure failure) {
         return new DefaultInternalFetchModelResult<>(null, null, ImmutableList.of(failure));
     }
 

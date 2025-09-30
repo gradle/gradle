@@ -40,15 +40,12 @@ import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.serialization.StreamedValue;
-import org.gradle.tooling.model.Model;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
@@ -163,16 +160,9 @@ class DefaultBuildController
     }
 
     @Override
-    public <T extends Model, M> Stream<InternalFetchModelResult<T, M>> fetch(Collection<T> targets, ModelIdentifier modelIdentifier, @Nullable Object parameter) {
-        if (targets.isEmpty()) {
-            return Stream.of(fetchOne(modelIdentifier, parameter));
-        }
-        throw new UnsupportedOperationException("WIP");
-    }
-
-    private <T extends Model, M> InternalFetchModelResult<T, M> fetchOne(ModelIdentifier modelIdentifier, @Nullable Object parameter) {
+    public <T, M> InternalFetchModelResult<T, M> fetch(@Nullable T target, ModelIdentifier modelIdentifier, @Nullable Object parameter) {
         try {
-            Object model = getModel(null, modelIdentifier, parameter).getModel();
+            Object model = getModel(target, modelIdentifier, parameter).getModel();
             return DefaultInternalFetchModelResult.ofModel(uncheckedNonnullCast(model));
         } catch (Exception e) {
             return DefaultInternalFetchModelResult.ofFailure(DefaultFailure.fromThrowable(e));
