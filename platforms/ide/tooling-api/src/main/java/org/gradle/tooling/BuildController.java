@@ -23,6 +23,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Provides a {@link BuildAction} various ways to control a Gradle build and access information about the build.
@@ -223,4 +224,16 @@ public interface BuildController {
      * @since 8.6
      */
     void send(Object value);
+
+    /**
+     * Resilient model fetching.
+     *
+     * @since 9.3
+     */
+    <T extends Model, M, P> Stream<FetchModelResult<T, M>> fetch(
+        Collection<T> targets,
+        Class<M> modelType,
+        @Nullable Class<P> parameterType,
+        @Nullable Action<? super P> parameterInitializer
+    );
 }
