@@ -16,6 +16,7 @@
 
 package org.gradle.buildinit.plugins
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
@@ -34,6 +35,10 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
 
     @Override
     String subprojectName() { 'plugin' }
+
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.KOTLIN_TEST
+    }
 
     def "defaults to kotlin build scripts"() {
         when:

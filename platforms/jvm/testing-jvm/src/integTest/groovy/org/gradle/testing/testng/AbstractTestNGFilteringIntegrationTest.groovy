@@ -17,11 +17,15 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import spock.lang.Issue
 
 abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest implements TestNGMultiVersionTest {
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.TEST_NG
+    }
 
     void theUsualFiles() {
         buildFile << """
@@ -73,13 +77,10 @@ abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilter
         run("test", "--tests", "*AwesomeSuite*")
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-
-        result.assertTestClassesExecuted('FooTest', 'BarTest')
-        result.testClass('FooTest').assertTestCount(1, 0, 0)
-        result.testClass('FooTest').assertTestOutcomes(passedTestOutcome, 'pass')
-        result.testClass('BarTest').assertTestCount(1, 0, 0)
-        result.testClass('BarTest').assertTestOutcomes(passedTestOutcome, 'pass')
+        def testResult = resultsFor(testDirectory, "tests/test", testFramework)
+        testResult.assertAtLeastTestPathsExecutedPreNormalized(":AwesomeSuite:AwesomeTest:FooTest", ":AwesomeSuite:AwesomeTest:BarTest")
+        testResult.testPathPreNormalized(":AwesomeSuite:AwesomeTest:FooTest").onlyRoot().assertChildCount(1, 0)
+        testResult.testPathPreNormalized(":AwesomeSuite:AwesomeTest:BarTest").onlyRoot().assertChildCount(1, 0)
     }
 
     @Issue("GRADLE-3112")
@@ -99,12 +100,9 @@ abstract class AbstractTestNGFilteringIntegrationTest extends AbstractTestFilter
         run("test")
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-
-        result.assertTestClassesExecuted('FooTest', 'BarTest')
-        result.testClass('FooTest').assertTestCount(1, 0, 0)
-        result.testClass('FooTest').assertTestOutcomes(passedTestOutcome, 'pass')
-        result.testClass('BarTest').assertTestCount(1, 0, 0)
-        result.testClass('BarTest').assertTestOutcomes(passedTestOutcome, 'pass')
+        def testResult = resultsFor(testDirectory, "tests/test", testFramework)
+        testResult.assertAtLeastTestPathsExecutedPreNormalized(":AwesomeSuite:AwesomeTest:FooTest", ":AwesomeSuite:AwesomeTest:BarTest")
+        testResult.testPathPreNormalized(":AwesomeSuite:AwesomeTest:FooTest").onlyRoot().assertChildCount(1, 0)
+        testResult.testPathPreNormalized(":AwesomeSuite:AwesomeTest:BarTest").onlyRoot().assertChildCount(1, 0)
     }
 }

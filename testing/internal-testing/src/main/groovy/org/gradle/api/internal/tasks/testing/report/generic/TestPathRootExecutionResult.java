@@ -31,16 +31,52 @@ public interface TestPathRootExecutionResult {
      *
      * <p>
      * For example, if you want to know if {@code :TestClass:testMethod} executed {@code subTest1} and {@code subTest2},
-     * you would call {@code testPath(":TestClass:testMethod").assertPathsExecuted("subTest1", "subTest2")}.
+     * you would call {@code testPath(":TestClass:testMethod").assertChildrenExecuted("subTest1", "subTest2")}.
      * </p>
      *
      * <p>
      * This method only works on direct children of the current test path.
      * </p>
      */
+    TestPathRootExecutionResult assertOnlyChildrenExecuted(String... testNames);
+
+    /**
+     * Asserts that the given child paths were executed for the current test path.
+     * <p>
+     * Unlike {@link #assertOnlyChildrenExecuted(String...)}, this method does not fail if other children were executed.
+     * <p>
+     * This method only works on direct children of the current test path.
+     * </p>
+     */
     TestPathRootExecutionResult assertChildrenExecuted(String... testNames);
 
-    TestPathRootExecutionResult assertChildCount(int tests, int failures, int errors);
+    TestPathRootExecutionResult assertChildCount(int tests, int failures);
+
+    /**
+     * Returns the number of child tests that were executed for the current test path.
+     *
+     * @return the number of executed child tests
+     */
+    int getExecutedChildCount();
+
+    TestPathRootExecutionResult assertChildrenSkipped(String... testNames);
+
+    /**
+     * Returns the number of child tests that were skipped for the current test path.
+     *
+     * @return the number of skipped child tests
+     */
+    int getSkippedChildCount();
+
+
+    TestPathRootExecutionResult assertChildrenFailed(String... testNames);
+
+    /**
+     * Returns the number of child tests that were failed for the current test path.
+     *
+     * @return the number of failed child tests
+     */
+    int getFailedChildCount();
 
     TestPathRootExecutionResult assertStdout(Matcher<? super String> matcher);
 
@@ -48,7 +84,11 @@ public interface TestPathRootExecutionResult {
 
     TestPathRootExecutionResult assertHasResult(TestResult.ResultType resultType);
 
+    TestPathRootExecutionResult assertDisplayName(Matcher<? super String> matcher);
+
     TestPathRootExecutionResult assertFailureMessages(Matcher<? super String> matcher);
+
+    String getFailureMessages();
 
     /**
      * Asserts that the given metadata keys are present in the test result.

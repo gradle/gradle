@@ -47,6 +47,7 @@ class TestDisplayNameJUnit4CrossVersionSpec extends TestLauncherSpec {
         """
     }
 
+    @TargetGradleVersion(">=8.8 <9.3.0") // test class display name changed to FQCN in 9.3
     def "reports display names of class and method"() {
         file("src/test/java/org/example/SimpleTests.java") << """package org.example;
 
@@ -81,6 +82,7 @@ public class SimpleTests {
         }
     }
 
+    @TargetGradleVersion(">=8.8") // test event hierarchy changed in 9.3
     def "reports display names of parameterized tests"() {
         file("src/test/java/org/example/ParameterizedTests.java") << """package org.example;
 

@@ -42,23 +42,24 @@ public abstract class AbstractJUnitTestClassProcessor implements RequiresTestFra
     public void startProcessing(TestResultProcessor resultProcessor) {
         assertTestFrameworkAvailable();
 
-        TestResultProcessor resultProcessorChain = createResultProcessorChain(resultProcessor);
         // Wrap the result processor chain up in a blocking actor, to make the whole thing thread-safe
-        resultProcessorActor = actorFactory.createBlockingActor(resultProcessorChain);
+        resultProcessorActor = actorFactory.createBlockingActor(resultProcessor);
         executor = createTestExecutor(resultProcessorActor);
 
         startedProcessing = true;
     }
-
-    protected abstract TestResultProcessor createResultProcessorChain(TestResultProcessor resultProcessor);
 
     protected abstract TestClassConsumer createTestExecutor(Actor resultProcessorActor);
 
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
         if (startedProcessing) {
-            LOGGER.debug("Executing test class {}", testClass.getTestClassName());
-            executor.consumeClass(testClass.getTestClassName());
+            if (testClass.getSuiteClassNames().isEmpty()) {
+                LOGGER.debug("Executing test class {}", testClass.getTestClassName());
+            } else {
+                LOGGER.debug("Executing test suite {} containing classes {}", testClass.getTestClassName(), testClass.getSuiteClassNames());
+            }
+            executor.consumeClass(testClass);
         }
     }
 
