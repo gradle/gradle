@@ -34,7 +34,6 @@ import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Stream;
 
 @NullMarked
 class FetchAwareBuildControllerAdapter extends StreamingAwareBuildControllerAdapter {
@@ -46,17 +45,16 @@ class FetchAwareBuildControllerAdapter extends StreamingAwareBuildControllerAdap
     }
 
     @Override
-    public <T extends Model, M, P> Stream<FetchModelResult<T, M>> fetch(
-        Collection<T> targets,
+    public <T extends Model, M, P> FetchModelResult<T, M> fetch(
+        @Nullable T target,
         Class<M> modelType,
         @Nullable Class<P> parameterType,
         @Nullable Action<? super P> parameterInitializer
     ) {
         ModelIdentifier modelIdentifier = getModelIdentifierFromModelType(modelType);
         P parameter = parameterInitializer != null ? initializeParameter(parameterType, parameterInitializer) : null;
-        return fetch
-            .fetch(targets, modelIdentifier, parameter)
-            .map(result -> adaptResult(modelType, result));
+        InternalFetchModelResult<T, Object> result = fetch.fetch(target, modelIdentifier, parameter);
+        return adaptResult(modelType, result);
     }
 
     private <T extends Model, M> FetchModelResult<T, M> adaptResult(Class<M> modelType, InternalFetchModelResult<T, Object> result) {

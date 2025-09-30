@@ -23,8 +23,6 @@ import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.gradle.GradleBuild
 
-import static java.util.Collections.emptyList
-
 interface UnknownModel {}
 
 @TargetGradleVersion(">=9.3.0")
@@ -34,20 +32,18 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
     static class FetchGradleBuildAction implements BuildAction<Integer> {
         @Override
         Integer execute(BuildController controller) {
-            return controller
-                .fetch(emptyList(), GradleBuild.class, null, null)
-                .filter { it.model instanceof GradleBuild }
-                .count()
+            def result = controller.fetch(null, GradleBuild.class, null, null)
+            assert result.model instanceof GradleBuild
+            return result.model.projects.size()
         }
     }
 
     static class FetchUnknownModelAction implements BuildAction<List<String>> {
         @Override
         List<String> execute(BuildController controller) {
-            return controller
-                .fetch(emptyList(), UnknownModel.class, null, null)
-                .filter { it.model == null }
-                .flatMap { it.failures.stream() }
+            def result = controller.fetch(null, UnknownModel.class, null, null)
+            assert result.model === null
+            return result.failures.stream()
                 .flatMap { it.causes.stream() }
                 .map { it.message }
                 .toList()
@@ -56,11 +52,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
     def "can request GradleBuild model"() {
         when:
-        def result = withConnection { connection ->
-            connection
-                .action(new FetchGradleBuildAction())
-                .run()
-        }
+        def result = run(new FetchGradleBuildAction())
 
         then:
         result == 1
@@ -68,13 +60,17 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
     def "can request unknown model"() {
         when:
-        def causes = withConnection { connection ->
-            connection
-                .action(new FetchUnknownModelAction())
-                .run()
-        }
+        def causes = run(new FetchUnknownModelAction())
 
         then:
         causes == ["No builders are available to build a model of type 'org.gradle.integtests.tooling.r930.UnknownModel'."]
+    }
+
+    <T> T run(BuildAction<T> action) {
+        withConnection { connection ->
+            connection
+                .action(action)
+                .run()
+        }
     }
 }

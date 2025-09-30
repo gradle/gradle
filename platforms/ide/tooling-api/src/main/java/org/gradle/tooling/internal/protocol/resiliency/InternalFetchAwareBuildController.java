@@ -18,12 +18,8 @@ package org.gradle.tooling.internal.protocol.resiliency;
 
 import org.gradle.tooling.internal.protocol.InternalFetchModelResult;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
-import org.gradle.tooling.model.Model;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.stream.Stream;
 
 /**
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
@@ -35,8 +31,8 @@ import java.util.stream.Stream;
  */
 @NullMarked
 public interface InternalFetchAwareBuildController {
-    <T extends Model, M> Stream<InternalFetchModelResult<T, M>> fetch(
-        Collection<T> targets,
+    <T, M> InternalFetchModelResult<T, M> fetch(
+        @Nullable T target,
         ModelIdentifier modelIdentifier,
         @Nullable Object parameter
     );

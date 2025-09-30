@@ -43,7 +43,6 @@ import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Stream;
 
 abstract class UnparameterizedBuildController extends HasCompatibilityMapping implements BuildController {
     private final ProtocolToModelAdapter adapter;
@@ -198,7 +197,7 @@ abstract class UnparameterizedBuildController extends HasCompatibilityMapping im
     }
 
     @Override
-    public <T extends Model, M, P> Stream<FetchModelResult<T, M>> fetch(Collection<T> targets, Class<M> modelType, @Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
+    public <T extends Model, M, P> FetchModelResult<T, M> fetch(@Nullable T target, Class<M> modelType, @Nullable Class<P> parameterType, @Nullable Action<? super P> parameterInitializer) {
         throw new UnsupportedVersionException(String.format("Gradle version %s does not support resilient model fetching.", gradleVersion.getVersion()));
     }
 }
