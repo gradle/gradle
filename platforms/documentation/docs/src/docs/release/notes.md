@@ -65,7 +65,7 @@ This makes it possible to run Gradle on Windows virtual machines hosted on Apple
 <a name="publishing-improvements"></a>
 ### Publishing improvements
 
-Gradle provides APIs for plugin authors and build engineers to define and customize the software [components](userguide/glossary.html#sub:terminology_component) their project produces when [publishing](https://docs.gradle.org/current/userguide/publishing_customization.html) them.
+Gradle provides APIs for plugin authors and build engineers to define and customize the software [components](userguide/glossary.html#sub:terminology_component) their project produces when [publishing](userguide/publishing_customization.html) them.
 
 #### New `PublishingExtension.getSoftwareComponentFactory()` method
 
