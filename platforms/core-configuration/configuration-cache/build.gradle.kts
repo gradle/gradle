@@ -47,6 +47,7 @@ dependencies {
     implementation(projects.buildEvents)
     implementation(projects.buildProcessServices)
     implementation(projects.classloaders)
+    implementation(projects.coreFlowServicesApi)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.dependencyManagementSerializationCodecs)
     implementation(projects.encryptionServices)
@@ -72,10 +73,11 @@ dependencies {
     implementation(projects.toolingApi)
 
     implementation(libs.guava)
-    implementation(libs.jspecify)
     implementation(libs.fastutil)
     implementation(libs.kryo)
     implementation(libs.slf4jApi)
+
+    compileOnly(libs.jspecify)
 
     runtimeOnly(projects.beanSerializationServices)
     runtimeOnly(projects.compositeBuilds)

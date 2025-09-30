@@ -63,7 +63,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Global resolution state.
@@ -232,7 +231,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     public SelectorState computeSelectorFor(DependencyState dependencyState, boolean ignoreVersion) {
         boolean isVirtualPlatformEdge = dependencyState.getDependency() instanceof LenientPlatformDependencyMetadata;
         SelectorState selectorState = selectors.computeIfAbsent(new SelectorCacheKey(dependencyState.getRequested(), ignoreVersion, isVirtualPlatformEdge), req -> {
-            ModuleIdentifier moduleIdentifier = dependencyState.getModuleIdentifier();
+            ModuleIdentifier moduleIdentifier = dependencyState.getModuleIdentifier(getComponentSelectorConverter());
             return new SelectorState(dependencyState, idResolver, this, moduleIdentifier, ignoreVersion);
         });
         selectorState.update(dependencyState);
@@ -339,14 +338,32 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     }
 
     private static class SelectorCacheKey {
+
         private final ComponentSelector componentSelector;
         private final boolean ignoreVersion;
         private final boolean virtualPlatformEdge;
+        private final int hashCode;
 
-        private SelectorCacheKey(ComponentSelector componentSelector, boolean ignoreVersion, boolean virtualPlatformEdge) {
+        private SelectorCacheKey(
+            ComponentSelector componentSelector,
+            boolean ignoreVersion,
+            boolean virtualPlatformEdge
+        ) {
             this.componentSelector = componentSelector;
             this.ignoreVersion = ignoreVersion;
             this.virtualPlatformEdge = virtualPlatformEdge;
+            this.hashCode = computeHashCode(componentSelector, ignoreVersion, virtualPlatformEdge);
+        }
+
+        private static int computeHashCode(
+            ComponentSelector componentSelector,
+            boolean ignoreVersion,
+            boolean virtualPlatformEdge
+        ) {
+            int result = componentSelector.hashCode();
+            result = 31 * result + Boolean.hashCode(ignoreVersion);
+            result = 31 * result + Boolean.hashCode(virtualPlatformEdge);
+            return result;
         }
 
         @Override
@@ -365,8 +382,9 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
 
         @Override
         public int hashCode() {
-            return Objects.hash(componentSelector, ignoreVersion, virtualPlatformEdge);
+            return hashCode;
         }
+
     }
 
     /**

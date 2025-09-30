@@ -20,48 +20,46 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.initialization.internal.SharedModelDefaultsInternal
+import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.initialization.ActionBasedDefault
-import org.gradle.api.plugins.ExtensionAware
 import org.gradle.internal.Cast
-import org.gradle.internal.declarativedsl.software.getSoftwareFeatureModelInstance
 import org.gradle.plugin.software.internal.ModelDefault
 import org.gradle.plugin.software.internal.ModelDefaultsApplicator.ClassLoaderContext
 import org.gradle.plugin.software.internal.ModelDefaultsHandler
-import org.gradle.plugin.software.internal.SoftwareFeatureImplementation
-import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureImplementation
+import org.gradle.plugin.software.internal.ProjectFeatureRegistry
 
 class ActionBasedModelDefaultsHandler(
     private val sharedModelDefaults: SharedModelDefaultsInternal,
     private val projectLayout: ProjectLayout,
-    private val softwareFeatureRegistry: SoftwareFeatureRegistry,
+    private val projectFeatureRegistry: ProjectFeatureRegistry,
 ) : ModelDefaultsHandler {
 
-    override fun <T : Any> apply(target: T, classLoaderContext: ClassLoaderContext, softwareFeatureName: String, plugin: Plugin<*>) {
-        val softwareFeatureImplementation: SoftwareFeatureImplementation<*, *> = softwareFeatureRegistry.getSoftwareFeatureImplementations()[softwareFeatureName]!!
+    override fun apply(target: Any, definition: Any, classLoaderContext: ClassLoaderContext, projectFeatureName: String, plugin: Plugin<*>) {
+        val projectFeatureImplementation: ProjectFeatureImplementation<*, *> = projectFeatureRegistry.getProjectFeatureImplementations()[projectFeatureName]!!
 
-        if (target is ExtensionAware) {
-            val modelInstance = getSoftwareFeatureModelInstance(softwareFeatureImplementation, target)
+        if (target is DynamicObjectAware) {
             sharedModelDefaults.setProjectLayout(projectLayout)
             try {
-                softwareFeatureImplementation.visitModelDefaults(
+                projectFeatureImplementation.visitModelDefaults(
                     Cast.uncheckedNonnullCast(ActionBasedDefault::class.java),
-                    executeActionVisitor(softwareFeatureImplementation, modelInstance)
+                    executeActionVisitor(projectFeatureImplementation, definition)
                 )
-                executeActionVisitor(softwareFeatureImplementation, target)
+                executeActionVisitor(projectFeatureImplementation, target)
             } finally {
                 sharedModelDefaults.clearProjectLayout()
             }
         } else {
-            throw GradleException("Tried to apply defaults for software feature '$softwareFeatureName', got unexpected target object: ${target::class.qualifiedName}")
+            throw GradleException("Tried to apply defaults for project feature '$projectFeatureName', got unexpected target object: ${target::class.qualifiedName}")
         }
     }
 
     private fun <T : Any, V : Any> executeActionVisitor(
-        softwareFeatureImplementation: SoftwareFeatureImplementation<T, V>,
+        projectFeatureImplementation: ProjectFeatureImplementation<T, V>,
         modelObject: Any?
     ): ModelDefault.Visitor<Action<in T>> {
         checkNotNull(modelObject) {
-            "The model object for " + softwareFeatureImplementation.getFeatureName() + " declared in " + softwareFeatureImplementation.getPluginClass().getName() + " is null."
+            "The model object for " + projectFeatureImplementation.getFeatureName() + " declared in " + projectFeatureImplementation.getPluginClass().getName() + " is null."
         }
         return ModelDefault.Visitor { action: Action<in T>? -> action!!.execute(Cast.uncheckedNonnullCast(modelObject)) }
     }

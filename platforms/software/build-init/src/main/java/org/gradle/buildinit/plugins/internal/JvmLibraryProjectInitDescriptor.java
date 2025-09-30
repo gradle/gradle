@@ -39,6 +39,11 @@ public class JvmLibraryProjectInitDescriptor extends JvmProjectInitDescriptor {
         super.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
 
         applyLibraryPlugin(buildScriptBuilder);
+        if(!isSingleProject(settings)){
+            buildScriptBuilder.plugin(
+                "Apply the java conventions plugin from build-logic.",
+                "buildlogic.java-library-conventions");
+        }
         buildScriptBuilder.dependency(
             "api",
             "This dependency is exported to consumers, that is to say found on their compile classpath.",

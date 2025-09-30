@@ -32,6 +32,7 @@ val smokeIdeTestDistributionRuntimeOnly: Configuration by configurations
 val ideStarter by configurations.creating {
     isCanBeConsumed = false
 }
+val ideStarterBuildDir = layout.buildDirectory.dir("ideStarter")
 
 plugins.withType<IdeaPlugin> {
     with(model) {
@@ -42,10 +43,19 @@ plugins.withType<IdeaPlugin> {
     }
 }
 
+abstract class IdeStarterPathProvider : CommandLineArgumentProvider {
+    @get: InputDirectory
+    @get: PathSensitive(PathSensitivity.RELATIVE)
+    abstract val ideStarterDir : DirectoryProperty
+
+    override fun asArguments(): Iterable<String> =
+        listOf("-Dide.starter.path=${ideStarterDir.get().asFile.absolutePath}")
+}
+
 tasks {
     val unzipIdeStarter by registering(Sync::class) {
         from(zipTree(ideStarter.elements.map { it.single() }))
-        into(layout.buildDirectory.dir("ideStarter"))
+        into(ideStarterBuildDir)
     }
 
     val fetchGradle by registering(RemoteProject::class) {
@@ -56,6 +66,7 @@ tasks {
     val shrinkGradle by registering(Sync::class) {
         from(fetchGradle.map { it.outputDirectory }) {
             exclude("subprojects/*/*/src/**")
+            exclude("testing/*/*/src/**")
             filesMatching("platforms/*/*/src/**") {
                 // /platforms/documentation/docs/samples must be included
                 if (!sourcePath.contains("documentation/docs/samples/templates")) {
@@ -82,6 +93,11 @@ tasks {
         systemProperties["org.gradle.integtest.executer"] = "forking"
         testClassesDirs = smokeIdeTestSourceSet.output.classesDirs
         classpath = smokeIdeTestSourceSet.runtimeClasspath
+        jvmArgumentProviders.add(
+            objects.newInstance<IdeStarterPathProvider>().apply {
+                ideStarterDir = ideStarterBuildDir
+            }
+        )
     }
 }
 
@@ -90,10 +106,11 @@ dependencies {
     smokeIdeTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("Tests starts an IDE with using current Gradle distribution")
     }
+    smokeIdeTestImplementation(libs.gradleIdeStarterScenarios)
     smokeIdeTestImplementation(testFixtures(projects.core))
 }
 
-integTest.testJvmXmx = "1g"
+integTest.testJvmXmx = "5g"
 
 errorprone {
     nullawayEnabled = true

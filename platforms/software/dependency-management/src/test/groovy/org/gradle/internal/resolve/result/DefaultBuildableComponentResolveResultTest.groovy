@@ -17,17 +17,16 @@
 package org.gradle.internal.resolve.result
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
-
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class DefaultBuildableComponentResolveResultTest extends Specification {
     def result = new DefaultBuildableComponentResolveResult()
@@ -89,7 +88,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
     def "cannot get id when resolve failed"() {
         org.gradle.internal.Factory<String> broken = { "too bad" }
-        def failure = new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId("a", "b"), "c"), broken)
+        def failure = new ModuleVersionResolveException(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("a", "b"), "c"), broken)
 
         when:
         result.failed(failure)
@@ -102,7 +101,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
     def "cannot get state when resolve failed"() {
         org.gradle.internal.Factory<String> broken = { "too bad" }
-        def failure = new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId("a", "b"), "c"), broken)
+        def failure = new ModuleVersionResolveException(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("a", "b"), "c"), broken)
 
         when:
         result.failed(failure)
@@ -115,7 +114,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
     def "cannot get graph state when resolve failed"() {
         org.gradle.internal.Factory<String> broken = { "too bad" }
-        def failure = new ModuleVersionResolveException(newSelector(DefaultModuleIdentifier.newId("a", "b"), "c"), broken)
+        def failure = new ModuleVersionResolveException(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("a", "b"), "c"), broken)
 
         when:
         result.failed(failure)
@@ -170,7 +169,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
     def "copies failure result to an id resolve result"() {
         org.gradle.internal.Factory<String> broken = { "too bad" }
         def idResult = Mock(BuildableComponentIdResolveResult)
-        def failure = new ModuleVersionResolveException(Stub(ModuleVersionSelector), broken)
+        def failure = new ModuleVersionResolveException(Stub(ModuleComponentSelector), broken)
 
         given:
         result.attempted("a")

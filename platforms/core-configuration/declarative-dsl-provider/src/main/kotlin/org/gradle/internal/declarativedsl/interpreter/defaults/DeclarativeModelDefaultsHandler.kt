@@ -22,7 +22,7 @@ import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace
-import org.gradle.internal.declarativedsl.defaults.softwareFeatureRegistryBasedModelDefaultsRepository
+import org.gradle.internal.declarativedsl.defaults.projectFeatureRegistryBasedModelDefaultsRepository
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluator.conversion.AnalysisAndConversionStepRunner
 import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionStepContext
@@ -45,7 +45,7 @@ import org.gradle.internal.declarativedsl.language.SyntheticallyProduced
 import org.gradle.internal.declarativedsl.project.PROJECT_INTERPRETATION_SEQUENCE_STEP_KEY
 import org.gradle.plugin.software.internal.ModelDefaultsApplicator.ClassLoaderContext
 import org.gradle.plugin.software.internal.ModelDefaultsHandler
-import org.gradle.plugin.software.internal.SoftwareFeatureRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureRegistry
 import javax.inject.Inject
 
 
@@ -53,7 +53,7 @@ import javax.inject.Inject
  * A {@link ConventionHandler} for applying declarative conventions.
  */
 abstract class DeclarativeModelDefaultsHandler @Inject constructor(
-    softwareFeatureRegistry: SoftwareFeatureRegistry,
+    projectFeatureRegistry: ProjectFeatureRegistry,
     interpretationSchemaBuilder: InterpretationSchemaBuilder
 ) : ModelDefaultsHandler {
     private
@@ -63,13 +63,13 @@ abstract class DeclarativeModelDefaultsHandler @Inject constructor(
         schema.sequence.steps.single { it.stepIdentifier.key == PROJECT_INTERPRETATION_SEQUENCE_STEP_KEY }
     }
     private
-    val modelDefaultsRepository = softwareFeatureRegistryBasedModelDefaultsRepository(softwareFeatureRegistry)
+    val modelDefaultsRepository = projectFeatureRegistryBasedModelDefaultsRepository(projectFeatureRegistry)
 
-    override fun <T : Any> apply(target: T, classLoaderContext: ClassLoaderContext, softwareFeatureName: String, plugin: Plugin<*>) {
+    override fun apply(target: Any, definition: Any, classLoaderContext: ClassLoaderContext, projectFeatureName: String, plugin: Plugin<*>) {
         val analysisStepRunner = ApplyDefaultsOnlyAnalysisStepRunner()
         val analysisStepContext = AnalysisStepContext(
             emptySet(),
-            setOf(SingleSoftwareTypeApplyModelDefaultsHandler(modelDefaultsRepository, softwareFeatureName))
+            setOf(SingleProjectTypeApplyModelDefaultsHandler(modelDefaultsRepository, projectFeatureName))
         )
 
         val result = AnalysisAndConversionStepRunner(analysisStepRunner)
@@ -128,8 +128,8 @@ fun emptyResolutionResultForReceiver(receiver: ObjectOrigin.TopLevelReceiver) = 
 
 
 private
-class SingleSoftwareTypeApplyModelDefaultsHandler(val modelDefaultsRepository: ModelDefaultsRepository, val softwareTypeName: String) : ApplyModelDefaultsHandler {
+class SingleProjectTypeApplyModelDefaultsHandler(val modelDefaultsRepository: ModelDefaultsRepository, val projectTypeName: String) : ApplyModelDefaultsHandler {
     override fun getDefaultsResolutionResults(resolutionResult: ResolutionResult): List<ModelDefaultsResolutionResults> {
-        return listOf(modelDefaultsRepository.findDefaults(softwareTypeName)).requireNoNulls()
+        return listOf(modelDefaultsRepository.findDefaults(projectTypeName)).requireNoNulls()
     }
 }

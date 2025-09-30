@@ -28,7 +28,7 @@ val jaxbVersion = "3.0.0"
 val junit5Version = "5.12.2"
 val mavenVersion = "3.9.5"
 val mavenResolverVersion = "1.9.16" // Should remain in-sync with `mavenVersion`
-val nativePlatformVersion = "0.22-milestone-28"
+val nativePlatformVersion = "0.22-milestone-29"
 /**
  * Should be in sync with:
  * tooling API-related docs & snippets
@@ -176,6 +176,7 @@ dependencies {
         api(libs.trove4j)               { version { strictly("1.0.20200330") }}
         api(libs.jna)                   { version { strictly(jnaVersion) }}
         api(libs.jnaPlatform)           { version { strictly(jnaVersion) }}
+        api(libs.jnrConstants)          { version { strictly("0.10.4") } }
 
         // TODO upgrade this AGP version to recent version
         api(libs.agp)                   { version { strictly("3.0.0"); because("We use 3.0.0 for internal performance test") }}
@@ -238,7 +239,6 @@ dependencies {
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}
         api(libs.testcontainers)        { version { strictly("1.20.4") }}
         api(libs.testcontainersSpock)   { version { strictly("1.20.4") }}
-        api(libs.typesafeConfig)        { version { strictly("1.3.3") }}
         api(libs.xerces)                { version { strictly("2.12.0") }}
         api(libs.xmlunit)               { version { strictly("1.6") }}
     }

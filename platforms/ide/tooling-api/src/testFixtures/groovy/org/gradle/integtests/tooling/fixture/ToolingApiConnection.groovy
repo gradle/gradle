@@ -129,7 +129,7 @@ class BuildActionExecuterBuilder implements BuildActionExecuter.Builder {
 /**
  * This trait is used to add the missing methods to the ToolingApiConnection class without actually deriving from ProjectConnection.
  * While still allowing the ToolingApiConnection to be used as a ProjectConnection.
- * This avoids loading the ProjectConnection class from the test code and postbones loading to the tooling api magic.
+ * This avoids loading the ProjectConnection class from the test code and postpones loading to the tooling api magic.
  */
 trait ProjectConnectionTrait implements ProjectConnection {
 }

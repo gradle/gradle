@@ -54,6 +54,7 @@ import org.gradle.kotlin.dsl.concurrent.runBlocking
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.KOTLIN_DSL_PACKAGE_NAME
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeaderFor
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.primitiveKotlinTypeNames
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.typeProjectionStrings
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.getBooleanKotlinDslOption
@@ -526,7 +527,7 @@ fun classNamesFromTypeString(typeString: String): ClassNamesFromTypeString {
 
     fun nonPrimitiveKotlinType(): String? =
         buffer.takeIf(StringBuilder::isNotEmpty)?.toString()?.let {
-            if (it in primitiveKotlinTypeNames) null
+            if (it in primitiveKotlinTypeNames || it in typeProjectionStrings) null
             else it
         }
 
@@ -702,7 +703,7 @@ fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run 
     putAll(schema.tasks)
     putAll(schema.containerElements)
     putContainerElementFactoryEntries(schema.containerElementFactories)
-    putSoftwareFeatureEntries(schema.softwareFeatureEntries)
+    putProjectFeatureEntries(schema.projectFeatureEntries)
     putAllSorted(schema.configurations.map { it.target })
     hash()
 }
@@ -734,10 +735,10 @@ private fun Hasher.putContainerElementFactoryEntries(entries: List<ContainerElem
     }
 }
 
-private fun Hasher.putSoftwareFeatureEntries(entries: List<SoftwareFeatureEntry<SchemaType>>) {
+private fun Hasher.putProjectFeatureEntries(entries: List<ProjectFeatureEntry<SchemaType>>) {
     putInt(entries.size)
     entries.forEach { entry ->
-        putString(entry.softwareFeatureName)
+        putString(entry.featureName)
         putString(entry.ownDefinitionType.kotlinString)
         putString(entry.targetDefinitionType.kotlinString)
     }

@@ -2807,6 +2807,74 @@ Found the following transformation chains:
         output.contains("> Task :app:resolve")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/33298")
+    def "does not OOM due to exhaustively searching all possible transform paths when many unrelated transforms are registered"() {
+        buildFile << """
+            @CacheableTransform
+            abstract class Transform implements TransformAction<TransformParameters.None> {
+                @PathSensitive(PathSensitivity.RELATIVE)
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                @Override
+                public void transform(TransformOutputs outputs) {
+                    outputs.file(getInputArtifact().get().getAsFile())
+                }
+            }
+
+            def direct = Attribute.of("attr", String)
+
+            def stubJar = tasks.register("stubJar", Jar) {
+                from(layout.projectDirectory.file("build.gradle.kts"))
+                destinationDirectory.set(layout.buildDirectory.dir("stubJar"))
+            }
+
+            def consumable = configurations.consumable("consumable") {
+                attributes.attribute(direct, "direct")
+                outgoing.artifact(stubJar)
+            }
+
+            def numberOfUnrelatedTransformedAttributes = 10
+            def transformedAttribute = Attribute.of("transformedAttribute", String)
+
+            dependencies.artifactTypes.register("jar") {
+                attributes.attribute(transformedAttribute, "initial_state")
+            }
+
+            // Technically registering this transform doesn't change anything
+            dependencies.registerTransform(Transform) {
+                from.attribute(transformedAttribute, "initial_state")
+                to.attribute(transformedAttribute, "unrequested_state")
+            }
+
+            for (int i = 0; i < numberOfUnrelatedTransformedAttributes; i++) {
+                def unrelated = Attribute.of("unrelated\$i", String)
+                dependencies.registerTransform(Transform) {
+                    from.attribute(unrelated, "a")
+                    to.attribute(unrelated, "b")
+                }
+            }
+            def deps = configurations.dependencyScope("deps") {
+                dependencies.add(dependencyFactory.create(project))
+            }
+            def resolvable = configurations.resolvable("res") {
+                attributes.attribute(direct, "direct")
+                attributes.attribute(transformedAttribute, "requested_state")
+                extendsFrom(deps.get())
+            }
+            tasks.register("explodeGradleWithOOM") {
+                inputs.files(resolvable)
+            }
+        """
+
+        when:
+        fails("explodeGradleWithOOM")
+
+        then:
+        // Previously, this test would fail with an OOM.
+        failure.assertHasCause("No variants of root project : match the consumer attributes")
+    }
+
     def declareTransform(String transformImplementation) {
         """
             dependencies {

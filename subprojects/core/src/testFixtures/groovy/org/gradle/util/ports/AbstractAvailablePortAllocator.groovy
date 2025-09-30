@@ -89,8 +89,8 @@ abstract class AbstractAvailablePortAllocator implements PortAllocator {
     protected abstract Pair<Integer, Integer> getNextPortRange(int rangeNumber)
 
     private void releaseRange(ReservedPortRange range) {
+        lock.lock();
         try {
-            lock.lock();
             reservations.remove(range)
         } finally {
             lock.unlock();

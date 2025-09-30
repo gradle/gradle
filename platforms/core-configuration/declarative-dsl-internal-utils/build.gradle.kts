@@ -21,13 +21,10 @@ plugins {
 description = "DCL-related utilities that are meant to be reused in the Gradle subprojects but not in DCL client applications"
 
 dependencies {
-    api(projects.coreApi)
-    api(projects.softwareFeatures)
+    compileOnly(projects.projectFeaturesApi)
 
-    implementation(projects.core)
-    implementation(projects.softwareFeaturesApi)
+    implementation(projects.coreApi)
     implementation(projects.declarativeDslApi)
-    implementation(projects.stdlibJavaExtensions)
 
     api(libs.futureKotlin("stdlib"))
     implementation(libs.futureKotlin("reflect"))

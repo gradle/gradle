@@ -17,7 +17,8 @@ dependencies {
     api(projects.platformBase)
 
     implementation(libs.commonsLang)
-    implementation(libs.jspecify)
+
+    compileOnly(libs.jspecify)
 
     testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.core))

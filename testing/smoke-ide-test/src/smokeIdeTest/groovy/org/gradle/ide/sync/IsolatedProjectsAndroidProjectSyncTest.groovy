@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 class IsolatedProjectsAndroidProjectSyncTest extends AbstractIdeSyncTest {
 
     // https://developer.android.com/build/releases/gradle-plugin
-    private final static String AGP_VERSION = new AndroidGradlePluginVersions().getLatest()
+    private final static String AGP_VERSION = new AndroidGradlePluginVersions().getLatestStable()
 
     private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(testDirectory)
 

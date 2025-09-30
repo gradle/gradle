@@ -77,7 +77,7 @@ private val performanceRegressionTestCoverages =
             PerformanceTestType.PER_COMMIT,
             Os.WINDOWS,
             numberOfBuckets = 10,
-            failsStage = false,
+            failsStage = true,
         ),
         PerformanceTestCoverage(
             7,
@@ -85,7 +85,7 @@ private val performanceRegressionTestCoverages =
             Os.MACOS,
             Arch.AARCH64,
             numberOfBuckets = 5,
-            failsStage = false,
+            failsStage = true,
         ),
     )
 
@@ -142,7 +142,6 @@ data class CIBuildModel(
                         SpecificBuild.CheckLinks,
                         SpecificBuild.CheckTeamCityKotlinDSL,
                         SpecificBuild.SmokeTestsMaxJavaVersion,
-                        SpecificBuild.SantaTrackerSmokeTests,
                         SpecificBuild.ConfigCacheSantaTrackerSmokeTests,
                         SpecificBuild.GradleBuildSmokeTests,
                         SpecificBuild.ConfigCacheSmokeTestsMaxJavaVersion,
@@ -216,6 +215,7 @@ data class CIBuildModel(
                 specificBuilds =
                     listOf(
                         SpecificBuild.TestPerformanceTest,
+                        SpecificBuild.SantaTrackerSmokeTests,
                     ),
                 functionalTests =
                     listOf(
