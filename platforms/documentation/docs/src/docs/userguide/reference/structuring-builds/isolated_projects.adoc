@@ -101,6 +101,14 @@ These constraints are not final and can change at any time.
 
 == ChangeLog
 
+=== Gradle 9.2.0
+
+==== Additional APIs treated as incompatible with Isolated Projects
+
+The following two methods now emit IP violations when the requested task lives in a different project:
+- `TaskContainer#findByPath(String)`
+- `TaskContainer#getByPath(String)`
+
 === Gradle 8.11
 
 ==== Projects configured in parallel
