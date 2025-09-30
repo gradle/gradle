@@ -17,6 +17,7 @@
 package org.gradle.testing
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.internal.TextUtil
@@ -37,7 +38,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
         failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("failing"))
 
         and: "Verify the metadata is present in the single test report for the suite"
-        def results = resultsFor("tests/failing")
+        def results = resultsFor("tests/failing", GenericTestExecutionResult.TestFramework.CUSTOM)
         results.testPath(":failing suite")
             .onlyRoot()
             .assertMetadata(["suitekey"])
@@ -46,7 +47,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
             .assertMetadata(["testkey", "testkey2", "testkey3", "testkey4"])
 
         and: "Also in the aggregate report"
-        def aggregateResults = aggregateResults()
+        def aggregateResults = aggregateResults('', GenericTestExecutionResult.TestFramework.CUSTOM)
         aggregateResults.testPath(":failing suite")
             .onlyRoot()
             .assertChildCount(1, 1)
@@ -67,7 +68,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
         failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("failing"))
 
         and:
-        def results = resultsFor("tests/failing")
+        def results = resultsFor("tests/failing", GenericTestExecutionResult.TestFramework.CUSTOM)
         results.testPath(":failing suite:failing test")
             .onlyRoot()
             .assertMetadata(["group1key1", "group1key2", "group2key1", "group2key2"])
@@ -85,34 +86,34 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
         failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("integration-tests"))
 
         and: "Verify the metadata is present in the aggregate report"
-        def aggregateResults = aggregateResults()
+        def aggregateResults = aggregateResults('', GenericTestExecutionResult.TestFramework.CUSTOM)
 
-        aggregateResults.testPath("Unit Tests Suite")
+        aggregateResults.testPath(":Unit Tests Suite")
             .onlyRoot()
             .assertChildCount(2, 0)
-        aggregateResults.testPath("Unit Tests Suite:test1")
+        aggregateResults.testPath(":Unit Tests Suite:test1")
             .onlyRoot()
             .assertMetadata(["key1"])
-        aggregateResults.testPath("Unit Tests Suite:test2")
+        aggregateResults.testPath(":Unit Tests Suite:test2")
             .onlyRoot()
             .assertMetadata(["key2"])
 
-        aggregateResults.testPath("Slow Integration Tests Suite")
+        aggregateResults.testPath(":Slow Integration Tests Suite")
             .onlyRoot()
             .assertChildCount(1, 0)
             .assertMetadata(["suitekey1"])
-        aggregateResults.testPath("Slow Integration Tests Suite:intTest1")
+        aggregateResults.testPath(":Slow Integration Tests Suite:intTest1")
             .onlyRoot()
             .assertMetadata(["ikey1"])
 
-        aggregateResults.testPath("Slower Integration Tests Suite")
+        aggregateResults.testPath(":Slower Integration Tests Suite")
             .onlyRoot()
             .assertChildCount(2, 1)
             .assertMetadata(["suitekey2", "suitekey2-another"])
-        aggregateResults.testPath("Slower Integration Tests Suite:intTest2")
+        aggregateResults.testPath(":Slower Integration Tests Suite:intTest2")
             .onlyRoot()
             .assertMetadata(["ikey2"])
-        aggregateResults.testPath("Slower Integration Tests Suite:intTest3")
+        aggregateResults.testPath(":Slower Integration Tests Suite:intTest3")
             .onlyRoot()
             .assertMetadata(["ikey3"])
     }
@@ -129,7 +130,7 @@ final class CustomTestTaskHTMLTestReportMetadataTest extends AbstractIntegration
         failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("failing"))
 
         and:
-        def results = resultsFor("tests/failing")
+        def results = resultsFor("tests/failing", GenericTestExecutionResult.TestFramework.CUSTOM)
         results.testPath(":failing suite:failing test")
             .onlyRoot()
             .assertMetadata(["stringKey": "This is a string",

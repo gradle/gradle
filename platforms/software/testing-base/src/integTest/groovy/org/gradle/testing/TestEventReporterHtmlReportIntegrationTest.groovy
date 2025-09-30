@@ -17,6 +17,7 @@
 package org.gradle.testing
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.logging.ConsoleRenderer
@@ -38,7 +39,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         outputDoesNotContain("Aggregate test results")
 
         // Aggregate results are still emitted even if we don't print the URL to console
-        aggregateResults()
+        aggregateResults('', GenericTestExecutionResult.TestFramework.CUSTOM)
             .testPath(":passing suite")
             .onlyRoot()
             .assertChildCount(1, 0)
@@ -52,7 +53,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         succeeds("passing")
 
         then:
-        def results = aggregateResults()
+        def results = aggregateResults('', GenericTestExecutionResult.TestFramework.CUSTOM)
         results
             .testPath(":passing suite")
             .onlyRoot()
@@ -73,7 +74,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         fails("failing")
 
         then:
-        def results = aggregateResults()
+        def results = aggregateResults('', GenericTestExecutionResult.TestFramework.CUSTOM)
         results
             .testPath(":failing suite:failing test")
             .onlyRoot()
@@ -91,14 +92,14 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         then:
         failure.assertHasCause("Test(s) failed.")
         failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("failing"))
-        resultsFor("tests/failing")
+        resultsFor("tests/failing", GenericTestExecutionResult.TestFramework.CUSTOM)
             .testPath(":failing suite")
             .onlyRoot()
             .assertChildCount(1, 1)
 
         // Aggregate results are still emitted even if we don't print the URL to console
         outputDoesNotContain("Aggregate test results")
-        aggregateResults()
+        aggregateResults('', GenericTestExecutionResult.TestFramework.CUSTOM)
             .testPath(":failing suite")
             .onlyRoot()
             .assertChildCount(1, 1)
@@ -117,7 +118,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
 
         // Aggregate results are still emitted even if we don't print the URL to console
         outputDoesNotContain("Aggregate test results")
-        def aggregateResults = aggregateResults()
+        def aggregateResults = aggregateResults('', GenericTestExecutionResult.TestFramework.CUSTOM)
         aggregateResults.testPath(":passing suite")
             .onlyRoot()
             .assertChildCount(1, 0)
@@ -152,11 +153,11 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         def aggregateReportFile = file("build/reports/aggregate-test-results/index.html")
         def renderedUrl = new ConsoleRenderer().asClickableFileUrl(aggregateReportFile);
         outputContains("Aggregate test results: " + renderedUrl)
-        def aggregateResults = aggregateResults()
-        aggregateResults.testPath("failing1 suite")
+        def aggregateResults = aggregateResults('', GenericTestExecutionResult.TestFramework.CUSTOM)
+        aggregateResults.testPath(":failing1 suite")
             .onlyRoot()
             .assertChildCount(1, 1)
-        aggregateResults.testPath("failing2 suite")
+        aggregateResults.testPath(":failing2 suite")
             .onlyRoot()
             .assertChildCount(1, 1)
     }
@@ -193,7 +194,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         then:
         failure.assertHasFailures(2)
 
-        def aggregateResults = aggregateResults()
+        def aggregateResults = aggregateResults('', GenericTestExecutionResult.TestFramework.CUSTOM)
         assert aggregateResults.testPath(":").rootNames == ["aFirst", "bSecond", "cThird", "dFourth"]
     }
 
