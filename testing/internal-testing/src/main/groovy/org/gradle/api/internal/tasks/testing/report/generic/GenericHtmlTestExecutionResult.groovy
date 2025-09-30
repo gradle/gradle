@@ -212,32 +212,25 @@ Unexpected paths: ${unexpectedPaths}""")
             }
         }
 
-        String result
-        //noinspection GroovyFallthrough
-        switch (testFramework) {
-            case TestFramework.SPOCK:
-            case TestFramework.JUNIT4:
-            case TestFramework.SCALA_TEST:
-            case TestFramework.XC_TEST:
+        return switch (testFramework) {
+            case TestFramework.SPOCK, TestFramework.JUNIT4, TestFramework.SCALA_TEST, TestFramework.XC_TEST -> {
                 def prefix = Strings.isNullOrEmpty(basePrefix) ? "" : ":" + basePrefix
                 def suffix = Strings.isNullOrEmpty(baseSuffix) ? "" : ":" + baseSuffix
-                result = prefix + suffix
-                break
-            case TestFramework.JUNIT_JUPITER:
-            case TestFramework.KOTLIN_TEST:
+                yield prefix + suffix
+            }
+            case TestFramework.JUNIT_JUPITER, TestFramework.KOTLIN_TEST -> {
                 def prefix = Strings.isNullOrEmpty(basePrefix) ? "" : ":" + basePrefix
                 def suffix = Strings.isNullOrEmpty(baseSuffix) ? "" : ":" + baseSuffix + "()"
-                result = prefix + suffix
-                break
-            case TestFramework.TEST_NG:
+                yield prefix + suffix
+            }
+            case TestFramework.TEST_NG -> {
                 def prefix = Strings.isNullOrEmpty(basePrefix) ? "" : ":" + basePrefix
                 def suffix = Strings.isNullOrEmpty(baseSuffix) ? "" : ":" + baseSuffix
-                result = TEST_NG_PREFIX + prefix + suffix
-                break
-            default:
-                throw new IllegalArgumentException("Unknown test framework: " + testFramework)
+                yield TEST_NG_PREFIX + prefix + suffix
+            }
+            case TestFramework.CUSTOM -> testPath
+            default -> throw new IllegalArgumentException("Unknown test framework: " + testFramework)
         }
-        return result
     }
 
     private java.nio.file.Path diskPathForTestPath(String frameworkTestPath) {
