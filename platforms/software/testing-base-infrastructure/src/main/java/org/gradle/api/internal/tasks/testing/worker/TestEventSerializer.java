@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.worker;
 
+import com.google.common.base.Throwables;
 import org.gradle.api.internal.tasks.testing.AssertionFailureDetails;
 import org.gradle.api.internal.tasks.testing.AssumptionFailureDetails;
 import org.gradle.api.internal.tasks.testing.DefaultNestedTestSuiteDescriptor;
@@ -245,9 +246,12 @@ public class TestEventSerializer {
                 details = new AssertionFailureDetails(message, className, stacktrace, expected, actual);
             } else if (isAssumptionFailure) {
                 details = new AssumptionFailureDetails(message, className, stacktrace);
-            } else {
+            } else if (rawFailure instanceof TestFailureSerializationException) {
+                details = new DefaultTestFailureDetails(rawFailure.getMessage(), rawFailure.getClass().getName(), Throwables.getStackTraceAsString(rawFailure));
+            }else {
                 details = new DefaultTestFailureDetails(message, className, stacktrace);
             }
+
             return new DefaultTestFailure(rawFailure, details, causes);
         }
 
