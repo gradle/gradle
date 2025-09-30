@@ -258,7 +258,9 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
     def 'shows test-classpath-only cause of GradleConnectionException from test worker'() {
         given:
         buildFile << """
-            apply plugin: 'java'
+            plugins {
+                id 'java'
+            }
 
             ${mavenCentralRepository()}
 
@@ -287,6 +289,8 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
 
                 @Test
                 public void throwGCE() {
+                    // We use GradleConnectionException because it has a getFailures which doesn't return List<Throwable>
+                    // and therefore doesn't have causes listed in it.
                     throw new ${GradleConnectionException.name}(
                         "An irrelevant message",
                         new ExceptionNotPresentOnTestRunnerClasspath("The real cause")
