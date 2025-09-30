@@ -28,7 +28,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
-import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.api.tasks.wrapper.internal.GradleVersionResolver;
 import org.gradle.api.tasks.wrapper.internal.WrapperDefaults;
 import org.gradle.api.tasks.wrapper.internal.WrapperGenerator;
@@ -331,9 +330,9 @@ public abstract class Wrapper extends DefaultTask {
      * The list of available gradle distribution types.
      */
     @Deprecated
-    @OptionValues("distribution-type")
     public List<DistributionType> getAvailableDistributionTypes() {
         DeprecationLogger.deprecateMethod(Wrapper.class, "getAvailableDistributionTypes")
+            .replaceWith("Wrapper.DistributionType.values()")
             .willBeRemovedInGradle10()
             .withUpgradeGuideSection(9, "deprecated_wrapper_get_available_distribution_types")
             .nagUser();
