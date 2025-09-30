@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.worker;
 
+import com.google.common.base.Throwables;
 import org.gradle.api.internal.tasks.testing.AssertionFailureDetails;
 import org.gradle.api.internal.tasks.testing.AssumptionFailureDetails;
 import org.gradle.api.internal.tasks.testing.DefaultNestedTestSuiteDescriptor;
@@ -111,12 +112,22 @@ public class TestEventSerializer {
     private static class DefaultTestClassRunInfoSerializer implements Serializer<DefaultTestClassRunInfo> {
         @Override
         public DefaultTestClassRunInfo read(Decoder decoder) throws Exception {
-            return new DefaultTestClassRunInfo(decoder.readString());
+            String className = decoder.readString();
+            int suiteClassCount = decoder.readSmallInt();
+            List<String> suiteClassNames = new ArrayList<String>(suiteClassCount);
+            for (int i = 0; i < suiteClassCount; i++) {
+                suiteClassNames.add(decoder.readString());
+            }
+            return new DefaultTestClassRunInfo(className, suiteClassNames);
         }
 
         @Override
         public void write(Encoder encoder, DefaultTestClassRunInfo value) throws Exception {
             encoder.writeString(value.getTestClassName());
+            encoder.writeSmallInt(value.getSuiteClassNames().size());
+            for (String suiteClassName : value.getSuiteClassNames()) {
+                encoder.writeString(suiteClassName);
+            }
         }
     }
 
@@ -235,9 +246,12 @@ public class TestEventSerializer {
                 details = new AssertionFailureDetails(message, className, stacktrace, expected, actual);
             } else if (isAssumptionFailure) {
                 details = new AssumptionFailureDetails(message, className, stacktrace);
-            } else {
+            } else if (rawFailure instanceof TestFailureSerializationException) {
+                details = new DefaultTestFailureDetails(rawFailure.getMessage(), rawFailure.getClass().getName(), Throwables.getStackTraceAsString(rawFailure));
+            }else {
                 details = new DefaultTestFailureDetails(message, className, stacktrace);
             }
+
             return new DefaultTestFailure(rawFailure, details, causes);
         }
 

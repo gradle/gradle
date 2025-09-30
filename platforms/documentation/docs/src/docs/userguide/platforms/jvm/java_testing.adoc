@@ -600,6 +600,11 @@ This can be caused by a variety of issues, such as:
  * Too many processes are running which causes the OS to kill the test process.
  * The test process runs out of memory.
 
+=== Output from `@BeforeClass` and `@AfterClass` methods are incorrectly assigned to the wrong test
+
+When using a JUnit 4 version below 4.13, output from `@BeforeClass` and `@AfterClass` methods may be incorrectly assigned to a test earlier or later in the test execution order.
+This is due to a lack of events for when a class is started or finished, which were added in JUnit 4.13.
+
 [[sec:java_testing_modular]]
 == Testing Java Modules
 
