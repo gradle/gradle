@@ -12,16 +12,32 @@
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
-This release features [1](), [2](), ... [n](), and more.
+This release introduces support for [running Gradle on Windows ARM (ARM64) devices](#windows-arm-support), making it easier to build on Apple Silicon and other ARM-based systems. 
 
-<!-- 
-Include only their name, impactful features should be called out separately below.
- [Some person](https://github.com/some-person)
+It also [improves the publishing API](#publishing-improvements) with new ways to define and publish custom software components.
 
- THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
--->
+In addition, the [Daemon toolchain has been promoted](#daemon-promo) to stable.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
+[Adam](https://github.com/aSemy),
+[Björn Kautler](https://github.com/Vampire),
+[hasunzo](https://github.com/hasunzo),
+[HYEON](https://github.com/iohyeon),
+[Hyunjoon Park](https://github.com/academey),
+[HYUNJUN SON](https://github.com/guswns1659),
+[Jendrik Johannes](https://github.com/jjohannes),
+[Kirill Gavrilov](https://github.com/gavvvr),
+[Madalin Valceleanu](https://github.com/vmadalin),
+[Martin Bonnin](https://github.com/martinbonnin),
+[Mikhail Polivakha](https://github.com/mipo256),
+[Na Minhyeok](https://github.com/NaMinhyeok),
+[Philip Wedemann](https://github.com/hfhbd),
+[Philipp Schneider](https://github.com/p-schneider),
+[Róbert Papp](https://github.com/TWiStErRob),
+[Simon Marquis](https://github.com/SimonMarquis),
+[TheGoesen](https://github.com/TheGoesen),
+[Vincent Potucek](https://github.com/Pankraz76),
+[Xin Wang](https://github.com/scaventz).
 
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
@@ -39,16 +55,26 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ## New features and usability improvements
 
+<a name="windows-arm-support"></a>
+### Windows on ARM support
+
+Gradle now supports running builds on Windows ARM (ARM64) devices.
+
+This makes it possible to run Gradle on Windows virtual machines hosted on Apple Silicon and other ARM-based systems.
+
+<a name="publishing-improvements"></a>
 ### Publishing improvements
+
+Gradle provides APIs for plugin authors and build engineers to define and customize the software [components](userguide/glossary.html#sub:terminology_component) their project produces when [publishing](https://docs.gradle.org/current/userguide/publishing_customization.html) them.
 
 #### New `PublishingExtension.getSoftwareComponentFactory()` method
 
-This release introduces a new method that exposes the [`SoftwareComponentFactory`](javadoc/org/gradle/api/component/SoftwareComponentFactory.html) service via the `publishing` extension, simplifying the creation of publishable components.
-In many cases, a component is already present. 
-For example, the bundled Java plugins already provide the `java` component by default.
-This new method is especially useful for plugin authors who want to create and publish custom components without needing to depend on the Java plugins.
+Gradle now exposes the [`SoftwareComponentFactory`](javadoc/org/gradle/api/component/SoftwareComponentFactory.html) service directly through the `publishing` extension. 
+This makes it easier to create and publish [custom components](userguide/publishing_customization.html#sec:publishing-custom-components).
 
-The following example shows how to use this new method to publish a custom component:
+In most builds, a publishable component is already available.
+For example, the Java plugins automatically provide a `java` component. 
+But if you’re authoring a plugin and want to publish something custom without depending on the Java plugins, this new method provides a straightforward way to do so:
 
 ```kotlin
 plugins {
@@ -60,7 +86,7 @@ val consumableConfiguration: Configuration = getAConfiguration()
 publishing {
     val myCustomComponent = softwareComponentFactory.adhoc("myCustomComponent")
     myCustomComponent.addVariantsFromConfiguration(consumableConfiguration) {}
-    
+
     publications {
         create<MavenPublication>("maven") {
             from(myCustomComponent)
@@ -71,15 +97,14 @@ publishing {
 
 #### New provider-based methods for publishing configurations
 
-Two new methods have been added to [`AdhocComponentWithVariants`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html) which accept providers of consumable configurations:
+Two new methods have been added to [`AdhocComponentWithVariants`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html) that accept providers of [consumable configurations](userguide/declaring_configurations.html#sec:resolvable-consumable-configs):
 
 - [`void addVariantsFromConfiguration(Provider<ConsumableConfiguration>, Action<? super ConfigurationVariantDetails>)`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html#addVariantsFromConfiguration(org.gradle.api.provider.Provider,org.gradle.api.Action))
 - [`void withVariantsFromConfiguration(Provider<ConsumableConfiguration>, Action<? super ConfigurationVariantDetails>)`](javadoc/org/gradle/api/component/AdhocComponentWithVariants.html#withVariantsFromConfiguration(org.gradle.api.provider.Provider,org.gradle.api.Action))
 
-These complement the existing methods that accept realized configuration instances.
+These complement the existing overloads that require an already realized configuration.
 
-With this new API, configurations can remain lazy and are only realized when actually needed for publishing.
-Consider the following example:
+By accepting providers, configurations can now stay lazy and are only realized when needed for publishing:
 
 ```kotlin
 plugins {
@@ -104,7 +129,7 @@ val myNewVariant: NamedDomainObjectProvider<ConsumableConfiguration> = configura
 
 publishing {
     val component = softwareComponentFactory.adhoc("component")
-    // This new overload now accepts a lazy provider of consumable configuration
+    // New overload accepts a provider instead of a realized configuration
     component.addVariantsFromConfiguration(myNewVariant) {}
 
     repositories {
@@ -120,57 +145,7 @@ publishing {
 }
 ```
 
-With this approach, the `myNewVariant` configuration will only be realized if the `myPublication` publication is actually published.
-
-<a name="add-windows-arm-support"></a>
-### Windows ARM support
-
-Gradle now provides support for Windows on ARM (ARM64) devices.
-That means running your builds on a Windows ARM device is now possible.
-
-A typical use case for this is running windows VMs on Apple Silicon using virtualization software.
-
-<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
-
-<!--
-
-================== TEMPLATE ==============================
-
-<a name="FILL-IN-KEY-AREA"></a>
-### FILL-IN-KEY-AREA improvements
-
-<<<FILL IN CONTEXT FOR KEY AREA>>>
-Example:
-> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
-> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
-> nothing that affects the build configuration has changed.
-
-#### FILL-IN-FEATURE
-> HIGHLIGHT the use case or existing problem the feature solves
-> EXPLAIN how the new release addresses that problem or use case
-> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
-> LINK to the full documentation for more details
-
-To embed videos, use the macros below. 
-You can extract the URL from YouTube by clicking the "Share" button. 
-For Wistia, contact Gradle's Video Team.
-@youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
-@wistia(Summary,a5izazvgit)@
-
-================== END TEMPLATE ==========================
-
-
-==========================================================
-ADD RELEASE FEATURES BELOW
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
-
-
-
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-==========================================================
-
--->
+With this approach, `myNewVariant` is only realized if the `myPublication` publication is actually published.
 
 ## Promoted features
 
@@ -179,11 +154,11 @@ See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecy
 
 The following are the features that have been promoted in this Gradle release.
 
+<a name="daemon-promo"></a>
 ### Daemon toolchain is now stable
 
-Gradle introduced the [Daemon toolchain](userguide/gradle_daemon.html#sec:daemon_jvm_criteria) in Gradle 8.8 as an incubating feature.
-Since then the feature has been improved and stabilized.
-It is now considered stable and will no longer print an incubation warning when used.
+The [Daemon toolchain](userguide/gradle_daemon.html#sec:daemon_jvm_criteria), introduced as an incubating feature in Gradle 8.8, has been improved and is now stable. 
+It no longer prints an incubation warning when used.
 
 ## Fixed issues
 

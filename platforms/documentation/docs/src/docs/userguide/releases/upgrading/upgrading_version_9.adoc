@@ -43,19 +43,20 @@ The previous step will help you identify potential problems by issuing deprecati
 
 ==== Upgrade to Kotlin 2.2.20
 
-The embedded Kotlin has been updated from 2.2.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.20[Kotlin 2.2.20].
+The embedded Kotlin has been upgraded from 2.2.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.20[Kotlin 2.2.20].
 
-==== Removed incubating method `ObjectFactory#dependencyCollector()`
+==== Removed incubating `ObjectFactory#dependencyCollector()` method
 
 The incubating `ObjectFactory#dependencyCollector()` method has been removed.
-DependencyCollectors can still be instantiated within Gradle <<properties_providers.adoc#managed_types, managed types>>.
+You can still create `DependencyCollectors` within Gradle <<properties_providers.adoc#managed_types, managed types>>.
 
-==== Consumable configurations are initialized lazily
+==== Consumable configurations are now initialized lazily
 
-Consumable configurations created by all bundled Gradle plugins are now initialized lazily.
-Configure actions applied to consumable configurations created by Gradle will no longer be executed unless that configuration is published, consumed as a variant, or otherwise realized by build logic.
+Consumable configurations created by bundled Gradle plugins are now initialized only when needed.
+Configure actions on these configurations will no longer run at configuration time by default.
+They will only execute if the configuration is published, consumed as a variant, or otherwise realized by build logic.
 
-Consider the following example:
+For example:
 
 .build.gradle.kts
 [source,kotlin]
@@ -69,10 +70,9 @@ configurations.named("apiElements").configure {
 }
 ----
 
-The `Configuring apiElements` line will no longer be executed during configuration-time by default.
-Instead, the configuration will only be realized and initialized if it is needed.
+With this change, the `Configuring apiElements` line is no longer printed during configuration time unless `apiElements` is realized.
 
-To leverage this new laziness, avoid APIs that eagerly realize configurations:
+To take advantage of this laziness, avoid APIs that eagerly realize configurations:
 
 .build.gradle.kts
 [source,kotlin]
@@ -81,7 +81,7 @@ To leverage this new laziness, avoid APIs that eagerly realize configurations:
 configurations.all {} // Eagerly realizes all configurations
 
 // Use
-configurations.confgureEach {} // Only called for realized configurations
+configurations.configureEach {} // Only called for realized configurations
 
 // Instead of
 configurations.getByName("name").doSomething() // Eagerly realizes the "name" configuration
@@ -95,37 +95,35 @@ configurations.named("name").configure {
 === Deprecations
 
 [[project_container_methods]]
-=== Deprecated `Project.container(...)` methods
+==== Deprecated `Project.container(...)` methods
 
-The link:{javadocPath}/org/gradle/api/Project.html#container-java.lang.Class-[`Project.container(...)`] methods are deprecated and will be removed in Gradle 10. These methods were used to manually create named domain object containers.
+The link:{javadocPath}/org/gradle/api/Project.html#container-java.lang.Class-[`Project.container(...)`] methods are deprecated and will be removed in Gradle 10.
+These methods manually create named domain object containers.
 
-A named domain object container can be created with a <<properties_providers.adoc#mutable_managed_properties,managed property>>, which delegates the responsibility to Gradle to instantiate the container properly.
-
-Since Gradle 5.5, `ObjectFactory.domainObjectContainer(...)` has provided equivalent functionality if the plugin cannot use a managed property.
-
-Unlike `Project.container(Class)`, `ObjectFactory.domainObjectContainer(Class)` requires the given type is non-final and elements of the container will be decorated and made extension aware like all other Gradle instantiated objects.
+Use a <<properties_providers.adoc#mutable_managed_properties,managed property>> to let Gradle instantiate containers automatically.
+If a managed property isn’t possible, use `ObjectFactory.domainObjectContainer(...)` (available since Gradle 5.5).
+Unlike `Project.container(Class)`, the `ObjectFactory` version decorates container elements and makes them extension aware.
 
 [[dependency_management_rules]]
-==== RuleSource-based dependency management APIs have been deprecated
+==== Deprecated ruleSource-based dependency management APIs
 
 The link:{javadocPath}/org/gradle/model/RuleSource.html[`RuleSource`]-based dependency management APIs have been deprecated and will be removed in Gradle 10.0.0.
 
-These APIs include:
+Deprecated APIs include:
 
 - link:{javadocPath}/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html#all(java.lang.Object)[`ComponentMetadataHandler.all(Object)`]
 - link:{javadocPath}/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html#all(java.lang.Object)[`ComponentMetadataHandler.withModule(Object,Object)`]
 - link:{javadocPath}/org/gradle/api/artifacts/ComponentSelectionRules.html#all(java.lang.Object)[`ComponentSelectionRules.all(Object)`]
 - link:{javadocPath}/org/gradle/api/artifacts/ComponentSelectionRules.html#withModule(java.lang.Object,java.lang.Object)[`ComponentSelectionRules.withModule(Object,Object)`]
 
-Instead of using these APIs, you should use the alternative methods that take a `ComponentMetadataRule` class or an `Action`.
+Use the alternative methods that accept a `ComponentMetadataRule` class or an `Action`.
 
 [[deprecate_register_feature_no_java_plugin]]
 ==== Deprecated calling `registerFeature` without applying the Java plugin
 
-Creating a JVM feature with link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html#registerFeature(java.lang.String,org.gradle.api.Action)[`JavaPluginExtension#registerFeature`] before the Java plugin is applied has been deprecated and will become an error in Gradle 10.0.0.
+Creating a JVM feature with link:{javadocPath}/org/gradle/api/plugins/JavaPluginExtension.html#registerFeature(java.lang.String,org.gradle.api.Action)[`JavaPluginExtension#registerFeature`] before applying the Java plugin has been deprecated and will become an error in Gradle 10.0.0.
 
-Build logic that creates JVM features should ensure the Java plugin is applied before invoking `registerFeature`.
-
+Ensure the Java plugin is applied before invoking `registerFeature`.
 The following bundled plugins apply the Java plugin automatically:
 
 - `java-library`
@@ -136,6 +134,16 @@ The following bundled plugins apply the Java plugin automatically:
 
 [[changes_9.1.0]]
 == Upgrading from 9.0.0 and earlier
+
+=== Potential breaking changes
+
+==== Upgrade to ASM 9.8
+
+ASM was upgraded from 9.7.1 to https://asm.ow2.io/versions.html[9.8] to ensure earlier compatibility for Java 25.
+
+==== Upgrade to Groovy 4.0.28
+
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-4.0.28.html[Groovy 4.0.28].
 
 === Deprecations
 
@@ -442,12 +450,3 @@ Instead, you should specify these settings as <<build_environment.adoc#sec:gradl
 -Dorg.gradle.java.installations.auto-detect=false
 ----
 
-=== Potential breaking changes
-
-==== Upgrade to ASM 9.8
-
-ASM was upgraded from 9.7.1 to https://asm.ow2.io/versions.html[9.8] to ensure earlier compatibility for Java 25.
-
-==== Upgrade to Groovy 4.0.28
-
-Groovy has been updated to https://groovy-lang.org/changelogs/changelog-4.0.28.html[Groovy 4.0.28].
