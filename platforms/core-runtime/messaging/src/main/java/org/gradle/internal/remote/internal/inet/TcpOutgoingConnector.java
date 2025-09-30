@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -32,9 +33,11 @@ import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.Charset;
 import java.util.List;
 
 public class TcpOutgoingConnector implements OutgoingConnector {
+    static final byte[] CONNECTION_PREAMBLE = "Gradle Magic".getBytes(Charset.forName("UTF-8"));
     private static final Logger LOGGER = LoggerFactory.getLogger(TcpOutgoingConnector.class);
     private static final int CONNECT_TIMEOUT = 10000;
 
@@ -75,7 +78,7 @@ public class TcpOutgoingConnector implements OutgoingConnector {
         } catch (ConnectException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not connect to server %s. Tried addresses: %s.",
+            throw new ConnectException(String.format("Could not connect to server %s. Tried addresses: %s.",
                     destinationAddress, candidateAddresses), e);
         }
     }
@@ -84,8 +87,10 @@ public class TcpOutgoingConnector implements OutgoingConnector {
         SocketChannel socketChannel = SocketChannel.open();
         try {
             socketChannel.socket().connect(new InetSocketAddress(candidate, address.getPort()), CONNECT_TIMEOUT);
-
             if (!detectSelfConnect(socketChannel)) {
+                OutputStream out = socketChannel.socket().getOutputStream();
+                out.write(CONNECTION_PREAMBLE);
+                out.flush();
                 SocketBlockingUtil.configureNonblocking(socketChannel);
                 return socketChannel;
             }
