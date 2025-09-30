@@ -19,6 +19,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Strings
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.ImmutableMultiset
+import com.google.common.collect.LinkedListMultimap
 import com.google.common.collect.Multimap
 import com.google.common.collect.Multisets
 import com.google.common.collect.Sets
@@ -28,6 +29,7 @@ import org.gradle.internal.lazy.Lazy
 import org.gradle.util.Path
 import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
+import org.jetbrains.kotlin.fir.util.ListMultimap
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -281,10 +283,10 @@ Unexpected paths: ${unexpectedPaths}""")
 
     private static class HtmlTestPathRootExecutionResult implements TestPathRootExecutionResult {
         private Element html
-        private Multimap<String, TestInfo> testsExecuted = HashMultimap.create()
-        private Multimap<String, TestInfo> testsSucceeded = HashMultimap.create()
-        private Multimap<String, TestInfo> testsFailures = HashMultimap.create()
-        private Multimap<String, TestInfo> testsSkipped = HashMultimap.create()
+        private Multimap<String, TestInfo> testsExecuted = LinkedListMultimap.create()
+        private Multimap<String, TestInfo> testsSucceeded = LinkedListMultimap.create()
+        private Multimap<String, TestInfo> testsFailures = LinkedListMultimap.create()
+        private Multimap<String, TestInfo> testsSkipped = LinkedListMultimap.create()
 
         HtmlTestPathRootExecutionResult(Element html) {
             this.html = html
