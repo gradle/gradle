@@ -17,7 +17,6 @@ package org.gradle.api.internal.tasks.testing.report.generic
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Strings
-import com.google.common.collect.HashMultimap
 import com.google.common.collect.ImmutableMultiset
 import com.google.common.collect.LinkedListMultimap
 import com.google.common.collect.Multimap
@@ -29,7 +28,6 @@ import org.gradle.internal.lazy.Lazy
 import org.gradle.util.Path
 import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
-import org.jetbrains.kotlin.fir.util.ListMultimap
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
